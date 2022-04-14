@@ -1,0 +1,12 @@
+[submodule "Dependencies/bx"]
+	path = Dependencies/bx
+	url = https://github.com/bkaradzic/bx.git
+[submodule "Dependencies/bimg"]
+	path = Dependencies/bimg
+	url = https://github.com/bkaradzic/bimg.git
+[submodule "Dependencies/bgfx"]
+	path = Dependencies/bgfx
+	url = https://github.com/bkaradzic/bgfx.git
+[submodule "Dependencies/glfw"]
+	path = Dependencies/glfw
+	url = https://github.com/glfw/glfw.git
