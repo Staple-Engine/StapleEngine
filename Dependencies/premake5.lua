@@ -10,11 +10,8 @@ local GLFW_DIR = "glfw"
 solution "Dependencies"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	if os.is64bit() and not os.istarget("windows") then
-		platforms "x86_64"
-	else
-		platforms { "x86", "x86_64" }
-	end
+	platforms "x86_64"
+	
 	filter "configurations:Release"
 		defines "NDEBUG"
 		optimize "Full"
@@ -22,8 +19,6 @@ solution "Dependencies"
 		defines "_DEBUG"
 		optimize "Debug"
 		symbols "On"
-	filter "platforms:x86"
-		architecture "x86"
 	filter "platforms:x86_64"
 		architecture "x86_64"
 	filter "system:macosx"
@@ -43,7 +38,7 @@ function setBxCompat()
 end
 	
 project "bgfx"
-	kind "StaticLib"
+	kind "SharedLib"
 	language "C++"
 	cppdialect "C++14"
 	exceptionhandling "Off"
@@ -68,6 +63,11 @@ project "bgfx"
 		path.join(BGFX_DIR, "3rdparty/dxsdk/include"),
 		path.join(BGFX_DIR, "3rdparty/khronos")
 	}
+	
+	links { "bx", "bimg" }
+	
+	defines { "BGFX_SHARED_LIB_BUILD" }
+	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
 	filter "configurations:Release"
@@ -107,6 +107,7 @@ project "bimg"
 		path.join(BIMG_DIR, "3rdparty/astc-codec"),
 		path.join(BIMG_DIR, "3rdparty/astc-codec/include"),
 	}
+	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
 	filter "configurations:Release"
@@ -146,7 +147,7 @@ project "bx"
 	setBxCompat()
 		
 project "glfw"
-	kind "StaticLib"
+	kind "SharedLib"
 	language "C"
 	files
 	{
@@ -169,6 +170,7 @@ project "glfw"
 	includedirs { path.join(GLFW_DIR, "include") }
 	filter "system:windows"
 		defines "_GLFW_WIN32"
+		defines "_GLFW_BUILD_DLL"
 		files
 		{
 			path.join(GLFW_DIR, "src/win32_*.*"),
