@@ -29,7 +29,7 @@ namespace Staple
             HiDpi = (1 << 7),
         }
 
-        public WindowMode windowMode = WindowMode.Borderless;
+        public WindowMode windowMode = WindowMode.Windowed;
         public VideoFlags videoFlags = VideoFlags.Vsync;
         public int screenWidth;
         public int screenHeight;

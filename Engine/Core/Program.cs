@@ -12,7 +12,7 @@ namespace Staple
             new AppPlayer(new AppSettings()
             {
                 appName = "Test",
-                runInBackground = true,
+                runInBackground = false,
             }).Run();
         }
     }

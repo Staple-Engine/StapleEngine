@@ -171,6 +171,9 @@ namespace Staple
 
             Glfw.GetFramebufferSize(window, out screenWidth, out screenHeight);
 
+            playerSettings.screenWidth = screenWidth;
+            playerSettings.screenHeight = screenHeight;
+
             init.type = bgfx.RendererType.Count;
             init.resolution.width = (uint)screenWidth;
             init.resolution.height = (uint)screenHeight;
@@ -204,8 +207,8 @@ namespace Staple
 
                 if (currentW != screenWidth || currentH != screenHeight)
                 {
-                    screenWidth = currentW;
-                    screenHeight = currentH;
+                    playerSettings.screenWidth = screenWidth = currentW;
+                    playerSettings.screenHeight = screenHeight = currentH;
 
                     ResetRendering(hasFocus);
                 }
@@ -215,24 +218,14 @@ namespace Staple
                     hasFocus = window.IsFocused;
 
                     ResetRendering(hasFocus);
+
+                    if(hasFocus == false)
+                    {
+                        continue;
+                    }
                 }
 
                 bgfx.touch(0);
-
-                bgfx.dbg_text_clear(0, false);
-                bgfx.dbg_text_printf(0, 0, 0x0f, "Press F1 to toggle stats.", "");
-                bgfx.dbg_text_printf(0, 1, 0x0f, "Color can be changed with ANSI \x1b[9;me\x1b[10;ms\x1b[11;mc\x1b[12;ma\x1b[13;mp\x1b[14;me\x1b[0m code too.", "");
-                bgfx.dbg_text_printf(80, 1, 0x0f, "\x1b[;0m    \x1b[;1m    \x1b[; 2m    \x1b[; 3m    \x1b[; 4m    \x1b[; 5m    \x1b[; 6m    \x1b[; 7m    \x1b[0m", "");
-                bgfx.dbg_text_printf(80, 2, 0x0f, "\x1b[;8m    \x1b[;9m    \x1b[;10m    \x1b[;11m    \x1b[;12m    \x1b[;13m    \x1b[;14m    \x1b[;15m    \x1b[0m", "");
-
-                unsafe
-                {
-                    bgfx.Stats* stats = bgfx.get_stats();
-
-                    bgfx.dbg_text_printf(0, 2, 0x0f, $"Backbuffer {stats->width}W x {stats->height}H in pixels, debug text {stats->textWidth}W x {stats->textHeight}H in characters.", "");
-                }
-
-                bgfx.set_debug((uint)(bgfx.DebugFlags.Text));
 
                 bgfx.frame(false);
             }
