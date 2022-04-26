@@ -3,8 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("CoreTests")]
 
 namespace Staple
 {
@@ -14,7 +17,7 @@ namespace Staple
         private mat4 matrix = mat4.Identity;
         private quat rotation = quat.Identity;
         private Vector3 position;
-        private Vector3 scale;
+        private Vector3 scale = Vector3.one;
 
         public Transform parent { get; private set; }
 
@@ -26,7 +29,7 @@ namespace Staple
                 {
                     Changed = false;
 
-                    matrix = mat4.Translate(position) * rotation.ToMat4 * mat4.Scale(scale.x, scale.y, scale.z);
+                    matrix = mat4.Scale(scale.x, scale.y, scale.z) * rotation.ToMat4 * mat4.Translate(position);
                 }
 
                 if(parent != null)
@@ -58,6 +61,31 @@ namespace Staple
             set
             {
                 position = value;
+
+                Changed = true;
+            }
+        }
+
+        public Vector3 Scale
+        {
+            get
+            {
+                if (parent != null)
+                {
+                    return parent.Scale * scale;
+                }
+
+                return scale;
+            }
+        }
+
+        public Vector3 LocalScale
+        {
+            get => scale;
+
+            set
+            {
+                scale = value;
 
                 Changed = true;
             }

@@ -24,6 +24,31 @@ namespace Staple
             point.z = Z;
         }
 
+        public override string ToString()
+        {
+            return $"({point.x}, {point.y}, {point.z})";
+        }
+
+        public override int GetHashCode()
+        {
+            return (((point.x.GetHashCode() * 397) ^ point.y.GetHashCode()) * 397) ^ point.z.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (obj is Vector3 v)
+            {
+                return v.point.x.Equals(point.x) && v.point.y.Equals(point.y) && v.point.z.Equals(point.z);
+            }
+
+            return false;
+        }
+
         public static implicit operator vec3(Vector3 v) => new vec3(v.x, v.y, v.z);
         public static implicit operator vec4(Vector3 v) => new vec4(v.x, v.y, v.z, 0);
         public static implicit operator Vector3(vec3 v) => new Vector3(v.x, v.y, v.z);
@@ -39,6 +64,8 @@ namespace Staple
 
         public static Vector3 operator /(Vector3 a, Vector3 b) => new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
 
+        public static Vector3 operator /(Vector3 a, float b) => new Vector3(a.x / b, a.y / b, a.z / b);
+
         public static bool operator ==(Vector3 a, Vector3 b) => a.x == b.x && a.y == b.y && a.z == b.z;
 
         public static bool operator !=(Vector3 a, Vector3 b) => a.x != b.x || a.y != b.y || a.z != b.z;
@@ -49,5 +76,7 @@ namespace Staple
         public static readonly Vector3 down = new Vector3(0, 1, 0);
         public static readonly Vector3 right = new Vector3(1, 0, 0);
         public static readonly Vector3 left = new Vector3(-1, 0, 0);
+        public static readonly Vector3 one = new Vector3(1, 1, 1);
+        public static readonly Vector3 zero = new Vector3(0, 0, 0);
     }
 }
