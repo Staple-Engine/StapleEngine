@@ -24,6 +24,23 @@ namespace Staple
             point.z = Z;
         }
 
+        public Vector3(vec3 v)
+        {
+            point = v;
+        }
+
+        public Vector3 Normalized => new Vector3(point.NormalizedSafe);
+
+        public float Magnitude => point.Length;
+
+        public float MagnitudeSqr => point.LengthSqr;
+
+        public void Normalize() => point = point.NormalizedSafe;
+
+        public static float Dot(Vector3 first, Vector3 other) => glm.Dot((vec3)first, other);
+
+        public static Vector3 Cross(Vector3 first, Vector3 other) => glm.Cross(first, other);
+
         public override string ToString()
         {
             return $"({point.x}, {point.y}, {point.z})";

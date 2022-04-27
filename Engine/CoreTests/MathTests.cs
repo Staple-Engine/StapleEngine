@@ -7,6 +7,14 @@ namespace CoreTests
     internal class MathTests
     {
         [Test]
+        public void TestNextPowerOf2()
+        {
+            Assert.AreEqual(2, Math.NextPowerOfTwo(1));
+            Assert.AreEqual(32, Math.NextPowerOfTwo(21));
+            Assert.AreEqual(16, Math.NextPowerOfTwo(10));
+        }
+
+        [Test]
         public void TestVector3Init()
         {
             var v = new Vector3();

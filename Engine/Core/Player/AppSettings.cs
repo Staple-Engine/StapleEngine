@@ -11,5 +11,12 @@ namespace Staple
     {
         public bool runInBackground = false;
         public string appName;
+
+        public Dictionary<AppPlatform, RendererType> renderers = new Dictionary<AppPlatform, RendererType>
+        {
+            { AppPlatform.Windows, RendererType.Direct3D11 },
+            { AppPlatform.Linux, RendererType.OpenGL },
+            { AppPlatform.MacOSX, RendererType.Metal },
+        };
     }
 }

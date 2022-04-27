@@ -139,6 +139,7 @@ namespace Staple
             bgfx.render_frame(0);
 
             var init = new bgfx.Init();
+            var rendererType = RendererType.OpenGL;
 
             unsafe
             {
@@ -147,6 +148,11 @@ namespace Staple
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
+
+                    if(appSettings.renderers.TryGetValue(AppPlatform.Windows, out var type))
+                    {
+                        rendererType = type;
+                    }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -161,11 +167,21 @@ namespace Staple
 
                     init.platformData.ndt = display.ToPointer();
                     init.platformData.nwh = windowHandle.ToPointer();
+
+                    if (appSettings.renderers.TryGetValue(AppPlatform.Linux, out var type))
+                    {
+                        rendererType = type;
+                    }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
                     init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
+
+                    if (appSettings.renderers.TryGetValue(AppPlatform.MacOSX, out var type))
+                    {
+                        rendererType = type;
+                    }
                 }
             }
 
@@ -174,7 +190,42 @@ namespace Staple
             playerSettings.screenWidth = screenWidth;
             playerSettings.screenHeight = screenHeight;
 
-            init.type = bgfx.RendererType.Count;
+            var initRenderer = bgfx.RendererType.Count;
+
+            switch(rendererType)
+            {
+                case RendererType.OpenGL:
+
+                    initRenderer = bgfx.RendererType.OpenGL;
+
+                    break;
+
+                case RendererType.Direct3D11:
+
+                    initRenderer = bgfx.RendererType.Direct3D11;
+
+                    break;
+
+                case RendererType.Direct3D12:
+
+                    initRenderer = bgfx.RendererType.Direct3D12;
+
+                    break;
+
+                case RendererType.Metal:
+
+                    initRenderer = bgfx.RendererType.Metal;
+
+                    break;
+
+                case RendererType.Vulkan:
+
+                    initRenderer = bgfx.RendererType.Vulkan;
+
+                    break;
+            }
+
+            init.type = initRenderer;
             init.resolution.width = (uint)screenWidth;
             init.resolution.height = (uint)screenHeight;
             init.resolution.reset = (uint)ResetFlags;
