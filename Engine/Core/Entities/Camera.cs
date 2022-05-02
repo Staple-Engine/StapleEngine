@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
-    public class Camera : Entity
+    public class Camera
     {
         public CameraClearMode clearMode = CameraClearMode.SolidColor;
 

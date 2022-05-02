@@ -21,6 +21,13 @@ namespace Staple
 
         public Transform parent { get; private set; }
 
+        public readonly WeakReference<Entity> entity;
+
+        public Transform(Entity owner)
+        {
+            entity = new WeakReference<Entity>(owner);
+        }
+
         internal mat4 Matrix
         {
             get

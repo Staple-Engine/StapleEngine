@@ -250,6 +250,8 @@ namespace Staple
                 ResetRendering(hasFocus);
             }
 
+            Scene.current = new Scene();
+
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
                 Glfw.PollEvents();
