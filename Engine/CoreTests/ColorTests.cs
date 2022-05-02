@@ -46,5 +46,21 @@ namespace CoreTests
             Assert.AreEqual(1, a.b);
             Assert.AreEqual(0, a.a);
         }
+
+        [Test]
+        public void TestColorIntValue()
+        {
+            var a = new Color(0.5f, 0.25f, 1.0f, 0.0f);
+
+            var uintValue = a.uintValue;
+
+            Assert.AreEqual(0x7F3FFF00, uintValue);
+
+            var b = new Color32(255, 128, 64, 0);
+
+            uintValue = b.uintValue;
+
+            Assert.AreEqual(0xFF804000, uintValue);
+        }
     }
 }

@@ -13,6 +13,14 @@ namespace Staple
     {
         public float r, g, b, a;
 
+        public uint uintValue
+        {
+            get
+            {
+                return ((Color32)this).uintValue;
+            }
+        }
+
         public Color(float R, float G, float B, float A)
         {
             r = R;

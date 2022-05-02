@@ -17,8 +17,8 @@ namespace Staple
 
         private PlayerSettings playerSettings;
 
-        private int screenWidth = 0;
-        private int screenHeight = 0;
+        public static int ScreenWidth { get; private set; }
+        public static int ScreenHeight { get; private set; }
 
         public AppPlayer(AppSettings appSettings)
         {
@@ -79,7 +79,7 @@ namespace Staple
                 flags |= bgfx.ResetFlags.Suspend;
             }
 
-            bgfx.reset((uint)screenWidth, (uint)screenHeight, (uint)flags, bgfx.TextureFormat.RGBA32U);
+            bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)flags, bgfx.TextureFormat.RGBA32U);
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
         }
 
@@ -185,10 +185,10 @@ namespace Staple
                 }
             }
 
-            Glfw.GetFramebufferSize(window, out screenWidth, out screenHeight);
+            Glfw.GetFramebufferSize(window, out var sw, out var sh);
 
-            playerSettings.screenWidth = screenWidth;
-            playerSettings.screenHeight = screenHeight;
+            playerSettings.screenWidth = ScreenWidth = sw;
+            playerSettings.screenHeight = ScreenHeight = sh;
 
             var initRenderer = bgfx.RendererType.Count;
 
@@ -226,8 +226,8 @@ namespace Staple
             }
 
             init.type = initRenderer;
-            init.resolution.width = (uint)screenWidth;
-            init.resolution.height = (uint)screenHeight;
+            init.resolution.width = (uint)ScreenWidth;
+            init.resolution.height = (uint)ScreenHeight;
             init.resolution.reset = (uint)ResetFlags;
 
             unsafe
@@ -256,10 +256,10 @@ namespace Staple
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
 
-                if (currentW != screenWidth || currentH != screenHeight)
+                if (currentW != ScreenWidth || currentH != ScreenHeight)
                 {
-                    playerSettings.screenWidth = screenWidth = currentW;
-                    playerSettings.screenHeight = screenHeight = currentH;
+                    playerSettings.screenWidth = ScreenWidth = currentW;
+                    playerSettings.screenHeight = ScreenHeight = currentH;
 
                     ResetRendering(hasFocus);
                 }

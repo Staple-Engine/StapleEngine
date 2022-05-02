@@ -13,6 +13,14 @@ namespace Staple
     {
         public byte r, g, b, a;
 
+        public uint uintValue
+        {
+            get
+            {
+                return (uint)(r << 24) + (uint)(g << 16) + (uint)(b << 8) + a;
+            }
+        }
+
         public Color32(byte R, byte G, byte B, byte A)
         {
             r = R;
