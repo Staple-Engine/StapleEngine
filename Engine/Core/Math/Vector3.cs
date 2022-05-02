@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Staple
 {
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct Vector3
     {
         private vec3 point;
@@ -70,6 +73,7 @@ namespace Staple
         public static implicit operator vec4(Vector3 v) => new vec4(v.x, v.y, v.z, 0);
         public static implicit operator Vector3(vec3 v) => new Vector3(v.x, v.y, v.z);
         public static implicit operator Vector3(vec4 v) => new Vector3(v.x, v.y, v.z);
+        public static implicit operator Vector3(Vector2 v) => new Vector3(v.x, v.y, 0);
 
         public static Vector3 operator +(Vector3 a, Vector3 b) => new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
 
