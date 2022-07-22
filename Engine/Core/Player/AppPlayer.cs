@@ -17,6 +17,8 @@ namespace Staple
 
         private PlayerSettings playerSettings;
 
+        private RenderSystem renderSystem = new RenderSystem();
+
         public static int ScreenWidth { get; private set; }
         public static int ScreenHeight { get; private set; }
 
@@ -185,10 +187,10 @@ namespace Staple
                 }
             }
 
-            Glfw.GetFramebufferSize(window, out var sw, out var sh);
+            Glfw.GetFramebufferSize(window, out playerSettings.screenWidth, out playerSettings.screenHeight);
 
-            playerSettings.screenWidth = ScreenWidth = sw;
-            playerSettings.screenHeight = ScreenHeight = sh;
+            ScreenWidth = playerSettings.screenWidth;
+            ScreenHeight = playerSettings.screenHeight;
 
             var initRenderer = bgfx.RendererType.Count;
 
@@ -252,6 +254,12 @@ namespace Staple
 
             Scene.current = new Scene();
 
+            var cameraEntity = new Entity("Camera");
+
+            var camera = cameraEntity.AddComponent<Camera>();
+
+            camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
+
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
                 Glfw.PollEvents();
@@ -277,6 +285,8 @@ namespace Staple
                         continue;
                     }
                 }
+
+                renderSystem.Perform(Scene.current);
 
                 bgfx.touch(0);
 

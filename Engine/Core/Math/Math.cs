@@ -1,7 +1,7 @@
-﻿using GlmSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,31 +17,31 @@ namespace Staple
         public static int RoundToInt(float value) => value < 0.0f ? (int)(value - 0.5f) : (int)(value + 0.5f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Deg2Rad(float angle) => glm.Radians(angle);
+        public static float Deg2Rad(float angle) => angle * PI / 180;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Rad2Deg(float angle) => glm.Degrees(angle);
+        public static float Rad2Deg(float angle) => angle * 180 / PI;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Abs(float f) => glm.Abs(f);
+        public static float Abs(float f) => (float)System.Math.Abs(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Acos(float f) => glm.Acos(f);
+        public static float Acos(float f) => (float)System.Math.Acos(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Asin(float f) => glm.Asin(f);
+        public static float Asin(float f) => (float)System.Math.Asin(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Atan(float f) => glm.Atan(f);
+        public static float Atan(float f) => (float)System.Math.Atan(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Atan2(float x, float y) => (float)System.Math.Atan2(x, y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Ceil(float f) => glm.Ceiling(f);
+        public static float Ceil(float f) => (float)System.Math.Ceiling(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int CeilToInt(float f) => (int)glm.Ceiling(f);
+        public static int CeilToInt(float f) => (int)System.Math.Ceiling(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Clamp(float x, float min, float max) => x < min ? min : x > max ? max : x;
@@ -50,19 +50,19 @@ namespace Staple
         public static float Clamp01(float x) => x < 0 ? 0 : x > 1 ? 1 : x;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Cos(float x) => glm.Cos(x);
+        public static float Cos(float x) => (float)System.Math.Cos(x);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Sin(float x) => glm.Sin(x);
+        public static float Sin(float x) => (float)System.Math.Sin(x);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Exp(float x) => glm.Exp(x);
+        public static float Exp(float x) => (float)System.Math.Exp(x);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Floor(float f) => glm.Floor(f);
+        public static float Floor(float f) => (float)System.Math.Floor(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int FloorToInt(float f) => (int)glm.Floor(f);
+        public static int FloorToInt(float f) => (int)System.Math.Floor(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPowerOfTwo(int x) => (x & 1) == 0;
@@ -74,10 +74,10 @@ namespace Staple
         public static float LerpUnclamped(float a, float b, float t) => a + (b - a) * t;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Log(float f) => glm.Log(f);
+        public static float Log(float f) => (float)System.Math.Log(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Log10(float f) => glm.Log10(f);
+        public static float Log10(float f) => (float)System.Math.Log10(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Max(params float[] f)
@@ -97,7 +97,7 @@ namespace Staple
 
             for(var i = 1; i < length; i++)
             {
-                t = glm.Max(t, f[i]);
+                t = System.Math.Max(t, f[i]);
             }
 
             return t;
@@ -121,7 +121,7 @@ namespace Staple
 
             for (var i = 1; i < length; i++)
             {
-                t = glm.Min(t, f[i]);
+                t = System.Math.Min(t, f[i]);
             }
 
             return t;
@@ -153,16 +153,16 @@ namespace Staple
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Pow(float f, float p) => glm.Pow(f, p);
+        public static float Pow(float f, float p) => (float)System.Math.Pow(f, p);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Sign(float value) => glm.Sign(value);
+        public static float Sign(float value) => System.Math.Sign(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Sqrt(float value) => glm.Sqrt(value);
+        public static float Sqrt(float value) => (float)System.Math.Sqrt(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Tan(float value) => glm.Tan(value);
+        public static float Tan(float value) => (float)System.Math.Tan(value);
 
         public static readonly float PI = (float)System.Math.PI;
 

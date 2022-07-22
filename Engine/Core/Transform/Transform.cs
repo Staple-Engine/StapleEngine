@@ -1,8 +1,8 @@
-﻿using GlmSharp;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,10 +14,10 @@ namespace Staple
     public class Transform : IEnumerable<Transform>
     {
         private List<Transform> children = new List<Transform>();
-        private mat4 matrix = mat4.Identity;
-        private quat rotation = quat.Identity;
+        private Matrix4x4 matrix = Matrix4x4.Identity;
+        private Quaternion rotation = Quaternion.Identity;
         private Vector3 position;
-        private Vector3 scale = Vector3.one;
+        private Vector3 scale = Vector3.One;
 
         public Transform parent { get; private set; }
 
@@ -28,7 +28,7 @@ namespace Staple
             entity = new WeakReference<Entity>(owner);
         }
 
-        internal mat4 Matrix
+        internal Matrix4x4 Matrix
         {
             get
             {
@@ -36,7 +36,7 @@ namespace Staple
                 {
                     Changed = false;
 
-                    matrix = mat4.Scale(scale.x, scale.y, scale.z) * rotation.ToMat4 * mat4.Translate(position);
+                    matrix = Matrix4x4.CreateScale(scale.X, scale.Y, scale.Z) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
                 }
 
                 if(parent != null)
@@ -54,7 +54,7 @@ namespace Staple
             {
                 if(parent != null)
                 {
-                    return (Vector3)(parent.Matrix * (vec4)position);
+                    return Vector3.Transform(position, parent.Matrix);
                 }
 
                 return position;
@@ -98,7 +98,7 @@ namespace Staple
             }
         }
 
-        public quat Rotation
+        public Quaternion Rotation
         {
             get
             {
@@ -111,7 +111,7 @@ namespace Staple
             }
         }
 
-        public quat LocalRotation
+        public Quaternion LocalRotation
         {
             get
             {
@@ -130,7 +130,7 @@ namespace Staple
         {
             get
             {
-                return Rotation * (vec3)Vector3.forward;
+                return Vector3.Transform(new Vector3(0, 0, 1), Matrix4x4.CreateFromQuaternion(Rotation));
             }
         }
 
@@ -138,7 +138,7 @@ namespace Staple
         {
             get
             {
-                return Rotation * (vec3)Vector3.back;
+                return Vector3.Transform(new Vector3(0, 0, -1), Matrix4x4.CreateFromQuaternion(Rotation));
             }
         }
 
@@ -146,7 +146,15 @@ namespace Staple
         {
             get
             {
-                return Rotation * (vec3)Vector3.up;
+                return Vector3.Transform(new Vector3(0, 1, 0), Matrix4x4.CreateFromQuaternion(Rotation));
+            }
+        }
+
+        public Vector3 Down
+        {
+            get
+            {
+                return Vector3.Transform(new Vector3(0, -1, 0), Matrix4x4.CreateFromQuaternion(Rotation));
             }
         }
 
@@ -154,7 +162,7 @@ namespace Staple
         {
             get
             {
-                return Rotation * (vec3)Vector3.left;
+                return Vector3.Transform(new Vector3(-1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation));
             }
         }
 
@@ -162,7 +170,7 @@ namespace Staple
         {
             get
             {
-                return Rotation * (vec3)Vector3.right;
+                return Vector3.Transform(new Vector3(1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation));
             }
         }
 

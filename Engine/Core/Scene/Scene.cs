@@ -12,6 +12,19 @@ namespace Staple
 
         public static Scene current { get; internal set; }
 
+        public IEnumerable<T> GetComponents<T>() where T: Component
+        {
+            foreach(var entity in entities)
+            {
+                var components = entity.GetComponents<T>();
+
+                foreach(var item in components)
+                {
+                    yield return item;
+                }
+            }
+        }
+
         internal void AddEntity(Entity entity)
         {
             if(!entities.Contains(entity))

@@ -28,17 +28,22 @@ solution "Engine"
 		language "C#"
 		clr "Unsafe"
 		
-		nuget { "glfw-net:3.3.1" }
+		nuget {
+			"glfw-net:3.3.1"
+		}
 		
-		links { "System.Drawing" }
+		links {
+			"System.Drawing",
+			"System.Numerics"
+		}
 		
-		targetdir "../../bin/Core/%{cfg.buildcfg}"
-		objdir "../../obj/Core/%{cfg.buildcfg}"
+		targetdir "../bin/Core/%{cfg.buildcfg}"
+		objdir "../obj/Core/%{cfg.buildcfg}"
 		
 		files {
-			"**.cs"
+			"Core/**.cs"
 		}
 		
 		prebuildcommands {
-			"{COPYFILE} %{wks.location}../../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
+			"{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
 		}
