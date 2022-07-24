@@ -7,7 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+#if _DEBUG
 [assembly: InternalsVisibleTo("CoreTests")]
+#endif
 
 namespace Staple
 {

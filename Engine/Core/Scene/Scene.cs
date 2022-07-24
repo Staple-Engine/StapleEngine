@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+#if _DEBUG
+[assembly: InternalsVisibleTo("CoreTests")]
+#endif
 
 namespace Staple
 {
     public class Scene
     {
-        private List<Entity> entities = new List<Entity>();
+        internal List<Entity> entities = new List<Entity>();
 
         public static Scene current { get; internal set; }
 
@@ -36,10 +41,6 @@ namespace Staple
         internal void RemoveEntity(Entity entity)
         {
             entities.Remove(entity);
-        }
-
-        internal void Render()
-        {
         }
     }
 }

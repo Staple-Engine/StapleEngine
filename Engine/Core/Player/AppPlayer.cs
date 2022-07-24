@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
-    public class AppPlayer
+    internal class AppPlayer
     {
         public readonly AppSettings appSettings;
 
@@ -23,9 +23,12 @@ namespace Staple
 
         public static int ScreenHeight { get; private set; }
 
-        public AppPlayer(AppSettings appSettings)
+        public static AppPlayer active;
+
+        public AppPlayer(AppSettings settings)
         {
-            this.appSettings = appSettings;
+            appSettings = settings;
+            active = this;
         }
 
         private bgfx.ResetFlags ResetFlags

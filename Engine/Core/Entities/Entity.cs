@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+#if _DEBUG
+[assembly: InternalsVisibleTo("CoreTests")]
+#endif
 
 namespace Staple
 {
@@ -15,6 +20,8 @@ namespace Staple
         public readonly string Name;
 
         public readonly Transform Transform;
+
+        public uint layer;
 
         public Entity(string name)
         {

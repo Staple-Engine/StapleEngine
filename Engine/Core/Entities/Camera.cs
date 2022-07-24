@@ -27,6 +27,8 @@ namespace Staple
 
         public Color32 clearColor;
 
+        public LayerMask cullingLayers = LayerMask.Everything;
+
         internal Camera(Entity entity) : base(entity)
         {
         }

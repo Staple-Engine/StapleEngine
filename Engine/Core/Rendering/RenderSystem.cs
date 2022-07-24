@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Staple
 {
-    class RenderSystem
+    internal class RenderSystem
     {
         public bool Perform(Scene scene)
         {
@@ -70,6 +70,14 @@ namespace Staple
                     (ushort)(camera.viewport.Z * AppPlayer.ScreenWidth), (ushort)(camera.viewport.W * AppPlayer.ScreenHeight));
 
                 bgfx.touch(viewID);
+
+                foreach(var entity in Scene.current.entities)
+                {
+                    if(camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer))
+                    {
+                        //TODO: Render
+                    }
+                }
 
                 viewID++;
             }
