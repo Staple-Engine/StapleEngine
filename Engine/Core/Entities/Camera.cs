@@ -55,7 +55,7 @@ namespace Staple
             }
         }
 
-        public void PrepareRender()
+        public void PrepareRender(ushort depth)
         {
             switch(clearMode)
             {

@@ -7,15 +7,19 @@ namespace Staple
 {
     class RenderSystem
     {
-        public void Perform(Scene scene)
+        public bool Perform(Scene scene)
         {
-            ushort viewID = 0;
+            ushort viewID = 1;
 
             var cameras = scene.GetComponents<Camera>().OrderBy(x => x.depth);
 
+            bool performed = false;
+
             foreach(var camera in cameras)
             {
-                camera.PrepareRender();
+                performed = true;
+
+                camera.PrepareRender(viewID);
 
                 unsafe
                 {
@@ -25,8 +29,12 @@ namespace Staple
                     bgfx.set_view_transform(viewID, &view.M11, &projection.M11);
                 }
 
+                bgfx.touch(viewID);
+
                 viewID++;
             }
+
+            return performed;
         }
     }
 }

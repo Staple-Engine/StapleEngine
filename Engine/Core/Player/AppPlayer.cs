@@ -258,7 +258,11 @@ namespace Staple
 
             var camera = cameraEntity.AddComponent<Camera>();
 
-            camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
+            //camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
+
+#if _DEBUG
+            bgfx.set_debug((uint)bgfx.DebugFlags.Text);
+#endif
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
@@ -286,9 +290,12 @@ namespace Staple
                     }
                 }
 
-                renderSystem.Perform(Scene.current);
-
-                bgfx.touch(0);
+                if(renderSystem.Perform(Scene.current) == false)
+                {
+                    bgfx.touch(0);
+                    bgfx.dbg_text_clear(0, false);
+                    bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+                }
 
                 bgfx.frame(false);
             }
