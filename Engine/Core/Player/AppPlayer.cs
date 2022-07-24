@@ -20,6 +20,7 @@ namespace Staple
         private RenderSystem renderSystem = new RenderSystem();
 
         public static int ScreenWidth { get; private set; }
+
         public static int ScreenHeight { get; private set; }
 
         public AppPlayer(AppSettings appSettings)
@@ -240,10 +241,8 @@ namespace Staple
                 }
             }
 
-            ushort kClearView = 0;
-
-            bgfx.set_view_clear(kClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 24, 0);
-            bgfx.set_view_rect_ratio(kClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 24, 0);
+            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
             bool hasFocus = window.IsFocused;
 
@@ -292,7 +291,7 @@ namespace Staple
 
                 if(renderSystem.Perform(Scene.current) == false)
                 {
-                    bgfx.touch(0);
+                    bgfx.touch(ClearView);
                     bgfx.dbg_text_clear(0, false);
                     bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
                 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
+    [DisallowMultipleComponent]
     public class Camera : Component
     {
         public CameraClearMode clearMode = CameraClearMode.SolidColor;
@@ -33,49 +34,5 @@ namespace Staple
         internal float Width => viewport.Z * AppPlayer.ScreenWidth;
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;
-
-        public Matrix4x4 ProjectionMatrix
-        {
-            get
-            {
-                switch (cameraType)
-                {
-                    case CameraType.Perspective:
-
-                        return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(fov), Width / Height,
-                            nearPlane, farPlane);
-
-                    case CameraType.Orthographic:
-
-                        return Matrix4x4.CreateOrthographic(Width, Height, nearPlane, farPlane);
-
-                    default:
-                        return Matrix4x4.Identity;
-                }
-            }
-        }
-
-        public void PrepareRender(ushort depth)
-        {
-            switch(clearMode)
-            {
-                case CameraClearMode.Depth:
-                    bgfx.set_view_clear(depth, (ushort)(bgfx.ClearFlags.Depth), 0, 24, 0);
-
-                    break;
-
-                case CameraClearMode.None:
-                    bgfx.set_view_clear(depth, (ushort)(bgfx.ClearFlags.None), 0, 24, 0);
-
-                    break;
-
-                case CameraClearMode.SolidColor:
-                    bgfx.set_view_clear(depth, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.uintValue, 24, 0);
-
-                    break;
-            }
-
-            bgfx.set_view_rect(depth, (ushort)viewport.X, (ushort)viewport.Y, (ushort)(viewport.Z * AppPlayer.ScreenWidth), (ushort)(viewport.W * AppPlayer.ScreenHeight));
-        }
     }
 }

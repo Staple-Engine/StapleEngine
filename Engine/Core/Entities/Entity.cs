@@ -61,9 +61,21 @@ namespace Staple
         {
             try
             {
+                var attributes = Attribute.GetCustomAttributes(typeof(T));
+
+                foreach(var attribute in attributes)
+                {
+                    if(attribute is DisallowMultipleComponentAttribute && components.Any(x => x is T))
+                    {
+                        //TODO: Log
+
+                        return null;
+                    }
+                }
+
                 var constructor = typeof(T).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-                var component = (T)constructor.Invoke(new Object[] { this });
+                var component = (T)constructor.Invoke(new object[] { this });
 
                 if (component == null)
                 {
@@ -76,6 +88,8 @@ namespace Staple
             }
             catch (Exception e)
             {
+                //TODO: Log
+
                 return null;
             }
         }
