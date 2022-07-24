@@ -15,12 +15,15 @@ solution "Dependencies"
 	filter "configurations:Release"
 		defines "NDEBUG"
 		optimize "Full"
+
 	filter "configurations:Debug*"
 		defines "_DEBUG"
 		optimize "Debug"
 		symbols "On"
+
 	filter "platforms:x86_64"
 		architecture "x86_64"
+
 	filter "system:macosx"
 		xcodebuildsettings {
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.9",
@@ -30,8 +33,10 @@ solution "Dependencies"
 function setBxCompat()
 	filter "action:vs*"
 		includedirs { path.join(BX_DIR, "include/compat/msvc") }
+
 	filter { "system:windows", "action:gmake" }
 		includedirs { path.join(BX_DIR, "include/compat/mingw") }
+
 	filter { "system:macosx" }
 		includedirs { path.join(BX_DIR, "include/compat/osx") }
 		buildoptions { "-x objective-c++" }
@@ -40,20 +45,28 @@ end
 project "bgfx"
 	kind "SharedLib"
 	language "C++"
-	cppdialect "C++14"
+	cppdialect "C++20"
 	exceptionhandling "Off"
 	rtti "Off"
-	defines { "__STDC_FORMAT_MACROS" }
+
+	defines
+	{
+		"__STDC_FORMAT_MACROS",
+		"BGFX_SHARED_LIB_BUILD"
+	}
+
 	files
 	{
 		path.join(BGFX_DIR, "include/bgfx/**.h"),
 		path.join(BGFX_DIR, "src/*.cpp"),
 		path.join(BGFX_DIR, "src/*.h"),
 	}
+
 	excludes
 	{
 		path.join(BGFX_DIR, "src/amalgamated.cpp"),
 	}
+
 	includedirs
 	{
 		path.join(BX_DIR, "include"),
@@ -66,32 +79,36 @@ project "bgfx"
 	
 	links { "bx", "bimg" }
 	
-	defines { "BGFX_SHARED_LIB_BUILD" }
-	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
+
 	filter "configurations:Release"
 		defines { "BX_CONFIG_DEBUG=0" }
+
 	filter "action:vs*"
 		defines "_CRT_SECURE_NO_WARNINGS"
+		buildoptions { "/Zc:__cplusplus" }
 		excludes
 		{
 			path.join(BGFX_DIR, "src/glcontext_glx.cpp"),
 			path.join(BGFX_DIR, "src/glcontext_egl.cpp")
 		}
+		
 	filter "system:macosx"
 		files
 		{
 			path.join(BGFX_DIR, "src/*.mm"),
 		}
+
 	setBxCompat()
 
 project "bimg"
 	kind "StaticLib"
 	language "C++"
-	cppdialect "C++14"
+	cppdialect "C++20"
 	exceptionhandling "Off"
 	rtti "Off"
+
 	files
 	{
 		path.join(BIMG_DIR, "include/bimg/*.h"),
@@ -100,6 +117,7 @@ project "bimg"
 		path.join(BIMG_DIR, "src/*.h"),
 		path.join(BIMG_DIR, "3rdparty/astc-codec/src/decoder/*.cc")
 	}
+
 	includedirs
 	{
 		path.join(BX_DIR, "include"),
@@ -110,37 +128,50 @@ project "bimg"
 	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
+
 	filter "configurations:Release"
 		defines { "BX_CONFIG_DEBUG=0" }
-	setBxCompat()
 
+	setBxCompat()
+	
+	filter "action:vs*"
+		defines "_CRT_SECURE_NO_WARNINGS"
+		buildoptions { "/Zc:__cplusplus" }
+		
 project "bx"
 	kind "StaticLib"
 	language "C++"
-	cppdialect "C++14"
+	cppdialect "C++20"
 	exceptionhandling "Off"
 	rtti "Off"
 	defines "__STDC_FORMAT_MACROS"
+
 	files
 	{
 		path.join(BX_DIR, "include/bx/*.h"),
 		path.join(BX_DIR, "include/bx/inline/*.inl"),
 		path.join(BX_DIR, "src/*.cpp")
 	}
+
 	excludes
 	{
 		path.join(BX_DIR, "src/amalgamated.cpp"),
 		path.join(BX_DIR, "src/crtnone.cpp")
 	}
+
 	includedirs
 	{
 		path.join(BX_DIR, "3rdparty"),
 		path.join(BX_DIR, "include")
 	}
+
 	filter "action:vs*"
-	defines "_CRT_SECURE_NO_WARNINGS"
+		defines "_CRT_SECURE_NO_WARNINGS"
+		buildoptions { "/Zc:__cplusplus" }
+
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
+
 	filter "configurations:Release"
 		defines { "BX_CONFIG_DEBUG=0" }
 
