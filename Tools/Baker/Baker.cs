@@ -8,7 +8,24 @@ namespace Baker
 {
     static class Program
     {
-        public static string shadercBinName
+        enum Renderer
+        {
+            d3d9,
+            d3d11,
+            gles,
+            metal,
+            pssl,
+            spirv
+        }
+
+        enum ShaderType
+        {
+            vertex,
+            fragment,
+            compute
+        }
+
+        static string shadercBinName
         {
             get
             {
@@ -18,6 +35,18 @@ namespace Baker
                 }
 
                 return "shaderc";
+            }
+        }
+        static string texturecBinName
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return "texturecRelease.exe";
+                }
+
+                return "texturec";
             }
         }
 
@@ -30,39 +59,53 @@ namespace Baker
                     "\t-o [path]: set output directory\n" +
                     "\t-i [path]: set input directory\n" +
                     "\t-sd [define]: add a shader define\n" +
-                    "\t-r [name]: add a renderer to compile for\n");
+                    "\t-r [name]: set the renderer to compile for\n" +
+                    "\t\tValid values are:\n" +
+                    "\t\t\td3d9\n" +
+                    "\t\t\td3d11\n" +
+                    "\t\t\tgles\n" +
+                    "\t\t\tmetal\n" +
+                    "\t\t\tpssl\n" +
+                    "\t\t\tspirv\n");
 
                 Environment.Exit(1);
 
                 return;
             }
 
-            var shadercPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, shadercBinName));
-            var shadercValid = false;
-
-            try
+            string ValidateTool(string name, string executable)
             {
-                shadercValid = File.Exists(shadercPath);
+                var toolPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, executable));
+                var toolValid = false;
+
+                try
+                {
+                    toolValid = File.Exists(toolPath);
+                }
+                catch (Exception)
+                {
+                }
+
+                if (toolValid == false)
+                {
+                    Console.WriteLine($"ERROR: {name} tool not found at {toolPath}");
+
+                    Environment.Exit(1);
+
+                    return null;
+                }
+
+                return toolPath;
             }
-            catch(Exception)
-            {
-            }
 
-            if (shadercValid == false)
-            {
-                Console.WriteLine($"ERROR: Shaderc tool not found at {shadercPath}");
-
-                Environment.Exit(1);
-
-                return;
-            }
-
-            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "Dependencies", "bgfx", "src"))}\"";
+            var shadercPath = ValidateTool("shaderc", shadercBinName);
+            var texturecPath = ValidateTool("texturec", texturecBinName);
 
             var outputPath = "out";
             var inputPath = "";
             var shaderDefines = new List<string>();
-            var renderers = new List<string>();
+            Renderer renderer = Renderer.d3d9;
+            bool setRenderer = false;
 
             for (var i = 0; i < args.Length; i++)
             {
@@ -150,7 +193,16 @@ namespace Baker
                             return;
                         }
 
-                        renderers.Add(args[i + 1]);
+                        if(!Enum.TryParse<Renderer>(args[i + 1], out renderer))
+                        {
+                            Console.WriteLine($"Invalid argument `-r`: invalid renderer name `{args[i + 1]}`");
+
+                            Environment.Exit(1);
+
+                            return;
+                        }
+
+                        setRenderer = true;
 
                         i++;
 
@@ -166,7 +218,22 @@ namespace Baker
                 }
             }
 
-            //Find shaders to compile
+            if(!setRenderer)
+            {
+                Console.WriteLine("Missing renderer (-r) parameter");
+
+                Environment.Exit(1);
+
+                return;
+            }
+
+            ProcessShaders(shadercPath, inputPath, outputPath, shaderDefines, renderer);
+        }
+
+        static void ProcessShaders(string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, Renderer renderer)
+        {
+            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "Dependencies", "bgfx", "src"))}\"";
+
             var shaderFiles = new List<string>();
 
             try
@@ -178,7 +245,7 @@ namespace Baker
             }
 
             //Ensure we don't try to compile the varying.def file
-            for(var i = shaderFiles.Count - 1; i >= 0; i--)
+            for (var i = shaderFiles.Count - 1; i >= 0; i--)
             {
                 if (Path.GetFileName(shaderFiles[i]) == "varying.def.sc")
                 {
@@ -190,12 +257,12 @@ namespace Baker
 
             var shaderDefineString = string.Join(",", shaderDefines);
 
-            if(shaderDefineString.Length > 0)
+            if (shaderDefineString.Length > 0)
             {
                 shaderDefineString = $"--define {shaderDefineString}";
             }
 
-            for(var i = 0; i < shaderFiles.Count; i++)
+            for (var i = 0; i < shaderFiles.Count; i++)
             {
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
@@ -203,19 +270,19 @@ namespace Baker
                 var file = Path.GetFileNameWithoutExtension(shaderFiles[i]);
                 var outputFile = Path.Combine(Path.GetFullPath(outputPath), directory, $"{file}.shader");
 
-                string shaderType;
+                ShaderType shaderType;
 
-                if(file.EndsWith("_vs"))
+                if (file.EndsWith("_vs"))
                 {
-                    shaderType = "vertex";
+                    shaderType = ShaderType.vertex;
                 }
-                else if(file.EndsWith("_fs"))
+                else if (file.EndsWith("_fs"))
                 {
-                    shaderType = "fragment";
+                    shaderType = ShaderType.fragment;
                 }
-                else if(file.EndsWith("_cs"))
+                else if (file.EndsWith("_cs"))
                 {
-                    shaderType = "compute";
+                    shaderType = ShaderType.compute;
                 }
                 else
                 {
@@ -224,11 +291,94 @@ namespace Baker
                     continue;
                 }
 
+                var shaderPlatform = "";
+
+                switch (renderer)
+                {
+                    case Renderer.d3d9:
+
+                        shaderPlatform = "--platform windows -O 3 ";
+
+                        switch (shaderType)
+                        {
+                            case ShaderType.vertex:
+
+                                shaderPlatform += "-p vs_3_0";
+
+                                break;
+
+                            case ShaderType.fragment:
+
+                                shaderPlatform += "-p ps_3_0";
+
+                                break;
+
+                            case ShaderType.compute:
+
+                                Console.WriteLine("\t\tError: Compute shaders not supported for d3d9");
+
+                                continue;
+                        }
+
+                        break;
+
+                    case Renderer.d3d11:
+
+                        shaderPlatform = "--platform windows -O 3 ";
+
+                        switch (shaderType)
+                        {
+                            case ShaderType.vertex:
+
+                                shaderPlatform += "-p vs_5_0";
+
+                                break;
+
+                            case ShaderType.fragment:
+
+                                shaderPlatform += "-p ps_5_0";
+
+                                break;
+
+                            case ShaderType.compute:
+
+                                shaderPlatform += "-p cs_5_0";
+
+                                break;
+                        }
+
+                        break;
+
+                    case Renderer.gles:
+
+                        shaderPlatform = "--platform android";
+
+                        break;
+
+                    case Renderer.metal:
+
+                        shaderPlatform = "--platform osx -p metal";
+
+                        break;
+
+                    case Renderer.pssl:
+
+                        shaderPlatform = "--platform orbis -p pssl";
+
+                        break;
+
+                    case Renderer.spirv:
+
+                        shaderPlatform = "--platform linux -p spirv";
+
+                        break;
+                }
+
                 try
                 {
                     Directory.CreateDirectory(Path.Combine(outputPath, directory));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                 }
 
@@ -237,7 +387,7 @@ namespace Baker
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = shadercPath,
-                        Arguments = $"-f \"{shaderFiles[i]}\" -o \"{outputFile}\" {shaderDefineString} --type {shaderType} {bgfxShaderInclude}",
+                        Arguments = $"-f \"{shaderFiles[i]}\" -o \"{outputFile}\" {shaderDefineString} --type {shaderType} {bgfxShaderInclude} {shaderPlatform}",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true,
@@ -248,12 +398,12 @@ namespace Baker
 
                 var result = "";
 
-                while(!process.StandardOutput.EndOfStream)
+                while (!process.StandardOutput.EndOfStream)
                 {
                     result += $"{process.StandardOutput.ReadLine()}\n";
                 }
 
-                if(process.ExitCode != 0)
+                if (process.ExitCode != 0)
                 {
                     Console.WriteLine($"\t\tError:\n\t{result}\n");
 
