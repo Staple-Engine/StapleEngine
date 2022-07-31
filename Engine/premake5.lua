@@ -28,7 +28,12 @@ solution "Engine"
 		language "C#"
 		clr "Unsafe"
 
+		libdirs {
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/"
+		}
+
         links {
+			"glfwnet",
             "System.Drawing",
             "System.Numerics",
 			"System.Core"
@@ -42,13 +47,18 @@ solution "Engine"
 		}
 
         filter "system:windows"
-    		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
     		}
 
-        filter { "system:linux", "system:macosx" }
-    		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{wks.location}%{cfg.targetdir}"
+        filter "system:linux"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
     		}
 
-
+		filter "system:macos"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
+    		}

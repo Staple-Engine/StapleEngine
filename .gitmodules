@@ -10,3 +10,6 @@
 [submodule "Dependencies/glfw"]
 	path = Dependencies/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "Dependencies/glfw-net"]
+	path = Dependencies/glfw-net
+	url = https://github.com/ForeverZer0/glfw-net.git
