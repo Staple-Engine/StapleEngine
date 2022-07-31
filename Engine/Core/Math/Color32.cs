@@ -57,13 +57,15 @@ namespace Staple
 
         public override bool Equals(object obj)
         {
-            if (obj is null)
+            if(obj == null)
             {
                 return false;
             }
 
-            if (obj is Color32 c)
+            if(GetType().Equals(obj.GetType()))
             {
+                Color32 c = (Color32)obj;
+
                 return r == c.r && g == c.g && b == c.b && a == c.a;
             }
 

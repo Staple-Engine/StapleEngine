@@ -40,6 +40,9 @@ function setBxCompat()
 	filter { "system:macosx" }
 		includedirs { path.join(BX_DIR, "include/compat/osx") }
 		buildoptions { "-x objective-c++" }
+
+    filter "action:gmake"
+        buildoptions { "-fPIC" }
 end
 	
 project "bgfx"

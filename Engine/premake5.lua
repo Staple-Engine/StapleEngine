@@ -27,15 +27,12 @@ solution "Engine"
 		kind "ConsoleApp"
 		language "C#"
 		clr "Unsafe"
-		
-		nuget {
-			"glfw-net:3.3.1"
-		}
-		
-		links {
-			"System.Drawing",
-			"System.Numerics"
-		}
+
+        links {
+            "System.Drawing",
+            "System.Numerics",
+			"System.Core"
+        }
 		
 		targetdir "../bin/Core/%{cfg.buildcfg}"
 		objdir "../obj/Core/%{cfg.buildcfg}"
@@ -43,7 +40,15 @@ solution "Engine"
 		files {
 			"Core/**.cs"
 		}
-		
-		prebuildcommands {
-			"{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
-		}
+
+        filter "system:windows"
+    		prebuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
+    		}
+
+        filter { "system:linux", "system:macosx" }
+    		prebuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{wks.location}%{cfg.targetdir}"
+    		}
+
+

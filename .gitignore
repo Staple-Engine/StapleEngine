@@ -7,3 +7,7 @@ obj
 *.filters
 premake.bat
 *.csproj
+.vscode
+Makefile
+*.make
+build
