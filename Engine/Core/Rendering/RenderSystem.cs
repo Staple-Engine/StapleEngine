@@ -8,6 +8,8 @@ namespace Staple
 {
     internal class RenderSystem
     {
+        private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
+
         public bool Perform(Scene scene)
         {
             ushort viewID = 1;
@@ -75,7 +77,10 @@ namespace Staple
                 {
                     if(camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer))
                     {
-                        //TODO: Render
+                        if(renderer is SpriteRenderer)
+                        {
+                            spriteRenderSystem.Process(entity, (SpriteRenderer)renderer);
+                        }
                     }
                 }
 

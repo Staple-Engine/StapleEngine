@@ -23,6 +23,8 @@ namespace Staple
 
         public static int ScreenHeight { get; private set; }
 
+        public static bgfx.RendererType ActiveRendererType { get; private set; }
+
         public static AppPlayer active;
 
         public AppPlayer(AppSettings settings)
@@ -196,42 +198,48 @@ namespace Staple
             ScreenWidth = playerSettings.screenWidth;
             ScreenHeight = playerSettings.screenHeight;
 
-            var initRenderer = bgfx.RendererType.Count;
+            ActiveRendererType = bgfx.RendererType.Count;
 
             switch(rendererType)
             {
-                case RendererType.OpenGL:
-
-                    initRenderer = bgfx.RendererType.OpenGL;
-
-                    break;
-
                 case RendererType.Direct3D11:
 
-                    initRenderer = bgfx.RendererType.Direct3D11;
+                    ActiveRendererType = bgfx.RendererType.Direct3D11;
 
                     break;
 
                 case RendererType.Direct3D12:
 
-                    initRenderer = bgfx.RendererType.Direct3D12;
+                    ActiveRendererType = bgfx.RendererType.Direct3D12;
+
+                    break;
+
+                case RendererType.OpenGL:
+
+                    ActiveRendererType = bgfx.RendererType.OpenGL;
+
+                    break;
+
+                case RendererType.OpenGLES:
+
+                    ActiveRendererType = bgfx.RendererType.OpenGLES;
 
                     break;
 
                 case RendererType.Metal:
 
-                    initRenderer = bgfx.RendererType.Metal;
+                    ActiveRendererType = bgfx.RendererType.Metal;
 
                     break;
 
                 case RendererType.Vulkan:
 
-                    initRenderer = bgfx.RendererType.Vulkan;
+                    ActiveRendererType = bgfx.RendererType.Vulkan;
 
                     break;
             }
 
-            init.type = initRenderer;
+            init.type = ActiveRendererType;
             init.resolution.width = (uint)ScreenWidth;
             init.resolution.height = (uint)ScreenHeight;
             init.resolution.reset = (uint)ResetFlags;
@@ -259,6 +267,8 @@ namespace Staple
             var cameraEntity = new Entity("Camera");
 
             var camera = cameraEntity.AddComponent<Camera>();
+
+            camera.cameraType = CameraType.Orthographic;
 
             //camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
 

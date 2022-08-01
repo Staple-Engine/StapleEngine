@@ -11,11 +11,10 @@ namespace Baker
     {
         enum Renderer
         {
-            d3d9,
             d3d11,
-            opengl,
-            gles,
             metal,
+            opengl,
+            opengles,
             pssl,
             spirv
         }
@@ -63,10 +62,10 @@ namespace Baker
                     "\t-sd [define]: add a shader define\n" +
                     "\t-r [name]: set the renderer to compile for\n" +
                     "\t\tValid values are:\n" +
-                    "\t\t\td3d9\n" +
                     "\t\t\td3d11\n" +
-                    "\t\t\tgles\n" +
                     "\t\t\tmetal\n" +
+                    "\t\t\topengl\n" +
+                    "\t\t\topengles\n" +
                     "\t\t\tpssl\n" +
                     "\t\t\tspirv\n");
 
@@ -106,7 +105,7 @@ namespace Baker
             var outputPath = "out";
             var inputPath = "";
             var shaderDefines = new List<string>();
-            Renderer renderer = Renderer.d3d9;
+            Renderer renderer = Renderer.opengl;
             bool setRenderer = false;
 
             for (var i = 0; i < args.Length; i++)
@@ -288,7 +287,7 @@ namespace Baker
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
                 }
-                catch(System.Exception)
+                catch(Exception)
                 {
 
                 }
@@ -318,33 +317,6 @@ namespace Baker
 
                 switch (renderer)
                 {
-                    case Renderer.d3d9:
-
-                        shaderPlatform = "--platform windows -O 3 ";
-
-                        switch (shaderType)
-                        {
-                            case ShaderType.vertex:
-
-                                shaderPlatform += "-p vs_3_0";
-
-                                break;
-
-                            case ShaderType.fragment:
-
-                                shaderPlatform += "-p ps_3_0";
-
-                                break;
-
-                            case ShaderType.compute:
-
-                                Console.WriteLine("\t\tError: Compute shaders not supported for d3d9");
-
-                                continue;
-                        }
-
-                        break;
-
                     case Renderer.d3d11:
 
                         shaderPlatform = "--platform windows -O 3 ";
@@ -372,7 +344,7 @@ namespace Baker
 
                         break;
 
-                    case Renderer.gles:
+                    case Renderer.opengles:
 
                         shaderPlatform = "--platform android";
 
