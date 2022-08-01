@@ -11,3 +11,4 @@ premake.bat
 Makefile
 *.make
 build
+Staging

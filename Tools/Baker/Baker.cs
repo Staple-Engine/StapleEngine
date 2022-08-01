@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Baker
@@ -12,6 +13,7 @@ namespace Baker
         {
             d3d9,
             d3d11,
+            opengl,
             gles,
             metal,
             pssl,
@@ -141,6 +143,10 @@ namespace Baker
 
                         inputPath = args[i + 1];
 
+                        inputPath = inputPath
+                            .Replace("\\", Path.PathSeparator.ToString())
+                            .Replace("/", Path.PathSeparator.ToString());
+
                         i++;
 
                         try
@@ -267,20 +273,37 @@ namespace Baker
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
                 var directory = Path.GetDirectoryName(shaderFiles[i]);
-                var file = Path.GetFileNameWithoutExtension(shaderFiles[i]);
-                var outputFile = Path.Combine(Path.GetFullPath(outputPath), directory, $"{file}.shader");
+                var file = Path.GetFileName(shaderFiles[i]);
+                var fileWithoutExt = Path.GetFileNameWithoutExtension(file);
+                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
+
+                var index = outputFile.IndexOf(inputPath);
+
+                if (index >= 0 && index < outputFile.Length)
+                {
+                    outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+                }
+
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                }
+                catch(System.Exception)
+                {
+
+                }
 
                 ShaderType shaderType;
 
-                if (file.EndsWith("_vs"))
+                if (fileWithoutExt.EndsWith("_vs"))
                 {
                     shaderType = ShaderType.vertex;
                 }
-                else if (file.EndsWith("_fs"))
+                else if (fileWithoutExt.EndsWith("_fs"))
                 {
                     shaderType = ShaderType.fragment;
                 }
-                else if (file.EndsWith("_cs"))
+                else if (fileWithoutExt.EndsWith("_cs"))
                 {
                     shaderType = ShaderType.compute;
                 }
@@ -361,6 +384,33 @@ namespace Baker
 
                         break;
 
+                    case Renderer.opengl:
+
+                        shaderPlatform = "--platform linux";
+
+                        switch (shaderType)
+                        {
+                            case ShaderType.vertex:
+
+                                shaderPlatform += "-p 120";
+
+                                break;
+
+                            case ShaderType.fragment:
+
+                                shaderPlatform += "-p 120";
+
+                                break;
+
+                            case ShaderType.compute:
+
+                                shaderPlatform += "-p 430";
+
+                                break;
+                        }
+
+                        break;
+
                     case Renderer.pssl:
 
                         shaderPlatform = "--platform orbis -p pssl";
@@ -376,7 +426,7 @@ namespace Baker
 
                 try
                 {
-                    Directory.CreateDirectory(Path.Combine(outputPath, directory));
+                    Directory.CreateDirectory(outputPath);
                 }
                 catch (Exception)
                 {
