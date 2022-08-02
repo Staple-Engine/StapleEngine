@@ -12,10 +12,23 @@ namespace Staple
     {
         public unsafe bgfx.Memory* data;
         public bgfx.IndexBufferHandle handle;
+        public readonly int length;
+
+        public unsafe IndexBuffer(bgfx.Memory* data, bgfx.IndexBufferHandle handle, int length)
+        {
+            this.data = data;
+            this.handle = handle;
+            this.length = length;
+        }
+
+        public void SetActive(uint start, uint count)
+        {
+            bgfx.set_index_buffer(handle, start, count);
+        }
 
         public static IndexBuffer Create(ushort[] data, RenderBufferFlags flags)
         {
-            var size = Marshal.SizeOf(data);
+            var size = Marshal.SizeOf(typeof(ushort));
 
             unsafe
             {
@@ -23,22 +36,18 @@ namespace Staple
 
                 fixed (void* dataPtr = data)
                 {
-                    outData = bgfx.copy(dataPtr, (uint)size);
+                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
                 }
 
                 var handle = bgfx.create_index_buffer(outData, (ushort)flags);
 
-                return new IndexBuffer()
-                {
-                    data = outData,
-                    handle = handle,
-                };
+                return new IndexBuffer(outData, handle, data.Length);
             }
         }
 
         public static IndexBuffer Create(uint[] data, RenderBufferFlags flags)
         {
-            var size = Marshal.SizeOf(data);
+            var size = Marshal.SizeOf(typeof(uint));
 
             unsafe
             {
@@ -46,16 +55,12 @@ namespace Staple
 
                 fixed (void* dataPtr = data)
                 {
-                    outData = bgfx.copy(dataPtr, (uint)size);
+                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
                 }
 
                 var handle = bgfx.create_index_buffer(outData, (ushort)(flags | RenderBufferFlags.Index32));
 
-                return new IndexBuffer()
-                {
-                    data = outData,
-                    handle = handle,
-                };
+                return new IndexBuffer(outData, handle, data.Length);
             }
         }
     }

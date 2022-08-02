@@ -27,10 +27,21 @@ namespace Staple
 
         public static AppPlayer active;
 
-        public AppPlayer(AppSettings settings)
+        public AppPlayer(AppSettings settings, string[] args)
         {
             appSettings = settings;
             active = this;
+
+            for(var i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-datadir")
+                {
+                    if(i + 1 < args.Length)
+                    {
+                        ResourceLocator.instance.basePath = args[i + 1];
+                    }
+                }
+            }
         }
 
         private bgfx.ResetFlags ResetFlags
@@ -269,6 +280,21 @@ namespace Staple
             var camera = cameraEntity.AddComponent<Camera>();
 
             camera.cameraType = CameraType.Orthographic;
+
+            var spriteShaderVS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
+            var spriteShaderFS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
+
+            if(spriteShaderVS != null && spriteShaderFS != null)
+            {
+                var material = Material.Create(spriteShaderVS, spriteShaderFS);
+
+                if(material != null)
+                {
+                    var sprite = new Entity("Sprite");
+
+                    sprite.AddComponent<SpriteRenderer>().material = material;
+                }
+            }
 
             //camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
 

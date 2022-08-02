@@ -13,12 +13,26 @@ namespace Staple
         public unsafe bgfx.Memory *data;
         public VertexLayout layout;
         public bgfx.VertexBufferHandle handle;
+        public readonly int length;
+
+        public unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle, int length)
+        {
+            this.data = data;
+            this.layout = layout;
+            this.handle = handle;
+            this.length = length;
+        }
+
+        public void SetActive(byte stream, uint start, uint count)
+        {
+            bgfx.set_vertex_buffer(stream, handle, start, count);
+        }
 
         public static VertexBuffer Create<T>(T[] data, VertexLayout layout)
         {
-            var size = Marshal.SizeOf(data);
+            var size = Marshal.SizeOf(typeof(T));
 
-            byte[] buffer = new byte[size];
+            byte[] buffer = new byte[size * data.Length];
 
             IntPtr ptr = IntPtr.Zero;
 
@@ -29,8 +43,12 @@ namespace Staple
                 try
                 {
                     ptr = Marshal.AllocHGlobal(size);
-                    Marshal.StructureToPtr(data, ptr, true);
-                    Marshal.Copy(ptr, buffer, 0, size);
+
+                    for(var i = 0; i < data.Length; i++)
+                    {
+                        Marshal.StructureToPtr(data[i], ptr, false);
+                        Marshal.Copy(ptr, buffer, i * size, size);
+                    }
                 }
                 finally
                 {
@@ -39,19 +57,14 @@ namespace Staple
 
                 fixed(void * dataPtr = buffer)
                 {
-                    outData = bgfx.copy(dataPtr, (uint)size);
+                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
                 }
 
                 fixed(bgfx.VertexLayout *vertexLayout = &layout.layout)
                 {
                     var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
 
-                    return new VertexBuffer()
-                    {
-                        layout = layout,
-                        data = outData,
-                        handle = handle,
-                    };
+                    return new VertexBuffer(outData, layout, handle, data.Length);
                 }
             }
         }

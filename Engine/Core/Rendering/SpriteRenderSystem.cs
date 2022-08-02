@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace Staple
 {
     internal class SpriteRenderSystem
     {
+        [StructLayout(LayoutKind.Sequential)]
         struct SpriteVertex
         {
             public Vector3 position;
@@ -45,7 +47,7 @@ namespace Staple
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
 
-        public void Process(Entity entity, SpriteRenderer renderer)
+        public void Process(Entity entity, SpriteRenderer renderer, ushort viewId)
         {
             if(vertexLayout == null)
             {
@@ -59,6 +61,27 @@ namespace Staple
 
                 indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
             }
+
+            if(renderer.material == null)
+            {
+                return;
+            }
+
+            vertexBuffer.SetActive(0, 0, (uint)vertexBuffer.length);
+            indexBuffer.SetActive(0, (uint)indexBuffer.length);
+
+            var matrix = entity.Transform.Matrix;
+
+            unsafe
+            {
+                bgfx.set_transform(&matrix.M11, 1);
+            }
+
+            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestLess | bgfx.StateFlags.PtTristrip;
+
+            bgfx.set_state((ulong)state, 0);
+
+            bgfx.submit(viewId, renderer.material.program, 0, 0);
         }
     }
 }

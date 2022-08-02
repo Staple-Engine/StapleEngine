@@ -48,7 +48,7 @@ solution "Engine"
 
         filter "system:windows"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
     		}
 
         filter "system:linux"

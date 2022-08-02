@@ -79,7 +79,7 @@ namespace Staple
                     {
                         if(renderer is SpriteRenderer)
                         {
-                            spriteRenderSystem.Process(entity, (SpriteRenderer)renderer);
+                            spriteRenderSystem.Process(entity, (SpriteRenderer)renderer, viewID);
                         }
                     }
                 }

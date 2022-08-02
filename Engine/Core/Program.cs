@@ -13,7 +13,7 @@ namespace Staple
             {
                 appName = "Test",
                 runInBackground = false,
-            }).Run();
+            }, args).Run();
         }
     }
 }
