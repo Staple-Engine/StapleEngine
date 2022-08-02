@@ -63,7 +63,7 @@ namespace Staple
                         break;
 
                     case CameraClearMode.SolidColor:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.uintValue, 24, 0);
+                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.uintValue, 0, 0);
 
                         break;
                 }

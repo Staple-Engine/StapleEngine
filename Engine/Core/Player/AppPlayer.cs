@@ -162,6 +162,8 @@ namespace Staple
 
             unsafe
             {
+                bgfx.init_ctor(&init);
+
                 init.platformData.ndt = null;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -263,7 +265,7 @@ namespace Staple
                 }
             }
 
-            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 24, 0);
+            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
             bool hasFocus = window.IsFocused;
