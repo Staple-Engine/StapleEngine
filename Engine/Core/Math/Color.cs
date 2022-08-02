@@ -21,6 +21,9 @@ namespace Staple
             }
         }
 
+        public static readonly Color White = new Color(1, 1, 1, 1);
+        public static readonly Color Black = new Color(0, 0, 0, 1);
+
         public Color(float R, float G, float B, float A)
         {
             r = R;

@@ -3,6 +3,7 @@ using GLFW;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -282,6 +283,7 @@ namespace Staple
             var camera = cameraEntity.AddComponent<Camera>();
 
             camera.cameraType = CameraType.Orthographic;
+            camera.nearPlane = 0;
 
             var spriteShaderVS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
             var spriteShaderFS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
@@ -294,11 +296,13 @@ namespace Staple
                 {
                     var sprite = new Entity("Sprite");
 
+                    sprite.Transform.LocalScale = new Vector3(100, 100, 100);
+
                     sprite.AddComponent<SpriteRenderer>().material = material;
                 }
             }
 
-            //camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
+            camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
 
 #if _DEBUG
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);

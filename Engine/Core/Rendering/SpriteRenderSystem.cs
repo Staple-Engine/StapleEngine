@@ -15,25 +15,30 @@ namespace Staple
         struct SpriteVertex
         {
             public Vector3 position;
+            public Color32 color;
             public Vector2 texCoord;
         }
 
         private static SpriteVertex[] vertices = new SpriteVertex[]
         {
             new SpriteVertex() {
-                position = Vector3.Zero,
+                position = new Vector3(-0.5f, -0.5f, 0),
+                color = Color32.White,
                 texCoord = Vector2.Zero,
             },
             new SpriteVertex() {
-                position = new Vector3(0, 1, 0),
+                position = new Vector3(-0.5f, 0.5f, 0),
+                color = Color32.White,
                 texCoord = new Vector2(0, 1),
             },
             new SpriteVertex() {
-                position = new Vector3(1, 1, 0),
+                position = new Vector3(0.5f, 0.5f, 0),
+                color = Color32.White,
                 texCoord = Vector2.One,
             },
             new SpriteVertex() {
-                position = new Vector3(1, 0, 0),
+                position = new Vector3(0.5f, -0.5f, 0),
+                color = Color32.White,
                 texCoord = new Vector2(1, 0),
             },
         };
@@ -53,7 +58,7 @@ namespace Staple
             {
                 vertexLayout = new VertexLayoutBuilder()
                     .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-                    //.Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Uint8, true)
+                    .Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Uint8, true)
                     .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
                     .Build();
 
@@ -74,14 +79,14 @@ namespace Staple
 
             unsafe
             {
-                bgfx.set_transform(&matrix.M11, 1);
+                bgfx.set_transform(&matrix, 1);
             }
 
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestLess | bgfx.StateFlags.PtTristrip;
+            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
 
             bgfx.set_state((ulong)state, 0);
 
-            bgfx.submit(viewId, renderer.material.program, 0, 0);
+            bgfx.submit(viewId, renderer.material.program, 0, (byte)bgfx.DiscardFlags.All);
         }
     }
 }
