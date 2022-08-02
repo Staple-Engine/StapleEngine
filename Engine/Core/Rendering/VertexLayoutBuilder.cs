@@ -75,8 +75,7 @@ namespace Staple
 
                     return new VertexLayout()
                     {
-                        layout = layout,
-                        layoutHandle = bgfx.create_vertex_layout(v),
+                        layout = layout
                     };
                 }
             }

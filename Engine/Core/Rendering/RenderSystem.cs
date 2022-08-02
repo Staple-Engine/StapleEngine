@@ -47,7 +47,7 @@ namespace Staple
 
                     var view = camera.Transform.Matrix;
 
-                    bgfx.set_view_transform(viewID, &view.M11, &projection.M11);
+                    bgfx.set_view_transform(viewID, &view, &projection);
                 }
 
                 switch (camera.clearMode)

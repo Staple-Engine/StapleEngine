@@ -32,6 +32,11 @@ namespace Staple
         {
             var size = Marshal.SizeOf(typeof(T));
 
+            if(size != layout.layout.stride)
+            {
+                return null;
+            }
+
             byte[] buffer = new byte[size * data.Length];
 
             IntPtr ptr = IntPtr.Zero;
@@ -46,7 +51,7 @@ namespace Staple
 
                     for(var i = 0; i < data.Length; i++)
                     {
-                        Marshal.StructureToPtr(data[i], ptr, false);
+                        Marshal.StructureToPtr(data[i], ptr, true);
                         Marshal.Copy(ptr, buffer, i * size, size);
                     }
                 }
@@ -57,7 +62,7 @@ namespace Staple
 
                 fixed(void * dataPtr = buffer)
                 {
-                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
+                    outData = bgfx.copy(dataPtr, (uint)buffer.Length);
                 }
 
                 fixed(bgfx.VertexLayout *vertexLayout = &layout.layout)

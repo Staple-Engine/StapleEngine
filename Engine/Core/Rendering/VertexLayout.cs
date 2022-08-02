@@ -10,7 +10,6 @@ namespace Staple
     internal class VertexLayout
     {
         public bgfx.VertexLayout layout;
-        public bgfx.VertexLayoutHandle layoutHandle;
 
         public bool Has(bgfx.Attrib name)
         {

@@ -47,18 +47,18 @@ solution "Engine"
 		}
 
         filter "system:windows"
-    		postbuildcommands {
+    		prebuildcommands {
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
     		}
 
         filter "system:linux"
-    		postbuildcommands {
+    		prebuildcommands {
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
     		}
 
 		filter "system:macos"
-    		postbuildcommands {
+    		prebuildcommands {
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
     		}
