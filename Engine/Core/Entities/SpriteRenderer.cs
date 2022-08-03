@@ -13,5 +13,10 @@ namespace Staple
         internal SpriteRenderer(Entity entity) : base(entity)
         {
         }
+
+        internal void OnDestroy()
+        {
+            material.Destroy();
+        }
     }
 }

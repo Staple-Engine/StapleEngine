@@ -75,7 +75,7 @@ namespace Staple
 
                 foreach(var entity in Scene.current.entities)
                 {
-                    if(camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer))
+                    if(camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
                     {
                         if(renderer is SpriteRenderer)
                         {

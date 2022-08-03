@@ -9,18 +9,49 @@ namespace Staple
 {
     public class Material
     {
-        public readonly bgfx.ShaderHandle vertexShader;
-        public readonly bgfx.ShaderHandle fragmentShader;
-        public readonly bgfx.ProgramHandle program;
+        internal readonly bgfx.ShaderHandle vertexShader;
+        internal readonly bgfx.ShaderHandle fragmentShader;
+        internal readonly bgfx.ProgramHandle program;
 
-        public Material(bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
+        internal bgfx.UniformHandle ColorHandle { get; private set; }
+
+        public Color Color = Color.White;
+
+        private bool destroyed = false;
+
+        internal Material(bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
         {
             this.vertexShader = vertexShader;
             this.fragmentShader = fragmentShader;
             this.program = program;
+
+            if (program.Valid)
+            {
+                ColorHandle = bgfx.create_uniform("u_color", bgfx.UniformType.Vec4, 1);
+            }
         }
 
-        public static Material Create(byte[] vertexShaderData, byte[] fragmentShaderData)
+        internal void Destroy()
+        {
+            if(destroyed)
+            {
+                return;
+            }
+
+            destroyed = true;
+
+            if(ColorHandle.Valid)
+            {
+                bgfx.destroy_uniform(ColorHandle);
+            }
+        }
+
+        ~Material()
+        {
+            Destroy();
+        }
+
+        internal static Material Create(byte[] vertexShaderData, byte[] fragmentShaderData)
         {
             unsafe
             {

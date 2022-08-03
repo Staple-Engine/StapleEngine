@@ -15,7 +15,6 @@ namespace Staple
         struct SpriteVertex
         {
             public Vector3 position;
-            public Color32 color;
             public Vector2 texCoord;
         }
 
@@ -23,22 +22,18 @@ namespace Staple
         {
             new SpriteVertex() {
                 position = new Vector3(-0.5f, -0.5f, 0),
-                color = Color32.White,
                 texCoord = Vector2.Zero,
             },
             new SpriteVertex() {
                 position = new Vector3(-0.5f, 0.5f, 0),
-                color = Color32.White,
                 texCoord = new Vector2(0, 1),
             },
             new SpriteVertex() {
                 position = new Vector3(0.5f, 0.5f, 0),
-                color = Color32.White,
                 texCoord = Vector2.One,
             },
             new SpriteVertex() {
                 position = new Vector3(0.5f, -0.5f, 0),
-                color = Color32.White,
                 texCoord = new Vector2(1, 0),
             },
         };
@@ -58,7 +53,6 @@ namespace Staple
             {
                 vertexLayout = new VertexLayoutBuilder()
                     .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-                    .Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Uint8, true)
                     .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
                     .Build();
 
@@ -85,6 +79,17 @@ namespace Staple
             bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
 
             bgfx.set_state((ulong)state, 0);
+
+            if(renderer.material.ColorHandle.Valid)
+            {
+                unsafe
+                {
+                    fixed(void *ptr = &renderer.material.Color)
+                    {
+                        bgfx.set_uniform(renderer.material.ColorHandle, ptr, 1);
+                    }
+                }
+            }
 
             bgfx.submit(viewId, renderer.material.program, 0, (byte)bgfx.DiscardFlags.All);
         }

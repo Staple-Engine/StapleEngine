@@ -17,6 +17,22 @@ namespace Staple
 
         public static Scene current { get; internal set; }
 
+        public Entity Find(string name)
+        {
+            return entities.FirstOrDefault(x => x.Name == name);
+        }
+
+        internal void Cleanup()
+        {
+            foreach(var entity in entities)
+            {
+                foreach(var component in entity.components)
+                {
+                    component.Invoke("OnDestroy");
+                }
+            }
+        }
+
         public IEnumerable<T> GetComponents<T>() where T: Component
         {
             foreach(var entity in entities)

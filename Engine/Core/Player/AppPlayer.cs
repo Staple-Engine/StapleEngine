@@ -344,6 +344,8 @@ namespace Staple
                 bgfx.frame(false);
             }
 
+            Scene.current?.Cleanup();
+
             bgfx.shutdown();
 
             Glfw.Terminate();
