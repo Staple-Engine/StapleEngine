@@ -10,6 +10,11 @@ namespace Staple
     {
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
+        public void Destroy()
+        {
+            spriteRenderSystem.Destroy();
+        }
+
         public bool Perform(Scene scene)
         {
             ushort viewID = 1;

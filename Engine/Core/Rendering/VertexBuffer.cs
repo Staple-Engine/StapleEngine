@@ -15,7 +15,9 @@ namespace Staple
         public bgfx.VertexBufferHandle handle;
         public readonly int length;
 
-        public unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle, int length)
+        private bool destroyed = false;
+
+        internal unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle, int length)
         {
             this.data = data;
             this.layout = layout;
@@ -23,7 +25,27 @@ namespace Staple
             this.length = length;
         }
 
-        public void SetActive(byte stream, uint start, uint count)
+        ~VertexBuffer()
+        {
+            Destroy();
+        }
+
+        internal void Destroy()
+        {
+            if (destroyed)
+            {
+                return;
+            }
+
+            destroyed = true;
+
+            if (handle.Valid)
+            {
+                bgfx.destroy_vertex_buffer(handle);
+            }
+        }
+
+        internal void SetActive(byte stream, uint start, uint count)
         {
             bgfx.set_vertex_buffer(stream, handle, start, count);
         }

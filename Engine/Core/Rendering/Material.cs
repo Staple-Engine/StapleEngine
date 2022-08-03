@@ -17,6 +17,10 @@ namespace Staple
 
         public Color Color = Color.White;
 
+        internal bgfx.UniformHandle MainTextureHandle { get; private set; }
+
+        public Texture mainTexture;
+
         private bool destroyed = false;
 
         internal Material(bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
@@ -25,10 +29,8 @@ namespace Staple
             this.fragmentShader = fragmentShader;
             this.program = program;
 
-            if (program.Valid)
-            {
-                ColorHandle = bgfx.create_uniform("u_color", bgfx.UniformType.Vec4, 1);
-            }
+            ColorHandle = bgfx.create_uniform("u_color", bgfx.UniformType.Vec4, 1);
+            MainTextureHandle = bgfx.create_uniform("s_texColor", bgfx.UniformType.Sampler, 1);
         }
 
         internal void Destroy()
@@ -43,6 +45,21 @@ namespace Staple
             if(ColorHandle.Valid)
             {
                 bgfx.destroy_uniform(ColorHandle);
+            }
+
+            if(MainTextureHandle.Valid)
+            {
+                bgfx.destroy_uniform(MainTextureHandle);
+            }
+
+            if(program.Valid)
+            {
+                bgfx.destroy_program(program);
+            }
+
+            if(mainTexture != null)
+            {
+                mainTexture.Destroy();
             }
         }
 

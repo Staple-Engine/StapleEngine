@@ -13,12 +13,33 @@ namespace Staple
         public unsafe bgfx.Memory* data;
         public bgfx.IndexBufferHandle handle;
         public readonly int length;
+        private bool destroyed = false;
 
         public unsafe IndexBuffer(bgfx.Memory* data, bgfx.IndexBufferHandle handle, int length)
         {
             this.data = data;
             this.handle = handle;
             this.length = length;
+        }
+
+        ~IndexBuffer()
+        {
+            Destroy();
+        }
+
+        internal void Destroy()
+        {
+            if (destroyed)
+            {
+                return;
+            }
+
+            destroyed = true;
+
+            if (handle.Valid)
+            {
+                bgfx.destroy_index_buffer(handle);
+            }
         }
 
         public void SetActive(uint start, uint count)

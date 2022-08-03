@@ -22,19 +22,19 @@ namespace Staple
         {
             new SpriteVertex() {
                 position = new Vector3(-0.5f, -0.5f, 0),
-                texCoord = Vector2.Zero,
-            },
-            new SpriteVertex() {
-                position = new Vector3(-0.5f, 0.5f, 0),
                 texCoord = new Vector2(0, 1),
             },
             new SpriteVertex() {
+                position = new Vector3(-0.5f, 0.5f, 0),
+                texCoord = Vector2.Zero,
+            },
+            new SpriteVertex() {
                 position = new Vector3(0.5f, 0.5f, 0),
-                texCoord = Vector2.One,
+                texCoord = new Vector2(1, 0),
             },
             new SpriteVertex() {
                 position = new Vector3(0.5f, -0.5f, 0),
-                texCoord = new Vector2(1, 0),
+                texCoord = Vector2.One,
             },
         };
 
@@ -46,6 +46,12 @@ namespace Staple
         private VertexLayout vertexLayout;
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
+
+        internal void Destroy()
+        {
+            vertexBuffer?.Destroy();
+            indexBuffer?.Destroy();
+        }
 
         public void Process(Entity entity, SpriteRenderer renderer, ushort viewId)
         {
@@ -89,6 +95,11 @@ namespace Staple
                         bgfx.set_uniform(renderer.material.ColorHandle, ptr, 1);
                     }
                 }
+            }
+
+            if(renderer.material.MainTextureHandle.Valid && renderer.material.mainTexture != null)
+            {
+                renderer.material.mainTexture.SetActive(0, renderer.material.MainTextureHandle);
             }
 
             bgfx.submit(viewId, renderer.material.program, 0, (byte)bgfx.DiscardFlags.All);

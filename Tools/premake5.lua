@@ -26,14 +26,20 @@ solution "Tools"
 		objdir "../obj/Baker/%{cfg.buildcfg}"
 		
 		files {
-			"Baker/**.cs"
+			"Baker/**.cs",
+			"../Engine/Core/Resources/TextureMetadata.cs",
+			"../Engine/Core/Resources/SerializableTexture.cs"
 		}
 		
 		links {
-			"System"
+			"System",
+			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
 		}
 		
 		postbuildcommands {
 			"{MKDIR} %{wks.location}/bin",
-			"{COPYFILE} %{wks.location}../bin/Baker/%{cfg.buildcfg}/*.exe %{wks.location}/bin/"
+			"{COPYFILE} %{wks.location}../bin/Baker/%{cfg.buildcfg}/*.exe %{wks.location}/bin/",
+			"{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}/bin/",
+			"{COPYFILE} %{wks.location}../Dependencies/JsonNet/*.dll %{wks.location}/bin/"
 		}

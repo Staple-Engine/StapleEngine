@@ -35,8 +35,10 @@ solution "Engine"
         links {
 			"glfwnet",
             "System.Drawing",
+			"System.Memory",
             "System.Numerics",
-			"System.Core"
+			"System.Core",
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
         }
 		
 		targetdir "../bin/Core/%{cfg.buildcfg}"
@@ -48,17 +50,17 @@ solution "Engine"
 
         filter "system:windows"
     		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}%{cfg.targetdir}"
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}%{cfg.targetdir}",
     		}
 
         filter "system:linux"
     		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{cfg.targetdir}",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{cfg.targetdir}"
     		}
 
 		filter "system:macos"
     		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{cfg.targetdir}",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{cfg.targetdir}"
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{cfg.targetdir}",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{cfg.targetdir}"
     		}

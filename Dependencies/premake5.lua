@@ -251,3 +251,22 @@ project "glfwnet"
 	files {
 		"glfw-net/GLFW.NET/**.cs"
 	}
+
+project "MessagePack"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+
+	links {
+		"System",
+		"System.Numerics",
+		"System.Runtime.Serialization",
+		"MessagePack/Plugins/System.Buffers.dll",
+		"MessagePack/Plugins/System.Memory.dll",
+		"MessagePack/Plugins/System.Runtime.CompilerServices.Unsafe.dll",
+		"MessagePack/Plugins/System.Threading.Tasks.Extensions.dll",
+	}
+
+	files {
+		"MessagePack/**.cs"
+	}

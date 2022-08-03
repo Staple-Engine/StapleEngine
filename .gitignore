@@ -12,3 +12,4 @@ Makefile
 *.make
 build
 Staging
+Tools/packages

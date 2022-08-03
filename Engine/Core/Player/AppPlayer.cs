@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using GLFW;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,7 +100,7 @@ namespace Staple
                 flags |= bgfx.ResetFlags.Suspend;
             }
 
-            bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)flags, bgfx.TextureFormat.RGBA32U);
+            bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
         }
 
@@ -291,14 +292,22 @@ namespace Staple
             if(spriteShaderVS != null && spriteShaderFS != null)
             {
                 var material = Material.Create(spriteShaderVS, spriteShaderFS);
+                var texture = ResourceLocator.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
 
-                if(material != null)
+                if(material != null && texture != null)
                 {
+                    material.mainTexture = texture;
+
                     var sprite = new Entity("Sprite");
 
                     sprite.Transform.LocalScale = new Vector3(100, 100, 100);
 
                     sprite.AddComponent<SpriteRenderer>().material = material;
+                }
+                else
+                {
+                    material?.Destroy();
+                    texture?.Destroy();
                 }
             }
 
@@ -345,6 +354,10 @@ namespace Staple
             }
 
             Scene.current?.Cleanup();
+
+            ResourceLocator.instance.Destroy();
+
+            renderSystem.Destroy();
 
             bgfx.shutdown();
 

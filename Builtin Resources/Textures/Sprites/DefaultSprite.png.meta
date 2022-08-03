@@ -1,0 +1,12 @@
+{
+	"type": "SRGB",
+	"useMipmaps": true,
+	"quality": "Default",
+	"isLinear": false,
+	"premultiplyAlpha": false,
+	"maxSize": 2048,
+	"format": "ETC1",
+	"wrapU": "Clamp",
+	"wrapV": "Clamp",
+	"filter": "Linear"
+}
