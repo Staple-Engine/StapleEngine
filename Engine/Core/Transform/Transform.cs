@@ -43,7 +43,7 @@ namespace Staple
 
                 if(parent != null)
                 {
-                    return parent.Matrix * matrix;
+                    return matrix * parent.Matrix;
                 }
 
                 return matrix;

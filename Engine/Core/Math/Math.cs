@@ -167,5 +167,20 @@ namespace Staple
         public static readonly float PI = (float)System.Math.PI;
 
         public static readonly float Epsilon = float.Epsilon;
+
+        public static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
+        {
+            Matrix4x4 outValue = Matrix4x4.Identity;
+
+            outValue.M11 = 2.0f / (right - left);
+            outValue.M22 = 2.0f / (bottom - top);
+            outValue.M33 = 1.0f / (zFar - zNear);
+            outValue.M41 = (left + right) / (left - right);
+            outValue.M42 = (top + bottom) / (top - bottom);
+            outValue.M43 = zNear / (zNear - zFar);
+
+            return outValue;
+        }
+
     }
 }

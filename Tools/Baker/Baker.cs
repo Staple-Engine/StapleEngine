@@ -372,6 +372,14 @@ namespace Baker
                     parameters += " --pma";
                 }
 
+                try
+                {
+                    File.Delete(outputFile);
+                }
+                catch(Exception)
+                {
+                }
+
                 var outputFileTemp = $"{outputFile}_temp";
 
                 var process = new Process

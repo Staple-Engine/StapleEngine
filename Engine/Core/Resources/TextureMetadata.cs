@@ -157,5 +157,8 @@ namespace Staple.Internal
 
         [Key(10)]
         public bool isLinear = false;
+
+        [Key(11)]
+        public float spriteScale = 1;
     }
 }

@@ -290,6 +290,7 @@ namespace Staple
             var spriteShaderFS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
 
             Entity sprite = null;
+            Entity child = null;
 
             if(spriteShaderVS != null && spriteShaderFS != null)
             {
@@ -302,9 +303,18 @@ namespace Staple
 
                     sprite = new Entity("Sprite");
 
-                    sprite.Transform.LocalScale = new Vector3(100, 100, 100);
+                    sprite.Transform.LocalScale = Vector3.One * 0.5f;
+                    sprite.Transform.LocalPosition = new Vector3(ScreenWidth / 2, ScreenHeight / 2, 0);
 
                     sprite.AddComponent<SpriteRenderer>().material = material;
+
+                    child = new Entity("Child");
+
+                    child.Transform.SetParent(sprite.Transform);
+
+                    child.Transform.LocalScale = Vector3.One * 0.5f;
+
+                    child.AddComponent<SpriteRenderer>().material = material;
                 }
                 else
                 {
@@ -313,7 +323,7 @@ namespace Staple
                 }
             }
 
-            camera.clearColor = new Color(0.25f, 0.5f, 0.0f, 0.0f);
+            camera.clearColor = Color.Black;//new Color(0.25f, 0.5f, 0.0f, 0.0f);
 
 #if _DEBUG
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
@@ -359,11 +369,17 @@ namespace Staple
                     sprite.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, frame / 100.0f);
                 }
 
+                if(child != null)
+                {
+                    child.Transform.LocalPosition = new Vector3(200 * Math.Cos(Math.Deg2Rad(frame)), 200 * Math.Sin(Math.Deg2Rad(frame)), 0);
+                    child.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, frame / 100.0f);
+                }
+
                 frame++;
 
-                if(frame >= 360)
+                if(frame >= 36000)
                 {
-                    frame -= 360;
+                    frame -= 36000;
                 }
 
                 bgfx.frame(false);

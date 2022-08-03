@@ -15,6 +15,14 @@ namespace Staple
         internal readonly TextureMetadata metadata;
         private bool destroyed = false;
 
+        public int Width => info.width;
+
+        public int Height => info.height;
+
+        public int SpriteWidth => (int)(info.width * metadata.spriteScale);
+
+        public int SpriteHeight => (int)(info.height * metadata.spriteScale);
+
         internal Texture(TextureMetadata metadata, bgfx.TextureHandle handle, bgfx.TextureInfo info)
         {
             this.metadata = metadata;

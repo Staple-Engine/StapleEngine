@@ -75,7 +75,15 @@ namespace Staple
             vertexBuffer.SetActive(0, 0, (uint)vertexBuffer.length);
             indexBuffer.SetActive(0, (uint)indexBuffer.length);
 
-            var matrix = entity.Transform.Matrix;
+            var scale = Vector3.Zero;
+
+            if(renderer.material.mainTexture != null)
+            {
+                scale.X = renderer.material.mainTexture.SpriteWidth;
+                scale.Y = renderer.material.mainTexture.SpriteHeight;
+            }
+
+            var matrix = Matrix4x4.CreateScale(scale) * entity.Transform.Matrix;
 
             unsafe
             {

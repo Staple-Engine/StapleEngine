@@ -42,7 +42,7 @@ namespace Staple
 
                         case CameraType.Orthographic:
 
-                            projection = Matrix4x4.CreateOrthographic(camera.Width, camera.Height, camera.nearPlane, camera.farPlane);
+                            projection = Math.Ortho(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
 
                             break;
 
