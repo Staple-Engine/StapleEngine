@@ -289,6 +289,8 @@ namespace Staple
             var spriteShaderVS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
             var spriteShaderFS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
 
+            Entity sprite = null;
+
             if(spriteShaderVS != null && spriteShaderFS != null)
             {
                 var material = Material.Create(spriteShaderVS, spriteShaderFS);
@@ -298,7 +300,7 @@ namespace Staple
                 {
                     material.mainTexture = texture;
 
-                    var sprite = new Entity("Sprite");
+                    sprite = new Entity("Sprite");
 
                     sprite.Transform.LocalScale = new Vector3(100, 100, 100);
 
@@ -316,6 +318,8 @@ namespace Staple
 #if _DEBUG
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
+
+            int frame = 0;
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
@@ -348,6 +352,18 @@ namespace Staple
                     bgfx.touch(ClearView);
                     bgfx.dbg_text_clear(0, false);
                     bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+                }
+
+                if(sprite != null)
+                {
+                    sprite.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, frame / 100.0f);
+                }
+
+                frame++;
+
+                if(frame >= 360)
+                {
+                    frame -= 360;
                 }
 
                 bgfx.frame(false);
