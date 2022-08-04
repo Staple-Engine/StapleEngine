@@ -68,7 +68,7 @@ namespace Staple
                 indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
             }
 
-            if(renderer.material == null)
+            if(renderer.material == null || renderer.material.shader == null)
             {
                 return;
             }
@@ -111,7 +111,7 @@ namespace Staple
                 renderer.material.mainTexture.SetActive(0, renderer.material.MainTextureHandle);
             }
 
-            bgfx.submit(viewId, renderer.material.program, 0, (byte)bgfx.DiscardFlags.All);
+            bgfx.submit(viewId, renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }
     }
 }

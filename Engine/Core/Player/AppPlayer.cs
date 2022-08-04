@@ -32,8 +32,6 @@ namespace Staple
             appSettings = settings;
             active = this;
 
-            ResourceManager.instance.basePath = "C:\\Git\\StapleEngine\\Staging";
-
             for (var i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-datadir")
@@ -291,18 +289,21 @@ namespace Staple
             camera.cameraType = CameraType.Orthographic;
             camera.nearPlane = 0;
 
-            var spriteShaderVS = ResourceManager.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
-            var spriteShaderFS = ResourceManager.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
-
             Entity sprite = null;
             Entity child = null;
 
-            if(spriteShaderVS != null && spriteShaderFS != null)
+            var shader = ResourceManager.instance.LoadShader("Shaders/Sprite/sprite.stsh");
+
+            if(shader != null)
             {
-                var material = Material.Create(spriteShaderVS, spriteShaderFS);
+                var material = new Material()
+                {
+                    shader = shader,
+                };
+
                 var texture = ResourceManager.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
 
-                if(material != null && texture != null)
+                if(texture != null)
                 {
                     material.mainTexture = texture;
 

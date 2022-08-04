@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,7 @@ namespace Staple
 {
     public class Material
     {
-        internal readonly bgfx.ShaderHandle vertexShader;
-        internal readonly bgfx.ShaderHandle fragmentShader;
-        internal readonly bgfx.ProgramHandle program;
+        internal Shader shader;
 
         internal bgfx.UniformHandle ColorHandle { get; private set; }
 
@@ -26,12 +25,8 @@ namespace Staple
 
         private bool destroyed = false;
 
-        internal Material(bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
+        internal Material()
         {
-            this.vertexShader = vertexShader;
-            this.fragmentShader = fragmentShader;
-            this.program = program;
-
             ColorHandle = bgfx.create_uniform("u_color", bgfx.UniformType.Vec4, 1);
             MainTextureHandle = bgfx.create_uniform("s_texColor", bgfx.UniformType.Sampler, 1);
         }
@@ -55,10 +50,7 @@ namespace Staple
                 bgfx.destroy_uniform(MainTextureHandle);
             }
 
-            if(program.Valid)
-            {
-                bgfx.destroy_program(program);
-            }
+            shader?.Destroy();
 
             if(mainTexture != null)
             {
@@ -69,41 +61,6 @@ namespace Staple
         ~Material()
         {
             Destroy();
-        }
-
-        internal static Material Create(byte[] vertexShaderData, byte[] fragmentShaderData)
-        {
-            unsafe
-            {
-                bgfx.Memory* vs, fs;
-
-                fixed(void *ptr = vertexShaderData)
-                {
-                    vs = bgfx.copy(ptr, (uint)vertexShaderData.Length);
-                }
-
-                fixed (void* ptr = fragmentShaderData)
-                {
-                    fs = bgfx.copy(ptr, (uint)fragmentShaderData.Length);
-                }
-
-                bgfx.ShaderHandle vsHandle = bgfx.create_shader(vs);
-                bgfx.ShaderHandle fsHandle = bgfx.create_shader(fs);
-
-                if(vsHandle.Valid == false || fsHandle.Valid == false)
-                {
-                    return null;
-                }
-
-                bgfx.ProgramHandle programHandle = bgfx.create_program(vsHandle, fsHandle, true);
-
-                if(programHandle.Valid == false)
-                {
-                    return null;
-                }
-
-                return new Material(vsHandle, fsHandle, programHandle);
-            }
         }
     }
 }

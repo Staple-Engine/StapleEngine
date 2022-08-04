@@ -18,12 +18,29 @@ namespace Staple.Internal
 
         private Dictionary<string, Texture> cachedTextures = new Dictionary<string, Texture>();
         private Dictionary<string, Material> cachedMaterials = new Dictionary<string, Material>();
+        private Dictionary<string, Shader> cachedShaders = new Dictionary<string, Shader>();
         
         internal void Destroy()
         {
             foreach(var pair in cachedTextures)
             {
                 if(pair.Value != null)
+                {
+                    pair.Value.Destroy();
+                }
+            }
+
+            foreach (var pair in cachedMaterials)
+            {
+                if (pair.Value != null)
+                {
+                    pair.Value.Destroy();
+                }
+            }
+
+            foreach (var pair in cachedShaders)
+            {
+                if (pair.Value != null)
                 {
                     pair.Value.Destroy();
                 }
@@ -44,6 +61,76 @@ namespace Staple.Internal
             catch(Exception)
             {
                 return null;
+            }
+        }
+
+        public Shader LoadShader(string path)
+        {
+            if (cachedShaders.TryGetValue(path, out var shader) && shader != null)
+            {
+                return shader;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(data))
+            {
+                try
+                {
+                    var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+
+                    if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+                        header.version != SerializableShaderHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+
+                    if (shaderData == null || shaderData.metadata == null)
+                    {
+                        return null;
+                    }
+
+                    switch(shaderData.metadata.type)
+                    {
+                        case ShaderType.Compute:
+
+                            if((shaderData.computeShader?.Length ?? 0) == 0)
+                            {
+                                return null;
+                            }
+
+                            break;
+
+                        case ShaderType.VertexFragment:
+
+                            if ((shaderData.vertexShader?.Length ?? 0) == 0 || (shaderData.fragmentShader?.Length ?? 0) == 0)
+                            {
+                                return null;
+                            }
+
+                            break;
+                    }
+
+                    shader = Shader.Create(shaderData);
+
+                    if(shader != null)
+                    {
+                        cachedShaders.Add(path, shader);
+                    }
+
+                    return shader;
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
             }
         }
 
@@ -84,7 +171,14 @@ namespace Staple.Internal
                         return null;
                     }
 
-                    //TODO
+                    var shader = LoadShader(materialData.metadata.shaderPath);
+
+                    if(shader == null)
+                    {
+                        return null;
+                    }
+
+                    material.shader = shader;
 
                     return material;
                 }
