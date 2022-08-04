@@ -8,5 +8,6 @@
 	"format": "ETC1",
 	"wrapU": "Clamp",
 	"wrapV": "Clamp",
-	"filter": "Linear"
+	"filter": "Linear",
+	"spriteScale": 0.25
 }
