@@ -6,27 +6,29 @@ using System.Numerics;
 
 namespace Staple
 {
-    internal class RenderSystem
+    internal class RenderSystem : ISubsystem
     {
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
-        public void Destroy()
+        internal static byte Priority = 0;
+
+        public void Startup()
+        {
+        }
+
+        public void Shutdown()
         {
             spriteRenderSystem.Destroy();
         }
 
-        public bool Perform(Scene scene)
+        public void Update()
         {
             ushort viewID = 1;
 
-            var cameras = scene.GetComponents<Camera>().OrderBy(x => x.depth);
+            var cameras = Scene.current.GetComponents<Camera>().OrderBy(x => x.depth);
 
-            bool performed = false;
-
-            foreach(var camera in cameras)
+            foreach (var camera in cameras)
             {
-                performed = true;
-
                 unsafe
                 {
                     Matrix4x4 projection;
@@ -78,11 +80,11 @@ namespace Staple
 
                 bgfx.touch(viewID);
 
-                foreach(var entity in Scene.current.entities)
+                foreach (var entity in Scene.current.entities)
                 {
-                    if(camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
+                    if (camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
                     {
-                        if(renderer is SpriteRenderer)
+                        if (renderer is SpriteRenderer)
                         {
                             spriteRenderSystem.Process(entity, (SpriteRenderer)renderer, viewID);
                         }
@@ -91,8 +93,6 @@ namespace Staple
 
                 viewID++;
             }
-
-            return performed;
         }
     }
 }

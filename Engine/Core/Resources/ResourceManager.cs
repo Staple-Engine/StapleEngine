@@ -10,13 +10,14 @@ using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
-    internal class ResourceLocator
+    internal class ResourceManager
     {
         public string basePath;
 
-        public static ResourceLocator instance = new ResourceLocator();
+        public static ResourceManager instance = new ResourceManager();
 
         private Dictionary<string, Texture> cachedTextures = new Dictionary<string, Texture>();
+        private Dictionary<string, Material> cachedMaterials = new Dictionary<string, Material>();
         
         internal void Destroy()
         {
@@ -43,6 +44,54 @@ namespace Staple.Internal
             catch(Exception)
             {
                 return null;
+            }
+        }
+
+        public Material LoadMaterial(string path)
+        {
+            if(cachedMaterials.TryGetValue(path, out var material) && material != null)
+            {
+                return material;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(data))
+            {
+                try
+                {
+                    var header = MessagePackSerializer.Deserialize<SerializableMaterialHeader>(stream);
+
+                    if (header == null || header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) == false || header.version != SerializableMaterialHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var materialData = MessagePackSerializer.Deserialize<SerializableMaterial>(stream);
+
+                    if(materialData == null || materialData.metadata == null)
+                    {
+                        return null;
+                    }
+
+                    if((materialData.metadata.shaderPath?.Length ?? 0) == 0)
+                    {
+                        return null;
+                    }
+
+                    //TODO
+
+                    return material;
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
             }
         }
 

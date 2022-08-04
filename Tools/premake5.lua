@@ -27,12 +27,20 @@ solution "Tools"
 		
 		files {
 			"Baker/**.cs",
+			"../Engine/Core/Resources/MaterialMetadata.cs",
+			"../Engine/Core/Resources/ShaderMetadata.cs",
 			"../Engine/Core/Resources/TextureMetadata.cs",
-			"../Engine/Core/Resources/SerializableTexture.cs"
+			"../Engine/Core/Resources/SerializableMaterial.cs",
+			"../Engine/Core/Resources/SerializableShader.cs",
+			"../Engine/Core/Resources/SerializableTexture.cs",
+			"../Engine/Core/Math/Color32.cs",
+			"../Engine/Core/Math/Color.cs",
+			"../Engine/Core/Math/Math.cs"
 		}
 		
 		links {
 			"System",
+			"System.Numerics",
 			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
 			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
 		}

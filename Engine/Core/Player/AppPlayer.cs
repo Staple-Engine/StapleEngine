@@ -19,8 +19,6 @@ namespace Staple
 
         private PlayerSettings playerSettings;
 
-        private RenderSystem renderSystem = new RenderSystem();
-
         public static int ScreenWidth { get; private set; }
 
         public static int ScreenHeight { get; private set; }
@@ -34,13 +32,15 @@ namespace Staple
             appSettings = settings;
             active = this;
 
-            for(var i = 0; i < args.Length; i++)
+            ResourceManager.instance.basePath = "C:\\Git\\StapleEngine\\Staging";
+
+            for (var i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-datadir")
                 {
                     if(i + 1 < args.Length)
                     {
-                        ResourceLocator.instance.basePath = args[i + 1];
+                        ResourceManager.instance.basePath = args[i + 1];
                     }
                 }
             }
@@ -279,6 +279,11 @@ namespace Staple
 
             Scene.current = new Scene();
 
+            var renderSystem = new RenderSystem();
+
+            SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
+            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
+
             var cameraEntity = new Entity("Camera");
 
             var camera = cameraEntity.AddComponent<Camera>();
@@ -286,8 +291,8 @@ namespace Staple
             camera.cameraType = CameraType.Orthographic;
             camera.nearPlane = 0;
 
-            var spriteShaderVS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
-            var spriteShaderFS = ResourceLocator.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
+            var spriteShaderVS = ResourceManager.instance.LoadFile("Shaders/Sprite/sprite_vs.sc");
+            var spriteShaderFS = ResourceManager.instance.LoadFile("Shaders/Sprite/sprite_fs.sc");
 
             Entity sprite = null;
             Entity child = null;
@@ -295,7 +300,7 @@ namespace Staple
             if(spriteShaderVS != null && spriteShaderFS != null)
             {
                 var material = Material.Create(spriteShaderVS, spriteShaderFS);
-                var texture = ResourceLocator.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
+                var texture = ResourceManager.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
 
                 if(material != null && texture != null)
                 {
@@ -329,11 +334,17 @@ namespace Staple
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
 
-            int frame = 0;
+            DateTimeOffset last = (DateTimeOffset)DateTime.UtcNow;
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
                 Glfw.PollEvents();
+
+                DateTimeOffset current = (DateTimeOffset)DateTime.UtcNow;
+
+                Time.UpdateClock(current, last);
+
+                last = current;
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
 
@@ -357,29 +368,30 @@ namespace Staple
                     }
                 }
 
-                if(renderSystem.Perform(Scene.current) == false)
+                SubsystemManager.instance.Update();
+
+                var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
+
+                if(hasCamera == false)
                 {
                     bgfx.touch(ClearView);
                     bgfx.dbg_text_clear(0, false);
                     bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
                 }
 
-                if(sprite != null)
+                bgfx.touch(ClearView);
+                bgfx.dbg_text_clear(0, false);
+                bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+
+                if (sprite != null)
                 {
-                    sprite.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, frame / 100.0f);
+                    sprite.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, Time.time);
                 }
 
                 if(child != null)
                 {
-                    child.Transform.LocalPosition = new Vector3(200 * Math.Cos(Math.Deg2Rad(frame)), 200 * Math.Sin(Math.Deg2Rad(frame)), 0);
-                    child.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, frame / 100.0f);
-                }
-
-                frame++;
-
-                if(frame >= 36000)
-                {
-                    frame -= 36000;
+                    child.Transform.LocalPosition = new Vector3(200 * Math.Cos(Math.Deg2Rad(Time.time * 100)), 200 * Math.Sin(Math.Deg2Rad(Time.time * 100)), 0);
+                    child.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, Time.time);
                 }
 
                 bgfx.frame(false);
@@ -387,9 +399,9 @@ namespace Staple
 
             Scene.current?.Cleanup();
 
-            ResourceLocator.instance.Destroy();
+            SubsystemManager.instance.Destroy();
 
-            renderSystem.Destroy();
+            ResourceManager.instance.Destroy();
 
             bgfx.shutdown();
 

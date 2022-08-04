@@ -182,5 +182,30 @@ namespace Staple
             return outValue;
         }
 
+        public static Vector2 Transform(Vector2 self, Matrix4x4 matrix)
+        {
+            var v = Transform(new Vector4(self.X, self.Y, 0, 1), matrix);
+
+            return new Vector2(v.X, v.Y);
+        }
+
+        public static Vector3 Transform(Vector3 self, Matrix4x4 matrix)
+        {
+            var v = Transform(new Vector4(self.X, self.Y, self.Z, 1), matrix);
+
+            return new Vector3(v.X, v.Y, v.Z);
+        }
+
+        public static Vector4 Transform(Vector4 self, Matrix4x4 matrix)
+        {
+            Vector4 v;
+
+            v.X = self.X * matrix.M11 + self.Y * matrix.M21 + self.Z * matrix.M31 + self.W * matrix.M41;
+            v.Y = self.X * matrix.M12 + self.Y * matrix.M22 + self.Z * matrix.M32 + self.W * matrix.M42;
+            v.Z = self.X * matrix.M13 + self.Y * matrix.M23 + self.Z * matrix.M33 + self.W * matrix.M43;
+            v.W = self.X * matrix.M14 + self.Y * matrix.M24 + self.Z * matrix.M34 + self.W * matrix.M44;
+
+            return v;
+        }
     }
 }

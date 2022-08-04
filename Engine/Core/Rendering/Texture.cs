@@ -13,6 +13,7 @@ namespace Staple
         internal readonly bgfx.TextureHandle handle;
         internal readonly bgfx.TextureInfo info;
         internal readonly TextureMetadata metadata;
+
         private bool destroyed = false;
 
         public int Width => info.width;

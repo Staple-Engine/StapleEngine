@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 namespace Staple.Internal
 {
     [MessagePackObject]
-    public class SerializableTextureHeader
+    public class SerializableMaterialHeader
     {
         [IgnoreMember]
         public readonly static char[] ValidHeader = new char[]
         {
-            'S', 'T', 'E', 'X'
+            'S', 'M', 'A', 'T'
         };
 
         [IgnoreMember]
@@ -27,12 +27,9 @@ namespace Staple.Internal
     }
 
     [MessagePackObject]
-    public class SerializableTexture
+    public class SerializableMaterial
     {
         [Key(0)]
-        public TextureMetadata metadata;
-
-        [Key(1)]
-        public byte[] data;
+        public MaterialMetadata metadata;
     }
 }

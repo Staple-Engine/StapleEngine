@@ -64,6 +64,48 @@ namespace Staple
             }
         }
 
+        internal bool HasComponents(params Type[] types)
+        {
+            for(var i = 0; i < types.Length; i++)
+            {
+                if (types[i].IsSubclassOf(typeof(Component)) == false)
+                {
+                    return false;
+                }
+            }
+
+            for(var i = 0; i < types.Length; i++)
+            {
+                bool found = false;
+
+                for(var j = 0; j < components.Count; j++)
+                {
+                    if (components[j] == null)
+                    {
+                        continue;
+                    }
+
+                    var type = components[j].GetType();
+
+                    if (type == types[i] ||
+                        type.IsSubclassOf(types[j]) ||
+                        types[j].IsAssignableFrom(type))
+                    {
+                        found = true;
+
+                        break;
+                    }
+                }
+
+                if (found == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public T AddComponent<T>() where T: Component
         {
             try

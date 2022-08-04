@@ -34,6 +34,7 @@ solution "Engine"
 
         links {
 			"glfwnet",
+			"System",
             "System.Drawing",
 			"System.Memory",
             "System.Numerics",

@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,7 +99,7 @@ namespace Staple
             {
                 unsafe
                 {
-                    fixed(void *ptr = &renderer.material.Color)
+                    fixed(void *ptr = &renderer.color)
                     {
                         bgfx.set_uniform(renderer.material.ColorHandle, ptr, 1);
                     }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +21,8 @@ namespace Staple
         internal bgfx.UniformHandle MainTextureHandle { get; private set; }
 
         public Texture mainTexture;
+
+        public Vector4 textureScale = new Vector4(0, 0, 1, 1);
 
         private bool destroyed = false;
 
