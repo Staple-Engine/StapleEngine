@@ -24,7 +24,7 @@ solution "Engine"
 		symbols "On"
 
 	project "Core"
-		kind "ConsoleApp"
+		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
 
@@ -47,6 +47,22 @@ solution "Engine"
 		
 		files {
 			"Core/**.cs"
+		}
+
+	project "Player"
+		kind "ConsoleApp"
+		language "C#"
+		clr "Unsafe"
+		
+		targetdir "../bin/Player/%{cfg.buildcfg}"
+		objdir "../obj/Player/%{cfg.buildcfg}"
+		
+		links {
+			"Core"
+		}
+		
+		files {
+			"Player/**.cs"
 		}
 
         filter "system:windows"

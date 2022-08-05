@@ -1,13 +1,14 @@
-using System;
-using System.Runtime.InteropServices;
-using Bgfx;
-using GLFW;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Staple
 {
-    static class Program
+    public static class StaplePlayer
     {
-        public static void Main(string[] args)
+        public static void Run(string[] args)
         {
             new AppPlayer(new AppSettings()
             {

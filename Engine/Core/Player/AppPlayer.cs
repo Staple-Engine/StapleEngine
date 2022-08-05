@@ -2,12 +2,10 @@
 using GLFW;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
@@ -31,6 +29,14 @@ namespace Staple
         {
             appSettings = settings;
             active = this;
+
+            var baseDirectory = AppContext.BaseDirectory;
+
+#if _DEBUG
+            baseDirectory = Environment.CurrentDirectory;
+#endif
+
+            ResourceManager.instance.basePath = Path.Combine(baseDirectory, "Data");
 
             for (var i = 0; i < args.Length; i++)
             {
