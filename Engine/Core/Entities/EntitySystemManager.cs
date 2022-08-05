@@ -8,7 +8,7 @@ namespace Staple
 {
     public class EntitySystemManager : ISubsystem
     {
-        private List<IEntitySystem> systems = new List<IEntitySystem>();
+        private HashSet<IEntitySystem> systems = new HashSet<IEntitySystem>();
 
         public static readonly EntitySystemManager instance = new EntitySystemManager();
 
@@ -25,6 +25,11 @@ namespace Staple
                     yield return entity;
                 }
             }
+        }
+
+        public void RegisterSystem(IEntitySystem system)
+        {
+            systems.Add(system);
         }
 
         public void Shutdown()

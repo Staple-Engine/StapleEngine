@@ -48,7 +48,7 @@ namespace Baker
 
                 var directory = Path.GetDirectoryName(materialFiles[i]);
                 var file = Path.GetFileName(materialFiles[i]);
-                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file.Replace(".meta", ""));
+                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
                 var index = outputFile.IndexOf(inputPath);
 

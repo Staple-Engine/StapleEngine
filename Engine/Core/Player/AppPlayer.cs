@@ -26,7 +26,7 @@ namespace Staple
 
         public static AppPlayer active;
 
-        private Assembly playerAssembly;
+        internal Assembly playerAssembly;
 
         public AppPlayer(AppSettings settings, string[] args)
         {
@@ -115,7 +115,7 @@ namespace Staple
         {
             try
             {
-                playerAssembly = Assembly.LoadFrom("Data/Player.dll");
+                playerAssembly = Assembly.LoadFrom("Data/Game.dll");
             }
             catch(System.Exception)
             {
@@ -172,6 +172,8 @@ namespace Staple
 
             if (window == null)
             {
+                Glfw.Terminate();
+
                 return;
             }
 
@@ -281,6 +283,8 @@ namespace Staple
             {
                 if (!bgfx.init(&init))
                 {
+                    Glfw.Terminate();
+
                     return;
                 }
             }
@@ -295,61 +299,57 @@ namespace Staple
                 ResetRendering(hasFocus);
             }
 
-            Scene.current = new Scene();
+            Scene.sceneList = ResourceManager.instance.LoadSceneList();
+
+            if(Scene.sceneList == null || Scene.sceneList.Count == 0)
+            {
+                Console.WriteLine($"Failed to load scene list");
+
+                bgfx.shutdown();
+                Glfw.Terminate();
+
+                return;
+            }
+
+            Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+
+            if(Scene.current == null)
+            {
+                Console.WriteLine($"Failed to load main scene");
+
+                bgfx.shutdown();
+                Glfw.Terminate();
+
+                return;
+            }
 
             var renderSystem = new RenderSystem();
 
             SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
             SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
 
-            var cameraEntity = new Entity("Camera");
-
-            var camera = cameraEntity.AddComponent<Camera>();
-
-            camera.cameraType = CameraType.Orthographic;
-            camera.nearPlane = 0;
-
-            Entity sprite = null;
-            Entity child = null;
-
-            var shader = ResourceManager.instance.LoadShader("Shaders/Sprite/sprite.stsh");
-
-            if(shader != null)
+            if(playerAssembly != null)
             {
-                var material = new Material()
+                var types = playerAssembly.GetTypes()
+                    .Where(x => typeof(IEntitySystem).IsAssignableFrom(x));
+
+                foreach(var type in types)
                 {
-                    shader = shader,
-                };
+                    try
+                    {
+                        var instance = (IEntitySystem)Activator.CreateInstance(type);
 
-                var texture = ResourceManager.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
-
-                if(texture != null)
-                {
-                    material.MainTexture = texture;
-
-                    sprite = new Entity("Sprite");
-
-                    sprite.Transform.LocalScale = Vector3.One * 0.5f;
-                    sprite.Transform.LocalPosition = new Vector3(ScreenWidth / 2, ScreenHeight / 2, 0);
-
-                    sprite.AddComponent<SpriteRenderer>().material = material;
-
-                    child = new Entity("Child");
-
-                    child.Transform.SetParent(sprite.Transform);
-
-                    child.Transform.LocalScale = Vector3.One * 0.5f;
-
-                    child.AddComponent<SpriteRenderer>().material = material;
-                }
-                else
-                {
-                    material?.Destroy();
-                    texture?.Destroy();
+                        if(instance != null)
+                        {
+                            EntitySystemManager.instance.RegisterSystem(instance);
+                        }
+                    }
+                    catch(System.Exception e)
+                    {
+                        Console.WriteLine($"Player: Failed to load entity system {type.FullName}: {e}");
+                    }
                 }
             }
-
-            camera.clearColor = Color.Black;//new Color(0.25f, 0.5f, 0.0f, 0.0f);
 
 #if _DEBUG
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
@@ -406,17 +406,6 @@ namespace Staple
                 bgfx.touch(ClearView);
                 bgfx.dbg_text_clear(0, false);
                 bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
-
-                if (sprite != null)
-                {
-                    sprite.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, Time.time);
-                }
-
-                if(child != null)
-                {
-                    child.Transform.LocalPosition = new Vector3(200 * Math.Cos(Math.Deg2Rad(Time.time * 100)), 200 * Math.Sin(Math.Deg2Rad(Time.time * 100)), 0);
-                    child.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(0, 0, Time.time);
-                }
 
                 bgfx.frame(false);
             }

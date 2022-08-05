@@ -232,6 +232,7 @@ namespace Baker
             ProcessShaders(shadercPath, inputPath, outputPath, shaderDefines, renderer);
             ProcessTextures(texturecPath, inputPath, outputPath, renderer);
             ProcessMaterials(inputPath, outputPath);
+            ProcessScenes(inputPath, outputPath);
         }
     }
 }

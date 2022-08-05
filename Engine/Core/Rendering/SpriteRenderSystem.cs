@@ -23,19 +23,19 @@ namespace Staple
         {
             new SpriteVertex() {
                 position = new Vector3(-0.5f, -0.5f, 0),
-                texCoord = new Vector2(0, 1),
-            },
-            new SpriteVertex() {
-                position = new Vector3(-0.5f, 0.5f, 0),
                 texCoord = Vector2.Zero,
             },
             new SpriteVertex() {
+                position = new Vector3(-0.5f, 0.5f, 0),
+                texCoord = new Vector2(0, 1),
+            },
+            new SpriteVertex() {
                 position = new Vector3(0.5f, 0.5f, 0),
-                texCoord = new Vector2(1, 0),
+                texCoord = Vector2.One,
             },
             new SpriteVertex() {
                 position = new Vector3(0.5f, -0.5f, 0),
-                texCoord = Vector2.One,
+                texCoord = new Vector2(1, 0),
             },
         };
 

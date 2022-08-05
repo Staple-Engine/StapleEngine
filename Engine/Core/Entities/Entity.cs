@@ -36,7 +36,7 @@ namespace Staple
             Scene.current?.RemoveEntity(this);
         }
 
-        internal bool TryGetComponent<T>(out T component) where T: Component
+        public bool TryGetComponent<T>(out T component) where T : Component
         {
             component = null;
 
@@ -53,15 +53,28 @@ namespace Staple
             return false;
         }
 
-        internal IEnumerable<T> GetComponents<T>() where T : Component
+        public IEnumerable<T> GetComponents<T>() where T : Component
         {
             foreach (var item in components)
             {
-                if (item is T outValue)
+                if (item != null && item.GetType() == typeof(T))
                 {
-                    yield return outValue;
+                    yield return (T)item;
                 }
             }
+        }
+
+        public T GetComponent<T>() where T : Component
+        {
+            foreach(var item in components)
+            {
+                if(item != null && item.GetType() == typeof(T))
+                {
+                    return (T)item;
+                }
+            }
+
+            return null;
         }
 
         internal bool HasComponents(params Type[] types)
@@ -106,15 +119,20 @@ namespace Staple
             return true;
         }
 
-        public T AddComponent<T>() where T: Component
+        public Component AddComponent(Type t)
         {
+            if(t.IsSubclassOf(typeof(Component)) == false)
+            {
+                return null;
+            }
+
             try
             {
-                var attributes = Attribute.GetCustomAttributes(typeof(T));
+                var attributes = Attribute.GetCustomAttributes(t);
 
-                foreach(var attribute in attributes)
+                foreach (var attribute in attributes)
                 {
-                    if(attribute is DisallowMultipleComponentAttribute && components.Any(x => x is T))
+                    if (attribute is DisallowMultipleComponentAttribute && components.Any(x => x.GetType() == t))
                     {
                         //TODO: Log
 
@@ -122,14 +140,14 @@ namespace Staple
                     }
                 }
 
-                var constructor = typeof(T).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
-
-                var component = (T)constructor.Invoke(new object[] { this });
+                var component = (Component)Activator.CreateInstance(t);
 
                 if (component == null)
                 {
                     return null;
                 }
+
+                component.Entity = new WeakReference<Entity>(this);
 
                 components.Add(component);
 
@@ -141,6 +159,12 @@ namespace Staple
 
                 return null;
             }
+
+        }
+
+        public T AddComponent<T>() where T: Component
+        {
+            return (T)AddComponent(typeof(T));
         }
     }
 }

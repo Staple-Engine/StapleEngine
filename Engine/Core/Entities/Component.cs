@@ -5,14 +5,9 @@ namespace Staple
 {
     public class Component
     {
-        public WeakReference<Entity> Entity { get; private set; }
+        public WeakReference<Entity> Entity { get; internal set; }
 
         public Transform Transform => (Entity?.TryGetTarget(out var entity) ?? false) ? entity.Transform : null;
-
-        internal Component(Entity entity)
-        {
-            Entity = new WeakReference<Entity>(entity);
-        }
 
         internal void Invoke(string name)
         {

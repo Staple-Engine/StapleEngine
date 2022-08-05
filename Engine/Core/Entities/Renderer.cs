@@ -23,9 +23,5 @@ namespace Staple
         public AABB localBounds { get; protected set; }
 
         public bool isVisible { get; internal set; }
-
-        internal Renderer(Entity entity) : base(entity)
-        {
-        }
     }
 }

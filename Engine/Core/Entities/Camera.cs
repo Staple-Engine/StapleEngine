@@ -29,10 +29,6 @@ namespace Staple
 
         public LayerMask cullingLayers = LayerMask.Everything;
 
-        internal Camera(Entity entity) : base(entity)
-        {
-        }
-
         internal float Width => viewport.Z * AppPlayer.ScreenWidth;
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;

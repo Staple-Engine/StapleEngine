@@ -93,12 +93,13 @@ solution "Engine"
 		language "C#"
 		clr "Unsafe"
 		
-		targetname "Player"
+		targetname "Game"
 		targetdir "../bin/TestGame/%{cfg.buildcfg}"
 		objdir "../obj/TestGame/%{cfg.buildcfg}"
 		
 		links {
-			"Core"
+			"Core",
+			"System.Numerics"
 		}
 		
 		files {
@@ -106,5 +107,5 @@ solution "Engine"
 		}
 
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/Player.dll %{wks.location}/../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/Game.dll %{wks.location}/../Staging/Data",
 		}

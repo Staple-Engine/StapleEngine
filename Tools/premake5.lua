@@ -31,8 +31,10 @@ solution "Tools"
 			"../Engine/Core/Resources/ShaderMetadata.cs",
 			"../Engine/Core/Resources/TextureMetadata.cs",
 			"../Engine/Core/Resources/SerializableMaterial.cs",
+			"../Engine/Core/Resources/SerializableScene.cs",
 			"../Engine/Core/Resources/SerializableShader.cs",
 			"../Engine/Core/Resources/SerializableTexture.cs",
+			"../Engine/Core/Scene/SceneList.cs",
 			"../Engine/Core/Math/Color32.cs",
 			"../Engine/Core/Math/Color.cs",
 			"../Engine/Core/Math/Math.cs"

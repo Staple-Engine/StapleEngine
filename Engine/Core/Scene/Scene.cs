@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,22 @@ namespace Staple
 
         public static Scene current { get; internal set; }
 
+        internal static List<string> sceneList = new List<string>();
+
+        public void Load(string path)
+        {
+            var scene = ResourceManager.instance.LoadScene(path);
+
+            if(scene == null)
+            {
+                return;
+            }
+
+            current?.Cleanup();
+
+            current = scene;
+        }
+
         public Entity Find(string name)
         {
             return entities.FirstOrDefault(x => x.Name == name);
@@ -28,7 +45,7 @@ namespace Staple
             {
                 foreach(var component in entity.components)
                 {
-                    component.Invoke("OnDestroy");
+                    component?.Invoke("OnDestroy");
                 }
             }
         }
@@ -48,7 +65,7 @@ namespace Staple
 
         internal void AddEntity(Entity entity)
         {
-            if(!entities.Contains(entity))
+            if(entities.Contains(entity) == false)
             {
                 entities.Add(entity);
             }
@@ -56,6 +73,14 @@ namespace Staple
 
         internal void RemoveEntity(Entity entity)
         {
+            if(entity != null)
+            {
+                foreach (var component in entity.components)
+                {
+                    component?.Invoke("OnDestroy");
+                }
+            }
+
             entities.Remove(entity);
         }
     }
