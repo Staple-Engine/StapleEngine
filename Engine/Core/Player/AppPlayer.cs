@@ -355,6 +355,38 @@ namespace Staple
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
 
+            Input.window = window;
+
+            Glfw.SetKeyCallback(window, (_, key, scancode, action, mods) =>
+            {
+                Input.KeyCallback(key, scancode, action, mods);
+            });
+
+            Glfw.SetCharCallback(window, (_, codepoint) =>
+            {
+                Input.CharCallback(codepoint);
+            });
+
+            Glfw.SetCursorPositionCallback(window, (_, xpos, ypos) =>
+            {
+                Input.CursorPosCallback((float)xpos, (float)ypos);
+            });
+
+            Glfw.SetMouseButtonCallback(window, (_, button, state, modifiers) =>
+            {
+                Input.MouseButtonCallback(button, state, modifiers);
+            });
+
+            Glfw.SetScrollCallback(window, (_, xOffset, yOffset) =>
+            {
+                Input.MouseScrollCallback((float)xOffset, (float)yOffset);
+            });
+
+            if(Glfw.RawMouseMotionSupported())
+            {
+                Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
+            }
+
             DateTimeOffset last = (DateTimeOffset)DateTime.UtcNow;
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
