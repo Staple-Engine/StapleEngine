@@ -201,6 +201,8 @@ namespace Baker
 
                     process.Start();
 
+                    process.WaitForExit(300000);
+
                     while (!process.StandardOutput.EndOfStream)
                     {
                         Console.WriteLine(process.StandardOutput.ReadLine());

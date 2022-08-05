@@ -32,9 +32,10 @@ namespace Baker
                     return "shadercRelease.exe";
                 }
 
-                return "shaderc";
+                return "shadercRelease";
             }
         }
+        
         private static string texturecBinName
         {
             get
@@ -44,7 +45,7 @@ namespace Baker
                     return "texturecRelease.exe";
                 }
 
-                return "texturec";
+                return "texturecRelease";
             }
         }
 

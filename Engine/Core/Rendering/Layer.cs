@@ -56,7 +56,9 @@ namespace Staple
 
         public static int NameToLayer(string name)
         {
-            return (AppPlayer.active?.appSettings?.layers?.TryGetValue(name, out var value) ?? false) ? (int)value : -1;
+            uint value = 0;
+
+            return (AppPlayer.active?.appSettings?.layers?.TryGetValue(name, out value) ?? false) ? (int)value : -1;
         }
     }
 }

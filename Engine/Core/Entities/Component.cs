@@ -7,7 +7,18 @@ namespace Staple
     {
         public WeakReference<Entity> Entity { get; internal set; }
 
-        public Transform Transform => (Entity?.TryGetTarget(out var entity) ?? false) ? entity.Transform : null;
+        public Transform Transform
+        {
+            get
+            {
+                if(Entity != null && Entity.TryGetTarget(out var entity))
+                {
+                    return entity.Transform;
+                }
+
+                return null;
+            }
+        }
 
         internal void Invoke(string name)
         {
