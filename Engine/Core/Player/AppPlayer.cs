@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Staple
@@ -24,6 +25,8 @@ namespace Staple
         public static bgfx.RendererType ActiveRendererType { get; private set; }
 
         public static AppPlayer active;
+
+        private Assembly playerAssembly;
 
         public AppPlayer(AppSettings settings, string[] args)
         {
@@ -110,6 +113,17 @@ namespace Staple
 
         public void Run()
         {
+            try
+            {
+                playerAssembly = Assembly.LoadFrom("Data/Player.dll");
+            }
+            catch(System.Exception)
+            {
+                Console.WriteLine($"Error: Failed to load player assembly");
+
+                return;
+            }
+
             playerSettings = new PlayerSettings()
             {
                 screenWidth = 1024,

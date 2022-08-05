@@ -27,6 +27,10 @@ solution "Engine"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
+		
+		targetname "StapleCore"
+		targetdir "../bin/Core/%{cfg.buildcfg}"
+		objdir "../obj/Core/%{cfg.buildcfg}"
 
 		libdirs {
 			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/"
@@ -41,9 +45,6 @@ solution "Engine"
 			"System.Core",
 			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
         }
-		
-		targetdir "../bin/Core/%{cfg.buildcfg}"
-		objdir "../obj/Core/%{cfg.buildcfg}"
 		
 		files {
 			"Core/**.cs"
@@ -64,20 +65,46 @@ solution "Engine"
 		files {
 			"Player/**.cs"
 		}
+		
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+		}
 
         filter "system:windows"
-    		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}%{cfg.targetdir}",
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
     		}
 
         filter "system:linux"
-    		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{cfg.targetdir}",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{cfg.targetdir}"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
     		}
 
 		filter "system:macos"
-    		prebuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{cfg.targetdir}",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{cfg.targetdir}"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
     		}
+	
+	project "TestGame"
+		kind "SharedLib"
+		language "C#"
+		clr "Unsafe"
+		
+		targetname "Player"
+		targetdir "../bin/TestGame/%{cfg.buildcfg}"
+		objdir "../obj/TestGame/%{cfg.buildcfg}"
+		
+		links {
+			"Core"
+		}
+		
+		files {
+			"TestGame/**.cs"
+		}
+
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/Player.dll %{wks.location}/../Staging/Data",
+		}
