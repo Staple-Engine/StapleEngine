@@ -163,9 +163,15 @@ namespace Baker
                 {
                     Console.WriteLine($"\t\tError:\n\t{result}\n");
 
-                    Environment.Exit(1);
+                    try
+                    {
+                        File.Delete(outputFileTemp);
+                    }
+                    catch (Exception)
+                    {
+                    }
 
-                    return;
+                    continue;
                 }
 
                 try
@@ -193,9 +199,15 @@ namespace Baker
                 {
                     Console.WriteLine($"\t\tError: Failed to save baked texture: {e}");
 
-                    Environment.Exit(1);
+                    try
+                    {
+                        File.Delete(outputFileTemp);
+                    }
+                    catch (Exception)
+                    {
+                    }
 
-                    return;
+                    continue;
                 }
                 finally
                 {

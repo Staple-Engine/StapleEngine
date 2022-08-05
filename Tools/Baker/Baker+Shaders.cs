@@ -240,6 +240,18 @@ namespace Baker
                     metadata = new ShaderMetadata(),
                 };
 
+                if(shader.parameters != null)
+                {
+                    generatedShader.metadata.uniforms = shader.parameters
+                        .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform && Enum.TryParse<ShaderUniformType>(x.type, out var uniformType))
+                        .Select(x => new ShaderUniform()
+                        {
+                            name = x.name,
+                            //Should be fine, since it passed the Where clause
+                            type = Enum.TryParse<ShaderUniformType>(x.type, out var uniformType) ? uniformType : ShaderUniformType.Vector4,
+                        }).ToList();
+                }
+
                 string code;
 
                 switch (shader.type)

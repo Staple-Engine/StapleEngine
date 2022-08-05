@@ -23,8 +23,15 @@ namespace Staple
         {
             var delta = (float)(current.Subtract(last).TotalMilliseconds / 1000.0f);
 
-            deltaTime = delta;
             time += delta;
+
+            //If we're larger than 1 we're definitely dealing with suspend or an extremely slow system
+            if (delta > 1)
+            {
+                delta = 0;
+            }
+
+            deltaTime = delta;
 
             frames++;
             frameTimer += delta;

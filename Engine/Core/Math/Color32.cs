@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,10 +10,22 @@ namespace Staple
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    [MessagePackObject]
     public struct Color32
     {
-        public byte r, g, b, a;
+        [Key(0)]
+        public byte r;
 
+        [Key(1)]
+        public byte g;
+
+        [Key(2)]
+        public byte b;
+
+        [Key(3)]
+        public byte a;
+
+        [IgnoreMember]
         public uint uintValue
         {
             get

@@ -1,6 +1,7 @@
 {
 	"type": "VertexFragment",
-	"parameters": [{
+	"parameters": [
+		{
 			"name": "v_texcoord0",
 			"semantic": "Varying",
 			"type": "vec2",
@@ -9,7 +10,7 @@
 		},
 		{
 			"name": "a_position",
-			"semanthic": "Varying",
+			"semantic": "Varying",
 			"type": "vec3",
 			"attribute": "POSITION"
 		},
@@ -18,6 +19,16 @@
 			"semantic": "Varying",
 			"type": "vec2",
 			"attribute": "TEXCOORD0"
+		},
+		{
+			"name": "mainColor",
+			"semantic": "Uniform",
+			"type": "Color"
+		},
+		{
+			"name": "mainTexture",
+			"semantic": "Uniform",
+			"type": "Texture"
 		}
 	],
 	"vertex": {
@@ -45,13 +56,13 @@
 			"v_texcoord0"
 		],
 		"code": [
-			"uniform vec4 u_color;",
+			"uniform vec4 mainColor;",
 			"",
-			"SAMPLER2D(s_texColor, 0);",
+			"SAMPLER2D(mainTexture, 0);",
 			"",
 			"void main()",
 			"{",
-			"	gl_FragColor = texture2D(s_texColor, v_texcoord0) * u_color;",
+			"	gl_FragColor = texture2D(mainTexture, v_texcoord0) * mainColor;",
 			"}"
 		]
 	}

@@ -13,23 +13,35 @@ namespace Staple
     {
         internal Shader shader;
 
-        internal bgfx.UniformHandle ColorHandle { get; private set; }
+        private Color mainColor;
 
-        public Color Color = Color.White;
+        public Color MainColor
+        {
+            get => mainColor;
 
-        internal bgfx.UniformHandle MainTextureHandle { get; private set; }
+            set
+            {
+                mainColor = value;
 
-        public Texture mainTexture;
+                shader?.SetColor("mainColor", mainColor);
+            }
+        }
 
-        public Vector4 textureScale = new Vector4(0, 0, 1, 1);
+        private Texture mainTexture;
+
+        public Texture MainTexture
+        {
+            get => mainTexture;
+
+            set
+            {
+                mainTexture = value;
+
+                shader?.SetTexture("mainTexture", mainTexture);
+            }
+        }
 
         private bool destroyed = false;
-
-        internal Material()
-        {
-            ColorHandle = bgfx.create_uniform("u_color", bgfx.UniformType.Vec4, 1);
-            MainTextureHandle = bgfx.create_uniform("s_texColor", bgfx.UniformType.Sampler, 1);
-        }
 
         internal void Destroy()
         {
@@ -40,27 +52,58 @@ namespace Staple
 
             destroyed = true;
 
-            if(ColorHandle.Valid)
-            {
-                bgfx.destroy_uniform(ColorHandle);
-            }
-
-            if(MainTextureHandle.Valid)
-            {
-                bgfx.destroy_uniform(MainTextureHandle);
-            }
-
             shader?.Destroy();
-
-            if(mainTexture != null)
-            {
-                mainTexture.Destroy();
-            }
         }
 
         ~Material()
         {
             Destroy();
+        }
+
+        public void SetColor(string name, Color value)
+        {
+            if(name == "mainColor")
+            {
+                MainColor = value;
+
+                return;
+            }
+
+            shader?.SetColor(name, value);
+        }
+
+        public void SetVector4(string name, Vector4 value)
+        {
+            if (name == "mainColor")
+            {
+                MainColor = new Color(value.X, value.Y, value.Z, value.W);
+
+                return;
+            }
+
+            shader?.SetVector4(name, value);
+        }
+
+        public void SetTexture(string name, Texture value)
+        {
+            if (name == "mainTexture")
+            {
+                MainTexture = value;
+
+                return;
+            }
+
+            shader?.SetTexture(name, value);
+        }
+
+        public void SetMatrix3x3(string name, Matrix3x3 value)
+        {
+            shader?.SetMatrix3x3(name, value);
+        }
+
+        public void SetMatrix4x4(string name, Matrix4x4 value)
+        {
+            shader?.SetMatrix4x4(name, value);
         }
     }
 }

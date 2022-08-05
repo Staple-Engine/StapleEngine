@@ -305,7 +305,7 @@ namespace Staple
 
                 if(texture != null)
                 {
-                    material.mainTexture = texture;
+                    material.MainTexture = texture;
 
                     sprite = new Entity("Sprite");
 
@@ -341,11 +341,14 @@ namespace Staple
             {
                 Glfw.PollEvents();
 
-                DateTimeOffset current = (DateTimeOffset)DateTime.UtcNow;
+                if (appSettings.runInBackground == true || window.IsFocused == true)
+                {
+                    DateTimeOffset current = (DateTimeOffset)DateTime.UtcNow;
 
-                Time.UpdateClock(current, last);
+                    Time.UpdateClock(current, last);
 
-                last = current;
+                    last = current;
+                }
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
 
