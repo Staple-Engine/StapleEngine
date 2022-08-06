@@ -1,6 +1,6 @@
 # StapleEngine
 
-Game Engine "stapled" together
+.NET Game Engine "stapled" together
 
 Status: Extremely early state, unusable for games at this point
 
