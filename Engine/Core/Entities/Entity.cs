@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -34,6 +36,158 @@ namespace Staple
         ~Entity()
         {
             Scene.current?.RemoveEntity(this);
+        }
+
+        internal static Entity Instantiate(SceneObject sceneObject)
+        {
+            var entity = new Entity(sceneObject.name);
+
+            var rotation = sceneObject.transform.rotation.ToVector3();
+
+            entity.Transform.LocalPosition = sceneObject.transform.position.ToVector3();
+            entity.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+            entity.Transform.LocalScale = sceneObject.transform.scale.ToVector3();
+
+            foreach (var component in sceneObject.components)
+            {
+                var type = Type.GetType(component.type) ?? AppPlayer.active?.playerAssembly?.GetType(component.type);
+
+                if (type == null)
+                {
+                    continue;
+                }
+
+                var componentInstance = entity.AddComponent(type);
+
+                if (componentInstance == null)
+                {
+                    continue;
+                }
+
+                if (component.parameters != null)
+                {
+                    foreach (var parameter in component.parameters)
+                    {
+                        if (parameter.name == null)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var field = type.GetField(parameter.name);
+
+                            if (field != null)
+                            {
+                                switch (parameter.type)
+                                {
+                                    case SceneComponentParameterType.Bool:
+
+                                        if (field.FieldType == typeof(bool))
+                                        {
+                                            field.SetValue(componentInstance, parameter.boolValue);
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.Float:
+
+                                        if (field.FieldType == typeof(float))
+                                        {
+                                            field.SetValue(componentInstance, parameter.floatValue);
+                                        }
+                                        else if (field.FieldType == typeof(int))
+                                        {
+                                            field.SetValue(componentInstance, (int)parameter.floatValue);
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.Int:
+
+                                        if (field.FieldType == typeof(int))
+                                        {
+                                            field.SetValue(componentInstance, parameter.intValue);
+                                        }
+                                        else if (field.FieldType == typeof(float))
+                                        {
+                                            field.SetValue(componentInstance, parameter.intValue);
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.String:
+
+                                        if (field.FieldType == typeof(string))
+                                        {
+                                            field.SetValue(componentInstance, parameter.stringValue);
+
+                                            continue;
+                                        }
+
+                                        if (field.FieldType.IsEnum)
+                                        {
+                                            try
+                                            {
+                                                var value = Enum.Parse(field.FieldType, parameter.stringValue);
+
+                                                if (value != null)
+                                                {
+                                                    field.SetValue(componentInstance, value);
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                continue;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        if (field.FieldType == typeof(Color))
+                                        {
+                                            //TODO
+
+                                            continue;
+                                        }
+
+                                        if (field.FieldType == typeof(Material))
+                                        {
+                                            var value = ResourceManager.instance.LoadMaterial(parameter.stringValue);
+
+                                            if (value != null)
+                                            {
+                                                field.SetValue(componentInstance, value);
+                                            }
+
+                                            continue;
+                                        }
+
+                                        if (field.FieldType == typeof(Texture))
+                                        {
+                                            var value = ResourceManager.instance.LoadTexture(parameter.stringValue);
+
+                                            if (value != null)
+                                            {
+                                                field.SetValue(componentInstance, value);
+                                            }
+
+                                            continue;
+                                        }
+
+                                        break;
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            return entity;
         }
 
         public bool TryGetComponent<T>(out T component) where T : Component

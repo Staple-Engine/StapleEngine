@@ -134,164 +134,24 @@ namespace Staple.Internal
 
                     foreach(var sceneObject in sceneData.objects)
                     {
+                        Entity entity = null;
+
                         switch(sceneObject.kind)
                         {
                             case SceneObjectKind.Entity:
 
+                                entity = Entity.Instantiate(sceneObject);
+
+                                if (entity == null)
                                 {
-                                    var entity = new Entity(sceneObject.name);
+                                    continue;
+                                }
 
-                                    scene.entities.Add(entity);
+                                scene.entities.Add(entity);
 
-                                    var rotation = sceneObject.transform.rotation.ToVector3();
-
-                                    entity.Transform.LocalPosition = sceneObject.transform.position.ToVector3();
-                                    entity.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
-                                    entity.Transform.LocalScale = sceneObject.transform.scale.ToVector3();
-
-                                    if(sceneObject.parent != sceneObject.name)
-                                    {
-                                        entity.Transform.SetParent(sceneObject.parent != null ? scene.Find(sceneObject.parent)?.Transform : null);
-                                    }
-
-                                    foreach (var component in sceneObject.components)
-                                    {
-                                        var type = Type.GetType(component.type) ?? AppPlayer.active?.playerAssembly?.GetType(component.type);
-
-                                        if(type == null)
-                                        {
-                                            continue;
-                                        }
-
-                                        var componentInstance = entity.AddComponent(type);
-
-                                        if(componentInstance == null)
-                                        {
-                                            continue;
-                                        }
-
-                                        if(component.parameters != null)
-                                        {
-                                            foreach(var parameter in component.parameters)
-                                            {
-                                                if(parameter.name == null)
-                                                {
-                                                    continue;
-                                                }
-
-                                                try
-                                                {
-                                                    var field = type.GetField(parameter.name);
-
-                                                    if (field != null)
-                                                    {
-                                                        switch (parameter.type)
-                                                        {
-                                                            case SceneComponentParameterType.Bool:
-
-                                                                if (field.FieldType == typeof(bool))
-                                                                {
-                                                                    field.SetValue(componentInstance, parameter.boolValue);
-                                                                }
-
-                                                                break;
-
-                                                            case SceneComponentParameterType.Float:
-
-                                                                if (field.FieldType == typeof(float))
-                                                                {
-                                                                    field.SetValue(componentInstance, parameter.floatValue);
-                                                                }
-                                                                else if (field.FieldType == typeof(int))
-                                                                {
-                                                                    field.SetValue(componentInstance, (int)parameter.floatValue);
-                                                                }
-
-                                                                break;
-
-                                                            case SceneComponentParameterType.Int:
-
-                                                                if (field.FieldType == typeof(int))
-                                                                {
-                                                                    field.SetValue(componentInstance, parameter.intValue);
-                                                                }
-                                                                else if (field.FieldType == typeof(float))
-                                                                {
-                                                                    field.SetValue(componentInstance, parameter.intValue);
-                                                                }
-
-                                                                break;
-
-                                                            case SceneComponentParameterType.String:
-
-                                                                if (field.FieldType == typeof(string))
-                                                                {
-                                                                    field.SetValue(componentInstance, parameter.stringValue);
-
-                                                                    continue;
-                                                                }
-
-                                                                if (field.FieldType.IsEnum)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        var value = Enum.Parse(field.FieldType, parameter.stringValue);
-
-                                                                        if (value != null)
-                                                                        {
-                                                                            field.SetValue(componentInstance, value);
-                                                                        }
-                                                                    }
-                                                                    catch (Exception e)
-                                                                    {
-                                                                        continue;
-                                                                    }
-
-                                                                    continue;
-                                                                }
-
-                                                                if(field.FieldType == typeof(Color))
-                                                                {
-                                                                    //TODO
-
-                                                                    continue;
-                                                                }
-
-                                                                if (field.FieldType == typeof(Material))
-                                                                {
-                                                                    var value = LoadMaterial(parameter.stringValue);
-
-                                                                    if (value != null)
-                                                                    {
-                                                                        field.SetValue(componentInstance, value);
-                                                                    }
-
-                                                                    continue;
-                                                                }
-
-                                                                if (field.FieldType == typeof(Texture))
-                                                                {
-                                                                    var value = LoadTexture(parameter.stringValue);
-
-                                                                    if (value != null)
-                                                                    {
-                                                                        field.SetValue(componentInstance, value);
-                                                                    }
-
-                                                                    continue;
-                                                                }
-
-                                                                break;
-                                                        }
-                                                    }
-                                                }
-                                                catch(Exception e)
-                                                {
-                                                    scene.RemoveEntity(entity);
-                                                }
-                                            }
-                                        }
-                                    }
+                                if (sceneObject.parent != null && sceneObject.parent != sceneObject.name)
+                                {
+                                    entity.Transform.SetParent(sceneObject.parent != null ? scene.Find(sceneObject.parent)?.Transform : null);
                                 }
 
                                 break;

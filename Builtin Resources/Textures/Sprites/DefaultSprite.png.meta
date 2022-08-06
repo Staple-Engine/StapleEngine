@@ -5,7 +5,7 @@
 	"isLinear": false,
 	"premultiplyAlpha": false,
 	"maxSize": 2048,
-	"format": "RGB8",
+	"format": "BC1",
 	"wrapU": "Clamp",
 	"wrapV": "Clamp",
 	"filter": "Linear",
