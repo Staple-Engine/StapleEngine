@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Staple
 {
@@ -107,8 +108,7 @@ namespace Staple
                 flags |= bgfx.ResetFlags.Suspend;
             }
 
-            bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+            AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
         }
 
         public void Run()
@@ -177,127 +177,280 @@ namespace Staple
                 return;
             }
 
-            bgfx.render_frame(0);
+            bool shouldStop = false;
+            bool shouldRender = true;
+            bool renderThreadReady = false;
+            bool subsystemsReady = false;
+            object renderLock = new object();
 
-            var init = new bgfx.Init();
-            var rendererType = RendererType.OpenGL;
-
-            unsafe
+            void RenderThread()
             {
-                bgfx.init_ctor(&init);
+                var init = new bgfx.Init();
+                var rendererType = RendererType.OpenGL;
 
-                init.platformData.ndt = null;
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                unsafe
                 {
-                    init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
+                    bgfx.init_ctor(&init);
 
-                    if(appSettings.renderers.TryGetValue(AppPlatform.Windows, out var type))
+                    init.platformData.ndt = null;
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        rendererType = type;
+                        init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
+
+                        if (appSettings.renderers.TryGetValue(AppPlatform.Windows, out var type))
+                        {
+                            rendererType = type;
+                        }
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        var display = Native.GetX11Display();
+                        var windowHandle = Native.GetX11Window(window);
+
+                        if (display == IntPtr.Zero || window == IntPtr.Zero)
+                        {
+                            display = Native.GetWaylandDisplay();
+                            windowHandle = Native.GetWaylandWindow(window);
+                        }
+
+                        init.platformData.ndt = display.ToPointer();
+                        init.platformData.nwh = windowHandle.ToPointer();
+
+                        if (appSettings.renderers.TryGetValue(AppPlatform.Linux, out var type))
+                        {
+                            rendererType = type;
+                        }
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
+                        init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
+
+                        if (appSettings.renderers.TryGetValue(AppPlatform.MacOSX, out var type))
+                        {
+                            rendererType = type;
+                        }
                     }
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+                Glfw.GetFramebufferSize(window, out playerSettings.screenWidth, out playerSettings.screenHeight);
+
+                ScreenWidth = playerSettings.screenWidth;
+                ScreenHeight = playerSettings.screenHeight;
+
+                ActiveRendererType = bgfx.RendererType.Count;
+
+                switch (rendererType)
                 {
-                    var display = Native.GetX11Display();
-                    var windowHandle = Native.GetX11Window(window);
+                    case RendererType.Direct3D11:
 
-                    if (display == IntPtr.Zero || window == IntPtr.Zero)
+                        ActiveRendererType = bgfx.RendererType.Direct3D11;
+
+                        break;
+
+                    case RendererType.Direct3D12:
+
+                        ActiveRendererType = bgfx.RendererType.Direct3D12;
+
+                        break;
+
+                    case RendererType.OpenGL:
+
+                        ActiveRendererType = bgfx.RendererType.OpenGL;
+
+                        break;
+
+                    case RendererType.OpenGLES:
+
+                        ActiveRendererType = bgfx.RendererType.OpenGLES;
+
+                        break;
+
+                    case RendererType.Metal:
+
+                        ActiveRendererType = bgfx.RendererType.Metal;
+
+                        break;
+
+                    case RendererType.Vulkan:
+
+                        ActiveRendererType = bgfx.RendererType.Vulkan;
+
+                        break;
+                }
+
+                init.type = ActiveRendererType;
+                init.resolution.width = (uint)ScreenWidth;
+                init.resolution.height = (uint)ScreenHeight;
+                init.resolution.reset = (uint)ResetFlags;
+
+                unsafe
+                {
+                    if (!bgfx.init(&init))
                     {
-                        display = Native.GetWaylandDisplay();
-                        windowHandle = Native.GetWaylandWindow(window);
-                    }
+                        Glfw.Terminate();
 
-                    init.platformData.ndt = display.ToPointer();
-                    init.platformData.nwh = windowHandle.ToPointer();
+                        Environment.Exit(1);
 
-                    if (appSettings.renderers.TryGetValue(AppPlatform.Linux, out var type))
-                    {
-                        rendererType = type;
+                        return;
                     }
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
-                    init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
 
-                    if (appSettings.renderers.TryGetValue(AppPlatform.MacOSX, out var type))
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
+                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+
+#if _DEBUG
+                bgfx.set_debug((uint)bgfx.DebugFlags.Text);
+#endif
+
+                lock (renderLock)
+                {
+                    renderThreadReady = true;
+                }
+
+                for(; ;)
+                {
+                    lock(renderLock)
                     {
-                        rendererType = type;
+                        if(subsystemsReady)
+                        {
+                            break;
+                        }
                     }
+
+                    Thread.Sleep(25);
+                }
+
+                double last = Glfw.Time;
+
+                for (; ; )
+                {
+                    bool renderNow = false;
+
+                    lock(renderLock)
+                    {
+                        if(shouldStop)
+                        {
+                            Scene.current?.Cleanup();
+
+                            SubsystemManager.instance.Destroy();
+
+                            ResourceManager.instance.Destroy();
+
+                            bgfx.shutdown();
+
+                            return;
+                        }
+
+                        renderNow = shouldRender;
+                    }
+
+                    var appEvent = AppEventQueue.instance.Next();
+
+                    if(appEvent != null)
+                    {
+                        switch(appEvent.type)
+                        {
+                            case AppEventType.ResetFlags:
+
+                                bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
+                                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+
+                                break;
+
+                            case AppEventType.MouseUp:
+                            case AppEventType.MouseDown:
+
+                                Input.HandleMouseButtonEvent(appEvent);
+
+                                break;
+
+                            case AppEventType.MouseDelta:
+
+                                Input.HandleMouseDeltaEvent(appEvent);
+
+                                break;
+
+                            case AppEventType.KeyUp:
+                            case AppEventType.KeyDown:
+
+                                Input.HandleKeyEvent(appEvent);
+
+                                break;
+
+                            case AppEventType.Text:
+
+                                Input.HandleTextEvent(appEvent);
+
+                                break;
+                        }
+                    }
+
+                    if(shouldRender == false)
+                    {
+                        Thread.Sleep(100);
+
+                        continue;
+                    }
+
+                    double current = Glfw.Time;
+
+                    Time.UpdateClock(current, last);
+
+                    last = current;
+
+                    SubsystemManager.instance.Update();
+
+                    var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
+
+                    if (hasCamera == false)
+                    {
+                        bgfx.touch(ClearView);
+                        bgfx.dbg_text_clear(0, false);
+                        bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+                    }
+
+                    bgfx.touch(ClearView);
+                    bgfx.dbg_text_clear(0, false);
+                    bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+
+                    bgfx.frame(false);
                 }
             }
 
-            Glfw.GetFramebufferSize(window, out playerSettings.screenWidth, out playerSettings.screenHeight);
+            var renderThread = new Thread(new ThreadStart(RenderThread));
 
-            ScreenWidth = playerSettings.screenWidth;
-            ScreenHeight = playerSettings.screenHeight;
+            renderThread.Start();
 
-            ActiveRendererType = bgfx.RendererType.Count;
-
-            switch(rendererType)
+            for(; ; )
             {
-                case RendererType.Direct3D11:
-
-                    ActiveRendererType = bgfx.RendererType.Direct3D11;
-
-                    break;
-
-                case RendererType.Direct3D12:
-
-                    ActiveRendererType = bgfx.RendererType.Direct3D12;
-
-                    break;
-
-                case RendererType.OpenGL:
-
-                    ActiveRendererType = bgfx.RendererType.OpenGL;
-
-                    break;
-
-                case RendererType.OpenGLES:
-
-                    ActiveRendererType = bgfx.RendererType.OpenGLES;
-
-                    break;
-
-                case RendererType.Metal:
-
-                    ActiveRendererType = bgfx.RendererType.Metal;
-
-                    break;
-
-                case RendererType.Vulkan:
-
-                    ActiveRendererType = bgfx.RendererType.Vulkan;
-
-                    break;
-            }
-
-            init.type = ActiveRendererType;
-            init.resolution.width = (uint)ScreenWidth;
-            init.resolution.height = (uint)ScreenHeight;
-            init.resolution.reset = (uint)ResetFlags;
-
-            unsafe
-            {
-                if (!bgfx.init(&init))
+                lock(renderLock)
                 {
-                    Glfw.Terminate();
+                    if(renderThread.IsAlive == false)
+                    {
+                        if(renderThreadReady)
+                        {
+                            bgfx.shutdown();
+                        }
 
-                    return;
+                        Glfw.Terminate();
+
+                        Environment.Exit(1);
+
+                        return;
+                    }
+
+                    if(renderThreadReady)
+                    {
+                        break;
+                    }
                 }
-            }
 
-            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+                Thread.Sleep(25);
+            }
 
             bool hasFocus = window.IsFocused;
-
-            if(appSettings.runInBackground == false && hasFocus == false)
-            {
-                ResetRendering(hasFocus);
-            }
 
             Scene.sceneList = ResourceManager.instance.LoadSceneList();
 
@@ -351,10 +504,6 @@ namespace Staple
                 }
             }
 
-#if _DEBUG
-            bgfx.set_debug((uint)bgfx.DebugFlags.Text);
-#endif
-
             Input.window = window;
 
             Glfw.SetKeyCallback(window, (_, key, scancode, action, mods) =>
@@ -387,19 +536,18 @@ namespace Staple
                 Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
             }
 
-            double last = Glfw.Time;
+            lock(renderLock)
+            {
+                subsystemsReady = true;
+            }
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
                 Glfw.PollEvents();
 
-                if (appSettings.runInBackground == true || window.IsFocused == true)
+                lock(renderLock)
                 {
-                    double current = Glfw.Time;
-
-                    Time.UpdateClock(current, last);
-
-                    last = current;
+                    shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
                 }
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
@@ -423,32 +571,22 @@ namespace Staple
                         continue;
                     }
                 }
-
-                SubsystemManager.instance.Update();
-
-                var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
-
-                if(hasCamera == false)
-                {
-                    bgfx.touch(ClearView);
-                    bgfx.dbg_text_clear(0, false);
-                    bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
-                }
-
-                bgfx.touch(ClearView);
-                bgfx.dbg_text_clear(0, false);
-                bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
-
-                bgfx.frame(false);
             }
 
-            Scene.current?.Cleanup();
+            lock(renderLock)
+            {
+                shouldStop = true;
+            }
 
-            SubsystemManager.instance.Destroy();
+            for(; ; )
+            {
+                if(renderThread.IsAlive == false)
+                {
+                    break;
+                }
 
-            ResourceManager.instance.Destroy();
-
-            bgfx.shutdown();
+                Thread.Sleep(25);
+            }
 
             Glfw.Terminate();
         }
