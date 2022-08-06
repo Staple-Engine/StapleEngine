@@ -19,9 +19,9 @@ namespace Staple
         private static int frames;
         private static float frameTimer;
 
-        internal static void UpdateClock(DateTimeOffset current, DateTimeOffset last)
+        internal static void UpdateClock(double current, double last)
         {
-            var delta = (float)(current.Subtract(last).TotalMilliseconds / 1000.0f);
+            var delta = (float)(current - last);
 
             time += delta;
 

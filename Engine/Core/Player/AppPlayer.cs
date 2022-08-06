@@ -387,7 +387,7 @@ namespace Staple
                 Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
             }
 
-            DateTimeOffset last = (DateTimeOffset)DateTime.UtcNow;
+            double last = Glfw.Time;
 
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
@@ -395,7 +395,7 @@ namespace Staple
 
                 if (appSettings.runInBackground == true || window.IsFocused == true)
                 {
-                    DateTimeOffset current = (DateTimeOffset)DateTime.UtcNow;
+                    double current = Glfw.Time;
 
                     Time.UpdateClock(current, last);
 
