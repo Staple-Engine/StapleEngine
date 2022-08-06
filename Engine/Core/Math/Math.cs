@@ -167,5 +167,35 @@ namespace Staple
         public static readonly float PI = (float)System.Math.PI;
 
         public static readonly float Epsilon = float.Epsilon;
+
+        public static Vector2 ToVector2(this Vector3 v)
+        {
+            return new Vector2(v.X, v.Y);
+        }
+
+        public static Vector2 ToVector2(this Vector4 v)
+        {
+            return new Vector2(v.X, v.Y);
+        }
+
+        public static Vector3 ToVector3(this Vector2 v)
+        {
+            return new Vector3(v.X, v.Y, 0);
+        }
+
+        public static Vector3 ToVector3(this Vector4 v)
+        {
+            return new Vector3(v.X, v.Y, v.Z);
+        }
+
+        public static Vector4 ToVector4(this Vector2 v, bool transform = false)
+        {
+            return new Vector4(v.X, v.Y, 0, transform ? 1 : 0);
+        }
+
+        public static Vector4 ToVector4(this Vector3 v, bool transform = false)
+        {
+            return new Vector4(v.X, v.Y, v.Z, transform ? 1 : 0);
+        }
     }
 }

@@ -15,9 +15,16 @@ namespace TestGame
 
             component.t += Time.deltaTime * component.speed;
 
-            entity.Transform.LocalPosition = new Vector3(Math.Cos(Math.Deg2Rad(component.t)) * component.distance,
-                Math.Sin(Math.Deg2Rad(component.t)) * component.distance,
-                0);
+            if(component.followMouse)
+            {
+                entity.Transform.LocalPosition = Input.MousePosition.ToVector3();
+            }
+            else
+            {
+                entity.Transform.LocalPosition = new Vector3(Math.Cos(Math.Deg2Rad(component.t)) * component.distance,
+                    Math.Sin(Math.Deg2Rad(component.t)) * component.distance,
+                    0);
+            }
         }
     }
 }

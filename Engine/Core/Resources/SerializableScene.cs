@@ -86,12 +86,15 @@ namespace Staple.Internal
         public string name;
 
         [Key(2)]
-        public string parent;
+        public string ID;
 
         [Key(3)]
-        public SceneObjectTransform transform = new SceneObjectTransform();
+        public string parent;
 
         [Key(4)]
+        public SceneObjectTransform transform = new SceneObjectTransform();
+
+        [Key(5)]
         public List<SceneComponent> components = new List<SceneComponent>();
     }
 

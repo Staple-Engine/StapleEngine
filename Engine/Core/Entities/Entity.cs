@@ -23,12 +23,15 @@ namespace Staple
 
         public readonly Transform Transform;
 
+        public string ID { get; internal set; }
+
         public uint layer;
 
         public Entity(string name)
         {
             Name = name;
             Transform = new Transform(this);
+            ID = Guid.NewGuid().ToString();
 
             Scene.current?.AddEntity(this);
         }
@@ -40,7 +43,10 @@ namespace Staple
 
         internal static Entity Instantiate(SceneObject sceneObject)
         {
-            var entity = new Entity(sceneObject.name);
+            var entity = new Entity(sceneObject.name)
+            {
+                ID = sceneObject.ID,
+            };
 
             var rotation = sceneObject.transform.rotation.ToVector3();
 

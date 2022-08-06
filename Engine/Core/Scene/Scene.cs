@@ -39,6 +39,11 @@ namespace Staple
             return entities.FirstOrDefault(x => x.Name == name);
         }
 
+        public Entity FindID(string ID)
+        {
+            return entities.FirstOrDefault(x => x.ID == ID);
+        }
+
         internal void Cleanup()
         {
             foreach(var entity in entities)

@@ -149,9 +149,9 @@ namespace Staple.Internal
 
                                 scene.entities.Add(entity);
 
-                                if (sceneObject.parent != null && sceneObject.parent != sceneObject.name)
+                                if (sceneObject.parent != null && sceneObject.parent != sceneObject.ID)
                                 {
-                                    entity.Transform.SetParent(sceneObject.parent != null ? scene.Find(sceneObject.parent)?.Transform : null);
+                                    entity.Transform.SetParent(sceneObject.parent != null ? scene.FindID(sceneObject.parent)?.Transform : null);
                                 }
 
                                 break;

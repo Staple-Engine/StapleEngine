@@ -2,6 +2,7 @@
 	{
 		"kind": "Entity",
 		"name": "Camera",
+		"ID": "1",
 		"parent": null,
 		"transform": {
 			"position": { "x": 0, "y": 0, "z": 0 },
@@ -22,6 +23,7 @@
 	{
 		"kind": "Entity",
 		"name": "Sprite",
+		"ID": "2",
 		"parent": null,
 		"transform": {
 			"position": { "x": 512, "y": 384, "z": 0 },
@@ -42,7 +44,8 @@
 	{
 		"kind": "Entity",
 		"name": "Child",
-		"parent": "Sprite",
+		"ID": "3",
+		"parent": "2",
 		"transform": {
 			"position": { "x": 0, "y": 0, "z": 0 },
 			"rotation": { "x": 0, "y": 0, "z": 0 },
@@ -61,7 +64,8 @@
 				"type": "TestGame.CircularMovementComponent",
 				"data": {
 					"speed": 200,
-					"distance": 400
+					"distance": 400,
+					"followMouse": false
 				}
 			}
 		]

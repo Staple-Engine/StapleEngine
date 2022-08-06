@@ -541,6 +541,12 @@ namespace Staple
                 subsystemsReady = true;
             }
 
+            uint frames = 0;
+
+            double start = Glfw.Time;
+
+            var sleepTime = 16;
+
             while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
             {
                 Glfw.PollEvents();
@@ -571,6 +577,29 @@ namespace Staple
                         continue;
                     }
                 }
+
+                frames++;
+
+                double current = Glfw.Time;
+
+                if(current - start >= 1)
+                {
+                    start = current;
+
+                    //Balance time spent sleeping
+                    if (frames < 60)
+                    {
+                        sleepTime--;
+                    }
+                    else
+                    {
+                        sleepTime++;
+                    }
+
+                    frames = 0;
+                }
+
+                Thread.Sleep(sleepTime);
             }
 
             lock(renderLock)
