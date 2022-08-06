@@ -1,10 +1,4 @@
-﻿using Bgfx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Staple
 {
@@ -32,5 +26,10 @@ namespace Staple
         internal float Width => viewport.Z * AppPlayer.ScreenWidth;
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;
+
+        public Ray ScreenPointToRay(Vector2 point)
+        {
+            return new Ray(new Vector3(point.X, point.Y, 0), Transform.Forward);
+        }
     }
 }

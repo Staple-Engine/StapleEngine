@@ -11,6 +11,9 @@ namespace Staple
 {
     public class Material
     {
+        internal const string MainColorProperty = "mainColor";
+        internal const string MainTextureProperty = "mainTexture";
+
         internal Shader shader;
 
         private Color mainColor;
@@ -22,8 +25,6 @@ namespace Staple
             set
             {
                 mainColor = value;
-
-                shader?.SetColor("mainColor", mainColor);
             }
         }
 
@@ -36,8 +37,6 @@ namespace Staple
             set
             {
                 mainTexture = value;
-
-                shader?.SetTexture("mainTexture", mainTexture);
             }
         }
 
@@ -62,7 +61,7 @@ namespace Staple
 
         public void SetColor(string name, Color value)
         {
-            if(name == "mainColor")
+            if(name == MainColorProperty)
             {
                 MainColor = value;
 
@@ -74,7 +73,7 @@ namespace Staple
 
         public void SetVector4(string name, Vector4 value)
         {
-            if (name == "mainColor")
+            if (name == MainColorProperty)
             {
                 MainColor = new Color(value.X, value.Y, value.Z, value.W);
 
@@ -86,7 +85,7 @@ namespace Staple
 
         public void SetTexture(string name, Texture value)
         {
-            if (name == "mainTexture")
+            if (name == MainTextureProperty)
             {
                 MainTexture = value;
 
@@ -104,6 +103,16 @@ namespace Staple
         public void SetMatrix4x4(string name, Matrix4x4 value)
         {
             shader?.SetMatrix4x4(name, value);
+        }
+
+        internal void ApplyProperties()
+        {
+            if(mainTexture != null)
+            {
+                SetTexture(MainTextureProperty, mainTexture);
+            }
+
+            SetColor(MainColorProperty, mainColor);
         }
     }
 }

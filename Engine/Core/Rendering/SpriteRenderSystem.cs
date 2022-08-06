@@ -78,10 +78,10 @@ namespace Staple
 
             var scale = Vector3.Zero;
 
-            if(renderer.material.MainTexture != null)
+            if(renderer.texture != null)
             {
-                scale.X = renderer.material.MainTexture.SpriteWidth;
-                scale.Y = renderer.material.MainTexture.SpriteHeight;
+                scale.X = renderer.texture.SpriteWidth;
+                scale.Y = renderer.texture.SpriteHeight;
             }
 
             var matrix = Matrix4x4.CreateScale(scale) * entity.Transform.Matrix;
@@ -95,9 +95,14 @@ namespace Staple
 
             bgfx.set_state((ulong)state, 0);
 
-            renderer.material.shader.ApplyUniforms();
+            renderer.material.ApplyProperties();
 
-            renderer.material.shader.SetColor("mainColor", renderer.color);
+            renderer.material.shader.SetColor(Material.MainColorProperty, renderer.color);
+
+            if(renderer.texture != null)
+            {
+                renderer.material.shader.SetTexture(Material.MainTextureProperty, renderer.texture);
+            }
 
             bgfx.submit(viewId, renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }

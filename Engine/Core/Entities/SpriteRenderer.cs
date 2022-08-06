@@ -12,20 +12,6 @@ namespace Staple
         public Texture texture;
         public Color color = Color.White;
 
-        internal void OnAwake()
-        {
-            UpdateSprite();
-        }
-
-        internal void UpdateSprite()
-        {
-            if(material != null)
-            {
-                material.MainTexture = texture;
-                material.MainColor = color;
-            }
-        }
-
         internal void OnDestroy()
         {
             material?.Destroy();

@@ -14,7 +14,6 @@ namespace Staple.Internal
         {
             public ShaderUniform uniform;
             public bgfx.UniformHandle handle;
-            public object value;
         }
 
         internal readonly bgfx.ShaderHandle vertexShader;
@@ -22,7 +21,7 @@ namespace Staple.Internal
         internal readonly bgfx.ProgramHandle program;
 
         private bool destroyed = false;
-        private List<UniformInfo> uniforms = new List<UniformInfo>();
+        internal List<UniformInfo> uniforms = new List<UniformInfo>();
 
         internal Shader(ShaderMetadata metadata, bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
         {
@@ -34,15 +33,11 @@ namespace Staple.Internal
             {
                 bgfx.UniformType type;
 
-                object defaultValue;
-
                 switch(uniform.type)
                 {
                     case ShaderUniformType.Vector4:
 
                         type = bgfx.UniformType.Vec4;
-
-                        defaultValue = Vector4.Zero;
 
                         break;
 
@@ -50,15 +45,11 @@ namespace Staple.Internal
 
                         type = bgfx.UniformType.Vec4;
 
-                        defaultValue = new Vector4(1, 1, 1, 1);
-
                         break;
 
                     case ShaderUniformType.Matrix4x4:
 
                         type = bgfx.UniformType.Mat4;
-
-                        defaultValue = Matrix4x4.Identity;
 
                         break;
 
@@ -66,15 +57,11 @@ namespace Staple.Internal
 
                         type = bgfx.UniformType.Mat3;
 
-                        defaultValue = Matrix3x3.Identity;
-
                         break;
 
                     case ShaderUniformType.Texture:
 
                         type = bgfx.UniformType.Sampler;
-
-                        defaultValue = null;
 
                         break;
 
@@ -94,7 +81,6 @@ namespace Staple.Internal
                 {
                     handle = handle,
                     uniform = uniform,
-                    value = defaultValue,
                 });
             }
         }
@@ -118,7 +104,10 @@ namespace Staple.Internal
                 return;
             }
 
-            uniform.value = value;
+            unsafe
+            {
+                bgfx.set_uniform(uniform.handle, &value, 1);
+            }
         }
 
         public void SetColor(string name, Color value)
@@ -130,19 +119,27 @@ namespace Staple.Internal
                 return;
             }
 
-            uniform.value = new Vector4(value.r, value.g, value.b, value.a);
+            var colorValue = new Vector4(value.r, value.g, value.b, value.a);
+
+            unsafe
+            {
+                bgfx.set_uniform(uniform.handle, &colorValue, 1);
+            }
         }
 
         public void SetTexture(string name, Texture value)
         {
             var uniform = GetUniform(name);
 
-            if (uniform == null || uniform.uniform.type != ShaderUniformType.Texture)
+            if (value == null || uniform == null || uniform.uniform.type != ShaderUniformType.Texture)
             {
                 return;
             }
 
-            uniform.value = value;
+            unsafe
+            {
+                value.SetActive(0, uniform.handle);
+            }
         }
 
         public void SetMatrix4x4(string name, Matrix4x4 value)
@@ -154,7 +151,10 @@ namespace Staple.Internal
                 return;
             }
 
-            uniform.value = value;
+            unsafe
+            {
+                bgfx.set_uniform(uniform.handle, &value, 1);
+            }
         }
 
         public void SetMatrix3x3(string name, Matrix3x3 value)
@@ -166,85 +166,9 @@ namespace Staple.Internal
                 return;
             }
 
-            uniform.value = value;
-        }
-
-        internal void ApplyUniforms()
-        {
-            foreach(var uniform in uniforms)
+            unsafe
             {
-                if(uniform.handle.Valid == false)
-                {
-                    continue;
-                }
-
-                switch(uniform.uniform.type)
-                {
-                    case ShaderUniformType.Texture:
-
-                        if ((uniform.value is Texture) == false)
-                        {
-                            continue;
-                        }
-
-                        unsafe
-                        {
-                            var texture = (Texture)uniform.value;
-
-                            texture.SetActive(0, uniform.handle);
-                        }
-
-                        break;
-
-                    case ShaderUniformType.Matrix3x3:
-
-                        if ((uniform.value is Matrix3x3) == false)
-                        {
-                            continue;
-                        }
-
-                        unsafe
-                        {
-                            var value = (Matrix3x3)uniform.value;
-
-                            bgfx.set_uniform(uniform.handle, &value, 1);
-                        }
-
-                        break;
-
-                    case ShaderUniformType.Matrix4x4:
-
-                        if ((uniform.value is Matrix4x4) == false)
-                        {
-                            continue;
-                        }
-
-                        unsafe
-                        {
-                            var value = (Matrix4x4)uniform.value;
-
-                            bgfx.set_uniform(uniform.handle, &value, 1);
-                        }
-
-                        break;
-
-                    case ShaderUniformType.Vector4:
-                    case ShaderUniformType.Color:
-
-                        if((uniform.value is Vector4) == false)
-                        {
-                            continue;
-                        }
-
-                        unsafe
-                        {
-                            var value = (Vector4)uniform.value;
-
-                            bgfx.set_uniform(uniform.handle, &value, 1);
-                        }
-
-                        break;
-                }
+                bgfx.set_uniform(uniform.handle, &value, 1);
             }
         }
 
