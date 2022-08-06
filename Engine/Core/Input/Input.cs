@@ -1,5 +1,4 @@
 ﻿using GLFW;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,25 +30,16 @@ namespace Staple
 
         internal static Window window;
 
-        internal static void HandleMouseDeltaEvent(AppEvent appEvent)
-        {
-            MouseDelta = appEvent.mouseDelta;
-        }
-
         internal static void MouseScrollCallback(float xOffset, float yOffset)
         {
-            AppEventQueue.instance.Add(new AppEvent()
-            {
-                type = AppEventType.MouseDelta,
-                mouseDelta = new Vector2(xOffset, yOffset),
-            });
+            MouseDelta = new Vector2(xOffset, yOffset);
         }
 
-        internal static void HandleMouseButtonEvent(AppEvent appEvent)
+        internal static void MouseButtonCallback(GLFW.MouseButton button, GLFW.InputState state, ModifierKeys modifiers)
         {
-            MouseButton mouseButton = (MouseButton)appEvent.mouse.button;
+            MouseButton mouseButton = (MouseButton)button;
 
-            bool pressed = appEvent.type == AppEventType.MouseDown;
+            bool pressed = state == GLFW.InputState.Press;
 
             InputState mouseButtonState = pressed ? InputState.FirstPress : InputState.Release;
 
@@ -88,41 +78,31 @@ namespace Staple
             }
         }
 
-        internal static void MouseButtonCallback(GLFW.MouseButton button, GLFW.InputState state, ModifierKeys modifiers)
-        {
-            AppEventQueue.instance.Add(AppEvent.Mouse(button, state, modifiers));
-        }
-
         internal static void CursorPosCallback(float xpos, float ypos)
         {
             MousePosition = new Vector2(xpos, ypos);
         }
 
-        internal static void HandleTextEvent(AppEvent appEvent)
-        {
-            Character = appEvent.character;
-        }
-
         internal static void CharCallback(uint codepoint)
         {
-            AppEventQueue.instance.Add(AppEvent.Text(codepoint));
+            Character = codepoint;
         }
 
-        internal static void HandleKeyEvent(AppEvent appEvent)
+        internal static void KeyCallback(Keys key, int scancode, GLFW.InputState state, ModifierKeys mods)
         {
-            KeyCode code = (KeyCode)appEvent.key.key;
+            KeyCode code = (KeyCode)key;
 
-            bool pressed = appEvent.type == AppEventType.KeyDown;
+            bool pressed = state == GLFW.InputState.Press || state == GLFW.InputState.Repeat;
 
             InputState keyState = pressed ? InputState.FirstPress : InputState.Release;
 
-            if (keyStates.ContainsKey(code))
+            if(keyStates.ContainsKey(code))
             {
                 keyState = keyStates[code];
 
-                if (pressed)
+                if(pressed)
                 {
-                    if (keyState == InputState.FirstPress)
+                    if(keyState == InputState.FirstPress)
                     {
                         keyState = InputState.Press;
                     }
@@ -149,11 +129,6 @@ namespace Staple
             {
                 keyStates.Add(code, keyState);
             }
-        }
-
-        internal static void KeyCallback(Keys key, int scancode, GLFW.InputState state, ModifierKeys mods)
-        {
-            AppEventQueue.instance.Add(AppEvent.Key(key, scancode, state, mods));
         }
 
         public static bool GetKey(KeyCode key)
