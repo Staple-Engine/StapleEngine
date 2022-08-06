@@ -17,6 +17,11 @@
 					"cameraType": "Orthographic",
 					"nearPlane": 0,
 				}
+			},
+			{
+				"type": "TestGame.KeyboardControlComponent",
+				"data": {
+				}
 			}
 		]
 	},

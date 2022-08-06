@@ -54,6 +54,8 @@ namespace Staple
 
                     var view = camera.Transform.Matrix;
 
+                    Matrix4x4.Invert(view, out view);
+
                     bgfx.set_view_transform(viewID, &view, &projection);
                 }
 

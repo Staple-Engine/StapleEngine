@@ -261,8 +261,8 @@ namespace Staple
                     var type = components[j].GetType();
 
                     if (type == types[i] ||
-                        type.IsSubclassOf(types[j]) ||
-                        types[j].IsAssignableFrom(type))
+                        type.IsSubclassOf(types[i]) ||
+                        types[i].IsAssignableFrom(type))
                     {
                         found = true;
 
