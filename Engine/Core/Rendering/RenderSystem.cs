@@ -3,6 +3,7 @@ using Bgfx;
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Staple
 {
@@ -11,6 +12,26 @@ namespace Staple
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
         internal static byte Priority = 0;
+
+        public static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
+        {
+            return BlendFunction(source, destination, source, destination);
+        }
+
+        public static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
+        {
+            return ((ulong)sourceColor | ((ulong)destinationColor << 4)) | (((ulong)sourceAlpha | ((ulong)destinationAlpha << 4)) << 8);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool CheckAvailableTransientBuffers(uint _numVertices, bgfx.VertexLayout layout, uint _numIndices)
+        {
+            unsafe
+            {
+                return _numVertices == bgfx.get_avail_transient_vertex_buffer(_numVertices, &layout)
+                    && (0 == _numIndices || _numIndices == bgfx.get_avail_transient_index_buffer(_numIndices, false));
+            }
+        }
 
         public void Startup()
         {

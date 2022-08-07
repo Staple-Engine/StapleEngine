@@ -8,7 +8,7 @@ local BX_DIR = "bx"
 local GLFW_DIR = "glfw"
 local GLFWNET_DIR = "glfw-net"
 
-solution "Dependencies"
+solution "Dependencies_Dotnet"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
 	platforms "x86_64"
@@ -44,6 +44,29 @@ project "glfwnet"
 	files {
 		"glfw-net/GLFW.NET/**.cs"
 	}
+
+project "ImGui"
+	kind "Utility"
+	
+	postbuildcommands {
+		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+	}
+	
+	filter "system:windows"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/native/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		}
+	
+	filter "system:linux"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/native/*.so %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		}
+
+	filter "system:macos"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/osx-universal/native/*.dylib %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		}
+
 
 project "MessagePack"
 	kind "SharedLib"

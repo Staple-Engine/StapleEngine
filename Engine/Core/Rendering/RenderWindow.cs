@@ -33,8 +33,10 @@ namespace Staple
 
             double last = Glfw.Time;
 
-            while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
+            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false)
             {
+                Input.Character = 0;
+
                 Glfw.PollEvents();
 
                 if (runInBackground == true || window.IsFocused == true)
@@ -48,7 +50,7 @@ namespace Staple
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
 
-                if (currentW != screenWidth || currentH != screenHeight)
+                if ((currentW != screenWidth || currentH != screenHeight) && window.IsClosed == false)
                 {
                     screenWidth = currentW;
                     screenHeight = currentH;

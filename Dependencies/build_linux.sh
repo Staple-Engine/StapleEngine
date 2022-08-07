@@ -11,8 +11,8 @@ make config=debug_x86_64 -j -l $(shell grep -c ^processor /proc/cpuinfo)
 
 cd ../../build/vs2019
 
-msbuild Dependencies.sln /p:Configuration=Debug
-msbuild Dependencies.sln /p:Configuration=Release
+msbuild Dependencies_Dotnet.sln /p:Configuration=Debug
+msbuild Dependencies_Dotnet.sln /p:Configuration=Release
 
 cd ../../bgfx
 

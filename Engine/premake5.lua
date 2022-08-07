@@ -27,6 +27,7 @@ solution "Engine"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
+		dotnetframework "4.8"
 		
 		targetname "StapleCore"
 		targetdir "../bin/Core/%{cfg.buildcfg}"
@@ -54,6 +55,7 @@ solution "Engine"
 		kind "ConsoleApp"
 		language "C#"
 		clr "Unsafe"
+		dotnetframework "4.8"
 		
 		targetdir "../bin/Player/%{cfg.buildcfg}"
 		objdir "../obj/Player/%{cfg.buildcfg}"
@@ -94,12 +96,15 @@ solution "Engine"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
+		dotnetframework "4.8"
 		
 		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
 		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
 		
 		links {
-			"Core"
+			"Core",
+			"System.Numerics",
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/ImGui.NET.dll"
 		}
 		
 		files {
@@ -134,6 +139,7 @@ solution "Engine"
 		kind "ConsoleApp"
 		language "C#"
 		clr "Unsafe"
+		dotnetframework "4.8"
 		
 		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
 		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
@@ -174,6 +180,7 @@ solution "Engine"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
+		dotnetframework "4.8"
 		
 		targetname "Game"
 		targetdir "../bin/TestGame/%{cfg.buildcfg}"

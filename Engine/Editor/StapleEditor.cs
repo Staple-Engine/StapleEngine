@@ -1,4 +1,8 @@
 using Bgfx;
+using ImGuiNET;
+using Staple.Internal;
+using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
@@ -10,6 +14,8 @@ namespace Staple.Editor
         internal const int ClearView = 0;
 
         private RenderWindow window;
+
+        private ImGuiProxy imgui;
 
         public void Run()
         {
@@ -23,9 +29,52 @@ namespace Staple.Editor
                 return;
             }
 
+            ResourceManager.instance.basePath = $"{Environment.CurrentDirectory}/Data";
+
+            imgui = new ImGuiProxy();
+
+            if(imgui.Initialize() == false)
+            {
+                window.Cleanup();
+
+                return;
+            }
+
+            float t = 0;
+
             window.OnUpdate = () =>
             {
                 bgfx.touch(ClearView);
+
+                var io = ImGui.GetIO();
+
+                io.DisplaySize = new Vector2(window.screenWidth, window.screenHeight);
+                io.DisplayFramebufferScale = new Vector2(1, 1);
+
+                imgui.BeginFrame();
+
+                ImGui.SetNextWindowPos(new Vector2(10.0f, 50.0f), ImGuiCond.FirstUseEver);
+
+                ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.FirstUseEver);
+
+                ImGui.Begin("Test");
+
+                ImGui.TextWrapped("Test Text");
+
+                ImGui.SameLine();
+
+                ImGui.SmallButton("Test Button");
+
+                if(ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip("Test Tooltip");
+                }
+
+                ImGui.InputFloat("Test Float", ref t);
+
+                ImGui.End();
+
+                imgui.EndFrame();
             };
 
             window.OnScreenSizeChange = (hasFocus) =>
@@ -38,6 +87,10 @@ namespace Staple.Editor
             };
 
             window.Run();
+
+            imgui.Destroy();
+
+            ResourceManager.instance.Destroy();
 
             window.Cleanup();
         }

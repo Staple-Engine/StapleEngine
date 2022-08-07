@@ -22,7 +22,7 @@ namespace Staple
 
         private static Dictionary<MouseButton, InputState> mouseButtonStates = new Dictionary<MouseButton, InputState>();
 
-        public static uint Character { get; private set; }
+        public static uint Character { get; internal set; }
 
         public static Vector2 MousePosition { get; private set; }
 
