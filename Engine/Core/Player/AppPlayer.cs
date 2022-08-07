@@ -130,169 +130,13 @@ namespace Staple
                 screenHeight = 768,
             };
 
-            Glfw.Init();
-
-            Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
-            Glfw.WindowHint(Hint.Resizable, false);
-
-            NativeWindow window = null;
-
-            var monitor = Glfw.Monitors.Skip(playerSettings.monitorIndex).FirstOrDefault();
-
-            if (monitor == null)
-            {
-                monitor = Glfw.PrimaryMonitor;
-            }
-
-            switch (playerSettings.windowMode)
-            {
-                case PlayerSettings.WindowMode.Windowed:
-
-                    window = new NativeWindow(playerSettings.screenWidth, playerSettings.screenHeight, appSettings.appName);
-
-                    break;
-
-                case PlayerSettings.WindowMode.Fullscreen:
-
-                    window = new NativeWindow(playerSettings.screenWidth, playerSettings.screenHeight, appSettings.appName, monitor, Window.None);
-
-                    break;
-
-                case PlayerSettings.WindowMode.Borderless:
-
-                    Glfw.WindowHint(Hint.Floating, true);
-                    Glfw.WindowHint(Hint.Decorated, false);
-
-                    var videoMode = Glfw.GetVideoMode(monitor);
-
-                    window = new NativeWindow(videoMode.Width, videoMode.Height, appSettings.appName);
-
-                    break;
-            }
-
-            if (window == null)
-            {
-                Glfw.Terminate();
-
-                return;
-            }
-
-            bgfx.render_frame(0);
-
-            var init = new bgfx.Init();
-            var rendererType = RendererType.OpenGL;
-
-            unsafe
-            {
-                bgfx.init_ctor(&init);
-
-                init.platformData.ndt = null;
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
-
-                    if(appSettings.renderers.TryGetValue(AppPlatform.Windows, out var type))
-                    {
-                        rendererType = type;
-                    }
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    var display = Native.GetX11Display();
-                    var windowHandle = Native.GetX11Window(window);
-
-                    if (display == IntPtr.Zero || window == IntPtr.Zero)
-                    {
-                        display = Native.GetWaylandDisplay();
-                        windowHandle = Native.GetWaylandWindow(window);
-                    }
-
-                    init.platformData.ndt = display.ToPointer();
-                    init.platformData.nwh = windowHandle.ToPointer();
-
-                    if (appSettings.renderers.TryGetValue(AppPlatform.Linux, out var type))
-                    {
-                        rendererType = type;
-                    }
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
-                    init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
-
-                    if (appSettings.renderers.TryGetValue(AppPlatform.MacOSX, out var type))
-                    {
-                        rendererType = type;
-                    }
-                }
-            }
-
-            Glfw.GetFramebufferSize(window, out playerSettings.screenWidth, out playerSettings.screenHeight);
-
-            ScreenWidth = playerSettings.screenWidth;
-            ScreenHeight = playerSettings.screenHeight;
-
-            ActiveRendererType = bgfx.RendererType.Count;
-
-            switch(rendererType)
-            {
-                case RendererType.Direct3D11:
-
-                    ActiveRendererType = bgfx.RendererType.Direct3D11;
-
-                    break;
-
-                case RendererType.Direct3D12:
-
-                    ActiveRendererType = bgfx.RendererType.Direct3D12;
-
-                    break;
-
-                case RendererType.OpenGL:
-
-                    ActiveRendererType = bgfx.RendererType.OpenGL;
-
-                    break;
-
-                case RendererType.OpenGLES:
-
-                    ActiveRendererType = bgfx.RendererType.OpenGLES;
-
-                    break;
-
-                case RendererType.Metal:
-
-                    ActiveRendererType = bgfx.RendererType.Metal;
-
-                    break;
-
-                case RendererType.Vulkan:
-
-                    ActiveRendererType = bgfx.RendererType.Vulkan;
-
-                    break;
-            }
-
-            init.type = ActiveRendererType;
-            init.resolution.width = (uint)ScreenWidth;
-            init.resolution.height = (uint)ScreenHeight;
-            init.resolution.reset = (uint)ResetFlags;
-
-            unsafe
-            {
-                if (!bgfx.init(&init))
-                {
-                    Glfw.Terminate();
-
-                    return;
-                }
-            }
+            var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
+                appSettings, playerSettings.monitorIndex, ResetFlags, appSettings.runInBackground);
 
             bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
-            bool hasFocus = window.IsFocused;
+            bool hasFocus = renderWindow.window.IsFocused;
 
             if(appSettings.runInBackground == false && hasFocus == false)
             {
@@ -355,86 +199,13 @@ namespace Staple
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
 
-            Input.window = window;
-
-            Glfw.SetKeyCallback(window, (_, key, scancode, action, mods) =>
+            renderWindow.OnUpdate = () =>
             {
-                Input.KeyCallback(key, scancode, action, mods);
-            });
-
-            Glfw.SetCharCallback(window, (_, codepoint) =>
-            {
-                Input.CharCallback(codepoint);
-            });
-
-            Glfw.SetCursorPositionCallback(window, (_, xpos, ypos) =>
-            {
-                Input.CursorPosCallback((float)xpos, (float)ypos);
-            });
-
-            Glfw.SetMouseButtonCallback(window, (_, button, state, modifiers) =>
-            {
-                Input.MouseButtonCallback(button, state, modifiers);
-            });
-
-            Glfw.SetScrollCallback(window, (_, xOffset, yOffset) =>
-            {
-                Input.MouseScrollCallback((float)xOffset, (float)yOffset);
-            });
-
-            if(Glfw.RawMouseMotionSupported())
-            {
-                Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
-            }
-
-            double last = Glfw.Time;
-
-            uint frames = 0;
-
-            double start = Glfw.Time;
-
-            var sleepTime = 16;
-
-            while (!Glfw.WindowShouldClose(window) && window.IsClosed == false)
-            {
-                Glfw.PollEvents();
-
-                if (appSettings.runInBackground == true || window.IsFocused == true)
-                {
-                    double current = Glfw.Time;
-
-                    Time.UpdateClock(current, last);
-
-                    last = current;
-                }
-
-                Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
-
-                if (currentW != ScreenWidth || currentH != ScreenHeight)
-                {
-                    playerSettings.screenWidth = ScreenWidth = currentW;
-                    playerSettings.screenHeight = ScreenHeight = currentH;
-
-                    ResetRendering(hasFocus);
-                }
-
-                if(appSettings.runInBackground == false && window.IsFocused != hasFocus)
-                {
-                    hasFocus = window.IsFocused;
-
-                    ResetRendering(hasFocus);
-
-                    if(hasFocus == false)
-                    {
-                        continue;
-                    }
-                }
-
                 SubsystemManager.instance.Update();
 
                 var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
 
-                if(hasCamera == false)
+                if (hasCamera == false)
                 {
                     bgfx.touch(ClearView);
                     bgfx.dbg_text_clear(0, false);
@@ -444,9 +215,17 @@ namespace Staple
                 bgfx.touch(ClearView);
                 bgfx.dbg_text_clear(0, false);
                 bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+            };
 
-                bgfx.frame(false);
-            }
+            renderWindow.OnScreenSizeChange = (focus) =>
+            {
+                ScreenWidth = playerSettings.screenWidth = renderWindow.screenWidth;
+                ScreenHeight = playerSettings.screenHeight = renderWindow.screenHeight;
+
+                ResetRendering(focus);
+            };
+
+            renderWindow.Run();
 
             Scene.current?.Cleanup();
 
