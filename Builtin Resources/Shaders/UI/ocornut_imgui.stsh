@@ -1,0 +1,73 @@
+{
+	"type": "VertexFragment",
+	"parameters": [
+		{
+			"name": "v_texcoord0",
+			"semantic": "Varying",
+			"type": "vec2",
+			"attribute": "TEXCOORD0",
+			"defaultValue": "vec2(0.0, 0.0)"
+		},
+		{
+			"name": "v_color0",
+			"semantic": "Varying",
+			"type": "vec4",
+			"attribute": "COLOR0",
+			"defaultValue": "vec4(0.0, 0.0, 0.0, 0.0)"
+		},
+		{
+			"name": "a_position",
+			"semantic": "Varying",
+			"type": "vec3",
+			"attribute": "POSITION"
+		},
+		{
+			"name": "a_texcoord0",
+			"semantic": "Varying",
+			"type": "vec2",
+			"attribute": "TEXCOORD0"
+		},
+		{
+			"name": "a_color0",
+			"semantic": "Varying",
+			"type": "vec4",
+			"attribute": "COLOR0"
+		},
+		{
+			"name": "s_texColor",
+			"semantic": "Uniform",
+			"type": "Texture"
+		}
+	],
+	"vertex": {
+		"inputs": [
+			"a_position", "a_texcoord0", "a_color0"
+		],
+		"outputs": [
+			"v_color0", "v_texcoord0"
+		],
+		"code": [
+			"void main()",
+			"{",
+			"	vec4 pos = mul(u_viewProj, vec4(a_position.xy, 0.0, 1.0) );",
+			"	gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);",
+			"	v_texcoord0 = a_texcoord0;",
+			"	v_color0    = a_color0;",
+			"}"
+		]
+	},
+	"fragment": {
+		"inputs": [
+			"v_color0", "v_texcoord0"
+		],
+		"code": [
+			"SAMPLER2D(s_texColor, 0);",
+			"",
+			"void main()",
+			"{",
+			"	vec4 texel = texture2D(s_texColor, v_texcoord0);",
+			"	gl_FragColor = texel * v_color0;",
+			"}"
+		]
+	}
+}

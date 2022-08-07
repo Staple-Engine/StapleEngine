@@ -1,0 +1,78 @@
+{
+	"type": "VertexFragment",
+	"parameters": [
+		{
+			"name": "v_texcoord0",
+			"semantic": "Varying",
+			"type": "vec2",
+			"attribute": "TEXCOORD0",
+			"defaultValue": "vec2(0.0, 0.0)"
+		},
+		{
+			"name": "a_position",
+			"semantic": "Varying",
+			"type": "vec3",
+			"attribute": "POSITION"
+		},
+		{
+			"name": "a_texcoord0",
+			"semantic": "Varying",
+			"type": "vec2",
+			"attribute": "TEXCOORD0"
+		},
+		{
+			"name": "u_imageLodEnabled",
+			"semantic": "Uniform",
+			"type": "Vector4"
+		},
+		{
+			"name": "s_texColor",
+			"semantic": "Uniform",
+			"type": "Texture"
+		}
+	],
+	"vertex": {
+		"inputs": [
+			"a_position", "a_texcoord0"
+		],
+		"outputs": [
+			"v_texcoord0"
+		],
+		"code": [
+			"/*",
+			" * Copyright 2014 Dario Manesku. All rights reserved.",
+			" * License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE",
+			" */",
+			"",
+			"void main()",
+			"{",
+			"	gl_Position = mul(u_viewProj, vec4(a_position.xy, 0.0, 1.0) );",
+			"	v_texcoord0 = a_texcoord0;",
+			"}"
+		]
+	},
+	"fragment": {
+		"inputs": [
+			"v_texcoord0"
+		],
+		"code": [
+			"/*",
+			" * Copyright 2014 Dario Manesku. All rights reserved.",
+			" * License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE",
+			" */",
+			"",
+			"uniform vec4 u_imageLodEnabled;",
+			"SAMPLER2D(s_texColor, 0);",
+			"",
+			"#define u_imageLod     u_imageLodEnabled.x",
+			"#define u_imageEnabled u_imageLodEnabled.y",
+			"",
+			"void main()",
+			"{",
+			"	vec3 color = texture2DLod(s_texColor, v_texcoord0, u_imageLod).xyz;",
+			"	float alpha = 0.2 + 0.8*u_imageEnabled;",
+			"	gl_FragColor = vec4(color, alpha);",
+			"}"
+		]
+	}
+}

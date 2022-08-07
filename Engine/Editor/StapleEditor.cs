@@ -16,7 +16,7 @@ namespace Staple.Editor
             window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, new AppSettings()
             {
                 appName = "Staple Editor",
-            }, 0, Bgfx.bgfx.ResetFlags.Vsync, true);
+            }, 0, bgfx.ResetFlags.Vsync, true);
 
             if(window == null)
             {
@@ -33,7 +33,8 @@ namespace Staple.Editor
                 var flags = AppPlayer.ResetFlags(PlayerSettings.VideoFlags.Vsync);
 
                 bgfx.reset((uint)window.screenWidth, (uint)window.screenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
-                bgfx.set_view_rect_ratio(0, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
             };
 
             window.Run();
