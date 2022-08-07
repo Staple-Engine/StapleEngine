@@ -4,9 +4,10 @@ using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("StapleEditor")]
 
 namespace Staple
 {
@@ -53,54 +54,51 @@ namespace Staple
             }
         }
 
-        private bgfx.ResetFlags ResetFlags
+        public static bgfx.ResetFlags ResetFlags(PlayerSettings.VideoFlags videoFlags)
         {
-            get
+            var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.Vsync))
             {
-                var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.Vsync))
-                {
-                    resetFlags |= bgfx.ResetFlags.Vsync;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX2))
-                {
-                    resetFlags |= bgfx.ResetFlags.MsaaX2;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX4))
-                {
-                    resetFlags |= bgfx.ResetFlags.MsaaX4;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX8))
-                {
-                    resetFlags |= bgfx.ResetFlags.MsaaX8;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX16))
-                {
-                    resetFlags |= bgfx.ResetFlags.MsaaX16;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.HDR10))
-                {
-                    resetFlags |= bgfx.ResetFlags.Hdr10;
-                }
-
-                if (playerSettings.videoFlags.HasFlag(PlayerSettings.VideoFlags.HiDpi))
-                {
-                    resetFlags |= bgfx.ResetFlags.Hidpi;
-                }
-
-                return resetFlags;
+                resetFlags |= bgfx.ResetFlags.Vsync;
             }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX2))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX2;
+            }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX4))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX4;
+            }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX8))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX8;
+            }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX16))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX16;
+            }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HDR10))
+            {
+                resetFlags |= bgfx.ResetFlags.Hdr10;
+            }
+
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HiDpi))
+            {
+                resetFlags |= bgfx.ResetFlags.Hidpi;
+            }
+
+            return resetFlags;
         }
 
         public void ResetRendering(bool hasFocus)
         {
-            var flags = ResetFlags;
+            var flags = ResetFlags(playerSettings.videoFlags);
 
             if(hasFocus == false && appSettings.runInBackground == false)
             {
@@ -131,7 +129,7 @@ namespace Staple
             };
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-                appSettings, playerSettings.monitorIndex, ResetFlags, appSettings.runInBackground);
+                appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags), appSettings.runInBackground);
 
             bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
@@ -205,14 +203,16 @@ namespace Staple
 
                 var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
 
+                bgfx.touch(ClearView);
+
                 if (hasCamera == false)
                 {
-                    bgfx.touch(ClearView);
                     bgfx.dbg_text_clear(0, false);
                     bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+
+                    return;
                 }
 
-                bgfx.touch(ClearView);
                 bgfx.dbg_text_clear(0, false);
                 bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
             };
@@ -233,10 +233,7 @@ namespace Staple
 
             ResourceManager.instance.Destroy();
 
-            bgfx.shutdown();
-
-            Glfw.Terminate();
+            renderWindow.Cleanup();
         }
-
     }
 }

@@ -3,14 +3,18 @@ using GLFW;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("StapleEditor")]
 
 namespace Staple
 {
     internal class RenderWindow
     {
+        //In case we have more than one window in the future
         internal static int glfwReferences = 0;
         internal static int bgfxReferences = 0;
 
@@ -49,14 +53,26 @@ namespace Staple
                     screenWidth = currentW;
                     screenHeight = currentH;
 
-                    OnScreenSizeChange?.Invoke(hasFocus);
+                    try
+                    {
+                        OnScreenSizeChange?.Invoke(hasFocus);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
                 }
 
                 if (runInBackground == false && window.IsFocused != hasFocus)
                 {
                     hasFocus = window.IsFocused;
 
-                    OnScreenSizeChange?.Invoke(hasFocus);
+                    try
+                    {
+                        OnScreenSizeChange?.Invoke(hasFocus);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
 
                     if (hasFocus == false)
                     {
@@ -64,9 +80,38 @@ namespace Staple
                     }
                 }
 
-                OnUpdate?.Invoke();
+                try
+                {
+                    OnUpdate?.Invoke();
+                }
+                catch(System.Exception)
+                {
+                }
 
                 bgfx.frame(false);
+            }
+        }
+
+        public void Cleanup()
+        {
+            if(bgfxReferences > 0)
+            {
+                bgfxReferences--;
+
+                if(bgfxReferences == 0)
+                {
+                    bgfx.shutdown();
+                }
+            }
+
+            if(glfwReferences > 0)
+            {
+                glfwReferences--;
+
+                if(glfwReferences == 0)
+                {
+                    Glfw.Terminate();
+                }
             }
         }
 

@@ -89,6 +89,86 @@ solution "Engine"
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
 			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
     		}
+
+	project "StapleEditor"
+		kind "SharedLib"
+		language "C#"
+		clr "Unsafe"
+		
+		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
+		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
+		
+		links {
+			"Core"
+		}
+		
+		files {
+			"Editor/**.cs"
+		}
+		
+		postbuildcommands {
+			"{MKDIR} %{wks.location}/../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+		}
+
+        filter "system:windows"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
+    		}
+
+        filter "system:linux"
+    		postbuildcommands {
+				-- Linux is messy to build .NET projects with premake makefiles so we need to copy from two places
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/gmake/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+    		}
+
+		filter "system:macos"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+    		}
+
+	project "StapleEditorApp"
+		kind "ConsoleApp"
+		language "C#"
+		clr "Unsafe"
+		
+		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
+		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
+		
+		links {
+			"StapleEditor"
+		}
+		
+		files {
+			"EditorApp/**.cs"
+		}
+		
+		postbuildcommands {
+			"{MKDIR} %{wks.location}/../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+		}
+
+        filter "system:windows"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
+    		}
+
+        filter "system:linux"
+    		postbuildcommands {
+				-- Linux is messy to build .NET projects with premake makefiles so we need to copy from two places
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/gmake/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+    		}
+
+		filter "system:macos"
+    		postbuildcommands {
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+    		}
 	
 	project "TestGame"
 		kind "SharedLib"
