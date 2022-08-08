@@ -26,6 +26,7 @@ namespace Staple
         public bgfx.RendererType rendererType;
         public Action OnUpdate;
         public Action<bool> OnScreenSizeChange;
+        public bool shouldStop = false;
 
         public void Run()
         {
@@ -33,7 +34,7 @@ namespace Staple
 
             double last = Glfw.Time;
 
-            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false)
+            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false && shouldStop == false)
             {
                 Input.Character = 0;
 
@@ -106,7 +107,7 @@ namespace Staple
                 }
             }
 
-            if(glfwReferences > 0)
+            if (glfwReferences > 0)
             {
                 glfwReferences--;
 

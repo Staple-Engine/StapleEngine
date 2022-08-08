@@ -112,9 +112,7 @@ solution "Engine"
 		}
 		
 		postbuildcommands {
-			"{MKDIR} %{wks.location}/../Staging/Data",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.dll %{wks.location}/../Staging",
 		}
 
         filter "system:windows"
@@ -141,8 +139,8 @@ solution "Engine"
 		clr "Unsafe"
 		dotnetframework "4.8"
 		
-		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
-		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
+		targetdir "../bin/StapleEditorApp/%{cfg.buildcfg}"
+		objdir "../obj/StapleEditorApp/%{cfg.buildcfg}"
 		
 		links {
 			"StapleEditor"

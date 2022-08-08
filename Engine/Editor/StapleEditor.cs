@@ -53,6 +53,21 @@ namespace Staple.Editor
 
                 imgui.BeginFrame();
 
+                if(ImGui.BeginMainMenuBar())
+                {
+                    if(ImGui.BeginMenu("File"))
+                    {
+                        if(ImGui.MenuItem("Exit"))
+                        {
+                            window.shouldStop = true;
+                        }
+
+                        ImGui.EndMenu();
+                    }
+
+                    ImGui.EndMainMenuBar();
+                }
+
                 ImGui.SetNextWindowPos(new Vector2(10.0f, 50.0f), ImGuiCond.FirstUseEver);
 
                 ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.FirstUseEver);
