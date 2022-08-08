@@ -21,6 +21,7 @@ namespace Staple.Editor
         public VertexLayout layout;
         public bgfx.UniformHandle textureUniform;
         public Texture fontTexture;
+        public bgfx.TextureHandle activeTexture;
 
         private bool frameBegun = false;
 
@@ -161,8 +162,6 @@ namespace Staple.Editor
                 bgfx.set_view_transform(viewID, null, &ortho);
                 bgfx.set_view_rect(viewID, 0, 0, (ushort)drawData.DisplaySize.X, (ushort)drawData.DisplaySize.Y);
 
-                bgfx.set_texture(0, textureUniform, fontTexture.handle, 0);
-
                 var clipPos = drawData.DisplayPos;
                 var clipScale = drawData.FramebufferScale;
 
@@ -212,14 +211,9 @@ namespace Staple.Editor
 
                     for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                     {
-                        ImDrawCmdPtr drawCmd = cmdList.CmdBuffer[j];
+                        var drawCmd = cmdList.CmdBuffer[j];
 
-                        if (drawCmd.ElemCount == 0)
-                        {
-                            continue;
-                        }
-
-                        if (drawCmd.UserCallback != IntPtr.Zero)
+                        if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != IntPtr.Zero)
                         {
                             continue;
                         }
@@ -232,7 +226,17 @@ namespace Staple.Editor
                         if (drawCmd.TextureId != IntPtr.Zero)
                         {
                             program = imageProgram.program;
+
+                            var index = (ushort)drawCmd.TextureId.ToInt64();
+
+                            activeTexture.idx = index;
                         }
+                        else
+                        {
+                            activeTexture.idx = fontTexture.handle.idx;
+                        }
+
+                        bgfx.set_texture(0, textureUniform, activeTexture, uint.MaxValue);
 
                         var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
                             (drawCmd.ClipRect.Y - clipPos.Y) * clipScale.Y,
@@ -249,16 +253,27 @@ namespace Staple.Editor
                                 (ushort)(Math.Min(clipRect.Z, 65535.0f) - x),
                                 (ushort)(Math.Min(clipRect.W, 65535.0f) - y));
 
-                            bgfx.set_state((ulong)state, 0);
+                            bgfx.set_state(state, 0);
 
                             bgfx.set_transient_vertex_buffer(0, &tvb, drawCmd.VtxOffset, (uint)numVertices);
                             bgfx.set_transient_index_buffer(&tib, drawCmd.IdxOffset, drawCmd.ElemCount);
 
-                            bgfx.submit(viewID, program, 0, 0);
+                            bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                         }
                     }
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IntPtr GetImGuiTexture(Texture texture)
+        {
+            if(texture == null || texture.handle.Valid == false)
+            {
+                return IntPtr.Zero;
+            }
+
+            return new IntPtr(texture.handle.idx);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -197,6 +197,8 @@ namespace Staple
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
 
+            Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate;
+
             renderWindow.OnUpdate = () =>
             {
                 SubsystemManager.instance.Update();

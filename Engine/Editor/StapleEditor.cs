@@ -4,6 +4,7 @@ using Staple.Internal;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
 
@@ -30,6 +31,8 @@ namespace Staple.Editor
             }
 
             ResourceManager.instance.basePath = $"{Environment.CurrentDirectory}/Data";
+
+            var texture = ResourceManager.instance.LoadTexture("Textures/Sprites/DefaultSprite.png");
 
             imgui = new ImGuiProxy();
 
@@ -86,6 +89,8 @@ namespace Staple.Editor
                 }
 
                 ImGui.InputFloat("Test Float", ref t);
+
+                ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(256, 256));
 
                 ImGui.End();
 
