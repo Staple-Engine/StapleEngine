@@ -44,12 +44,10 @@ project "glfwnet"
 	files {
 		"glfw-net/GLFW.NET/**.cs"
 	}
-
-project "ImGui"
-	kind "Utility"
 	
 	postbuildcommands {
-		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}",
+		"{COPYFILE} %{wks.location}../../Serilog/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
 	}
 	
 	filter "system:windows"
