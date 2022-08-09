@@ -67,7 +67,6 @@ project "ImGui"
 			"{COPYFILE} %{wks.location}../../ImGui.NET/osx-universal/native/*.dylib %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
 		}
 
-
 project "MessagePack"
 	kind "SharedLib"
 	language "C#"
@@ -85,4 +84,35 @@ project "MessagePack"
 
 	files {
 		"MessagePack/**.cs"
+	}
+
+project "EnTTSharp"
+	kind "SharedLib"
+	language "C#"
+
+	links {
+		"System",
+		"System.Numerics",
+		"System.Runtime.Serialization",
+		"Serilog/Serilog.dll"
+	}
+
+	files {
+		"EnTTSHarp/EnTTSharp/**.cs"
+	}
+
+project "EnTTSharp.Annotations"
+	kind "SharedLib"
+	language "C#"
+
+	links {
+		"System",
+		"System.Numerics",
+		"System.Runtime.Serialization",
+		"EnTTSharp",
+		"Serilog/Serilog.dll"
+	}
+
+	files {
+		"EnTTSHarp/EnTTSharp.Annotations/**.cs"
 	}
