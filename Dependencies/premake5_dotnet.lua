@@ -46,8 +46,7 @@ project "glfwnet"
 	}
 	
 	postbuildcommands {
-		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}",
-		"{COPYFILE} %{wks.location}../../Serilog/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
 	}
 	
 	filter "system:windows"
@@ -82,35 +81,4 @@ project "MessagePack"
 
 	files {
 		"MessagePack/**.cs"
-	}
-
-project "EnTTSharp"
-	kind "SharedLib"
-	language "C#"
-
-	links {
-		"System",
-		"System.Numerics",
-		"System.Runtime.Serialization",
-		"Serilog/Serilog.dll"
-	}
-
-	files {
-		"EnTTSHarp/EnTTSharp/**.cs"
-	}
-
-project "EnTTSharp.Annotations"
-	kind "SharedLib"
-	language "C#"
-
-	links {
-		"System",
-		"System.Numerics",
-		"System.Runtime.Serialization",
-		"EnTTSharp",
-		"Serilog/Serilog.dll"
-	}
-
-	files {
-		"EnTTSHarp/EnTTSharp.Annotations/**.cs"
 	}
