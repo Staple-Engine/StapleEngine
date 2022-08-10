@@ -44,7 +44,8 @@ solution "Engine"
 			"System.Memory",
             "System.Numerics",
 			"System.Core",
-			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll",
+			"../Dependencies/JsonNet/Newtonsoft.Json.dll"
         }
 		
 		files {

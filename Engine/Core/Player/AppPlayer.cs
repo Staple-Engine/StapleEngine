@@ -40,7 +40,7 @@ namespace Staple
             baseDirectory = Environment.CurrentDirectory;
 #endif
 
-            ResourceManager.instance.basePath = Path.Combine(baseDirectory, "Data");
+            ResourceManager.instance.resourcePaths.Add(Path.Combine(baseDirectory, "Data"));
 
             for (var i = 0; i < args.Length; i++)
             {
@@ -48,7 +48,8 @@ namespace Staple
                 {
                     if(i + 1 < args.Length)
                     {
-                        ResourceManager.instance.basePath = args[i + 1];
+                        ResourceManager.instance.resourcePaths.Clear();
+                        ResourceManager.instance.resourcePaths.Add(args[i + 1]);
                     }
                 }
             }

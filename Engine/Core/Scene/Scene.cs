@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("CoreTests")]
 #endif
 
+[assembly: InternalsVisibleTo("StapleEditorApp")]
+
 namespace Staple
 {
     public class Scene

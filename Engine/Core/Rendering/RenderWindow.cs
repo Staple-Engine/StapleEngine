@@ -3,6 +3,7 @@ using GLFW;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -37,6 +38,7 @@ namespace Staple
             while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false && shouldStop == false)
             {
                 Input.Character = 0;
+                Input.MouseDelta = Vector2.Zero;
 
                 Glfw.PollEvents();
 

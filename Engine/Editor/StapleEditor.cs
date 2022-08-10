@@ -4,7 +4,9 @@ using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -20,6 +22,12 @@ namespace Staple.Editor
             Folder
         }
 
+        enum ProjectBrowserNodeAction
+        {
+            None,
+            InspectScene,
+        }
+
         class ProjectBrowserNode
         {
             public string name;
@@ -27,40 +35,9 @@ namespace Staple.Editor
             public ProjectBrowserNodeType type;
             public string extension;
             public List<ProjectBrowserNode> subnodes = new List<ProjectBrowserNode>();
-            public bool open = false;
+            public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
 
-            public string TypeString
-            {
-                get
-                {
-                    switch(extension)
-                    {
-                        case ".mat":
-
-                            return "Material";
-
-                        case ".stsh":
-
-                            return "Shader";
-
-                        case ".stsc":
-
-                            return "Scene";
-
-                        case ".png":
-                        case ".jpg":
-                        case ".jpeg":
-                        case ".gif":
-                        case ".bmp":
-
-                            return "Texture";
-
-                        default:
-
-                            return "";
-                    }
-                }
-            }
+            public string TypeString;
         }
 
         internal const int ClearView = 0;
@@ -78,6 +55,8 @@ namespace Staple.Editor
 
         private string basePath;
 
+        private ProjectBrowserNode lastSelectedNode;
+
         private List<ProjectBrowserNode> projectBrowserNodes = new List<ProjectBrowserNode>();
 
         public void Run()
@@ -92,7 +71,7 @@ namespace Staple.Editor
                 return;
             }
 
-            ResourceManager.instance.basePath = $"{Environment.CurrentDirectory}/Data";
+            ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
 
             imgui = new ImGuiProxy();
 
@@ -123,7 +102,7 @@ namespace Staple.Editor
 
             style.WindowRounding = 0;
 
-            basePath = Environment.CurrentDirectory;
+            basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
 
             UpdateProjectBrowserNodes();
 
@@ -178,6 +157,48 @@ namespace Staple.Editor
 
             ImGui.BeginChildFrame(ImGui.GetID("EntityFrame"), new Vector2(0, 0));
 
+            if(Scene.current != null)
+            {
+                void Recursive(Entity entity)
+                {
+                    var flags = ImGuiTreeNodeFlags.SpanFullWidth;
+
+                    if(entity.Transform.ChildCount == 0)
+                    {
+                        flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+                    }
+
+                    if(ImGui.TreeNodeEx($"{entity.Name}##0", flags))
+                    {
+                        if(ImGui.IsItemClicked())
+                        {
+                            selectedEntity = entity;
+                        }
+
+                        foreach(var child in entity.Transform)
+                        {
+                            if(child.entity.TryGetTarget(out var childEntity))
+                            {
+                                Recursive(childEntity);
+                            }
+                        }
+
+                        if(entity.Transform.ChildCount > 0)
+                        {
+                            ImGui.TreePop();
+                        }
+                    }
+                }
+
+                foreach(var entity in Scene.current.entities)
+                {
+                    if(entity.Transform.parent == null)
+                    {
+                        Recursive(entity);
+                    }
+                }
+            }
+
             ImGui.EndChildFrame();
 
             ImGui.End();
@@ -210,17 +231,203 @@ namespace Staple.Editor
             {
                 ImGui.Button("Add Component");
 
-                ImGui.SameLine();
-
-                if (ImGui.BeginPopup("ComponentListPopup"))
+                if(ImGui.TreeNodeEx("Transform", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
-                    ImGui.Text("Components");
-                    ImGui.Separator();
+                    var position = selectedEntity.Transform.LocalPosition;
 
-                    ImGui.EndPopup();
+                    if(ImGui.InputFloat3("Position", ref position))
+                    {
+                        selectedEntity.Transform.LocalPosition = position;
+                    }
+
+                    var rotation = selectedEntity.Transform.LocalRotation.ToEulerAngles();
+
+                    if (ImGui.InputFloat3("Rotation", ref rotation))
+                    {
+                        selectedEntity.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+                    }
+
+                    var scale = selectedEntity.Transform.LocalScale;
+
+                    if (ImGui.InputFloat3("Scale", ref scale))
+                    {
+                        selectedEntity.Transform.LocalScale = scale;
+                    }
+
+                    ImGui.TreePop();
                 }
 
-                ImGui.SameLine();
+                for(var i = 0; i < selectedEntity.components.Count; i++)
+                {
+                    var component = selectedEntity.components[i];
+
+                    if (ImGui.TreeNodeEx(component.GetType().Name + $"##{i}", ImGuiTreeNodeFlags.SpanFullWidth))
+                    {
+                        var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+                        foreach(var field in fields)
+                        {
+                            var type = field.FieldType;
+
+                            if(type.IsEnum)
+                            {
+                                var values = Enum.GetValues(type)
+                                    .OfType<Enum>()
+                                    .ToList();
+
+                                var value = (Enum)field.GetValue(component);
+
+                                var current = values.IndexOf(value);
+
+                                var valueStrings = values
+                                    .Select(x => x.ToString())
+                                    .ToList();
+
+                                if(ImGui.BeginCombo(field.Name, value.ToString()))
+                                {
+                                    for(var j = 0; j < valueStrings.Count; j++)
+                                    {
+                                        bool selected = j == current;
+
+                                        if (ImGui.Selectable(valueStrings[j], selected))
+                                        {
+                                            field.SetValue(component, values[j]);
+                                        }
+                                    }
+
+                                    ImGui.EndCombo();
+                                }
+                            }
+                            else if(type == typeof(string))
+                            {
+                                var value = (string)field.GetValue(component);
+
+                                if(ImGui.InputText(field.Name, ref value, uint.MaxValue))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(Vector2))
+                            {
+                                var value = (Vector2)field.GetValue(component);
+
+                                if (ImGui.InputFloat2(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(Vector3))
+                            {
+                                var value = (Vector3)field.GetValue(component);
+
+                                if (ImGui.InputFloat3(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(Vector4))
+                            {
+                                var value = (Vector4)field.GetValue(component);
+
+                                if (ImGui.InputFloat4(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(Quaternion))
+                            {
+                                var quaternion = (Quaternion)field.GetValue(component);
+
+                                var value = quaternion.ToEulerAngles();
+
+                                if (ImGui.InputFloat3(field.Name, ref value))
+                                {
+                                    quaternion = Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z);
+
+                                    field.SetValue(component, quaternion);
+                                }
+                            }
+                            else if(type == typeof(int))
+                            {
+                                var value = (int)field.GetValue(component);
+
+                                if (ImGui.InputInt(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(bool))
+                            {
+                                var value = (bool)field.GetValue(component);
+
+                                if (ImGui.Checkbox(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(float))
+                            {
+                                var value = (float)field.GetValue(component);
+
+                                if (ImGui.InputFloat(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(double))
+                            {
+                                var value = (double)field.GetValue(component);
+
+                                if (ImGui.InputDouble(field.Name, ref value))
+                                {
+                                    field.SetValue(component, value);
+                                }
+                            }
+                            else if(type == typeof(byte))
+                            {
+                                var current = (byte)field.GetValue(component);
+                                var value = (int)current;
+
+                                if (ImGui.InputInt(field.Name, ref value))
+                                {
+                                    if(value < 0)
+                                    {
+                                        value = 0;
+                                    }
+
+                                    if(value > 255)
+                                    {
+                                        value = 255;
+                                    }
+
+                                    field.SetValue(component, (byte)value);
+                                }
+                            }
+                            else if(type == typeof(short))
+                            {
+                                var current = (short)field.GetValue(component);
+                                var value = (int)current;
+
+                                if (ImGui.InputInt(field.Name, ref value))
+                                {
+                                    if(value < short.MinValue)
+                                    {
+                                        value = short.MinValue;
+                                    }
+
+                                    if(value > short.MaxValue)
+                                    {
+                                        value = short.MaxValue;
+                                    }
+
+                                    field.SetValue(component, value);
+                                }
+                            }
+                        }
+
+                        ImGui.TreePop();
+                    }
+                }
             }
 
             ImGui.EndChildFrame();
@@ -291,6 +498,27 @@ namespace Staple.Editor
 
                         if (ImGui.TreeNodeEx($"{node.name} {typeString}", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen))
                         {
+                            if(ImGui.IsItemClicked())
+                            {
+                                if (lastSelectedNode == node)
+                                {
+                                    switch (node.action)
+                                    {
+                                        case ProjectBrowserNodeAction.InspectScene:
+
+                                            var scene = ResourceManager.instance.LoadRawSceneFromPath(node.path);
+
+                                            if (scene != null)
+                                            {
+                                                Scene.current = scene;
+                                            }
+
+                                            break;
+                                    }
+                                }
+                            }
+
+                            lastSelectedNode = node;
                         }
 
                         break;
@@ -404,7 +632,6 @@ namespace Staple.Editor
                         {
                             name = Path.GetFileName(directory),
                             extension = "",
-                            open = false,
                             path = directory,
                             type = ProjectBrowserNodeType.Folder,
                             subnodes = subnodes,
@@ -413,15 +640,54 @@ namespace Staple.Editor
 
                     foreach(var file in files)
                     {
-                        nodes.Add(new ProjectBrowserNode()
+                        var node = new ProjectBrowserNode()
                         {
                             name = Path.GetFileNameWithoutExtension(file),
                             extension = Path.GetExtension(file),
                             path = file,
-                            open = false,
                             subnodes = new List<ProjectBrowserNode>(),
                             type = ProjectBrowserNodeType.File
-                        });
+                        };
+
+                        nodes.Add(node);
+
+                        switch (node.extension)
+                        {
+                            case ".mat":
+
+                                node.TypeString = "Material";
+
+                                break;
+
+                            case ".stsh":
+
+                                node.TypeString = "Shader";
+
+                                break;
+
+                            case ".stsc":
+
+                                node.TypeString = "Scene";
+                                node.action = ProjectBrowserNodeAction.InspectScene;
+
+                                break;
+
+                            case ".png":
+                            case ".jpg":
+                            case ".jpeg":
+                            case ".gif":
+                            case ".bmp":
+
+                                node.TypeString = "Texture";
+
+                                break;
+
+                            default:
+
+                                node.TypeString = "";
+
+                                break;
+                        }
                     }
                 }
 

@@ -26,7 +26,7 @@ namespace Staple
 
         public static Vector2 MousePosition { get; private set; }
 
-        public static Vector2 MouseDelta { get; private set; }
+        public static Vector2 MouseDelta { get; internal set; }
 
         internal static Window window;
 

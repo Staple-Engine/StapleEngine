@@ -153,6 +153,12 @@ namespace Staple
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CopySign(float x, float sign)
+        {
+            return x * Sign(sign);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Pow(float f, float p) => (float)System.Math.Pow(f, p);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -196,6 +202,37 @@ namespace Staple
         public static Vector4 ToVector4(this Vector3 v, bool transform = false)
         {
             return new Vector4(v.X, v.Y, v.Z, transform ? 1 : 0);
+        }
+
+        public static Vector3 ToEulerAngles(this Quaternion q)
+        {
+            var outValue = new Vector3();
+
+            // roll / x
+            double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
+            double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+
+            outValue.X = (float)System.Math.Atan2(sinr_cosp, cosr_cosp);
+
+            // pitch / y
+            double sinp = 2 * (q.W * q.Y - q.Z * q.X);
+
+            if (System.Math.Abs(sinp) >= 1)
+            {
+                outValue.Y = (float)CopySign(PI / 2, (float)sinp);
+            }
+            else
+            {
+                outValue.Y = (float)System.Math.Asin(sinp);
+            }
+
+            // yaw / z
+            double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
+            double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+
+            outValue.Z = (float)System.Math.Atan2(siny_cosp, cosy_cosp);
+
+            return outValue;
         }
     }
 }

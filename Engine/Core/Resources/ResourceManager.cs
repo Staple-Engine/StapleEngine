@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Staple.Internal
 {
     internal class ResourceManager
     {
-        public string basePath;
+        public List<string> resourcePaths = new List<string>();
 
         public static ResourceManager instance = new ResourceManager();
 
@@ -50,19 +51,31 @@ namespace Staple.Internal
 
         public byte[] LoadFile(string path)
         {
-            if(basePath == null)
+            foreach(var resourcePath in resourcePaths)
+            {
+                try
+                {
+                    return File.ReadAllBytes(Path.Combine(resourcePath, path));
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
+        public string LoadFileString(string path)
+        {
+            var data = LoadFile(path);
+
+            if(data == null)
             {
                 return null;
             }
 
-            try
-            {
-                return File.ReadAllBytes(Path.Combine(basePath, path));
-            }
-            catch(Exception)
-            {
-                return null;
-            }
+            return Encoding.UTF8.GetString(data);
         }
 
         public List<string> LoadSceneList()
@@ -102,11 +115,68 @@ namespace Staple.Internal
             }
         }
 
-        public Scene LoadScene(string name)
+        public Scene LoadRawSceneFromPath(string path)
         {
-            var data = LoadFile(Path.Combine(basePath, "Scenes", $"{name}.stsc"));
+            var data = LoadFileString(path);
 
-            if(data == null)
+            if (data == null)
+            {
+                return null;
+            }
+
+            var scene = new Scene();
+
+            try
+            {
+                var sceneObjects = JsonConvert.DeserializeObject<List<SceneObject>>(data);
+
+                foreach(var sceneObject in sceneObjects)
+                {
+                    Entity entity = null;
+
+                    switch (sceneObject.kind)
+                    {
+                        case SceneObjectKind.Entity:
+
+                            entity = Entity.Instantiate(sceneObject);
+
+                            if (entity == null)
+                            {
+                                continue;
+                            }
+
+                            scene.entities.Add(entity);
+
+                            if (sceneObject.parent != null && sceneObject.parent != sceneObject.ID)
+                            {
+                                entity.Transform.SetParent(sceneObject.parent != null ? scene.FindID(sceneObject.parent)?.Transform : null);
+                            }
+
+                            break;
+                    }
+                }
+
+                foreach (var entity in scene.entities)
+                {
+                    foreach (var component in entity.components)
+                    {
+                        component.Invoke("OnAwake");
+                    }
+                }
+
+                return scene;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public Scene LoadSceneFromPath(string path)
+        {
+            var data = LoadFile(path);
+
+            if (data == null)
             {
                 return null;
             }
@@ -132,11 +202,11 @@ namespace Staple.Internal
                         return null;
                     }
 
-                    foreach(var sceneObject in sceneData.objects)
+                    foreach (var sceneObject in sceneData.objects)
                     {
                         Entity entity = null;
 
-                        switch(sceneObject.kind)
+                        switch (sceneObject.kind)
                         {
                             case SceneObjectKind.Entity:
 
@@ -158,9 +228,9 @@ namespace Staple.Internal
                         }
                     }
 
-                    foreach(var entity in scene.entities)
+                    foreach (var entity in scene.entities)
                     {
-                        foreach(var component in entity.components)
+                        foreach (var component in entity.components)
                         {
                             component.Invoke("OnAwake");
                         }
@@ -173,6 +243,11 @@ namespace Staple.Internal
                     return null;
                 }
             }
+        }
+
+        public Scene LoadScene(string name)
+        {
+            return LoadSceneFromPath(Path.Combine("Scenes", $"{name}.stsc"));
         }
 
         public Shader LoadShader(string path)
