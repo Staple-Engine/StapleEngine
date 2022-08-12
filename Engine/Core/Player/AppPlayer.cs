@@ -106,8 +106,7 @@ namespace Staple
                 flags |= bgfx.ResetFlags.Suspend;
             }
 
-            bgfx.reset((uint)ScreenWidth, (uint)ScreenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+            AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
         }
 
         public void Run()
@@ -132,92 +131,86 @@ namespace Staple
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
                 appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags), appSettings.runInBackground);
 
-            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-
-            bool hasFocus = renderWindow.window.IsFocused;
-
-            if(appSettings.runInBackground == false && hasFocus == false)
+            renderWindow.OnInit = () =>
             {
-                ResetRendering(hasFocus);
-            }
+                Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate;
 
-            Scene.sceneList = ResourceManager.instance.LoadSceneList();
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
+                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
-            if(Scene.sceneList == null || Scene.sceneList.Count == 0)
-            {
-                Console.WriteLine($"Failed to load scene list");
+                bool hasFocus = renderWindow.window.IsFocused;
 
-                bgfx.shutdown();
-                Glfw.Terminate();
-
-                return;
-            }
-
-            Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
-
-            if(Scene.current == null)
-            {
-                Console.WriteLine($"Failed to load main scene");
-
-                bgfx.shutdown();
-                Glfw.Terminate();
-
-                return;
-            }
-
-            var renderSystem = new RenderSystem();
-
-            SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
-            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
-
-            if(playerAssembly != null)
-            {
-                var types = playerAssembly.GetTypes()
-                    .Where(x => typeof(IEntitySystem).IsAssignableFrom(x));
-
-                foreach(var type in types)
+                if (appSettings.runInBackground == false && hasFocus == false)
                 {
-                    try
-                    {
-                        var instance = (IEntitySystem)Activator.CreateInstance(type);
-
-                        if(instance != null)
-                        {
-                            EntitySystemManager.instance.RegisterSystem(instance);
-                        }
-                    }
-                    catch(System.Exception e)
-                    {
-                        Console.WriteLine($"Player: Failed to load entity system {type.FullName}: {e}");
-                    }
+                    ResetRendering(hasFocus);
                 }
-            }
 
-#if _DEBUG
-            bgfx.set_debug((uint)bgfx.DebugFlags.Text);
-#endif
+                Scene.sceneList = ResourceManager.instance.LoadSceneList();
 
-            Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate;
-
-            renderWindow.OnUpdate = () =>
-            {
-                SubsystemManager.instance.Update();
-
-                var hasCamera = Scene.current.GetComponents<Camera>().ToArray().Length != 0;
-
-                bgfx.touch(ClearView);
-
-                if (hasCamera == false)
+                if (Scene.sceneList == null || Scene.sceneList.Count == 0)
                 {
-                    bgfx.dbg_text_clear(0, false);
-                    bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+                    Console.WriteLine($"Failed to load scene list");
+
+                    bgfx.shutdown();
+                    Glfw.Terminate();
 
                     return;
                 }
 
-                bgfx.dbg_text_clear(0, false);
-                bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+                Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+
+                if (Scene.current == null)
+                {
+                    Console.WriteLine($"Failed to load main scene");
+
+                    bgfx.shutdown();
+                    Glfw.Terminate();
+
+                    return;
+                }
+
+                var renderSystem = new RenderSystem();
+
+                SubsystemManager.instance.RegisterRenderSubsystem(renderSystem, RenderSystem.Priority);
+                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
+
+                if (playerAssembly != null)
+                {
+                    var types = playerAssembly.GetTypes()
+                        .Where(x => typeof(IEntitySystem).IsAssignableFrom(x));
+
+                    foreach (var type in types)
+                    {
+                        try
+                        {
+                            var instance = (IEntitySystem)Activator.CreateInstance(type);
+
+                            if (instance != null)
+                            {
+                                EntitySystemManager.instance.RegisterSystem(instance);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Console.WriteLine($"Player: Failed to load entity system {type.FullName}: {e}");
+                        }
+                    }
+                }
+            };
+
+            renderWindow.OnUpdate = () =>
+            {
+                SubsystemManager.instance.Update();
+            };
+
+            renderWindow.OnFixedUpdate = () =>
+            {
+                SubsystemManager.instance.FixedUpdate();
+            };
+
+            renderWindow.OnRender = () =>
+            {
+                SubsystemManager.instance.Render();
             };
 
             renderWindow.OnScreenSizeChange = (focus) =>
@@ -228,15 +221,16 @@ namespace Staple
                 ResetRendering(focus);
             };
 
+            renderWindow.OnCleanup = () =>
+            {
+                Scene.current?.Cleanup();
+
+                SubsystemManager.instance.Destroy();
+
+                ResourceManager.instance.Destroy();
+            };
+
             renderWindow.Run();
-
-            Scene.current?.Cleanup();
-
-            SubsystemManager.instance.Destroy();
-
-            ResourceManager.instance.Destroy();
-
-            renderWindow.Cleanup();
         }
     }
 }

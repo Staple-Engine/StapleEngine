@@ -11,50 +11,130 @@ namespace Staple.Internal
         public static readonly SubsystemManager instance = new SubsystemManager();
 
         private SortedDictionary<byte, HashSet<ISubsystem>> subsystems = new SortedDictionary<byte, HashSet<ISubsystem>>();
+        private SortedDictionary<byte, HashSet<ISubsystem>> fixedUpdateSubsystems = new SortedDictionary<byte, HashSet<ISubsystem>>();
+        private SortedDictionary<byte, HashSet<ISubsystem>> renderSubsystems = new SortedDictionary<byte, HashSet<ISubsystem>>();
+        private object lockObject = new object();
 
         internal void Destroy()
         {
-            //Shutdown in reverse order
-            foreach(var key in subsystems.Keys.Reverse())
+            lock(lockObject)
             {
-                foreach(var subsystem in subsystems[key])
+                //Shutdown in reverse order
+                foreach (var key in subsystems.Keys.Reverse())
                 {
-                    subsystem?.Shutdown();
+                    foreach (var subsystem in subsystems[key])
+                    {
+                        subsystem?.Shutdown();
+                    }
+                }
+
+                foreach (var key in fixedUpdateSubsystems.Keys.Reverse())
+                {
+                    foreach (var subsystem in fixedUpdateSubsystems[key])
+                    {
+                        subsystem?.Shutdown();
+                    }
+                }
+
+                foreach (var key in renderSubsystems.Keys.Reverse())
+                {
+                    foreach (var subsystem in renderSubsystems[key])
+                    {
+                        subsystem?.Shutdown();
+                    }
                 }
             }
         }
 
         public void RegisterSubsystem(ISubsystem subsystem, byte priority)
         {
-            if(subsystems.TryGetValue(priority, out var list) == false)
+            lock(lockObject)
             {
-                list = new HashSet<ISubsystem>();
+                if (subsystems.TryGetValue(priority, out var list) == false)
+                {
+                    list = new HashSet<ISubsystem>();
 
-                subsystems.Add(priority, list);
+                    subsystems.Add(priority, list);
+                }
+
+                list.Add(subsystem);
+
+                subsystem.Startup();
             }
-
-            list.Add(subsystem);
-
-            subsystem.Startup();
         }
 
-        public void UnregisterSubsystem(ISubsystem subsystem)
+        public void RegisterFixedSubsystem(ISubsystem subsystem, byte priority)
         {
-            foreach(var pair in subsystems)
+            lock (lockObject)
             {
-                pair.Value.Remove(subsystem);
-            }
+                if (fixedUpdateSubsystems.TryGetValue(priority, out var list) == false)
+                {
+                    list = new HashSet<ISubsystem>();
 
-            subsystem.Shutdown();
+                    fixedUpdateSubsystems.Add(priority, list);
+                }
+
+                list.Add(subsystem);
+
+                subsystem.Startup();
+            }
+        }
+
+        public void RegisterRenderSubsystem(ISubsystem subsystem, byte priority)
+        {
+            lock (lockObject)
+            {
+                if (renderSubsystems.TryGetValue(priority, out var list) == false)
+                {
+                    list = new HashSet<ISubsystem>();
+
+                    renderSubsystems.Add(priority, list);
+                }
+
+                list.Add(subsystem);
+
+                subsystem.Startup();
+            }
         }
 
         internal void Update()
         {
-            foreach(var pair in subsystems)
+            lock (lockObject)
             {
-                foreach(var subsystem in pair.Value)
+                foreach (var pair in subsystems)
                 {
-                    subsystem.Update();
+                    foreach (var subsystem in pair.Value)
+                    {
+                        subsystem.Update();
+                    }
+                }
+            }
+        }
+
+        internal void FixedUpdate()
+        {
+            lock (lockObject)
+            {
+                foreach (var pair in fixedUpdateSubsystems)
+                {
+                    foreach (var subsystem in pair.Value)
+                    {
+                        subsystem.Update();
+                    }
+                }
+            }
+        }
+
+        internal void Render()
+        {
+            lock (lockObject)
+            {
+                foreach (var pair in renderSubsystems)
+                {
+                    foreach (var subsystem in pair.Value)
+                    {
+                        subsystem.Update();
+                    }
                 }
             }
         }
