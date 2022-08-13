@@ -164,7 +164,7 @@ namespace Staple
 
                                 var transform = new Transform(null);
 
-                                var alpha = Time.Accumulator / Time.deltaTime;
+                                var alpha = Time.Accumulator / Time.fixedDeltaTime;
 
                                 transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
                                 transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);

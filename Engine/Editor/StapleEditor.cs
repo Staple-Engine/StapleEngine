@@ -63,8 +63,9 @@ namespace Staple.Editor
         {
             window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, new AppSettings()
             {
+                runInBackground = true,
                 appName = "Staple Editor",
-            }, 0, bgfx.ResetFlags.Vsync, true);
+            }, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
             {
