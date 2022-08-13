@@ -13,7 +13,7 @@ namespace TestGame
         {
             var component = entity.GetComponent<CircularMovementComponent>();
 
-            component.t += Time.deltaTime * component.speed;
+            component.t += Time.fixedDeltaTime * component.speed;
 
             if(component.followMouse)
             {

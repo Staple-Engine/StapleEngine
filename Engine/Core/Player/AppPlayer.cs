@@ -133,7 +133,7 @@ namespace Staple
 
             renderWindow.OnInit = () =>
             {
-                Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate;
+                Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate / 1000.0f;
 
                 bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
@@ -172,7 +172,7 @@ namespace Staple
                 var renderSystem = new RenderSystem();
 
                 SubsystemManager.instance.RegisterRenderSubsystem(renderSystem, RenderSystem.Priority);
-                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterFixedSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
 
                 if (playerAssembly != null)
                 {

@@ -11,7 +11,7 @@ namespace Staple
     {
         public bool runInBackground = false;
         public string appName;
-        public int fixedTimeFrameRate = 30;
+        public int fixedTimeFrameRate = 60;
 
         public Dictionary<string, uint> layers = new Dictionary<string, uint>
         {
