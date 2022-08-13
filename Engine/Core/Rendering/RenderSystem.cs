@@ -1,5 +1,6 @@
 
 using Bgfx;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,8 @@ namespace Staple
         private object lockObject = new object();
 
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
+
+        private FrustumCuller frustumCuller = new FrustumCuller();
 
         internal static byte Priority = 0;
 
@@ -121,6 +124,8 @@ namespace Staple
                     Matrix4x4.Invert(view, out view);
 
                     bgfx.set_view_transform(viewID, &view, &projection);
+
+                    frustumCuller.Update(view, projection);
                 }
 
                 switch (camera.clearMode)
@@ -188,7 +193,10 @@ namespace Staple
 
                 foreach (var entity in Scene.current.entities)
                 {
-                    if (camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
+                    if (camera.cullingLayers.HasLayer(entity.layer) &&
+                        entity.TryGetComponent(out Renderer renderer) &&
+                        renderer.enabled &&
+                        frustumCuller.AABBTest(renderer.bounds) != FrustumAABBResult.Invisible)
                     {
                         AddDrawCall(entity, viewID);
                     }
