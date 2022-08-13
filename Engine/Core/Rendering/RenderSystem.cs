@@ -1,6 +1,7 @@
 
 using Bgfx;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -9,17 +10,36 @@ namespace Staple
 {
     internal class RenderSystem : ISubsystem
     {
+        internal class DrawCall
+        {
+            public Vector3 position;
+            public Quaternion rotation;
+            public Vector3 scale;
+            public Entity entity;
+        }
+
+        internal class DrawBucket
+        {
+            public Dictionary<ushort, List<DrawCall>> drawCalls = new Dictionary<ushort, List<DrawCall>>();
+        }
+
         public SubsystemType type { get; } = SubsystemType.Render;
+
+        private DrawBucket previousDrawBucket = new DrawBucket(), currentDrawBucket = new DrawBucket();
+
+        private object lockObject = new object();
 
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
         internal static byte Priority = 0;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
         {
             return BlendFunction(source, destination, source, destination);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
         {
             return ((ulong)sourceColor | ((ulong)destinationColor << 4)) | (((ulong)sourceAlpha | ((ulong)destinationAlpha << 4)) << 8);
@@ -42,6 +62,27 @@ namespace Staple
         public void Shutdown()
         {
             spriteRenderSystem.Destroy();
+        }
+
+        public void AddDrawCall(Entity entity, ushort viewID)
+        {
+            lock(lockObject)
+            {
+                if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
+                {
+                    drawCalls = new List<DrawCall>();
+
+                    currentDrawBucket.drawCalls.Add(viewID, drawCalls);
+                }
+
+                drawCalls.Add(new DrawCall()
+                {
+                    entity = entity,
+                    position = entity.Transform.Position,
+                    rotation = entity.Transform.Rotation,
+                    scale = entity.Transform.Scale,
+                });
+            }
         }
 
         public void Update()
@@ -105,14 +146,51 @@ namespace Staple
 
                 bgfx.touch(viewID);
 
+                lock(lockObject)
+                {
+                    if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
+                    {
+                        foreach(var call in drawCalls)
+                        {
+                            if(call.entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
+                            {
+                                var previousPosition = call.position;
+                                var previousRotation = call.rotation;
+                                var previousScale = call.scale;
+
+                                var currentPosition = call.entity.Transform.Position;
+                                var currentRotation = call.entity.Transform.Rotation;
+                                var currentScale = call.entity.Transform.Scale;
+
+                                var transform = new Transform(null);
+
+                                var alpha = Time.Accumulator / Time.deltaTime;
+
+                                transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                                transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                                transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+
+                                if(renderer is SpriteRenderer)
+                                {
+                                    spriteRenderSystem.Process(call.entity, transform, (SpriteRenderer)renderer, viewID);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                lock (lockObject)
+                {
+                    previousDrawBucket = currentDrawBucket;
+
+                    currentDrawBucket = new DrawBucket();
+                }
+
                 foreach (var entity in Scene.current.entities)
                 {
                     if (camera.cullingLayers.HasLayer(entity.layer) && entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
                     {
-                        if (renderer is SpriteRenderer)
-                        {
-                            spriteRenderSystem.Process(entity, (SpriteRenderer)renderer, viewID);
-                        }
+                        AddDrawCall(entity, viewID);
                     }
                 }
 

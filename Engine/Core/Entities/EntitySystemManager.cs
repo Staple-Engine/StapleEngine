@@ -44,6 +44,23 @@ namespace Staple
 
         public void Update()
         {
+            float time;
+
+            switch(type)
+            {
+                case SubsystemType.FixedUpdate:
+
+                    time = Time.fixedDeltaTime;
+
+                    break;
+
+                default:
+
+                    time = Time.deltaTime;
+
+                    break;
+            }
+
             foreach(var system in systems)
             {
                 if((system.targetComponents?.Length ?? 0) == 0)
@@ -55,7 +72,7 @@ namespace Staple
 
                 foreach(var entity in entities)
                 {
-                    system.Process(entity, Time.fixedDeltaTime);
+                    system.Process(entity, time);
                 }
             }
         }

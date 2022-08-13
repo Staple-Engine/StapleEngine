@@ -54,7 +54,7 @@ namespace Staple
             indexBuffer?.Destroy();
         }
 
-        public void Process(Entity entity, SpriteRenderer renderer, ushort viewId)
+        public void Process(Entity entity, Transform transform, SpriteRenderer renderer, ushort viewId)
         {
             if(vertexLayout == null)
             {
@@ -78,13 +78,13 @@ namespace Staple
 
             var scale = Vector3.Zero;
 
-            if(renderer.texture != null)
+            if (renderer.texture != null)
             {
                 scale.X = renderer.texture.SpriteWidth;
                 scale.Y = renderer.texture.SpriteHeight;
             }
 
-            var matrix = Matrix4x4.CreateScale(scale) * entity.Transform.Matrix;
+            var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
 
             unsafe
             {
@@ -99,7 +99,7 @@ namespace Staple
 
             renderer.material.shader.SetColor(Material.MainColorProperty, renderer.color);
 
-            if(renderer.texture != null)
+            if (renderer.texture != null)
             {
                 renderer.material.shader.SetTexture(Material.MainTextureProperty, renderer.texture);
             }

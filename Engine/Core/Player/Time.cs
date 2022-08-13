@@ -16,6 +16,8 @@ namespace Staple
 
         public static int FPS { get; internal set; }
 
+        internal static float Accumulator { get; set; }
+
         private static int frames;
         private static float frameTimer;
 
@@ -24,6 +26,7 @@ namespace Staple
             var delta = (float)(current - last);
 
             time += delta;
+            Accumulator += delta;
 
             //If we're larger than 1 we're definitely dealing with suspend or an extremely slow system
             if (delta > 1)
@@ -32,6 +35,11 @@ namespace Staple
             }
 
             deltaTime = delta;
+
+            while(Accumulator >= fixedDeltaTime)
+            {
+                Accumulator -= fixedDeltaTime;
+            }
 
             frames++;
             frameTimer += delta;

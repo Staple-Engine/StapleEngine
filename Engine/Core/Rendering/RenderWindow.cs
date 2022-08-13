@@ -36,7 +36,6 @@ namespace Staple
         public bool shouldStop = false;
         public bool shouldRender = true;
         public object renderLock = new object();
-        public int logicRate = 0;
         private bool renderThreadReady = false;
         private Thread renderThread;
 
@@ -609,7 +608,6 @@ namespace Staple
                 monitor = Glfw.PrimaryMonitor;
             }
 
-            renderWindow.logicRate = Glfw.GetVideoMode(monitor).RefreshRate;
             renderWindow.resetFlags = resetFlags;
 
             switch (windowMode)
