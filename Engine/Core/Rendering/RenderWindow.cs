@@ -2,14 +2,11 @@
 using GLFW;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("StapleEditor")]
 
@@ -25,7 +22,6 @@ namespace Staple
 
         public int screenWidth = 0;
         public int screenHeight = 0;
-        public bool runInBackground = false;
         public bool hasFocus = true;
         public NativeWindow window;
         public bgfx.RendererType rendererType;
@@ -46,17 +42,129 @@ namespace Staple
 
         public void Run()
         {
+            if(appSettings.multiThreadedRenderer)
+            {
+                MultiThreadedLoop();
+            }
+            else
+            {
+                SingleThreadLoop();
+            }
+        }
+
+        private void SingleThreadLoop()
+        {
+            OnScreenSizeChange?.Invoke(window.IsFocused);
+
+            try
+            {
+                OnInit?.Invoke();
+            }
+            catch (System.Exception)
+            {
+            }
+
+            double last = Glfw.Time;
+
+            var fixedTimer = 0.0f;
+
+            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false && shouldStop == false)
+            {
+                Input.Character = 0;
+                Input.MouseDelta = Vector2.Zero;
+
+                Glfw.PollEvents();
+
+                lock (renderLock)
+                {
+                    shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
+                }
+
+                Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
+
+                if ((currentW != screenWidth || currentH != screenHeight) && window.IsClosed == false)
+                {
+                    screenWidth = currentW;
+                    screenHeight = currentH;
+
+                    try
+                    {
+                        OnScreenSizeChange?.Invoke(hasFocus);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                }
+
+                if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
+                {
+                    hasFocus = window.IsFocused;
+
+                    try
+                    {
+                        OnScreenSizeChange?.Invoke(hasFocus);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+
+                    if (hasFocus == false)
+                    {
+                        continue;
+                    }
+                }
+
+                CheckEvents();
+
+                try
+                {
+                    OnUpdate?.Invoke();
+                }
+                catch (System.Exception)
+                {
+                }
+
+                double current = Glfw.Time;
+
+                fixedTimer += (float)(current - last);
+
+                //Prevent hard stuck
+                var tries = 0;
+
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                {
+                    fixedTimer -= Time.fixedDeltaTime;
+
+                    OnFixedUpdate?.Invoke();
+
+                    tries++;
+                }
+
+                RenderFrame(ref last);
+            }
+
+            try
+            {
+                OnCleanup?.Invoke();
+            }
+            catch (System.Exception)
+            {
+            }
+        }
+
+        private void MultiThreadedLoop()
+        {
             renderThread = new Thread(new ThreadStart(RenderThread));
 
             renderThread.Start();
 
-            for(; ; )
+            for (; ; )
             {
-                lock(renderLock)
+                lock (renderLock)
                 {
-                    if(renderThread.IsAlive == false)
+                    if (renderThread.IsAlive == false)
                     {
-                        if(renderThreadReady)
+                        if (renderThreadReady)
                         {
                             if (bgfxReferences > 0)
                             {
@@ -84,7 +192,7 @@ namespace Staple
                         }
                     }
 
-                    if(renderThreadReady)
+                    if (renderThreadReady)
                     {
                         break;
                     }
@@ -114,9 +222,9 @@ namespace Staple
 
                 Glfw.PollEvents();
 
-                lock(renderLock)
+                lock (renderLock)
                 {
-                    shouldRender = runInBackground == true || window.IsFocused == true;
+                    shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
                 }
 
                 Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
@@ -135,7 +243,7 @@ namespace Staple
                     }
                 }
 
-                if (runInBackground == false && window.IsFocused != hasFocus)
+                if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
                 {
                     hasFocus = window.IsFocused;
 
@@ -157,7 +265,7 @@ namespace Staple
                 {
                     OnUpdate?.Invoke();
                 }
-                catch(System.Exception)
+                catch (System.Exception)
                 {
                 }
 
@@ -168,7 +276,7 @@ namespace Staple
                 //Prevent hard stuck
                 var tries = 0;
 
-                while(Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -184,25 +292,29 @@ namespace Staple
             {
                 OnCleanup?.Invoke();
             }
-            catch(System.Exception)
+            catch (System.Exception)
             {
             }
 
-            lock(renderLock)
+            if (renderThread != null)
             {
-                shouldStop = true;
-            }
-
-            for(; ; )
-            {
-                if(renderThread.IsAlive == false)
+                lock (renderLock)
                 {
-                    break;
+                    shouldStop = true;
                 }
 
-                Thread.Sleep(25);
+                for (; ; )
+                {
+                    if (renderThread.IsAlive == false)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(25);
+                }
             }
         }
+
 
         public void Cleanup()
         {
@@ -227,7 +339,7 @@ namespace Staple
             }
         }
 
-        public void RenderThread()
+        private void InitBGFX()
         {
             var init = new bgfx.Init();
             var activeRendererType = RendererType.OpenGL;
@@ -348,6 +460,87 @@ namespace Staple
 #if _DEBUG
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
+        }
+
+        private void CheckEvents()
+        {
+            var appEvent = AppEventQueue.instance.Next();
+
+            if (appEvent != null)
+            {
+                switch (appEvent.type)
+                {
+                    case AppEventType.ResetFlags:
+
+                        bgfx.reset((uint)screenWidth, (uint)screenHeight, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
+                        bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+
+                        break;
+
+                    case AppEventType.MouseUp:
+                    case AppEventType.MouseDown:
+
+                        Input.HandleMouseButtonEvent(appEvent);
+
+                        break;
+
+                    case AppEventType.MouseDelta:
+
+                        Input.HandleMouseDeltaEvent(appEvent);
+
+                        break;
+
+                    case AppEventType.KeyUp:
+                    case AppEventType.KeyDown:
+
+                        Input.HandleKeyEvent(appEvent);
+
+                        break;
+
+                    case AppEventType.Text:
+
+                        Input.HandleTextEvent(appEvent);
+
+                        break;
+                }
+            }
+        }
+
+        private void RenderFrame(ref double lastTime)
+        {
+            double current = Glfw.Time;
+
+            Time.UpdateClock(current, lastTime);
+
+            lastTime = current;
+
+            try
+            {
+                OnRender?.Invoke();
+            }
+            catch (System.Exception)
+            {
+            }
+
+            var hasCamera = Scene.current?.GetComponents<Camera>().ToArray().Length != 0;
+
+            if (hasCamera == false)
+            {
+                bgfx.touch(ClearView);
+                bgfx.dbg_text_clear(0, false);
+                bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
+            }
+
+            bgfx.touch(ClearView);
+            bgfx.dbg_text_clear(0, false);
+            bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+
+            bgfx.frame(false);
+        }
+
+        private void RenderThread()
+        {
+            InitBGFX();
 
             lock (renderLock)
             {
@@ -370,89 +563,23 @@ namespace Staple
                     renderNow = shouldRender;
                 }
 
-                var appEvent = AppEventQueue.instance.Next();
+                CheckEvents();
 
-                if (appEvent != null)
-                {
-                    switch (appEvent.type)
-                    {
-                        case AppEventType.ResetFlags:
-
-                            bgfx.reset((uint)screenWidth, (uint)screenHeight, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
-                            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-
-                            break;
-
-                        case AppEventType.MouseUp:
-                        case AppEventType.MouseDown:
-
-                            Input.HandleMouseButtonEvent(appEvent);
-
-                            break;
-
-                        case AppEventType.MouseDelta:
-
-                            Input.HandleMouseDeltaEvent(appEvent);
-
-                            break;
-
-                        case AppEventType.KeyUp:
-                        case AppEventType.KeyDown:
-
-                            Input.HandleKeyEvent(appEvent);
-
-                            break;
-
-                        case AppEventType.Text:
-
-                            Input.HandleTextEvent(appEvent);
-
-                            break;
-                    }
-                }
-
-                if (shouldRender == false)
+                if (renderNow == false)
                 {
                     Thread.Sleep(100);
 
                     continue;
                 }
 
-                double current = Glfw.Time;
-
-                Time.UpdateClock(current, last);
-
-                last = current;
-
-                try
-                {
-                    OnRender?.Invoke();
-                }
-                catch(System.Exception)
-                {
-                }
-
-                var hasCamera = Scene.current?.GetComponents<Camera>().ToArray().Length != 0;
-
-                if (hasCamera == false)
-                {
-                    bgfx.touch(ClearView);
-                    bgfx.dbg_text_clear(0, false);
-                    bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
-                }
-
-                bgfx.touch(ClearView);
-                bgfx.dbg_text_clear(0, false);
-                bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
-
-                bgfx.frame(false);
+                RenderFrame(ref last);
             }
 
             Cleanup();
         }
 
         public static RenderWindow Create(int width, int height, bool resizable, PlayerSettings.WindowMode windowMode,
-            AppSettings settings, int monitorIndex, bgfx.ResetFlags resetFlags, bool runInBackground)
+            AppSettings appSettings, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
             if (glfwReferences > 0)
             {
@@ -461,8 +588,8 @@ namespace Staple
 
             var renderWindow = new RenderWindow()
             {
-                runInBackground = runInBackground,
-                appSettings = settings,
+                appSettings = appSettings,
+                resetFlags = resetFlags,
             };
 
             if(glfwReferences == 0)
@@ -483,18 +610,19 @@ namespace Staple
             }
 
             renderWindow.logicRate = Glfw.GetVideoMode(monitor).RefreshRate;
+            renderWindow.resetFlags = resetFlags;
 
             switch (windowMode)
             {
                 case PlayerSettings.WindowMode.Windowed:
 
-                    renderWindow.window = new NativeWindow(width, height, settings.appName);
+                    renderWindow.window = new NativeWindow(width, height, appSettings.appName);
 
                     break;
 
                 case PlayerSettings.WindowMode.Fullscreen:
 
-                    renderWindow.window = new NativeWindow(width, height, settings.appName, monitor, Window.None);
+                    renderWindow.window = new NativeWindow(width, height, appSettings.appName, monitor, Window.None);
 
                     break;
 
@@ -505,7 +633,7 @@ namespace Staple
 
                     var videoMode = Glfw.GetVideoMode(monitor);
 
-                    renderWindow.window = new NativeWindow(videoMode.Width, videoMode.Height, settings.appName);
+                    renderWindow.window = new NativeWindow(videoMode.Width, videoMode.Height, appSettings.appName);
 
                     break;
             }
@@ -551,6 +679,11 @@ namespace Staple
             if (Glfw.RawMouseMotionSupported())
             {
                 Glfw.SetInputMode(renderWindow.window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
+            }
+
+            if(appSettings.multiThreadedRenderer == false)
+            {
+                renderWindow.InitBGFX();
             }
 
             return renderWindow;

@@ -129,7 +129,7 @@ namespace Staple
             };
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-                appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags), appSettings.runInBackground);
+                appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags));
 
             renderWindow.OnInit = () =>
             {
