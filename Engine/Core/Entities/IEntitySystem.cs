@@ -10,6 +10,6 @@ namespace Staple
     {
         Type[] targetComponents { get; }
 
-        void Process(Entity entity);
+        void Process(Entity entity, float deltaTime);
     }
 }

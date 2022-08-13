@@ -6,8 +6,17 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
+    public enum SubsystemType
+    {
+        Render,
+        FixedUpdate,
+        Update
+    }
+
     public interface ISubsystem
     {
+        SubsystemType type { get; }
+
         void Startup();
 
         void Shutdown();

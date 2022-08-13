@@ -9,6 +9,8 @@ namespace Staple
 {
     internal class RenderSystem : ISubsystem
     {
+        public SubsystemType type { get; } = SubsystemType.Render;
+
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
         internal static byte Priority = 0;

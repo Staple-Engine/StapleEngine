@@ -9,11 +9,11 @@ namespace TestGame
     {
         public Type[] targetComponents { get; private set; } = new Type[] { typeof(CircularMovementComponent) };
 
-        public void Process(Entity entity)
+        public void Process(Entity entity, float deltaTime)
         {
             var component = entity.GetComponent<CircularMovementComponent>();
 
-            component.t += Time.fixedDeltaTime * component.speed;
+            component.t += deltaTime * component.speed;
 
             if(component.followMouse)
             {

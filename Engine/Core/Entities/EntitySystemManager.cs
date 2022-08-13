@@ -8,6 +8,8 @@ namespace Staple
 {
     public class EntitySystemManager : ISubsystem
     {
+        public SubsystemType type { get; } = SubsystemType.FixedUpdate;
+
         private HashSet<IEntitySystem> systems = new HashSet<IEntitySystem>();
 
         public static readonly EntitySystemManager instance = new EntitySystemManager();
@@ -53,7 +55,7 @@ namespace Staple
 
                 foreach(var entity in entities)
                 {
-                    system.Process(entity);
+                    system.Process(entity, Time.fixedDeltaTime);
                 }
             }
         }

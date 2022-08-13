@@ -12,7 +12,7 @@ namespace TestGame
     {
         public Type[] targetComponents { get; private set; } = new Type[] { typeof(KeyboardControlComponent) };
 
-        public void Process(Entity entity)
+        public void Process(Entity entity, float deltaTime)
         {
             var component = entity.GetComponent<KeyboardControlComponent>();
 
@@ -38,7 +38,7 @@ namespace TestGame
                 direction.Y = 1;
             }
 
-            entity.Transform.LocalPosition += direction * component.speed;
+            entity.Transform.LocalPosition += direction * component.speed * deltaTime;
         }
     }
 }
