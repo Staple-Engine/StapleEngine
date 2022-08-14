@@ -26,7 +26,7 @@ namespace Staple
 
         public SubsystemType type { get; } = SubsystemType.Render;
 
-        private DrawBucket drawBucket = new DrawBucket();
+        private DrawBucket previousDrawBucket = new DrawBucket(), currentDrawBucket = new DrawBucket();
 
         private object lockObject = new object();
 
@@ -34,7 +34,9 @@ namespace Staple
 
         private FrustumCuller frustumCuller = new FrustumCuller();
 
-        private bool needsDrawCalls = true;
+        private bool needsDrawCalls = false;
+
+        private float accumulator = 0.0f;
 
         internal static byte Priority = 0;
 
@@ -77,11 +79,11 @@ namespace Staple
         {
             lock(lockObject)
             {
-                if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
+                if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
                 {
                     drawCalls = new List<DrawCall>();
 
-                    drawBucket.drawCalls.Add(viewID, drawCalls);
+                    currentDrawBucket.drawCalls.Add(viewID, drawCalls);
                 }
 
                 drawCalls.Add(new DrawCall()
@@ -157,23 +159,25 @@ namespace Staple
 
                 bgfx.touch(viewID);
 
-                var alpha = Time.Accumulator / Time.fixedDeltaTime;
+                var alpha = accumulator / Time.fixedDeltaTime;
 
                 lock (lockObject)
                 {
-                    if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
+                    if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
                     {
                         foreach(var call in drawCalls)
                         {
+                            var previous = previousDrawCalls.Find(x => x.entity == call.entity);
+
                             if(call.entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
                             {
-                                var previousPosition = call.position;
-                                var previousRotation = call.rotation;
-                                var previousScale = call.scale;
+                                var previousPosition = previous.position;
+                                var previousRotation = previous.rotation;
+                                var previousScale = previous.scale;
 
-                                var currentPosition = call.entity.Transform.Position;
-                                var currentRotation = call.entity.Transform.Rotation;
-                                var currentScale = call.entity.Transform.Scale;
+                                var currentPosition = call.position;
+                                var currentRotation = call.rotation;
+                                var currentScale = call.scale;
 
                                 var transform = new Transform(null);
 
@@ -190,14 +194,16 @@ namespace Staple
                     }
                 }
 
-                if(needsDrawCalls)
+                if (needsDrawCalls)
                 {
                     lock (lockObject)
                     {
-                        if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
-                        {
-                            drawCalls.Clear();
-                        }
+                        var previous = previousDrawBucket;
+
+                        previousDrawBucket = currentDrawBucket;
+                        currentDrawBucket = previous;
+
+                        currentDrawBucket.drawCalls.Clear();
                     }
 
                     foreach (var entity in Scene.current.entities)
@@ -219,6 +225,8 @@ namespace Staple
             {
                 needsDrawCalls = false;
             }
+
+            accumulator = Time.Accumulator;
         }
     }
 }
