@@ -18,6 +18,8 @@ namespace Staple
 
         internal static float Accumulator { get; set; }
 
+        internal static Action OnAccumulatorFinished { get; set; }
+
         private static int frames;
         private static float frameTimer;
 
@@ -36,12 +38,19 @@ namespace Staple
 
             deltaTime = delta;
 
+            var previousAccumulator = Accumulator;
+
             if(fixedDeltaTime > 0)
             {
                 while (Accumulator >= fixedDeltaTime)
                 {
                     Accumulator -= fixedDeltaTime;
                 }
+            }
+
+            if(Accumulator < previousAccumulator)
+            {
+                OnAccumulatorFinished?.Invoke();
             }
 
             frames++;

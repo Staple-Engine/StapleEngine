@@ -26,13 +26,15 @@ namespace Staple
 
         public SubsystemType type { get; } = SubsystemType.Render;
 
-        private DrawBucket previousDrawBucket = new DrawBucket(), currentDrawBucket = new DrawBucket();
+        private DrawBucket drawBucket = new DrawBucket();
 
         private object lockObject = new object();
 
         private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
 
         private FrustumCuller frustumCuller = new FrustumCuller();
+
+        private bool needsDrawCalls = true;
 
         internal static byte Priority = 0;
 
@@ -60,6 +62,10 @@ namespace Staple
 
         public void Startup()
         {
+            Time.OnAccumulatorFinished += () =>
+            {
+                needsDrawCalls = true;
+            };
         }
 
         public void Shutdown()
@@ -71,11 +77,11 @@ namespace Staple
         {
             lock(lockObject)
             {
-                if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
+                if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
                 {
                     drawCalls = new List<DrawCall>();
 
-                    currentDrawBucket.drawCalls.Add(viewID, drawCalls);
+                    drawBucket.drawCalls.Add(viewID, drawCalls);
                 }
 
                 drawCalls.Add(new DrawCall()
@@ -151,9 +157,11 @@ namespace Staple
 
                 bgfx.touch(viewID);
 
-                lock(lockObject)
+                var alpha = Time.Accumulator / Time.fixedDeltaTime;
+
+                lock (lockObject)
                 {
-                    if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
+                    if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
                     {
                         foreach(var call in drawCalls)
                         {
@@ -169,8 +177,6 @@ namespace Staple
 
                                 var transform = new Transform(null);
 
-                                var alpha = Time.Accumulator / Time.fixedDeltaTime;
-
                                 transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
                                 transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
                                 transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
@@ -184,25 +190,34 @@ namespace Staple
                     }
                 }
 
-                lock (lockObject)
+                if(needsDrawCalls)
                 {
-                    previousDrawBucket = currentDrawBucket;
-
-                    currentDrawBucket = new DrawBucket();
-                }
-
-                foreach (var entity in Scene.current.entities)
-                {
-                    if (camera.cullingLayers.HasLayer(entity.layer) &&
-                        entity.TryGetComponent(out Renderer renderer) &&
-                        renderer.enabled &&
-                        frustumCuller.AABBTest(renderer.bounds) != FrustumAABBResult.Invisible)
+                    lock (lockObject)
                     {
-                        AddDrawCall(entity, viewID);
+                        if(drawBucket.drawCalls.TryGetValue(viewID, out var drawCalls))
+                        {
+                            drawCalls.Clear();
+                        }
+                    }
+
+                    foreach (var entity in Scene.current.entities)
+                    {
+                        if (camera.cullingLayers.HasLayer(entity.layer) &&
+                            entity.TryGetComponent(out Renderer renderer) &&
+                            renderer.enabled &&
+                            frustumCuller.AABBTest(renderer.bounds) != FrustumAABBResult.Invisible)
+                        {
+                            AddDrawCall(entity, viewID);
+                        }
                     }
                 }
 
                 viewID++;
+            }
+
+            if(needsDrawCalls)
+            {
+                needsDrawCalls = false;
             }
         }
     }
