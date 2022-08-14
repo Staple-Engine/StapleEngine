@@ -72,43 +72,48 @@ namespace Staple.Editor
                 return;
             }
 
-            ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
-
-            imgui = new ImGuiProxy();
-
-            if(imgui.Initialize() == false)
+            window.OnInit = () =>
             {
-                window.Cleanup();
+                ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
 
-                return;
-            }
+                imgui = new ImGuiProxy();
 
-            var io = ImGui.GetIO();
+                if (imgui.Initialize() == false)
+                {
+                    window.Cleanup();
 
-            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-            io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+                    return;
+                }
 
-            var style = ImGui.GetStyle();
+                var io = ImGui.GetIO();
 
-            style.PopupRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
+                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
-            style.WindowPadding = new Vector2(4, 4);
-            style.FramePadding = new Vector2(6, 4);
-            style.ItemSpacing = new Vector2(6, 2);
+                var style = ImGui.GetStyle();
 
-            style.ScrollbarSize = 18;
+                style.PopupRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
 
-            style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = style.FrameBorderSize = style.TabBorderSize = 1;
+                style.WindowPadding = new Vector2(4, 4);
+                style.FramePadding = new Vector2(6, 4);
+                style.ItemSpacing = new Vector2(6, 2);
 
-            style.WindowRounding = 0;
+                style.ScrollbarSize = 18;
 
-            basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
+                style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = style.FrameBorderSize = style.TabBorderSize = 1;
 
-            UpdateProjectBrowserNodes();
+                style.WindowRounding = 0;
 
-            window.OnUpdate = () =>
+                basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
+
+                UpdateProjectBrowserNodes();
+            };
+
+            window.OnRender = () =>
             {
+                var io = ImGui.GetIO();
+
                 bgfx.touch(ClearView);
 
                 io.DisplaySize = new Vector2(window.screenWidth, window.screenHeight);
@@ -140,13 +145,14 @@ namespace Staple.Editor
                 bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
             };
 
+            window.OnCleanup = () =>
+            {
+                imgui.Destroy();
+
+                ResourceManager.instance.Destroy();
+            };
+
             window.Run();
-
-            imgui.Destroy();
-
-            ResourceManager.instance.Destroy();
-
-            window.Cleanup();
         }
 
         public void Entities(ImGuiIOPtr io)

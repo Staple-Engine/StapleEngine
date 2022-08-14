@@ -36,9 +36,12 @@ namespace Staple
 
             deltaTime = delta;
 
-            while(Accumulator >= fixedDeltaTime)
+            if(fixedDeltaTime > 0)
             {
-                Accumulator -= fixedDeltaTime;
+                while (Accumulator >= fixedDeltaTime)
+                {
+                    Accumulator -= fixedDeltaTime;
+                }
             }
 
             frames++;
