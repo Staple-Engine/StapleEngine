@@ -13,6 +13,7 @@ namespace Staple
         internal readonly bgfx.TextureHandle handle;
         internal readonly bgfx.TextureInfo info;
         internal readonly TextureMetadata metadata;
+        internal string path;
 
         private bool destroyed = false;
 
@@ -24,8 +25,9 @@ namespace Staple
 
         public int SpriteHeight => (int)(info.height * metadata.spriteScale);
 
-        internal Texture(TextureMetadata metadata, bgfx.TextureHandle handle, bgfx.TextureInfo info)
+        internal Texture(string path, TextureMetadata metadata, bgfx.TextureHandle handle, bgfx.TextureInfo info)
         {
+            this.path = path;
             this.metadata = metadata;
             this.handle = handle;
             this.info = info;
@@ -56,8 +58,8 @@ namespace Staple
             bgfx.set_texture(stage, sampler, handle, uint.MaxValue);
         }
 
-        internal static Texture CreatePixels(byte[] data, int width, int height, TextureMetadata metadata, bgfx.TextureFormat format,
-            TextureFlags flags = TextureFlags.None, byte skip = 0)
+        internal static Texture CreatePixels(string path, byte[] data, int width, int height, TextureMetadata metadata,
+            bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
             unsafe
             {
@@ -158,7 +160,7 @@ namespace Staple
                         return null;
                     }
 
-                    return new Texture(metadata, handle, new bgfx.TextureInfo()
+                    return new Texture(path, metadata, handle, new bgfx.TextureInfo()
                     {
                         bitsPerPixel = 24,
                         format = format,
@@ -170,7 +172,7 @@ namespace Staple
             }
         }
 
-        internal static Texture Create(byte[] data, TextureMetadata metadata, TextureFlags flags = TextureFlags.None, byte skip = 0)
+        internal static Texture Create(string path, byte[] data, TextureMetadata metadata, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
             unsafe
             {
@@ -273,7 +275,7 @@ namespace Staple
                         return null;
                     }
 
-                    return new Texture(metadata, handle, info);
+                    return new Texture(path, metadata, handle, info);
                 }
             }
         }

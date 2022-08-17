@@ -66,7 +66,7 @@ namespace Staple.Editor
                     fontData[i] = data[i];
                 }
 
-                fontTexture = Texture.CreatePixels(fontData, fontWidth, fontHeight, new TextureMetadata()
+                fontTexture = Texture.CreatePixels("FONT", fontData, fontWidth, fontHeight, new TextureMetadata()
                 {
                     useMipmaps = false,
                 }, bgfx.TextureFormat.BGRA8);

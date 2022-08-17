@@ -15,6 +15,7 @@ namespace Staple
         internal const string MainTextureProperty = "mainTexture";
 
         internal Shader shader;
+        internal string path;
 
         private Color mainColor;
 

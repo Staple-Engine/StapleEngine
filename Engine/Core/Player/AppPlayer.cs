@@ -115,9 +115,9 @@ namespace Staple
             {
                 playerAssembly = Assembly.LoadFrom("Data/Game.dll");
             }
-            catch(System.Exception)
+            catch(System.Exception e)
             {
-                Console.WriteLine($"Error: Failed to load player assembly");
+                Console.WriteLine($"Error: Failed to load player assembly: {e}");
 
                 return;
             }
@@ -134,9 +134,6 @@ namespace Staple
             renderWindow.OnInit = () =>
             {
                 Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate / 1000.0f;
-
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 0, 0);
-                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
                 bool hasFocus = renderWindow.window.IsFocused;
 

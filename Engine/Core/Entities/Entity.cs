@@ -70,6 +70,81 @@ namespace Staple
                     continue;
                 }
 
+                if(component.data != null)
+                {
+                    foreach(var pair in component.data)
+                    {
+                        var field = type.GetField(pair.Key);
+
+                        if(field != null && pair.Value != null)
+                        {
+                            if (field.FieldType == typeof(bool) && pair.Value.GetType() == typeof(bool))
+                            {
+                                field.SetValue(componentInstance, (bool)pair.Value);
+                            }
+                            else if (field.FieldType == typeof(float))
+                            {
+                                if(pair.Value.GetType() == typeof(float))
+                                {
+                                    field.SetValue(componentInstance, (float)pair.Value);
+                                }
+                                else if (pair.Value.GetType() == typeof(int))
+                                {
+                                    field.SetValue(componentInstance, (int)pair.Value);
+                                }
+                            }
+                            else if (field.FieldType == typeof(int))
+                            {
+                                if (pair.Value.GetType() == typeof(float))
+                                {
+                                    field.SetValue(componentInstance, (int)((float)pair.Value));
+                                }
+                                else if (pair.Value.GetType() == typeof(int))
+                                {
+                                    field.SetValue(componentInstance, (int)pair.Value);
+                                }
+                            }
+                            else if(field.FieldType == typeof(string) && pair.Value.GetType() == typeof(string))
+                            {
+                                field.SetValue(componentInstance, (string)pair.Value);
+                            }
+                            else if(field.FieldType.IsEnum && pair.Value.GetType() == typeof(string))
+                            {
+                                try
+                                {
+                                    var value = Enum.Parse(field.FieldType, (string)pair.Value);
+
+                                    if (value != null)
+                                    {
+                                        field.SetValue(componentInstance, value);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                }
+                            }
+                            else if (field.FieldType == typeof(Material) && pair.Value.GetType() == typeof(string))
+                            {
+                                var value = ResourceManager.instance.LoadMaterial((string)pair.Value);
+
+                                if (value != null)
+                                {
+                                    field.SetValue(componentInstance, value);
+                                }
+                            }
+                            else if (field.FieldType == typeof(Texture) && pair.Value.GetType() == typeof(string))
+                            {
+                                var value = ResourceManager.instance.LoadTexture((string)pair.Value);
+
+                                if (value != null)
+                                {
+                                    field.SetValue(componentInstance, value);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (component.parameters != null)
                 {
                     foreach (var parameter in component.parameters)

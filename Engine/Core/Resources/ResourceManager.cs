@@ -367,6 +367,7 @@ namespace Staple.Internal
                     material = new Material();
 
                     material.shader = shader;
+                    material.path = path;
 
                     if(cachedMaterials.ContainsKey(path))
                     {
@@ -418,7 +419,7 @@ namespace Staple.Internal
                         return null;
                     }
 
-                    texture = Texture.Create(textureData.data, textureData.metadata, flags, skip);
+                    texture = Texture.Create(path, textureData.data, textureData.metadata, flags, skip);
 
                     if (texture == null)
                     {

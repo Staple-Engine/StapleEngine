@@ -42,6 +42,21 @@ namespace Staple.Internal
         {
             return new Vector3(x, y, z);
         }
+
+        public Vector3Holder()
+        {
+        }
+
+        public Vector3Holder(Vector3 v)
+        {
+            x = v.X;
+            y = v.Y;
+            z = v.Z;
+        }
+
+        public Vector3Holder(Quaternion q) : this(q.ToEulerAngles())
+        {
+        }
     }
 
     [Serializable]

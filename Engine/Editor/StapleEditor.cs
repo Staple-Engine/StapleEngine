@@ -1,5 +1,6 @@
 using Bgfx;
 using ImGuiNET;
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,8 @@ namespace Staple.Editor
         private int activeBottomTab = 0;
 
         private string basePath;
+
+        private string lastOpenScene;
 
         private ProjectBrowserNode lastSelectedNode;
 
@@ -517,6 +520,7 @@ namespace Staple.Editor
 
                                             if (scene != null)
                                             {
+                                                lastOpenScene = node.path;
                                                 Scene.current = scene;
                                             }
 
@@ -584,6 +588,24 @@ namespace Staple.Editor
             {
                 if (ImGui.BeginMenu("File"))
                 {
+                    if(ImGui.MenuItem("Save"))
+                    {
+                        if(Scene.current != null && lastOpenScene != null)
+                        {
+                            var serializableScene = Scene.current.Serialize();
+
+                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented);
+
+                            try
+                            {
+                                File.WriteAllText(lastOpenScene, text);
+                            }
+                            catch(Exception)
+                            {
+                            }
+                        }
+                    }
+
                     if (ImGui.MenuItem("Exit"))
                     {
                         window.shouldStop = true;

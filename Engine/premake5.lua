@@ -105,6 +105,7 @@ solution "Engine"
 		links {
 			"Core",
 			"System.Numerics",
+			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
 			"../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/ImGui.NET.dll"
 		}
 		
