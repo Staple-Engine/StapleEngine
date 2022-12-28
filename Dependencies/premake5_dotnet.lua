@@ -44,25 +44,6 @@ project "glfwnet"
 	files {
 		"glfw-net/GLFW.NET/**.cs"
 	}
-	
-	postbuildcommands {
-		"{COPYFILE} %{wks.location}../../ImGui.NET/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
-	}
-	
-	filter "system:windows"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/native/*.dll %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
-		}
-	
-	filter "system:linux"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/native/*.so %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
-		}
-
-	filter "system:macos"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/osx-universal/native/*.dylib %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
-		}
 
 project "MessagePack"
 	kind "SharedLib"
@@ -82,3 +63,35 @@ project "MessagePack"
 	files {
 		"MessagePack/**.cs"
 	}
+
+project "ImGui.NET"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+
+	links {
+		"System",
+		"System.Numerics",
+		"System.Runtime.Serialization",
+		"MessagePack/Plugins/System.Runtime.CompilerServices.Unsafe.dll"
+	}
+
+	files {
+		"ImGui.NET/src/ImGui.NET/**.cs"
+	}
+	
+	filter "system:windows"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}/bin/x86_64/Debug",
+			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}/bin/x86_64/Release"
+		}
+	
+	filter "system:linux"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		}
+
+	filter "system:macos"
+		postbuildcommands {
+			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+		}
