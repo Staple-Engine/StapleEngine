@@ -62,6 +62,14 @@ namespace Staple.Editor
 
         private List<ProjectBrowserNode> projectBrowserNodes = new List<ProjectBrowserNode>();
 
+        private RenderTarget sceneRenderTarget;
+
+        private RenderTarget gameRenderTarget;
+
+        private RenderSystem renderSystem = new RenderSystem();
+
+        private const int TargetFramerate = 30;
+
         public void Run()
         {
             window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, new AppSettings()
@@ -77,13 +85,19 @@ namespace Staple.Editor
 
             window.OnInit = () =>
             {
+                Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
+
                 ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
 
                 imgui = new ImGuiProxy();
 
                 if (imgui.Initialize() == false)
                 {
+                    imgui.Destroy();
+
                     window.Cleanup();
+
+                    window.shouldStop = true;
 
                     return;
                 }
@@ -96,21 +110,77 @@ namespace Staple.Editor
 
                 var style = ImGui.GetStyle();
 
-                style.PopupRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
+                style.Colors[(int)ImGuiCol.Text] = new Vector4(1, 1, 1, 1);
+                style.Colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
+                style.Colors[(int)ImGuiCol.ChildBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+                style.Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+                style.Colors[(int)ImGuiCol.PopupBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+                style.Colors[(int)ImGuiCol.Border] = new Vector4(0.12f, 0.12f, 0.12f, 0.71f);
+                style.Colors[(int)ImGuiCol.BorderShadow] = new Vector4(1.00f, 1.00f, 1.00f, 0.06f);
+                style.Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.42f, 0.42f, 0.42f, 0.54f);
+                style.Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.42f, 0.42f, 0.42f, 0.40f);
+                style.Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.56f, 0.56f, 0.56f, 0.67f);
+                style.Colors[(int)ImGuiCol.TitleBg] = new Vector4(0.19f, 0.19f, 0.19f, 1.00f);
+                style.Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.22f, 0.22f, 0.22f, 1.00f);
+                style.Colors[(int)ImGuiCol.TitleBgCollapsed] = new Vector4(0.17f, 0.17f, 0.17f, 0.90f);
+                style.Colors[(int)ImGuiCol.MenuBarBg] = new Vector4(0.335f, 0.335f, 0.335f, 1.000f);
+                style.Colors[(int)ImGuiCol.ScrollbarBg] = new Vector4(0.24f, 0.24f, 0.24f, 0.53f);
+                style.Colors[(int)ImGuiCol.ScrollbarGrab] = new Vector4(0.41f, 0.41f, 0.41f, 1.00f);
+                style.Colors[(int)ImGuiCol.ScrollbarGrabHovered] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
+                style.Colors[(int)ImGuiCol.ScrollbarGrabActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
+                style.Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.65f, 0.65f, 0.65f, 1.00f);
+                style.Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
+                style.Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.64f, 0.64f, 0.64f, 1.00f);
+                style.Colors[(int)ImGuiCol.Button] = new Vector4(0.54f, 0.54f, 0.54f, 0.35f);
+                style.Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.52f, 0.52f, 0.52f, 0.59f);
+                style.Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
+                style.Colors[(int)ImGuiCol.Header] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
+                style.Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
+                style.Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.76f, 0.76f, 0.76f, 0.77f);
+                style.Colors[(int)ImGuiCol.Separator] = new Vector4(0.000f, 0.000f, 0.000f, 0.137f);
+                style.Colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.700f, 0.671f, 0.600f, 0.290f);
+                style.Colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.702f, 0.671f, 0.600f, 0.674f);
+                style.Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.26f, 0.59f, 0.98f, 0.25f);
+                style.Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
+                style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
+                style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
+                style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
+                style.Colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
+                style.Colors[(int)ImGuiCol.PlotHistogramHovered] = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
+                style.Colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.73f, 0.73f, 0.73f, 0.35f);
+                style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+                style.Colors[(int)ImGuiCol.DragDropTarget] = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
+                style.Colors[(int)ImGuiCol.NavHighlight] = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
+                style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
+                style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
+                style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
+                style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+                style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
+                style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
+                style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+                style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
+                style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.85f, 0.85f, 0.85f, 0.28f);
 
-                style.WindowPadding = new Vector2(4, 4);
+                style.PopupRounding = 3;
+
+                style.WindowPadding = style.ItemInnerSpacing = new Vector2(4, 4);
                 style.FramePadding = new Vector2(6, 4);
                 style.ItemSpacing = new Vector2(6, 2);
 
                 style.ScrollbarSize = 18;
 
-                style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = style.FrameBorderSize = style.TabBorderSize = 1;
+                style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = 1;
+                style.FrameBorderSize = style.TabBorderSize = 2;
 
-                style.WindowRounding = 0;
+                style.WindowRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
 
                 basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
 
+                System.Console.WriteLine($"Base Path: {basePath}");
+
                 UpdateProjectBrowserNodes();
+
+                renderSystem.Startup();
             };
 
             window.OnRender = () =>
@@ -121,6 +191,15 @@ namespace Staple.Editor
 
                 io.DisplaySize = new Vector2(window.screenWidth, window.screenHeight);
                 io.DisplayFramebufferScale = new Vector2(1, 1);
+
+                if (sceneRenderTarget != null && Scene.current != null)
+                {
+                    RenderTarget.SetActive(1, sceneRenderTarget);
+
+                    renderSystem.Update();
+
+                    RenderTarget.SetActive(1, null);
+                }
 
                 imgui.BeginFrame();
 
@@ -151,6 +230,8 @@ namespace Staple.Editor
             window.OnCleanup = () =>
             {
                 imgui.Destroy();
+
+                renderSystem.Shutdown();
 
                 ResourceManager.instance.Destroy();
             };
@@ -216,14 +297,30 @@ namespace Staple.Editor
 
         public void Viewport(ImGuiIOPtr io)
         {
+            var width = (ushort)(io.DisplaySize.X - io.DisplaySize.X / 3);
+            var height = (ushort)(io.DisplaySize.Y / 1.5f);
+
+            if (sceneRenderTarget == null || sceneRenderTarget.width != width || sceneRenderTarget.height != height)
+            {
+                sceneRenderTarget?.Destroy();
+
+                sceneRenderTarget = RenderTarget.Create(width, height);
+            }
+
             ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X / 6, 20));
-            ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X - io.DisplaySize.X / 3, io.DisplaySize.Y / 1.5f));
+            ImGui.SetNextWindowSize(new Vector2(width, height));
 
             ImGui.Begin("Scene", mainPanelFlags);
 
-            ImGui.BeginChildFrame(ImGui.GetID("SceneFrame"), new Vector2(0, 0), ImGuiWindowFlags.NoScrollbar);
+            if(sceneRenderTarget != null)
+            {
+                var texture = sceneRenderTarget.GetTexture();
 
-            ImGui.EndChildFrame();
+                if(texture != null)
+                {
+                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(sceneRenderTarget.width, sceneRenderTarget.height));
+                }
+            }
 
             ImGui.End();
         }

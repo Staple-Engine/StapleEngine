@@ -42,6 +42,8 @@ namespace Staple.Editor
 
             if(program == null || imageProgram == null)
             {
+                Console.WriteLine("Failed to load imgui shaders");
+
                 return false;
             }
 
@@ -66,7 +68,7 @@ namespace Staple.Editor
                     fontData[i] = data[i];
                 }
 
-                fontTexture = Texture.CreatePixels("FONT", fontData, fontWidth, fontHeight, new TextureMetadata()
+                fontTexture = Texture.CreatePixels("FONT", fontData, (ushort)fontWidth, (ushort)fontHeight, new TextureMetadata()
                 {
                     useMipmaps = false,
                 }, bgfx.TextureFormat.BGRA8);
@@ -74,6 +76,8 @@ namespace Staple.Editor
 
             if(fontTexture == null)
             {
+                Console.WriteLine("Failed to load font");
+
                 return false;
             }
 
@@ -87,6 +91,8 @@ namespace Staple.Editor
                 bgfx.destroy_uniform(textureUniform);
             }
 
+            program?.Destroy();
+            imageProgram?.Destroy();
             fontTexture?.Destroy();
         }
 

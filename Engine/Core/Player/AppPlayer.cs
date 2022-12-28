@@ -15,15 +15,13 @@ namespace Staple
     {
         public readonly AppSettings appSettings;
 
-        private const ushort ClearView = 0;
-
         private PlayerSettings playerSettings;
 
-        public static int ScreenWidth { get; private set; }
+        public static int ScreenWidth { get; internal set; }
 
-        public static int ScreenHeight { get; private set; }
+        public static int ScreenHeight { get; internal set; }
 
-        public static bgfx.RendererType ActiveRendererType { get; private set; }
+        public static bgfx.RendererType ActiveRendererType { get; internal set; }
 
         public static AppPlayer active;
 

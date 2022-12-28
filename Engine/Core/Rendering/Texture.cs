@@ -14,6 +14,7 @@ namespace Staple
         internal readonly bgfx.TextureInfo info;
         internal readonly TextureMetadata metadata;
         internal string path;
+        internal bool renderTarget = false;
 
         private bool destroyed = false;
 
@@ -31,6 +32,23 @@ namespace Staple
             this.metadata = metadata;
             this.handle = handle;
             this.info = info;
+        }
+
+        internal Texture(bgfx.TextureHandle handle, ushort width, ushort height, bool renderTarget)
+        {
+            this.handle = handle;
+            this.renderTarget = renderTarget;
+
+            metadata = new TextureMetadata()
+            {
+                spriteScale = 1,
+            };
+
+            info = new bgfx.TextureInfo()
+            {
+                width = width,
+                height = height,
+            };
         }
 
         ~Texture()
@@ -58,7 +76,24 @@ namespace Staple
             bgfx.set_texture(stage, sampler, handle, uint.MaxValue);
         }
 
-        internal static Texture CreatePixels(string path, byte[] data, int width, int height, TextureMetadata metadata,
+        public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
+        {
+            unsafe
+            {
+                var handle = bgfx.create_texture_2d(width, height, hasMips, layers, format, (ulong)flags, null);
+
+                if(handle.Valid == false)
+                {
+                    return null;
+                }
+
+                var renderTarget = flags.HasFlag(TextureFlags.RenderTarget);
+
+                return new Texture(handle, width, height, renderTarget);
+            }
+        }
+
+        internal static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
             bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
             unsafe
@@ -153,7 +188,7 @@ namespace Staple
                 {
                     bgfx.Memory* memory = bgfx.copy(ptr, (uint)data.Length);
 
-                    var handle = bgfx.create_texture_2d((ushort)width, (ushort)height, metadata.useMipmaps, 1, format, (ulong)flags, memory);
+                    var handle = bgfx.create_texture_2d(width, height, metadata.useMipmaps, 1, format, (ulong)flags, memory);
 
                     if (handle.Valid == false)
                     {
@@ -164,8 +199,8 @@ namespace Staple
                     {
                         bitsPerPixel = 24,
                         format = format,
-                        height = (ushort)height,
-                        width = (ushort)width,
+                        height = height,
+                        width = width,
                         numLayers = 1,
                     });
                 }

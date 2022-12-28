@@ -59,8 +59,14 @@ namespace Staple
             {
                 OnInit?.Invoke();
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
+                Console.WriteLine($"RenderWindow Init Exception: {e}");
+            }
+
+            if (shouldStop)
+            {
+                return;
             }
 
             double last = Glfw.Time;
@@ -517,8 +523,9 @@ namespace Staple
             {
                 OnRender?.Invoke();
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
+                Console.WriteLine($"RenderWindow Render Exception: {e}");
             }
 
             var hasCamera = Scene.current?.GetComponents<Camera>().ToArray().Length != 0;
@@ -683,6 +690,9 @@ namespace Staple
             {
                 renderWindow.InitBGFX();
             }
+
+            AppPlayer.ScreenWidth = width;
+            AppPlayer.ScreenHeight = height;
 
             return renderWindow;
         }

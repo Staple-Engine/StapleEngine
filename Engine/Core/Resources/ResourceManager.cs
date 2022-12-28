@@ -1,14 +1,10 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
