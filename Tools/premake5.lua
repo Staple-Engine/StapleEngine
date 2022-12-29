@@ -43,7 +43,8 @@ solution "Tools"
 		links {
 			"System",
 			"System.Numerics",
-			"../Dependencies/JsonNet/Newtonsoft.Json.dll"
+			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
+			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
 		}
 		
 		postbuildcommands {

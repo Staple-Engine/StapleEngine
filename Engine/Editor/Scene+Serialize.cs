@@ -88,6 +88,12 @@ namespace Staple.Internal
                                 sceneComponent.data.Add(field.Name, texture.path);
                             }
                         }
+                        else if(field.FieldType == typeof(Color32) || field.FieldType == typeof(Color))
+                        {
+                            var color = (Color32)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, "#" + color.uintValue.ToString("X2"));
+                        }
                     }
 
                     components.Add(sceneComponent);

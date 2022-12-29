@@ -34,7 +34,7 @@ namespace Staple
             this.info = info;
         }
 
-        internal Texture(bgfx.TextureHandle handle, ushort width, ushort height, bool renderTarget)
+        internal Texture(bgfx.TextureHandle handle, ushort width, ushort height, bool readBack, bool renderTarget)
         {
             this.handle = handle;
             this.renderTarget = renderTarget;
@@ -42,6 +42,7 @@ namespace Staple
             metadata = new TextureMetadata()
             {
                 spriteScale = 1,
+                readBack = readBack,
             };
 
             info = new bgfx.TextureInfo()
@@ -88,8 +89,9 @@ namespace Staple
                 }
 
                 var renderTarget = flags.HasFlag(TextureFlags.RenderTarget);
+                var readBack = flags.HasFlag(TextureFlags.ReadBack);
 
-                return new Texture(handle, width, height, renderTarget);
+                return new Texture(handle, width, height, renderTarget, readBack);
             }
         }
 
@@ -98,91 +100,7 @@ namespace Staple
         {
             unsafe
             {
-                switch (metadata.type)
-                {
-                    case TextureType.SRGB:
-
-                        flags |= TextureFlags.SRGB;
-
-                        break;
-                }
-
-                switch (metadata.wrapU)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerUMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerUClamp;
-
-                        break;
-                }
-
-                switch (metadata.wrapV)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerVMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerVClamp;
-
-                        break;
-                }
-
-                switch (metadata.wrapW)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerWMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerWClamp;
-
-                        break;
-                }
-
-                switch (metadata.filter)
-                {
-                    case TextureFilter.Linear:
-                        //This is the default
-
-                        break;
-
-                    case TextureFilter.Point:
-
-                        flags |= TextureFlags.SamplerMagPoint;
-                        flags |= TextureFlags.SamplerMinPoint;
-                        flags |= TextureFlags.SamplerMipPoint;
-
-                        break;
-
-                    case TextureFilter.Anisotropic:
-
-                        flags |= TextureFlags.SamplerMagAnisotropic;
-                        flags |= TextureFlags.SamplerMinAnisotropic;
-
-                        break;
-                }
+                ProcessFlags(ref flags, metadata);
 
                 fixed (void* ptr = data)
                 {
@@ -211,91 +129,7 @@ namespace Staple
         {
             unsafe
             {
-                switch(metadata.type)
-                {
-                    case TextureType.SRGB:
-
-                        flags |= TextureFlags.SRGB;
-
-                        break;
-                }
-
-                switch(metadata.wrapU)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerUMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerUClamp;
-
-                        break;
-                }
-
-                switch (metadata.wrapV)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerVMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerVClamp;
-
-                        break;
-                }
-
-                switch (metadata.wrapW)
-                {
-                    case TextureWrap.Repeat:
-                        //This is the default
-
-                        break;
-
-                    case TextureWrap.Mirror:
-                        flags |= TextureFlags.SamplerWMirror;
-
-                        break;
-
-                    case TextureWrap.Clamp:
-                        flags |= TextureFlags.SamplerWClamp;
-
-                        break;
-                }
-
-                switch (metadata.filter)
-                {
-                    case TextureFilter.Linear:
-                        //This is the default
-
-                        break;
-
-                    case TextureFilter.Point:
-
-                        flags |= TextureFlags.SamplerMagPoint;
-                        flags |= TextureFlags.SamplerMinPoint;
-                        flags |= TextureFlags.SamplerMipPoint;
-
-                        break;
-
-                    case TextureFilter.Anisotropic:
-
-                        flags |= TextureFlags.SamplerMagAnisotropic;
-                        flags |= TextureFlags.SamplerMinAnisotropic;
-
-                        break;
-                }
+                ProcessFlags(ref flags, metadata);
 
                 bgfx.TextureInfo info;
 
@@ -314,5 +148,123 @@ namespace Staple
                 }
             }
         }
+
+        internal static void ProcessFlags(ref TextureFlags flags, TextureMetadata metadata)
+        {
+            switch (metadata.type)
+            {
+                case TextureType.SRGB:
+
+                    flags |= TextureFlags.SRGB;
+
+                    break;
+            }
+
+            switch (metadata.wrapU)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
+
+                    break;
+
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerUMirror;
+
+                    break;
+
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerUClamp;
+
+                    break;
+            }
+
+            switch (metadata.wrapV)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
+
+                    break;
+
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerVMirror;
+
+                    break;
+
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerVClamp;
+
+                    break;
+            }
+
+            switch (metadata.wrapW)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
+
+                    break;
+
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerWMirror;
+
+                    break;
+
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerWClamp;
+
+                    break;
+            }
+
+            switch (metadata.filter)
+            {
+                case TextureFilter.Linear:
+                    //This is the default
+
+                    break;
+
+                case TextureFilter.Point:
+
+                    flags |= TextureFlags.SamplerMagPoint;
+                    flags |= TextureFlags.SamplerMinPoint;
+                    flags |= TextureFlags.SamplerMipPoint;
+
+                    break;
+
+                case TextureFilter.Anisotropic:
+
+                    flags |= TextureFlags.SamplerMagAnisotropic;
+                    flags |= TextureFlags.SamplerMinAnisotropic;
+
+                    break;
+            }
+
+            if (metadata.readBack)
+            {
+                flags |= TextureFlags.ReadBack;
+            }
+        }
+
+        /*
+        public byte[] ReadPixels(byte mipLevel = 0)
+        {
+            unsafe
+            {
+                if (handle.Valid == false || metadata.readBack == false)
+                {
+                    return null;
+                }
+
+                //TODO: wait for the texture read to be ready
+
+                var buffer = new byte[info.storageSize];
+
+                fixed (void* ptr = buffer)
+                {
+                    bgfx.read_texture(handle, ptr, 0);
+                }
+
+                return buffer;
+            }
+        }
+        */
     }
 }

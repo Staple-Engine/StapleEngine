@@ -45,6 +45,24 @@ namespace Staple
             a = A;
         }
 
+        public Color32(string value)
+        {
+            uint v = Convert.ToUInt32(value.Substring(1), 16);
+
+            r = (byte)(v & 0xFF000000);
+            g = (byte)(v & 0x00FF0000);
+            b = (byte)(v & 0x0000FF00);
+            a = (byte)(v & 0x000000FF);
+        }
+
+        public Color32(uint value)
+        {
+            r = (byte)(value & 0xFF000000);
+            g = (byte)(value & 0x00FF0000);
+            b = (byte)(value & 0x0000FF00);
+            a = (byte)(value & 0x000000FF);
+        }
+
         public static implicit operator Color(Color32 v) => new Color(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
         public static Color32 operator +(Color32 a, Color32 b) => new Color32((byte)Math.Clamp(a.r + b.r, 0, 255),

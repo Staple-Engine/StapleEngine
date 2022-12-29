@@ -92,11 +92,21 @@ namespace Staple.Internal
 
         internal UniformInfo GetUniform(string name)
         {
+            if (destroyed)
+            {
+                return null;
+            }
+
             return uniforms.FirstOrDefault(x => x.uniform.name == name);
         }
 
         public void SetVector4(string name, Vector4 value)
         {
+            if (destroyed)
+            {
+                return;
+            }
+
             var uniform = GetUniform(name);
 
             if(uniform == null || uniform.uniform.type != ShaderUniformType.Vector4)
@@ -112,6 +122,11 @@ namespace Staple.Internal
 
         public void SetColor(string name, Color value)
         {
+            if(destroyed)
+            {
+                return;
+            }
+
             var uniform = GetUniform(name);
 
             if (uniform == null || uniform.uniform.type != ShaderUniformType.Color)
@@ -129,6 +144,11 @@ namespace Staple.Internal
 
         public void SetTexture(string name, Texture value)
         {
+            if (destroyed)
+            {
+                return;
+            }
+
             var uniform = GetUniform(name);
 
             if (value == null || uniform == null || uniform.uniform.type != ShaderUniformType.Texture)
@@ -144,6 +164,11 @@ namespace Staple.Internal
 
         public void SetMatrix4x4(string name, Matrix4x4 value)
         {
+            if (destroyed)
+            {
+                return;
+            }
+
             var uniform = GetUniform(name);
 
             if (uniform == null || uniform.uniform.type != ShaderUniformType.Matrix4x4)
@@ -159,6 +184,11 @@ namespace Staple.Internal
 
         public void SetMatrix3x3(string name, Matrix3x3 value)
         {
+            if (destroyed)
+            {
+                return;
+            }
+
             var uniform = GetUniform(name);
 
             if (uniform == null || uniform.uniform.type != ShaderUniformType.Matrix3x3)

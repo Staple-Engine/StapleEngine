@@ -154,5 +154,8 @@ namespace Staple.Internal
 
         [Key(11)]
         public float spriteScale = 1;
+
+        [Key(12)]
+        public bool readBack = false;
     }
 }

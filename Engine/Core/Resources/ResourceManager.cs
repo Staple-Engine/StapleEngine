@@ -162,7 +162,7 @@ namespace Staple.Internal
 
                 return scene;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return null;
             }

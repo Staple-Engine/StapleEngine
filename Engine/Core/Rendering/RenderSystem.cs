@@ -167,25 +167,34 @@ namespace Staple
                     {
                         foreach(var call in drawCalls)
                         {
-                            var previous = previousDrawCalls.Find(x => x.entity == call.entity);
+                            var previous = previousDrawCalls.Find(x => x.entity.ID == call.entity.ID);
 
                             if(call.entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
                             {
-                                var previousPosition = previous.position;
-                                var previousRotation = previous.rotation;
-                                var previousScale = previous.scale;
+                                var transform = new Transform(null);
 
                                 var currentPosition = call.position;
                                 var currentRotation = call.rotation;
                                 var currentScale = call.scale;
 
-                                var transform = new Transform(null);
+                                if (previous == null)
+                                {
+                                    transform.LocalPosition = currentPosition;
+                                    transform.LocalRotation = currentRotation;
+                                    transform.LocalScale = currentScale;
+                                }
+                                else
+                                {
+                                    var previousPosition = previous.position;
+                                    var previousRotation = previous.rotation;
+                                    var previousScale = previous.scale;
 
-                                transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                                transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                                transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                                    transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                                    transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                                    transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                                }
 
-                                if(renderer is SpriteRenderer)
+                                if (renderer is SpriteRenderer)
                                 {
                                     spriteRenderSystem.Process(call.entity, transform, (SpriteRenderer)renderer, viewID);
                                 }

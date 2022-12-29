@@ -1,4 +1,5 @@
-﻿using Staple.Internal;
+﻿using Newtonsoft.Json.Linq;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -139,6 +140,45 @@ namespace Staple
                                 if (value != null)
                                 {
                                     field.SetValue(componentInstance, value);
+                                }
+                            }
+                            else if((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
+                            {
+                                var v = pair.Value;
+                                var color = Color32.White;
+
+                                if(v.GetType() == typeof(string))
+                                {
+                                    var value = (string)pair.Value;
+                                    color = new Color32(value);
+                                }
+                                else if(v.GetType() == typeof(JObject))
+                                {
+                                    var o = (JObject)v;
+
+                                    var r = o.GetValue("r").Value<int?>();
+                                    var g = o.GetValue("g").Value<int?>();
+                                    var b = o.GetValue("b").Value<int?>();
+                                    var a = o.GetValue("a").Value<int?>();
+
+                                    if(r == null ||
+                                        g == null ||
+                                        b == null ||
+                                        a == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
+                                }
+
+                                if (field.FieldType == typeof(Color32))
+                                {
+                                    field.SetValue(componentInstance, color);
+                                }
+                                else
+                                {
+                                    field.SetValue(componentInstance, (Color)color);
                                 }
                             }
                         }

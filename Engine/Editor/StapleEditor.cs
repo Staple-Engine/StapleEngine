@@ -197,8 +197,6 @@ namespace Staple.Editor
                     RenderTarget.SetActive(1, sceneRenderTarget);
 
                     renderSystem.Update();
-
-                    RenderTarget.SetActive(1, null);
                 }
 
                 imgui.BeginFrame();

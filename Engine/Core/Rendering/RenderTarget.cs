@@ -6,6 +6,8 @@ namespace Staple
 {
     public class RenderTarget
     {
+        private static ulong counter = 0;
+
         internal bgfx.FrameBufferHandle handle;
         internal ushort width;
         internal ushort height;
@@ -107,6 +109,10 @@ namespace Staple
                 return null;
             }
 
+            var name = $"RenderTarget {++counter}";
+
+            bgfx.set_frame_buffer_name(handle, name, name.Length);
+
             var textureHandle = bgfx.get_texture(handle, 0);
 
             if (textureHandle.Valid == false)
@@ -115,6 +121,10 @@ namespace Staple
 
                 return null;
             }
+
+            name = $"RenderTarget {counter} Texture 0";
+
+            bgfx.set_texture_name(textureHandle, name, name.Length);
 
             var factor = 1.0f;
 
@@ -160,7 +170,7 @@ namespace Staple
             var width = (byte)(AppPlayer.ScreenWidth * factor);
             var height = (byte)(AppPlayer.ScreenHeight * factor);
 
-            var texture = new Texture(textureHandle, width, height, true);
+            var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack), true);
 
             return new RenderTarget()
             {
@@ -191,10 +201,23 @@ namespace Staple
                         return null;
                     }
 
+                    var name = $"RenderTarget {++counter}";
+
+                    bgfx.set_frame_buffer_name(handle, name, name.Length);
+
+                    for(var i = 0; i < handles.Length; i++)
+                    {
+                        name = $"RenderTarget {counter} Texture {i + 1}";
+
+                        bgfx.set_texture_name(handles[i], name, name.Length);
+                    }
+
                     return new RenderTarget()
                     {
                         handle = handle,
                         textures = destroyTextures ? new List<Texture>() : textures,
+                        width = (ushort)textures[0].Width,
+                        height = (ushort)textures[0].Height,
                     };
                 }
             }
