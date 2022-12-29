@@ -109,15 +109,33 @@ namespace Staple
 
         public void Run()
         {
+            var baseDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow"), appSettings.appName);
+
+            try
+            {
+                Directory.CreateDirectory(baseDirectory);
+            }
+            catch(System.Exception)
+            {
+            }
+
+            var path = Path.Combine(baseDirectory, "Player.log");
+
+            Log.SetLog(new FSLog(path));
+
             try
             {
                 playerAssembly = Assembly.LoadFrom("Data/Game.dll");
             }
             catch(System.Exception e)
             {
-                Console.WriteLine($"Error: Failed to load player assembly: {e}");
+                Log.Error($"Error: Failed to load player assembly: {e}");
 
                 return;
+            }
+            finally
+            {
+                Log.Info("Loaded player assembly");
             }
 
             playerSettings = new PlayerSettings()
@@ -144,25 +162,29 @@ namespace Staple
 
                 if (Scene.sceneList == null || Scene.sceneList.Count == 0)
                 {
-                    Console.WriteLine($"Failed to load scene list");
+                    Log.Error($"Failed to load scene list");
 
                     bgfx.shutdown();
                     Glfw.Terminate();
 
                     return;
                 }
+
+                Log.Info("Loaded scene list");
 
                 Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
                 if (Scene.current == null)
                 {
-                    Console.WriteLine($"Failed to load main scene");
+                    Log.Error($"Failed to load main scene");
 
                     bgfx.shutdown();
                     Glfw.Terminate();
 
                     return;
                 }
+
+                Log.Info("Loaded first scene");
 
                 var renderSystem = new RenderSystem();
 
@@ -187,10 +209,12 @@ namespace Staple
                         }
                         catch (System.Exception e)
                         {
-                            Console.WriteLine($"Player: Failed to load entity system {type.FullName}: {e}");
+                            Log.Warning($"Player: Failed to load entity system {type.FullName}: {e}");
                         }
                     }
                 }
+
+                Log.Info("Finished initializing");
             };
 
             renderWindow.OnUpdate = () =>
@@ -218,11 +242,15 @@ namespace Staple
 
             renderWindow.OnCleanup = () =>
             {
+                Log.Info("Terminating");
+
                 Scene.current?.Cleanup();
 
                 SubsystemManager.instance.Destroy();
 
                 ResourceManager.instance.Destroy();
+
+                Log.Info("Done");
             };
 
             renderWindow.Run();

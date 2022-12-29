@@ -42,7 +42,7 @@ namespace Staple.Editor
 
             if(program == null || imageProgram == null)
             {
-                Console.WriteLine("Failed to load imgui shaders");
+                Log.Error("Failed to load imgui shaders");
 
                 return false;
             }
@@ -76,7 +76,7 @@ namespace Staple.Editor
 
             if(fontTexture == null)
             {
-                Console.WriteLine("Failed to load font");
+                Log.Error("Failed to load font");
 
                 return false;
             }

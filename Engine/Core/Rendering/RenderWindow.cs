@@ -61,7 +61,7 @@ namespace Staple
             }
             catch (System.Exception e)
             {
-                Console.WriteLine($"RenderWindow Init Exception: {e}");
+                Log.Error($"RenderWindow Init Exception: {e}");
             }
 
             if (shouldStop)
@@ -525,7 +525,7 @@ namespace Staple
             }
             catch (System.Exception e)
             {
-                Console.WriteLine($"RenderWindow Render Exception: {e}");
+                Log.Error($"RenderWindow Render Exception: {e}");
             }
 
             var hasCamera = Scene.current?.GetComponents<Camera>().ToArray().Length != 0;
