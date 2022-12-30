@@ -81,19 +81,23 @@ namespace Staple.Editor
 
         public void Run()
         {
-            Log.SetLog(new FSLog("EditorLog.log"));
+            var appSettings = new AppSettings()
+            {
+                runInBackground = true,
+                appName = "Staple Editor",
+                companyName = "Staple Engine",
+            };
+
+            Storage.Update(appSettings.appName, appSettings.companyName);
+
+            Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
 
             Log.Instance.onLog += (type, message) =>
             {
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
-            window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, new AppSettings()
-            {
-                runInBackground = true,
-                appName = "Staple Editor",
-                companyName = "Staple Engine",
-            }, 0, bgfx.ResetFlags.Vsync);
+            window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, appSettings, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
             {
