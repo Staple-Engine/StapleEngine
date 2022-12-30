@@ -21,12 +21,12 @@ namespace Staple
         {
             None = 0,
             Vsync = (1 << 1),
-            MsaaX2 = (1 << 2),
-            MsaaX4 = (1 << 3),
-            MsaaX8 = (1 << 4),
-            MsaaX16 = (1 << 5),
+            MSAAX2 = (1 << 2),
+            MSAAX4 = (1 << 3),
+            MSAAX8 = (1 << 4),
+            MSAAX16 = (1 << 5),
             HDR10 = (1 << 6),
-            HiDpi = (1 << 7),
+            HiDPI = (1 << 7),
         }
 
         public WindowMode windowMode = WindowMode.Windowed;
@@ -39,10 +39,10 @@ namespace Staple
         {
             get
             {
-                return videoFlags.HasFlag(VideoFlags.MsaaX2) ? 2 :
-                    videoFlags.HasFlag(VideoFlags.MsaaX4) ? 4 :
-                    videoFlags.HasFlag(VideoFlags.MsaaX8) ? 8 :
-                    videoFlags.HasFlag(VideoFlags.MsaaX16) ? 16 : 0;
+                return videoFlags.HasFlag(VideoFlags.MSAAX2) ? 2 :
+                    videoFlags.HasFlag(VideoFlags.MSAAX4) ? 4 :
+                    videoFlags.HasFlag(VideoFlags.MSAAX8) ? 8 :
+                    videoFlags.HasFlag(VideoFlags.MSAAX16) ? 16 : 0;
             }
         }
     }

@@ -40,6 +40,8 @@ namespace Staple
 
             ResourceManager.instance.resourcePaths.Add(Path.Combine(baseDirectory, "Data"));
 
+            Storage.Update(appSettings.appName, appSettings.companyName);
+
             for (var i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-datadir")
@@ -62,22 +64,22 @@ namespace Staple
                 resetFlags |= bgfx.ResetFlags.Vsync;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX2))
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX2))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX2;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX4))
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX4))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX4;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX8))
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX8))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX8;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MsaaX16))
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX16))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX16;
             }
@@ -87,7 +89,7 @@ namespace Staple
                 resetFlags |= bgfx.ResetFlags.Hdr10;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HiDpi))
+            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HiDPI))
             {
                 resetFlags |= bgfx.ResetFlags.Hidpi;
             }
@@ -109,17 +111,7 @@ namespace Staple
 
         public void Run()
         {
-            var baseDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow"), appSettings.appName);
-
-            try
-            {
-                Directory.CreateDirectory(baseDirectory);
-            }
-            catch(System.Exception)
-            {
-            }
-
-            var path = Path.Combine(baseDirectory, "Player.log");
+            var path = Path.Combine(Storage.PersistentDataPath, "Player.log");
 
             Log.SetLog(new FSLog(path));
 

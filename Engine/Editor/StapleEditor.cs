@@ -82,6 +82,7 @@ namespace Staple.Editor
         public void Run()
         {
             Log.SetLog(new FSLog("EditorLog.log"));
+
             Log.Instance.onLog += (type, message) =>
             {
                 System.Console.WriteLine($"[{type}] {message}");
@@ -91,6 +92,7 @@ namespace Staple.Editor
             {
                 runInBackground = true,
                 appName = "Staple Editor",
+                companyName = "Staple Engine",
             }, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
