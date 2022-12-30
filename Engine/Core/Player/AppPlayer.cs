@@ -115,6 +115,11 @@ namespace Staple
 
             Log.SetLog(new FSLog(path));
 
+            Log.Instance.onLog += (type, message) =>
+            {
+                Console.WriteLine($"[{type}] {message}");
+            };
+
             try
             {
                 playerAssembly = Assembly.LoadFrom("Data/Game.dll");
