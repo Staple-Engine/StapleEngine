@@ -56,12 +56,12 @@ namespace Staple
 
         public Type RelatedComponent()
         {
-            return typeof(SpriteRenderer);
+            return typeof(Sprite);
         }
 
         public void Preprocess(Entity entity, Transform transform, Component renderer)
         {
-            var r = renderer as SpriteRenderer;
+            var r = renderer as Sprite;
 
             if(r.texture != null && r.material != null && r.material.shader != null)
             {
@@ -73,7 +73,7 @@ namespace Staple
 
         public void Process(Entity entity, Transform transform, Component renderer, ushort viewId)
         {
-            var r = renderer as SpriteRenderer;
+            var r = renderer as Sprite;
 
             if(vertexLayout == null)
             {

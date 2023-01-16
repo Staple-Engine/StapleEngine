@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Staple
+﻿namespace Staple
 {
-    public class Renderer : Component
+    public class Renderable : Component
     {
         public bool enabled = true;
 

@@ -172,7 +172,7 @@ namespace Staple
                         {
                             var previous = previousDrawCalls.Find(x => x.entity.ID == call.entity.ID);
 
-                            if(call.entity.TryGetComponent(out Renderer renderer) && renderer.enabled)
+                            if(call.entity.TryGetComponent(out Renderable renderable) && renderable.enabled)
                             {
                                 var transform = new Transform(null);
 
@@ -236,9 +236,9 @@ namespace Staple
                         }
 
                         if (camera.cullingLayers.HasLayer(entity.layer) &&
-                            entity.TryGetComponent(out Renderer renderer) &&
-                            renderer.enabled &&
-                            frustumCuller.AABBTest(renderer.bounds) != FrustumAABBResult.Invisible)
+                            entity.TryGetComponent(out Renderable renderable) &&
+                            renderable.enabled &&
+                            frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
                         {
                             AddDrawCall(entity, viewID);
                         }
