@@ -158,44 +158,32 @@ namespace Staple
 
         public static bool GetKey(KeyCode key)
         {
-            InputState state = InputState.Release;
-
-            return keyStates.TryGetValue(key, out state) && (state == InputState.Press || state == InputState.FirstPress);
+            return keyStates.TryGetValue(key, out var state) && (state == InputState.Press || state == InputState.FirstPress);
         }
 
         public static bool GetKeyDown(KeyCode key)
         {
-            InputState state = InputState.Release;
-
-            return keyStates.TryGetValue(key, out state) && state == InputState.FirstPress;
+            return keyStates.TryGetValue(key, out var state) && state == InputState.FirstPress;
         }
 
         public static bool GetKeyUp(KeyCode key)
         {
-            InputState state = InputState.Release;
-
-            return keyStates.TryGetValue(key, out state) && state == InputState.FirstRelease;
+            return keyStates.TryGetValue(key, out var state) && state == InputState.FirstRelease;
         }
 
         public static bool GetMouseButton(MouseButton button)
         {
-            InputState state = InputState.Release;
-
-            return mouseButtonStates.TryGetValue(button, out state) && (state == InputState.Press || state == InputState.FirstPress);
+            return mouseButtonStates.TryGetValue(button, out var state) && (state == InputState.Press || state == InputState.FirstPress);
         }
 
         public static bool GetMouseButtonDown(MouseButton button)
         {
-            InputState state = InputState.Release;
-
-            return mouseButtonStates.TryGetValue(button, out state) && state == InputState.FirstPress;
+            return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstPress;
         }
 
         public static bool GetMouseButtonUp(MouseButton button)
         {
-            InputState state = InputState.Release;
-
-            return mouseButtonStates.TryGetValue(button, out state) && state == InputState.FirstRelease;
+            return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstRelease;
         }
 
         public static void LockCursor()

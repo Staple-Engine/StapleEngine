@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
-    internal class SpriteRenderSystem
+    internal class SpriteRenderSystem : IRenderSystem
     {
         [StructLayout(LayoutKind.Sequential)]
         struct SpriteVertex
@@ -48,14 +48,33 @@ namespace Staple
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
 
-        internal void Destroy()
+        public void Destroy()
         {
             vertexBuffer?.Destroy();
             indexBuffer?.Destroy();
         }
 
-        public void Process(Entity entity, Transform transform, SpriteRenderer renderer, ushort viewId)
+        public Type RelatedComponent()
         {
+            return typeof(SpriteRenderer);
+        }
+
+        public void Preprocess(Entity entity, Transform transform, Component renderer)
+        {
+            var r = renderer as SpriteRenderer;
+
+            if(r.texture != null && r.material != null && r.material.shader != null)
+            {
+                r.localBounds = new AABB(Vector3.Zero, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));
+
+                r.bounds = new AABB(transform.Position, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));
+            }
+        }
+
+        public void Process(Entity entity, Transform transform, Component renderer, ushort viewId)
+        {
+            var r = renderer as SpriteRenderer;
+
             if(vertexLayout == null)
             {
                 vertexLayout = new VertexLayoutBuilder()
@@ -68,7 +87,7 @@ namespace Staple
                 indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
             }
 
-            if(renderer.material == null || renderer.material.shader == null)
+            if(r.material == null || r.material.shader == null)
             {
                 return;
             }
@@ -78,10 +97,10 @@ namespace Staple
 
             var scale = Vector3.Zero;
 
-            if (renderer.texture != null)
+            if (r.texture != null)
             {
-                scale.X = renderer.texture.SpriteWidth;
-                scale.Y = renderer.texture.SpriteHeight;
+                scale.X = r.texture.SpriteWidth;
+                scale.Y = r.texture.SpriteHeight;
             }
 
             var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
@@ -95,16 +114,16 @@ namespace Staple
 
             bgfx.set_state((ulong)state, 0);
 
-            renderer.material.ApplyProperties();
+            r.material.ApplyProperties();
 
-            renderer.material.shader.SetColor(Material.MainColorProperty, renderer.color);
+            r.material.shader.SetColor(Material.MainColorProperty, r.color);
 
-            if (renderer.texture != null)
+            if (r.texture != null)
             {
-                renderer.material.shader.SetTexture(Material.MainTextureProperty, renderer.texture);
+                r.material.shader.SetTexture(Material.MainTextureProperty, r.texture);
             }
 
-            bgfx.submit(viewId, renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+            bgfx.submit(viewId, r.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }
     }
 }

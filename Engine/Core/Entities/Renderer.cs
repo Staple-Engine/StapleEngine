@@ -18,9 +18,9 @@ namespace Staple
 
         public int sortingOrder;
 
-        public AABB bounds { get; protected set; }
+        public AABB bounds { get; internal set; }
 
-        public AABB localBounds { get; protected set; }
+        public AABB localBounds { get; internal set; }
 
         public bool isVisible { get; internal set; }
     }

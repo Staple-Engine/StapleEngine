@@ -1,7 +1,5 @@
-
 using Bgfx;
 using Staple.Internal;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -30,13 +28,13 @@ namespace Staple
 
         private object lockObject = new object();
 
-        private SpriteRenderSystem spriteRenderSystem = new SpriteRenderSystem();
-
         private FrustumCuller frustumCuller = new FrustumCuller();
 
         private bool needsDrawCalls = false;
 
         private float accumulator = 0.0f;
+
+        private List<IRenderSystem> renderSystems = new List<IRenderSystem>();
 
         internal static byte Priority = 0;
 
@@ -64,6 +62,8 @@ namespace Staple
 
         public void Startup()
         {
+            renderSystems.Add(new SpriteRenderSystem());
+
             Time.OnAccumulatorFinished += () =>
             {
                 needsDrawCalls = true;
@@ -72,7 +72,10 @@ namespace Staple
 
         public void Shutdown()
         {
-            spriteRenderSystem.Destroy();
+            foreach(var system in renderSystems)
+            {
+                system.Destroy();
+            }
         }
 
         public void AddDrawCall(Entity entity, ushort viewID)
@@ -194,9 +197,14 @@ namespace Staple
                                     transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
                                 }
 
-                                if (renderer is SpriteRenderer)
+                                foreach(var system in renderSystems)
                                 {
-                                    spriteRenderSystem.Process(call.entity, transform, (SpriteRenderer)renderer, viewID);
+                                    var component = call.entity.GetComponent(system.RelatedComponent());
+
+                                    if(component != null)
+                                    {
+                                        system.Process(call.entity, transform, component, viewID);
+                                    }
                                 }
                             }
                         }
@@ -217,6 +225,16 @@ namespace Staple
 
                     foreach (var entity in Scene.current.entities)
                     {
+                        foreach (var system in renderSystems)
+                        {
+                            var component = entity.GetComponent(system.RelatedComponent());
+
+                            if (component != null)
+                            {
+                                system.Preprocess(entity, entity.Transform, component);
+                            }
+                        }
+
                         if (camera.cullingLayers.HasLayer(entity.layer) &&
                             entity.TryGetComponent(out Renderer renderer) &&
                             renderer.enabled &&

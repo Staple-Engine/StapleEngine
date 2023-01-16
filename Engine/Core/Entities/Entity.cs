@@ -339,6 +339,19 @@ namespace Staple
             }
         }
 
+        public Component GetComponent(Type t)
+        {
+            foreach(var item in components)
+            {
+                if(item != null && item.GetType() == t)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
         public T GetComponent<T>() where T : Component
         {
             foreach(var item in components)

@@ -234,5 +234,33 @@ namespace Staple
 
             return outValue;
         }
+
+        public static Matrix4x4 OrthoLeftHanded(float left, float right, float bottom, float top, float zNear, float zFar)
+        {
+            var outValue = Matrix4x4.Identity;
+
+            outValue.M11 = 2.0f / (right - left);
+            outValue.M22 = 2.0f / (bottom - top);
+            outValue.M33 = 1.0f / (zFar - zNear);
+            outValue.M41 = (left + right) / (left - right);
+            outValue.M42 = (top + bottom) / (bottom - top);
+            outValue.M43 = zNear / (zNear - zFar);
+
+            return outValue;
+        }
+
+        public static Matrix4x4 OrthoRightHanded(float left, float right, float bottom, float top, float zNear, float zFar)
+        {
+            var outValue = Matrix4x4.Identity;
+
+            outValue.M11 = 2.0f / (right - left);
+            outValue.M22 = 2.0f / (top - bottom);
+            outValue.M33 = 1.0f / (zNear - zFar);
+            outValue.M41 = (left + right) / (left - right);
+            outValue.M42 = (top + bottom) / (bottom - top);
+            outValue.M43 = zNear / (zNear - zFar);
+
+            return outValue;
+        }
     }
 }
