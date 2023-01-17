@@ -43,7 +43,7 @@
 		},
 		"components": [
 			{
-				"type": "Staple.SpriteRenderer",
+				"type": "Staple.Sprite",
 				"data": {
 					"color": "#FFFFFF",
 					"material": "Materials/Sprite.mat",
@@ -64,7 +64,7 @@
 		},
 		"components": [
 			{
-				"type": "Staple.SpriteRenderer",
+				"type": "Staple.Sprite",
 				"data": {
 					"color": "#FFFFFF",
 					"material": "Materials/Sprite.mat",

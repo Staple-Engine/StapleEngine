@@ -35,8 +35,9 @@ namespace Staple
                     method.Invoke(this, new object[0]);
                 }
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Log.Error(e.ToString());
             }
         }
     }

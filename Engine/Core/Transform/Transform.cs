@@ -61,6 +61,15 @@ namespace Staple
 
                 return position;
             }
+
+            set
+            {
+                var parentPosition = parent?.Position ?? Vector3.Zero;
+
+                position = value - parentPosition;
+
+                Changed = true;
+            }
         }
 
         public Vector3 LocalPosition
@@ -85,6 +94,15 @@ namespace Staple
                 }
 
                 return scale;
+            }
+
+            set
+            {
+                var parentScale = parent?.Scale ?? Vector3.One;
+
+                scale = value / parentScale;
+
+                Changed = true;
             }
         }
 

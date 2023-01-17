@@ -96,9 +96,9 @@ namespace Staple.Internal
 
     internal class AppEventQueue
     {
-        public static AppEventQueue instance = new AppEventQueue();
+        public static readonly AppEventQueue instance = new AppEventQueue();
 
-        private Stack<AppEvent> events = new Stack<AppEvent>();
+        private Queue<AppEvent> events = new Queue<AppEvent>();
         private object stackLock = new object();
 
         public AppEvent Next()
@@ -110,7 +110,7 @@ namespace Staple.Internal
                     return null;
                 }
 
-                return events.Pop();
+                return events.Dequeue();
             }
         }
 
@@ -118,7 +118,7 @@ namespace Staple.Internal
         {
             lock(stackLock)
             {
-                events.Push(appEvent);
+                events.Enqueue(appEvent);
             }
         }
     }

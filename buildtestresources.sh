@@ -1,3 +1,3 @@
 #!/bin/sh
 
-mono Tools/bin/Baker.exe -i "Game Resources" -o "Staging/Data" -r opengl
+mono Tools/bin/Baker.exe -i "Test Project" -o "Staging/Data" -r opengl
