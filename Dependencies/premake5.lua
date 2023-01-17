@@ -35,12 +35,15 @@ function setBxCompat()
 	filter "action:vs*"
 		includedirs { path.join(BX_DIR, "include/compat/msvc") }
 
-	filter { "system:windows", "action:gmake" }
-		includedirs { path.join(BX_DIR, "include/compat/mingw") }
-
 	filter { "system:macosx" }
 		includedirs { path.join(BX_DIR, "include/compat/osx") }
 		buildoptions { "-x objective-c++" }
+	
+	filter { "system:linux" }
+		includedirs { path.join(BX_DIR, "include/compat/linux") }
+
+	filter { "system:windows", "action:gmake" }
+		includedirs { path.join(BX_DIR, "include/compat/mingw") }
 
     filter "action:gmake"
         buildoptions { "-fPIC" }
@@ -73,7 +76,10 @@ project "bgfx"
 		path.join(BIMG_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
-		path.join(BGFX_DIR, "3rdparty/dxsdk/include"),
+		path.join(BGFX_DIR, "3rdparty/directx-headers/include"),
+		path.join(BGFX_DIR, "3rdparty/directx-headers/include/directx"),
+		path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl"),
+		path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl/stubs"),
 		path.join(BGFX_DIR, "3rdparty/khronos")
 	}
 	
@@ -118,14 +124,14 @@ project "bimg"
 		path.join(BIMG_DIR, "src/image.cpp"),
 		path.join(BIMG_DIR, "src/image_gnf.cpp"),
 		path.join(BIMG_DIR, "src/*.h"),
-		path.join(BIMG_DIR, "3rdparty/astc-codec/src/decoder/*.cc")
+		path.join(BIMG_DIR, "3rdparty/astc-encoder/source/*.cc")
 	}
 
 	includedirs {
 		path.join(BX_DIR, "include"),
 		path.join(BIMG_DIR, "include"),
-		path.join(BIMG_DIR, "3rdparty/astc-codec"),
-		path.join(BIMG_DIR, "3rdparty/astc-codec/include"),
+		path.join(BIMG_DIR, "3rdparty/astc-encoder"),
+		path.join(BIMG_DIR, "3rdparty/astc-encoder/include"),
 	}
 	
 	filter "configurations:Debug"

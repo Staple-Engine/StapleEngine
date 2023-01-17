@@ -18,10 +18,7 @@ namespace Staple.Internal
                 SceneObjectTransform transform = null;
                 var components = new List<SceneComponent>();
 
-                if(entity.Transform?.parent?.entity.TryGetTarget(out var p) ?? false)
-                {
-                    parent = p;
-                }
+                entity.Transform?.parent?.entity.TryGetTarget(out parent);
 
                 if(entity.Transform != null)
                 {
