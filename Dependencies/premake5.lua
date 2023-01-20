@@ -36,11 +36,19 @@ function setBxCompat()
 		includedirs { path.join(BX_DIR, "include/compat/msvc") }
 
 	filter { "system:macosx" }
-		includedirs { path.join(BX_DIR, "include/compat/osx") }
+		includedirs {
+			path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl"),
+			path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl/stubs"),
+			path.join(BX_DIR, "include/compat/osx")
+		}
 		buildoptions { "-x objective-c++" }
 	
 	filter { "system:linux" }
-		includedirs { path.join(BX_DIR, "include/compat/linux") }
+		includedirs {
+			path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl"),
+			path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl/stubs"),
+			path.join(BX_DIR, "include/compat/linux")
+		}
 
 	filter { "system:windows", "action:gmake" }
 		includedirs { path.join(BX_DIR, "include/compat/mingw") }
@@ -78,8 +86,6 @@ project "bgfx"
 		path.join(BGFX_DIR, "3rdparty"),
 		path.join(BGFX_DIR, "3rdparty/directx-headers/include"),
 		path.join(BGFX_DIR, "3rdparty/directx-headers/include/directx"),
-		path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl"),
-		path.join(BGFX_DIR, "3rdparty/directx-headers/include/wsl/stubs"),
 		path.join(BGFX_DIR, "3rdparty/khronos")
 	}
 	
@@ -124,7 +130,7 @@ project "bimg"
 		path.join(BIMG_DIR, "src/image.cpp"),
 		path.join(BIMG_DIR, "src/image_gnf.cpp"),
 		path.join(BIMG_DIR, "src/*.h"),
-		path.join(BIMG_DIR, "3rdparty/astc-encoder/source/*.cc")
+		path.join(BIMG_DIR, "3rdparty/astc-encoder/source/*.cpp")
 	}
 
 	includedirs {
