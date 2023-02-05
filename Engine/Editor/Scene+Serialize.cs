@@ -12,29 +12,30 @@ namespace Staple.Internal
         {
             var outValue = new SerializableScene();
 
-            foreach(var entity in scene.entities)
+            scene.world.Iterate((Entity entity) =>
             {
-                Entity parent = null;
                 SceneObjectTransform transform = null;
                 var components = new List<SceneComponent>();
 
-                entity.Transform?.parent?.entity.TryGetTarget(out parent);
+                var entityTransform = scene.GetComponent<Transform>(entity);
 
-                if(entity.Transform != null)
+                var parent = entityTransform.parent?.entity ?? Entity.Empty;
+
+                if (entityTransform != null)
                 {
                     transform = new SceneObjectTransform()
                     {
-                        position = new Vector3Holder(entity.Transform.LocalPosition),
-                        rotation = new Vector3Holder(entity.Transform.LocalRotation),
-                        scale = new Vector3Holder(entity.Transform.LocalScale),
+                        position = new Vector3Holder(entityTransform.LocalPosition),
+                        rotation = new Vector3Holder(entityTransform.LocalRotation),
+                        scale = new Vector3Holder(entityTransform.LocalScale),
                     };
                 }
 
-                foreach(var component in entity.components)
+                scene.world.IterateComponents(entity, (ref IComponent component) =>
                 {
-                    if(component == null)
+                    if (component == null || component.GetType() == typeof(Transform))
                     {
-                        continue;
+                        return;
                     }
 
                     var sceneComponent = new SceneComponent()
@@ -45,13 +46,13 @@ namespace Staple.Internal
 
                     var fields = component.GetType().GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
 
-                    foreach(var field in fields)
+                    foreach (var field in fields)
                     {
-                        if(field.FieldType == typeof(bool))
+                        if (field.FieldType == typeof(bool))
                         {
                             sceneComponent.data.Add(field.Name, (bool)field.GetValue(component));
                         }
-                        else if(field.FieldType == typeof(float))
+                        else if (field.FieldType == typeof(float))
                         {
                             sceneComponent.data.Add(field.Name, (float)field.GetValue(component));
                         }
@@ -67,11 +68,11 @@ namespace Staple.Internal
                         {
                             sceneComponent.data.Add(field.Name, ((Enum)field.GetValue(component)).ToString());
                         }
-                        else if(field.FieldType == typeof(Material))
+                        else if (field.FieldType == typeof(Material))
                         {
                             var material = (Material)field.GetValue(component);
 
-                            if(material != null && material.path != null)
+                            if (material != null && material.path != null)
                             {
                                 sceneComponent.data.Add(field.Name, material.path);
                             }
@@ -85,7 +86,7 @@ namespace Staple.Internal
                                 sceneComponent.data.Add(field.Name, texture.path);
                             }
                         }
-                        else if(field.FieldType == typeof(Color32) || field.FieldType == typeof(Color))
+                        else if (field.FieldType == typeof(Color32) || field.FieldType == typeof(Color))
                         {
                             var color = (Color32)field.GetValue(component);
 
@@ -94,20 +95,20 @@ namespace Staple.Internal
                     }
 
                     components.Add(sceneComponent);
-                }
+                });
 
                 var outEntity = new SceneObject()
                 {
                     ID = entity.ID,
-                    name = entity.Name,
+                    name = "",
                     kind = SceneObjectKind.Entity,
-                    parent = parent?.ID,
+                    parent = parent.ID,
                     transform = transform,
                     components = components,
                 };
 
                 outValue.objects.Add(outEntity);
-            }
+            });
 
             return outValue;
         }

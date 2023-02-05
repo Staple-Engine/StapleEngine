@@ -59,7 +59,7 @@ namespace Staple
             return typeof(Sprite);
         }
 
-        public void Preprocess(Entity entity, Transform transform, Component renderer)
+        public void Preprocess(Entity entity, Transform transform, IComponent renderer)
         {
             var r = renderer as Sprite;
 
@@ -71,7 +71,7 @@ namespace Staple
             }
         }
 
-        public void Process(Entity entity, Transform transform, Component renderer, ushort viewId)
+        public void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId)
         {
             var r = renderer as Sprite;
 
@@ -87,7 +87,7 @@ namespace Staple
                 indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
             }
 
-            if(r.material == null || r.material.shader == null)
+            if(r.material == null || r.material.shader == null || r.material.Disposed || r.material.shader.Disposed)
             {
                 return;
             }

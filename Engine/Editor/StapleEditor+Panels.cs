@@ -22,44 +22,50 @@ namespace Staple.Editor
 
             if (Scene.current != null)
             {
-                void Recursive(Entity entity)
+                void Recursive(Transform transform)
                 {
                     var flags = ImGuiTreeNodeFlags.SpanFullWidth;
 
-                    if (entity.Transform.ChildCount == 0)
+                    if (transform.ChildCount == 0)
                     {
                         flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
                     }
 
-                    if (ImGui.TreeNodeEx($"{entity.Name}##0", flags))
+                    if (ImGui.TreeNodeEx($"(Untitled)##0", flags))
                     {
                         if (ImGui.IsItemClicked())
                         {
-                            selectedEntity = entity;
+                            selectedEntity = transform.entity;
                         }
 
-                        foreach (var child in entity.Transform)
+                        foreach (var child in transform)
                         {
-                            if (child.entity.TryGetTarget(out var childEntity))
+                            var childEntity = Scene.current.FindEntity(child.entity.ID);
+
+                            if (childEntity != Entity.Empty)
                             {
-                                Recursive(childEntity);
+                                var t = Scene.current.GetComponent<Transform>(childEntity);
+
+                                Recursive(t);
                             }
                         }
 
-                        if (entity.Transform.ChildCount > 0)
+                        if (transform.ChildCount > 0)
                         {
                             ImGui.TreePop();
                         }
                     }
                 }
 
-                foreach (var entity in Scene.current.entities)
+                Scene.current.world.Iterate((entity) =>
                 {
-                    if (entity.Transform.parent == null)
+                    var transform = Scene.current.GetComponent<Transform>(entity);
+
+                    if (transform.parent == null)
                     {
-                        Recursive(entity);
+                        Recursive(transform);
                     }
-                }
+                });
             }
 
             ImGui.EndChildFrame();
@@ -152,35 +158,40 @@ namespace Staple.Editor
 
                 if (ImGui.TreeNodeEx("Transform", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
-                    var position = selectedEntity.Transform.LocalPosition;
+                    var transform = Scene.current.GetComponent<Transform>(selectedEntity);
 
-                    if (ImGui.InputFloat3("Position", ref position))
+                    if(transform != null)
                     {
-                        selectedEntity.Transform.LocalPosition = position;
-                    }
+                        var position = transform.LocalPosition;
 
-                    var rotation = selectedEntity.Transform.LocalRotation.ToEulerAngles();
+                        if (ImGui.InputFloat3("Position", ref position))
+                        {
+                            transform.LocalPosition = position;
+                        }
 
-                    if (ImGui.InputFloat3("Rotation", ref rotation))
-                    {
-                        selectedEntity.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
-                    }
+                        var rotation = transform.LocalRotation.ToEulerAngles();
 
-                    var scale = selectedEntity.Transform.LocalScale;
+                        if (ImGui.InputFloat3("Rotation", ref rotation))
+                        {
+                            transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+                        }
 
-                    if (ImGui.InputFloat3("Scale", ref scale))
-                    {
-                        selectedEntity.Transform.LocalScale = scale;
+                        var scale = transform.LocalScale;
+
+                        if (ImGui.InputFloat3("Scale", ref scale))
+                        {
+                            transform.LocalScale = scale;
+                        }
                     }
 
                     ImGui.TreePop();
                 }
 
-                for (var i = 0; i < selectedEntity.components.Count; i++)
-                {
-                    var component = selectedEntity.components[i];
+                var counter = 0;
 
-                    if (ImGui.TreeNodeEx(component.GetType().Name + $"##{i}", ImGuiTreeNodeFlags.SpanFullWidth))
+                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                {
+                    if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth))
                     {
                         var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -344,9 +355,11 @@ namespace Staple.Editor
                             }
                         }
 
+                        Scene.current.UpdateComponent(selectedEntity, component);
+
                         ImGui.TreePop();
                     }
-                }
+                });
             }
 
             ImGui.EndChildFrame();

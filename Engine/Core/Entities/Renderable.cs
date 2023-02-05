@@ -1,6 +1,6 @@
 ﻿namespace Staple
 {
-    public class Renderable : Component
+    public class Renderable : IComponent
     {
         public bool enabled = true;
 

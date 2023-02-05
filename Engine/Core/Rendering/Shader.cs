@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,8 +21,9 @@ namespace Staple.Internal
         internal readonly bgfx.ShaderHandle fragmentShader;
         internal readonly bgfx.ProgramHandle program;
 
-        private bool destroyed = false;
         internal List<UniformInfo> uniforms = new List<UniformInfo>();
+
+        public bool Disposed { get; internal set; } = false;
 
         internal Shader(ShaderMetadata metadata, bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
         {
@@ -92,7 +94,7 @@ namespace Staple.Internal
 
         internal UniformInfo GetUniform(string name)
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return null;
             }
@@ -102,7 +104,7 @@ namespace Staple.Internal
 
         public void SetVector4(string name, Vector4 value)
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
@@ -122,7 +124,7 @@ namespace Staple.Internal
 
         public void SetColor(string name, Color value)
         {
-            if(destroyed)
+            if(Disposed)
             {
                 return;
             }
@@ -144,7 +146,7 @@ namespace Staple.Internal
 
         public void SetTexture(string name, Texture value)
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
@@ -164,7 +166,7 @@ namespace Staple.Internal
 
         public void SetMatrix4x4(string name, Matrix4x4 value)
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
@@ -184,7 +186,7 @@ namespace Staple.Internal
 
         public void SetMatrix3x3(string name, Matrix3x3 value)
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
@@ -204,12 +206,12 @@ namespace Staple.Internal
 
         internal void Destroy()
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
 
-            destroyed = true;
+            Disposed = true;
 
             if(program.Valid)
             {

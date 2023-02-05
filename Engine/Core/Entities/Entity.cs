@@ -1,458 +1,49 @@
-﻿using Newtonsoft.Json.Linq;
-using Staple.Internal;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Numerics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-#if _DEBUG
-[assembly: InternalsVisibleTo("CoreTests")]
-#endif
-
-namespace Staple
+﻿namespace Staple
 {
-    public class Entity
+    public struct Entity
     {
-        internal List<Component> components = new List<Component>();
+        public int ID;
+        public int generation;
 
-        public readonly string Name;
-
-        public readonly Transform Transform;
-
-        public string ID { get; internal set; }
-
-        public uint layer;
-
-        public Entity(string name)
+        public readonly static Entity Empty = new Entity()
         {
-            Name = name;
-            Transform = new Transform(this);
-            ID = Guid.NewGuid().ToString();
+            ID = -1,
+            generation = 0,
+        };
 
-            Scene.current?.AddEntity(this);
+        public static bool operator==(Entity a, Entity b)
+        {
+            return a.ID == b.ID && a.generation == b.generation;
         }
 
-        ~Entity()
+        public static bool operator!=(Entity a, Entity b)
         {
-            Scene.current?.RemoveEntity(this);
+            return (a == b) == false;
         }
 
-        internal static Entity Instantiate(SceneObject sceneObject)
+        public override bool Equals(object obj)
         {
-            var entity = new Entity(sceneObject.name)
+            if(ReferenceEquals(obj, null))
             {
-                ID = sceneObject.ID,
-            };
-
-            var rotation = sceneObject.transform.rotation.ToVector3();
-
-            entity.Transform.LocalPosition = sceneObject.transform.position.ToVector3();
-            entity.Transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
-            entity.Transform.LocalScale = sceneObject.transform.scale.ToVector3();
-
-            foreach (var component in sceneObject.components)
-            {
-                var type = Type.GetType(component.type) ?? AppPlayer.active?.playerAssembly?.GetType(component.type);
-
-                if (type == null)
-                {
-                    continue;
-                }
-
-                var componentInstance = entity.AddComponent(type);
-
-                if (componentInstance == null)
-                {
-                    continue;
-                }
-
-                if(component.data != null)
-                {
-                    foreach(var pair in component.data)
-                    {
-                        var field = type.GetField(pair.Key);
-
-                        if(field != null && pair.Value != null)
-                        {
-                            if (field.FieldType == typeof(bool) && pair.Value.GetType() == typeof(bool))
-                            {
-                                field.SetValue(componentInstance, (bool)pair.Value);
-                            }
-                            else if (field.FieldType == typeof(float))
-                            {
-                                if(pair.Value.GetType() == typeof(float))
-                                {
-                                    field.SetValue(componentInstance, (float)pair.Value);
-                                }
-                                else if (pair.Value.GetType() == typeof(int))
-                                {
-                                    field.SetValue(componentInstance, (int)pair.Value);
-                                }
-                            }
-                            else if (field.FieldType == typeof(int))
-                            {
-                                if (pair.Value.GetType() == typeof(float))
-                                {
-                                    field.SetValue(componentInstance, (int)((float)pair.Value));
-                                }
-                                else if (pair.Value.GetType() == typeof(int))
-                                {
-                                    field.SetValue(componentInstance, (int)pair.Value);
-                                }
-                            }
-                            else if(field.FieldType == typeof(string) && pair.Value.GetType() == typeof(string))
-                            {
-                                field.SetValue(componentInstance, (string)pair.Value);
-                            }
-                            else if(field.FieldType.IsEnum && pair.Value.GetType() == typeof(string))
-                            {
-                                try
-                                {
-                                    var value = Enum.Parse(field.FieldType, (string)pair.Value);
-
-                                    if (value != null)
-                                    {
-                                        field.SetValue(componentInstance, value);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                }
-                            }
-                            else if (field.FieldType == typeof(Material) && pair.Value.GetType() == typeof(string))
-                            {
-                                var value = ResourceManager.instance.LoadMaterial((string)pair.Value);
-
-                                if (value != null)
-                                {
-                                    field.SetValue(componentInstance, value);
-                                }
-                            }
-                            else if (field.FieldType == typeof(Texture) && pair.Value.GetType() == typeof(string))
-                            {
-                                var value = ResourceManager.instance.LoadTexture((string)pair.Value);
-
-                                if (value != null)
-                                {
-                                    field.SetValue(componentInstance, value);
-                                }
-                            }
-                            else if((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
-                            {
-                                var v = pair.Value;
-                                var color = Color32.White;
-
-                                if(v.GetType() == typeof(string))
-                                {
-                                    var value = (string)pair.Value;
-                                    color = new Color32(value);
-                                }
-                                else if(v.GetType() == typeof(JObject))
-                                {
-                                    var o = (JObject)v;
-
-                                    var r = o.GetValue("r").Value<int?>();
-                                    var g = o.GetValue("g").Value<int?>();
-                                    var b = o.GetValue("b").Value<int?>();
-                                    var a = o.GetValue("a").Value<int?>();
-
-                                    if(r == null ||
-                                        g == null ||
-                                        b == null ||
-                                        a == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
-                                }
-
-                                if (field.FieldType == typeof(Color32))
-                                {
-                                    field.SetValue(componentInstance, color);
-                                }
-                                else
-                                {
-                                    field.SetValue(componentInstance, (Color)color);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (component.parameters != null)
-                {
-                    foreach (var parameter in component.parameters)
-                    {
-                        if (parameter.name == null)
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            var field = type.GetField(parameter.name);
-
-                            if (field != null)
-                            {
-                                switch (parameter.type)
-                                {
-                                    case SceneComponentParameterType.Bool:
-
-                                        if (field.FieldType == typeof(bool))
-                                        {
-                                            field.SetValue(componentInstance, parameter.boolValue);
-                                        }
-
-                                        break;
-
-                                    case SceneComponentParameterType.Float:
-
-                                        if (field.FieldType == typeof(float))
-                                        {
-                                            field.SetValue(componentInstance, parameter.floatValue);
-                                        }
-                                        else if (field.FieldType == typeof(int))
-                                        {
-                                            field.SetValue(componentInstance, (int)parameter.floatValue);
-                                        }
-
-                                        break;
-
-                                    case SceneComponentParameterType.Int:
-
-                                        if (field.FieldType == typeof(int))
-                                        {
-                                            field.SetValue(componentInstance, parameter.intValue);
-                                        }
-                                        else if (field.FieldType == typeof(float))
-                                        {
-                                            field.SetValue(componentInstance, parameter.intValue);
-                                        }
-
-                                        break;
-
-                                    case SceneComponentParameterType.String:
-
-                                        if (field.FieldType == typeof(string))
-                                        {
-                                            field.SetValue(componentInstance, parameter.stringValue);
-
-                                            continue;
-                                        }
-
-                                        if (field.FieldType.IsEnum)
-                                        {
-                                            try
-                                            {
-                                                var value = Enum.Parse(field.FieldType, parameter.stringValue);
-
-                                                if (value != null)
-                                                {
-                                                    field.SetValue(componentInstance, value);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                continue;
-                                            }
-
-                                            continue;
-                                        }
-
-                                        if (field.FieldType == typeof(Color))
-                                        {
-                                            //TODO
-
-                                            continue;
-                                        }
-
-                                        if (field.FieldType == typeof(Material))
-                                        {
-                                            var value = ResourceManager.instance.LoadMaterial(parameter.stringValue);
-
-                                            if (value != null)
-                                            {
-                                                field.SetValue(componentInstance, value);
-                                            }
-
-                                            continue;
-                                        }
-
-                                        if (field.FieldType == typeof(Texture))
-                                        {
-                                            var value = ResourceManager.instance.LoadTexture(parameter.stringValue);
-
-                                            if (value != null)
-                                            {
-                                                field.SetValue(componentInstance, value);
-                                            }
-
-                                            continue;
-                                        }
-
-                                        break;
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            return null;
-                        }
-                    }
-                }
+                return false;
             }
 
-            return entity;
-        }
-
-        public bool TryGetComponent<T>(out T component) where T : Component
-        {
-            component = null;
-
-            foreach(var item in components)
+            if(obj is Entity entity)
             {
-                if(item is T outValue)
-                {
-                    component = outValue;
-
-                    return true;
-                }
+                return this == entity;
             }
 
             return false;
         }
 
-        public IEnumerable<T> GetComponents<T>() where T : Component
+        public override int GetHashCode()
         {
-            foreach (var item in components)
-            {
-                if (item != null && item.GetType() == typeof(T))
-                {
-                    yield return (T)item;
-                }
-            }
+            return ID.GetHashCode() * 17 + generation.GetHashCode();
         }
 
-        public Component GetComponent(Type t)
+        public override string ToString()
         {
-            foreach(var item in components)
-            {
-                if(item != null && item.GetType() == t)
-                {
-                    return item;
-                }
-            }
-
-            return null;
-        }
-
-        public T GetComponent<T>() where T : Component
-        {
-            foreach(var item in components)
-            {
-                if(item != null && item.GetType() == typeof(T))
-                {
-                    return (T)item;
-                }
-            }
-
-            return null;
-        }
-
-        internal bool HasComponents(params Type[] types)
-        {
-            for(var i = 0; i < types.Length; i++)
-            {
-                if (types[i].IsSubclassOf(typeof(Component)) == false)
-                {
-                    return false;
-                }
-            }
-
-            for(var i = 0; i < types.Length; i++)
-            {
-                bool found = false;
-
-                for(var j = 0; j < components.Count; j++)
-                {
-                    if (components[j] == null)
-                    {
-                        continue;
-                    }
-
-                    var type = components[j].GetType();
-
-                    if (type == types[i] ||
-                        type.IsSubclassOf(types[i]) ||
-                        types[i].IsAssignableFrom(type))
-                    {
-                        found = true;
-
-                        break;
-                    }
-                }
-
-                if (found == false)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public Component AddComponent(Type t)
-        {
-            if(t.IsSubclassOf(typeof(Component)) == false)
-            {
-                return null;
-            }
-
-            try
-            {
-                var attributes = Attribute.GetCustomAttributes(t);
-
-                foreach (var attribute in attributes)
-                {
-                    if (attribute is DisallowMultipleComponentAttribute && components.Any(x => x.GetType() == t))
-                    {
-                        //TODO: Log
-
-                        return null;
-                    }
-                }
-
-                var component = (Component)Activator.CreateInstance(t);
-
-                if (component == null)
-                {
-                    return null;
-                }
-
-                component.Entity = new WeakReference<Entity>(this);
-
-                components.Add(component);
-
-                return component;
-            }
-            catch (Exception e)
-            {
-                //TODO: Log
-
-                return null;
-            }
-
-        }
-
-        public T AddComponent<T>() where T: Component
-        {
-            return (T)AddComponent(typeof(T));
+            return $"Entity ({ID} {generation})";
         }
     }
 }

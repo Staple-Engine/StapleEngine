@@ -528,7 +528,7 @@ namespace Staple
                 Log.Error($"RenderWindow Render Exception: {e}");
             }
 
-            var hasCamera = Scene.current?.GetComponents<Camera>().ToArray().Length != 0;
+            var hasCamera = Scene.current.world.CountEntities<Camera>() != 0;
 
             if (hasCamera == false)
             {

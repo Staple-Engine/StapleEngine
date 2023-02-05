@@ -77,7 +77,7 @@ namespace Staple.Editor
 
         private ViewportType viewportType = ViewportType.Scene;
 
-        private Transform cameraTransform = new Transform(null);
+        private Transform cameraTransform = new Transform();
 
         public void Run()
         {

@@ -86,10 +86,10 @@ namespace Staple.Internal
         public string name;
 
         [Key(2)]
-        public string ID;
+        public int ID;
 
         [Key(3)]
-        public string parent;
+        public int parent;
 
         [Key(4)]
         public SceneObjectTransform transform = new SceneObjectTransform();

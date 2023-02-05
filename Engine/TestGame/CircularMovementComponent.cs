@@ -2,11 +2,11 @@ using Staple;
 
 namespace TestGame
 {
-    public class CircularMovementComponent : Component
+    public class CircularMovementComponent : IComponent
     {
         public float t;
-        public float speed = 1;
-        public float distance = 1;
-        public bool followMouse = false;
+        public float speed;
+        public float distance;
+        public bool followMouse;
     }
 }

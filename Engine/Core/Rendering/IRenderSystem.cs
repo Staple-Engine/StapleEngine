@@ -6,9 +6,9 @@ namespace Staple
     {
         Type RelatedComponent();
 
-        void Preprocess(Entity entity, Transform transform, Component renderer);
+        void Preprocess(Entity entity, Transform transform, IComponent renderer);
 
-        void Process(Entity entity, Transform transform, Component renderer, ushort viewId);
+        void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId);
 
         void Destroy();
     }

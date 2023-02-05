@@ -128,35 +128,29 @@ namespace Staple.Internal
 
                 foreach(var sceneObject in sceneObjects)
                 {
-                    Entity entity = null;
+                    var entity = Entity.Empty;
 
                     switch (sceneObject.kind)
                     {
                         case SceneObjectKind.Entity:
 
-                            entity = Entity.Instantiate(sceneObject);
+                            entity = scene.Instantiate(sceneObject);
 
-                            if (entity == null)
+                            if (entity == Entity.Empty)
                             {
                                 continue;
                             }
 
-                            scene.entities.Add(entity);
-
-                            if (sceneObject.parent != null && sceneObject.parent != sceneObject.ID)
+                            if (sceneObject.parent != sceneObject.ID)
                             {
-                                entity.Transform.SetParent(sceneObject.parent != null ? scene.FindID(sceneObject.parent)?.Transform : null);
+                                var transform = scene.GetComponent<Transform>(entity);
+                                var parent = scene.FindEntity(sceneObject.parent);
+                                var parentTransform = scene.GetComponent<Transform>(parent);
+
+                                transform.SetParent(parentTransform);
                             }
 
                             break;
-                    }
-                }
-
-                foreach (var entity in scene.entities)
-                {
-                    foreach (var component in entity.components)
-                    {
-                        component.Invoke("OnAwake");
                     }
                 }
 
@@ -200,35 +194,29 @@ namespace Staple.Internal
 
                     foreach (var sceneObject in sceneData.objects)
                     {
-                        Entity entity = null;
+                        var entity = Entity.Empty;
 
                         switch (sceneObject.kind)
                         {
                             case SceneObjectKind.Entity:
 
-                                entity = Entity.Instantiate(sceneObject);
+                                entity = scene.Instantiate(sceneObject);
 
                                 if (entity == null)
                                 {
                                     continue;
                                 }
 
-                                scene.entities.Add(entity);
-
-                                if (sceneObject.parent != null && sceneObject.parent != sceneObject.ID)
+                                if (sceneObject.parent != sceneObject.ID)
                                 {
-                                    entity.Transform.SetParent(sceneObject.parent != null ? scene.FindID(sceneObject.parent)?.Transform : null);
+                                    var transform = scene.GetComponent<Transform>(entity);
+                                    var parent = scene.FindEntity(sceneObject.parent);
+                                    var parentTransform = scene.GetComponent<Transform>(parent);
+
+                                    transform.SetParent(parentTransform);
                                 }
 
                                 break;
-                        }
-                    }
-
-                    foreach (var entity in scene.entities)
-                    {
-                        foreach (var component in entity.components)
-                        {
-                            component.Invoke("OnAwake");
                         }
                     }
 

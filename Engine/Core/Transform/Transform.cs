@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
-    public class Transform : IEnumerable<Transform>
+    public class Transform : IComponent, IEnumerable<Transform>
     {
         private List<Transform> children = new List<Transform>();
         private Matrix4x4 matrix = Matrix4x4.Identity;
@@ -23,12 +23,7 @@ namespace Staple
 
         public Transform parent { get; private set; }
 
-        public readonly WeakReference<Entity> entity;
-
-        public Transform(Entity owner)
-        {
-            entity = new WeakReference<Entity>(owner);
-        }
+        public Entity entity { get; internal set; }
 
         internal Matrix4x4 Matrix
         {

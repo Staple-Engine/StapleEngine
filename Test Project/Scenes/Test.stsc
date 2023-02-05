@@ -2,8 +2,8 @@
 	{
 		"kind": "Entity",
 		"name": "Camera",
-		"ID": "1",
-		"parent": null,
+		"ID": 0,
+		"parent": -1,
 		"transform": {
 			"position": { "x": 0, "y": 0, "z": 0 },
 			"rotation": { "x": 0, "y": 0, "z": 0 },
@@ -34,8 +34,8 @@
 	{
 		"kind": "Entity",
 		"name": "Sprite",
-		"ID": "2",
-		"parent": null,
+		"ID": 1,
+		"parent": -1,
 		"transform": {
 			"position": { "x": 512, "y": 384, "z": 0 },
 			"rotation": { "x": 0, "y": 0, "z": 0 },
@@ -55,8 +55,8 @@
 	{
 		"kind": "Entity",
 		"name": "Child",
-		"ID": "3",
-		"parent": "2",
+		"ID": 2,
+		"parent": 1,
 		"transform": {
 			"position": { "x": 0, "y": 0, "z": 0 },
 			"rotation": { "x": 0, "y": 0, "z": 0 },

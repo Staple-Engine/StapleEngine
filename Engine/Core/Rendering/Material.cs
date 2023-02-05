@@ -1,11 +1,5 @@
-﻿using Bgfx;
-using Staple.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Staple.Internal;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
@@ -41,16 +35,16 @@ namespace Staple
             }
         }
 
-        private bool destroyed = false;
+        public bool Disposed { get; internal set; } = false;
 
         internal void Destroy()
         {
-            if(destroyed)
+            if(Disposed)
             {
                 return;
             }
 
-            destroyed = true;
+            Disposed = true;
 
             shader?.Destroy();
         }

@@ -241,8 +241,6 @@ namespace Staple
             {
                 Log.Info("Terminating");
 
-                Scene.current?.Cleanup();
-
                 SubsystemManager.instance.Destroy();
 
                 ResourceManager.instance.Destroy();

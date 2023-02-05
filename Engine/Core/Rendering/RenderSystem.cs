@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Staple
 {
@@ -15,6 +16,8 @@ namespace Staple
             public Quaternion rotation;
             public Vector3 scale;
             public Entity entity;
+            public Renderable renderable;
+            public IComponent relatedComponent;
         }
 
         internal class DrawBucket
@@ -78,7 +81,7 @@ namespace Staple
             }
         }
 
-        public void AddDrawCall(Entity entity, ushort viewID)
+        public void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
         {
             lock(lockObject)
             {
@@ -92,9 +95,11 @@ namespace Staple
                 drawCalls.Add(new DrawCall()
                 {
                     entity = entity,
-                    position = entity.Transform.Position,
-                    rotation = entity.Transform.Rotation,
-                    scale = entity.Transform.Scale,
+                    renderable = renderable,
+                    position = transform.Position,
+                    rotation = transform.Rotation,
+                    scale = transform.Scale,
+                    relatedComponent = relatedComponent,
                 });
             }
         }
@@ -103,152 +108,182 @@ namespace Staple
         {
             ushort viewID = 1;
 
-            var cameras = Scene.current.GetComponents<Camera>().OrderBy(x => x.depth);
+            var cameras = new List<Camera>();
+            var transforms = new List<Transform>();
 
-            foreach (var camera in cameras)
+            Scene.current.world.ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
             {
-                unsafe
+                cameras.Add(camera);
+                transforms.Add(transform);
+            });
+
+            if(cameras.Count > 0)
+            {
+                var lastDepth = 999;
+                var currentCamera = -1;
+
+                for (; ; )
                 {
-                    Matrix4x4 projection;
+                    currentCamera = -1;
 
-                    switch (camera.cameraType)
+                    //TODO: This won't work
+                    for (var i = 0; i < cameras.Count; i++)
                     {
-                        case CameraType.Perspective:
-
-                            projection = Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
-                                camera.nearPlane, camera.farPlane);
-
-                            break;
-
-                        case CameraType.Orthographic:
-
-                            projection = Matrix4x4.CreateOrthographicOffCenter(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
-
-                            break;
-
-                        default:
-                            continue;
+                        if (cameras[i].depth < lastDepth)
+                        {
+                            lastDepth = cameras[i].depth;
+                            currentCamera = i;
+                        }
                     }
 
-                    var view = camera.Transform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    bgfx.set_view_transform(viewID, &view, &projection);
-
-                    frustumCuller.Update(view, projection);
-                }
-
-                switch (camera.clearMode)
-                {
-                    case CameraClearMode.Depth:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 24, 0);
-
-                        break;
-
-                    case CameraClearMode.None:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 24, 0);
-
-                        break;
-
-                    case CameraClearMode.SolidColor:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.uintValue, 0, 0);
-
-                        break;
-                }
-
-                bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-                    (ushort)(camera.viewport.Z * AppPlayer.ScreenWidth), (ushort)(camera.viewport.W * AppPlayer.ScreenHeight));
-
-                bgfx.touch(viewID);
-
-                var alpha = accumulator / Time.fixedDeltaTime;
-
-                lock (lockObject)
-                {
-                    if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
+                    if(currentCamera == -1)
                     {
-                        foreach(var call in drawCalls)
+                        break;
+                    }
+
+                    var camera = cameras[currentCamera];
+                    var cameraTransform = transforms[currentCamera];
+
+                    unsafe
+                    {
+                        Matrix4x4 projection;
+
+                        switch (camera.cameraType)
                         {
-                            var previous = previousDrawCalls.Find(x => x.entity.ID == call.entity.ID);
+                            case CameraType.Perspective:
 
-                            if(call.entity.TryGetComponent(out Renderable renderable) && renderable.enabled)
+                                projection = Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
+                                    camera.nearPlane, camera.farPlane);
+
+                                break;
+
+                            case CameraType.Orthographic:
+
+                                projection = Matrix4x4.CreateOrthographicOffCenter(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
+
+                                break;
+
+                            default:
+                                continue;
+                        }
+
+                        var view = cameraTransform.Matrix;
+
+                        Matrix4x4.Invert(view, out view);
+
+                        bgfx.set_view_transform(viewID, &view, &projection);
+
+                        frustumCuller.Update(view, projection);
+                    }
+
+                    switch (camera.clearMode)
+                    {
+                        case CameraClearMode.Depth:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 24, 0);
+
+                            break;
+
+                        case CameraClearMode.None:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 24, 0);
+
+                            break;
+
+                        case CameraClearMode.SolidColor:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.uintValue, 0, 0);
+
+                            break;
+                    }
+
+                    bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
+                        (ushort)(camera.viewport.Z * AppPlayer.ScreenWidth), (ushort)(camera.viewport.W * AppPlayer.ScreenHeight));
+
+                    bgfx.touch(viewID);
+
+                    var alpha = accumulator / Time.fixedDeltaTime;
+
+                    lock (lockObject)
+                    {
+                        if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
+                        {
+                            foreach (var call in drawCalls)
                             {
-                                var transform = new Transform(null);
+                                var previous = previousDrawCalls.Find(x => x.entity.ID == call.entity.ID);
 
-                                var currentPosition = call.position;
-                                var currentRotation = call.rotation;
-                                var currentScale = call.scale;
-
-                                if (previous == null)
+                                if (call.renderable.enabled)
                                 {
-                                    transform.LocalPosition = currentPosition;
-                                    transform.LocalRotation = currentRotation;
-                                    transform.LocalScale = currentScale;
-                                }
-                                else
-                                {
-                                    var previousPosition = previous.position;
-                                    var previousRotation = previous.rotation;
-                                    var previousScale = previous.scale;
+                                    var transform = new Transform();
 
-                                    transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                                    transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                                    transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                                }
+                                    var currentPosition = call.position;
+                                    var currentRotation = call.rotation;
+                                    var currentScale = call.scale;
 
-                                foreach(var system in renderSystems)
-                                {
-                                    var component = call.entity.GetComponent(system.RelatedComponent());
-
-                                    if(component != null)
+                                    if (previous == null)
                                     {
-                                        system.Process(call.entity, transform, component, viewID);
+                                        transform.LocalPosition = currentPosition;
+                                        transform.LocalRotation = currentRotation;
+                                        transform.LocalScale = currentScale;
+                                    }
+                                    else
+                                    {
+                                        var previousPosition = previous.position;
+                                        var previousRotation = previous.rotation;
+                                        var previousScale = previous.scale;
+
+                                        transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                                        transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                                        transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                                    }
+
+                                    foreach (var system in renderSystems)
+                                    {
+                                        if (call.relatedComponent.GetType() == system.RelatedComponent())
+                                        {
+                                            system.Process(call.entity, transform, call.relatedComponent, viewID);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                if (needsDrawCalls)
-                {
-                    lock (lockObject)
+                    if (needsDrawCalls)
                     {
-                        var previous = previousDrawBucket;
-
-                        previousDrawBucket = currentDrawBucket;
-                        currentDrawBucket = previous;
-
-                        currentDrawBucket.drawCalls.Clear();
-                    }
-
-                    foreach (var entity in Scene.current.entities)
-                    {
-                        foreach (var system in renderSystems)
+                        lock (lockObject)
                         {
-                            var component = entity.GetComponent(system.RelatedComponent());
+                            var previous = previousDrawBucket;
 
-                            if (component != null)
+                            previousDrawBucket = currentDrawBucket;
+                            currentDrawBucket = previous;
+
+                            currentDrawBucket.drawCalls.Clear();
+                        }
+
+                        Scene.current.world.ForEach((Entity entity, ref Transform t) =>
+                        {
+                            foreach (var system in renderSystems)
                             {
-                                system.Preprocess(entity, entity.Transform, component);
+                                var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+
+                                if (related != null)
+                                {
+                                    system.Preprocess(entity, t, related);
+
+                                    if (related is Renderable renderable &&
+                                        renderable.enabled &&
+                                        frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
+                                    {
+                                        AddDrawCall(entity, t, related, renderable, viewID);
+                                    }
+                                }
                             }
-                        }
-
-                        if (camera.cullingLayers.HasLayer(entity.layer) &&
-                            entity.TryGetComponent(out Renderable renderable) &&
-                            renderable.enabled &&
-                            frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
-                        {
-                            AddDrawCall(entity, viewID);
-                        }
+                        });
                     }
-                }
 
-                viewID++;
+                    viewID++;
+                }
             }
 
-            if(needsDrawCalls)
+            if (needsDrawCalls)
             {
                 needsDrawCalls = false;
             }

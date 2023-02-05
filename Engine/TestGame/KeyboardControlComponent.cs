@@ -2,7 +2,7 @@
 
 namespace TestGame
 {
-    public class KeyboardControlComponent : Component
+    public class KeyboardControlComponent : IComponent
     {
         public float speed = 50;
     }

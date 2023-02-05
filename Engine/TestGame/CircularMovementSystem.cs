@@ -1,5 +1,4 @@
 using Staple;
-using System;
 using System.Numerics;
 using Math = Staple.Math;
 
@@ -7,24 +6,23 @@ namespace TestGame
 {
     public class CircularMovementSystem : IEntitySystem
     {
-        public Type[] targetComponents { get; private set; } = new Type[] { typeof(CircularMovementComponent) };
-
-        public void Process(Entity entity, float deltaTime)
+        public void Process(World world, float deltaTime)
         {
-            var component = entity.GetComponent<CircularMovementComponent>();
-
-            component.t += deltaTime * component.speed;
-
-            if(component.followMouse)
+            world.ForEach((Entity entity, ref CircularMovementComponent movement, ref Transform transform) =>
             {
-                entity.Transform.LocalPosition = Input.MousePosition.ToVector3();
-            }
-            else
-            {
-                entity.Transform.LocalPosition = new Vector3(Math.Cos(Math.Deg2Rad(component.t)) * component.distance,
-                    Math.Sin(Math.Deg2Rad(component.t)) * component.distance,
-                    0);
-            }
+                movement.t += deltaTime * movement.speed;
+
+                if (movement.followMouse)
+                {
+                    transform.LocalPosition = Input.MousePosition.ToVector3();
+                }
+                else
+                {
+                    transform.LocalPosition = new Vector3(Math.Cos(Math.Deg2Rad(movement.t)) * movement.distance,
+                        Math.Sin(Math.Deg2Rad(movement.t)) * movement.distance,
+                        0);
+                }
+            });
         }
     }
 }

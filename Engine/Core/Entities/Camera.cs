@@ -3,7 +3,7 @@
 namespace Staple
 {
     [DisallowMultipleComponent]
-    public class Camera : Component
+    public class Camera : IComponent
     {
         public CameraClearMode clearMode = CameraClearMode.SolidColor;
 
@@ -27,9 +27,9 @@ namespace Staple
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;
 
-        public Ray ScreenPointToRay(Vector2 point)
+        public Ray ScreenPointToRay(Vector2 point, Transform transform)
         {
-            return new Ray(new Vector3(point.X, point.Y, 0), Transform.Forward);
+            return new Ray(new Vector3(point.X, point.Y, 0), transform.Forward);
         }
     }
 }
