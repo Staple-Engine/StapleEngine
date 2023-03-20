@@ -11,7 +11,7 @@ local GLFWNET_DIR = "glfw-net"
 solution "Dependencies_Dotnet"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	platforms "x86_64"
+	dotnetframework "net7.0"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"
@@ -21,9 +21,6 @@ solution "Dependencies_Dotnet"
 		defines "_DEBUG"
 		optimize "Debug"
 		symbols "On"
-
-	filter "platforms:x86_64"
-		architecture "x86_64"
 
 	filter "system:macosx"
 		xcodebuildsettings {
@@ -35,12 +32,6 @@ project "glfwnet"
 	kind "SharedLib"
 	language "C#"
 
-	links {
-		"System",
-		"System.Core",
-		"System.Drawing"
-	}
-
 	files {
 		"glfw-net/GLFW.NET/**.cs"
 	}
@@ -50,16 +41,6 @@ project "MessagePack"
 	language "C#"
 	clr "Unsafe"
 
-	links {
-		"System",
-		"System.Numerics",
-		"System.Runtime.Serialization",
-		"MessagePack/Plugins/System.Buffers.dll",
-		"MessagePack/Plugins/System.Memory.dll",
-		"MessagePack/Plugins/System.Runtime.CompilerServices.Unsafe.dll",
-		"MessagePack/Plugins/System.Threading.Tasks.Extensions.dll",
-	}
-
 	files {
 		"MessagePack/**.cs"
 	}
@@ -68,13 +49,6 @@ project "ImGui.NET"
 	kind "SharedLib"
 	language "C#"
 	clr "Unsafe"
-
-	links {
-		"System",
-		"System.Numerics",
-		"System.Runtime.Serialization",
-		"MessagePack/Plugins/System.Runtime.CompilerServices.Unsafe.dll"
-	}
 
 	files {
 		"ImGui.NET/src/ImGui.NET/**.cs"

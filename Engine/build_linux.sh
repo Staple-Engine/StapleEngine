@@ -2,4 +2,5 @@
 
 premake5 --os=linux vs2019
 
-msbuild Engine.sln
+dotnet publish Engine.sln -c Debug
+dotnet publish Engine.sln -c Release

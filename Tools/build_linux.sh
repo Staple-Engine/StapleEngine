@@ -1,5 +1,5 @@
 #!/bin/sh
 
-premake5 --os=linux vs2019
+premake5 --os=linux vs2022
 
 msbuild Tools.sln

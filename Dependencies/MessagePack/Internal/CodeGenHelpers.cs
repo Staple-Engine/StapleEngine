@@ -68,7 +68,7 @@ namespace MessagePack.Internal
         /// </summary>
         /// <param name="sequence">The sequence to get a span for.</param>
         /// <returns>The span.</returns>
-        public static ReadOnlySpan<byte> GetSpanFromSequence(in ReadOnlySequence<byte> sequence)
+        public static ReadOnlySpan<byte> GetSpanFromSequence(ReadOnlySequence<byte> sequence)
         {
             if (sequence.IsSingleSegment)
             {
@@ -101,7 +101,7 @@ namespace MessagePack.Internal
         /// <returns>The byte array or <see langword="null" /> .</returns>
         public static byte[] GetArrayFromNullableSequence(in ReadOnlySequence<byte>? sequence) => sequence?.ToArray();
 
-        private static ReadOnlySpan<byte> GetSpanFromSequence(in ReadOnlySequence<byte>? sequence)
+        private static ReadOnlySpan<byte> GetSpanFromSequence(ReadOnlySequence<byte>? sequence)
         {
             return sequence.HasValue ? GetSpanFromSequence(sequence.Value) : default;
         }

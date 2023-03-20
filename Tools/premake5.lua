@@ -8,7 +8,6 @@ end
 
 solution "Tools"
 	configurations { "Debug", "Release" }
-	platforms { "x64" }
 
 	filter "configurations:Release"
 		defines "NDEBUG"
@@ -21,6 +20,7 @@ solution "Tools"
 	project "Baker"
 		kind "ConsoleApp"
 		language "C#"
+		dotnetframework "net7.0"
 		
 		targetdir "../bin/Baker/%{cfg.buildcfg}"
 		objdir "../obj/Baker/%{cfg.buildcfg}"
@@ -41,27 +41,25 @@ solution "Tools"
 		}
 		
 		links {
-			"System",
-			"System.Numerics",
 			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
-			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll"
+			"../Dependencies/build/" .. cc .. "/bin/Release/net7.0/MessagePack.dll"
 		}
 		
 		postbuildcommands {
 			"{MKDIR} %{wks.location}/bin",
-			"{COPYFILE} %{wks.location}../bin/Baker/%{cfg.buildcfg}/*.exe %{wks.location}/bin/",
+			"{COPYFILE} %{wks.location}../bin/Baker/%{cfg.buildcfg}/net7.0/*.exe %{wks.location}/bin/",
 			"{COPYFILE} %{wks.location}../Dependencies/JsonNet/*.dll %{wks.location}/bin/"
 		}
 
 		filter { "system:windows", "system:macos" }
-			links { "../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll" }
+			links { "../Dependencies/build/" .. cc .. "/bin/Release/net7.0/MessagePack.dll" }
 
 			postbuildcommands {
 				"{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}/bin/"
 			}
 
 		filter "system:linux"
-			links { "../Dependencies/build/vs2019/bin/x86_64/Release/MessagePack.dll" }
+			links { "../Dependencies/build/vs2019/bin/Release/net7.0/MessagePack.dll" }
 
 			postbuildcommands {
 				"{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/Release/*.dll %{wks.location}/bin/"

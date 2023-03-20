@@ -1,15 +1,14 @@
 ﻿bin
 obj
 .vs
-*.sln
 *.user
 *.vcxproj
 *.filters
 premake.bat
-*.csproj
 .vscode
 Makefile
 *.make
 build
 Staging
 Tools/packages
+launchSettings.json

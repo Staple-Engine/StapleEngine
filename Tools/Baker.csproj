@@ -1,0 +1,97 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net7.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Baker\Debug\</OutputPath>
+    <IntermediateOutputPath>..\obj\Baker\Debug\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Baker\Release\</OutputPath>
+    <IntermediateOutputPath>..\obj\Baker\Release\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Baker\Baker+Material.cs" />
+    <Compile Include="Baker\Baker+Scene.cs" />
+    <Compile Include="Baker\Baker+Shaders.cs" />
+    <Compile Include="Baker\Baker+Texture.cs" />
+    <Compile Include="Baker\Baker.cs" />
+    <Compile Include="Baker\Renderer.cs" />
+    <Compile Include="Baker\ShaderCompilerType.cs" />
+    <Compile Include="Baker\ShaderParameter.cs" />
+    <Compile Include="Baker\ShaderParameterSemantic.cs" />
+    <Compile Include="Baker\ShaderPiece.cs" />
+    <Compile Include="Baker\UnprocessedShader.cs" />
+    <Compile Include="..\Engine\Core\Math\Color.cs">
+      <Link>Engine\Core\Math\Color.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Math\Color32.cs">
+      <Link>Engine\Core\Math\Color32.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Math\Math.cs">
+      <Link>Engine\Core\Math\Math.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\MaterialMetadata.cs">
+      <Link>Engine\Core\Resources\MaterialMetadata.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\SerializableMaterial.cs">
+      <Link>Engine\Core\Resources\SerializableMaterial.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\SerializableScene.cs">
+      <Link>Engine\Core\Resources\SerializableScene.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\SerializableShader.cs">
+      <Link>Engine\Core\Resources\SerializableShader.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\SerializableTexture.cs">
+      <Link>Engine\Core\Resources\SerializableTexture.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\ShaderMetadata.cs">
+      <Link>Engine\Core\Resources\ShaderMetadata.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\TextureMetadata.cs">
+      <Link>Engine\Core\Resources\TextureMetadata.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Scene\SceneList.cs">
+      <Link>Engine\Core\Scene\SceneList.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>IF NOT EXIST $(SolutionDir)\bin (mkdir $(SolutionDir)\bin)
+copy /B /Y $(SolutionDir)..\bin\Baker\Debug\net7.0\*.exe $(SolutionDir)\bin
+copy /B /Y $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
+  </PropertyGroup>
+</Project>

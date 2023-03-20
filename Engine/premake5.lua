@@ -13,7 +13,6 @@ local GLFW_DIR = "glfw"
 
 solution "Engine"
 	configurations { "Debug", "Release" }
-	platforms { "x64" }
 
 	filter "configurations:Release"
 		defines "NDEBUG"
@@ -23,28 +22,22 @@ solution "Engine"
 		optimize "Debug"
 		symbols "On"
 
-	project "Core"
+	project "StapleCore"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
-		dotnetframework "4.8"
+		dotnetframework "net7.0"
 		
-		targetname "StapleCore"
-		targetdir "../bin/Core/%{cfg.buildcfg}"
-		objdir "../obj/Core/%{cfg.buildcfg}"
+		targetdir "../bin/StapleCore/%{cfg.buildcfg}"
+		objdir "../obj/StapleCore/%{cfg.buildcfg}"
 
 		libdirs {
-			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/"
+			"../Dependencies/build/" .. cc .. "/bin/Release/net7.0/"
 		}
 
         links {
-			"glfwnet",
-			"System",
-            "System.Drawing",
-			"System.Memory",
-            "System.Numerics",
-			"System.Core",
-			"../Dependencies/build/" .. cc .. "/bin/x86_64/Release/MessagePack.dll",
+			"../Dependencies/build/" .. cc .. "/bin/Release/net7.0/glfwnet.dll",
+			"../Dependencies/build/" .. cc .. "/bin/Release/net7.0/MessagePack.dll",
 			"../Dependencies/JsonNet/Newtonsoft.Json.dll"
         }
 		
@@ -56,13 +49,13 @@ solution "Engine"
 		kind "ConsoleApp"
 		language "C#"
 		clr "Unsafe"
-		dotnetframework "4.8"
+		dotnetframework "net7.0"
 		
 		targetdir "../bin/Player/%{cfg.buildcfg}"
 		objdir "../obj/Player/%{cfg.buildcfg}"
 		
 		links {
-			"Core"
+			"StapleCore"
 		}
 		
 		files {
@@ -70,43 +63,42 @@ solution "Engine"
 		}
 		
 		postbuildcommands {
-			"{MKDIR} %{wks.location}/../Staging/Data",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+			"{MKDIR} %{wks.location}../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/net7.0/*.exe %{wks.location}../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../StapleCore/Release/net7.0/StapleCore.dll %{wks.location}../Staging",
 		}
 
         filter "system:windows"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/Release/net7.0/*.dll %{wks.location}../Staging",
     		}
 
         filter "system:linux"
     		postbuildcommands {
 				-- Linux is messy to build .NET projects with premake makefiles so we need to copy from two places
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/gmake/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/gmake/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/vs2022/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 
 		filter "system:macos"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 
 	project "StapleEditor"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
-		dotnetframework "4.8"
+		dotnetframework "net7.0"
 		
 		targetdir "../bin/StapleEditor/%{cfg.buildcfg}"
 		objdir "../obj/StapleEditor/%{cfg.buildcfg}"
 		
 		links {
-			"Core",
-			"System.Numerics",
+			"StapleCore",
 			"../Dependencies/JsonNet/Newtonsoft.Json.dll",
-			"../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/ImGui.NET.dll"
+			"../Dependencies/build/" .. cc .. "/bin/Release/net7.0/ImGui.NET.dll"
 		}
 		
 		files {
@@ -114,32 +106,32 @@ solution "Engine"
 		}
 		
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.dll %{wks.location}/../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/net7.0/*.dll %{wks.location}../Staging",
 		}
 
         filter "system:windows"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/Release/net7.0/*.dll %{wks.location}../Staging",
     		}
 
         filter "system:linux"
     		postbuildcommands {
 				-- Linux is messy to build .NET projects with premake makefiles so we need to copy from two places
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/gmake/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/gmake/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/vs2022/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 
 		filter "system:macos"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 
 	project "StapleEditorApp"
 		kind "ConsoleApp"
 		language "C#"
 		clr "Unsafe"
-		dotnetframework "4.8"
+		dotnetframework "net7.0"
 		
 		targetdir "../bin/StapleEditorApp/%{cfg.buildcfg}"
 		objdir "../obj/StapleEditorApp/%{cfg.buildcfg}"
@@ -153,42 +145,40 @@ solution "Engine"
 		}
 		
 		postbuildcommands {
-			"{MKDIR} %{wks.location}/../Staging/Data",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/*.exe %{wks.location}/../Staging",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../Core/%{cfg.buildcfg}/StapleCore.dll %{wks.location}/../Staging",
+			"{MKDIR} %{wks.location}../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/net7.0/*.exe %{wks.location}../Staging",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/../../StapleCore/Release/net7.0/StapleCore.dll %{wks.location}../Staging",
 		}
 
         filter "system:windows"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.dll %{wks.location}../Staging",
     		}
 
         filter "system:linux"
     		postbuildcommands {
 				-- Linux is messy to build .NET projects with premake makefiles so we need to copy from two places
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/gmake/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/vs2019/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/gmake/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/vs2022/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 
 		filter "system:macos"
     		postbuildcommands {
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.so %{wks.location}/../Staging",
-			    "{COPYFILE} %{wks.location}/../Dependencies/build/" .. cc .. "/bin/x86_64/%{cfg.buildcfg}/*.dll %{wks.location}/../Staging"
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/x86_64/Release/*.so %{wks.location}../Staging",
+			    "{COPYFILE} %{wks.location}../Dependencies/build/" .. cc .. "/bin/Release/net7.0/*.dll %{wks.location}../Staging"
     		}
 	
 	project "TestGame"
 		kind "SharedLib"
 		language "C#"
 		clr "Unsafe"
-		dotnetframework "4.8"
+		dotnetframework "net7.0"
 		
-		targetname "Game"
 		targetdir "../bin/TestGame/%{cfg.buildcfg}"
 		objdir "../obj/TestGame/%{cfg.buildcfg}"
 		
 		links {
-			"Core",
-			"System.Numerics"
+			"StapleCore",
 		}
 		
 		files {
@@ -196,6 +186,6 @@ solution "Engine"
 		}
 
 		postbuildcommands {
-			"{MKDIR} %{wks.location}/../Staging/Data",
-			"{COPYFILE} %{wks.location}%{cfg.targetdir}/Game.dll %{wks.location}/../Staging/Data",
+			"{MKDIR} %{wks.location}../Staging/Data",
+			"{COPYFILE} %{wks.location}%{cfg.targetdir}/net7.0/TestGame.dll %{wks.location}../Staging/Data/Game.dll",
 		}
