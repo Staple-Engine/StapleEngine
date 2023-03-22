@@ -27,33 +27,38 @@ namespace Staple
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;
 
-        public Matrix4x4 Projection
+        internal static Matrix4x4 Projection(World world, Entity entity, Camera camera, Transform transform)
         {
-            get
+            switch (camera.cameraType)
             {
-                switch (cameraType)
-                {
-                    case CameraType.Perspective:
+                case CameraType.Perspective:
 
-                        return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(fov), Width / Height,
-                            nearPlane, farPlane);
+                    if (camera.nearPlane <= 0 || camera.farPlane <= 0 || camera.nearPlane >= camera.farPlane)
+                    {
+                        Log.Error($"{world.GetEntityName(entity)} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
 
-                    case CameraType.Orthographic:
+                        return Matrix4x4.Identity;
+                    }
+                    return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
+                        camera.nearPlane, camera.farPlane);
 
-                        return Matrix4x4.CreateOrthographicOffCenter(0, Width, Height, 0, nearPlane, farPlane);
-                }
+                case CameraType.Orthographic:
 
-                return Matrix4x4.Identity;
+                    return Matrix4x4.CreateOrthographicOffCenter(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
+
+                default:
+
+                    throw new System.ArgumentException("Camera Type is invalid", "cameraType");
             }
         }
 
-        public Vector3 ScreenPointToWorld(Vector2 point, Transform transform)
+        public static Vector3 ScreenPointToWorld(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
             var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,
                 (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
                 0.0f, 1.0f);
 
-            var p = Projection;
+            var p = Projection(world, entity, camera, transform);
 
             if (Matrix4x4.Invert(p, out var invP) == false)
             {
@@ -66,13 +71,13 @@ namespace Staple
             return Vector4.Transform(viewSpace, transform.Matrix).ToVector3();
         }
 
-        public Ray ScreenPointToRay(Vector2 point, Transform transform)
+        public static Ray ScreenPointToRay(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
             var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,
                 (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
                 0.0f, 1.0f);
 
-            var p = Projection;
+            var p = Projection(world, entity, camera, transform);
 
             if(Matrix4x4.Invert(p, out var invP) == false)
             {

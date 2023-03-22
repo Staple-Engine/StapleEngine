@@ -47,11 +47,17 @@ namespace Staple
 
         public Color32(string value)
         {
+            //Compensate for missing alpha component
+            if(value.Length == 7)
+            {
+                value += "FF";
+            }
+
             uint v = Convert.ToUInt32(value.Substring(1), 16);
 
-            r = (byte)(v & 0xFF000000);
-            g = (byte)(v & 0x00FF0000);
-            b = (byte)(v & 0x0000FF00);
+            r = (byte)((v & 0xFF000000) >> 24);
+            g = (byte)((v & 0x00FF0000) >> 16);
+            b = (byte)((v & 0x0000FF00) >> 8);
             a = (byte)(v & 0x000000FF);
         }
 

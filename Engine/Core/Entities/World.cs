@@ -5,12 +5,46 @@ namespace Staple
 {
     public class World
     {
+        public delegate void ForEachCallback<T>(Entity entity, ref T a) where T : IComponent;
+
+        public delegate void ForEachCallback<T, T2>(Entity entity, ref T a, ref T2 b)
+            where T : IComponent
+            where T2 : IComponent;
+
+        public delegate void ForEachCallback<T, T2, T3>(Entity entity, ref T a, ref T2 b, ref T3 c)
+            where T : IComponent
+            where T2 : IComponent
+            where T3 : IComponent;
+
+        public delegate void ForEachCallback<T, T2, T3, T4>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d)
+            where T : IComponent
+            where T2 : IComponent
+            where T3 : IComponent
+            where T4 : IComponent;
+
+        public delegate void ForEachCallback<T, T2, T3, T4, T5>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d, ref T5 e)
+            where T : IComponent
+            where T2 : IComponent
+            where T3 : IComponent
+            where T4 : IComponent
+            where T5 : IComponent;
+
+        public delegate void IterateComponentCallback(ref IComponent component);
+
+        public class CameraInfo
+        {
+            public Entity entity;
+            public Camera camera;
+            public Transform transform;
+        }
+
         private struct EntityInfo
         {
             public int ID;
             public int generation;
             public bool alive;
             public List<int> components;
+            public string name;
         }
 
         private class ComponentInfo
@@ -67,32 +101,6 @@ namespace Staple
         private List<EntityInfo> entities = new List<EntityInfo>();
         private Dictionary<int, ComponentInfo> componentsRepository = new Dictionary<int, ComponentInfo>();
 
-        public delegate void ForEachCallback<T>(Entity entity, ref T a) where T: IComponent;
-
-        public delegate void ForEachCallback<T, T2>(Entity entity, ref T a, ref T2 b)
-            where T : IComponent
-            where T2 : IComponent;
-
-        public delegate void ForEachCallback<T, T2, T3>(Entity entity, ref T a, ref T2 b, ref T3 c)
-            where T : IComponent
-            where T2 : IComponent
-            where T3 : IComponent;
-
-        public delegate void ForEachCallback<T, T2, T3, T4>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d)
-            where T : IComponent
-            where T2 : IComponent
-            where T3 : IComponent
-            where T4 : IComponent;
-
-        public delegate void ForEachCallback<T, T2, T3, T4, T5>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d, ref T5 e)
-            where T : IComponent
-            where T2 : IComponent
-            where T3 : IComponent
-            where T4 : IComponent
-            where T5: IComponent;
-
-        public delegate void IterateComponentCallback(ref IComponent component);
-
         internal int ComponentIndex(Type t)
         {
             lock(lockObject)
@@ -106,6 +114,28 @@ namespace Staple
                 }
 
                 return -1;
+            }
+        }
+
+        public CameraInfo[] SortedCameras
+        {
+            get
+            {
+                var pieces = new List<CameraInfo>();
+
+                ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
+                {
+                    pieces.Add(new CameraInfo()
+                    {
+                        entity = entity,
+                        camera = camera,
+                        transform = transform
+                    });
+                });
+
+                pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
+
+                return pieces.ToArray();
             }
         }
 
@@ -136,6 +166,7 @@ namespace Staple
                     ID = entities.Count,
                     alive = true,
                     components = new List<int>(),
+                    name = "Entity",
                 };
 
                 entities.Add(newEntity);
@@ -173,6 +204,30 @@ namespace Staple
                     entities[e.ID] = e;
                 }
             }
+        }
+
+        public string GetEntityName(Entity entity)
+        {
+            if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+            {
+                return default;
+            }
+
+            return entities[entity.ID].name;
+        }
+
+        public void SetEntityName(Entity entity, string name)
+        {
+            if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+            {
+                return;
+            }
+
+            var t = entities[entity.ID];
+            
+            t.name = name;
+
+            entities[entity.ID] = t;
         }
 
         public T AddComponent<T>(Entity entity) where T : IComponent
@@ -281,7 +336,8 @@ namespace Staple
 
                 var componentIndex = ComponentIndex(t);
 
-                if (componentsRepository.TryGetValue(componentIndex, out var info) == false)
+                if (entities[entity.ID].components.Contains(componentIndex) == false ||
+                    componentsRepository.TryGetValue(componentIndex, out var info) == false)
                 {
                     return default;
                 }

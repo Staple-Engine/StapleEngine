@@ -125,6 +125,8 @@ namespace Staple.Internal
             try
             {
                 var sceneObjects = JsonConvert.DeserializeObject<List<SceneObject>>(data);
+                var localIDs = new Dictionary<int, Transform>();
+                var parents = new Dictionary<int, int>();
 
                 foreach(var sceneObject in sceneObjects)
                 {
@@ -134,23 +136,31 @@ namespace Staple.Internal
                     {
                         case SceneObjectKind.Entity:
 
-                            entity = scene.Instantiate(sceneObject);
+                            entity = scene.Instantiate(sceneObject, out var localID);
 
                             if (entity == Entity.Empty)
                             {
                                 continue;
                             }
 
-                            if (sceneObject.parent != sceneObject.ID)
-                            {
-                                var transform = scene.GetComponent<Transform>(entity);
-                                var parent = scene.FindEntity(sceneObject.parent);
-                                var parentTransform = scene.GetComponent<Transform>(parent);
+                            var transform = scene.GetComponent<Transform>(entity);
 
-                                transform.SetParent(parentTransform);
+                            localIDs.Add(localID, transform);
+
+                            if(sceneObject.parent >= 0)
+                            {
+                                parents.Add(localID, sceneObject.parent);
                             }
 
                             break;
+                    }
+                }
+
+                foreach(var pair in parents)
+                {
+                    if(localIDs.TryGetValue(pair.Key, out var self) && localIDs.TryGetValue(pair.Value, out var parent))
+                    {
+                        self.SetParent(parent);
                     }
                 }
 
@@ -192,6 +202,9 @@ namespace Staple.Internal
                         return null;
                     }
 
+                    var localIDs = new Dictionary<int, Transform>();
+                    var parents = new Dictionary<int, int>();
+
                     foreach (var sceneObject in sceneData.objects)
                     {
                         var entity = Entity.Empty;
@@ -200,23 +213,31 @@ namespace Staple.Internal
                         {
                             case SceneObjectKind.Entity:
 
-                                entity = scene.Instantiate(sceneObject);
+                                entity = scene.Instantiate(sceneObject, out var localID);
 
-                                if (entity == null)
+                                if (entity == Entity.Empty)
                                 {
                                     continue;
                                 }
 
-                                if (sceneObject.parent != sceneObject.ID)
-                                {
-                                    var transform = scene.GetComponent<Transform>(entity);
-                                    var parent = scene.FindEntity(sceneObject.parent);
-                                    var parentTransform = scene.GetComponent<Transform>(parent);
+                                var transform = scene.GetComponent<Transform>(entity);
 
-                                    transform.SetParent(parentTransform);
+                                localIDs.Add(localID, transform);
+
+                                if (sceneObject.parent >= 0)
+                                {
+                                    parents.Add(localID, sceneObject.parent);
                                 }
 
                                 break;
+                        }
+                    }
+
+                    foreach (var pair in parents)
+                    {
+                        if (localIDs.TryGetValue(pair.Key, out var self) && localIDs.TryGetValue(pair.Value, out var parent))
+                        {
+                            self.SetParent(parent);
                         }
                     }
 

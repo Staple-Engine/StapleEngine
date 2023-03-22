@@ -1,5 +1,7 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -125,11 +127,11 @@ namespace Baker
                             continue;
                         }
 
-                        foreach(var pair in component.data)
+                        foreach (var pair in component.data)
                         {
-                            if(pair.Value != null)
+                            if (pair.Value != null)
                             {
-                                if(pair.Value.GetType() == typeof(string))
+                                if (pair.Value.GetType() == typeof(string))
                                 {
                                     component.parameters.Add(new SceneComponentParameter()
                                     {
@@ -138,7 +140,7 @@ namespace Baker
                                         stringValue = (string)pair.Value,
                                     });
                                 }
-                                else if(pair.Value.GetType() == typeof(long))
+                                else if (pair.Value.GetType() == typeof(long))
                                 {
                                     component.parameters.Add(new SceneComponentParameter()
                                     {
@@ -164,6 +166,25 @@ namespace Baker
                                         type = SceneComponentParameterType.Bool,
                                         boolValue = (bool)pair.Value,
                                     });
+                                }
+                                else if (pair.Value.GetType() == typeof(JObject))
+                                {
+                                    var o = (JObject)pair.Value;
+
+                                    var r = o.GetValue("r")?.Value<int?>();
+                                    var g = o.GetValue("g")?.Value<int?>();
+                                    var b = o.GetValue("b")?.Value<int?>();
+                                    var a = o.GetValue("a")?.Value<int?>();
+
+                                    if(r != null && g != null && b != null && a != null)
+                                    {
+                                        component.parameters.Add(new SceneComponentParameter()
+                                        {
+                                            name = pair.Key,
+                                            type = SceneComponentParameterType.String,
+                                            stringValue = $"#{((byte)r.Value).ToString("X2")}{((byte)g.Value).ToString("X2")}{((byte)b.Value).ToString("X2")}{((byte)a.Value).ToString("X2")}",
+                                        });
+                                    }
                                 }
                             }
                         }

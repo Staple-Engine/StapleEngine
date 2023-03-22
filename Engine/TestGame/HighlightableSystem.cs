@@ -22,7 +22,7 @@ namespace TestGame
 
             world.ForEach((Entity entity, ref HighlightableComponent component, ref Sprite renderer, ref Transform transform) =>
             {
-                var worldPosition = camera.ScreenPointToWorld(Input.MousePosition, cameraTransform);
+                var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, entity, camera, cameraTransform);
 
                 if(renderer.bounds.Contains(worldPosition))
                 {

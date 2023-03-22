@@ -74,7 +74,13 @@ namespace Baker
 
             string ValidateTool(string name, string executable)
             {
-                var toolPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, executable));
+#if _DEBUG
+                string baseDir = Environment.CurrentDirectory;
+#else
+                string baseDir = AppContext.BaseDirectory;
+#endif
+
+                var toolPath = Path.GetFullPath(Path.Combine(baseDir, executable));
                 var toolValid = false;
 
                 try

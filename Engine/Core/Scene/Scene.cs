@@ -87,9 +87,13 @@ namespace Staple
             return world.GetComponent<T>(entity);
         }
 
-        internal Entity Instantiate(SceneObject sceneObject)
+        internal Entity Instantiate(SceneObject sceneObject, out int localID)
         {
+            localID = sceneObject.ID;
+
             var entity = CreateEntity();
+
+            world.SetEntityName(entity, sceneObject.name);
 
             var transform = GetComponent<Transform>(entity);
 
@@ -270,13 +274,15 @@ namespace Staple
 
                                     case SceneComponentParameterType.Int:
 
-                                        if (field.FieldType == typeof(int))
+                                        try
                                         {
-                                            field.SetValue(componentInstance, parameter.intValue);
+                                            var value = System.Convert.ChangeType(parameter.intValue, field.FieldType);
+
+                                            field.SetValue(componentInstance, value);
                                         }
-                                        else if (field.FieldType == typeof(float))
+                                        catch(Exception e)
                                         {
-                                            field.SetValue(componentInstance, parameter.intValue);
+                                            continue;
                                         }
 
                                         break;
@@ -309,11 +315,18 @@ namespace Staple
                                             continue;
                                         }
 
-                                        if (field.FieldType == typeof(Color))
+                                        if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
                                         {
-                                            //TODO
+                                            var color = new Color32(parameter.stringValue);
 
-                                            continue;
+                                            if (field.FieldType == typeof(Color32))
+                                            {
+                                                field.SetValue(componentInstance, color);
+                                            }
+                                            else
+                                            {
+                                                field.SetValue(componentInstance, (Color)color);
+                                            }
                                         }
 
                                         if (field.FieldType == typeof(Material))

@@ -107,46 +107,18 @@ namespace Staple
         {
             ushort viewID = 1;
 
-            var cameras = new List<Camera>();
-            var transforms = new List<Transform>();
+            var cameras = Scene.current.world.SortedCameras;
 
-            Scene.current.world.ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
+            if(cameras.Length > 0)
             {
-                cameras.Add(camera);
-                transforms.Add(transform);
-            });
-
-            if(cameras.Count > 0)
-            {
-                var lastDepth = 999;
-                var currentCamera = -1;
-
-                for (; ; )
+                foreach(var c in cameras)
                 {
-                    currentCamera = -1;
-
-                    //TODO: This won't work
-                    for (var i = 0; i < cameras.Count; i++)
-                    {
-                        if (cameras[i].depth < lastDepth)
-                        {
-                            lastDepth = cameras[i].depth;
-                            currentCamera = i;
-                        }
-                    }
-
-                    if(currentCamera == -1)
-                    {
-                        break;
-                    }
-
-                    var camera = cameras[currentCamera];
-                    var cameraTransform = transforms[currentCamera];
+                    var camera = c.camera;
+                    var cameraTransform = c.transform;
 
                     unsafe
                     {
-                        var projection = camera.Projection;
-
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera, c.transform);
                         var view = cameraTransform.Matrix;
 
                         Matrix4x4.Invert(view, out view);
