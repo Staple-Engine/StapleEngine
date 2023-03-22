@@ -60,7 +60,10 @@
     <Compile Include="Core\Entities\IEntitySystem.cs" />
     <Compile Include="Core\Entities\Renderable.cs" />
     <Compile Include="Core\Entities\Sprite.cs" />
-    <Compile Include="Core\Entities\World.cs" />
+    <Compile Include="Core\World\World+Components.cs" />
+    <Compile Include="Core\World\World+Entities.cs" />
+    <Compile Include="Core\World\World+Iteration.cs" />
+    <Compile Include="Core\World\World.cs" />
     <Compile Include="Core\Input\Input.cs" />
     <Compile Include="Core\Input\KeyCode.cs" />
     <Compile Include="Core\Input\MouseButton.cs" />
