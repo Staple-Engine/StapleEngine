@@ -164,7 +164,7 @@ namespace Staple
                     bgfx.shutdown();
                     Glfw.Terminate();
 
-                    return;
+                    throw new System.Exception("Failed to load scene list");
                 }
 
                 Log.Info("Loaded scene list");
@@ -178,7 +178,7 @@ namespace Staple
                     bgfx.shutdown();
                     Glfw.Terminate();
 
-                    return;
+                    throw new System.Exception("Failed to load main scene");
                 }
 
                 Log.Info("Loaded first scene");

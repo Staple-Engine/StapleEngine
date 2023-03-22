@@ -62,6 +62,8 @@ namespace Staple
             catch (System.Exception e)
             {
                 Log.Error($"RenderWindow Init Exception: {e}");
+
+                return;
             }
 
             if (shouldStop)

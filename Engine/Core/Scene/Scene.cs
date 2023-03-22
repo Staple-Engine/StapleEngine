@@ -2,11 +2,8 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 #if _DEBUG
 [assembly: InternalsVisibleTo("CoreTests")]
