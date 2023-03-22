@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "Player.csproj", "{724E55CA-5EF0-7FA0-47AB-93F433EC06F1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BF10A474-ABDD-FE7F-D4F6-EC27C022340E} = {BF10A474-ABDD-FE7F-D4F6-EC27C022340E}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "StapleCore.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
 EndProject

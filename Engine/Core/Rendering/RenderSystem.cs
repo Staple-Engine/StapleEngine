@@ -145,26 +145,7 @@ namespace Staple
 
                     unsafe
                     {
-                        Matrix4x4 projection;
-
-                        switch (camera.cameraType)
-                        {
-                            case CameraType.Perspective:
-
-                                projection = Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
-                                    camera.nearPlane, camera.farPlane);
-
-                                break;
-
-                            case CameraType.Orthographic:
-
-                                projection = Matrix4x4.CreateOrthographicOffCenter(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
-
-                                break;
-
-                            default:
-                                continue;
-                        }
+                        var projection = camera.Projection;
 
                         var view = cameraTransform.Matrix;
 

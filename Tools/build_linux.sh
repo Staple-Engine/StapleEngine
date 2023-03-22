@@ -1,5 +1,3 @@
 #!/bin/sh
 
-premake5 --os=linux vs2022
-
-msbuild Tools.sln
+dotnet publish Tools.sln -c Release -o bin

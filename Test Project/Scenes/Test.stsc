@@ -49,6 +49,9 @@
 					"material": "Materials/Sprite.mat",
 					"texture": "Textures/Sprites/DefaultSprite.png"
 				}
+			},
+			{
+				"type": "TestGame.HighlightableComponent"
 			}
 		]
 	},

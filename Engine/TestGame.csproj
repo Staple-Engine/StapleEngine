@@ -31,6 +31,8 @@
   <ItemGroup>
     <Compile Include="TestGame\CircularMovementComponent.cs" />
     <Compile Include="TestGame\CircularMovementSystem.cs" />
+    <Compile Include="TestGame\HighlightableComponent.cs" />
+    <Compile Include="TestGame\HighlightableSystem.cs" />
     <Compile Include="TestGame\KeyboardControlComponent.cs" />
     <Compile Include="TestGame\KeyboardControlSystem.cs" />
   </ItemGroup>

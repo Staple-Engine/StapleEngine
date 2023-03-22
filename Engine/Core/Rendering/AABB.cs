@@ -27,6 +27,7 @@ namespace Staple
 
         public bool Contains(Vector3 point)
         {
+            //Slight optimization to prevent many function calls
             var min = this.min;
             var max = this.max;
 
