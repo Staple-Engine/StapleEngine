@@ -38,6 +38,8 @@ namespace Staple
 
         private List<IRenderSystem> renderSystems = new List<IRenderSystem>();
 
+        private Transform stagingTransform = new Transform();
+
         internal static byte Priority = 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -116,6 +118,11 @@ namespace Staple
                     var camera = c.camera;
                     var cameraTransform = c.transform;
 
+                    foreach (var system in renderSystems)
+                    {
+                        system.Prepare();
+                    }
+
                     unsafe
                     {
                         var projection = Camera.Projection(Scene.current.world, c.entity, c.camera, c.transform);
@@ -163,17 +170,15 @@ namespace Staple
 
                                 if (call.renderable.enabled)
                                 {
-                                    var transform = new Transform();
-
                                     var currentPosition = call.position;
                                     var currentRotation = call.rotation;
                                     var currentScale = call.scale;
 
                                     if (previous == null)
                                     {
-                                        transform.LocalPosition = currentPosition;
-                                        transform.LocalRotation = currentRotation;
-                                        transform.LocalScale = currentScale;
+                                        stagingTransform.LocalPosition = currentPosition;
+                                        stagingTransform.LocalRotation = currentRotation;
+                                        stagingTransform.LocalScale = currentScale;
                                     }
                                     else
                                     {
@@ -181,16 +186,16 @@ namespace Staple
                                         var previousRotation = previous.rotation;
                                         var previousScale = previous.scale;
 
-                                        transform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                                        transform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                                        transform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                                        stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                                        stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                                        stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
                                     }
 
                                     foreach (var system in renderSystems)
                                     {
                                         if (call.relatedComponent.GetType() == system.RelatedComponent())
                                         {
-                                            system.Process(call.entity, transform, call.relatedComponent, viewID);
+                                            system.Process(call.entity, stagingTransform, call.relatedComponent, viewID);
                                         }
                                     }
                                 }
@@ -198,38 +203,61 @@ namespace Staple
                         }
                     }
 
-                    if (needsDrawCalls)
+                    foreach(var system in renderSystems)
                     {
-                        lock (lockObject)
+                        system.Submit();
+                    }
+
+                    viewID++;
+                }
+            }
+
+            if (needsDrawCalls)
+            {
+                viewID = 1;
+
+                lock (lockObject)
+                {
+                    var previous = previousDrawBucket;
+
+                    previousDrawBucket = currentDrawBucket;
+                    currentDrawBucket = previous;
+
+                    currentDrawBucket.drawCalls.Clear();
+                }
+
+                foreach(var c in cameras)
+                {
+                    var camera = c.camera;
+                    var cameraTransform = c.transform;
+
+                    unsafe
+                    {
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera, c.transform);
+                        var view = cameraTransform.Matrix;
+
+                        frustumCuller.Update(view, projection);
+                    }
+
+                    Scene.current.world.ForEach((Entity entity, ref Transform t) =>
+                    {
+                        foreach (var system in renderSystems)
                         {
-                            var previous = previousDrawBucket;
+                            var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
 
-                            previousDrawBucket = currentDrawBucket;
-                            currentDrawBucket = previous;
-
-                            currentDrawBucket.drawCalls.Clear();
-                        }
-
-                        Scene.current.world.ForEach((Entity entity, ref Transform t) =>
-                        {
-                            foreach (var system in renderSystems)
+                            if (related != null)
                             {
-                                var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+                                system.Preprocess(entity, t, related);
 
-                                if (related != null)
+                                if (related is Renderable renderable &&
+                                    renderable.enabled &&
+                                    frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
                                 {
-                                    system.Preprocess(entity, t, related);
-
-                                    if (related is Renderable renderable &&
-                                        renderable.enabled &&
-                                        frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
-                                    {
-                                        AddDrawCall(entity, t, related, renderable, viewID);
-                                    }
+                                    AddDrawCall(entity, t, related, renderable, viewID);
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
 
                     viewID++;
                 }

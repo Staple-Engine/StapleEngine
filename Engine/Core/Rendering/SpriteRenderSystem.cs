@@ -19,6 +19,15 @@ namespace Staple
             public Vector2 texCoord;
         }
 
+        private class SpriteRenderInfo
+        {
+            public Matrix4x4 transform;
+            public Material material;
+            public Color color;
+            public Texture texture;
+            public ushort viewID;
+        }
+
         private static SpriteVertex[] vertices = new SpriteVertex[]
         {
             new SpriteVertex() {
@@ -48,6 +57,8 @@ namespace Staple
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
 
+        private List<SpriteRenderInfo> sprites = new List<SpriteRenderInfo>();
+
         public void Destroy()
         {
             vertexBuffer?.Destroy();
@@ -57,6 +68,11 @@ namespace Staple
         public Type RelatedComponent()
         {
             return typeof(Sprite);
+        }
+
+        public void Prepare()
+        {
+            sprites.Clear();
         }
 
         public void Preprocess(Entity entity, Transform transform, IComponent renderer)
@@ -75,25 +91,10 @@ namespace Staple
         {
             var r = renderer as Sprite;
 
-            if(vertexLayout == null)
-            {
-                vertexLayout = new VertexLayoutBuilder()
-                    .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-                    .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
-                    .Build();
-
-                vertexBuffer = VertexBuffer.Create(vertices, vertexLayout);
-
-                indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
-            }
-
             if(r.material == null || r.material.shader == null || r.material.Disposed || r.material.shader.Disposed)
             {
                 return;
             }
-
-            vertexBuffer.SetActive(0, 0, (uint)vertexBuffer.length);
-            indexBuffer.SetActive(0, (uint)indexBuffer.length);
 
             var scale = Vector3.Zero;
 
@@ -105,25 +106,66 @@ namespace Staple
 
             var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
 
-            unsafe
+            sprites.Add(new SpriteRenderInfo()
             {
-                bgfx.set_transform(&matrix, 1);
+                color = r.color,
+                material = r.material,
+                texture = r.texture,
+                transform = matrix,
+                viewID = viewId
+            });
+        }
+
+        public void Submit()
+        {
+            if (vertexLayout == null)
+            {
+                vertexLayout = new VertexLayoutBuilder()
+                    .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
+                    .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
+                    .Build();
+
+                vertexBuffer = VertexBuffer.Create(vertices, vertexLayout);
+
+                indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
             }
+
+            if(sprites.Count == 0)
+            {
+                return;
+            }
+
+            vertexBuffer.SetActive(0, 0, (uint)vertexBuffer.length);
+            indexBuffer.SetActive(0, (uint)indexBuffer.length);
 
             bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
 
-            bgfx.set_state((ulong)state, 0);
-
-            r.material.ApplyProperties();
-
-            r.material.shader.SetColor(Material.MainColorProperty, r.color);
-
-            if (r.texture != null)
+            for (var i = 0; i < sprites.Count; i++)
             {
-                r.material.shader.SetTexture(Material.MainTextureProperty, r.texture);
-            }
+                var s = sprites[i];
 
-            bgfx.submit(viewId, r.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+                unsafe
+                {
+                    var transform = s.transform;
+
+                    bgfx.set_transform(&transform, 1);
+                }
+
+                bgfx.set_state((ulong)state, 0);
+
+                s.material.ApplyProperties();
+
+                s.material.shader.SetColor(Material.MainColorProperty, s.color);
+
+                if (s.texture != null)
+                {
+                    s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
+                }
+
+                var discardFlags = i == sprites.Count - 1 ? bgfx.DiscardFlags.All : bgfx.DiscardFlags.Transform | bgfx.DiscardFlags.Bindings | bgfx.DiscardFlags.State;
+
+                bgfx.submit(s.viewID, s.material.shader.program, 0, (byte)discardFlags);
+            }
         }
     }
 }
