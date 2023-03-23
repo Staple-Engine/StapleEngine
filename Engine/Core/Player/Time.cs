@@ -1,40 +1,63 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Time information class
+    /// </summary>
     public class Time
     {
+        /// <summary>
+        /// The current time in seconds since booting the app
+        /// </summary>
         public static float time { get; internal set; }
 
+        /// <summary>
+        /// The last frame's delta time
+        /// </summary>
         public static float deltaTime { get; internal set; }
 
+        /// <summary>
+        /// The fixed tick delta time
+        /// </summary>
         public static float fixedDeltaTime { get; internal set; }
 
+        /// <summary>
+        /// The current frame rate
+        /// </summary>
         public static int FPS { get; internal set; }
 
+        /// <summary>
+        /// The current time accumulator
+        /// </summary>
         internal static float Accumulator { get; set; }
 
+        /// <summary>
+        /// Called when the accumulator triggers
+        /// </summary>
         internal static Action OnAccumulatorFinished { get; set; }
 
         private static int frames;
         private static float frameTimer;
 
+        /// <summary>
+        /// Updates the clock
+        /// </summary>
+        /// <param name="current">The current time</param>
+        /// <param name="last">The previous time</param>
         internal static void UpdateClock(double current, double last)
         {
             var delta = (float)(current - last);
 
             time += delta;
-            Accumulator += delta;
 
             //If we're larger than 1 we're definitely dealing with suspend or an extremely slow system
             if (delta > 1)
             {
                 delta = 0;
             }
+
+            Accumulator += delta;
 
             deltaTime = delta;
 

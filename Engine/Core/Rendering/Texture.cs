@@ -1,13 +1,11 @@
 ﻿using Bgfx;
 using Staple.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Texture resource
+    /// </summary>
     public class Texture
     {
         internal readonly bgfx.TextureHandle handle;
@@ -18,12 +16,24 @@ namespace Staple
 
         private bool destroyed = false;
 
+        /// <summary>
+        /// The texture's width
+        /// </summary>
         public int Width => info.width;
 
+        /// <summary>
+        /// The texture's height
+        /// </summary>
         public int Height => info.height;
 
+        /// <summary>
+        /// The texture's width as a sprite
+        /// </summary>
         public int SpriteWidth => (int)(info.width * metadata.spriteScale);
 
+        /// <summary>
+        /// The texture's height as a sprite
+        /// </summary>
         public int SpriteHeight => (int)(info.height * metadata.spriteScale);
 
         internal Texture(string path, TextureMetadata metadata, bgfx.TextureHandle handle, bgfx.TextureInfo info)
@@ -57,6 +67,9 @@ namespace Staple
             Destroy();
         }
 
+        /// <summary>
+        /// Destroys this resource
+        /// </summary>
         internal void Destroy()
         {
             if(destroyed)
@@ -72,11 +85,26 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets this texture active in a shader
+        /// </summary>
+        /// <param name="stage">The texture stage</param>
+        /// <param name="sampler">The sampler uniform</param>
         internal void SetActive(byte stage, bgfx.UniformHandle sampler)
         {
             bgfx.set_texture(stage, sampler, handle, uint.MaxValue);
         }
 
+        /// <summary>
+        /// Creates an empty texture
+        /// </summary>
+        /// <param name="width">The texture width</param>
+        /// <param name="height">The texture height</param>
+        /// <param name="hasMips">Whether to use mipmaps</param>
+        /// <param name="layers">How many layers to use</param>
+        /// <param name="format">The texture format</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <returns>The texture or null</returns>
         public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
             unsafe
@@ -95,8 +123,19 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Creates a texture from pixels
+        /// </summary>
+        /// <param name="path">The file path of the texture</param>
+        /// <param name="data">The pixel data</param>
+        /// <param name="width">The texture width</param>
+        /// <param name="height">The texture height</param>
+        /// <param name="metadata">The texture metadata</param>
+        /// <param name="format">The texture format</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <returns>The texture, or null</returns>
         internal static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
-            bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None, byte skip = 0)
+            bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
             unsafe
             {
@@ -125,6 +164,15 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Creates a texture from file data
+        /// </summary>
+        /// <param name="path">The texture path</param>
+        /// <param name="data">The file data</param>
+        /// <param name="metadata">The texture metadata</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <param name="skip">Which layers to skip</param>
+        /// <returns>The texture or null</returns>
         internal static Texture Create(string path, byte[] data, TextureMetadata metadata, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
             unsafe
@@ -149,6 +197,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Processes texture flags based on texture metadata
+        /// </summary>
+        /// <param name="flags">The texture flags</param>
+        /// <param name="metadata">The metadata</param>
         internal static void ProcessFlags(ref TextureFlags flags, TextureMetadata metadata)
         {
             switch (metadata.type)
@@ -243,6 +296,7 @@ namespace Staple
             }
         }
 
+        //TODO
         /*
         public byte[] ReadPixels(byte mipLevel = 0)
         {

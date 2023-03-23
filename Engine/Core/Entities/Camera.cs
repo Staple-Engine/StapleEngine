@@ -2,25 +2,56 @@
 
 namespace Staple
 {
+    /// <summary>
+    /// Camera component
+    /// </summary>
     [DisallowMultipleComponent]
     public class Camera : IComponent
     {
+        /// <summary>
+        /// How to clear the camera
+        /// </summary>
         public CameraClearMode clearMode = CameraClearMode.SolidColor;
 
+        /// <summary>
+        /// The type of camera
+        /// </summary>
         public CameraType cameraType = CameraType.Perspective;
 
+        /// <summary>
+        /// The field of view
+        /// </summary>
         public float fov = 90;
 
+        /// <summary>
+        /// The near plane. You probably want a near plane of 0 for Orthographic cameras.
+        /// </summary>
         public float nearPlane = 0.01f;
 
+        /// <summary>
+        /// The far plane
+        /// </summary>
         public float farPlane = 1000;
 
+        /// <summary>
+        /// The camera viewport (X: x, Y: y, Z: width, W: height)
+        /// Width and Height are normalized
+        /// </summary>
         public Vector4 viewport = new Vector4(0, 0, 1, 1);
 
+        /// <summary>
+        /// The camera depth. Cameras are sorted by depth, from lower to higher.
+        /// </summary>
         public ushort depth = 0;
 
+        /// <summary>
+        /// The clear color for the camera
+        /// </summary>
         public Color32 clearColor;
 
+        /// <summary>
+        /// The layers this camera handles
+        /// </summary>
         public LayerMask cullingLayers = LayerMask.Everything;
 
         internal float Width => viewport.Z * AppPlayer.ScreenWidth;
@@ -52,6 +83,15 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Converts a screen point to world coordinates
+        /// </summary>
+        /// <param name="point">The point</param>
+        /// <param name="world">The world the camera belongs to</param>
+        /// <param name="entity">The entity the camera belongs to</param>
+        /// <param name="camera">The camera</param>
+        /// <param name="transform">The camera's transform</param>
+        /// <returns>A world-space point</returns>
         public static Vector3 ScreenPointToWorld(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
             var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,
@@ -71,6 +111,15 @@ namespace Staple
             return Vector4.Transform(viewSpace, transform.Matrix).ToVector3();
         }
 
+        /// <summary>
+        /// Converts a screen point to a ray
+        /// </summary>
+        /// <param name="point">The point</param>
+        /// <param name="world">The world the camera belongs to</param>
+        /// <param name="entity">The entity the camera belongs to</param>
+        /// <param name="camera">The camera</param>
+        /// <param name="transform">The camera's transform</param>
+        /// <returns>The ray</returns>
         public static Ray ScreenPointToRay(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
             var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,

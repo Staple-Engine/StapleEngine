@@ -1,14 +1,19 @@
 using Bgfx;
 using Staple.Internal;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Staple
 {
+    /// <summary>
+    /// Base Rendering subsystem
+    /// </summary>
     internal class RenderSystem : ISubsystem
     {
+        /// <summary>
+        /// Contains information on a draw call
+        /// </summary>
         internal class DrawCall
         {
             public Vector3 position;
@@ -19,6 +24,9 @@ namespace Staple
             public IComponent relatedComponent;
         }
 
+        /// <summary>
+        /// Contains lists of drawcalls per view ID
+        /// </summary>
         internal class DrawBucket
         {
             public Dictionary<ushort, List<DrawCall>> drawCalls = new Dictionary<ushort, List<DrawCall>>();
@@ -26,6 +34,9 @@ namespace Staple
 
         public SubsystemType type { get; } = SubsystemType.Render;
 
+        /// <summary>
+        /// Keep the current and previous draw buckets to interpolate around
+        /// </summary>
         private DrawBucket previousDrawBucket = new DrawBucket(), currentDrawBucket = new DrawBucket();
 
         private object lockObject = new object();
@@ -42,25 +53,46 @@ namespace Staple
 
         internal static byte Priority = 0;
 
+        /// <summary>
+        /// Calculates the blending function for blending flags
+        /// </summary>
+        /// <param name="source">The blending source flag</param>
+        /// <param name="destination">The blending destination flag</param>
+        /// <returns>The combined function</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
         {
             return BlendFunction(source, destination, source, destination);
         }
 
+        /// <summary>
+        /// Calculates the blending function for blending flags
+        /// </summary>
+        /// <param name="sourceColor">The source color flag</param>
+        /// <param name="destinationColor">The destination color flag</param>
+        /// <param name="sourceAlpha">The source alpha blending flag</param>
+        /// <param name="destinationAlpha">The destination alpha blending flag</param>
+        /// <returns>The combined function</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
         {
             return ((ulong)sourceColor | ((ulong)destinationColor << 4)) | (((ulong)sourceAlpha | ((ulong)destinationAlpha << 4)) << 8);
         }
 
+        /// <summary>
+        /// Checks if we have an available transient buffer
+        /// </summary>
+        /// <param name="numVertices">The amount of vertices to check</param>
+        /// <param name="layout">The vertex layout to use</param>
+        /// <param name="numIndices">The amount of indices to check</param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CheckAvailableTransientBuffers(uint _numVertices, bgfx.VertexLayout layout, uint _numIndices)
+        public static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
         {
             unsafe
             {
-                return _numVertices == bgfx.get_avail_transient_vertex_buffer(_numVertices, &layout)
-                    && (0 == _numIndices || _numIndices == bgfx.get_avail_transient_index_buffer(_numIndices, false));
+                return numVertices == bgfx.get_avail_transient_vertex_buffer(numVertices, &layout)
+                    && (0 == numIndices || numIndices == bgfx.get_avail_transient_index_buffer(numIndices, false));
             }
         }
 
@@ -79,29 +111,6 @@ namespace Staple
             foreach(var system in renderSystems)
             {
                 system.Destroy();
-            }
-        }
-
-        public void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
-        {
-            lock(lockObject)
-            {
-                if(currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
-                {
-                    drawCalls = new List<DrawCall>();
-
-                    currentDrawBucket.drawCalls.Add(viewID, drawCalls);
-                }
-
-                drawCalls.Add(new DrawCall()
-                {
-                    entity = entity,
-                    renderable = renderable,
-                    position = transform.Position,
-                    rotation = transform.Rotation,
-                    scale = transform.Scale,
-                    relatedComponent = relatedComponent,
-                });
             }
         }
 
@@ -250,10 +259,14 @@ namespace Staple
                                 system.Preprocess(entity, t, related);
 
                                 if (related is Renderable renderable &&
-                                    renderable.enabled &&
-                                    frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible)
+                                    renderable.enabled)
                                 {
-                                    AddDrawCall(entity, t, related, renderable, viewID);
+                                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+
+                                    if(renderable.isVisible)
+                                    {
+                                        AddDrawCall(entity, t, related, renderable, viewID);
+                                    }
                                 }
                             }
                         }
@@ -269,6 +282,37 @@ namespace Staple
             }
 
             accumulator = Time.Accumulator;
+        }
+
+        /// <summary>
+        /// Adds a drawcall to the drawcall list
+        /// </summary>
+        /// <param name="entity">The entity to draw</param>
+        /// <param name="transform">The entity's transform</param>
+        /// <param name="relatedComponent">The entity's related component</param>
+        /// <param name="renderable">The entity's Renderable</param>
+        /// <param name="viewID">The current view ID</param>
+        public void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
+        {
+            lock (lockObject)
+            {
+                if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
+                {
+                    drawCalls = new List<DrawCall>();
+
+                    currentDrawBucket.drawCalls.Add(viewID, drawCalls);
+                }
+
+                drawCalls.Add(new DrawCall()
+                {
+                    entity = entity,
+                    renderable = renderable,
+                    position = transform.Position,
+                    rotation = transform.Rotation,
+                    scale = transform.Scale,
+                    relatedComponent = relatedComponent,
+                });
+            }
         }
     }
 }

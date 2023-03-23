@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Staple
 {
+    /// <summary>
+    /// Render Target resource. Used to render to texture.
+    /// </summary>
     public class RenderTarget
     {
         private static ulong counter = 0;
@@ -23,6 +26,9 @@ namespace Staple
             Destroy();
         }
 
+        /// <summary>
+        /// Destroys the render target's resources
+        /// </summary>
         public void Destroy()
         {
             if (destroyed)
@@ -43,11 +49,25 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Gets a texture from our attachments
+        /// </summary>
+        /// <param name="attachment">The attachment index</param>
+        /// <returns>The texture or null</returns>
         public Texture GetTexture(byte attachment = 0)
         {
+            if(destroyed)
+            {
+                return null;
+            }
+
             return attachment < textures.Count ? textures[attachment] : null;
         }
 
+        /// <summary>
+        /// Sets this framebuffer as active for a view
+        /// </summary>
+        /// <param name="viewID">The view ID</param>
         internal void SetActive(ushort viewID)
         {
             if(destroyed)
@@ -58,6 +78,11 @@ namespace Staple
             bgfx.set_view_frame_buffer(viewID, handle);
         }
 
+        /// <summary>
+        /// Sets this framebuffer as active for a view
+        /// </summary>
+        /// <param name="viewID">The view ID</param>
+        /// <param name="target">The render target to set</param>
         internal static void SetActive(ushort viewID, RenderTarget target)
         {
             if(target == null || target.destroyed)
@@ -68,6 +93,16 @@ namespace Staple
             target.SetActive(viewID);
         }
 
+        /// <summary>
+        /// Creates a render target
+        /// </summary>
+        /// <param name="width">The width</param>
+        /// <param name="height">The height</param>
+        /// <param name="colorFormat">The color format to use</param>
+        /// <param name="hasMips">Whether to use mipmaps</param>
+        /// <param name="layers">Amount of layers to use on the textures</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <returns>The render target, or null</returns>
         public static RenderTarget Create(ushort width, ushort height, bgfx.TextureFormat colorFormat = bgfx.TextureFormat.RGBA8,
             bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
         {
@@ -99,6 +134,13 @@ namespace Staple
             return outValue;
         }
 
+        /// <summary>
+        /// Creates a render target based on a backbuffer ratio
+        /// </summary>
+        /// <param name="ratio">The ratio to use</param>
+        /// <param name="format">The texture format</param>
+        /// <param name="flags">Additional texture lags</param>
+        /// <returns>The render target, or null</returns>
         public static RenderTarget Create(bgfx.BackbufferRatio ratio, bgfx.TextureFormat format,
             TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
         {
@@ -181,6 +223,12 @@ namespace Staple
             };
         }
 
+        /// <summary>
+        /// Creates a render target based on a list of textures
+        /// </summary>
+        /// <param name="textures">The list of textures</param>
+        /// <param name="destroyTextures">Whether to destroy the textures after</param>
+        /// <returns>The render target, or null</returns>
         public static RenderTarget Create(List<Texture> textures, bool destroyTextures = false)
         {
             if(textures.Any(x => x == null || x.handle.Valid == false))
@@ -210,6 +258,14 @@ namespace Staple
                         name = $"RenderTarget {counter} Texture {i + 1}";
 
                         bgfx.set_texture_name(handles[i], name, name.Length);
+                    }
+
+                    if(destroyTextures)
+                    {
+                        foreach(var t in textures)
+                        {
+                            t.Destroy();
+                        }
                     }
 
                     return new RenderTarget()

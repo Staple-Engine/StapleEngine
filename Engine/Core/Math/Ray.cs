@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Represents a ray
+    /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct Ray
@@ -21,13 +20,25 @@ namespace Staple
             this.direction = direction;
         }
 
+        /// <summary>
+        /// Test whether this ray intersects an AABB
+        /// </summary>
+        /// <param name="ray">The ray</param>
+        /// <param name="aabb">The AABB</param>
+        /// <returns>Whether it intersects</returns>
         public static bool IntersectsAABB(Ray ray, AABB aabb)
         {
-            float t0 = 0, t1 = 0;
-
-            return IntersectsAABB(ray, aabb, out t0, out t1);
+            return IntersectsAABB(ray, aabb, out _, out _);
         }
 
+        /// <summary>
+        /// Test whether this ray intersects an AABB
+        /// </summary>
+        /// <param name="ray">The ray</param>
+        /// <param name="aabb">The AABB</param>
+        /// <param name="t0">The first point</param>
+        /// <param name="t1">The last point</param>
+        /// <returns>Whether it intersects</returns>
         public static bool IntersectsAABB(Ray ray, AABB aabb, out float t0, out float t1)
         {
             t0 = 0;
@@ -90,13 +101,27 @@ namespace Staple
             return true;
         }
 
+        /// <summary>
+        /// Test whether this ray intersects an AABB
+        /// </summary>
+        /// <param name="ray">The ray</param>
+        /// <param name="aabb">The AABB</param>
+        /// <param name="transform">A transform to apply to the AABB</param>
+        /// <returns>Whether it intersects</returns>
         public static bool IntersectsAABB(Ray ray, AABB aabb, Transform transform)
         {
-            float t0 = 0, t1 = 0;
-
-            return IntersectsAABB(ray, aabb, transform, out t0, out t1);
+            return IntersectsAABB(ray, aabb, transform, out _, out _);
         }
 
+        /// <summary>
+        /// Test whether this ray intersects an AABB
+        /// </summary>
+        /// <param name="ray">The ray</param>
+        /// <param name="aabb">The AABB</param>
+        /// <param name="transform">A transform to apply to the AABB</param>
+        /// <param name="t0">The first point</param>
+        /// <param name="t1">The last point</param>
+        /// <returns>Whether it intersects</returns>
         public static bool IntersectsAABB(Ray ray, AABB aabb, Transform transform, out float t0, out float t1)
         {
             t0 = 0;

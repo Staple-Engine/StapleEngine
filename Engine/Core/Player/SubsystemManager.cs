@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Manages subsystems. This uses a priority order.
+    /// </summary>
     internal class SubsystemManager
     {
+        /// <summary>
+        /// The main instance
+        /// </summary>
         public static readonly SubsystemManager instance = new SubsystemManager();
 
         private SortedDictionary<byte, HashSet<ISubsystem>> subsystems = new SortedDictionary<byte, HashSet<ISubsystem>>();
         private object lockObject = new object();
 
+        /// <summary>
+        /// Destroys each subsystem
+        /// </summary>
         internal void Destroy()
         {
             lock(lockObject)
@@ -28,6 +35,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Registers a subsystem based on a priority
+        /// </summary>
+        /// <param name="subsystem">The subsystem</param>
+        /// <param name="priority">The priority</param>
         public void RegisterSubsystem(ISubsystem subsystem, byte priority)
         {
             lock(lockObject)
@@ -45,6 +57,10 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Called to update each subsystem of a specific type
+        /// </summary>
+        /// <param name="type"></param>
         internal void Update(SubsystemType type)
         {
             lock (lockObject)

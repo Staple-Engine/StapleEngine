@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Staple
+﻿namespace Staple
 {
+    /// <summary>
+    /// Represents a 3x3 matrix
+    /// </summary>
     public struct Matrix3x3
     {
         public float M11, M12, M13,

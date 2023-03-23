@@ -12,6 +12,9 @@ using System.Threading;
 
 namespace Staple
 {
+    /// <summary>
+    /// Window for rendering
+    /// </summary>
     internal class RenderWindow
     {
         public const int ClearView = 0;
@@ -39,6 +42,9 @@ namespace Staple
         private bool renderThreadReady = false;
         private Thread renderThread;
 
+        /// <summary>
+        /// Runs the window main loop
+        /// </summary>
         public void Run()
         {
             if(appSettings.multiThreadedRenderer)
@@ -322,7 +328,9 @@ namespace Staple
             }
         }
 
-
+        /// <summary>
+        /// Cleans up this window's resources
+        /// </summary>
         public void Cleanup()
         {
             if(bgfxReferences > 0)
@@ -586,9 +594,21 @@ namespace Staple
             Cleanup();
         }
 
+        /// <summary>
+        /// Creates a render window
+        /// </summary>
+        /// <param name="width">The window's width</param>
+        /// <param name="height">The window's height</param>
+        /// <param name="resizable">Whether it should be resizable</param>
+        /// <param name="windowMode">The window mode</param>
+        /// <param name="appSettings">Application Settings</param>
+        /// <param name="monitorIndex">The monitor index to use</param>
+        /// <param name="resetFlags">The starting reset flags</param>
+        /// <returns>The window, or null</returns>
         public static RenderWindow Create(int width, int height, bool resizable, PlayerSettings.WindowMode windowMode,
             AppSettings appSettings, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
+            //TODO: Multiple windows
             if (glfwReferences > 0)
             {
                 return null;

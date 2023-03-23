@@ -1,13 +1,12 @@
 ﻿using Bgfx;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Vertex Buffer resource
+    /// </summary>
     internal class VertexBuffer
     {
         public unsafe bgfx.Memory *data;
@@ -30,6 +29,9 @@ namespace Staple.Internal
             Destroy();
         }
 
+        /// <summary>
+        /// Destroys the resource
+        /// </summary>
         internal void Destroy()
         {
             if (destroyed)
@@ -45,12 +47,25 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Sets the buffer active
+        /// </summary>
+        /// <param name="stream">The stream to use</param>
+        /// <param name="start">Vertex index to start at</param>
+        /// <param name="count">Vertex count to use</param>
         internal void SetActive(byte stream, uint start, uint count)
         {
             bgfx.set_vertex_buffer(stream, handle, start, count);
         }
 
-        public static VertexBuffer Create<T>(T[] data, VertexLayout layout)
+        /// <summary>
+        /// Creates a vertex buffer from an array of data
+        /// </summary>
+        /// <typeparam name="T">A struct type</typeparam>
+        /// <param name="data">An array of vertices</param>
+        /// <param name="layout">The vertex layout to use</param>
+        /// <returns>The vertex buffer, or null</returns>
+        public static VertexBuffer Create<T>(T[] data, VertexLayout layout) where T: unmanaged
         {
             var size = Marshal.SizeOf(typeof(T));
 

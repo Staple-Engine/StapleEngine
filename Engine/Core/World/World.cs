@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Staple
 {
+    /// <summary>
+    /// Contains and manages entities
+    /// </summary>
     public partial class World
     {
         public delegate void ForEachCallback<T>(Entity entity, ref T a) where T : IComponent;
@@ -31,27 +34,56 @@ namespace Staple
 
         public delegate void IterateComponentCallback(ref IComponent component);
 
-        public class CameraInfo
-        {
-            public Entity entity;
-            public Camera camera;
-            public Transform transform;
-        }
-
+        /// <summary>
+        /// Contains data on an entity
+        /// </summary>
         private struct EntityInfo
         {
+            /// <summary>
+            /// The entity's ID
+            /// </summary>
             public int ID;
+
+            /// <summary>
+            /// The entity's generation
+            /// </summary>
             public int generation;
+
+            /// <summary>
+            /// Whether this entity is alive. If it's not, queries on it will fail.
+            /// </summary>
             public bool alive;
+
+            /// <summary>
+            /// The active components for the entity
+            /// </summary>
             public List<int> components;
+
+            /// <summary>
+            /// The entity's name
+            /// </summary>
             public string name;
         }
 
+        /// <summary>
+        /// Contains info on a component and its type
+        /// </summary>
         private class ComponentInfo
         {
+            /// <summary>
+            /// The type to instantiate
+            /// </summary>
             public Type type;
+
+            /// <summary>
+            /// The list of components per entity
+            /// </summary>
             public List<IComponent> components = new List<IComponent>();
 
+            /// <summary>
+            /// Attempts to add a component to the list
+            /// </summary>
+            /// <returns>Whether successful</returns>
             public bool AddComponent()
             {
                 try
@@ -73,6 +105,11 @@ namespace Staple
                 return false;
             }
 
+            /// <summary>
+            /// Creates an instance of the component
+            /// </summary>
+            /// <param name="component">The component (or default)</param>
+            /// <returns>Whether successful</returns>
             public bool Create(out IComponent component)
             {
                 try
@@ -95,6 +132,17 @@ namespace Staple
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Contains camera entity information
+        /// Used by the SortedCameras property
+        /// </summary>
+        public class CameraInfo
+        {
+            public Entity entity;
+            public Camera camera;
+            public Transform transform;
         }
 
         private object lockObject = new object();

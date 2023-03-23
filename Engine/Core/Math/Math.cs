@@ -1,27 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Math utilities
+    /// </summary>
     public static class Math
     {
+        public static readonly float PI = (float)System.Math.PI;
+
+        public static readonly float Epsilon = float.Epsilon;
+
+        /// <summary>
+        /// Rounds a float value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>The rounded float</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Round(float value) => value < 0.0f ? (int)(value - 0.5f) : (int)(value + 0.5f);
 
+        /// <summary>
+        /// Rounds a float to int
+        /// </summary>
+        /// <param name="value">The float</param>
+        /// <returns>The rounded int</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int RoundToInt(float value) => value < 0.0f ? (int)(value - 0.5f) : (int)(value + 0.5f);
 
+        /// <summary>
+        /// Converts degrees to radians
+        /// </summary>
+        /// <param name="angle">The angle as degrees</param>
+        /// <returns>The radians</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Deg2Rad(float angle) => angle * PI / 180;
 
+        /// <summary>
+        /// Converts radians to degrees
+        /// </summary>
+        /// <param name="angle">The angle as radians</param>
+        /// <returns>The degrees</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Rad2Deg(float angle) => angle * 180 / PI;
 
+        /// <summary>
+        /// Gets the absolute value of a float
+        /// </summary>
+        /// <param name="f">The float</param>
+        /// <returns>The absolute value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Abs(float f) => (float)System.Math.Abs(f);
 
@@ -43,9 +70,21 @@ namespace Staple
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int CeilToInt(float f) => (int)System.Math.Ceiling(f);
 
+        /// <summary>
+        /// Limits a value to a min/max range
+        /// </summary>
+        /// <param name="x">The value</param>
+        /// <param name="min">The min value</param>
+        /// <param name="max">The max value</param>
+        /// <returns>The new value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Clamp(float x, float min, float max) => x < min ? min : x > max ? max : x;
 
+        /// <summary>
+        /// Limits a value to 0/1
+        /// </summary>
+        /// <param name="x">The value</param>
+        /// <returns>The new value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Clamp01(float x) => x < 0 ? 0 : x > 1 ? 1 : x;
 
@@ -169,10 +208,6 @@ namespace Staple
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Tan(float value) => (float)System.Math.Tan(value);
-
-        public static readonly float PI = (float)System.Math.PI;
-
-        public static readonly float Epsilon = float.Epsilon;
 
         public static Vector2 ToVector2(this Vector3 v)
         {

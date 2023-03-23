@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Represents a color as RGBA floats
+    /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct Color
     {
         public float r, g, b, a;
 
+        /// <summary>
+        /// Converts to a uint
+        /// </summary>
         public uint uintValue
         {
             get

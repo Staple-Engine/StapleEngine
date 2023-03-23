@@ -8,16 +8,28 @@ using System.Text;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Resource manager. Keeps track of resources.
+    /// </summary>
     internal class ResourceManager
     {
+        /// <summary>
+        /// Resource paths to load resources from
+        /// </summary>
         public List<string> resourcePaths = new List<string>();
-
-        public static ResourceManager instance = new ResourceManager();
 
         private Dictionary<string, Texture> cachedTextures = new Dictionary<string, Texture>();
         private Dictionary<string, Material> cachedMaterials = new Dictionary<string, Material>();
         private Dictionary<string, Shader> cachedShaders = new Dictionary<string, Shader>();
-        
+
+        /// <summary>
+        /// The default instance of the resource manager
+        /// </summary>
+        public static ResourceManager instance = new ResourceManager();
+
+        /// <summary>
+        /// Destroys all resources
+        /// </summary>
         internal void Destroy()
         {
             foreach(var pair in cachedTextures)
@@ -45,6 +57,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a file as a byte array
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The byte array, or null</returns>
         public byte[] LoadFile(string path)
         {
             foreach(var resourcePath in resourcePaths)
@@ -62,6 +79,11 @@ namespace Staple.Internal
             return null;
         }
 
+        /// <summary>
+        /// Attempts to load a file as a string
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The string, or null</returns>
         public string LoadFileString(string path)
         {
             var data = LoadFile(path);
@@ -74,6 +96,10 @@ namespace Staple.Internal
             return Encoding.UTF8.GetString(data);
         }
 
+        /// <summary>
+        /// Attempts to load the scene list
+        /// </summary>
+        /// <returns>The scene list, or null</returns>
         public List<string> LoadSceneList()
         {
             var data = LoadFile("SceneList");
@@ -111,6 +137,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a raw JSON scene from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The scene, or null</returns>
         public Scene LoadRawSceneFromPath(string path)
         {
             var data = LoadFileString(path);
@@ -172,6 +203,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a compiled scene from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The scene, or null</returns>
         public Scene LoadSceneFromPath(string path)
         {
             var data = LoadFile(path);
@@ -250,11 +286,21 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a scene from a scene name
+        /// </summary>
+        /// <param name="name">The scene name</param>
+        /// <returns>The scene, or null</returns>
         public Scene LoadScene(string name)
         {
             return LoadSceneFromPath(Path.Combine("Scenes", $"{name}.stsc"));
         }
 
+        /// <summary>
+        /// Attempts to load a shader from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The shader, or null</returns>
         public Shader LoadShader(string path)
         {
             if (cachedShaders.TryGetValue(path, out var shader) && shader != null)
@@ -325,6 +371,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a material from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The material, or null</returns>
         public Material LoadMaterial(string path)
         {
             if(cachedMaterials.TryGetValue(path, out var material) && material != null)
@@ -392,6 +443,13 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Attempts to load a texture from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <param name="flags">Any additional texture flags</param>
+        /// <param name="skip">Skip top level mips</param>
+        /// <returns>The texture, or null</returns>
         public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
             if(cachedTextures.TryGetValue(path, out var texture) && texture != null)

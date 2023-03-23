@@ -1,10 +1,24 @@
 ﻿namespace Staple
 {
+    /// <summary>
+    /// Represents an entity
+    /// </summary>
     public struct Entity
     {
+        /// <summary>
+        /// The entity's ID
+        /// </summary>
         public int ID;
+
+        /// <summary>
+        /// The entity's generation.
+        /// This gets increased internally as an entity with the same ID is destroyed, thus making old references fail to reference it again.
+        /// </summary>
         public int generation;
 
+        /// <summary>
+        /// An empty entity
+        /// </summary>
         public readonly static Entity Empty = new Entity()
         {
             ID = -1,

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Staple.Internal
 {
@@ -14,13 +9,24 @@ namespace Staple.Internal
         Invisible
     }
 
+    /// <summary>
+    /// Frustum Culling calculator
+    /// </summary>
     internal class FrustumCuller
     {
+        /// <summary>
+        /// The frustum planes
+        /// </summary>
         private Plane[] planes = new Plane[6];
 
-        public void Update(Matrix4x4 view, Matrix4x4 Projection)
+        /// <summary>
+        /// Updates the frustum culler's planes
+        /// </summary>
+        /// <param name="view">The view matrix</param>
+        /// <param name="projection">The projection matrix</param>
+        public void Update(Matrix4x4 view, Matrix4x4 projection)
         {
-            var clip = view * Projection;
+            var clip = view * projection;
 
             var vector = Vector4.Normalize(new Vector4(clip.M14 - clip.M11,
                 clip.M24 - clip.M21,
@@ -71,6 +77,11 @@ namespace Staple.Internal
             planes[5].D = vector.W;
         }
 
+        /// <summary>
+        /// Checks if a point is visible
+        /// </summary>
+        /// <param name="v">The point</param>
+        /// <returns>Whether the point is visible</returns>
         public bool PointTest(Vector3 v)
         {
             for(var i = 0; i < 6; i++)
@@ -86,6 +97,11 @@ namespace Staple.Internal
             return true;
         }
 
+        /// <summary>
+        /// CHecks if an Axis Aligned Bounding Box is visible
+        /// </summary>
+        /// <param name="aabb">The AABB</param>
+        /// <returns>The result of the test. If it's not Invisible, then it's at least partially visible.</returns>
         public FrustumAABBResult AABBTest(AABB aabb)
         {
             var result = FrustumAABBResult.Visible;

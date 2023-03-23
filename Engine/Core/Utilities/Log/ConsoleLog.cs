@@ -1,5 +1,8 @@
 namespace Staple
 {
+    /// <summary>
+    /// Console-based logger
+    /// </summary>
     internal class ConsoleLog : ILog
     {
         public void Debug(string message)

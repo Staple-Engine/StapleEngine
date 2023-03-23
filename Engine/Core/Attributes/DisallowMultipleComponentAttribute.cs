@@ -2,7 +2,7 @@ using System;
 
 namespace Staple
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public class DisallowMultipleComponentAttribute : Attribute
     {
     }

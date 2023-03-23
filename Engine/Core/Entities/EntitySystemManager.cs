@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Manages entity systems
+    /// The player will automatically register entity systems.
+    /// </summary>
     public class EntitySystemManager : ISubsystem
     {
         public SubsystemType type { get; } = SubsystemType.FixedUpdate;
@@ -16,6 +20,10 @@ namespace Staple
 
         internal static readonly byte Priority = 1;
 
+        /// <summary>
+        /// Registers an entity system.
+        /// </summary>
+        /// <param name="system">The system to register</param>
         public void RegisterSystem(IEntitySystem system)
         {
             systems.Add(system);

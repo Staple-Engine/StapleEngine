@@ -1,13 +1,12 @@
 ﻿using MessagePack;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Represents a color as RGBA bytes
+    /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     [MessagePackObject]
@@ -25,6 +24,9 @@ namespace Staple
         [Key(3)]
         public byte a;
 
+        /// <summary>
+        /// Converts to a uint
+        /// </summary>
         [IgnoreMember]
         public uint uintValue
         {
@@ -45,6 +47,11 @@ namespace Staple
             a = A;
         }
 
+        /// <summary>
+        /// Converts a HTML hex string to a Color.
+        /// </summary>
+        /// <param name="value">The hex string</param>
+        /// <remarks>Expected format: "#RRGGBB" or "#RRGGBBAA"</remarks>
         public Color32(string value)
         {
             //Compensate for missing alpha component

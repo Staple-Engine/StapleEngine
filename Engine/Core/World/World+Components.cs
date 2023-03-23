@@ -5,6 +5,11 @@ namespace Staple
 {
     public partial class World
     {
+        /// <summary>
+        /// Finds a component's index in the components repository
+        /// </summary>
+        /// <param name="t">The type to check</param>
+        /// <returns>The index or -1 on failure</returns>
         internal int ComponentIndex(Type t)
         {
             lock (lockObject)
@@ -21,6 +26,9 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Gets all available cameras sorted by depth
+        /// </summary>
         public CameraInfo[] SortedCameras
         {
             get
@@ -43,11 +51,23 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Adds a component to an entity
+        /// </summary>
+        /// <typeparam name="T">The component type</typeparam>
+        /// <param name="entity">The entity to add the component to</param>
+        /// <returns>The component instance, or default</returns>
         public T AddComponent<T>(Entity entity) where T : IComponent
         {
             return (T)AddComponent(entity, typeof(T));
         }
 
+        /// <summary>
+        /// Adds a component to an entity
+        /// </summary>
+        /// <param name="entity">The entity to add the component to</param>
+        /// <param name="t">The component type</param>
+        /// <returns>The component instance, or default</returns>
         public IComponent AddComponent(Entity entity, Type t)
         {
             lock (lockObject)
@@ -110,11 +130,21 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <typeparam name="T">The type to remove</typeparam>
+        /// <param name="entity">The entity to remove the component from</param>
         public void RemoveComponent<T>(Entity entity) where T : IComponent
         {
             RemoveComponent(entity, typeof(T));
         }
 
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to remove the component from</param>
+        /// <param name="t">The type to remove</param>
         public void RemoveComponent(Entity entity, Type t)
         {
             lock (lockObject)
@@ -133,6 +163,12 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Attempts to get a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to get from</param>
+        /// <param name="t">The component type</param>
+        /// <returns>The component instance, or default</returns>
         public IComponent GetComponent(Entity entity, Type t)
         {
             if (typeof(IComponent).IsAssignableFrom(t) == false)
@@ -159,28 +195,43 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Attempts to get a component from an entity
+        /// </summary>
+        /// <typeparam name="T">The component type</typeparam>
+        /// <param name="entity">The entity to get from</param>
+        /// <returns>The component instance, or default</returns>
         public T GetComponent<T>(Entity entity) where T : IComponent
         {
             return (T)GetComponent(entity, typeof(T));
         }
 
+        /// <summary>
+        /// Updates an entity's component.
+        /// This is required if the component type is a struct.
+        /// </summary>
+        /// <param name="entity">The entity to update</param>
+        /// <param name="component">The component instance to replace</param>
         public void UpdateComponent(Entity entity, IComponent component)
         {
-            var componentIndex = ComponentIndex(component.GetType());
-
-            if (componentIndex < 0)
+            lock(lockObject)
             {
-                return;
-            }
+                var componentIndex = ComponentIndex(component.GetType());
 
-            foreach (var e in entities)
-            {
-                if (e.ID != entity.ID || e.generation != entity.generation || e.alive == false)
+                if (componentIndex < 0)
                 {
-                    continue;
+                    return;
                 }
 
-                componentsRepository[componentIndex].components[e.ID] = component;
+                foreach (var e in entities)
+                {
+                    if (e.ID != entity.ID || e.generation != entity.generation || e.alive == false)
+                    {
+                        continue;
+                    }
+
+                    componentsRepository[componentIndex].components[e.ID] = component;
+                }
             }
         }
     }

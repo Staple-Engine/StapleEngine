@@ -5,6 +5,9 @@ using System.Numerics;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Shader resource
+    /// </summary>
     internal class Shader
     {
         internal class UniformInfo
@@ -19,6 +22,9 @@ namespace Staple.Internal
 
         internal List<UniformInfo> uniforms = new List<UniformInfo>();
 
+        /// <summary>
+        /// Whether this shader has been disposed
+        /// </summary>
         public bool Disposed { get; internal set; } = false;
 
         internal Shader(ShaderMetadata metadata, bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
@@ -98,6 +104,11 @@ namespace Staple.Internal
             return uniforms.FirstOrDefault(x => x.uniform.name == name);
         }
 
+        /// <summary>
+        /// Sets a Vector4 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
         public void SetVector4(string name, Vector4 value)
         {
             if (Disposed)
@@ -118,6 +129,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Sets a Color uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
         public void SetColor(string name, Color value)
         {
             if(Disposed)
@@ -140,6 +156,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Sets a Texture uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
         public void SetTexture(string name, Texture value)
         {
             if (Disposed)
@@ -160,6 +181,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Sets a Matrix4x4 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
         public void SetMatrix4x4(string name, Matrix4x4 value)
         {
             if (Disposed)
@@ -180,6 +206,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Sets a Matrix3x3 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
         public void SetMatrix3x3(string name, Matrix3x3 value)
         {
             if (Disposed)
@@ -200,6 +231,9 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Destroys this resource
+        /// </summary>
         internal void Destroy()
         {
             if (Disposed)
@@ -223,6 +257,11 @@ namespace Staple.Internal
             }
         }
 
+        /// <summary>
+        /// Creates from shader data
+        /// </summary>
+        /// <param name="data">The data</param>
+        /// <returns>The shader if valid</returns>
         internal static Shader Create(SerializableShader data)
         {
             unsafe

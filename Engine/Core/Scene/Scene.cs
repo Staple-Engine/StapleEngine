@@ -17,22 +17,20 @@ namespace Staple
     {
         internal World world = new World();
 
+        /// <summary>
+        /// The currently active scene
+        /// </summary>
         public static Scene current { get; internal set; }
 
+        /// <summary>
+        /// A list of all scenes we can load
+        /// </summary>
         internal static List<string> sceneList = new List<string>();
 
-        public void Load(string path)
-        {
-            var scene = ResourceManager.instance.LoadScene(path);
-
-            if(scene == null)
-            {
-                return;
-            }
-
-            current = scene;
-        }
-
+        /// <summary>
+        /// Creates an empty entity
+        /// </summary>
+        /// <returns>The new entity</returns>
         public Entity CreateEntity()
         {
             var e = world.CreateEntity();
@@ -47,46 +45,95 @@ namespace Staple
             return e;
         }
 
+        /// <summary>
+        /// Destroys an entity
+        /// </summary>
+        /// <param name="entity">The entity to destroy</param>
         public void DestroyEntity(Entity entity)
         {
             world.DestroyEntity(entity);
         }
 
+        /// <summary>
+        /// Adds a component to an entity
+        /// </summary>
+        /// <param name="entity">The entity to add the component to</param>
+        /// <param name="t">The component's type</param>
+        /// <returns>The component's instance</returns>
         public IComponent AddComponent(Entity entity, Type t)
         {
             return world.AddComponent(entity, t);
         }
 
-        public IComponent AddComponent<T>(Entity entity) where T: IComponent
+        /// <summary>
+        /// Adds a component to an entity
+        /// </summary>
+        /// <typeparam name="T">The component's type</typeparam>
+        /// <param name="entity">The entity to add the component to</param>
+        /// <returns>The component's instance</returns>
+        public T AddComponent<T>(Entity entity) where T: IComponent
         {
             return world.AddComponent<T>(entity);
         }
 
+        /// <summary>
+        /// Updates an entity's component
+        /// </summary>
+        /// <param name="entity">The entity to update</param>
+        /// <param name="component">The component instance</param>
         public void UpdateComponent(Entity entity, IComponent component)
         {
             world.UpdateComponent(entity, component);
         }
 
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to remove the component from</param>
+        /// <param name="t">The type of the component to remove</param>
         public void RemoveComponent(Entity entity, Type t)
         {
             world.RemoveComponent(entity, t);
         }
 
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <typeparam name="T">The type of the component to remove</typeparam>
+        /// <param name="entity">The entity to remove the component from</param>
         public void RemoveComponent<T>(Entity entity) where T: IComponent
         {
             world.RemoveComponent<T>(entity);
         }
 
+        /// <summary>
+        /// Gets a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to get the component from</param>
+        /// <param name="t">The component's type</param>
+        /// <returns>The component instance, or default</returns>
         public IComponent GetComponent(Entity entity, Type t)
         {
             return world.GetComponent(entity, t);
         }
 
+        /// <summary>
+        /// Gets a component from an entity
+        /// </summary>
+        /// <typeparam name="T">The component's type</typeparam>
+        /// <param name="entity">The entity to get the component from</param>
+        /// <returns>The component instance, or default</returns>
         public T GetComponent<T>(Entity entity) where T: IComponent
         {
             return world.GetComponent<T>(entity);
         }
 
+        /// <summary>
+        /// Instantiates a scene object
+        /// </summary>
+        /// <param name="sceneObject">The scene object to instantiate</param>
+        /// <param name="localID">The local ID of the entity</param>
+        /// <returns>The new entity, or Entity.Empty</returns>
         internal Entity Instantiate(SceneObject sceneObject, out int localID)
         {
             localID = sceneObject.ID;
@@ -370,6 +417,11 @@ namespace Staple
             return entity;
         }
 
+        /// <summary>
+        /// Attempts to find an entity by ID
+        /// </summary>
+        /// <param name="ID">The entity's ID</param>
+        /// <returns>an Entity, or Entity.Empty</returns>
         internal Entity FindEntity(int ID)
         {
             return world.FindEntity(ID);

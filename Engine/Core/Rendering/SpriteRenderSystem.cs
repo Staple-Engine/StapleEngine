@@ -2,16 +2,19 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple
 {
+    /// <summary>
+    /// Sprite Render System
+    /// </summary>
     internal class SpriteRenderSystem : IRenderSystem
     {
+        /// <summary>
+        /// Vertex data
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         struct SpriteVertex
         {
@@ -19,6 +22,9 @@ namespace Staple
             public Vector2 texCoord;
         }
 
+        /// <summary>
+        /// Contains render information for a sprite
+        /// </summary>
         private class SpriteRenderInfo
         {
             public Matrix4x4 transform;
@@ -28,6 +34,9 @@ namespace Staple
             public ushort viewID;
         }
 
+        /// <summary>
+        /// The vertices for a normal quad sprite
+        /// </summary>
         private static SpriteVertex[] vertices = new SpriteVertex[]
         {
             new SpriteVertex() {
@@ -48,6 +57,9 @@ namespace Staple
             },
         };
 
+        /// <summary>
+        /// The indices for a normal quad sprite
+        /// </summary>
         private static ushort[] indices = new ushort[]
         {
             0, 1, 2, 2, 3, 0
@@ -79,6 +91,7 @@ namespace Staple
         {
             var r = renderer as Sprite;
 
+            //We recalculate the bounds of this sprite
             if(r.texture != null && r.material != null && r.material.shader != null)
             {
                 r.localBounds = new AABB(Vector3.Zero, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));

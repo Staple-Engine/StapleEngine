@@ -1,12 +1,10 @@
 ﻿using Bgfx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Creates a vertex layout
+    /// </summary>
     internal class VertexLayoutBuilder
     {
         private bgfx.VertexLayout layout;

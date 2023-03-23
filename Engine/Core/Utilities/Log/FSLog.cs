@@ -3,6 +3,9 @@ using System.IO;
 
 namespace Staple
 {
+    /// <summary>
+    /// Filesystem-based logger
+    /// </summary>
     internal class FSLog : ILog
     {
         private StreamWriter writer;

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
@@ -33,6 +29,9 @@ namespace Staple.Internal
         public GLFW.ModifierKeys mods;
     }
 
+    /// <summary>
+    /// Stores information on an app event
+    /// </summary>
     internal class AppEvent
     {
         public AppEventType type;
