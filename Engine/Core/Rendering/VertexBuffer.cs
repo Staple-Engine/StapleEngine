@@ -110,5 +110,41 @@ namespace Staple.Internal
                 }
             }
         }
+
+        /// <summary>
+        /// Creates a vertex buffer from an array of data
+        /// </summary>
+        /// <typeparam name="T">A struct type</typeparam>
+        /// <param name="data">An array of vertices</param>
+        /// <param name="layout">The vertex layout to use</param>
+        /// <returns>The vertex buffer, or null</returns>
+        public static VertexBuffer Create(byte[] data, VertexLayout layout)
+        {
+            var size = layout.layout.stride;
+
+            if(data == null || data.Length == 0 || data.Length % size != 0)
+            {
+                return null;
+            }
+
+            IntPtr ptr = IntPtr.Zero;
+
+            unsafe
+            {
+                bgfx.Memory* outData;
+
+                fixed (void* dataPtr = data)
+                {
+                    outData = bgfx.copy(dataPtr, (uint)data.Length);
+                }
+
+                fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
+                {
+                    var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+
+                    return new VertexBuffer(outData, layout, handle, data.Length);
+                }
+            }
+        }
     }
 }

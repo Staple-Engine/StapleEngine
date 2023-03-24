@@ -12,15 +12,7 @@ namespace Staple
     /// </summary>
     internal class SpriteRenderSystem : IRenderSystem
     {
-        /// <summary>
-        /// Vertex data
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        struct SpriteVertex
-        {
-            public Vector3 position;
-            public Vector2 texCoord;
-        }
+        private Mesh spriteMesh;
 
         /// <summary>
         /// Contains render information for a sprite
@@ -37,44 +29,35 @@ namespace Staple
         /// <summary>
         /// The vertices for a normal quad sprite
         /// </summary>
-        private static SpriteVertex[] vertices = new SpriteVertex[]
+        private static Vector3[] positions = new Vector3[]
         {
-            new SpriteVertex() {
-                position = new Vector3(-0.5f, -0.5f, 0),
-                texCoord = Vector2.Zero,
-            },
-            new SpriteVertex() {
-                position = new Vector3(-0.5f, 0.5f, 0),
-                texCoord = new Vector2(0, 1),
-            },
-            new SpriteVertex() {
-                position = new Vector3(0.5f, 0.5f, 0),
-                texCoord = Vector2.One,
-            },
-            new SpriteVertex() {
-                position = new Vector3(0.5f, -0.5f, 0),
-                texCoord = new Vector2(1, 0),
-            },
+            new Vector3(-0.5f, -0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(0.5f, 0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+        };
+
+        private static Vector2[] uvs = new Vector2[]
+        {
+            Vector2.Zero,
+            new Vector2(0, 1),
+            Vector2.One,
+            new Vector2(1, 0),
         };
 
         /// <summary>
         /// The indices for a normal quad sprite
         /// </summary>
-        private static ushort[] indices = new ushort[]
+        private static int[] indices = new int[]
         {
             0, 1, 2, 2, 3, 0
         };
-
-        private VertexLayout vertexLayout;
-        private VertexBuffer vertexBuffer;
-        private IndexBuffer indexBuffer;
 
         private List<SpriteRenderInfo> sprites = new List<SpriteRenderInfo>();
 
         public void Destroy()
         {
-            vertexBuffer?.Destroy();
-            indexBuffer?.Destroy();
+            spriteMesh?.Destroy();
         }
 
         public Type RelatedComponent()
@@ -131,16 +114,15 @@ namespace Staple
 
         public void Submit()
         {
-            if (vertexLayout == null)
+            if (spriteMesh == null)
             {
-                vertexLayout = new VertexLayoutBuilder()
-                    .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-                    .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
-                    .Build();
+                spriteMesh = new Mesh();
 
-                vertexBuffer = VertexBuffer.Create(vertices, vertexLayout);
+                spriteMesh.vertices = positions;
+                spriteMesh.uv = uvs;
+                spriteMesh.indices = indices;
 
-                indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
+                spriteMesh.UploadMeshData();
             }
 
             if(sprites.Count == 0)
@@ -148,8 +130,7 @@ namespace Staple
                 return;
             }
 
-            vertexBuffer.SetActive(0, 0, (uint)vertexBuffer.length);
-            indexBuffer.SetActive(0, (uint)indexBuffer.length);
+            spriteMesh?.SetActive();
 
             bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
 

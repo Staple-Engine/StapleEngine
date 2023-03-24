@@ -50,9 +50,9 @@
     <Compile Include="Core\Attributes\DisallowMultipleComponentAttribute.cs" />
     <Compile Include="Core\Bindings\bgfx.cs" />
     <Compile Include="Core\Bindings\bgfx_dllname.cs" />
-    <Compile Include="Core\Entities\Camera.cs" />
-    <Compile Include="Core\Entities\CameraClearMode.cs" />
-    <Compile Include="Core\Entities\CameraType.cs" />
+    <Compile Include="Core\Entities\Camera\Camera.cs" />
+    <Compile Include="Core\Entities\Camera\CameraClearMode.cs" />
+    <Compile Include="Core\Entities\Camera\CameraType.cs" />
     <Compile Include="Core\Entities\ComponentExtensions.cs" />
     <Compile Include="Core\Entities\Entity.cs" />
     <Compile Include="Core\Entities\EntitySystemManager.cs" />
@@ -60,6 +60,10 @@
     <Compile Include="Core\Entities\IEntitySystem.cs" />
     <Compile Include="Core\Entities\Renderable.cs" />
     <Compile Include="Core\Entities\Sprite.cs" />
+    <Compile Include="Core\Rendering\Mesh\Mesh+Internal.cs" />
+    <Compile Include="Core\Rendering\Mesh\Mesh.cs" />
+    <Compile Include="Core\Rendering\Mesh\MeshIndexFormat.cs" />
+    <Compile Include="Core\Rendering\Mesh\MeshTopology.cs" />
     <Compile Include="Core\World\World+Components.cs" />
     <Compile Include="Core\World\World+Entities.cs" />
     <Compile Include="Core\World\World+Iteration.cs" />
