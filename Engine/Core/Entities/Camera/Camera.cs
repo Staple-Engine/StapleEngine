@@ -5,7 +5,6 @@ namespace Staple
     /// <summary>
     /// Camera component
     /// </summary>
-    [DisallowMultipleComponent]
     public class Camera : IComponent
     {
         /// <summary>
@@ -37,7 +36,7 @@ namespace Staple
         /// The camera viewport (X: x, Y: y, Z: width, W: height)
         /// Width and Height are normalized
         /// </summary>
-        public Vector4 viewport = new Vector4(0, 0, 1, 1);
+        public Vector4 viewport = new(0, 0, 1, 1);
 
         /// <summary>
         /// The camera depth. Cameras are sorted by depth, from lower to higher.
@@ -58,7 +57,7 @@ namespace Staple
 
         internal float Height => viewport.W * AppPlayer.ScreenHeight;
 
-        internal static Matrix4x4 Projection(World world, Entity entity, Camera camera, Transform transform)
+        internal static Matrix4x4 Projection(World world, Entity entity, Camera camera)
         {
             switch (camera.cameraType)
             {
@@ -70,6 +69,7 @@ namespace Staple
 
                         return Matrix4x4.Identity;
                     }
+
                     return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
                         camera.nearPlane, camera.farPlane);
 
@@ -98,7 +98,7 @@ namespace Staple
                 (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
                 0.0f, 1.0f);
 
-            var p = Projection(world, entity, camera, transform);
+            var p = Projection(world, entity, camera);
 
             if (Matrix4x4.Invert(p, out var invP) == false)
             {
@@ -126,7 +126,7 @@ namespace Staple
                 (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
                 0.0f, 1.0f);
 
-            var p = Projection(world, entity, camera, transform);
+            var p = Projection(world, entity, camera);
 
             if(Matrix4x4.Invert(p, out var invP) == false)
             {

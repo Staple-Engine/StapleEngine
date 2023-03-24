@@ -82,9 +82,7 @@ namespace Staple
         /// <returns>The layer index or -1</returns>
         public static int NameToLayer(string name)
         {
-            uint value = 0;
-
-            return (AppPlayer.active?.appSettings?.layers?.TryGetValue(name, out value) ?? false) ? (int)value : -1;
+            return (AppPlayer.active?.appSettings?.layers?.TryGetValue(name, out var value) ?? false) ? (int)value : -1;
         }
     }
 }

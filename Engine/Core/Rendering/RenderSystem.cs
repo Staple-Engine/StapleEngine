@@ -29,7 +29,7 @@ namespace Staple
         /// </summary>
         internal class DrawBucket
         {
-            public Dictionary<ushort, List<DrawCall>> drawCalls = new Dictionary<ushort, List<DrawCall>>();
+            public Dictionary<ushort, List<DrawCall>> drawCalls = new();
         }
 
         public SubsystemType type { get; } = SubsystemType.Render;
@@ -37,19 +37,19 @@ namespace Staple
         /// <summary>
         /// Keep the current and previous draw buckets to interpolate around
         /// </summary>
-        private DrawBucket previousDrawBucket = new DrawBucket(), currentDrawBucket = new DrawBucket();
+        private DrawBucket previousDrawBucket = new(), currentDrawBucket = new();
 
-        private object lockObject = new object();
+        private readonly object lockObject = new();
 
-        private FrustumCuller frustumCuller = new FrustumCuller();
+        private readonly FrustumCuller frustumCuller = new();
 
         private bool needsDrawCalls = false;
 
         private float accumulator = 0.0f;
 
-        private List<IRenderSystem> renderSystems = new List<IRenderSystem>();
+        private readonly List<IRenderSystem> renderSystems = new();
 
-        private Transform stagingTransform = new Transform();
+        private readonly Transform stagingTransform = new();
 
         internal static byte Priority = 0;
 
@@ -99,6 +99,7 @@ namespace Staple
         public void Startup()
         {
             renderSystems.Add(new SpriteRenderSystem());
+            renderSystems.Add(new MeshRenderSystem());
 
             Time.OnAccumulatorFinished += () =>
             {
@@ -134,7 +135,7 @@ namespace Staple
 
                     unsafe
                     {
-                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera, c.transform);
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
                         var view = cameraTransform.Matrix;
 
                         Matrix4x4.Invert(view, out view);
@@ -227,10 +228,7 @@ namespace Staple
 
                 lock (lockObject)
                 {
-                    var previous = previousDrawBucket;
-
-                    previousDrawBucket = currentDrawBucket;
-                    currentDrawBucket = previous;
+                    (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
 
                     currentDrawBucket.drawCalls.Clear();
                 }
@@ -242,7 +240,7 @@ namespace Staple
 
                     unsafe
                     {
-                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera, c.transform);
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
                         var view = cameraTransform.Matrix;
 
                         frustumCuller.Update(view, projection);

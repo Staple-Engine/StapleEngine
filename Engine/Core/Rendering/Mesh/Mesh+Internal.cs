@@ -30,21 +30,103 @@ namespace Staple
         internal VertexBuffer vertexBuffer;
         internal IndexBuffer indexBuffer;
 
-        internal static Dictionary<string, VertexLayout> vertexLayouts = new Dictionary<string, VertexLayout>();
+        internal static Dictionary<string, VertexLayout> vertexLayouts = new();
 
-        internal bool hasNormals => (normals?.Length ?? 0) > 0;
-        internal bool hasTangents => (tangents?.Length ?? 0) > 0;
-        internal bool hasBitangents => (tangents?.Length ?? 0) > 0;
-        internal bool hasColors => (colors?.Length ?? 0) > 0;
-        internal bool hasColors32 => (colors32?.Length ?? 0) > 0;
-        internal bool hasUV => (uv?.Length ?? 0) > 0;
-        internal bool hasUV2 => (uv2?.Length ?? 0) > 0;
-        internal bool hasUV3 => (uv3?.Length ?? 0) > 0;
-        internal bool hasUV4 => (uv4?.Length ?? 0) > 0;
-        internal bool hasUV5 => (uv5?.Length ?? 0) > 0;
-        internal bool hasUV6 => (uv6?.Length ?? 0) > 0;
-        internal bool hasUV7 => (uv7?.Length ?? 0) > 0;
-        internal bool hasUV8 => (uv8?.Length ?? 0) > 0;
+        internal bool HasNormals => (normals?.Length ?? 0) > 0;
+        internal bool HasTangents => (tangents?.Length ?? 0) > 0;
+        internal bool HasBitangents => (tangents?.Length ?? 0) > 0;
+        internal bool HasColors => (colors?.Length ?? 0) > 0;
+        internal bool HasColors32 => (colors32?.Length ?? 0) > 0;
+        internal bool HasUV => (uv?.Length ?? 0) > 0;
+        internal bool HasUV2 => (uv2?.Length ?? 0) > 0;
+        internal bool HasUV3 => (uv3?.Length ?? 0) > 0;
+        internal bool HasUV4 => (uv4?.Length ?? 0) > 0;
+        internal bool HasUV5 => (uv5?.Length ?? 0) > 0;
+        internal bool HasUV6 => (uv6?.Length ?? 0) > 0;
+        internal bool HasUV7 => (uv7?.Length ?? 0) > 0;
+        internal bool HasUV8 => (uv8?.Length ?? 0) > 0;
+
+        private static Dictionary<string, Mesh> defaultMeshes = new();
+
+        private static Mesh _quad;
+
+        internal static Mesh Quad
+        {
+            get
+            {
+                if(_quad == null)
+                {
+                    _quad = new Mesh(false, false)
+                    {
+                        vertices = new Vector3[]
+                        {
+                            new Vector3(-0.5f, -0.5f, 0),
+                            new Vector3(-0.5f, 0.5f, 0),
+                            new Vector3(0.5f, 0.5f, 0),
+                            new Vector3(0.5f, -0.5f, 0),
+                        },
+
+                        uv = new Vector2[]
+                        {
+                            Vector2.Zero,
+                            new Vector2(0, 1),
+                            Vector2.One,
+                            new Vector2(1, 0),
+                        },
+
+                        /// <summary>
+                        /// The indices for a normal quad sprite
+                        /// </summary>
+                        indices = new int[]
+                        {
+                            0, 1, 2, 2, 3, 0
+                        },
+                    };
+
+                    _quad.UploadMeshData();
+                }
+
+                return _quad;
+            }
+        }
+
+        private static Mesh _cube;
+        internal static Mesh Cube
+        {
+            get
+            {
+                if(_cube == null)
+                {
+                    _cube = new Mesh(false, false)
+                    {
+                        vertices = new Vector3[]
+                        {
+                            new Vector3(-0.5f, 0.5f, 0.5f),
+                            Vector3.One * 0.5f,
+                            new Vector3(-0.5f, -0.5f, 0.5f),
+                            new Vector3(0.5f, -0.5f, 0.5f),
+                            new Vector3(-0.5f, 0.5f, -0.5f),
+                            new Vector3(0.5f, 0.5f, -0.5f),
+                            Vector3.One * -0.5f,
+                            new Vector3(0.5f, -0.5f, -0.5f),
+                        },
+
+                        indices = new int[]
+                        {
+                            0, 1, 2,
+                            3, 7, 1,
+                            5, 0, 4,
+                            2, 6, 7,
+                            4, 5
+                        },
+                    };
+
+                    _cube.UploadMeshData();
+                }
+
+                return _cube;
+            }
+        }
 
         internal void Destroy()
         {
@@ -59,67 +141,67 @@ namespace Staple
         {
             var keyBuilder = new StringBuilder();
 
-            if (mesh.hasNormals)
+            if (mesh.HasNormals)
             {
-                keyBuilder.Append("n");
+                keyBuilder.Append('n');
             }
 
-            if(mesh.hasTangents)
+            if(mesh.HasTangents)
             {
-                keyBuilder.Append("t");
+                keyBuilder.Append('t');
             }
 
-            if(mesh.hasBitangents)
+            if(mesh.HasBitangents)
             {
                 keyBuilder.Append("bt");
             }
 
-            if (mesh.hasColors)
+            if (mesh.HasColors)
             {
-                keyBuilder.Append("c");
+                keyBuilder.Append('c');
             }
 
-            if (mesh.hasColors32)
+            if (mesh.HasColors32)
             {
                 keyBuilder.Append("c32");
             }
 
-            if (mesh.hasUV)
+            if (mesh.HasUV)
             {
-                keyBuilder.Append("u");
+                keyBuilder.Append('u');
             }
 
-            if (mesh.hasUV2)
+            if (mesh.HasUV2)
             {
                 keyBuilder.Append("u2");
             }
 
-            if (mesh.hasUV3)
+            if (mesh.HasUV3)
             {
                 keyBuilder.Append("u3");
             }
 
-            if (mesh.hasUV4)
+            if (mesh.HasUV4)
             {
                 keyBuilder.Append("u4");
             }
 
-            if (mesh.hasUV5)
+            if (mesh.HasUV5)
             {
                 keyBuilder.Append("u5");
             }
 
-            if (mesh.hasUV6)
+            if (mesh.HasUV6)
             {
                 keyBuilder.Append("u6");
             }
 
-            if (mesh.hasUV7)
+            if (mesh.HasUV7)
             {
                 keyBuilder.Append("u7");
             }
 
-            if (mesh.hasUV8)
+            if (mesh.HasUV8)
             {
                 keyBuilder.Append("u8");
             }
@@ -135,62 +217,62 @@ namespace Staple
 
             builder.Add(Bgfx.bgfx.Attrib.Position, 3, Bgfx.bgfx.AttribType.Float);
 
-            if(mesh.hasNormals)
+            if(mesh.HasNormals)
             {
                 builder.Add(Bgfx.bgfx.Attrib.Normal, 3, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasTangents)
+            if (mesh.HasTangents)
             {
                 builder.Add(Bgfx.bgfx.Attrib.Tangent, 4, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasBitangents)
+            if (mesh.HasBitangents)
             {
                 builder.Add(Bgfx.bgfx.Attrib.Bitangent, 4, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasColors || mesh.hasColors32)
+            if (mesh.HasColors || mesh.HasColors32)
             {
                 builder.Add(Bgfx.bgfx.Attrib.Color0, 4, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV)
+            if (mesh.HasUV)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV2)
+            if (mesh.HasUV2)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord1, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV3)
+            if (mesh.HasUV3)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord2, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV4)
+            if (mesh.HasUV4)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord3, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV5)
+            if (mesh.HasUV5)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord4, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV6)
+            if (mesh.HasUV6)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord5, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV7)
+            if (mesh.HasUV7)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord6, 2, Bgfx.bgfx.AttribType.Float);
             }
 
-            if (mesh.hasUV8)
+            if (mesh.HasUV8)
             {
                 builder.Add(Bgfx.bgfx.Attrib.TexCoord7, 2, Bgfx.bgfx.AttribType.Float);
             }
@@ -237,14 +319,14 @@ namespace Staple
                 Copy(BitConverter.GetBytes(vertices[i].Z), ref index);
 
                 //Copy normals
-                if(hasNormals)
+                if(HasNormals)
                 {
                     Copy(BitConverter.GetBytes(normals[i].X), ref index);
                     Copy(BitConverter.GetBytes(normals[i].Y), ref index);
                     Copy(BitConverter.GetBytes(normals[i].Z), ref index);
                 }
 
-                if(hasTangents)
+                if(HasTangents)
                 {
                     Copy(BitConverter.GetBytes(tangents[i].X), ref index);
                     Copy(BitConverter.GetBytes(tangents[i].Y), ref index);
@@ -252,7 +334,7 @@ namespace Staple
                     Copy(BitConverter.GetBytes(tangents[i].W), ref index);
                 }
 
-                if (hasBitangents)
+                if (HasBitangents)
                 {
                     Copy(BitConverter.GetBytes(bitangents[i].X), ref index);
                     Copy(BitConverter.GetBytes(bitangents[i].Y), ref index);
@@ -260,14 +342,14 @@ namespace Staple
                     Copy(BitConverter.GetBytes(bitangents[i].W), ref index);
                 }
 
-                if(hasColors)
+                if(HasColors)
                 {
                     Copy(BitConverter.GetBytes(colors[i].r), ref index);
                     Copy(BitConverter.GetBytes(colors[i].g), ref index);
                     Copy(BitConverter.GetBytes(colors[i].b), ref index);
                     Copy(BitConverter.GetBytes(colors[i].a), ref index);
                 }
-                else if(hasColors32)
+                else if(HasColors32)
                 {
                     var c = (Color)colors32[i];
 
@@ -277,49 +359,49 @@ namespace Staple
                     Copy(BitConverter.GetBytes(c.a), ref index);
                 }
 
-                if(hasUV)
+                if(HasUV)
                 {
                     Copy(BitConverter.GetBytes(uv[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv[i].Y), ref index);
                 }
 
-                if (hasUV2)
+                if (HasUV2)
                 {
                     Copy(BitConverter.GetBytes(uv2[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv2[i].Y), ref index);
                 }
 
-                if (hasUV3)
+                if (HasUV3)
                 {
                     Copy(BitConverter.GetBytes(uv3[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv3[i].Y), ref index);
                 }
 
-                if (hasUV4)
+                if (HasUV4)
                 {
                     Copy(BitConverter.GetBytes(uv4[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv4[i].Y), ref index);
                 }
 
-                if (hasUV5)
+                if (HasUV5)
                 {
                     Copy(BitConverter.GetBytes(uv5[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv5[i].Y), ref index);
                 }
 
-                if (hasUV6)
+                if (HasUV6)
                 {
                     Copy(BitConverter.GetBytes(uv6[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv6[i].Y), ref index);
                 }
 
-                if (hasUV7)
+                if (HasUV7)
                 {
                     Copy(BitConverter.GetBytes(uv7[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv7[i].Y), ref index);
                 }
 
-                if (hasUV8)
+                if (HasUV8)
                 {
                     Copy(BitConverter.GetBytes(uv8[i].X), ref index);
                     Copy(BitConverter.GetBytes(uv8[i].Y), ref index);
@@ -331,6 +413,11 @@ namespace Staple
 
         internal bool SetActive()
         {
+            if(changed)
+            {
+                UploadMeshData();
+            }
+
             if(vertexBuffer == null || indexBuffer == null)
             {
                 return false;
@@ -340,6 +427,22 @@ namespace Staple
             indexBuffer.SetActive(0, (uint)indices.Length);
 
             return true;
+        }
+
+        internal static Mesh GetDefaultMesh(string path)
+        {
+            if(defaultMeshes.Count == 0)
+            {
+                defaultMeshes.Add("Internal/Quad", Quad);
+                defaultMeshes.Add("Internal/Cube", Cube);
+            }
+
+            if(defaultMeshes.TryGetValue(path, out var mesh))
+            {
+                return mesh;
+            }
+
+            return null;
         }
     }
 }

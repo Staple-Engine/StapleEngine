@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple
@@ -10,6 +11,8 @@ namespace Staple
     {
         internal const string MainColorProperty = "mainColor";
         internal const string MainTextureProperty = "mainTexture";
+
+        internal static Texture WhiteTexture;
 
         internal Shader shader;
         internal string path;
@@ -76,13 +79,6 @@ namespace Staple
         /// <param name="value">The color value</param>
         public void SetColor(string name, Color value)
         {
-            if(name == MainColorProperty)
-            {
-                MainColor = value;
-
-                return;
-            }
-
             shader?.SetColor(name, value);
         }
 
@@ -93,13 +89,6 @@ namespace Staple
         /// <param name="value">The Vector4 value</param>
         public void SetVector4(string name, Vector4 value)
         {
-            if (name == MainColorProperty)
-            {
-                MainColor = new Color(value.X, value.Y, value.Z, value.W);
-
-                return;
-            }
-
             shader?.SetVector4(name, value);
         }
 
@@ -110,13 +99,6 @@ namespace Staple
         /// <param name="value">The Texture value</param>
         public void SetTexture(string name, Texture value)
         {
-            if (name == MainTextureProperty)
-            {
-                MainTexture = value;
-
-                return;
-            }
-
             shader?.SetTexture(name, value);
         }
 
@@ -145,10 +127,27 @@ namespace Staple
         /// </summary>
         internal void ApplyProperties()
         {
-            if(mainTexture != null)
+            var t = mainTexture;
+
+            if(t == null || t.destroyed)
             {
-                SetTexture(MainTextureProperty, mainTexture);
+                if(WhiteTexture == null)
+                {
+                    var pixels = Enumerable.Repeat((byte)255, 64 * 64 * 4).ToArray();
+
+                    WhiteTexture = Texture.CreatePixels("WHITE", pixels, 64, 64, new TextureMetadata()
+                    {
+                        filter = TextureFilter.Linear,
+                        format = TextureMetadataFormat.RGBA8,
+                        type = TextureType.SRGB,
+                        useMipmaps = false,
+                    }, Bgfx.bgfx.TextureFormat.RGBA8);
+                }
+
+                t = WhiteTexture;
             }
+
+            SetTexture(MainTextureProperty, t);
 
             SetColor(MainColorProperty, mainColor);
         }

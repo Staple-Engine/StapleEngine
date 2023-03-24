@@ -26,34 +26,7 @@ namespace Staple
             public ushort viewID;
         }
 
-        /// <summary>
-        /// The vertices for a normal quad sprite
-        /// </summary>
-        private static Vector3[] positions = new Vector3[]
-        {
-            new Vector3(-0.5f, -0.5f, 0),
-            new Vector3(-0.5f, 0.5f, 0),
-            new Vector3(0.5f, 0.5f, 0),
-            new Vector3(0.5f, -0.5f, 0),
-        };
-
-        private static Vector2[] uvs = new Vector2[]
-        {
-            Vector2.Zero,
-            new Vector2(0, 1),
-            Vector2.One,
-            new Vector2(1, 0),
-        };
-
-        /// <summary>
-        /// The indices for a normal quad sprite
-        /// </summary>
-        private static int[] indices = new int[]
-        {
-            0, 1, 2, 2, 3, 0
-        };
-
-        private List<SpriteRenderInfo> sprites = new List<SpriteRenderInfo>();
+        private readonly List<SpriteRenderInfo> sprites = new();
 
         public void Destroy()
         {
@@ -116,13 +89,7 @@ namespace Staple
         {
             if (spriteMesh == null)
             {
-                spriteMesh = new Mesh();
-
-                spriteMesh.vertices = positions;
-                spriteMesh.uv = uvs;
-                spriteMesh.indices = indices;
-
-                spriteMesh.UploadMeshData();
+                spriteMesh = ResourceManager.instance.LoadMesh("Internal/Quad");
             }
 
             if(sprites.Count == 0)
@@ -142,19 +109,13 @@ namespace Staple
                 {
                     var transform = s.transform;
 
-                    bgfx.set_transform(&transform, 1);
+                    _ = bgfx.set_transform(&transform, 1);
                 }
 
                 bgfx.set_state((ulong)state, 0);
 
-                s.material.ApplyProperties();
-
                 s.material.shader.SetColor(Material.MainColorProperty, s.color);
-
-                if (s.texture != null)
-                {
-                    s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
-                }
+                s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
 
                 var discardFlags = i == sprites.Count - 1 ? bgfx.DiscardFlags.All : bgfx.DiscardFlags.Transform | bgfx.DiscardFlags.Bindings | bgfx.DiscardFlags.State;
 

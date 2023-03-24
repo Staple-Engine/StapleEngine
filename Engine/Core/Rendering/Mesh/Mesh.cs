@@ -9,7 +9,10 @@ namespace Staple
     /// </summary>
     public partial class Mesh
     {
-        public bool isReadable = true;
+        public readonly bool isReadable = true;
+        public readonly bool isWritable = true;
+
+        public AABB bounds { get; internal set; }
 
         public MeshIndexFormat IndexFormat => indexFormat;
 
@@ -32,6 +35,11 @@ namespace Staple
 
             set
             {
+                if(isWritable == false)
+                {
+                    return;
+                }
+
                 var needsReset = vertices == null || vertices.Length != value.Length;
 
                 vertices = value;
@@ -71,6 +79,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -95,6 +108,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -119,6 +137,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -143,6 +166,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -167,6 +195,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -191,6 +224,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -215,6 +253,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -239,6 +282,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -263,6 +311,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -287,6 +340,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -311,6 +369,11 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
@@ -335,7 +398,12 @@ namespace Staple
 
             set
             {
-                if(value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+                if (isWritable == false)
+                {
+                    return;
+                }
+
+                if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
                 {
                     throw new ArgumentException("Array length should match vertices length");
                 }
@@ -359,12 +427,25 @@ namespace Staple
 
             set
             {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
                 indices = value;
                 changed = true;
             }
         }
 
         public int VertexCount => vertices?.Length ?? 0;
+
+        public Mesh() { }
+
+        internal Mesh(bool readable, bool writable)
+        {
+            isReadable = readable;
+            isWritable = writable;
+        }
 
         public void Clear()
         {
@@ -468,6 +549,8 @@ namespace Staple
             {
                 vertexBuffer?.Destroy();
             }
+
+            bounds = AABB.FromPoints(vertices);
         }
     }
 }

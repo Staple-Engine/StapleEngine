@@ -20,17 +20,17 @@ namespace Staple
         /// <summary>
         /// The minimum position of the box
         /// </summary>
-        public Vector3 min => new Vector3(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
+        public Vector3 Min => new(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
 
         /// <summary>
         /// The maximum position of the box
         /// </summary>
-        public Vector3 max => new Vector3(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
+        public Vector3 Max => new(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
 
         /// <summary>
         /// The size of the box
         /// </summary>
-        public Vector3 size => extents * 2;
+        public Vector3 Size => extents * 2;
 
         /// <summary>
         /// Creates an Axis Aligned Bounding Box from a center and size
@@ -52,8 +52,8 @@ namespace Staple
         public bool Contains(Vector3 point)
         {
             //Slight optimization to prevent many function calls
-            var min = this.min;
-            var max = this.max;
+            var min = this.Min;
+            var max = this.Max;
 
             return point.X >= min.X && point.Y >= min.Y && point.Z >= min.Z &&
                 point.X <= max.X && point.Y <= max.Y && point.Z <= max.Z;
@@ -75,6 +75,47 @@ namespace Staple
         public void Expand(Vector3 amount)
         {
             extents += amount / 2;
+        }
+
+        internal static AABB FromPoints(Vector3[] points)
+        {
+            var min = Vector3.One * 999999;
+            var max = Vector3.One * -999999;
+
+            foreach (var v in points)
+            {
+                if (v.X < min.X)
+                {
+                    min.X = v.X;
+                }
+
+                if (v.Y < min.Y)
+                {
+                    min.Y = v.Y;
+                }
+
+                if (v.Z < min.Z)
+                {
+                    min.Z = v.Z;
+                }
+
+                if (v.X > max.X)
+                {
+                    max.X = v.X;
+                }
+
+                if (v.Y > max.Y)
+                {
+                    max.Y = v.Y;
+                }
+
+                if (v.Z > max.Z)
+                {
+                    max.Z = v.Z;
+                }
+            }
+
+            return new AABB((min + max) / 2, (max - min));
         }
     }
 }

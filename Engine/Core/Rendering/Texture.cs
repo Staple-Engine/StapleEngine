@@ -14,7 +14,7 @@ namespace Staple
         internal string path;
         internal bool renderTarget = false;
 
-        private bool destroyed = false;
+        internal bool destroyed = false;
 
         /// <summary>
         /// The texture's width
@@ -134,7 +134,7 @@ namespace Staple
         /// <param name="format">The texture format</param>
         /// <param name="flags">Additional texture flags</param>
         /// <returns>The texture, or null</returns>
-        internal static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
+        public static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
             bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
             unsafe

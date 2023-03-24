@@ -80,17 +80,17 @@ namespace Staple
                 return true;
             }
 
-            if(RaySlabIntersect(ray.position.X, ray.direction.X, aabb.min.X, aabb.max.X) == false)
+            if(RaySlabIntersect(ray.position.X, ray.direction.X, aabb.Min.X, aabb.Max.X) == false)
             {
                 return false;
             }
 
-            if (RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.min.Y, aabb.max.Y) == false)
+            if (RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.Min.Y, aabb.Max.Y) == false)
             {
                 return false;
             }
 
-            if (RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.min.Z, aabb.max.Z) == false)
+            if (RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.Min.Z, aabb.Max.Z) == false)
             {
                 return false;
             }
@@ -153,20 +153,20 @@ namespace Staple
                 switch (i)
                 {
                     case 0:
-                        boxMin = aabb.min.X;
-                        boxMax = aabb.max.X;
+                        boxMin = aabb.Min.X;
+                        boxMax = aabb.Max.X;
 
                         break;
 
                     case 1:
-                        boxMin = aabb.min.Y;
-                        boxMax = aabb.max.Y;
+                        boxMin = aabb.Min.Y;
+                        boxMax = aabb.Max.Y;
 
                         break;
 
                     case 2:
-                        boxMin = aabb.min.Z;
-                        boxMax = aabb.max.Z;
+                        boxMin = aabb.Min.Z;
+                        boxMax = aabb.Max.Z;
 
                         break;
                 }

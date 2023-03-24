@@ -17,7 +17,7 @@ namespace Staple.Internal
         /// <summary>
         /// The frustum planes
         /// </summary>
-        private Plane[] planes = new Plane[6];
+        private readonly Plane[] planes = new Plane[6];
 
         /// <summary>
         /// Updates the frustum culler's planes
@@ -108,14 +108,14 @@ namespace Staple.Internal
 
             for(var i = 0; i < 6; i++)
             {
-                var positive = new Vector4(planes[i].Normal.X > 0 ? aabb.max.X : aabb.min.X,
-                    planes[i].Normal.Y > 0 ? aabb.max.Y : aabb.min.Y,
-                    planes[i].Normal.Z > 0 ? aabb.max.Z : aabb.min.Z,
+                var positive = new Vector4(planes[i].Normal.X > 0 ? aabb.Max.X : aabb.Min.X,
+                    planes[i].Normal.Y > 0 ? aabb.Max.Y : aabb.Min.Y,
+                    planes[i].Normal.Z > 0 ? aabb.Max.Z : aabb.Min.Z,
                     1.0f);
 
-                var negative = new Vector4(planes[i].Normal.X < 0 ? aabb.max.X : aabb.min.X,
-                    planes[i].Normal.Y < 0 ? aabb.max.Y : aabb.min.Y,
-                    planes[i].Normal.Z < 0 ? aabb.max.Z : aabb.min.Z,
+                var negative = new Vector4(planes[i].Normal.X < 0 ? aabb.Max.X : aabb.Min.X,
+                    planes[i].Normal.Y < 0 ? aabb.Max.Y : aabb.Min.Y,
+                    planes[i].Normal.Z < 0 ? aabb.Max.Z : aabb.Min.Z,
                     1.0f);
 
                 var planeVector = new Vector4(planes[i].Normal.X, planes[i].Normal.Y, planes[i].Normal.Z, planes[i].D);

@@ -47,7 +47,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Attributes\DisallowMultipleComponentAttribute.cs" />
     <Compile Include="Core\Bindings\bgfx.cs" />
     <Compile Include="Core\Bindings\bgfx_dllname.cs" />
     <Compile Include="Core\Entities\Camera\Camera.cs" />
@@ -58,8 +57,10 @@
     <Compile Include="Core\Entities\EntitySystemManager.cs" />
     <Compile Include="Core\Entities\IComponent.cs" />
     <Compile Include="Core\Entities\IEntitySystem.cs" />
+    <Compile Include="Core\Entities\MeshRenderer.cs" />
     <Compile Include="Core\Entities\Renderable.cs" />
     <Compile Include="Core\Entities\Sprite.cs" />
+    <Compile Include="Core\Rendering\Mesh\MeshRenderSystem.cs" />
     <Compile Include="Core\Rendering\Mesh\Mesh+Internal.cs" />
     <Compile Include="Core\Rendering\Mesh\Mesh.cs" />
     <Compile Include="Core\Rendering\Mesh\MeshIndexFormat.cs" />
