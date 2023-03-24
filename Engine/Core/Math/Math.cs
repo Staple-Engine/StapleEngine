@@ -239,35 +239,80 @@ namespace Staple
             return new Vector4(v.X, v.Y, v.Z, transform ? 1 : 0);
         }
 
-        public static Vector3 ToEulerAngles(this Quaternion q)
+        /// <summary>
+        /// Converts a quaternion to a vector3 representation of each angle rotation as degrees
+        /// </summary>
+        /// <param name="q">The quaternion</param>
+        /// <returns>The angles as a vector3 of degrees</returns>
+        public static Vector3 ToEulerAngles(Quaternion q)
         {
             var outValue = new Vector3();
 
-            // roll / x
-            double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
-            double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+            float squareX = q.X * q.X;
+            float squareY = q.Y * q.Y;
+            float squareZ = q.Z * q.Z;
+            float squareW = q.W * q.W;
+            float unit = squareX + squareY + squareZ + squareW;
+            float test = q.X * q.W - q.Y * q.Z;
 
-            outValue.X = (float)System.Math.Atan2(sinr_cosp, cosr_cosp);
-
-            // pitch / y
-            double sinp = 2 * (q.W * q.Y - q.Z * q.X);
-
-            if (System.Math.Abs(sinp) >= 1)
+            static float MatchBounds(float x)
             {
-                outValue.Y = (float)CopySign(PI / 2, (float)sinp);
+                while (x < -360)
+                {
+                    x += 360;
+                }
+
+                while (x > 360)
+                {
+                    x -= 360;
+                }
+
+                return x;
             }
-            else
+
+            Vector3 Normalize()
             {
-                outValue.Y = (float)System.Math.Asin(sinp);
+                outValue.X = MatchBounds(Rad2Deg(outValue.X));
+                outValue.Y = MatchBounds(Rad2Deg(outValue.Y));
+                outValue.Z = MatchBounds(Rad2Deg(outValue.Z));
+
+                return outValue;
             }
 
-            // yaw / z
-            double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
-            double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+            if (test > 0.4995f * unit)
+            {
+                outValue.Y = 2.0f * Atan2(q.Y, q.X);
+                outValue.X = PI / 2;
 
-            outValue.Z = (float)System.Math.Atan2(siny_cosp, cosy_cosp);
+                return Normalize();
+            }
+            else if(test < -0.4995f * unit)
+            {
+                outValue.Y = -2.0f * Atan2(q.Y, q.X);
+                outValue.X = -PI / 2;
 
-            return outValue;
+                return Normalize();
+            }
+
+            var q2 = new Quaternion(q.W, q.Z, q.X, q.Y);
+
+            outValue.X = Asin(2.0f * (q2.X * q2.Z - q2.W * q2.Y));
+            outValue.Y = Atan2(2.0f * q2.X * q2.W + 2.0f * q2.Y * q2.Z,
+                1 - 2.0f * (q2.Z * q2.Z + q2.W * q2.W));
+            outValue.Z = Atan2(2.0f * q2.X * q2.Y + 2.0f * q2.Z * q2.W,
+                1 - 2.0f * (q2.Y * q2.Y + q2.Z * q2.Z));
+
+            return Normalize();
+        }
+
+        /// <summary>
+        /// Creates a quaternion from a vector3 rotation with each member representing angles in degrees for that axis
+        /// </summary>
+        /// <param name="angles">The rotation per axis in degrees</param>
+        /// <returns>The new quaternion</returns>
+        public static Quaternion FromEulerAngles(Vector3 angles)
+        {
+            return Quaternion.CreateFromYawPitchRoll(Deg2Rad(angles.Y), Deg2Rad(angles.X), Deg2Rad(angles.Z));
         }
 
         public static Matrix4x4 OrthoLeftHanded(float left, float right, float bottom, float top, float zNear, float zFar)

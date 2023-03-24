@@ -186,7 +186,9 @@ namespace Staple
                 var renderSystem = new RenderSystem();
 
                 SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
-                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.instance, EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Render), EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate), EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
 
                 if (playerAssembly != null)
                 {
@@ -201,7 +203,7 @@ namespace Staple
 
                             if (instance != null)
                             {
-                                EntitySystemManager.instance.RegisterSystem(instance);
+                                EntitySystemManager.GetEntitySystem(instance.UpdateType)?.RegisterSystem(instance);
                             }
                         }
                         catch (System.Exception e)

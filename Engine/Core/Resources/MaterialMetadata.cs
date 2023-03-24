@@ -54,7 +54,7 @@ namespace Staple.Internal
             z = v.Z;
         }
 
-        public Vector3Holder(Quaternion q) : this(q.ToEulerAngles())
+        public Vector3Holder(Quaternion q) : this(Math.ToEulerAngles(q))
         {
         }
     }
@@ -107,6 +107,6 @@ namespace Staple.Internal
         public string shaderPath;
 
         [Key(1)]
-        public Dictionary<string, MaterialParameter> parameters = new Dictionary<string, MaterialParameter>();
+        public Dictionary<string, MaterialParameter> parameters = new();
     }
 }

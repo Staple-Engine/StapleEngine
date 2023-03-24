@@ -422,6 +422,27 @@ namespace Staple.Internal
                     path = path
                 };
 
+                foreach(var parameter in materialData.metadata.parameters)
+                {
+                    switch(parameter.Key)
+                    {
+                        case Material.MainTextureProperty:
+
+                            if(parameter.Value.textureValue != null)
+                            {
+                                material.MainTexture = LoadTexture(parameter.Value.textureValue);
+                            }
+
+                            break;
+
+                        case Material.MainColorProperty:
+
+                            material.MainColor = parameter.Value.colorValue;
+
+                            break;
+                    }
+                }
+
                 if (cachedMaterials.ContainsKey(path))
                 {
                     cachedMaterials[path] = material;

@@ -6,6 +6,8 @@
     /// </summary>
     public interface IEntitySystem
     {
+        SubsystemType UpdateType { get;  }
+
         void Process(World world, float deltaTime);
     }
 }

@@ -1,6 +1,5 @@
-using GlmSharp;
-using NUnit.Framework;
 using Staple;
+using System.Numerics;
 
 namespace CoreTests
 {
@@ -13,13 +12,13 @@ namespace CoreTests
 
             Assert.IsFalse(transform.Changed);
 
-            transform.LocalPosition = Vector3.forward;
+            transform.LocalPosition = new Vector3(0, 0, 1);
 
             Assert.IsTrue(transform.Changed);
 
             var matrix = transform.Matrix;
 
-            Assert.AreNotEqual(matrix, mat4.Identity);
+            Assert.AreNotEqual(matrix, Matrix4x4.Identity);
         }
 
         [Test]
@@ -29,21 +28,21 @@ namespace CoreTests
 
             Assert.IsFalse(transform.Changed);
 
-            transform.LocalRotation = quat.FromAxisAngle(glm.Radians(90.0f), new vec3(0, 1, 0));
+            transform.LocalRotation = Staple.Math.FromEulerAngles(new Vector3(0, 90, 0));
 
             Assert.IsTrue(transform.Changed);
 
             var matrix = transform.Matrix;
 
-            Assert.AreNotEqual(matrix, mat4.Identity);
+            Assert.AreNotEqual(matrix, Matrix4x4.Identity);
 
             var forward = transform.Forward;
 
-            forward.x = Math.Round(forward.x);
-            forward.y = Math.Round(forward.y);
-            forward.z = Math.Round(forward.z);
+            forward.X = Staple.Math.Round(forward.X);
+            forward.Y = Staple.Math.Round(forward.Y);
+            forward.Z = Staple.Math.Round(forward.Z);
 
-            Assert.AreEqual(new Vector3(1, 0, 0), forward);
+            Assert.AreEqual(new Vector3(-1, 0, 0), forward);
         }
 
         [Test]
@@ -53,17 +52,17 @@ namespace CoreTests
 
             Assert.IsFalse(transform.Changed);
 
-            transform.LocalScale = Vector3.one * 0.5f;
+            transform.LocalScale = Vector3.One * 0.5f;
 
             Assert.IsTrue(transform.Changed);
 
             var matrix = transform.Matrix;
 
-            Assert.AreNotEqual(matrix, mat4.Identity);
+            Assert.AreNotEqual(matrix, Matrix4x4.Identity);
 
-            var scaled = matrix * (vec4)Vector3.one;
+            var scaled = Vector3.Transform(Vector3.One, matrix);
 
-            Assert.AreEqual(new vec4(0.5f, 0.5f, 0.5f, 0), scaled);
+            Assert.AreEqual(new Vector3(0.5f, 0.5f, 0.5f), scaled);
         }
     }
 }

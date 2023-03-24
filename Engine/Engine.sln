@@ -3,18 +3,20 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "Player.csproj", "{724E55CA-5EF0-7FA0-47AB-93F433EC06F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "Player\Player.csproj", "{724E55CA-5EF0-7FA0-47AB-93F433EC06F1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BF10A474-ABDD-FE7F-D4F6-EC27C022340E} = {BF10A474-ABDD-FE7F-D4F6-EC27C022340E}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "StapleCore.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "Core\StapleCore.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditorApp", "StapleEditorApp.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditorApp", "EditorApp\StapleEditorApp.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestGame", "TestGame.csproj", "{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestGame", "TestGame\TestGame.csproj", "{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleCoreTests", "StapleCoreTests\StapleCoreTests.csproj", "{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,10 @@ Global
 		{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

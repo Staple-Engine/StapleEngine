@@ -169,11 +169,11 @@ namespace Staple.Editor
                             transform.LocalPosition = position;
                         }
 
-                        var rotation = transform.LocalRotation.ToEulerAngles();
+                        var rotation = Math.ToEulerAngles(transform.LocalRotation);
 
                         if (ImGui.InputFloat3("Rotation", ref rotation))
                         {
-                            transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+                            transform.LocalRotation = Math.FromEulerAngles(rotation);
                         }
 
                         var scale = transform.LocalScale;
@@ -189,7 +189,7 @@ namespace Staple.Editor
 
                 var counter = 0;
 
-                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                Scene.current?.world.IterateComponents(selectedEntity, (ref IComponent component) =>
                 {
                     if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth))
                     {
@@ -268,11 +268,11 @@ namespace Staple.Editor
                             {
                                 var quaternion = (Quaternion)field.GetValue(component);
 
-                                var value = quaternion.ToEulerAngles();
+                                var value = Math.ToEulerAngles(quaternion);
 
                                 if (ImGui.InputFloat3(field.Name, ref value))
                                 {
-                                    quaternion = Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z);
+                                    quaternion = Math.FromEulerAngles(value);
 
                                     field.SetValue(component, quaternion);
                                 }

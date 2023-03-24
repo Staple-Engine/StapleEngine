@@ -85,6 +85,7 @@ namespace Staple
             {
                 Input.Character = 0;
                 Input.MouseDelta = Vector2.Zero;
+                Input.MouseRelativePosition = Vector2.Zero;
 
                 Glfw.PollEvents();
 
@@ -232,6 +233,7 @@ namespace Staple
             {
                 Input.Character = 0;
                 Input.MouseDelta = Vector2.Zero;
+                Input.MouseRelativePosition = Vector2.Zero;
 
                 Glfw.PollEvents();
 
@@ -538,7 +540,7 @@ namespace Staple
                 Log.Error($"RenderWindow Render Exception: {e}");
             }
 
-            var hasCamera = Scene.current.world.CountEntities<Camera>() != 0;
+            var hasCamera = (Scene.current?.world.CountEntities<Camera>() ?? 0) != 0;
 
             if (hasCamera == false)
             {
@@ -703,10 +705,13 @@ namespace Staple
                 Input.MouseScrollCallback((float)xOffset, (float)yOffset);
             });
 
+            //TODO: Decide whether to keep this.
+            /*
             if (Glfw.RawMouseMotionSupported())
             {
                 Glfw.SetInputMode(renderWindow.window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
             }
+            */
 
             if(appSettings.multiThreadedRenderer == false)
             {

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <TargetFramework>net7.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -29,21 +29,16 @@
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestGame\CircularMovementComponent.cs" />
-    <Compile Include="TestGame\CircularMovementSystem.cs" />
-    <Compile Include="TestGame\HighlightableComponent.cs" />
-    <Compile Include="TestGame\HighlightableSystem.cs" />
-    <Compile Include="TestGame\KeyboardControlComponent.cs" />
-    <Compile Include="TestGame\KeyboardControlSystem.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="StapleCore.csproj">
-      <Project>{97D22183-838A-63D0-EC91-3C2CD868FEC0}</Project>
-      <Name>StapleCore</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-copy /B /Y $(SolutionDir)bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
+copy /B /Y $(SolutionDir)Player\bin\$(Configuration)\net7.0\Player* $(SolutionDir)..\Staging
+copy /B /Y $(SolutionDir)Core\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
+copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 #if _DEBUG
-[assembly: InternalsVisibleTo("CoreTests")]
+[assembly: InternalsVisibleTo("StapleCoreTests")]
 #endif
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
@@ -276,6 +276,15 @@ namespace Staple
                                     field.SetValue(componentInstance, (Color)color);
                                 }
                             }
+                            else if(field.FieldType == typeof(Mesh) && pair.Value.GetType() == typeof(string))
+                            {
+                                var value = ResourceManager.instance.LoadMesh((string)pair.Value);
+
+                                if(value != null)
+                                {
+                                    field.SetValue(componentInstance, value);
+                                }
+                            }
                         }
                     }
                 }
@@ -339,11 +348,8 @@ namespace Staple
                                         if (field.FieldType == typeof(string))
                                         {
                                             field.SetValue(componentInstance, parameter.stringValue);
-
-                                            continue;
                                         }
-
-                                        if (field.FieldType.IsEnum)
+                                        else if (field.FieldType.IsEnum)
                                         {
                                             try
                                             {
@@ -357,12 +363,9 @@ namespace Staple
                                             catch (Exception e)
                                             {
                                                 continue;
-                                            }
-
-                                            continue;
+                                            };
                                         }
-
-                                        if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
+                                        else if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
                                         {
                                             var color = new Color32(parameter.stringValue);
 
@@ -375,8 +378,7 @@ namespace Staple
                                                 field.SetValue(componentInstance, (Color)color);
                                             }
                                         }
-
-                                        if (field.FieldType == typeof(Material))
+                                        else if (field.FieldType == typeof(Material))
                                         {
                                             var value = ResourceManager.instance.LoadMaterial(parameter.stringValue);
 
@@ -384,11 +386,8 @@ namespace Staple
                                             {
                                                 field.SetValue(componentInstance, value);
                                             }
-
-                                            continue;
                                         }
-
-                                        if (field.FieldType == typeof(Texture))
+                                        else if (field.FieldType == typeof(Texture))
                                         {
                                             var value = ResourceManager.instance.LoadTexture(parameter.stringValue);
 
@@ -396,8 +395,15 @@ namespace Staple
                                             {
                                                 field.SetValue(componentInstance, value);
                                             }
+                                        }
+                                        else if (field.FieldType == typeof(Mesh))
+                                        {
+                                            var value = ResourceManager.instance.LoadMesh(parameter.stringValue);
 
-                                            continue;
+                                            if (value != null)
+                                            {
+                                                field.SetValue(componentInstance, value);
+                                            }
                                         }
 
                                         break;

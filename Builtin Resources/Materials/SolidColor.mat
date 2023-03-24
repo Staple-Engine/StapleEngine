@@ -1,0 +1,14 @@
+{
+	"shaderPath": "Shaders/Default/SolidColor.stsh",
+	"parameters": {
+		"mainColor":  {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		}
+	}
+}

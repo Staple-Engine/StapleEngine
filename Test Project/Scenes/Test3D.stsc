@@ -1,0 +1,50 @@
+[
+	{
+		"kind": "Entity",
+		"name": "Camera",
+		"ID": 0,
+		"parent": -1,
+		"transform": {
+			"position": { "x": 0, "y": 0, "z": 0 },
+			"rotation": { "x": 0, "y": 0, "z": 0 },
+			"scale": { "x": 1, "y": 1, "z": 1 }
+		},
+		"components": [
+			{
+				"type": "Staple.Camera",
+				"data": {
+					"clearMode": "SolidColor",
+					"cameraType": "Perspective",
+					"clearColor": "#3366FF"
+				}
+			},
+			{
+				"type": "TestGame.KeyboardControlComponent",
+				"data": {
+					"speed": 1,
+					"is3D": true
+				}
+			}
+		]
+	},
+	{
+		"kind": "Entity",
+		"name": "Cube",
+		"ID": 1,
+		"parent": -1,
+		"transform": {
+			"position": { "x": 0, "y": 0, "z": -3 },
+			"rotation": { "x": 0, "y": 0, "z": 0 },
+			"scale": { "x": 1, "y": 1, "z": 1 }
+		},
+		"components": [
+			{
+				"type": "Staple.MeshRenderer",
+				"data": {
+					"material": "Materials/SolidColor.mat",
+					"mesh": "Internal/Cube"
+				}
+			}
+		]
+	}
+]

@@ -1,6 +1,4 @@
-﻿using GlmSharp;
-using NUnit.Framework;
-using Staple;
+﻿using Staple;
 
 namespace CoreTests
 {

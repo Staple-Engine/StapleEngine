@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 #if _DEBUG
-[assembly: InternalsVisibleTo("CoreTests")]
+[assembly: InternalsVisibleTo("StapleCoreTests")]
 #endif
 
 namespace Staple
@@ -175,7 +175,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(0, 0, 1), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -186,7 +186,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(0, 0, -1), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -197,7 +197,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(0, 1, 0), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -208,7 +208,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(0, -1, 0), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -219,7 +219,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(-1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -230,7 +230,7 @@ namespace Staple
         {
             get
             {
-                return Vector3.Transform(new Vector3(1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation));
+                return Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
             }
         }
 
@@ -238,7 +238,7 @@ namespace Staple
         /// Whether this transform changed.
         /// We need this to recalculate and cache the transformation matrix.
         /// </summary>
-        private bool Changed { get; set; } = false;
+        internal bool Changed { get; set; } = false;
 
         /// <summary>
         /// The root transform of this transform

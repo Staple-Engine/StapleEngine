@@ -6,6 +6,8 @@ namespace TestGame
 {
     public class CircularMovementSystem : IEntitySystem
     {
+        public SubsystemType UpdateType => SubsystemType.FixedUpdate;
+
         public void Process(World world, float deltaTime)
         {
             world.ForEach((Entity entity, ref CircularMovementComponent movement, ref Transform transform) =>

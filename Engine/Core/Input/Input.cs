@@ -33,6 +33,11 @@ namespace Staple
         public static Vector2 MousePosition { get; private set; }
 
         /// <summary>
+        /// Last movement of the mouse
+        /// </summary>
+        public static Vector2 MouseRelativePosition { get; internal set; }
+
+        /// <summary>
         /// Current mouse scroll wheel delta
         /// </summary>
         public static Vector2 MouseDelta { get; internal set; }
@@ -103,7 +108,11 @@ namespace Staple
 
         internal static void CursorPosCallback(float xpos, float ypos)
         {
-            MousePosition = new Vector2(xpos, ypos);
+            var newPos = new Vector2(xpos, ypos);
+
+            MouseRelativePosition = newPos - MousePosition;
+
+            MousePosition = newPos;
         }
 
         internal static void HandleTextEvent(AppEvent appEvent)

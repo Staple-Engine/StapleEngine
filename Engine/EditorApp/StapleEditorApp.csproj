@@ -29,19 +29,15 @@
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player\Program.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="StapleCore.csproj">
-      <Project>{97D22183-838A-63D0-EC91-3C2CD868FEC0}</Project>
-      <Name>StapleCore</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Editor\StapleEditor.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-copy /B /Y $(SolutionDir)bin\$(Configuration)\net7.0\Player* $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+copy /B /Y $(SolutionDir)\EditorApp\bin\$(Configuration)\net7.0\StapleEditorApp* $(SolutionDir)..\Staging
+copy /B /Y $(SolutionDir)\StapleCore\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
 copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
   </PropertyGroup>
 </Project>

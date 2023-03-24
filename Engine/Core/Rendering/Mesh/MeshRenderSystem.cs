@@ -40,7 +40,7 @@ namespace Staple
             }
 
             r.localBounds = r.mesh.bounds;
-            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2);
+            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
         }
 
         public void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId)

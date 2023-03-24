@@ -25,36 +25,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\ImGui.NET.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\ImGui.NET.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Editor\ImGuiProxy.cs" />
-    <Compile Include="Editor\Scene+Serialize.cs" />
-    <Compile Include="Editor\StapleEditor+Panels.cs" />
-    <Compile Include="Editor\StapleEditor+Render.cs" />
-    <Compile Include="Editor\StapleEditor.cs" />
+    <Compile Include="CircularMovementComponent.cs" />
+    <Compile Include="CircularMovementSystem.cs" />
+    <Compile Include="HighlightableComponent.cs" />
+    <Compile Include="HighlightableSystem.cs" />
+    <Compile Include="KeyboardControlComponent.cs" />
+    <Compile Include="KeyboardControlSystem.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="StapleCore.csproj">
-      <Project>{97D22183-838A-63D0-EC91-3C2CD868FEC0}</Project>
-      <Name>StapleCore</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy /B /Y $(SolutionDir)bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
+    <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
+copy /B /Y $(SolutionDir)TestGame\bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
   </PropertyGroup>
 </Project>

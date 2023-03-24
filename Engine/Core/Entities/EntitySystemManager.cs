@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Staple
 {
@@ -10,13 +6,38 @@ namespace Staple
     /// Manages entity systems
     /// The player will automatically register entity systems.
     /// </summary>
-    public class EntitySystemManager : ISubsystem
+    internal class EntitySystemManager : ISubsystem
     {
-        public SubsystemType type { get; } = SubsystemType.FixedUpdate;
+        private SubsystemType timing = SubsystemType.FixedUpdate;
 
-        private HashSet<IEntitySystem> systems = new HashSet<IEntitySystem>();
+        public SubsystemType type => timing;
 
-        public static readonly EntitySystemManager instance = new EntitySystemManager();
+        private readonly HashSet<IEntitySystem> systems = new();
+
+        private static readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
+
+        public static EntitySystemManager GetEntitySystem(SubsystemType type)
+        {
+            if(entitySubsystems.Count == 0)
+            {
+                entitySubsystems.Add(SubsystemType.Render, new EntitySystemManager()
+                {
+                    timing = SubsystemType.Render,
+                });
+
+                entitySubsystems.Add(SubsystemType.FixedUpdate, new EntitySystemManager()
+                {
+                    timing = SubsystemType.FixedUpdate,
+                });
+
+                entitySubsystems.Add(SubsystemType.Update, new EntitySystemManager()
+                {
+                    timing = SubsystemType.Update,
+                });
+            }
+
+            return entitySubsystems.TryGetValue(type, out var manager) ? manager : null;
+        }
 
         internal static readonly byte Priority = 1;
 
@@ -46,7 +67,7 @@ namespace Staple
 
             float time;
 
-            switch(type)
+            switch (timing)
             {
                 case SubsystemType.FixedUpdate:
 
@@ -61,7 +82,7 @@ namespace Staple
                     break;
             }
 
-            foreach(var system in systems)
+            foreach (var system in systems)
             {
                 system.Process(Scene.current.world, time);
             }

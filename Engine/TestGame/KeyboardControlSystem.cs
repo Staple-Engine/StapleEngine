@@ -1,11 +1,12 @@
 ﻿using Staple;
-using System;
 using System.Numerics;
 
 namespace TestGame
 {
     public class KeyboardControlSystem : IEntitySystem
     {
+        public SubsystemType UpdateType => SubsystemType.Update;
+
         public void Process(World world, float deltaTime)
         {
             world.ForEach((Entity entity, ref KeyboardControlComponent component, ref Transform transform) =>
@@ -14,22 +15,46 @@ namespace TestGame
 
                 if (Input.GetKey(KeyCode.A))
                 {
-                    direction.X = -1;
+                    direction = transform.Left;
                 }
 
                 if (Input.GetKey(KeyCode.D))
                 {
-                    direction.X = 1;
+                    direction = transform.Right;
                 }
 
                 if (Input.GetKey(KeyCode.W))
                 {
-                    direction.Y = -1;
+                    if(component.is3D)
+                    {
+                        direction += transform.Forward;
+                    }
+                    else
+                    {
+                        direction.Y = -1;
+                    }
                 }
 
                 if (Input.GetKey(KeyCode.S))
                 {
-                    direction.Y = 1;
+                    if (component.is3D)
+                    {
+                        direction += transform.Back;
+                    }
+                    else
+                    {
+                        direction.Y = 1;
+                    }
+                }
+
+                if(component.is3D)
+                {
+                    var rotation = Math.ToEulerAngles(transform.LocalRotation);
+
+                    rotation.X += Input.MouseRelativePosition.Y;
+                    rotation.Y += Input.MouseRelativePosition.X;
+
+                    transform.LocalRotation = Math.FromEulerAngles(rotation);
                 }
 
                 transform.LocalPosition += direction * component.speed * deltaTime;

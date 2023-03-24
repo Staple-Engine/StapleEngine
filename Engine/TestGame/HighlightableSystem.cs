@@ -6,25 +6,24 @@ namespace TestGame
 {
     public class HighlightableSystem : IEntitySystem
     {
+        public SubsystemType UpdateType => SubsystemType.Update;
+
         public void Process(World world, float deltaTime)
         {
-            var cameras = new List<Camera>();
-            var transforms = new List<Transform>();
+            var sortedCameras = world.SortedCameras;
 
-            world.ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
+            var c = sortedCameras.FirstOrDefault();
+
+            if(c == null)
             {
-                cameras.Add(camera);
-                transforms.Add(transform);
-            });
-
-            var camera = cameras.FirstOrDefault();
-            var cameraTransform = transforms.FirstOrDefault();
+                return;
+            }
 
             world.ForEach((Entity entity, ref HighlightableComponent component, ref Sprite renderer, ref Transform transform) =>
             {
-                var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, entity, camera, cameraTransform);
+                var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
 
-                if(renderer.bounds.Contains(worldPosition))
+                if (renderer.bounds.Contains(worldPosition))
                 {
                     renderer.color = new Color(0.5f, 0.5f, 0, 1);
                 }

@@ -1,0 +1,125 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net7.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Reference Include="glfwnet">
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Reference Include="glfwnet">
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bindings\bgfx.cs" />
+    <Compile Include="Bindings\bgfx_dllname.cs" />
+    <Compile Include="Entities\Camera\Camera.cs" />
+    <Compile Include="Entities\Camera\CameraClearMode.cs" />
+    <Compile Include="Entities\Camera\CameraType.cs" />
+    <Compile Include="Entities\ComponentExtensions.cs" />
+    <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\EntitySystemManager.cs" />
+    <Compile Include="Entities\IComponent.cs" />
+    <Compile Include="Entities\IEntitySystem.cs" />
+    <Compile Include="Entities\MeshRenderer.cs" />
+    <Compile Include="Entities\Renderable.cs" />
+    <Compile Include="Entities\Sprite.cs" />
+    <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
+    <Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
+    <Compile Include="Rendering\Mesh\Mesh.cs" />
+    <Compile Include="Rendering\Mesh\MeshIndexFormat.cs" />
+    <Compile Include="Rendering\Mesh\MeshTopology.cs" />
+    <Compile Include="World\World+Components.cs" />
+    <Compile Include="World\World+Entities.cs" />
+    <Compile Include="World\World+Iteration.cs" />
+    <Compile Include="World\World.cs" />
+    <Compile Include="Input\Input.cs" />
+    <Compile Include="Input\KeyCode.cs" />
+    <Compile Include="Input\MouseButton.cs" />
+    <Compile Include="Math\Color.cs" />
+    <Compile Include="Math\Color32.cs" />
+    <Compile Include="Math\Math.cs" />
+    <Compile Include="Math\Matrix3x3.cs" />
+    <Compile Include="Math\Ray.cs" />
+    <Compile Include="Player\AppEvent.cs" />
+    <Compile Include="Player\AppPlatform.cs" />
+    <Compile Include="Player\AppPlayer.cs" />
+    <Compile Include="Player\AppSettings.cs" />
+    <Compile Include="Player\ISubsystem.cs" />
+    <Compile Include="Player\PlayerSettings.cs" />
+    <Compile Include="Player\StaplePlayer.cs" />
+    <Compile Include="Player\SubsystemManager.cs" />
+    <Compile Include="Player\Time.cs" />
+    <Compile Include="Rendering\AABB.cs" />
+    <Compile Include="Rendering\FrustumCuller.cs" />
+    <Compile Include="Rendering\IRenderSystem.cs" />
+    <Compile Include="Rendering\IndexBuffer.cs" />
+    <Compile Include="Rendering\Layer.cs" />
+    <Compile Include="Rendering\Material.cs" />
+    <Compile Include="Rendering\RenderBufferFlags.cs" />
+    <Compile Include="Rendering\RenderSystem.cs" />
+    <Compile Include="Rendering\RenderTarget.cs" />
+    <Compile Include="Rendering\RenderWindow.cs" />
+    <Compile Include="Rendering\RendererType.cs" />
+    <Compile Include="Rendering\Shader.cs" />
+    <Compile Include="Rendering\SpriteRenderSystem.cs" />
+    <Compile Include="Rendering\Texture.cs" />
+    <Compile Include="Rendering\TextureFlags.cs" />
+    <Compile Include="Rendering\VertexBuffer.cs" />
+    <Compile Include="Rendering\VertexLayout.cs" />
+    <Compile Include="Rendering\VertexLayoutBuilder.cs" />
+    <Compile Include="Resources\MaterialMetadata.cs" />
+    <Compile Include="Resources\ResourceManager.cs" />
+    <Compile Include="Resources\SerializableMaterial.cs" />
+    <Compile Include="Resources\SerializableScene.cs" />
+    <Compile Include="Resources\SerializableShader.cs" />
+    <Compile Include="Resources\SerializableTexture.cs" />
+    <Compile Include="Resources\ShaderMetadata.cs" />
+    <Compile Include="Resources\TextureMetadata.cs" />
+    <Compile Include="Scene\Scene.cs" />
+    <Compile Include="Scene\SceneList.cs" />
+    <Compile Include="Transform\Transform.cs" />
+    <Compile Include="Utilities\Log\ConsoleLog.cs" />
+    <Compile Include="Utilities\Log\FSLog.cs" />
+    <Compile Include="Utilities\Log\ILog.cs" />
+    <Compile Include="Utilities\Log\Log.cs" />
+    <Compile Include="Utilities\Randomizer.cs" />
+    <Compile Include="Utilities\Storage.cs" />
+  </ItemGroup>
+</Project>
