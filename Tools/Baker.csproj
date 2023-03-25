@@ -10,8 +10,6 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Baker\Debug\</OutputPath>
-    <IntermediateOutputPath>..\obj\Baker\Debug\</IntermediateOutputPath>
     <DefineConstants>_DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -21,8 +19,6 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Baker\Release\</OutputPath>
-    <IntermediateOutputPath>..\obj\Baker\Release\</IntermediateOutputPath>
     <DefineConstants>NDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -90,8 +86,7 @@
     </Compile>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>IF NOT EXIST $(SolutionDir)\bin (mkdir $(SolutionDir)\bin)
-copy /B /Y $(SolutionDir)..\bin\Baker\Debug\net7.0\*.exe $(SolutionDir)\bin
-copy /B /Y $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)bin\Debug\net7.0\*.exe $(SolutionDir)\bin
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
   </PropertyGroup>
 </Project>

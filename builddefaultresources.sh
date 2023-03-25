@@ -1,3 +1,3 @@
 #!/bin/sh
 
-mono Tools/bin/Baker.exe -i "Builtin Resources" -o "Staging/Data" -r opengl
+./Tools/bin/Baker -i "Builtin Resources" -o "Staging/Data" -r opengl

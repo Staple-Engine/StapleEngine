@@ -13,3 +13,6 @@
 [submodule "Dependencies/glfw-net"]
 	path = Dependencies/glfw-net
 	url = https://github.com/ForeverZer0/glfw-net.git
+[submodule "Dependencies/GENie"]
+	path = Dependencies/GENie
+	url = https://github.com/bkaradzic/GENie.git

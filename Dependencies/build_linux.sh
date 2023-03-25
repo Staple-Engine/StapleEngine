@@ -14,9 +14,13 @@ cd ../../build/vs2022
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net7.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net7.0
 
-cd ../../bgfx
+cd ../../GENie
 
-make tools -j $(nproc)
+make
+
+cd ../bgfx
+
+make GENIE=../GENie/bin/linux/genie tools -j $(nproc)
 
 cp .build/linux64_gcc/bin/*cRelease ../../Tools/bin
 

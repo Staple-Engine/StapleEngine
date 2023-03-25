@@ -1,3 +1,3 @@
 #!/bin/sh
 
-mono Tools/bin/Baker.exe -i "Test Project" -o "Staging/Data" -r opengl
+./Tools/bin/Baker -i "Test Project" -o "Staging/Data" -r opengl
