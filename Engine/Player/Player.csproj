@@ -36,9 +36,9 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-copy /B /Y $(SolutionDir)Player\bin\$(Configuration)\net7.0\Player* $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)Core\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)Player\bin\$(Configuration)\net7.0\Player* $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)Core\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
   </PropertyGroup>
 </Project>

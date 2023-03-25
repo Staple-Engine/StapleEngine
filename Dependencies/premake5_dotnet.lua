@@ -28,6 +28,14 @@ solution "Dependencies_Dotnet"
 			["ALWAYS_SEARCH_USER_PATHS"] = "YES", -- This is the minimum version of macos we'll be able to run on
 		};
 
+project "CrossCopy"
+	kind "ConsoleApp"
+	language "C#"
+	
+	files {
+		"CrossCopy/*.cs"
+	}
+
 project "glfwnet"
 	kind "SharedLib"
 	language "C#"

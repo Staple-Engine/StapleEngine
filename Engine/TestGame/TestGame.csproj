@@ -41,6 +41,6 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-copy /B /Y $(SolutionDir)TestGame\bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)TestGame\bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
   </PropertyGroup>
 </Project>

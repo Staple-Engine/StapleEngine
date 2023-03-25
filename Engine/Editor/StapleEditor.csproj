@@ -51,7 +51,7 @@
     <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy /B /Y $(SolutionDir)\Editor\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-copy /B /Y $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Editor\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
   </PropertyGroup>
 </Project>
