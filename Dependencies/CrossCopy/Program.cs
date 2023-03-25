@@ -8,6 +8,13 @@ namespace CrossCopy
     {
         public static void Main(string[] args)
         {
+            var dllExt = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dll" : "so";
+
+            for(var i = 0; i < args.Length; i++)
+            {
+                args[i] = args[i].Replace("[DLL]", dllExt);
+            }
+
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 try
@@ -23,6 +30,8 @@ namespace CrossCopy
                         CreateNoWindow = true,
                     };
 
+                    Console.WriteLine($"{startInfo.FileName} {startInfo.Arguments}");
+
                     process.StartInfo = startInfo;
 
                     process.Start();
@@ -33,6 +42,8 @@ namespace CrossCopy
 
                         Console.WriteLine(str);
                     }
+
+                    process.WaitForExit();
 
                     Environment.Exit(process.ExitCode);
                 }
@@ -51,23 +62,25 @@ namespace CrossCopy
 
                     var startInfo = new ProcessStartInfo
                     {
-                        WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = "/bin/bash",
-                        Arguments = $"-lic cp -Rf {string.Join(" ", args)}",
+                        Arguments = $"-lc \"cp -Rf {string.Join(" ", args)}\"",
                         RedirectStandardOutput = true,
-                        CreateNoWindow = true,
                     };
+
+                    Console.WriteLine($"{startInfo.FileName} {startInfo.Arguments}");
 
                     process.StartInfo = startInfo;
 
                     process.Start();
 
-                    while (process.StandardOutput.EndOfStream == false)
+                    while(process.StandardOutput.EndOfStream == false)
                     {
                         var str = process.StandardOutput.ReadLine();
 
                         Console.WriteLine(str);
                     }
+
+                    process.WaitForExit();
 
                     Environment.Exit(process.ExitCode);
                 }

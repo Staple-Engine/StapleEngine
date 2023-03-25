@@ -35,9 +35,8 @@
     <ProjectReference Include="..\Editor\StapleEditor.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\EditorApp\bin\$(Configuration)\net7.0\StapleEditorApp* $(SolutionDir)..\Staging
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\StapleCore\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\EditorApp\bin\$(Configuration)\net7.0\StapleEditorApp* $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Core\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\x86_64\$(Configuration)\*.[DLL] $(SolutionDir)..\Staging</PostBuildEvent>
   </PropertyGroup>
 </Project>

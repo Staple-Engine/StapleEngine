@@ -70,10 +70,10 @@ project "ImGui.NET"
 	
 	filter "system:linux"
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}/bin/x86_64/$(Configuration)"
 		}
 
 	filter "system:macos"
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}/bin/x86_64/%{cfg.buildcfg}"
+			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}/bin/x86_64/$(Configuration)"
 		}

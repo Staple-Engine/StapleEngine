@@ -40,7 +40,6 @@
     <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>IF NOT EXIST $(SolutionDir)..\Staging\Data (mkdir $(SolutionDir)..\Staging\Data)
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)TestGame\bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)TestGame\bin\$(Configuration)\net7.0\TestGame.dll $(SolutionDir)..\Staging\Data\Game.dll</PostBuildEvent>
   </PropertyGroup>
 </Project>

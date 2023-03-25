@@ -1,7 +1,4 @@
-local BUILD_DIR = path.join("build", _ACTION)
-if _OPTIONS["cc"] ~= nil then
-	BUILD_DIR = BUILD_DIR .. "_" .. _OPTIONS["cc"]
-end
+local BUILD_DIR = path.join("build", "vs2022")
 local BGFX_DIR = "bgfx"
 local BIMG_DIR = "bimg"
 local BX_DIR = "bx"
@@ -56,7 +53,7 @@ function setBxCompat()
     filter "action:gmake"
         buildoptions { "-fPIC" }
 end
-	
+
 project "bgfx"
 	kind "SharedLib"
 	language "C++"
@@ -127,17 +124,29 @@ project "bimg"
 
 	files {
 		path.join(BIMG_DIR, "include/bimg/*.h"),
-		path.join(BIMG_DIR, "src/image.cpp"),
-		path.join(BIMG_DIR, "src/image_gnf.cpp"),
+		path.join(BIMG_DIR, "src/image*.cpp"),
 		path.join(BIMG_DIR, "src/*.h"),
-		path.join(BIMG_DIR, "3rdparty/astc-encoder/source/*.cpp")
+		path.join(BIMG_DIR, "3rdparty/**.cpp"),
+		path.join(BIMG_DIR, "3rdparty/**.c"),
 	}
 
 	includedirs {
 		path.join(BX_DIR, "include"),
 		path.join(BIMG_DIR, "include"),
-		path.join(BIMG_DIR, "3rdparty/astc-encoder"),
+		path.join(BIMG_DIR, "3rdparty/"),
 		path.join(BIMG_DIR, "3rdparty/astc-encoder/include"),
+		path.join(BIMG_DIR, "3rdparty/edtaa3/"),
+		path.join(BIMG_DIR, "3rdparty/etc1"),
+		path.join(BIMG_DIR, "3rdparty/etc2"),
+		path.join(BIMG_DIR, "3rdparty/iqa/include/"),
+		path.join(BIMG_DIR, "3rdparty/libsquish/include"),
+		path.join(BIMG_DIR, "3rdparty/lodepng"),
+		path.join(BIMG_DIR, "3rdparty/nvtt"),
+		path.join(BIMG_DIR, "3rdparty/nvtt/**"),
+		path.join(BIMG_DIR, "3rdparty/pvrtc"),
+		path.join(BIMG_DIR, "3rdparty/stb"),
+		path.join(BIMG_DIR, "3rdparty/tinyexr"),
+		path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz/"),
 	}
 	
 	filter "configurations:Debug"
