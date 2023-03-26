@@ -28,5 +28,10 @@ namespace Staple
         /// </summary>
         /// <param name="message">The message to log</param>
         void Debug(string message);
+
+        /// <summary>
+        /// Cleans up the log, finishing execution
+        /// </summary>
+        void Cleanup();
     }
 }

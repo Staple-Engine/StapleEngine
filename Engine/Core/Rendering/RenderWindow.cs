@@ -39,7 +39,7 @@ namespace Staple
         public AppSettings appSettings;
         public bool shouldStop = false;
         public bool shouldRender = true;
-        public object renderLock = new object();
+        public object renderLock = new();
         private bool renderThreadReady = false;
         private Thread renderThread;
 
@@ -575,7 +575,7 @@ namespace Staple
             bgfx.dbg_text_clear(0, false);
             bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
 
-            bgfx.frame(false);
+            _ = bgfx.frame(false);
         }
 
         private void RenderThread()
@@ -629,7 +629,7 @@ namespace Staple
         /// <param name="monitorIndex">The monitor index to use</param>
         /// <param name="resetFlags">The starting reset flags</param>
         /// <returns>The window, or null</returns>
-        public static RenderWindow Create(int width, int height, bool resizable, PlayerSettings.WindowMode windowMode,
+        public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
             AppSettings appSettings, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
             //TODO: Multiple windows
@@ -665,19 +665,19 @@ namespace Staple
 
             switch (windowMode)
             {
-                case PlayerSettings.WindowMode.Windowed:
+                case WindowMode.Windowed:
 
                     renderWindow.window = new NativeWindow(width, height, appSettings.appName);
 
                     break;
 
-                case PlayerSettings.WindowMode.Fullscreen:
+                case WindowMode.Fullscreen:
 
                     renderWindow.window = new NativeWindow(width, height, appSettings.appName, monitor, Window.None);
 
                     break;
 
-                case PlayerSettings.WindowMode.Borderless:
+                case WindowMode.Borderless:
 
                     Glfw.WindowHint(Hint.Floating, true);
                     Glfw.WindowHint(Hint.Decorated, false);

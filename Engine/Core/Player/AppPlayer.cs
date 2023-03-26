@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using GLFW;
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.IO;
@@ -55,41 +56,74 @@ namespace Staple
             }
         }
 
-        public static bgfx.ResetFlags ResetFlags(PlayerSettings.VideoFlags videoFlags)
+        public void LoadPlayerSettings()
+        {
+            try
+            {
+                var data = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"));
+
+                playerSettings = JsonConvert.DeserializeObject<PlayerSettings>(data);
+            }
+            catch(System.Exception)
+            {
+            }
+
+            if(playerSettings == null)
+            {
+                playerSettings = new PlayerSettings()
+                {
+                    windowMode = appSettings.defaultWindowMode,
+                    screenWidth = appSettings.defaultWindowWidth,
+                    screenHeight = appSettings.defaultWindowHeight,
+                };
+            }
+        }
+
+        public void SavePlayerSettings()
+        {
+            try
+            {
+                var data = JsonConvert.SerializeObject(playerSettings);
+
+                File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"), data);
+            }
+            catch(System.Exception)
+            {
+            }
+        }
+
+        public static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
         {
             var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.Vsync))
+            if (videoFlags.HasFlag(VideoFlags.Vsync))
             {
                 resetFlags |= bgfx.ResetFlags.Vsync;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX2))
+            if (videoFlags.HasFlag(VideoFlags.MSAAX2))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX2;
             }
-
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX4))
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX4))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX4;
             }
-
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX8))
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX8))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX8;
             }
-
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.MSAAX16))
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX16))
             {
                 resetFlags |= bgfx.ResetFlags.MsaaX16;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HDR10))
+            if (videoFlags.HasFlag(VideoFlags.HDR10))
             {
                 resetFlags |= bgfx.ResetFlags.Hdr10;
             }
 
-            if (videoFlags.HasFlag(PlayerSettings.VideoFlags.HiDPI))
+            if (videoFlags.HasFlag(VideoFlags.HiDPI))
             {
                 resetFlags |= bgfx.ResetFlags.Hidpi;
             }
@@ -120,6 +154,9 @@ namespace Staple
                 Console.WriteLine($"[{type}] {message}");
             };
 
+            LoadPlayerSettings();
+            SavePlayerSettings();
+
             try
             {
                 playerAssembly = Assembly.LoadFrom("Data/Game.dll");
@@ -134,12 +171,6 @@ namespace Staple
             {
                 Log.Info("Loaded player assembly");
             }
-
-            playerSettings = new PlayerSettings()
-            {
-                screenWidth = 1024,
-                screenHeight = 768,
-            };
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
                 appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags));
@@ -248,6 +279,8 @@ namespace Staple
                 ResourceManager.instance.Destroy();
 
                 Log.Info("Done");
+
+                Log.Cleanup();
             };
 
             renderWindow.Run();

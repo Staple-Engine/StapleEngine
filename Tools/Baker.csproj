@@ -70,6 +70,9 @@
     <Compile Include="..\Engine\Core\Rendering\RendererType.cs">
       <Link>Engine\Core\Rendering\RendererType.cs</Link>
     </Compile>
+    <Compile Include="..\Engine\Core\Rendering\WindowMode.cs">
+      <Link>Engine\Core\Rendering\WindowMode.cs</Link>
+    </Compile>
     <Compile Include="..\Engine\Core\Resources\AppSettingsHeader.cs">
       <Link>Engine\Core\Resources\AppSettingsHeader.cs</Link>
     </Compile>

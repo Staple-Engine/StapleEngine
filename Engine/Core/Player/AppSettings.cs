@@ -58,5 +58,23 @@ namespace Staple
         /// </summary>
         [Key(7)]
         public Dictionary<AppPlatform, List<RendererType>> renderers = new();
+
+        /// <summary>
+        /// Default mode for the game window
+        /// </summary>
+        [Key(8)]
+        public WindowMode defaultWindowMode = WindowMode.Borderless;
+
+        /// <summary>
+        /// Default width of the game window
+        /// </summary>
+        [Key(9)]
+        public int defaultWindowWidth = 1024;
+
+        /// <summary>
+        /// Default height of the game window
+        /// </summary>
+        [Key(10)]
+        public int defaultWindowHeight = 768;
     }
 }

@@ -74,6 +74,8 @@
     <Compile Include="Rendering\Mesh\Mesh.cs" />
     <Compile Include="Rendering\Mesh\MeshIndexFormat.cs" />
     <Compile Include="Rendering\Mesh\MeshTopology.cs" />
+    <Compile Include="Rendering\VideoFlags.cs" />
+    <Compile Include="Rendering\WindowMode.cs" />
     <Compile Include="Resources\AppSettingsHeader.cs" />
     <Compile Include="World\World+Components.cs" />
     <Compile Include="World\World+Entities.cs" />

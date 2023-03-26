@@ -24,5 +24,9 @@ namespace Staple
         {
             System.Console.WriteLine($"[Warning] {message}");
         }
+
+        public void Cleanup()
+        {
+        }
     }
 }

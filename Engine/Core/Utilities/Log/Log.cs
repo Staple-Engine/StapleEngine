@@ -147,6 +147,11 @@ namespace Staple
             Instance?.onLog?.Invoke(LogType.Debug, message);
         }
 
+        public static void Cleanup()
+        {
+            Instance?.impl.Cleanup();
+        }
+
         /// <summary>
         /// Formats a message based on the log format
         /// </summary>

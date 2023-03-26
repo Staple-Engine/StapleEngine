@@ -24,12 +24,6 @@ namespace Staple
             }
         }
 
-        ~FSLog()
-        {
-            writer?.Dispose();
-            stream?.Dispose();
-        }
-
         public void Debug(string message)
         {
             writer?.WriteLine($"[Debug] {message}");
@@ -48,6 +42,11 @@ namespace Staple
         public void Warning(string message)
         {
             writer?.WriteLine($"[Warning] {message}");
+        }
+        public void Cleanup()
+        {
+            writer?.Dispose();
+            stream?.Dispose();
         }
     }
 }
