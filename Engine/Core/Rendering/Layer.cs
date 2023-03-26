@@ -54,9 +54,11 @@ namespace Staple
 
             foreach (var layer in layerNames)
             {
-                if(layers.TryGetValue(layer, out var index))
+                var index = layers.IndexOf(layer);
+
+                if(index >= 0)
                 {
-                    mask |= (uint)(1 << (int)index);
+                    mask |= (uint)(1 << index);
                 }
             }
 
@@ -70,9 +72,14 @@ namespace Staple
         /// <returns>The layer name, or null</returns>
         public static string LayerToName(int index)
         {
-            var layerPairs = AppPlayer.active?.appSettings?.layers?.Keys.ToList() ?? new List<string>();
+            var layers = AppPlayer.active?.appSettings?.layers;
 
-            return index < layerPairs.Count ? layerPairs[index] : null;
+            if(layers == null)
+            {
+                return null;
+            }
+
+            return index >= 0 && index < layers.Count ? layers[index] : null;
         }
 
         /// <summary>
@@ -82,7 +89,20 @@ namespace Staple
         /// <returns>The layer index or -1</returns>
         public static int NameToLayer(string name)
         {
-            return (AppPlayer.active?.appSettings?.layers?.TryGetValue(name, out var value) ?? false) ? (int)value : -1;
+            //Default to first layer
+            if(name == null)
+            {
+                return 0;
+            }
+
+            var layers = AppPlayer.active?.appSettings?.layers;
+
+            if(layers == null)
+            {
+                return -1;
+            }
+
+            return layers.IndexOf(name);
         }
     }
 }

@@ -93,6 +93,9 @@ namespace Staple.Internal
 
         [Key(5)]
         public List<SceneComponent> components = new List<SceneComponent>();
+
+        [Key(6)]
+        public string layer;
     }
 
     [MessagePackObject]
@@ -113,7 +116,6 @@ namespace Staple.Internal
         [Key(1)]
         public byte version = ValidVersion;
     }
-
 
     [MessagePackObject]
     public class SerializableScene

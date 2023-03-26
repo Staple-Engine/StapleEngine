@@ -101,7 +101,7 @@ namespace Staple
         }
 
         /// <summary>
-        /// Sets an entity's name
+        /// Sets an entity's name.
         /// </summary>
         /// <param name="entity">The entity</param>
         /// <param name="name">The new name</param>
@@ -117,6 +117,46 @@ namespace Staple
                 var t = entities[entity.ID];
 
                 t.name = name;
+
+                entities[entity.ID] = t;
+            }
+        }
+
+        /// <summary>
+        /// Gets an entity's layer.
+        /// </summary>
+        /// <param name="entity">The entity</param>
+        /// <returns>The current layer of the entity</returns>
+        public uint GetEntityLayer(Entity entity)
+        {
+            lock (lockObject)
+            {
+                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                {
+                    return default;
+                }
+
+                return entities[entity.ID].layer;
+            }
+        }
+
+        /// <summary>
+        /// Sets an entity's layer.
+        /// </summary>
+        /// <param name="entity">The entity</param>
+        /// <param name="layer">The new layter</param>
+        public void SetEntityLayer(Entity entity, uint layer)
+        {
+            lock (lockObject)
+            {
+                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                {
+                    return;
+                }
+
+                var t = entities[entity.ID];
+
+                t.layer = layer;
 
                 entities[entity.ID] = t;
             }

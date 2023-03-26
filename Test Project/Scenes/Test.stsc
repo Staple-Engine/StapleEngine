@@ -16,7 +16,8 @@
 					"clearMode": "SolidColor",
 					"cameraType": "Orthographic",
 					"nearPlane": 0,
-					"clearColor": "#3366FF"
+					"clearColor": "#3366FF",
+					"cullingLayers": "Default"
 				}
 			},
 			{
@@ -31,6 +32,7 @@
 		"name": "Sprite",
 		"ID": 1,
 		"parent": -1,
+		"layer": "Other",
 		"transform": {
 			"position": { "x": 512, "y": 384, "z": 0 },
 			"rotation": { "x": 0, "y": 0, "z": 0 },

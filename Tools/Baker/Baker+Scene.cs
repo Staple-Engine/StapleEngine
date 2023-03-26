@@ -217,7 +217,7 @@ namespace Baker
                 }
             }
 
-            var sceneListText = "";
+            string sceneListText;
 
             try
             {
@@ -232,7 +232,7 @@ namespace Baker
 
             if ((sceneListText?.Length ?? 0) > 0)
             {
-                var sceneList = new List<string>();
+                List<string> sceneList;
 
                 try
                 {

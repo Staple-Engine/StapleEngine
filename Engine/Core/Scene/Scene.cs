@@ -142,6 +142,13 @@ namespace Staple
 
             world.SetEntityName(entity, sceneObject.name);
 
+            var layer = LayerMask.NameToLayer(sceneObject.layer);
+
+            if(layer >= 0)
+            {
+                world.SetEntityLayer(entity, (uint)layer);
+            }
+
             var transform = GetComponent<Transform>(entity);
 
             var rotation = sceneObject.transform.rotation.ToVector3();
@@ -332,11 +339,12 @@ namespace Staple
 
                                         try
                                         {
+
                                             var value = System.Convert.ChangeType(parameter.intValue, field.FieldType);
 
                                             field.SetValue(componentInstance, value);
                                         }
-                                        catch(Exception e)
+                                        catch (Exception e)
                                         {
                                             continue;
                                         }
@@ -404,6 +412,23 @@ namespace Staple
                                             {
                                                 field.SetValue(componentInstance, value);
                                             }
+                                        }
+                                        else if(field.FieldType == typeof(LayerMask))
+                                        {
+                                            var mask = new LayerMask();
+
+                                            if(parameter.stringValue.ToUpperInvariant() == "EVERYTHING")
+                                            {
+                                                mask = LayerMask.Everything;
+                                            }
+                                            else
+                                            {
+                                                var layers = LayerMask.GetMask(parameter.stringValue.Split(" ".ToCharArray()));
+
+                                                mask.value = layers;
+                                            }
+
+                                            field.SetValue(componentInstance, mask);
                                         }
 
                                         break;

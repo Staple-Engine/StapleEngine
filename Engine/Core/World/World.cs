@@ -63,6 +63,11 @@ namespace Staple
             /// The entity's name
             /// </summary>
             public string name;
+
+            /// <summary>
+            /// The entity's layer. Defaults to the first layer.
+            /// </summary>
+            public uint layer;
         }
 
         /// <summary>

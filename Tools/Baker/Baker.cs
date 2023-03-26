@@ -240,6 +240,7 @@ namespace Baker
             ProcessTextures(texturecPath, inputPath, outputPath, renderer);
             ProcessMaterials(inputPath, outputPath);
             ProcessScenes(inputPath, outputPath);
+            ProcessAppSettings(inputPath, outputPath);
         }
     }
 }

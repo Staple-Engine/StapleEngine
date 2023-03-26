@@ -2,6 +2,7 @@
 using GLFW;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -359,7 +360,7 @@ namespace Staple
         private void InitBGFX()
         {
             var init = new bgfx.Init();
-            var activeRendererType = RendererType.OpenGL;
+            var renderers = new List<RendererType>();
 
             unsafe
             {
@@ -367,14 +368,13 @@ namespace Staple
 
                 init.platformData.ndt = null;
 
+                AppPlatform platform = AppPlatform.Windows;
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
 
-                    if (appSettings.renderers.TryGetValue(AppPlatform.Windows, out var type))
-                    {
-                        activeRendererType = type;
-                    }
+                    platform = AppPlatform.Windows;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -390,74 +390,96 @@ namespace Staple
                     init.platformData.ndt = display.ToPointer();
                     init.platformData.nwh = windowHandle.ToPointer();
 
-                    if (appSettings.renderers.TryGetValue(AppPlatform.Linux, out var type))
-                    {
-                        activeRendererType = type;
-                    }
+                    platform = AppPlatform.Linux;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
                     init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
 
-                    if (appSettings.renderers.TryGetValue(AppPlatform.MacOSX, out var type))
-                    {
-                        activeRendererType = type;
-                    }
+                    platform = AppPlatform.MacOSX;
+                }
+
+                if (appSettings.renderers.TryGetValue(platform, out renderers) == false)
+                {
+                    bgfxReferences--;
+
+                    Glfw.Terminate();
+
+                    glfwReferences--;
+
+                    Environment.Exit(1);
+
+                    return;
                 }
             }
 
             Glfw.GetFramebufferSize(window, out screenWidth, out screenHeight);
 
             rendererType = bgfx.RendererType.Count;
-
-            switch (activeRendererType)
-            {
-                case RendererType.Direct3D11:
-
-                    rendererType = bgfx.RendererType.Direct3D11;
-
-                    break;
-
-                case RendererType.Direct3D12:
-
-                    rendererType = bgfx.RendererType.Direct3D12;
-
-                    break;
-
-                case RendererType.OpenGL:
-
-                    rendererType = bgfx.RendererType.OpenGL;
-
-                    break;
-
-                case RendererType.OpenGLES:
-
-                    rendererType = bgfx.RendererType.OpenGLES;
-
-                    break;
-
-                case RendererType.Metal:
-
-                    rendererType = bgfx.RendererType.Metal;
-
-                    break;
-
-                case RendererType.Vulkan:
-
-                    rendererType = bgfx.RendererType.Vulkan;
-
-                    break;
-            }
-
-            init.type = rendererType;
             init.resolution.width = (uint)screenWidth;
             init.resolution.height = (uint)screenHeight;
             init.resolution.reset = (uint)resetFlags;
 
-            unsafe
+            var ok = false;
+
+            if (renderers != null)
             {
-                if (!bgfx.init(&init))
+                foreach(var renderer in renderers)
+                {
+                    switch (renderer)
+                    {
+                        case RendererType.Direct3D11:
+
+                            rendererType = bgfx.RendererType.Direct3D11;
+
+                            break;
+
+                        case RendererType.Direct3D12:
+
+                            rendererType = bgfx.RendererType.Direct3D12;
+
+                            break;
+
+                        case RendererType.OpenGL:
+
+                            rendererType = bgfx.RendererType.OpenGL;
+
+                            break;
+
+                        case RendererType.OpenGLES:
+
+                            rendererType = bgfx.RendererType.OpenGLES;
+
+                            break;
+
+                        case RendererType.Metal:
+
+                            rendererType = bgfx.RendererType.Metal;
+
+                            break;
+
+                        case RendererType.Vulkan:
+
+                            rendererType = bgfx.RendererType.Vulkan;
+
+                            break;
+                    }
+
+                    init.type = rendererType;
+
+                    unsafe
+                    {
+                        ok = bgfx.init(&init);
+
+                        if(ok)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if(ok == false)
                 {
                     bgfxReferences--;
 

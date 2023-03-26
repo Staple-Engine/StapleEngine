@@ -248,6 +248,13 @@ namespace Staple
 
                     Scene.current.world.ForEach((Entity entity, ref Transform t) =>
                     {
+                        var layer = Scene.current.world.GetEntityLayer(entity);
+
+                        if(camera.cullingLayers.HasLayer(layer) == false)
+                        {
+                            return;
+                        }
+
                         foreach (var system in renderSystems)
                         {
                             var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());

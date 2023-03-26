@@ -40,6 +40,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Baker\Baker+AppSettings.cs" />
     <Compile Include="Baker\Baker+Material.cs" />
     <Compile Include="Baker\Baker+Scene.cs" />
     <Compile Include="Baker\Baker+Shaders.cs" />
@@ -59,6 +60,18 @@
     </Compile>
     <Compile Include="..\Engine\Core\Math\Math.cs">
       <Link>Engine\Core\Math\Math.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Player\AppPlatform.cs">
+      <Link>Engine\Core\Player\AppPlatform.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Player\AppSettings.cs">
+      <Link>Engine\Core\Player\AppSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Rendering\RendererType.cs">
+      <Link>Engine\Core\Rendering\RendererType.cs</Link>
+    </Compile>
+    <Compile Include="..\Engine\Core\Resources\AppSettingsHeader.cs">
+      <Link>Engine\Core\Resources\AppSettingsHeader.cs</Link>
     </Compile>
     <Compile Include="..\Engine\Core\Resources\MaterialMetadata.cs">
       <Link>Engine\Core\Resources\MaterialMetadata.cs</Link>

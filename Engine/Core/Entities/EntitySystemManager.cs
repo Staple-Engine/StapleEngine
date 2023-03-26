@@ -8,13 +8,15 @@ namespace Staple
     /// </summary>
     internal class EntitySystemManager : ISubsystem
     {
+        private static readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
+
+        internal static readonly byte Priority = 1;
+
         private SubsystemType timing = SubsystemType.FixedUpdate;
 
         public SubsystemType type => timing;
 
         private readonly HashSet<IEntitySystem> systems = new();
-
-        private static readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
 
         public static EntitySystemManager GetEntitySystem(SubsystemType type)
         {
@@ -39,8 +41,6 @@ namespace Staple
             return entitySubsystems.TryGetValue(type, out var manager) ? manager : null;
         }
 
-        internal static readonly byte Priority = 1;
-
         /// <summary>
         /// Registers an entity system.
         /// </summary>
@@ -52,6 +52,7 @@ namespace Staple
 
         public void Shutdown()
         {
+            systems.Clear();
         }
 
         public void Startup()

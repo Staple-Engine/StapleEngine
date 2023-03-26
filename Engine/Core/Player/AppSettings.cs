@@ -45,29 +45,18 @@ namespace Staple
         /// Which layers to use
         /// </summary>
         [Key(5)]
-        public Dictionary<string, uint> layers = new Dictionary<string, uint>
-        {
-            { "Default", 0 }
-        };
+        public List<string> layers = new();
 
         /// <summary>
         /// Which sorting layers to use
         /// </summary>
         [Key(6)]
-        public Dictionary<string, uint> sortingLayers = new Dictionary<string, uint>
-        {
-            { "Default", 0 }
-        };
+        public List<string> sortingLayers = new();
 
         /// <summary>
         /// Which renderers to use per platform
         /// </summary>
         [Key(7)]
-        public Dictionary<AppPlatform, RendererType> renderers = new Dictionary<AppPlatform, RendererType>
-        {
-            { AppPlatform.Windows, RendererType.Direct3D11 },
-            { AppPlatform.Linux, RendererType.OpenGL },
-            { AppPlatform.MacOSX, RendererType.Metal },
-        };
+        public Dictionary<AppPlatform, List<RendererType>> renderers = new();
     }
 }
