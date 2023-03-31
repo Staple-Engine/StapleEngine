@@ -128,6 +128,14 @@ namespace Staple
             }
         }
 
+        internal bool isDynamic = false;
+
+        internal Mesh(bool readable, bool writable)
+        {
+            isReadable = readable;
+            isWritable = writable;
+        }
+
         internal void Destroy()
         {
             vertexBuffer?.Destroy();

@@ -12,16 +12,21 @@ namespace Staple.Internal
         public unsafe bgfx.Memory *data;
         public VertexLayout layout;
         public bgfx.VertexBufferHandle handle;
-        public readonly int length;
+        public bgfx.DynamicVertexBufferHandle dynamicHandle;
 
         private bool destroyed = false;
 
-        internal unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle, int length)
+        internal unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle)
         {
             this.data = data;
             this.layout = layout;
             this.handle = handle;
-            this.length = length;
+        }
+
+        internal unsafe VertexBuffer(VertexLayout layout, bgfx.DynamicVertexBufferHandle handle)
+        {
+            this.layout = layout;
+            dynamicHandle = handle;
         }
 
         ~VertexBuffer()
@@ -45,6 +50,11 @@ namespace Staple.Internal
             {
                 bgfx.destroy_vertex_buffer(handle);
             }
+
+            if(dynamicHandle.Valid)
+            {
+                bgfx.destroy_dynamic_vertex_buffer(dynamicHandle);
+            }
         }
 
         /// <summary>
@@ -55,7 +65,106 @@ namespace Staple.Internal
         /// <param name="count">Vertex count to use</param>
         internal void SetActive(byte stream, uint start, uint count)
         {
-            bgfx.set_vertex_buffer(stream, handle, start, count);
+            if(handle.Valid)
+            {
+                bgfx.set_vertex_buffer(stream, handle, start, count);
+            }
+            else if(dynamicHandle.Valid)
+            {
+                bgfx.set_dynamic_vertex_buffer(stream, dynamicHandle, start, count);
+            }
+        }
+
+        /// <summary>
+        /// Updates the vertex buffer's data (if it's dynamic)
+        /// </summary>
+        /// <typeparam name="T">A vertex type (probably a struct)</typeparam>
+        /// <param name="data">An array of new data</param>
+        /// <param name="startVertex">The starting vertex</param>
+        public void Update<T>(T[] data, int startVertex) where T: unmanaged
+        {
+            var size = Marshal.SizeOf(typeof(T));
+
+            if (dynamicHandle.Valid == false ||
+                data == null ||
+                data.Length == 0 ||
+                size != layout.layout.stride)
+            {
+                return;
+            }
+
+            byte[] buffer = new byte[size * data.Length];
+
+            IntPtr ptr = IntPtr.Zero;
+
+            unsafe
+            {
+                bgfx.Memory* outData;
+
+                try
+                {
+                    ptr = Marshal.AllocHGlobal(size);
+
+                    for (var i = 0; i < data.Length; i++)
+                    {
+                        Marshal.StructureToPtr(data[i], ptr, true);
+                        Marshal.Copy(ptr, buffer, i * size, size);
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(ptr);
+                }
+
+                Update(buffer, startVertex);
+            }
+        }
+
+        /// <summary>
+        /// Updates the vertex buffer's data (if it's dynamic)
+        /// </summary>
+        /// <param name="data">An array of new data as bytes</param>
+        /// <param name="startVertex">The starting vertex</param>
+        public void Update(byte[] data, int startVertex)
+        {
+            var size = layout.layout.stride;
+
+            if (dynamicHandle.Valid == false || data == null || data.Length == 0 || data.Length % size != 0)
+            {
+                return;
+            }
+
+            unsafe
+            {
+                bgfx.Memory* outData;
+
+                fixed (void* dataPtr = data)
+                {
+                    outData = bgfx.copy(dataPtr, (uint)data.Length);
+                }
+
+                bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
+            }
+        }
+
+        /// <summary>
+        /// Creates a dynamic vertex buffer
+        /// </summary>
+        /// <param name="layout">The vertex layout to use</param>
+        /// <returns>The vertex buffer</returns>
+        public static VertexBuffer CreateDynamic(VertexLayout layout, bool allowResize = true, uint elementCount = 0)
+        {
+            unsafe
+            {
+                fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
+                {
+                    var flags = allowResize ? RenderBufferFlags.AllowResize : RenderBufferFlags.None;
+
+                    var handle = bgfx.create_dynamic_vertex_buffer(elementCount, vertexLayout, (ushort)flags);
+
+                    return new VertexBuffer(layout, handle);
+                }
+            }
         }
 
         /// <summary>
@@ -80,8 +189,6 @@ namespace Staple.Internal
 
             unsafe
             {
-                bgfx.Memory* outData;
-
                 try
                 {
                     ptr = Marshal.AllocHGlobal(size);
@@ -97,17 +204,7 @@ namespace Staple.Internal
                     Marshal.FreeHGlobal(ptr);
                 }
 
-                fixed(void * dataPtr = buffer)
-                {
-                    outData = bgfx.copy(dataPtr, (uint)buffer.Length);
-                }
-
-                fixed(bgfx.VertexLayout *vertexLayout = &layout.layout)
-                {
-                    var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
-
-                    return new VertexBuffer(outData, layout, handle, data.Length);
-                }
+                return Create(buffer, layout);
             }
         }
 
@@ -142,7 +239,7 @@ namespace Staple.Internal
                 {
                     var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
 
-                    return new VertexBuffer(outData, layout, handle, data.Length);
+                    return new VertexBuffer(outData, layout, handle);
                 }
             }
         }

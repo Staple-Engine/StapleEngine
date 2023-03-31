@@ -65,6 +65,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current normals.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector3[] Normals
         {
             get
@@ -94,6 +99,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current tangents.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector4[] Tangents
         {
             get
@@ -123,6 +133,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current colors.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Color[] Colors
         {
             get
@@ -152,6 +167,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current colors as Color32.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Color32[] Colors32
         {
             get
@@ -181,6 +201,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 1.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV
         {
             get
@@ -210,6 +235,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 2.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV2
         {
             get
@@ -239,6 +269,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 3.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV3
         {
             get
@@ -268,6 +303,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 4.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV4
         {
             get
@@ -297,6 +337,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 5.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV5
         {
             get
@@ -326,6 +371,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 7.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV6
         {
             get
@@ -355,6 +405,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 7.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV7
         {
             get
@@ -384,6 +439,11 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 8.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
         public Vector2[] UV8
         {
             get
@@ -413,6 +473,10 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Sets or gets the current UVs for channel 0.
+        /// Getting depends on isReadable.
+        /// </summary>
         public int[] Indices
         {
             get
@@ -439,13 +503,9 @@ namespace Staple
 
         public int VertexCount => vertices?.Length ?? 0;
 
-        public Mesh() { }
+        public int IndexCount => indices?.Length ?? 0;
 
-        internal Mesh(bool readable, bool writable)
-        {
-            isReadable = readable;
-            isWritable = writable;
-        }
+        public Mesh() { }
 
         public void Clear()
         {
@@ -551,6 +611,19 @@ namespace Staple
             }
 
             bounds = AABB.FromPoints(vertices);
+        }
+
+        public void MarkDynamic()
+        {
+            isDynamic = true;
+
+            changed = true;
+
+            vertexBuffer?.Destroy();
+            indexBuffer?.Destroy();
+
+            vertexBuffer = null;
+            indexBuffer = null;
         }
     }
 }
