@@ -9,24 +9,39 @@ namespace Staple.Internal
     /// </summary>
     internal class VertexBuffer
     {
-        public unsafe bgfx.Memory *data;
         public VertexLayout layout;
         public bgfx.VertexBufferHandle handle;
         public bgfx.DynamicVertexBufferHandle dynamicHandle;
+        public bgfx.TransientVertexBuffer transientHandle;
+        public readonly VertexBufferType type;
 
         private bool destroyed = false;
 
-        internal unsafe VertexBuffer(bgfx.Memory* data, VertexLayout layout, bgfx.VertexBufferHandle handle)
+        internal unsafe VertexBuffer(VertexLayout layout, bgfx.VertexBufferHandle handle)
         {
-            this.data = data;
             this.layout = layout;
+
             this.handle = handle;
+
+            type = VertexBufferType.Normal;
         }
 
         internal unsafe VertexBuffer(VertexLayout layout, bgfx.DynamicVertexBufferHandle handle)
         {
             this.layout = layout;
+
             dynamicHandle = handle;
+
+            type = VertexBufferType.Dynamic;
+        }
+
+        internal unsafe VertexBuffer(VertexLayout layout, bgfx.TransientVertexBuffer buffer)
+        {
+            this.layout = layout;
+
+            transientHandle = buffer;
+
+            type = VertexBufferType.Transient;
         }
 
         ~VertexBuffer()
@@ -73,6 +88,16 @@ namespace Staple.Internal
             {
                 bgfx.set_dynamic_vertex_buffer(stream, dynamicHandle, start, count);
             }
+            else if(transientHandle.handle.Valid)
+            {
+                unsafe
+                {
+                    fixed(bgfx.TransientVertexBuffer *buffer = &transientHandle)
+                    {
+                        bgfx.set_transient_vertex_buffer(stream, buffer, start, count);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -83,6 +108,11 @@ namespace Staple.Internal
         /// <param name="startVertex">The starting vertex</param>
         public void Update<T>(T[] data, int startVertex) where T: unmanaged
         {
+            if(type != VertexBufferType.Dynamic)
+            {
+                return;
+            }
+
             var size = Marshal.SizeOf(typeof(T));
 
             if (dynamicHandle.Valid == false ||
@@ -99,8 +129,6 @@ namespace Staple.Internal
 
             unsafe
             {
-                bgfx.Memory* outData;
-
                 try
                 {
                     ptr = Marshal.AllocHGlobal(size);
@@ -127,6 +155,11 @@ namespace Staple.Internal
         /// <param name="startVertex">The starting vertex</param>
         public void Update(byte[] data, int startVertex)
         {
+            if (type != VertexBufferType.Dynamic)
+            {
+                return;
+            }
+
             var size = layout.layout.stride;
 
             if (dynamicHandle.Valid == false || data == null || data.Length == 0 || data.Length % size != 0)
@@ -173,8 +206,9 @@ namespace Staple.Internal
         /// <typeparam name="T">A struct type</typeparam>
         /// <param name="data">An array of vertices</param>
         /// <param name="layout">The vertex layout to use</param>
+        /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
         /// <returns>The vertex buffer, or null</returns>
-        public static VertexBuffer Create<T>(T[] data, VertexLayout layout) where T: unmanaged
+        public static VertexBuffer Create<T>(T[] data, VertexLayout layout, bool isTransient = false) where T: unmanaged
         {
             var size = Marshal.SizeOf(typeof(T));
 
@@ -183,7 +217,7 @@ namespace Staple.Internal
                 return null;
             }
 
-            byte[] buffer = new byte[size * data.Length];
+            var buffer = new byte[size * data.Length];
 
             IntPtr ptr = IntPtr.Zero;
 
@@ -204,7 +238,7 @@ namespace Staple.Internal
                     Marshal.FreeHGlobal(ptr);
                 }
 
-                return Create(buffer, layout);
+                return Create(buffer, layout, isTransient);
             }
         }
 
@@ -214,8 +248,9 @@ namespace Staple.Internal
         /// <typeparam name="T">A struct type</typeparam>
         /// <param name="data">An array of vertices</param>
         /// <param name="layout">The vertex layout to use</param>
+        /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
         /// <returns>The vertex buffer, or null</returns>
-        public static VertexBuffer Create(byte[] data, VertexLayout layout)
+        public static VertexBuffer Create(byte[] data, VertexLayout layout, bool isTransient = false)
         {
             var size = layout.layout.stride;
 
@@ -228,18 +263,50 @@ namespace Staple.Internal
 
             unsafe
             {
-                bgfx.Memory* outData;
-
-                fixed (void* dataPtr = data)
-                {
-                    outData = bgfx.copy(dataPtr, (uint)data.Length);
-                }
-
                 fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
                 {
-                    var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+                    if(isTransient)
+                    {
+                        var vertexCount = (uint)(data.Length / size);
 
-                    return new VertexBuffer(outData, layout, handle);
+                        if (bgfx.get_avail_transient_vertex_buffer(vertexCount, vertexLayout) != vertexCount)
+                        {
+                            return null;
+                        }
+
+                        bgfx.TransientVertexBuffer buffer;
+
+                        bgfx.alloc_transient_vertex_buffer(&buffer, vertexCount, vertexLayout);
+
+                        try
+                        {
+                            Marshal.Copy(data, 0, (nint)buffer.data, data.Length);
+                        }
+                        catch(Exception)
+                        {
+                            return null;
+                        }
+
+                        return new VertexBuffer(layout, buffer);
+                    }
+                    else
+                    {
+                        bgfx.Memory* outData;
+
+                        fixed (void* dataPtr = data)
+                        {
+                            outData = bgfx.copy(dataPtr, (uint)data.Length);
+                        }
+
+                        var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+
+                        if(handle.Valid)
+                        {
+                            return new VertexBuffer(layout, handle);
+                        }
+                    }
+
+                    return null;
                 }
             }
         }

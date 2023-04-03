@@ -12,8 +12,6 @@ namespace Staple
     /// </summary>
     internal class SpriteRenderSystem : IRenderSystem
     {
-        private Mesh spriteMesh;
-
         /// <summary>
         /// Contains render information for a sprite
         /// </summary>
@@ -27,6 +25,8 @@ namespace Staple
         }
 
         private readonly List<SpriteRenderInfo> sprites = new();
+
+        private Mesh spriteMesh;
 
         public void Destroy()
         {
