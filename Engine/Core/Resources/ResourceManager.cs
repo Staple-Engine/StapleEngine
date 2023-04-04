@@ -54,6 +54,11 @@ namespace Staple.Internal
             {
                 pair.Value?.Destroy();
             }
+
+            foreach(var pair in Mesh.defaultMeshes)
+            {
+                pair.Value?.Destroy();
+            }
         }
 
         /// <summary>

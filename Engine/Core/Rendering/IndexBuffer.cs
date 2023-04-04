@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using MessagePack.Formatters;
 using System;
 using System.Runtime.InteropServices;
 
@@ -22,16 +23,24 @@ namespace Staple.Internal
         /// <summary>
         /// Whether this was destroyed
         /// </summary>
-        private bool destroyed = false;
+        internal bool Disposed { get; private set; } = false;
+
+        /// <summary>
+        /// Whether this buffer is transient
+        /// </summary>
+        private bool isTransient = false;
 
         public unsafe IndexBuffer(bgfx.IndexBufferHandle handle)
         {
             this.handle = handle;
+
+            isTransient = false;
         }
 
         public unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)
         {
             transientHandle = handle;
+            isTransient = true;
         }
 
         ~IndexBuffer()
@@ -44,14 +53,14 @@ namespace Staple.Internal
         /// </summary>
         internal void Destroy()
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
 
-            destroyed = true;
+            Disposed = true;
 
-            if (handle.Valid)
+            if (isTransient == false && handle.Valid)
             {
                 bgfx.destroy_index_buffer(handle);
             }

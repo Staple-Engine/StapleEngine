@@ -46,7 +46,7 @@ namespace Staple
         internal bool HasUV7 => (uv7?.Length ?? 0) > 0;
         internal bool HasUV8 => (uv8?.Length ?? 0) > 0;
 
-        private static readonly Dictionary<string, Mesh> defaultMeshes = new();
+        internal static readonly Dictionary<string, Mesh> defaultMeshes = new();
 
         private static Mesh _quad;
 

@@ -61,14 +61,25 @@ namespace Staple.Internal
 
             destroyed = true;
 
-            if (handle.Valid)
+            switch(type)
             {
-                bgfx.destroy_vertex_buffer(handle);
-            }
+                case VertexBufferType.Normal:
 
-            if(dynamicHandle.Valid)
-            {
-                bgfx.destroy_dynamic_vertex_buffer(dynamicHandle);
+                    if (handle.Valid)
+                    {
+                        bgfx.destroy_vertex_buffer(handle);
+                    }
+
+                    break;
+
+                case VertexBufferType.Dynamic:
+
+                    if (dynamicHandle.Valid)
+                    {
+                        bgfx.destroy_dynamic_vertex_buffer(dynamicHandle);
+                    }
+
+                    break;
             }
         }
 
