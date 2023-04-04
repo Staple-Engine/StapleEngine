@@ -8,8 +8,8 @@ namespace Staple
     /// </summary>
     internal class FSLog : ILog
     {
-        private StreamWriter writer;
-        private FileStream stream;
+        private readonly StreamWriter writer;
+        private readonly FileStream stream;
 
         public FSLog(string path)
         {

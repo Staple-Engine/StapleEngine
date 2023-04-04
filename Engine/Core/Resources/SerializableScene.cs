@@ -22,13 +22,13 @@ namespace Staple.Internal
     public class SceneObjectTransform
     {
         [Key(0)]
-        public Vector3Holder position = new Vector3Holder();
+        public Vector3Holder position = new();
 
         [Key(1)]
-        public Vector3Holder rotation = new Vector3Holder();
+        public Vector3Holder rotation = new();
 
         [Key(2)]
-        public Vector3Holder scale = new Vector3Holder();
+        public Vector3Holder scale = new();
     }
 
     [MessagePackObject]
@@ -61,7 +61,7 @@ namespace Staple.Internal
         public string type;
 
         [Key(1)]
-        public List<SceneComponentParameter> parameters = new List<SceneComponentParameter>();
+        public List<SceneComponentParameter> parameters = new();
 
         [IgnoreMember]
         public Dictionary<string, object> data;
@@ -89,10 +89,10 @@ namespace Staple.Internal
         public int parent;
 
         [Key(4)]
-        public SceneObjectTransform transform = new SceneObjectTransform();
+        public SceneObjectTransform transform = new();
 
         [Key(5)]
-        public List<SceneComponent> components = new List<SceneComponent>();
+        public List<SceneComponent> components = new();
 
         [Key(6)]
         public string layer;
@@ -121,6 +121,6 @@ namespace Staple.Internal
     public class SerializableScene
     {
         [Key(0)]
-        public List<SceneObject> objects = new List<SceneObject>();
+        public List<SceneObject> objects = new();
     }
 }

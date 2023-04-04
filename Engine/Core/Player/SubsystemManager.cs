@@ -12,10 +12,10 @@ namespace Staple.Internal
         /// <summary>
         /// The main instance
         /// </summary>
-        public static readonly SubsystemManager instance = new SubsystemManager();
+        public static readonly SubsystemManager instance = new();
 
-        private SortedDictionary<byte, HashSet<ISubsystem>> subsystems = new SortedDictionary<byte, HashSet<ISubsystem>>();
-        private object lockObject = new object();
+        private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = new();
+        private readonly object lockObject = new();
 
         /// <summary>
         /// Destroys each subsystem

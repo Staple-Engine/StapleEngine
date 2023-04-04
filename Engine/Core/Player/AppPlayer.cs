@@ -68,15 +68,12 @@ namespace Staple
             {
             }
 
-            if(playerSettings == null)
+            playerSettings ??= new PlayerSettings()
             {
-                playerSettings = new PlayerSettings()
-                {
-                    windowMode = appSettings.defaultWindowMode,
-                    screenWidth = appSettings.defaultWindowWidth,
-                    screenHeight = appSettings.defaultWindowHeight,
-                };
-            }
+                windowMode = appSettings.defaultWindowMode,
+                screenWidth = appSettings.defaultWindowWidth,
+                screenHeight = appSettings.defaultWindowHeight,
+            };
         }
 
         public void SavePlayerSettings()

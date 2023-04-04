@@ -28,6 +28,6 @@ namespace Staple.Internal
     public class SceneList
     {
         [Key(0)]
-        public List<string> scenes = new List<string>();
+        public List<string> scenes = new();
     }
 }

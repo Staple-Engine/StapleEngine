@@ -129,7 +129,7 @@ namespace Staple
         {
             var t = mainTexture;
 
-            if(t == null || t.destroyed)
+            if(t == null || t.Disposed)
             {
                 if(WhiteTexture == null)
                 {

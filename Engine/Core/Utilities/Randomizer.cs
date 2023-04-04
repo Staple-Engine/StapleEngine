@@ -8,7 +8,7 @@ namespace Staple
     /// </summary>
     public class Randomizer
     {
-        private Random random;
+        private readonly Random random;
 
         /// <summary>
         /// The Seed of the randomizer.
@@ -18,7 +18,7 @@ namespace Staple
         /// <summary>
         /// Default instance of the randomizer.
         /// </summary>
-        public static readonly Randomizer Default = new Randomizer();
+        public static readonly Randomizer Default = new();
 
         /// <summary>
         /// Creates the randomizer. It will set its seed to the current timestamp.

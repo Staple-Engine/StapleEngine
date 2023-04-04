@@ -57,9 +57,7 @@ namespace Staple.Editor
 
             unsafe
             {
-                byte* data = null;
-
-                ImGuiIO.Fonts.GetTexDataAsRGBA32(out data, out var fontWidth, out var fontHeight);
+                ImGuiIO.Fonts.GetTexDataAsRGBA32(out byte* data, out var fontWidth, out var fontHeight);
 
                 byte[] fontData = new byte[fontWidth * fontHeight * 4];
 
@@ -294,7 +292,7 @@ namespace Staple.Editor
             return ImGui.IsAnyItemActive() || ImGui.IsAnyItemHovered() || ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
         }
 
-        private void SetupImGuiKeyMaps(ImGuiIOPtr io)
+        private static void SetupImGuiKeyMaps(ImGuiIOPtr io)
         {
             io.KeyMap[(int)ImGuiKey.Space] = (int)KeyCode.Space;
             io.KeyMap[(int)ImGuiKey.Apostrophe] = (int)KeyCode.Apostrophe;

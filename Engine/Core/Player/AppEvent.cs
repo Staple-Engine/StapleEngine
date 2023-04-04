@@ -43,7 +43,7 @@ namespace Staple.Internal
 
         public static AppEvent Text(uint codepoint)
         {
-            return new AppEvent()
+            return new()
             {
                 type = AppEventType.Text,
                 character = codepoint,
@@ -52,7 +52,7 @@ namespace Staple.Internal
 
         public static AppEvent ResetFlags(Bgfx.bgfx.ResetFlags flags)
         {
-            return new AppEvent()
+            return new()
             {
                 type = AppEventType.ResetFlags,
                 resetFlags = flags
@@ -69,7 +69,7 @@ namespace Staple.Internal
                 mods = mods,
             };
 
-            return new AppEvent()
+            return new()
             {
                 type = state != GLFW.InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
                 key = keyEvent,
@@ -85,20 +85,29 @@ namespace Staple.Internal
                 modifiers = modifiers
             };
 
-            return new AppEvent()
+            return new()
             {
                 type = state == GLFW.InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
                 mouse = mouseEvent,
+            };
+        }
+
+        public static AppEvent MouseDelta(Vector2 delta)
+        {
+            return new()
+            {
+                type = AppEventType.MouseDelta,
+                mouseDelta = delta,
             };
         }
     }
 
     internal class AppEventQueue
     {
-        public static readonly AppEventQueue instance = new AppEventQueue();
+        public static readonly AppEventQueue instance = new();
 
-        private Queue<AppEvent> events = new Queue<AppEvent>();
-        private object stackLock = new object();
+        private readonly Queue<AppEvent> events = new();
+        private readonly object stackLock = new();
 
         public AppEvent Next()
         {

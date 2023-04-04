@@ -35,6 +35,6 @@ namespace Staple.Internal
         public ShaderType type = ShaderType.VertexFragment;
 
         [Key(1)]
-        public List<ShaderUniform> uniforms = new List<ShaderUniform>();
+        public List<ShaderUniform> uniforms = new();
     }
 }

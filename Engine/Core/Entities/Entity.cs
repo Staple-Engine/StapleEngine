@@ -19,7 +19,7 @@
         /// <summary>
         /// An empty entity
         /// </summary>
-        public readonly static Entity Empty = new Entity()
+        public readonly static Entity Empty = new()
         {
             ID = -1,
             generation = 0,
@@ -37,7 +37,7 @@
 
         public override bool Equals(object obj)
         {
-            if(ReferenceEquals(obj, null))
+            if(obj is null)
             {
                 return false;
             }

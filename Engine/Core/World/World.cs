@@ -83,7 +83,7 @@ namespace Staple
             /// <summary>
             /// The list of components per entity
             /// </summary>
-            public List<IComponent> components = new List<IComponent>();
+            public List<IComponent> components = new();
 
             /// <summary>
             /// Attempts to add a component to the list
@@ -150,8 +150,8 @@ namespace Staple
             public Transform transform;
         }
 
-        private object lockObject = new object();
-        private List<EntityInfo> entities = new List<EntityInfo>();
-        private Dictionary<int, ComponentInfo> componentsRepository = new Dictionary<int, ComponentInfo>();
+        private readonly object lockObject = new();
+        private readonly List<EntityInfo> entities = new();
+        private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
     }
 }

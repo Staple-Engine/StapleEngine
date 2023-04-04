@@ -37,7 +37,7 @@ namespace Staple.Editor
             public string path;
             public ProjectBrowserNodeType type;
             public string extension;
-            public List<ProjectBrowserNode> subnodes = new List<ProjectBrowserNode>();
+            public List<ProjectBrowserNode> subnodes = new();
             public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
 
             public string TypeString;
@@ -50,7 +50,7 @@ namespace Staple.Editor
 
         private ImGuiProxy imgui;
 
-        private ImGuiWindowFlags mainPanelFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoMove |
+        private readonly ImGuiWindowFlags mainPanelFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoBringToFrontOnFocus;
 
         private Entity selectedEntity;
@@ -63,13 +63,13 @@ namespace Staple.Editor
 
         private ProjectBrowserNode lastSelectedNode;
 
-        private List<ProjectBrowserNode> projectBrowserNodes = new List<ProjectBrowserNode>();
+        private List<ProjectBrowserNode> projectBrowserNodes = new();
 
         private RenderTarget sceneRenderTarget;
 
         private RenderTarget gameRenderTarget;
 
-        private RenderSystem renderSystem = new RenderSystem();
+        private readonly RenderSystem renderSystem = new();
 
         private const int TargetFramerate = 30;
 
@@ -77,7 +77,7 @@ namespace Staple.Editor
 
         private ViewportType viewportType = ViewportType.Scene;
 
-        private Transform cameraTransform = new Transform();
+        private Transform cameraTransform = new();
 
         public void Run()
         {
@@ -97,7 +97,7 @@ namespace Staple.Editor
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
-            window = RenderWindow.Create(1024, 768, true, PlayerSettings.WindowMode.Windowed, appSettings, 0, bgfx.ResetFlags.Vsync);
+            window = RenderWindow.Create(1024, 768, true, WindowMode.Windowed, appSettings, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
             {
@@ -196,10 +196,10 @@ namespace Staple.Editor
                 style.WindowRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
 
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.uintValue, 0, 0);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
 
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.uintValue, 0, 0);
+                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
 
                 basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
 
@@ -254,11 +254,11 @@ namespace Staple.Editor
 
             window.OnScreenSizeChange = (hasFocus) =>
             {
-                var flags = AppPlayer.ResetFlags(PlayerSettings.VideoFlags.Vsync);
+                var flags = AppPlayer.ResetFlags(VideoFlags.Vsync);
 
                 bgfx.reset((uint)window.screenWidth, (uint)window.screenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.uintValue, 0, 0);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
             };
 
             window.OnCleanup = () =>
@@ -283,10 +283,10 @@ namespace Staple.Editor
             {
                 projectBrowserNodes = new List<ProjectBrowserNode>();
 
-                void Recursive(string p, List<ProjectBrowserNode> nodes)
+                static void Recursive(string p, List<ProjectBrowserNode> nodes)
                 {
-                    string[] directories = new string[0];
-                    string[] files = new string[0];
+                    string[] directories = Array.Empty<string>();
+                    string[] files = Array.Empty<string>();
 
                     try
                     {

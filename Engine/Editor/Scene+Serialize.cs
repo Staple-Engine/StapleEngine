@@ -90,7 +90,7 @@ namespace Staple.Internal
                         {
                             var color = (Color32)field.GetValue(component);
 
-                            sceneComponent.data.Add(field.Name, "#" + color.uintValue.ToString("X2"));
+                            sceneComponent.data.Add(field.Name, "#" + color.UIntValue.ToString("X2"));
                         }
                     }
 

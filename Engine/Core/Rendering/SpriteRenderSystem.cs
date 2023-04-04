@@ -54,7 +54,12 @@ namespace Staple
             var r = renderer as Sprite;
 
             //We recalculate the bounds of this sprite
-            if(r.texture != null && r.material != null && r.material.shader != null)
+            if(r.texture != null &&
+                r.texture.Disposed == false &&
+                r.material != null &&
+                r.material.Disposed == false &&
+                r.material.shader != null &&
+                r.material.Disposed == false)
             {
                 r.localBounds = new AABB(Vector3.Zero, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));
 
@@ -66,7 +71,12 @@ namespace Staple
         {
             var r = renderer as Sprite;
 
-            if(r.material == null || r.material.shader == null || r.material.Disposed || r.material.shader.Disposed)
+            if(r.texture == null ||
+                r.texture.Disposed ||
+                r.material == null ||
+                r.material.shader == null ||
+                r.material.Disposed ||
+                r.material.shader.Disposed)
             {
                 return;
             }
@@ -93,10 +103,7 @@ namespace Staple
 
         public void Submit()
         {
-            if (spriteMesh == null)
-            {
-                spriteMesh = Mesh.Quad;
-            }
+            spriteMesh ??= Mesh.Quad;
 
             if(sprites.Count == 0 || spriteMesh.SetActive() == false)
             {

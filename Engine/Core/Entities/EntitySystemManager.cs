@@ -66,22 +66,11 @@ namespace Staple
                 return;
             }
 
-            float time;
-
-            switch (timing)
+            var time = timing switch
             {
-                case SubsystemType.FixedUpdate:
-
-                    time = Time.fixedDeltaTime;
-
-                    break;
-
-                default:
-
-                    time = Time.deltaTime;
-
-                    break;
-            }
+                SubsystemType.FixedUpdate => Time.fixedDeltaTime,
+                _ => Time.deltaTime,
+            };
 
             foreach (var system in systems)
             {

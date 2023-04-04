@@ -15,7 +15,7 @@ namespace Staple
 {
     public class Scene
     {
-        internal World world = new World();
+        internal World world = new();
 
         /// <summary>
         /// The currently active scene
@@ -25,7 +25,7 @@ namespace Staple
         /// <summary>
         /// A list of all scenes we can load
         /// </summary>
-        internal static List<string> sceneList = new List<string>();
+        internal static List<string> sceneList = new();
 
         /// <summary>
         /// Creates an empty entity

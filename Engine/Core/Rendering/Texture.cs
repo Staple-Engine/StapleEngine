@@ -14,7 +14,7 @@ namespace Staple
         internal string path;
         internal bool renderTarget = false;
 
-        internal bool destroyed = false;
+        public bool Disposed { get; private set; } = false;
 
         /// <summary>
         /// The texture's width
@@ -72,12 +72,12 @@ namespace Staple
         /// </summary>
         internal void Destroy()
         {
-            if(destroyed)
+            if(Disposed)
             {
                 return;
             }
 
-            destroyed = true;
+            Disposed = true;
 
             if(handle.Valid)
             {

@@ -50,13 +50,13 @@ namespace CoreTests
         {
             var a = new Color(0.5f, 0.25f, 1.0f, 0.0f);
 
-            var uintValue = a.uintValue;
+            var uintValue = a.UIntValue;
 
             Assert.AreEqual(0x7F3FFF00, uintValue);
 
             var b = new Color32(255, 128, 64, 0);
 
-            uintValue = b.uintValue;
+            uintValue = b.UIntValue;
 
             Assert.AreEqual(0xFF804000, uintValue);
         }

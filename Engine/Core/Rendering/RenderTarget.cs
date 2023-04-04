@@ -17,7 +17,7 @@ namespace Staple
         internal bgfx.TextureFormat format;
         internal TextureFlags flags;
         internal bgfx.BackbufferRatio ratio;
-        internal List<Texture> textures = new List<Texture>();
+        internal List<Texture> textures = new();
 
         private bool destroyed = false;
 

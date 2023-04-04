@@ -15,7 +15,7 @@ namespace Staple
     /// </summary>
     public class Transform : IComponent, IEnumerable<Transform>
     {
-        private List<Transform> children = new List<Transform>();
+        private readonly List<Transform> children = new();
         private Matrix4x4 matrix = Matrix4x4.Identity;
         private Quaternion rotation = Quaternion.Identity;
         private Vector3 position;
@@ -281,17 +281,11 @@ namespace Staple
         /// <param name="parent">The new parent (can be null to remove)</param>
         public void SetParent(Transform parent)
         {
-            if(this.parent != null)
-            {
-                this.parent.DetachChild(this);
-            }
+            this.parent?.DetachChild(this);
 
             this.parent = parent;
 
-            if(parent != null)
-            {
-                parent.AttachChild(this);
-            }
+            parent?.AttachChild(this);
         }
 
         /// <summary>

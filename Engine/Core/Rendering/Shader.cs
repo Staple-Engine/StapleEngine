@@ -20,7 +20,7 @@ namespace Staple.Internal
         internal readonly bgfx.ShaderHandle fragmentShader;
         internal readonly bgfx.ProgramHandle program;
 
-        internal List<UniformInfo> uniforms = new List<UniformInfo>();
+        internal List<UniformInfo> uniforms = new();
 
         /// <summary>
         /// Whether this shader has been disposed

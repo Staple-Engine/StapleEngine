@@ -28,7 +28,7 @@ namespace Staple
         /// Converts to a uint
         /// </summary>
         [IgnoreMember]
-        public uint uintValue
+        public uint UIntValue
         {
             get
             {
@@ -36,8 +36,8 @@ namespace Staple
             }
         }
 
-        public static readonly Color32 White = new Color32(255, 255, 255, 255);
-        public static readonly Color32 Black = new Color32(0, 0, 0, 255); 
+        public static readonly Color32 White = new(255, 255, 255, 255);
+        public static readonly Color32 Black = new(0, 0, 0, 255); 
 
         public Color32(byte R, byte G, byte B, byte A)
         {
@@ -60,7 +60,7 @@ namespace Staple
                 value += "FF";
             }
 
-            uint v = Convert.ToUInt32(value.Substring(1), 16);
+            uint v = Convert.ToUInt32(value[1..], 16);
 
             r = (byte)((v & 0xFF000000) >> 24);
             g = (byte)((v & 0x00FF0000) >> 16);
@@ -76,19 +76,19 @@ namespace Staple
             a = (byte)(value & 0x000000FF);
         }
 
-        public static implicit operator Color(Color32 v) => new Color(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
+        public static implicit operator Color(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
-        public static Color32 operator +(Color32 a, Color32 b) => new Color32((byte)Math.Clamp(a.r + b.r, 0, 255),
+        public static Color32 operator +(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),
             (byte)Math.Clamp(a.g + b.g, 0, 255),
             (byte)Math.Clamp(a.b + b.b, 0, 255),
             (byte)Math.Clamp(a.a + b.a, 0, 255));
 
-        public static Color32 operator -(Color32 a, Color32 b) => new Color32((byte)Math.Clamp(a.r - b.r, 0, 255),
+        public static Color32 operator -(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r - b.r, 0, 255),
             (byte)Math.Clamp(a.g - b.g, 0, 255),
             (byte)Math.Clamp(a.b - b.b, 0, 255),
             (byte)Math.Clamp(a.a - b.a, 0, 255));
 
-        public static Color32 operator *(Color32 a, Color32 b) => new Color32((byte)(Math.Clamp01(a.r / 255.0f * b.r / 255.0f) * 255),
+        public static Color32 operator *(Color32 a, Color32 b) => new((byte)(Math.Clamp01(a.r / 255.0f * b.r / 255.0f) * 255),
             (byte)(Math.Clamp01(a.g / 255.0f * b.g / 255.0f) * 255),
             (byte)(Math.Clamp01(a.b / 255.0f + b.b / 255.0f) * 255),
             (byte)(Math.Clamp01(a.a / 255.0f + b.a / 255.0f) * 255));

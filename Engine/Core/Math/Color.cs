@@ -15,16 +15,16 @@ namespace Staple
         /// <summary>
         /// Converts to a uint
         /// </summary>
-        public uint uintValue
+        public uint UIntValue
         {
             get
             {
-                return ((Color32)this).uintValue;
+                return ((Color32)this).UIntValue;
             }
         }
 
-        public static readonly Color White = new Color(1, 1, 1, 1);
-        public static readonly Color Black = new Color(0, 0, 0, 1);
+        public static readonly Color White = new(1, 1, 1, 1);
+        public static readonly Color Black = new(0, 0, 0, 1);
 
         public Color(float R, float G, float B, float A)
         {
@@ -34,13 +34,13 @@ namespace Staple
             a = A;
         }
 
-        public static implicit operator Color32(Color v) => new Color32((byte)(v.r * 255.0f), (byte)(v.g * 255.0f), (byte)(v.b * 255.0f), (byte)(v.a * 255.0f));
+        public static implicit operator Color32(Color v) => new((byte)(v.r * 255.0f), (byte)(v.g * 255.0f), (byte)(v.b * 255.0f), (byte)(v.a * 255.0f));
 
-        public static Color operator +(Color a, Color b) => new Color(a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a);
+        public static Color operator +(Color a, Color b) => new(a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a);
 
-        public static Color operator -(Color a, Color b) => new Color(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a);
+        public static Color operator -(Color a, Color b) => new(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a);
 
-        public static Color operator *(Color a, Color b) => new Color(a.r * b.r, a.g * b.g, a.b * b.b, a.a * b.a);
+        public static Color operator *(Color a, Color b) => new(a.r * b.r, a.g * b.g, a.b * b.b, a.a * b.a);
 
         public static bool operator ==(Color a, Color b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
 

@@ -18,9 +18,9 @@ namespace Staple
             FirstRelease
         }
 
-        private static Dictionary<KeyCode, InputState> keyStates = new Dictionary<KeyCode, InputState>();
+        private static readonly Dictionary<KeyCode, InputState> keyStates = new();
 
-        private static Dictionary<MouseButton, InputState> mouseButtonStates = new Dictionary<MouseButton, InputState>();
+        private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = new();
 
         /// <summary>
         /// Last input character
@@ -51,11 +51,7 @@ namespace Staple
 
         internal static void MouseScrollCallback(float xOffset, float yOffset)
         {
-            AppEventQueue.instance.Add(new AppEvent()
-            {
-                type = AppEventType.MouseDelta,
-                mouseDelta = new Vector2(xOffset, yOffset),
-            });
+            AppEventQueue.instance.Add(AppEvent.MouseDelta(new Vector2(xOffset, yOffset)));
         }
 
         internal static void HandleMouseButtonEvent(AppEvent appEvent)
