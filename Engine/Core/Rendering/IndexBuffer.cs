@@ -81,6 +81,17 @@ namespace Staple.Internal
         }
 
         /// <summary>
+        /// Checks whether we have enough space for indices for transient buffers
+        /// </summary>
+        /// <param name="indexCount">The amount of indices we need</param>
+        /// <param name="isInt32">Whether we want 32-bit indices</param>
+        /// <returns>Whether we have enough space</returns>
+        public static bool TransientBufferHasSpace(int indexCount, bool isInt32)
+        {
+            return bgfx.get_avail_transient_index_buffer((uint)indexCount, isInt32) >= indexCount;
+        }
+
+        /// <summary>
         /// Creates an index buffer from ushort data
         /// </summary>
         /// <param name="data">The data</param>

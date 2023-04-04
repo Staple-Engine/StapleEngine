@@ -201,6 +201,23 @@ namespace Staple.Internal
         }
 
         /// <summary>
+        /// Checks whether we have enough space for vertices for transient buffers
+        /// </summary>
+        /// <param name="vertexCount">The amount of vertices we need</param>
+        /// <param name="layout">The vertex layout to check</param>
+        /// <returns>Whether we have enough space</returns>
+        public static bool TransientBufferHasSpace(int vertexCount, VertexLayout layout)
+        {
+            unsafe
+            {
+                fixed(bgfx.VertexLayout *l = &layout.layout)
+                {
+                    return bgfx.get_avail_transient_vertex_buffer((uint)vertexCount, l) >= vertexCount;
+                }
+            }
+        }
+
+        /// <summary>
         /// Creates a vertex buffer from an array of data
         /// </summary>
         /// <typeparam name="T">A struct type</typeparam>
@@ -269,7 +286,7 @@ namespace Staple.Internal
                     {
                         var vertexCount = (uint)(data.Length / size);
 
-                        if (bgfx.get_avail_transient_vertex_buffer(vertexCount, vertexLayout) != vertexCount)
+                        if (bgfx.get_avail_transient_vertex_buffer(vertexCount, vertexLayout) < vertexCount)
                         {
                             return null;
                         }
