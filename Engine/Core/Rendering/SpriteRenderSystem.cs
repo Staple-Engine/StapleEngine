@@ -24,8 +24,14 @@ namespace Staple
             public ushort viewID;
         }
 
+        /// <summary>
+        /// Contains a list of all sprites queued for rendering
+        /// </summary>
         private readonly List<SpriteRenderInfo> sprites = new();
 
+        /// <summary>
+        /// The mesh to use for the sprites. Right now it's just a simple quad mesh.
+        /// </summary>
         private Mesh spriteMesh;
 
         public void Destroy()
@@ -89,17 +95,15 @@ namespace Staple
         {
             if (spriteMesh == null)
             {
-                spriteMesh = ResourceManager.instance.LoadMesh("Internal/Quad");
+                spriteMesh = Mesh.Quad;
             }
 
-            if(sprites.Count == 0)
+            if(sprites.Count == 0 || spriteMesh.SetActive() == false)
             {
                 return;
             }
 
-            spriteMesh?.SetActive();
-
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
+            var state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
 
             for (var i = 0; i < sprites.Count; i++)
             {
@@ -117,6 +121,7 @@ namespace Staple
                 s.material.shader.SetColor(Material.MainColorProperty, s.color);
                 s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
 
+                //Discard everything only if it's the last sprite. Otherwise, reuse mesh buffers
                 var discardFlags = i == sprites.Count - 1 ? bgfx.DiscardFlags.All : bgfx.DiscardFlags.Transform | bgfx.DiscardFlags.Bindings | bgfx.DiscardFlags.State;
 
                 bgfx.submit(s.viewID, s.material.shader.program, 0, (byte)discardFlags);
