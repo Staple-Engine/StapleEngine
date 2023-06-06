@@ -376,7 +376,7 @@ namespace Staple.Editor
                     }
                 }
 
-                Recursive(basePath, projectBrowserNodes);
+                Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes);
             }
         }
     }
