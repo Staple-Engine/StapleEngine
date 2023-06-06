@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Internal
 {
-    internal static class Scene_Serialize
+    internal static class SceneSerialize
     {
         public static SerializableScene Serialize(this Scene scene)
         {
@@ -86,9 +83,15 @@ namespace Staple.Internal
                                 sceneComponent.data.Add(field.Name, texture.path);
                             }
                         }
-                        else if (field.FieldType == typeof(Color32) || field.FieldType == typeof(Color))
+                        else if (field.FieldType == typeof(Color32))
                         {
                             var color = (Color32)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, "#" + color.UIntValue.ToString("X2"));
+                        }
+                        else if (field.FieldType == typeof(Color))
+                        {
+                            var color = (Color)field.GetValue(component);
 
                             sceneComponent.data.Add(field.Name, "#" + color.UIntValue.ToString("X2"));
                         }
@@ -100,7 +103,7 @@ namespace Staple.Internal
                 var outEntity = new SceneObject()
                 {
                     ID = entity.ID,
-                    name = "",
+                    name = scene.world.GetEntityName(entity),
                     kind = SceneObjectKind.Entity,
                     parent = parent.ID,
                     transform = transform,

@@ -1,6 +1,6 @@
 ﻿using MessagePack;
 
-namespace Staple
+namespace Staple.Internal
 {
     [MessagePackObject]
     public class AppSettingsHeader

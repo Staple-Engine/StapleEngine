@@ -148,12 +148,12 @@ namespace Staple
                     switch (camera.clearMode)
                     {
                         case CameraClearMode.Depth:
-                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 24, 0);
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
 
                             break;
 
                         case CameraClearMode.None:
-                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 24, 0);
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
 
                             break;
 
