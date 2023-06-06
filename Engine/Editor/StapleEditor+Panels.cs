@@ -158,7 +158,7 @@ namespace Staple.Editor
             {
                 var name = Scene.current.world.GetEntityName(selectedEntity);
 
-                if(ImGui.InputText("Name: ", ref name, 120))
+                if(ImGui.InputText("Name", ref name, 120))
                 {
                     Scene.current.world.SetEntityName(selectedEntity, name);
                 }
@@ -166,7 +166,7 @@ namespace Staple.Editor
                 var currentLayer = Scene.current.world.GetEntityLayer(selectedEntity);
                 var layers = LayerMask.AllLayers;
 
-                if (ImGui.BeginCombo("Layer: ", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
+                if (ImGui.BeginCombo("Layer", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
                 {
                     for (var j = 0; j < layers.Count; j++)
                     {
@@ -387,7 +387,7 @@ namespace Staple.Editor
 
                                     var colorComponents = new Vector4(c.r, c.g, c.b, c.a);
 
-                                    if(ImGui.ColorPicker4(field.Name, ref colorComponents))
+                                    if(ImGui.ColorPicker4(field.Name, ref colorComponents, ImGuiColorEditFlags.DefaultOptions | ImGuiColorEditFlags.DisplayHex))
                                     {
                                         var newColor = new Color(colorComponents.X, colorComponents.Y, colorComponents.Z, colorComponents.W);
 
