@@ -57,7 +57,27 @@ namespace Staple
         /// Which renderers to use per platform
         /// </summary>
         [Key(7)]
-        public Dictionary<AppPlatform, List<RendererType>> renderers = new();
+        public Dictionary<AppPlatform, List<RendererType>> renderers = new Dictionary<AppPlatform, List<RendererType>>
+        {
+            {
+                AppPlatform.Windows,
+                new List<RendererType>() {
+                    RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan, RendererType.OpenGL
+                }
+            },
+            {
+                AppPlatform.Linux,
+                new List<RendererType>() {
+                    RendererType.Vulkan, RendererType.OpenGL
+                }
+            },
+            {
+                AppPlatform.MacOSX,
+                new List<RendererType>() {
+                    RendererType.Metal
+                }
+            },
+        };
 
         /// <summary>
         /// Default mode for the game window

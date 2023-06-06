@@ -402,6 +402,8 @@ namespace Staple
 
                 if (appSettings.renderers.TryGetValue(platform, out renderers) == false)
                 {
+                    Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
+
                     bgfxReferences--;
 
                     Glfw.Terminate();
@@ -425,7 +427,9 @@ namespace Staple
 
             if (renderers != null)
             {
-                foreach(var renderer in renderers)
+                Log.Info($"[RenderWindow] Attempting to find the right renderer");
+
+                foreach (var renderer in renderers)
                 {
                     switch (renderer)
                     {
@@ -468,12 +472,16 @@ namespace Staple
 
                     init.type = rendererType;
 
+                    Log.Info($"[RenderWindow] Trying {renderer}");
+
                     unsafe
                     {
                         ok = bgfx.init(&init);
 
                         if(ok)
                         {
+                            Log.Info($"[RenderWindow] {renderer} OK!");
+
                             break;
                         }
                     }
@@ -481,6 +489,8 @@ namespace Staple
 
                 if(ok == false)
                 {
+                    Log.Error($"[RenderWindow] Failed to find a working renderer, terminating...");
+
                     bgfxReferences--;
 
                     Glfw.Terminate();
@@ -632,9 +642,14 @@ namespace Staple
         public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
             AppSettings appSettings, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
-            //TODO: Multiple windows
+            var resizableString = resizable ? "Resizable" : "Not resizable";
+
+            Log.Info($"[RenderWindow] Creating {windowMode} window {appSettings.appName} with size {width}x{height} ({resizableString}) for monitor {monitorIndex}");
+
             if (glfwReferences > 0)
             {
+                Log.Error($"[RenderWindow] Multiple windows are not supported!");
+
                 return null;
             }
 
@@ -684,13 +699,18 @@ namespace Staple
 
                     var videoMode = Glfw.GetVideoMode(monitor);
 
-                    renderWindow.window = new NativeWindow(videoMode.Width, videoMode.Height, appSettings.appName);
+                    width = videoMode.Width;
+                    height = videoMode.Height;
+
+                    renderWindow.window = new NativeWindow(width, height, appSettings.appName);
 
                     break;
             }
 
             if (renderWindow.window == null)
             {
+                Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {width}x{height}");
+
                 glfwReferences--;
 
                 Glfw.Terminate();
