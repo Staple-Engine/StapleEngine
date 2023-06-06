@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using MessagePack;
+using System.Collections.Generic;
 
 namespace Staple
 {
@@ -8,6 +8,12 @@ namespace Staple
     /// </summary>
     public struct LayerMask
     {
+        [IgnoreMember]
+        internal static List<string> AllLayers = new();
+
+        [IgnoreMember]
+        internal static List<string> AllSortingLayers = new();
+
         /// <summary>
         /// The layer mask's value
         /// </summary>
@@ -45,16 +51,10 @@ namespace Staple
         public static uint GetMask(params string[] layerNames)
         {
             uint mask = 0;
-            var layers = AppPlayer.active?.appSettings?.layers;
-
-            if (layers == null)
-            {
-                return 0;
-            }
 
             foreach (var layer in layerNames)
             {
-                var index = layers.IndexOf(layer);
+                var index = AllLayers.IndexOf(layer);
 
                 if(index >= 0)
                 {
@@ -72,14 +72,7 @@ namespace Staple
         /// <returns>The layer name, or null</returns>
         public static string LayerToName(int index)
         {
-            var layers = AppPlayer.active?.appSettings?.layers;
-
-            if(layers == null)
-            {
-                return null;
-            }
-
-            return index >= 0 && index < layers.Count ? layers[index] : null;
+            return index >= 0 && index < AllLayers.Count ? AllLayers[index] : null;
         }
 
         /// <summary>
@@ -95,14 +88,7 @@ namespace Staple
                 return 0;
             }
 
-            var layers = AppPlayer.active?.appSettings?.layers;
-
-            if(layers == null)
-            {
-                return -1;
-            }
-
-            return layers.IndexOf(name);
+            return AllLayers.IndexOf(name);
         }
     }
 }

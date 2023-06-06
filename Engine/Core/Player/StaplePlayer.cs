@@ -39,6 +39,9 @@ namespace Staple
                 {
                     throw new Exception("Failed to deserialize app settings");
                 }
+
+                LayerMask.AllLayers = settings.layers;
+                LayerMask.AllSortingLayers = settings.sortingLayers;
             }
             catch (Exception e)
             {

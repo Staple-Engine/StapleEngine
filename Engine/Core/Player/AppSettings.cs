@@ -45,13 +45,19 @@ namespace Staple
         /// Which layers to use
         /// </summary>
         [Key(5)]
-        public List<string> layers = new();
+        public List<string> layers = new List<string>()
+        {
+            "Default",
+        };
 
         /// <summary>
         /// Which sorting layers to use
         /// </summary>
         [Key(6)]
-        public List<string> sortingLayers = new();
+        public List<string> sortingLayers = new List<string>()
+        {
+            "Default",
+        };
 
         /// <summary>
         /// Which renderers to use per platform

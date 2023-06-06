@@ -154,13 +154,36 @@ namespace Staple.Editor
 
             ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 0));
 
-            if (selectedEntity != null)
+            if (selectedEntity != null && Scene.current != null && Scene.current.world.IsValidEntity(selectedEntity))
             {
-                ImGui.Button("Add Component");
+                var name = Scene.current.world.GetEntityName(selectedEntity);
+
+                if(ImGui.InputText("Name: ", ref name, 120))
+                {
+                    Scene.current.world.SetEntityName(selectedEntity, name);
+                }
+
+                var currentLayer = Scene.current.world.GetEntityLayer(selectedEntity);
+                var layers = LayerMask.AllLayers;
+
+                if (ImGui.BeginCombo("Layer: ", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
+                {
+                    for (var j = 0; j < layers.Count; j++)
+                    {
+                        bool selected = j == currentLayer;
+
+                        if (ImGui.Selectable(layers[j], selected))
+                        {
+                            Scene.current.world.SetEntityLayer(selectedEntity, (uint)j);
+                        }
+                    }
+
+                    ImGui.EndCombo();
+                }
 
                 var counter = 0;
 
-                Scene.current?.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
                 {
                     if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth))
                     {

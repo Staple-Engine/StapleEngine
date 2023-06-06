@@ -88,6 +88,9 @@ namespace Staple.Editor
                 companyName = "Staple Engine",
             };
 
+            LayerMask.AllLayers = appSettings.layers;
+            LayerMask.AllSortingLayers = appSettings.sortingLayers;
+
             Storage.Update(appSettings.appName, appSettings.companyName);
 
             Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));

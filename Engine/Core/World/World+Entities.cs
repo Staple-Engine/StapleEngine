@@ -7,6 +7,27 @@ namespace Staple
         private const string DefaultEntityName = "Entity";
 
         /// <summary>
+        /// Checks whether an entity is valid
+        /// </summary>
+        /// <param name="entity">The entity</param>
+        /// <returns>Whether it is valid</returns>
+        public bool IsValidEntity(Entity entity)
+        {
+            lock(lockObject)
+            {
+                if (entity.ID >= 0 &&
+                    entity.ID < entities.Count &&
+                    entities[entity.ID].alive &&
+                    entities[entity.ID].generation == entity.generation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Creates an empty entity. It might be a recycled entity.
         /// </summary>
         /// <returns>The entity</returns>
@@ -91,7 +112,10 @@ namespace Staple
         {
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return default;
                 }
@@ -109,7 +133,10 @@ namespace Staple
         {
             lock(lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return;
                 }
@@ -131,7 +158,10 @@ namespace Staple
         {
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return default;
                 }
@@ -149,7 +179,10 @@ namespace Staple
         {
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return;
                 }
