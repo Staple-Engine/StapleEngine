@@ -79,19 +79,19 @@ namespace Staple.Editor
 
         private Transform cameraTransform = new();
 
+        private AppSettings editorSettings = new AppSettings()
+        {
+            runInBackground = true,
+            appName = "Staple Editor",
+            companyName = "Staple Engine",
+        };
+
         public void Run()
         {
-            var appSettings = new AppSettings()
-            {
-                runInBackground = true,
-                appName = "Staple Editor",
-                companyName = "Staple Engine",
-            };
+            LayerMask.AllLayers = editorSettings.layers;
+            LayerMask.AllSortingLayers = editorSettings.sortingLayers;
 
-            LayerMask.AllLayers = appSettings.layers;
-            LayerMask.AllSortingLayers = appSettings.sortingLayers;
-
-            Storage.Update(appSettings.appName, appSettings.companyName);
+            Storage.Update(editorSettings.appName, editorSettings.companyName);
 
             Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
 
@@ -100,7 +100,7 @@ namespace Staple.Editor
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
-            window = RenderWindow.Create(1024, 768, true, WindowMode.Windowed, appSettings, 0, bgfx.ResetFlags.Vsync);
+            window = RenderWindow.Create(1024, 768, true, WindowMode.Windowed, editorSettings, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
             {
