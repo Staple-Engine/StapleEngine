@@ -467,6 +467,65 @@ namespace Staple.Editor
 
         public void ProjectBrowser(ImGuiIOPtr io)
         {
+            ImGui.BeginChildFrame(ImGui.GetID("FolderTree"), new Vector2(150, 300));
+
+            void Recursive(ProjectBrowserNode node)
+            {
+                if(node.type != ProjectBrowserNodeType.Folder)
+                {
+                    return;
+                }
+
+                var flags = ImGuiTreeNodeFlags.SpanFullWidth;
+                var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
+
+                if (hasChildren == false)
+                {
+                    flags |= ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf;
+                }
+
+                if (ImGui.TreeNodeEx($"{node.name}##0", flags))
+                {
+                    if(hasChildren)
+                    {
+                        foreach (var subnode in node.subnodes)
+                        {
+                            Recursive(subnode);
+                        }
+
+                        ImGui.TreePop();
+                    }
+
+                    if(ImGui.IsItemClicked())
+                    {
+                        currentContentNode = node;
+
+                        UpdateCurrentContentNodes(node.subnodes);
+                    }
+                }
+            }
+
+            if(ImGui.TreeNodeEx("Assets", ImGuiTreeNodeFlags.SpanFullWidth))
+            {
+                if (ImGui.IsItemClicked())
+                {
+                    currentContentNode = null;
+
+                    UpdateCurrentContentNodes(projectBrowserNodes);
+                }
+
+                foreach (var node in projectBrowserNodes)
+                {
+                    Recursive(node);
+                }
+
+                ImGui.TreePop();
+            }
+
+            ImGui.EndChildFrame();
+
+            ImGui.SameLine();
+
             ImGui.BeginChildFrame(ImGui.GetID("ProjectBrowser"), new Vector2(0, 0));
 
             ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,

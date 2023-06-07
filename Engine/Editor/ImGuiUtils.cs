@@ -29,7 +29,7 @@ namespace Staple.Editor
 
                 ImGui.PushID($"{item.name}##0");
 
-                ImGui.ImageButton("", ImGuiProxy.GetImGuiTexture(item.texture), new Vector2(thumbnailSize, thumbnailSize), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.ImageButton("", ImGuiProxy.GetImGuiTexture(item.texture), new Vector2(thumbnailSize, thumbnailSize), new Vector2(0, 0), new Vector2(1, 1));
 
                 if(ImGui.IsItemHovered())
                 {

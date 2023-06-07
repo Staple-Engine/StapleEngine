@@ -83,6 +83,8 @@ namespace Staple.Editor
 
         private List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
 
+        private Dictionary<string, Texture> editorResources = new();
+
         private AppSettings editorSettings = new AppSettings()
         {
             runInBackground = true,
@@ -116,6 +118,9 @@ namespace Staple.Editor
                 Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
                 ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
+
+                LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
+                LoadEditorTexture("FileIcon", "Textures/files.png");
 
                 imgui = new ImGuiProxy();
 
@@ -280,6 +285,24 @@ namespace Staple.Editor
             window.Run();
         }
 
+        private void LoadEditorTexture(string name, string path)
+        {
+            path = Path.Combine(Environment.CurrentDirectory, "Editor Resources", path);
+
+            try
+            {
+                var texture = Texture.CreateStandard(path, File.ReadAllBytes(path), StandardTextureColorComponents.RGBA);
+
+                if(texture != null)
+                {
+                    editorResources.Add(name, texture);
+                }
+            }
+            catch(Exception)
+            {
+            }
+        }
+
         public void UpdateProjectBrowserNodes()
         {
             if(basePath == null)
@@ -425,11 +448,29 @@ namespace Staple.Editor
                                 item.texture = ThumbnailCache.GetThumbnail(node.path);
 
                                 break;
+
+                            default:
+
+                                {
+                                    if (editorResources.TryGetValue("FileIcon", out var texture))
+                                    {
+                                        item.texture = texture;
+                                    }
+                                }
+
+                                break;
                         }
 
                         break;
 
                     case ProjectBrowserNodeType.Folder:
+
+                        {
+                            if (editorResources.TryGetValue("FolderIcon", out var texture))
+                            {
+                                item.texture = texture;
+                            }
+                        }
 
                         break;
                 }
