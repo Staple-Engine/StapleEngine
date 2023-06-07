@@ -92,6 +92,8 @@ namespace Staple.Editor
             companyName = "Staple Engine",
         };
 
+        private AppSettings projectAppSettings;
+
         public void Run()
         {
             LayerMask.AllLayers = editorSettings.layers;
@@ -213,11 +215,7 @@ namespace Staple.Editor
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
 
-                basePath = Path.Combine(Environment.CurrentDirectory, "..", "Test Project");
-
-                Log.Info($"Base Path: {basePath}");
-
-                UpdateProjectBrowserNodes();
+                LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 
                 renderSystem.Startup();
             };
@@ -407,22 +405,6 @@ namespace Staple.Editor
 
                 UpdateCurrentContentNodes(projectBrowserNodes);
             }
-
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache"));
-            }
-            catch(Exception)
-            {
-            }
-
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Thumbnails"));
-            }
-            catch (Exception)
-            {
-            }
         }
 
         private void UpdateCurrentContentNodes(List<ProjectBrowserNode> nodes)
@@ -431,6 +413,11 @@ namespace Staple.Editor
 
             foreach (var node in nodes)
             {
+                if(node.path.EndsWith(".meta"))
+                {
+                    continue;
+                }
+
                 var item = new ImGuiUtils.ContentGridItem()
                 {
                     name = node.name,

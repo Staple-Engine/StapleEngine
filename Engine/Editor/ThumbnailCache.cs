@@ -1,11 +1,15 @@
-﻿using Staple.Internal;
+﻿using Newtonsoft.Json;
+using Staple.Internal;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Staple.Editor
 {
     internal class ThumbnailCache
     {
         private static Dictionary<string, Texture> cachedThumbnails = new();
+
+        internal static string basePath;
 
         public static Texture GetThumbnail(string path)
         {
@@ -14,9 +18,18 @@ namespace Staple.Editor
                 return texture;
             }
 
+            var cachePath = path;
+
+            var index = path.IndexOf("Assets");
+
+            if(index >= 0)
+            {
+                cachePath = Path.Combine(basePath, "Cache", "Staging", "d3d11", path.Substring(index + "Assets/".Length));
+            }
+
             try
             {
-                texture = Texture.CreateStandard(path, System.IO.File.ReadAllBytes(path), StandardTextureColorComponents.RGBA);
+                texture = ResourceManager.instance.LoadTexture(cachePath);
             }
             catch(System.Exception)
             {

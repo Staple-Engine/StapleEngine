@@ -50,7 +50,7 @@ namespace Baker
                     continue;
                 }
 
-                var directory = Path.GetDirectoryName(textureFiles[i]);
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(textureFiles[i]));
                 var file = Path.GetFileName(textureFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file.Replace(".meta", ""));
 
@@ -60,6 +60,8 @@ namespace Baker
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
+
+                Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 TextureMetadata metadata;

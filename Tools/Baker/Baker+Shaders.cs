@@ -38,7 +38,7 @@ namespace Baker
             {
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
-                var directory = Path.GetDirectoryName(shaderFiles[i]);
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(shaderFiles[i]));
                 var file = Path.GetFileName(shaderFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
@@ -48,6 +48,8 @@ namespace Baker
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
+
+                Console.WriteLine($"\t\t -> {outputFile}");
 
                 try
                 {

@@ -147,8 +147,8 @@ namespace Baker
                         inputPath = args[i + 1];
 
                         inputPath = inputPath
-                            .Replace("\\", Path.PathSeparator.ToString())
-                            .Replace("/", Path.PathSeparator.ToString());
+                            .Replace("\\", Path.DirectorySeparatorChar.ToString())
+                            .Replace("/", Path.DirectorySeparatorChar.ToString());
 
                         i++;
 

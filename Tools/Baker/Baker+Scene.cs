@@ -46,7 +46,7 @@ namespace Baker
                     continue;
                 }
 
-                var directory = Path.GetDirectoryName(sceneFiles[i]);
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(sceneFiles[i]));
                 var file = Path.GetFileName(sceneFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
@@ -56,6 +56,8 @@ namespace Baker
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
+
+                Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 List<SceneObject> metadata;
@@ -213,7 +215,7 @@ namespace Baker
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save baked material: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save baked scene: {e}");
                 }
             }
 
@@ -221,7 +223,7 @@ namespace Baker
 
             try
             {
-                sceneListText = File.ReadAllText(Path.Combine(inputPath, "SceneList.json"));
+                sceneListText = File.ReadAllText(Path.Combine(inputPath, "..", "Settings", "SceneList.json"));
             }
             catch(Exception)
             {

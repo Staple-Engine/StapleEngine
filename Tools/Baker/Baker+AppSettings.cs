@@ -20,7 +20,7 @@ namespace Baker
 
             try
             {
-                appSettingsText = File.ReadAllText(Path.Combine(inputPath, "AppSettings.json"));
+                appSettingsText = File.ReadAllText(Path.Combine(inputPath, "..", "Settings", "AppSettings.json"));
             }
             catch (Exception)
             {

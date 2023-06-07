@@ -1,0 +1,15 @@
+{
+  "type": "SRGB",
+  "format": "RGBA8",
+  "quality": "Default",
+  "filter": "Linear",
+  "wrapU": "Clamp",
+  "wrapV": "Clamp",
+  "wrapW": "Clamp",
+  "premultiplyAlpha": false,
+  "maxSize": 2048,
+  "useMipmaps": true,
+  "isLinear": false,
+  "spriteScale": 1.0,
+  "readBack": false
+}

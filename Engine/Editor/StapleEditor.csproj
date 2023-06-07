@@ -47,6 +47,7 @@
     <Compile Include="StapleEditor+Panels.cs" />
     <Compile Include="StapleEditor+Render.cs" />
     <Compile Include="StapleEditor.cs" />
+    <Compile Include="StapleEditor+Project.cs" />
     <Compile Include="ThumbnailCache.cs" />
   </ItemGroup>
   <ItemGroup>

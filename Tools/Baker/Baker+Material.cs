@@ -46,7 +46,7 @@ namespace Baker
                     continue;
                 }
 
-                var directory = Path.GetDirectoryName(materialFiles[i]);
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(materialFiles[i]));
                 var file = Path.GetFileName(materialFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
@@ -56,6 +56,8 @@ namespace Baker
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
+
+                Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 MaterialMetadata metadata;
