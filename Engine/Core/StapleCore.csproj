@@ -20,7 +20,7 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <DefineConstants>$(DefineConstants);_DEBUG</DefineConstants>
+    <DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,7 +29,7 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <DefineConstants>$(DefineConstants);NDEBUG</DefineConstants>
+    <DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -69,11 +69,31 @@
     <Compile Include="Entities\MeshRenderer.cs" />
     <Compile Include="Entities\Renderable.cs" />
     <Compile Include="Entities\Sprite.cs" />
+    <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
+    <Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
+    <Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
+    <Compile Include="External\StbImageSharp\src\Hebron.Runtime\CRuntime.cs" />
+    <Compile Include="External\StbImageSharp\src\Hebron.Runtime\MemoryStats.cs" />
+    <Compile Include="External\StbImageSharp\src\Hebron.Runtime\Utility.cs" />
+    <Compile Include="External\StbImageSharp\src\ImageInfo.cs" />
+    <Compile Include="External\StbImageSharp\src\ImageResult.cs" />
+    <Compile Include="External\StbImageSharp\src\ImageResultFloat.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Bmp.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Common.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Gif.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Hdr.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Jpg.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Png.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
+    <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
     <Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
     <Compile Include="Rendering\Mesh\Mesh.cs" />
     <Compile Include="Rendering\Mesh\MeshIndexFormat.cs" />
     <Compile Include="Rendering\Mesh\MeshTopology.cs" />
+    <Compile Include="Rendering\StandardTextureColorComponents.cs" />
     <Compile Include="Rendering\VertexBufferType.cs" />
     <Compile Include="Rendering\VideoFlags.cs" />
     <Compile Include="Rendering\WindowMode.cs" />

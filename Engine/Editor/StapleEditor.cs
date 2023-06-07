@@ -61,8 +61,6 @@ namespace Staple.Editor
 
         private string lastOpenScene;
 
-        private ProjectBrowserNode lastSelectedNode;
-
         private List<ProjectBrowserNode> projectBrowserNodes = new();
 
         private RenderTarget sceneRenderTarget;
@@ -77,7 +75,13 @@ namespace Staple.Editor
 
         private ViewportType viewportType = ViewportType.Scene;
 
-        private Transform cameraTransform = new();
+        private float contentPanelThumbnailSize = 64;
+
+        private float contentPanelPadding = 16;
+
+        private ProjectBrowserNode currentContentNode;
+
+        private List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
 
         private AppSettings editorSettings = new AppSettings()
         {
@@ -286,7 +290,7 @@ namespace Staple.Editor
             {
                 projectBrowserNodes = new List<ProjectBrowserNode>();
 
-                static void Recursive(string p, List<ProjectBrowserNode> nodes)
+                void Recursive(string p, List<ProjectBrowserNode> nodes)
                 {
                     string[] directories = Array.Empty<string>();
                     string[] files = Array.Empty<string>();
@@ -377,6 +381,60 @@ namespace Staple.Editor
                 }
 
                 Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes);
+
+                UpdateCurrentContentNodes(projectBrowserNodes);
+            }
+
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(basePath, "Cache"));
+            }
+            catch(Exception)
+            {
+            }
+
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Thumbnails"));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void UpdateCurrentContentNodes(List<ProjectBrowserNode> nodes)
+        {
+            currentContentBrowserNodes.Clear();
+
+            foreach (var node in nodes)
+            {
+                var item = new ImGuiUtils.ContentGridItem()
+                {
+                    name = node.name,
+                };
+
+                //TODO
+                switch (node.type)
+                {
+                    case ProjectBrowserNodeType.File:
+
+                        switch(node.TypeString.ToUpperInvariant())
+                        {
+                            case "TEXTURE":
+
+                                item.texture = ThumbnailCache.GetThumbnail(node.path);
+
+                                break;
+                        }
+
+                        break;
+
+                    case ProjectBrowserNodeType.Folder:
+
+                        break;
+                }
+
+                currentContentBrowserNodes.Add(item);
             }
         }
     }

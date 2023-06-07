@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using Staple.Internal;
+using StbImageSharp;
 
 namespace Staple
 {
@@ -120,6 +121,95 @@ namespace Staple
                 var readBack = flags.HasFlag(TextureFlags.ReadBack);
 
                 return new Texture(handle, width, height, renderTarget, readBack);
+            }
+        }
+
+        /// <summary>
+        /// Creates a texture from a standard format (JPG/PNG/BMP/TGA/PSD)
+        /// </summary>
+        /// <param name="path">The file path of the texture</param>
+        /// <param name="data">The file data in bytes</param>
+        /// <param name="colorComponents">The color components we want for this image</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <returns>The texture, or null</returns>
+        public static Texture CreateStandard(string path, byte[] data, StandardTextureColorComponents colorComponents, TextureFlags flags = TextureFlags.None)
+        {
+            try
+            {
+                var components = ColorComponents.Default;
+                var format = bgfx.TextureFormat.RGBA8;
+
+                switch(colorComponents)
+                {
+                    case StandardTextureColorComponents.RGB:
+
+                        components = ColorComponents.RedGreenBlue;
+                        format = bgfx.TextureFormat.RGB8;
+
+                        break;
+
+                    case StandardTextureColorComponents.RGBA:
+
+                        components = ColorComponents.RedGreenBlueAlpha;
+                        format = bgfx.TextureFormat.RGBA8;
+
+                        break;
+
+                    case StandardTextureColorComponents.Greyscale:
+
+                        components = ColorComponents.Grey;
+                        format = bgfx.TextureFormat.RGB8;
+
+                        break;
+
+                    case StandardTextureColorComponents.GreyscaleAlpha:
+
+                        components = ColorComponents.GreyAlpha;
+                        format = bgfx.TextureFormat.RGBA8;
+
+                        break;
+                }
+
+                var imageData = ImageResult.FromMemory(data, components);
+
+                data = imageData.Data;
+
+                if(components == ColorComponents.Grey)
+                {
+                    var newData = new byte[imageData.Width * imageData.Height * 3];
+
+                    for(int i = 0, index = 0; i < data.Length; i++, index += 3)
+                    {
+                        newData[index] = newData[index + 1] = newData[index + 2] = data[i];
+                    }
+
+                    data = newData;
+                }
+                else if(components == ColorComponents.GreyAlpha)
+                {
+                    var newData = new byte[imageData.Width * imageData.Height * 4];
+
+                    for (int i = 0, index = 0; i < data.Length; i+=2, index += 4)
+                    {
+                        newData[index] = newData[index + 1] = newData[index + 2] = data[i];
+                        newData[index + 3] = data[i + 1];
+                    }
+
+                    data = newData;
+                }
+
+                return CreatePixels(path, imageData.Data, (ushort)imageData.Width, (ushort)imageData.Height,
+                    new TextureMetadata()
+                    {
+                        useMipmaps = false,
+                    },
+                    format, flags);
+            }
+            catch(System.Exception e)
+            {
+                Log.Error($"[Texture] Failed to load texture at {path}: {e}");
+
+                return null;
             }
         }
 

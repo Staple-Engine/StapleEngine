@@ -2,10 +2,13 @@
 using Newtonsoft.Json;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Threading.Tasks.Sources;
+using System.Xml.Linq;
 
 namespace Staple.Editor
 {
@@ -466,77 +469,55 @@ namespace Staple.Editor
         {
             ImGui.BeginChildFrame(ImGui.GetID("ProjectBrowser"), new Vector2(0, 0));
 
-            void Recursive(ProjectBrowserNode node)
-            {
-                switch (node.type)
+            ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
+                null,
+                (index, _) =>
                 {
-                    case ProjectBrowserNodeType.File:
+                    ProjectBrowserNode item = null;
 
-                        var typeString = node.TypeString;
+                    if(currentContentNode == null)
+                    {
+                        currentContentNode = projectBrowserNodes[index];
 
-                        if (typeString.Length != 0)
+                        item = currentContentNode;
+                    }
+                    else
+                    {
+                        item = index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null;
+                    }
+
+                    if (item == null)
+                    {
+                        return;
+                    }
+
+                    if(item.subnodes.Count == 0)
+                    {
+                        if(item.type == ProjectBrowserNodeType.File)
                         {
-                            typeString = $"({typeString})";
-                        }
-
-                        if (ImGui.TreeNodeEx($"{node.name} {typeString}", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen))
-                        {
-                            if (ImGui.IsItemClicked())
+                            switch(item.action)
                             {
-                                if (lastSelectedNode == node)
-                                {
-                                    switch (node.action)
+                                case ProjectBrowserNodeAction.InspectScene:
+
+                                    var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
+
+                                    if (scene != null)
                                     {
-                                        case ProjectBrowserNodeAction.InspectScene:
-
-                                            var scene = ResourceManager.instance.LoadRawSceneFromPath(node.path);
-
-                                            if (scene != null)
-                                            {
-                                                lastOpenScene = node.path;
-                                                Scene.current = scene;
-                                            }
-
-                                            break;
+                                        lastOpenScene = item.path;
+                                        Scene.current = scene;
                                     }
-                                }
 
-                                lastSelectedNode = node;
+                                    break;
                             }
                         }
+                    }
+                    else
+                    {
+                        currentContentNode = item;
 
-                        break;
-
-                    case ProjectBrowserNodeType.Folder:
-
-                        var flags = ImGuiTreeNodeFlags.SpanFullWidth;
-
-                        if (node.subnodes.Count == 0)
-                        {
-                            flags |= ImGuiTreeNodeFlags.NoTreePushOnOpen;
-                        }
-
-                        if (ImGui.TreeNodeEx(node.name, flags))
-                        {
-                            if (node.subnodes.Count > 0)
-                            {
-                                foreach (var subnode in node.subnodes)
-                                {
-                                    Recursive(subnode);
-                                }
-
-                                ImGui.TreePop();
-                            }
-                        }
-
-                        break;
-                }
-            }
-
-            foreach (var node in projectBrowserNodes)
-            {
-                Recursive(node);
-            }
+                        UpdateCurrentContentNodes(item.subnodes);
+                    }
+                });
 
             ImGui.EndChildFrame();
         }
