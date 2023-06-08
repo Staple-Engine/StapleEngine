@@ -58,7 +58,8 @@ namespace Baker
                     "\t-o [path]: set output directory\n" +
                     "\t-i [path]: set input directory\n" +
                     "\t-sd [define]: add a shader define\n" +
-                    "\t-r [name]: set the renderer to compile for\n" +
+                    "\t-editor: enable editor mode, which uses different directories" +
+                    "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                     "\t\tValid values are:\n" +
                     "\t\t\td3d11\n" +
                     "\t\t\tmetal\n" +
@@ -109,8 +110,9 @@ namespace Baker
             var outputPath = "out";
             var inputPath = "";
             var shaderDefines = new List<string>();
-            Renderer renderer = Renderer.opengl;
+            var renderers = new List<Renderer>();
             bool setRenderer = false;
+            bool editorMode = false;
 
             for (var i = 0; i < args.Length; i++)
             {
@@ -202,7 +204,7 @@ namespace Baker
                             return;
                         }
 
-                        if (!Enum.TryParse<Renderer>(args[i + 1], out renderer))
+                        if (!Enum.TryParse<Renderer>(args[i + 1], out var renderer))
                         {
                             Console.WriteLine($"Invalid argument `-r`: invalid renderer name `{args[i + 1]}`");
 
@@ -211,9 +213,17 @@ namespace Baker
                             return;
                         }
 
+                        renderers.Add(renderer);
+
                         setRenderer = true;
 
                         i++;
+
+                        break;
+
+                    case "-editor":
+
+                        editorMode = true;
 
                         break;
 
@@ -236,11 +246,11 @@ namespace Baker
                 return;
             }
 
-            ProcessShaders(shadercPath, inputPath, outputPath, shaderDefines, renderer);
-            ProcessTextures(texturecPath, inputPath, outputPath, renderer);
+            ProcessShaders(shadercPath, inputPath, outputPath, shaderDefines, renderers);
+            ProcessTextures(texturecPath, inputPath, outputPath);
             ProcessMaterials(inputPath, outputPath);
-            ProcessScenes(inputPath, outputPath);
-            ProcessAppSettings(inputPath, outputPath);
+            ProcessScenes(inputPath, outputPath, editorMode);
+            ProcessAppSettings(inputPath, outputPath, editorMode);
         }
     }
 }

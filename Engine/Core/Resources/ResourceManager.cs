@@ -305,6 +305,45 @@ namespace Staple.Internal
         /// <returns>The shader, or null</returns>
         public Shader LoadShader(string path)
         {
+            switch(RenderWindow.CurrentRenderer)
+            {
+                case RendererType.Direct3D11:
+
+                    path = "d3d11/" + path;
+
+                    break;
+
+                case RendererType.Direct3D12:
+
+                    path = "d3d12/" + path;
+
+                    break;
+
+                case RendererType.Metal:
+
+                    path = "metal/" + path;
+
+                    break;
+
+                case RendererType.OpenGL:
+
+                    path = "opengl/" + path;
+
+                    break;
+
+                case RendererType.OpenGLES:
+
+                    path = "opengles/" + path;
+
+                    break;
+
+                case RendererType.Vulkan:
+
+                    path = "vulkan/" + path;
+
+                    break;
+            }
+
             if (cachedShaders.TryGetValue(path, out var shader) && shader != null)
             {
                 return shader;

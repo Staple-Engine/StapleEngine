@@ -43,6 +43,8 @@ namespace Staple
         private bool renderThreadReady = false;
         private Thread renderThread;
 
+        public static RendererType CurrentRenderer;
+
         /// <summary>
         /// Runs the window main loop
         /// </summary>
@@ -481,6 +483,8 @@ namespace Staple
                         if(ok)
                         {
                             Log.Info($"[RenderWindow] {renderer} OK!");
+
+                            CurrentRenderer = renderer;
 
                             break;
                         }

@@ -12,7 +12,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessScenes(string inputPath, string outputPath)
+        private static void ProcessScenes(string inputPath, string outputPath, bool editorMode)
         {
             var sceneFiles = new List<string>();
 
@@ -223,7 +223,14 @@ namespace Baker
 
             try
             {
-                sceneListText = File.ReadAllText(Path.Combine(inputPath, "..", "Settings", "SceneList.json"));
+                var p = Path.Combine(inputPath, "SceneList.json");
+
+                if(editorMode)
+                {
+                    p = Path.Combine(inputPath, "..", "Settings", "SceneList.json");
+                }
+
+                sceneListText = File.ReadAllText(p);
             }
             catch(Exception)
             {

@@ -13,7 +13,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessTextures(string shadercPath, string inputPath, string outputPath, Renderer renderer)
+        private static void ProcessTextures(string texturecPath, string inputPath, string outputPath)
         {
             var textureFiles = new List<string>();
 
@@ -144,7 +144,7 @@ namespace Baker
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = shadercPath,
+                        FileName = texturecPath,
                         Arguments = $"-f \"{textureFiles[i].Replace(".meta", "")}\" -o \"{outputFileTemp}\" {parameters} --validate",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,

@@ -109,7 +109,54 @@ namespace Staple.Editor
 
             //TODO: Build for each API
 
-            var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/d3d11\" -r d3d11".Replace("\\", "/");
+            var renderers = new HashSet<string>();
+
+            foreach(var pair in projectAppSettings.renderers)
+            {
+                foreach(var item in pair.Value)
+                {
+                    switch(item)
+                    {
+                        case RendererType.Direct3D11:
+
+                            renderers.Add("-r d3d11");
+
+                            break;
+
+                        case RendererType.Direct3D12:
+
+                            renderers.Add("-r d3d12");
+
+                            break;
+
+                        case RendererType.Metal:
+
+                            renderers.Add("-r metal");
+
+                            break;
+
+                        case RendererType.OpenGL:
+
+                            renderers.Add("-r opengl");
+
+                            break;
+
+                        case RendererType.OpenGLES:
+
+                            renderers.Add("-r opengles");
+
+                            break;
+
+                        case RendererType.Vulkan:
+
+                            renderers.Add("-r spirv");
+
+                            break;
+                    }
+                }
+            }
+
+            var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging\" -editor {string.Join(" ", renderers)}".Replace("\\", "/");
 
             var processInfo = new ProcessStartInfo(bakerPath, args);
 

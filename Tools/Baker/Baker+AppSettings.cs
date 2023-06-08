@@ -1,10 +1,8 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Staple;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -12,7 +10,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessAppSettings(string inputPath, string outputPath)
+        private static void ProcessAppSettings(string inputPath, string outputPath, bool editorMode)
         {
             Console.WriteLine($"Processing AppSettings");
 
@@ -20,7 +18,14 @@ namespace Baker
 
             try
             {
-                appSettingsText = File.ReadAllText(Path.Combine(inputPath, "..", "Settings", "AppSettings.json"));
+                var p = Path.Combine(inputPath, "AppSettings.json");
+
+                if(editorMode)
+                {
+                    p = Path.Combine(inputPath, "..", "Settings", "AppSettings.json");
+                }
+
+                appSettingsText = File.ReadAllText(p);
             }
             catch (Exception)
             {
