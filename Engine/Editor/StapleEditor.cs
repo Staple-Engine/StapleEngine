@@ -85,6 +85,10 @@ namespace Staple.Editor
 
         private Dictionary<string, Texture> editorResources = new();
 
+        private Camera camera = new Camera();
+
+        private Transform cameraTransform = new Transform();
+
         private AppSettings editorSettings = new AppSettings()
         {
             runInBackground = true,
@@ -223,8 +227,6 @@ namespace Staple.Editor
             window.OnRender = () =>
             {
                 var io = ImGui.GetIO();
-
-                RenderTarget.SetActive(ClearView, sceneRenderTarget);
 
                 bgfx.touch(ClearView);
 

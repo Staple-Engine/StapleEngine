@@ -59,7 +59,7 @@ project "ImGui.NET"
 	clr "Unsafe"
 
 	files {
-		"ImGui.NET/src/ImGui.NET/**.cs"
+		"ImGui.NET/src/**.cs"
 	}
 	
 	filter "system:windows"
