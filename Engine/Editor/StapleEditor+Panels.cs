@@ -83,21 +83,17 @@ namespace Staple.Editor
             var width = (ushort)(io.DisplaySize.X * (2 / 3.0f));
             var height = (ushort)(io.DisplaySize.Y / 1.5f);
 
-            if (sceneRenderTarget == null || sceneRenderTarget.width != width || sceneRenderTarget.height != height)
+            if (gameRenderTarget == null || gameRenderTarget.width != width || gameRenderTarget.height != height)
             {
-                sceneRenderTarget?.Destroy();
-
-                sceneRenderTarget = RenderTarget.Create(width, height);
-
                 gameRenderTarget?.Destroy();
 
                 gameRenderTarget = RenderTarget.Create(width, height);
             }
 
             ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X / 6, 20));
-            ImGui.SetNextWindowSize(new Vector2(width, height));
+            ImGui.SetNextWindowSize(new Vector2(width, 20));
 
-            ImGui.Begin("Viewport", mainPanelFlags);
+            ImGui.Begin("TabBar", mainPanelFlags);
 
             if (ImGui.BeginTabBar("Viewport Tab"))
             {
@@ -118,13 +114,13 @@ namespace Staple.Editor
                 ImGui.EndTabBar();
             }
 
+            ImGui.End();
+
             RenderTarget target = null;
 
             switch (viewportType)
             {
                 case ViewportType.Scene:
-
-                    target = sceneRenderTarget;
 
                     break;
 
@@ -141,11 +137,14 @@ namespace Staple.Editor
 
                 if (texture != null)
                 {
+                    ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X / 6, 40));
+                    ImGui.SetNextWindowSize(new Vector2(width, height - 20));
+
+                    ImGui.Begin("GameView", mainPanelFlags);
                     ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(width, height));
+                    ImGui.End();
                 }
             }
-
-            ImGui.End();
         }
 
         public void Components(ImGuiIOPtr io)

@@ -63,15 +63,13 @@ namespace Staple.Editor
 
         private List<ProjectBrowserNode> projectBrowserNodes = new();
 
-        private RenderTarget sceneRenderTarget;
-
         private RenderTarget gameRenderTarget;
 
         private readonly RenderSystem renderSystem = new();
 
         private const int TargetFramerate = 30;
 
-        private Color32 clearColor = new Color(0.25f, 0.25f, 0.25f, 1.0f);
+        private Color32 clearColor = new Color(0, 0, 0, 0);
 
         private ViewportType viewportType = ViewportType.Scene;
 
@@ -238,13 +236,6 @@ namespace Staple.Editor
                     RenderTarget.SetActive(1, gameRenderTarget);
 
                     renderSystem.Update();
-                }
-
-                if(sceneRenderTarget != null)
-                {
-                    RenderTarget.SetActive(SceneView, sceneRenderTarget);
-
-                    RenderScene();
                 }
 
                 imgui.BeginFrame();
