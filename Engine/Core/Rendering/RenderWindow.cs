@@ -224,8 +224,11 @@ namespace Staple
             {
                 OnInit?.Invoke();
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
+                Log.Error($"Error initializing: {e}");
+
+                shouldStop = true;
             }
 
             double last = Glfw.Time;

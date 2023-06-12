@@ -88,6 +88,12 @@
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
+    <Compile Include="Physics\3D\BodyMotionType.cs" />
+    <Compile Include="Physics\3D\IBody3D.cs" />
+    <Compile Include="Physics\3D\IPhysics3D.cs" />
+    <Compile Include="Physics\3D\JoltPhysics\JoltPhysics3D.cs" />
+    <Compile Include="Physics\3D\Physics3D.cs" />
+    <Compile Include="Physics\ColliderMask.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
     <Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
     <Compile Include="Rendering\Mesh\Mesh.cs" />
@@ -155,5 +161,10 @@
     <Compile Include="Utilities\Log\Log.cs" />
     <Compile Include="Utilities\Randomizer.cs" />
     <Compile Include="Utilities\Storage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="JoltPhysicsSharp">
+      <HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

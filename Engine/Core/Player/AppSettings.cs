@@ -102,5 +102,11 @@ namespace Staple
         /// </summary>
         [Key(10)]
         public int defaultWindowHeight = 768;
+
+        /// <summary>
+        /// Mask of collision layers
+        /// </summary>
+        [Key(11)]
+        public List<ColliderMask.Item> colliderMask = new();
     }
 }

@@ -119,6 +119,11 @@ namespace Staple
         {
             ushort viewID = 1;
 
+            if(Scene.current?.world == null)
+            {
+                return;
+            }
+
             var cameras = Scene.current.world.SortedCameras;
 
             if(cameras.Length > 0)

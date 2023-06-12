@@ -189,34 +189,33 @@ namespace Staple
                 {
                     Log.Error($"Failed to load scene list");
 
-                    bgfx.shutdown();
-                    Glfw.Terminate();
+                    renderWindow.shouldStop = true;
 
                     throw new System.Exception("Failed to load scene list");
                 }
 
                 Log.Info("Loaded scene list");
 
-                Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
-
-                if (Scene.current == null)
-                {
-                    Log.Error($"Failed to load main scene");
-
-                    bgfx.shutdown();
-                    Glfw.Terminate();
-
-                    throw new System.Exception("Failed to load main scene");
-                }
-
-                Log.Info("Loaded first scene");
-
                 var renderSystem = new RenderSystem();
+
+                try
+                {
+                    Physics3D.Instance = new Physics3D(new JoltPhysics3D());
+                }
+                catch(System.Exception e)
+                {
+                    Log.Error(e.ToString());
+
+                    renderWindow.shouldStop = true;
+
+                    throw new System.Exception("Failed to initialize physics");
+                }
 
                 SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Render), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
 
                 if (playerAssembly != null)
                 {
@@ -240,6 +239,19 @@ namespace Staple
                         }
                     }
                 }
+
+                Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+
+                if (Scene.current == null)
+                {
+                    Log.Error($"Failed to load main scene");
+
+                    renderWindow.shouldStop = true;
+
+                    throw new System.Exception("Failed to load main scene");
+                }
+
+                Log.Info("Loaded first scene");
 
                 Log.Info("Finished initializing");
             };
