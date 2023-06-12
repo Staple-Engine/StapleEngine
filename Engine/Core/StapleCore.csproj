@@ -89,6 +89,11 @@
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
     <Compile Include="Physics\3D\BodyMotionType.cs" />
+    <Compile Include="Physics\3D\Components\BoxCollider3D.cs" />
+    <Compile Include="Physics\3D\Components\CapsuleCollider3D.cs" />
+    <Compile Include="Physics\3D\Components\CylinderCollider3D.cs" />
+    <Compile Include="Physics\3D\Components\MeshCollider3D.cs" />
+    <Compile Include="Physics\3D\Components\SphereCollider3D.cs" />
     <Compile Include="Physics\3D\IBody3D.cs" />
     <Compile Include="Physics\3D\IPhysics3D.cs" />
     <Compile Include="Physics\3D\JoltPhysics\JoltPhysics3D.cs" />
