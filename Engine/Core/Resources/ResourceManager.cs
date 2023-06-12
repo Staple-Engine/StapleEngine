@@ -295,7 +295,7 @@ namespace Staple.Internal
         /// <returns>The scene, or null</returns>
         public Scene LoadScene(string name)
         {
-            return LoadSceneFromPath(Path.Combine("Scenes", $"{name}.stsc"));
+            return LoadSceneFromPath(Path.Combine("Assets/Scenes", $"{name}.stsc"));
         }
 
         /// <summary>
