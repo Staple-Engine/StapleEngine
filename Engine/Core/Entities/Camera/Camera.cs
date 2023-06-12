@@ -65,7 +65,7 @@ namespace Staple
 
                     if (camera.nearPlane <= 0 || camera.farPlane <= 0 || camera.nearPlane >= camera.farPlane)
                     {
-                        Log.Error($"{world.GetEntityName(entity)} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
+                        Log.Error($"{world?.GetEntityName(entity)} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
 
                         return Matrix4x4.Identity;
                     }

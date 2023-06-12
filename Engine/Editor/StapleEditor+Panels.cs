@@ -116,24 +116,9 @@ namespace Staple.Editor
 
             ImGui.End();
 
-            RenderTarget target = null;
-
-            switch (viewportType)
+            if(viewportType == ViewportType.Game && gameRenderTarget != null)
             {
-                case ViewportType.Scene:
-
-                    break;
-
-                case ViewportType.Game:
-
-                    target = gameRenderTarget;
-
-                    break;
-            }
-
-            if (target != null)
-            {
-                var texture = target.GetTexture();
+                var texture = gameRenderTarget.GetTexture();
 
                 if (texture != null)
                 {

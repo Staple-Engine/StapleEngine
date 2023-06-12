@@ -47,7 +47,7 @@ namespace Staple
 
         private float accumulator = 0.0f;
 
-        private readonly List<IRenderSystem> renderSystems = new();
+        internal readonly List<IRenderSystem> renderSystems = new();
 
         private readonly Transform stagingTransform = new();
 

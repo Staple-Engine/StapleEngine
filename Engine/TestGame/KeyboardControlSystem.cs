@@ -51,8 +51,8 @@ namespace TestGame
                 {
                     var rotation = Math.ToEulerAngles(transform.LocalRotation);
 
-                    rotation.X += Input.MouseRelativePosition.Y;
-                    rotation.Y += Input.MouseRelativePosition.X;
+                    rotation.X -= Input.MouseRelativePosition.Y;
+                    rotation.Y -= Input.MouseRelativePosition.X;
 
                     transform.LocalRotation = Math.FromEulerAngles(rotation);
                 }

@@ -228,6 +228,45 @@ namespace Staple.Editor
 
                 bgfx.touch(ClearView);
 
+                if(viewportType == ViewportType.Scene)
+                {
+                    RenderScene();
+
+                    var axis = Vector3.Zero;
+
+                    if(Input.GetKey(KeyCode.A))
+                    {
+                        axis = cameraTransform.Left;
+                    }
+
+                    if(Input.GetKey(KeyCode.D))
+                    {
+                        axis = cameraTransform.Right;
+                    }
+
+                    if(Input.GetKey(KeyCode.W))
+                    {
+                        axis = cameraTransform.Forward;
+                    }
+
+                    if(Input.GetKey(KeyCode.S))
+                    {
+                        axis = cameraTransform.Back;
+                    }
+
+                    cameraTransform.LocalPosition += axis * 10 * Time.deltaTime;
+
+                    if(Input.GetMouseButton(MouseButton.Right))
+                    {
+                        var rotation = Math.ToEulerAngles(cameraTransform.LocalRotation);
+
+                        rotation.X -= Input.MouseRelativePosition.Y;
+                        rotation.Y -= Input.MouseRelativePosition.X;
+
+                        cameraTransform.LocalRotation = Math.FromEulerAngles(rotation);
+                    }
+                }
+
                 io.DisplaySize = new Vector2(window.screenWidth, window.screenHeight);
                 io.DisplayFramebufferScale = new Vector2(1, 1);
 
