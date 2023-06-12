@@ -124,6 +124,8 @@ namespace Staple
                     info.components[entity.ID].Invoke("OnDestroy");
 
                     info.components[entity.ID] = component;
+
+                    info.components[entity.ID].Invoke("Awake", entity);
                 }
 
                 return info.components[entity.ID];

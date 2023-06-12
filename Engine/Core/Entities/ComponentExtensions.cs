@@ -25,5 +25,26 @@ namespace Staple
                 Log.Error(e.ToString());
             }
         }
+
+        public static void Invoke<T>(this IComponent self, string name, T value)
+        {
+            const BindingFlags flags = BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance;
+
+            MethodInfo method = self.GetType().GetMethod(name, flags);
+
+            try
+            {
+                if (method != null && method.GetParameters().Length == 1)
+                {
+                    method.Invoke(self, new object[] { value });
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.ToString());
+            }
+        }
     }
 }
