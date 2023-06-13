@@ -1,5 +1,4 @@
 ﻿using Bgfx;
-using GLFW;
 using Newtonsoft.Json;
 using Staple.Internal;
 using System;
@@ -212,7 +211,6 @@ namespace Staple
                 }
 
                 SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
-                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Render), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
@@ -256,19 +254,14 @@ namespace Staple
                 Log.Info("Finished initializing");
             };
 
-            renderWindow.OnUpdate = () =>
-            {
-                SubsystemManager.instance.Update(SubsystemType.Update);
-            };
-
             renderWindow.OnFixedUpdate = () =>
             {
                 SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
             };
 
-            renderWindow.OnRender = () =>
+            renderWindow.OnUpdate = () =>
             {
-                SubsystemManager.instance.Update(SubsystemType.Render);
+                SubsystemManager.instance.Update(SubsystemType.Update);
             };
 
             renderWindow.OnScreenSizeChange = (focus) =>

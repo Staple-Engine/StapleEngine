@@ -10,7 +10,7 @@ namespace Staple
     {
         private static readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
 
-        internal static readonly byte Priority = 1;
+        internal static readonly byte Priority = 0;
 
         private SubsystemType timing = SubsystemType.FixedUpdate;
 
@@ -22,11 +22,6 @@ namespace Staple
         {
             if(entitySubsystems.Count == 0)
             {
-                entitySubsystems.Add(SubsystemType.Render, new EntitySystemManager()
-                {
-                    timing = SubsystemType.Render,
-                });
-
                 entitySubsystems.Add(SubsystemType.FixedUpdate, new EntitySystemManager()
                 {
                     timing = SubsystemType.FixedUpdate,

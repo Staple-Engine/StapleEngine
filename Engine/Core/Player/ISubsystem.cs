@@ -6,11 +6,6 @@
     public enum SubsystemType
     {
         /// <summary>
-        /// Runs during a frame render
-        /// </summary>
-        Render,
-
-        /// <summary>
         /// Runs at the fixed tick rate
         /// </summary>
         FixedUpdate,

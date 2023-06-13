@@ -222,7 +222,7 @@ namespace Staple.Editor
                 renderSystem.Startup();
             };
 
-            window.OnRender = () =>
+            window.OnUpdate = () =>
             {
                 var io = ImGui.GetIO();
 

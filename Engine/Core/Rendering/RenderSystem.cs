@@ -32,7 +32,7 @@ namespace Staple
             public Dictionary<ushort, List<DrawCall>> drawCalls = new();
         }
 
-        public SubsystemType type { get; } = SubsystemType.Render;
+        public SubsystemType type { get; } = SubsystemType.Update;
 
         /// <summary>
         /// Keep the current and previous draw buckets to interpolate around
@@ -51,7 +51,7 @@ namespace Staple
 
         private readonly Transform stagingTransform = new();
 
-        internal static byte Priority = 0;
+        internal static byte Priority = 1;
 
         /// <summary>
         /// Calculates the blending function for blending flags

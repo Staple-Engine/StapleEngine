@@ -30,9 +30,8 @@ namespace Staple
         public NativeWindow window;
         public bgfx.RendererType rendererType;
         public bgfx.ResetFlags resetFlags;
-        public Action OnUpdate;
         public Action OnFixedUpdate;
-        public Action OnRender;
+        public Action OnUpdate;
         public Action OnInit;
         public Action OnCleanup;
         public Action<bool> OnScreenSizeChange;
@@ -132,14 +131,6 @@ namespace Staple
                 }
 
                 CheckEvents();
-
-                try
-                {
-                    OnUpdate?.Invoke();
-                }
-                catch (System.Exception)
-                {
-                }
 
                 double current = Glfw.Time;
 
@@ -565,14 +556,6 @@ namespace Staple
             try
             {
                 OnUpdate?.Invoke();
-            }
-            catch (System.Exception)
-            {
-            }
-
-            try
-            {
-                OnRender?.Invoke();
             }
             catch (System.Exception e)
             {
