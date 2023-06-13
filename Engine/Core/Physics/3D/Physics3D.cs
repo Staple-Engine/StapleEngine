@@ -5,7 +5,6 @@ namespace Staple
 {
     internal class Physics3D : ISubsystem
     {
-
         private static Physics3D instance;
 
         public static Physics3D Instance
@@ -97,9 +96,9 @@ namespace Staple
             impl.RemoveBody(body);
         }
 
-        public void SetBodyMotion(IBody3D body, BodyMotionType motionType)
+        public bool RayCast(Ray ray, out IBody3D body, out float fraction)
         {
-            impl.SetBodyMotion(body, motionType);
+            return impl.RayCast(ray, out body, out fraction);
         }
         #endregion
 

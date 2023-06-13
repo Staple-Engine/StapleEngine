@@ -28,6 +28,6 @@ namespace Staple
 
         void RemoveBody(IBody3D body);
 
-        void SetBodyMotion(IBody3D body, BodyMotionType motionType);
+        bool RayCast(Ray ray, out IBody3D body, out float fraction);
     }
 }

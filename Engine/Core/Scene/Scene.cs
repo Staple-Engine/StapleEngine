@@ -154,7 +154,7 @@ namespace Staple
             var rotation = sceneObject.transform.rotation.ToVector3();
 
             transform.LocalPosition = sceneObject.transform.position.ToVector3();
-            transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+            transform.LocalRotation = Math.FromEulerAngles(rotation);
             transform.LocalScale = sceneObject.transform.scale.ToVector3();
 
             foreach (var component in sceneObject.components)
@@ -339,7 +339,6 @@ namespace Staple
 
                                         try
                                         {
-
                                             var value = System.Convert.ChangeType(parameter.intValue, field.FieldType);
 
                                             field.SetValue(componentInstance, value);
@@ -347,6 +346,49 @@ namespace Staple
                                         catch (Exception e)
                                         {
                                             continue;
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.Vector2:
+
+                                        if(field.FieldType == typeof(Vector2))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector2Value.ToVector2());
+                                        }
+                                        else if(field.FieldType == typeof(Vector3))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector2Value.ToVector3());
+                                        }
+                                        else if (field.FieldType == typeof(Vector4))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector2Value.ToVector4());
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.Vector3:
+
+                                        if (field.FieldType == typeof(Vector3))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector3Value.ToVector3());
+                                        }
+                                        else if (field.FieldType == typeof(Vector4))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector3Value.ToVector4());
+                                        }
+                                        else if(field.FieldType == typeof(Quaternion))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector3Value.ToQuaternion());
+                                        }
+
+                                        break;
+
+                                    case SceneComponentParameterType.Vector4:
+
+                                        if (field.FieldType == typeof(Vector4))
+                                        {
+                                            field.SetValue(componentInstance, parameter.vector4Value.ToVector4());
                                         }
 
                                         break;
@@ -444,6 +486,11 @@ namespace Staple
 
                 UpdateComponent(entity, componentInstance);
             }
+
+            world.IterateComponents(entity, (ref IComponent c) =>
+            {
+                c.Invoke("Awake", entity, transform);
+            });
 
             return entity;
         }

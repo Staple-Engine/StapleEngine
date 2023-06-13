@@ -15,82 +15,6 @@ namespace Staple
         private const uint MaxBodyPairs = 1024;
         private const uint MaxContactConstraints = 1024;
 
-        private class StapleBoardPhaseLayerInterface : BroadPhaseLayerInterface
-        {
-            protected override BroadPhaseLayer GetBroadPhaseLayer(ObjectLayer layer)
-            {
-                if(layer < LayerMask.AllLayers.Count)
-                {
-                    return new BroadPhaseLayer();
-                }
-
-                return new BroadPhaseLayer((byte)layer.Value);
-            }
-
-            protected override string GetBroadPhaseLayerName(BroadPhaseLayer layer)
-            {
-                return LayerMask.LayerToName(layer.Value);
-            }
-
-            protected override int GetNumBroadPhaseLayers()
-            {
-                return LayerMask.AllLayers.Count;
-            }
-        }
-
-        private class StapleObjectVsBroadPhaseLayerFilter : ObjectVsBroadPhaseLayerFilter
-        {
-            protected override bool ShouldCollide(ObjectLayer layer1, BroadPhaseLayer layer2)
-            {
-                return ColliderMask.ShouldCollide(layer1, layer2);
-            }
-        }
-
-        private class StapleObjectLayerPairFilter : ObjectLayerPairFilter
-        {
-            protected override bool ShouldCollide(ObjectLayer object1, ObjectLayer object2)
-            {
-                return ColliderMask.ShouldCollide(object1, object2);
-            }
-        }
-
-        private class BodyEntityPair : IBody3D
-        {
-            public Entity entity;
-            public Body body;
-
-            public Entity Entity => entity;
-
-            public Vector3 Position => body.CenterOfMassPosition;
-
-            public Vector3 Velocity => body.GetLinearVelocity();
-
-            public Vector3 AngularVelocity => body.GetAngularVelocity();
-
-            public BodyMotionType MotionType
-            {
-                get
-                {
-                    switch(body.MotionType)
-                    {
-                        case JoltPhysicsSharp.MotionType.Static:
-
-                            return BodyMotionType.Static;
-
-                        case JoltPhysicsSharp.MotionType.Dynamic:
-
-                            return BodyMotionType.Dynamic;
-
-                        case JoltPhysicsSharp.MotionType.Kinematic:
-
-                            return BodyMotionType.Kinematic;
-                    }
-
-                    throw new InvalidOperationException("Invalid Body Motion Type");
-                }
-            }
-        }
-
         private TempAllocator allocator;
         private JobSystemThreadPool jobThreadPool;
         private BroadPhaseLayerInterface broadPhaseLayerInterface;
@@ -98,9 +22,7 @@ namespace Staple
         private ObjectLayerPairFilter objectLayerPairFilter;
         private PhysicsSystem physicsSystem;
 
-        private List<BodyEntityPair> bodies = new List<BodyEntityPair>();
-
-        public BodyInterface BodyInterface => physicsSystem.BodyInterface;
+        private List<JoltBodyPair> bodies = new List<JoltBodyPair>();
 
         private bool destroyed = false;
 
@@ -122,9 +44,9 @@ namespace Staple
 
             allocator = new(AllocatorSize);
             jobThreadPool = new(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers);
-            broadPhaseLayerInterface = new StapleBoardPhaseLayerInterface();
-            objectVsBroadPhaseLayerFilter = new StapleObjectVsBroadPhaseLayerFilter();
-            objectLayerPairFilter = new StapleObjectLayerPairFilter();
+            broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
+            objectVsBroadPhaseLayerFilter = new JoltObjectVsBroadPhaseLayerFilter();
+            objectLayerPairFilter = new JoltObjectLayerPairFilter();
 
             physicsSystem = new();
 
@@ -237,15 +159,28 @@ namespace Staple
             var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
 
             physicsSystem.Update(deltaTime, collisionSteps, 1, allocator, jobThreadPool);
+
+            foreach(var pair in bodies)
+            {
+                var transform = Scene.current.world.GetComponent<Transform>(pair.entity);
+
+                if(transform != null)
+                {
+                    var body = pair.body;
+
+                    transform.LocalPosition = body.Position;
+                    transform.LocalRotation = body.Rotation;
+                }
+            }
         }
 
         private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer, out IBody3D body)
         {
-            var b = BodyInterface.CreateBody(new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer)));
+            var b = physicsSystem.BodyInterface.CreateBody(new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer)));
 
             if (b != null)
             {
-                var pair = new BodyEntityPair()
+                var pair = new JoltBodyPair()
                 {
                     body = b,
                     entity = entity,
@@ -254,6 +189,8 @@ namespace Staple
                 bodies.Add(pair);
 
                 body = pair;
+
+                AddBody(body, true);
 
                 return true;
             }
@@ -276,21 +213,53 @@ namespace Staple
 
         public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
         {
+            if(extents.X <= 0 || extents.Y <= 0 || extents.Z <= 0)
+            {
+                throw new ArgumentException("Extents must be bigger than 0");
+            }
+
             return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, out body);
         }
 
         public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
         {
+            if (radius <= 0)
+            {
+                throw new ArgumentException("Radius must be bigger than 0");
+            }
+
             return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, out body);
         }
 
-        public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+            ushort layer, out IBody3D body)
         {
+            if (radius <= 0)
+            {
+                throw new ArgumentException("Radius must be bigger than 0");
+            }
+
+            if (height <= 0)
+            {
+                throw new ArgumentException("Height must be bigger than 0");
+            }
+
             return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, out body);
         }
 
-        public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+            ushort layer, out IBody3D body)
         {
+            if (radius <= 0)
+            {
+                throw new ArgumentException("Radius must be bigger than 0");
+            }
+
+            if (height <= 0)
+            {
+                throw new ArgumentException("Height must be bigger than 0");
+            }
+
             return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, out body);
         }
 
@@ -298,7 +267,7 @@ namespace Staple
         {
             if(ReferenceEquals(mesh, null))
             {
-                throw new NullReferenceException($"Mesh is null");
+                throw new NullReferenceException("Mesh is null");
             }
 
             if(mesh.isReadable == false)
@@ -341,16 +310,17 @@ namespace Staple
             return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, out body);
         }
 
-        public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+            ushort layer, out IBody3D body)
         {
             return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, out body);
         }
 
         public void DestroyBody(IBody3D body)
         {
-            if(body is BodyEntityPair pair)
+            if(body is JoltBodyPair pair)
             {
-                BodyInterface.DestroyBody(pair.body.ID);
+                physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
 
                 bodies.Remove(pair);
             }
@@ -358,26 +328,38 @@ namespace Staple
 
         public void AddBody(IBody3D body, bool activated)
         {
-            if(body is BodyEntityPair pair)
+            if(body is JoltBodyPair pair)
             {
-                BodyInterface.AddBody(pair.body, activated ? ActivationMode.Activate : ActivationMode.DontActivate);
+                physicsSystem.BodyInterface.AddBody(pair.body, activated ? ActivationMode.Activate : ActivationMode.DontActivate);
             }
         }
 
         public void RemoveBody(IBody3D body)
         {
-            if (body is BodyEntityPair pair)
+            if (body is JoltBodyPair pair)
             {
-                BodyInterface.RemoveBody(pair.body.ID);
+                physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
             }
         }
 
-        public void SetBodyMotion(IBody3D body, BodyMotionType motionType)
+        public bool RayCast(Ray ray, out IBody3D body, out float fraction)
         {
-            if(body is BodyEntityPair pair)
+            var hit = RayCastResult.Default;
+
+            if(physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction, ref hit))
             {
-                BodyInterface.SetMotionType(pair.body.ID, GetMotionType(motionType), pair.body.IsActive ? ActivationMode.Activate : ActivationMode.DontActivate);
+                if(TryFindBody(hit.BodyID, out body))
+                {
+                    fraction = hit.Fraction;
+
+                    return true;
+                }
             }
+
+            body = default;
+            fraction = default;
+
+            return false;
         }
     }
 }

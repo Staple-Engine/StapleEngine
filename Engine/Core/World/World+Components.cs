@@ -89,6 +89,8 @@ namespace Staple
                     }
                 }
 
+                var added = info == null;
+
                 if (info == null)
                 {
                     infoIndex = componentsRepository.Keys.Count;
@@ -121,11 +123,12 @@ namespace Staple
                         return default;
                     }
 
-                    info.components[entity.ID].Invoke("OnDestroy");
+                    if(added == false)
+                    {
+                        info.components[entity.ID].Invoke("OnDestroy");
+                    }
 
                     info.components[entity.ID] = component;
-
-                    info.components[entity.ID].Invoke("Awake", entity);
                 }
 
                 return info.components[entity.ID];
@@ -160,6 +163,11 @@ namespace Staple
 
                 if (componentIndex >= 0)
                 {
+                    if (componentsRepository.TryGetValue(componentIndex, out var info))
+                    {
+                        info.components[entity.ID].Invoke("OnDestroy");
+                    }
+
                     entities[entity.ID].components.Remove(componentIndex);
                 }
             }

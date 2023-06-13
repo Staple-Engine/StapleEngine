@@ -1,7 +1,6 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -186,6 +185,64 @@ namespace Baker
                                             type = SceneComponentParameterType.String,
                                             stringValue = $"#{((byte)r.Value).ToString("X2")}{((byte)g.Value).ToString("X2")}{((byte)b.Value).ToString("X2")}{((byte)a.Value).ToString("X2")}",
                                         });
+
+                                        continue;
+                                    }
+
+                                    var x = o.GetValue("x")?.Value<int?>();
+                                    var y = o.GetValue("y")?.Value<int?>();
+                                    var z = o.GetValue("z")?.Value<int?>();
+                                    var w = o.GetValue("w")?.Value<int?>();
+
+                                    if(x != null && y != null && z != null && w != null)
+                                    {
+                                        component.parameters.Add(new SceneComponentParameter()
+                                        {
+                                            name = pair.Key,
+                                            type = SceneComponentParameterType.Vector4,
+                                            vector4Value = new Vector4Holder()
+                                            {
+                                                x = x.Value,
+                                                y = y.Value,
+                                                z = z.Value,
+                                                w = w.Value,
+                                            }
+                                        });
+
+                                        continue;
+                                    }
+
+                                    if (x != null && y != null && z != null)
+                                    {
+                                        component.parameters.Add(new SceneComponentParameter()
+                                        {
+                                            name = pair.Key,
+                                            type = SceneComponentParameterType.Vector3,
+                                            vector3Value = new Vector3Holder()
+                                            {
+                                                x = x.Value,
+                                                y = y.Value,
+                                                z = z.Value,
+                                            }
+                                        });
+
+                                        continue;
+                                    }
+
+                                    if (x != null && y != null)
+                                    {
+                                        component.parameters.Add(new SceneComponentParameter()
+                                        {
+                                            name = pair.Key,
+                                            type = SceneComponentParameterType.Vector2,
+                                            vector2Value = new Vector2Holder()
+                                            {
+                                                x = x.Value,
+                                                y = y.Value,
+                                            }
+                                        });
+
+                                        continue;
                                     }
                                 }
                             }

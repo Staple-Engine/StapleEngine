@@ -49,6 +49,16 @@
 			},
 			{
 				"type": "TestGame.HighlightableComponent"
+			},
+			{
+				"type": "Staple.BoxCollider3D",
+				"data": {
+					"extents": {
+						"x": 100,
+						"y": 100,
+						"z": 100
+					}
+				}
 			}
 		]
 	},

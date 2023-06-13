@@ -14,7 +14,10 @@ namespace Staple.Internal
         Bool,
         Int,
         Float,
-        String
+        String,
+        Vector2,
+        Vector3,
+        Vector4,
     }
 
     [Serializable]
@@ -51,6 +54,15 @@ namespace Staple.Internal
 
         [Key(5)]
         public string stringValue;
+
+        [Key(6)]
+        public Vector2Holder vector2Value;
+
+        [Key(7)]
+        public Vector3Holder vector3Value;
+
+        [Key(8)]
+        public Vector4Holder vector4Value;
     }
 
     [Serializable]

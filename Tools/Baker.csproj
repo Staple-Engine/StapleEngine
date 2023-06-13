@@ -100,6 +100,9 @@
 	<Compile Include="..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
 		<Link>Engine\Core\Serialization\Texture\SerializableTexture.cs</Link>
 	</Compile>
+	<Compile Include="..\Engine\Core\Physics\ColliderMask.cs">
+		<Link>Engine\Core\Physics\ColliderMask.cs</Link>
+	</Compile>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)bin\Debug\net7.0\*.exe $(SolutionDir)\bin

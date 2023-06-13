@@ -1,6 +1,6 @@
 ﻿using Staple;
-using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace TestGame
 {
@@ -19,19 +19,24 @@ namespace TestGame
                 return;
             }
 
-            world.ForEach((Entity entity, ref HighlightableComponent component, ref Sprite renderer, ref Transform transform) =>
-            {
-                var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
+            var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
 
-                if (renderer.bounds.Contains(worldPosition))
+            world.ForEach((Entity entity, ref HighlightableComponent component, ref Sprite renderer) =>
+            {
+                renderer.color = Color.White;
+            });
+
+            if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out var fraction))
+            {
+                var entity = body.Entity;
+
+                var renderer = world.GetComponent<Sprite>(entity);
+
+                if(renderer != null)
                 {
                     renderer.color = new Color(0.5f, 0.5f, 0, 1);
                 }
-                else
-                {
-                    renderer.color = Color.White;
-                }
-            });
+            }
         }
     }
 }

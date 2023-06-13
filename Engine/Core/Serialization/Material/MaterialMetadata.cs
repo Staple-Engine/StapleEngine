@@ -23,6 +23,21 @@ namespace Staple.Internal
 
         [Key(1)]
         public float y;
+
+        public Vector2 ToVector2()
+        {
+            return new Vector2(x, y);
+        }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(x, y, 0);
+        }
+
+        public Vector4 ToVector4()
+        {
+            return new Vector4(x, y, 0, 0);
+        }
     }
 
     [Serializable]
@@ -38,11 +53,6 @@ namespace Staple.Internal
         [Key(2)]
         public float z;
 
-        public Vector3 ToVector3()
-        {
-            return new Vector3(x, y, z);
-        }
-
         public Vector3Holder()
         {
         }
@@ -56,6 +66,21 @@ namespace Staple.Internal
 
         public Vector3Holder(Quaternion q) : this(Math.ToEulerAngles(q))
         {
+        }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(x, y, z);
+        }
+
+        public Vector4 ToVector4()
+        {
+            return new Vector4(x, y, z, 0);
+        }
+
+        public Quaternion ToQuaternion()
+        {
+            return Math.FromEulerAngles(ToVector3());
         }
     }
 
@@ -74,6 +99,11 @@ namespace Staple.Internal
 
         [Key(3)]
         public float w;
+
+        public Vector4 ToVector4()
+        {
+            return new Vector4(x, y, z, w);
+        }
     }
 
     [Serializable]

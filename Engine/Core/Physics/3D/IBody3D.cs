@@ -2,16 +2,14 @@
 
 namespace Staple
 {
-    internal interface IBody3D
+    public interface IBody3D
     {
         Entity Entity { get; }
 
-        Vector3 Position { get; }
+        Vector3 Velocity { get; set; }
 
-        Vector3 Velocity { get; }
+        Vector3 AngularVelocity { get; set; }
 
-        Vector3 AngularVelocity { get; }
-
-        BodyMotionType MotionType { get; }
+        BodyMotionType MotionType { get; set; }
     }
 }
