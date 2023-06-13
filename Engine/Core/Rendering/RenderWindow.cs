@@ -282,14 +282,6 @@ namespace Staple
                     }
                 }
 
-                try
-                {
-                    OnUpdate?.Invoke();
-                }
-                catch (System.Exception)
-                {
-                }
-
                 double current = Glfw.Time;
 
                 fixedTimer += (float)(current - last);
@@ -569,6 +561,14 @@ namespace Staple
             Time.UpdateClock(current, lastTime);
 
             lastTime = current;
+
+            try
+            {
+                OnUpdate?.Invoke();
+            }
+            catch (System.Exception)
+            {
+            }
 
             try
             {
