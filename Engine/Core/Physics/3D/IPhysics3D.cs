@@ -29,5 +29,9 @@ namespace Staple
         void RemoveBody(IBody3D body);
 
         bool RayCast(Ray ray, out IBody3D body, out float fraction);
+
+        float GravityFactor(IBody3D body);
+
+        void SetGravityFactor(IBody3D body, float factor);
     }
 }

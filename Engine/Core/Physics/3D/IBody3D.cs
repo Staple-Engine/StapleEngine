@@ -11,5 +11,7 @@ namespace Staple
         Vector3 AngularVelocity { get; set; }
 
         BodyMotionType MotionType { get; set; }
+
+        float GravityFactor { get; set; }
     }
 }

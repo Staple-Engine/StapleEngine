@@ -361,5 +361,23 @@ namespace Staple
 
             return false;
         }
+
+        public float GravityFactor(IBody3D body)
+        {
+            if(body is JoltBodyPair pair)
+            {
+                return physicsSystem.BodyInterfaceNoLock.GetGravityFactor(pair.body.ID);
+            }
+
+            return 0;
+        }
+
+        public void SetGravityFactor(IBody3D body, float factor)
+        {
+            if(body is JoltBodyPair pair)
+            {
+                physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
+            }
+        }
     }
 }

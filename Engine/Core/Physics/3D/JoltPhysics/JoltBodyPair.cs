@@ -75,5 +75,18 @@ namespace Staple
                 }
             }
         }
+
+        public float GravityFactor
+        {
+            get
+            {
+                return Physics3D.Instance.GravityFactor(this);
+            }
+
+            set
+            {
+                Physics3D.Instance.SetGravityFactor(this, value);
+            }
+        }
     }
 }

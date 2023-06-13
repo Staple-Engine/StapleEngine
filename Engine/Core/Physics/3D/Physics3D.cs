@@ -100,6 +100,17 @@ namespace Staple
         {
             return impl.RayCast(ray, out body, out fraction);
         }
+
+        public float GravityFactor(IBody3D body)
+        {
+            return impl.GravityFactor(body);
+        }
+
+        public void SetGravityFactor(IBody3D body, float factor)
+        {
+            impl.SetGravityFactor(body, factor);
+        }
+
         #endregion
 
         #region Internal
