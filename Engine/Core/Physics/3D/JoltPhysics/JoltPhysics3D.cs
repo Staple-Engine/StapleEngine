@@ -47,6 +47,19 @@ namespace Staple
                 throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
             }
 
+            Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+            {
+                var message = inMessage ?? inExpression;
+
+                var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
+
+                System.Diagnostics.Debug.WriteLine(outMessage);
+
+                Log.Info(outMessage);
+
+                return true;
+            });
+
             allocator = new(AllocatorSize);
             jobThreadPool = new(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers);
             broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
