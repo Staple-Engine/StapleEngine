@@ -192,7 +192,8 @@ namespace Staple
             }
         }
 
-        private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer, out IBody3D body)
+        private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer,
+            bool isTrigger, float gravityFactor, out IBody3D body)
         {
             var b = physicsSystem.BodyInterface.CreateBody(new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer)));
 
@@ -207,6 +208,9 @@ namespace Staple
                 bodies.Add(pair);
 
                 body = pair;
+
+                pair.IsTrigger = isTrigger;
+                pair.GravityFactor = gravityFactor;
 
                 AddBody(body, true);
 
@@ -229,28 +233,30 @@ namespace Staple
             };
         }
 
-        public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+            bool isTrigger, float gravityFactor, out IBody3D body)
         {
             if(extents.X <= 0 || extents.Y <= 0 || extents.Z <= 0)
             {
                 throw new ArgumentException("Extents must be bigger than 0");
             }
 
-            return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
-        public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+            bool isTrigger, float gravityFactor, out IBody3D body)
         {
             if (radius <= 0)
             {
                 throw new ArgumentException("Radius must be bigger than 0");
             }
 
-            return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
         public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, out IBody3D body)
+            ushort layer, bool isTrigger, float gravityFactor, out IBody3D body)
         {
             if (radius <= 0)
             {
@@ -262,11 +268,11 @@ namespace Staple
                 throw new ArgumentException("Height must be bigger than 0");
             }
 
-            return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
         public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, out IBody3D body)
+            ushort layer, bool isTrigger, float gravityFactor, out IBody3D body)
         {
             if (radius <= 0)
             {
@@ -278,10 +284,11 @@ namespace Staple
                 throw new ArgumentException("Height must be bigger than 0");
             }
 
-            return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
-        public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer, out IBody3D body)
+        public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+            bool isTrigger, float gravityFactor, out IBody3D body)
         {
             if(ReferenceEquals(mesh, null))
             {
@@ -325,13 +332,13 @@ namespace Staple
                 settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
             }
 
-            return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
         public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, out IBody3D body)
+            ushort layer, bool isTrigger, float gravityFactor, out IBody3D body)
         {
-            return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, out body);
+            return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, out body);
         }
 
         public void DestroyBody(IBody3D body)
@@ -395,6 +402,30 @@ namespace Staple
             if(body is JoltBodyPair pair)
             {
                 physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
+            }
+        }
+
+        public void SetBodyPosition(IBody3D body, Vector3 newPosition)
+        {
+            if(body is JoltBodyPair pair)
+            {
+                physicsSystem.BodyInterface.SetPosition(pair.body.ID, newPosition, pair.body.IsActive ? ActivationMode.Activate : ActivationMode.DontActivate);
+            }
+        }
+
+        public void SetBodyRotation(IBody3D body, Quaternion newRotation)
+        {
+            if (body is JoltBodyPair pair)
+            {
+                physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? ActivationMode.Activate : ActivationMode.DontActivate);
+            }
+        }
+
+        public void SetBodyTrigger(IBody3D body, bool value)
+        {
+            if (body is JoltBodyPair pair)
+            {
+                pair.body.IsSensor = value;
             }
         }
     }

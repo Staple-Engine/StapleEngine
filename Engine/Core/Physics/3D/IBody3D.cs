@@ -13,14 +13,19 @@ namespace Staple
         Entity Entity { get; }
 
         /// <summary>
+        /// Whether this body is a trigger
+        /// </summary>
+        bool IsTrigger { get; set; }
+
+        /// <summary>
         /// The current position of this body
         /// </summary>
-        Vector3 Position { get; }
+        Vector3 Position { get; set; }
 
         /// <summary>
         /// The current rotation of this body
         /// </summary>
-        Quaternion Rotation { get; }
+        Quaternion Rotation { get; set; }
 
         /// <summary>
         /// The current velocity of this body

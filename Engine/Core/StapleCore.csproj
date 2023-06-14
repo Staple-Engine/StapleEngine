@@ -91,6 +91,7 @@
     <Compile Include="Physics\3D\BodyMotionType.cs" />
     <Compile Include="Physics\3D\Components\BoxCollider3D.cs" />
     <Compile Include="Physics\3D\Components\CapsuleCollider3D.cs" />
+    <Compile Include="Physics\3D\Components\Collider3DBase.cs" />
     <Compile Include="Physics\3D\Components\CylinderCollider3D.cs" />
     <Compile Include="Physics\3D\Components\MeshCollider3D.cs" />
     <Compile Include="Physics\3D\Components\SphereCollider3D.cs" />

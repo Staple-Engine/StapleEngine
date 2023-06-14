@@ -5,34 +5,20 @@ namespace Staple
     /// <summary>
     /// Represents a 3D box collider
     /// </summary>
-    public class BoxCollider3D : IComponent
+    public class BoxCollider3D : Collider3DBase
     {
-        internal IBody3D body;
-
         /// <summary>
         /// Size of the box
         /// </summary>
-        public Vector3 extents = Vector3.One;
+        public Vector3 size = Vector3.One;
 
-        /// <summary>
-        /// Gravity factor of the box
-        /// </summary>
-        public float gravityFactor = 1.0f;
-
-        /// <summary>
-        /// The motion type of the body
-        /// </summary>
-        public BodyMotionType motionType = BodyMotionType.Dynamic;
-
-        private void Awake(Entity entity, Transform transform)
+        protected override void Awake(Entity entity, Transform transform)
         {
-            Physics3D.Instance?.CreateBox(entity, extents, transform.Position, transform.Rotation, motionType,
-                (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), out body);
-
-            body.GravityFactor = gravityFactor;
+            Physics3D.Instance?.CreateBox(entity, size, transform.Position, transform.Rotation, motionType,
+                (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), isTrigger, gravityFactor, out body);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Physics3D.Instance?.DestroyBody(body);
         }

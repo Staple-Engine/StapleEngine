@@ -5,33 +5,26 @@ namespace Staple
     /// <summary>
     /// Represents a 3D mesh collider
     /// </summary>
-    public class MeshCollider3D : IComponent
+    public class MeshCollider3D : Collider3DBase
     {
-        internal IBody3D body;
-
         /// <summary>
         /// The mesh for the collider.
         /// </summary>
         /// <remarks>Must be readable and be a triangle mesh</remarks>
         public Mesh mesh;
 
-        /// <summary>
-        /// The motion type of the body
-        /// </summary>
-        public BodyMotionType motionType = BodyMotionType.Dynamic;
-
-        private void Awake(Entity entity)
+        protected override void Awake(Entity entity, Transform transform)
         {
             if(mesh == null)
             {
                 return;
             }
 
-            Physics3D.Instance?.CreateMesh(entity, mesh, Vector3.Zero, Quaternion.Identity, motionType,
-                (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), out body);
+            Physics3D.Instance?.CreateMesh(entity, mesh, transform.Position, transform.Rotation, motionType,
+                (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), isTrigger, gravityFactor, out body);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             Physics3D.Instance?.DestroyBody(body);
         }

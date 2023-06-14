@@ -14,15 +14,25 @@ namespace Staple
 
         public Entity Entity => entity;
 
+        public bool IsTrigger
+        {
+            get => body.IsSensor;
+
+            set => Physics3D.Instance.SetBodyTrigger(this, value);
+        }
+
         public Vector3 Position
         {
-            //We can't set the body position for some reason
             get => body.CenterOfMassPosition;
+
+            set => Physics3D.Instance.SetBodyPosition(this, value);
         }
 
         public Quaternion Rotation
         {
             get => body.Rotation;
+
+            set => Physics3D.Instance.SetBodyRotation(this, value);
         }
 
         public Vector3 Velocity

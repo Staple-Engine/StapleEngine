@@ -12,11 +12,9 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Physics3D.Instance.Startup();
-
             var ray = new Ray(new Vector3(0, 0, 1), new Vector3(0, 0, -1));
 
-            Assert.IsTrue(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, out var body));
+            Assert.IsTrue(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false, 1, out var body));
 
             body.GravityFactor = 0;
 
