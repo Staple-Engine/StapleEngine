@@ -5,6 +5,9 @@ using System.Numerics;
 
 namespace Staple
 {
+    /// <summary>
+    /// Implements Jolt Physics
+    /// </summary>
     internal class JoltPhysics3D : IPhysics3D
     {
         private const int AllocatorSize = 10 * 1024 * 1024;
@@ -15,6 +18,7 @@ namespace Staple
         private const uint MaxBodyPairs = 1024;
         private const uint MaxContactConstraints = 1024;
 
+        //Dependencies
         private TempAllocator allocator;
         private JobSystemThreadPool jobThreadPool;
         private BroadPhaseLayerInterface broadPhaseLayerInterface;
@@ -22,6 +26,7 @@ namespace Staple
         private ObjectLayerPairFilter objectLayerPairFilter;
         private PhysicsSystem physicsSystem;
 
+        //Tracking live bodies
         private List<JoltBodyPair> bodies = new List<JoltBodyPair>();
 
         private bool destroyed = false;
@@ -168,7 +173,7 @@ namespace Staple
                 {
                     var body = pair.body;
 
-                    transform.LocalPosition = body.Position;
+                    transform.Position = body.Position;
                     transform.LocalRotation = body.Rotation;
                 }
             }

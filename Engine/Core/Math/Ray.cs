@@ -20,6 +20,11 @@ namespace Staple
             this.direction = direction;
         }
 
+        public override string ToString()
+        {
+            return $"(position: {position}, direction: {direction})";
+        }
+
         /// <summary>
         /// Test whether this ray intersects an AABB
         /// </summary>

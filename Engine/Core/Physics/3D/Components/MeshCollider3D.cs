@@ -2,12 +2,22 @@
 
 namespace Staple
 {
+    /// <summary>
+    /// Represents a 3D mesh collider
+    /// </summary>
     public class MeshCollider3D : IComponent
     {
         internal IBody3D body;
 
+        /// <summary>
+        /// The mesh for the collider.
+        /// </summary>
+        /// <remarks>Must be readable and be a triangle mesh</remarks>
         public Mesh mesh;
 
+        /// <summary>
+        /// The motion type of the body
+        /// </summary>
         public BodyMotionType motionType = BodyMotionType.Dynamic;
 
         private void Awake(Entity entity)

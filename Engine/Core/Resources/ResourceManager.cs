@@ -170,7 +170,7 @@ namespace Staple.Internal
                     {
                         case SceneObjectKind.Entity:
 
-                            entity = scene.Instantiate(sceneObject, out var localID);
+                            entity = scene.Instantiate(sceneObject, out var localID, false);
 
                             if (entity == Entity.Empty)
                             {
@@ -252,7 +252,7 @@ namespace Staple.Internal
                     {
                         case SceneObjectKind.Entity:
 
-                            entity = scene.Instantiate(sceneObject, out var localID);
+                            entity = scene.Instantiate(sceneObject, out var localID, true);
 
                             if (entity == Entity.Empty)
                             {

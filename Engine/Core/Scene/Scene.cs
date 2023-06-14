@@ -133,8 +133,9 @@ namespace Staple
         /// </summary>
         /// <param name="sceneObject">The scene object to instantiate</param>
         /// <param name="localID">The local ID of the entity</param>
+        /// <param name="activate">Whether to activate the object and call lifecycle callbacks</param>
         /// <returns>The new entity, or Entity.Empty</returns>
-        internal Entity Instantiate(SceneObject sceneObject, out int localID)
+        internal Entity Instantiate(SceneObject sceneObject, out int localID, bool activate)
         {
             localID = sceneObject.ID;
 
@@ -487,10 +488,13 @@ namespace Staple
                 UpdateComponent(entity, componentInstance);
             }
 
-            world.IterateComponents(entity, (ref IComponent c) =>
+            if(activate)
             {
-                c.Invoke("Awake", entity, transform);
-            });
+                world.IterateComponents(entity, (ref IComponent c) =>
+                {
+                    c.Invoke("Awake", entity, transform);
+                });
+            }
 
             return entity;
         }

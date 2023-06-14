@@ -4,12 +4,26 @@ using System;
 
 namespace Staple
 {
+    /// <summary>
+    /// Jolt Physics 3D Body implementation
+    /// </summary>
     internal class JoltBodyPair : IBody3D
     {
         public Entity entity;
         public Body body;
 
         public Entity Entity => entity;
+
+        public Vector3 Position
+        {
+            //We can't set the body position for some reason
+            get => body.CenterOfMassPosition;
+        }
+
+        public Quaternion Rotation
+        {
+            get => body.Rotation;
+        }
 
         public Vector3 Velocity
         {

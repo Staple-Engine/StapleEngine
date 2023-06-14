@@ -21,6 +21,14 @@ namespace Staple.Editor
 
             if(Scene.current?.world != null)
             {
+                var mouseRay = new Ray(Camera.ScreenPointToWorld(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform), cameraTransform.Forward);
+
+                //TODO: Fix this
+                if (Physics.RayCast3D(mouseRay, out var body, out _))
+                {
+                    Log.Info($"Hit {Scene.current.world.GetEntityName(body.Entity)}");
+                }
+
                 Scene.current.world.ForEach((Entity entity, ref Transform transform) =>
                 {
                     foreach(var system in renderSystem.renderSystems)
@@ -31,17 +39,18 @@ namespace Staple.Editor
                         {
                             system.Preprocess(entity, transform, related);
 
-                            if (related is Renderable renderable &&
-                                renderable.enabled)
+                            if (related is Renderable renderable)
                             {
                                 system.Process(entity, transform, related, SceneView);
+
+                                ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                             }
                         }
                     }
                 });
             }
 
-            foreach(var system in renderSystem.renderSystems)
+            foreach (var system in renderSystem.renderSystems)
             {
                 system.Submit();
             }

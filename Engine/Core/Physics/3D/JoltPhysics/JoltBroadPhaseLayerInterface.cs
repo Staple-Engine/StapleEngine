@@ -2,6 +2,10 @@
 
 namespace Staple
 {
+    /// <summary>
+    /// Broadphase layer interface.
+    /// Responsible for getting the collision layers for Jolt Physics
+    /// </summary>
     internal class JoltBroadPhaseLayerInterface : BroadPhaseLayerInterface
     {
         protected override BroadPhaseLayer GetBroadPhaseLayer(ObjectLayer layer)

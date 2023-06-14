@@ -43,6 +43,12 @@ namespace Staple.Editor
             public string TypeString;
         }
 
+        class EntityBody
+        {
+            public AABB bounds;
+            public IBody3D body;
+        }
+
         internal const int ClearView = 0;
         internal const int SceneView = 254;
 
@@ -95,6 +101,8 @@ namespace Staple.Editor
         };
 
         private AppSettings projectAppSettings;
+
+        private Dictionary<Entity, EntityBody> pickEntityBodies = new();
 
         public void Run()
         {
@@ -216,6 +224,8 @@ namespace Staple.Editor
 
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
+
+                Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
                 LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 

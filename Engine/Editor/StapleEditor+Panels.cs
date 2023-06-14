@@ -548,6 +548,8 @@ namespace Staple.Editor
                                     {
                                         lastOpenScene = item.path;
                                         Scene.current = scene;
+
+                                        ResetScenePhysics();
                                     }
 
                                     break;
