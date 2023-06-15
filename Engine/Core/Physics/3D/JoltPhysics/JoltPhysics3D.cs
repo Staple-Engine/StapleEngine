@@ -367,11 +367,16 @@ namespace Staple
             }
         }
 
-        public bool RayCast(Ray ray, out IBody3D body, out float fraction)
+        public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery)
         {
             var hit = RayCastResult.Default;
 
-            if(physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction, ref hit))
+            var bodyFilter = new JoltPhysicsBodyFilter()
+            {
+                triggerQuery = triggerQuery,
+            };
+
+            if (physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction, ref hit, bodyFilter))
             {
                 if(TryFindBody(hit.BodyID, out body))
                 {

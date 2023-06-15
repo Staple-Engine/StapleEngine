@@ -135,8 +135,9 @@ namespace Staple
         /// <param name="ray">The ray to cast</param>
         /// <param name="body">The body that was hit</param>
         /// <param name="fraction">The multiplier to hit the body from the ray position</param>
+        /// <param name="triggerQuery">Whether to hit triggers</param>
         /// <returns>Whether we hit something</returns>
-        bool RayCast(Ray ray, out IBody3D body, out float fraction);
+        bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery);
 
         /// <summary>
         /// Gets the gravity factor for a body

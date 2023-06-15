@@ -5,7 +5,7 @@ namespace Staple
     /// <summary>
     /// Represents a 3D mesh collider
     /// </summary>
-    public class MeshCollider3D : Collider3DBase
+    public class MeshCollider3D : Collider3D
     {
         /// <summary>
         /// The mesh for the collider.
@@ -13,7 +13,7 @@ namespace Staple
         /// <remarks>Must be readable and be a triangle mesh</remarks>
         public Mesh mesh;
 
-        protected override void Awake(Entity entity, Transform transform)
+        private void Awake(Entity entity, Transform transform)
         {
             if(mesh == null)
             {
@@ -24,7 +24,7 @@ namespace Staple
                 (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), isTrigger, gravityFactor, out body);
         }
 
-        protected override void OnDestroy()
+        private void OnDestroy()
         {
             Physics3D.Instance?.DestroyBody(body);
         }

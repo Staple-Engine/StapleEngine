@@ -5,7 +5,7 @@ namespace Staple
     /// <summary>
     /// Represents a 3D cylinder collider
     /// </summary>
-    public class CylinderCollider3D : Collider3DBase
+    public class CylinderCollider3D : Collider3D
     {
         /// <summary>
         /// The height of the cylinder
@@ -17,13 +17,13 @@ namespace Staple
         /// </summary>
         public float radius = 1;
 
-        protected override void Awake(Entity entity, Transform transform)
+        private void Awake(Entity entity, Transform transform)
         {
             Physics3D.Instance?.CreateCylinder(entity, height, radius, transform.Position, transform.Rotation, motionType,
                 (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), isTrigger, gravityFactor, out body);
         }
 
-        protected override void OnDestroy()
+        private void OnDestroy()
         {
             Physics3D.Instance?.DestroyBody(body);
         }

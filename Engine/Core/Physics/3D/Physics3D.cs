@@ -196,10 +196,11 @@ namespace Staple
         /// <param name="ray">The ray to cast</param>
         /// <param name="body">The body that was hit</param>
         /// <param name="fraction">The multiplier to hit the body from the ray position</param>
+        /// <param name="triggerQuery">Whether to hit triggers</param>
         /// <returns>Whether we hit something</returns>
-        public bool RayCast(Ray ray, out IBody3D body, out float fraction)
+        public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery)
         {
-            return impl.RayCast(ray, out body, out fraction);
+            return impl.RayCast(ray, out body, out fraction, triggerQuery);
         }
 
         /// <summary>

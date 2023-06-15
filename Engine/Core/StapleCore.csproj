@@ -91,7 +91,7 @@
     <Compile Include="Physics\3D\BodyMotionType.cs" />
     <Compile Include="Physics\3D\Components\BoxCollider3D.cs" />
     <Compile Include="Physics\3D\Components\CapsuleCollider3D.cs" />
-    <Compile Include="Physics\3D\Components\Collider3DBase.cs" />
+    <Compile Include="Physics\3D\Components\Collider3D.cs" />
     <Compile Include="Physics\3D\Components\CylinderCollider3D.cs" />
     <Compile Include="Physics\3D\Components\MeshCollider3D.cs" />
     <Compile Include="Physics\3D\Components\SphereCollider3D.cs" />
@@ -102,7 +102,9 @@
     <Compile Include="Physics\3D\JoltPhysics\JoltObjectLayerPairFilter.cs" />
     <Compile Include="Physics\3D\JoltPhysics\JoltObjectVsBroadPhaseLayerFilter.cs" />
     <Compile Include="Physics\3D\JoltPhysics\JoltPhysics3D.cs" />
+    <Compile Include="Physics\3D\JoltPhysics\JoltPhysicsBodyFilter.cs" />
     <Compile Include="Physics\3D\Physics3D.cs" />
+    <Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
     <Compile Include="Physics\ColliderMask.cs" />
     <Compile Include="Physics\Physics.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
