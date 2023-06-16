@@ -367,16 +367,20 @@ namespace Staple
             }
         }
 
-        public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery)
+        public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance)
         {
             var hit = RayCastResult.Default;
+
+            var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
+
+            var objectLayerFilter = new JoltPhysicsObjectLayerFilter();
 
             var bodyFilter = new JoltPhysicsBodyFilter()
             {
                 triggerQuery = triggerQuery,
             };
 
-            if (physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction, ref hit, bodyFilter))
+            if (physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
             {
                 if(TryFindBody(hit.BodyID, out body))
                 {

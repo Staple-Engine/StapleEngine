@@ -103,6 +103,8 @@
     <Compile Include="Physics\3D\JoltPhysics\JoltObjectVsBroadPhaseLayerFilter.cs" />
     <Compile Include="Physics\3D\JoltPhysics\JoltPhysics3D.cs" />
     <Compile Include="Physics\3D\JoltPhysics\JoltPhysicsBodyFilter.cs" />
+    <Compile Include="Physics\3D\JoltPhysics\JoltPhysicsBroadPhaseLayerFilter.cs" />
+    <Compile Include="Physics\3D\JoltPhysics\JoltPhysicsObjectLayerFilter.cs" />
     <Compile Include="Physics\3D\Physics3D.cs" />
     <Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
     <Compile Include="Physics\ColliderMask.cs" />

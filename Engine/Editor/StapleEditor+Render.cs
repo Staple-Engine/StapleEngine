@@ -23,8 +23,7 @@ namespace Staple.Editor
             {
                 var mouseRay = new Ray(Camera.ScreenPointToWorld(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform), cameraTransform.Forward);
 
-                //TODO: Fix this
-                if (Physics.RayCast3D(mouseRay, out var body, out _))
+                if (Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10))
                 {
                     Log.Info($"Hit {Scene.current.world.GetEntityName(body.Entity)}");
                 }

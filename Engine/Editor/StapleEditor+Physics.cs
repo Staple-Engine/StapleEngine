@@ -21,10 +21,8 @@
                 pickEntityBodies.Remove(entity);
             }
 
-            if(Physics3D.Instance.CreateBox(entity, bounds.Size, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false, 1, out var body))
+            if(Physics3D.Instance.CreateBox(entity, bounds.Size, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false, 0, out var body))
             {
-                body.GravityFactor = 0;
-
                 pickEntityBodies.Add(entity, new EntityBody()
                 {
                     body = body,

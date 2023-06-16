@@ -136,8 +136,9 @@ namespace Staple
         /// <param name="body">The body that was hit</param>
         /// <param name="fraction">The multiplier to hit the body from the ray position</param>
         /// <param name="triggerQuery">Whether to hit triggers</param>
+        /// <param name="maxDistance">The maximum distance to hit</param>
         /// <returns>Whether we hit something</returns>
-        bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery);
+        bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance);
 
         /// <summary>
         /// Gets the gravity factor for a body
