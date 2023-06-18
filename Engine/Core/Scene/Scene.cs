@@ -2,6 +2,7 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -60,7 +61,9 @@ namespace Staple
         /// <param name="entity">The entity to add the component to</param>
         /// <param name="t">The component's type</param>
         /// <returns>The component's instance</returns>
-        public IComponent AddComponent(Entity entity, Type t)
+        public IComponent AddComponent(Entity entity,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+            Type t)
         {
             return world.AddComponent(entity, t);
         }
@@ -71,7 +74,9 @@ namespace Staple
         /// <typeparam name="T">The component's type</typeparam>
         /// <param name="entity">The entity to add the component to</param>
         /// <returns>The component's instance</returns>
-        public T AddComponent<T>(Entity entity) where T: IComponent
+        public T AddComponent
+            <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>
+            (Entity entity) where T: IComponent
         {
             return world.AddComponent<T>(entity);
         }
@@ -160,7 +165,11 @@ namespace Staple
 
             foreach (var component in sceneObject.components)
             {
+#if STAPLE_AOT_STAGING
+                var type = Type.GetType(component.type);
+#else
                 var type = Type.GetType(component.type) ?? AppPlayer.active?.playerAssembly?.GetType(component.type);
+#endif
 
                 if (type == null)
                 {

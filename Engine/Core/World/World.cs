@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple
 {
@@ -78,6 +79,7 @@ namespace Staple
             /// <summary>
             /// The type to instantiate
             /// </summary>
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
             public Type type;
 
             /// <summary>

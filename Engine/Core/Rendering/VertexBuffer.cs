@@ -124,7 +124,7 @@ namespace Staple.Internal
                 return;
             }
 
-            var size = Marshal.SizeOf(typeof(T));
+            var size = Marshal.SizeOf<T>();
 
             if (dynamicHandle.Valid == false ||
                 data == null ||
@@ -238,7 +238,7 @@ namespace Staple.Internal
         /// <returns>The vertex buffer, or null</returns>
         public static VertexBuffer Create<T>(T[] data, VertexLayout layout, bool isTransient = false) where T: unmanaged
         {
-            var size = Marshal.SizeOf(typeof(T));
+            var size = Marshal.SizeOf<T>();
 
             if(size != layout.layout.stride)
             {

@@ -109,7 +109,7 @@ namespace Staple.Internal
         /// <returns>The index buffer, or null</returns>
         public static IndexBuffer Create(ushort[] data, RenderBufferFlags flags, bool isTransient = false)
         {
-            var size = Marshal.SizeOf(typeof(ushort));
+            var size = Marshal.SizeOf<ushort>();
 
             if(isTransient && bgfx.get_avail_transient_index_buffer((uint)data.Length, false) < data.Length)
             {
@@ -166,7 +166,7 @@ namespace Staple.Internal
         /// <returns>The index buffer, or null</returns>
         public static IndexBuffer Create(uint[] data, RenderBufferFlags flags, bool isTransient = false)
         {
-            var size = Marshal.SizeOf(typeof(uint));
+            var size = Marshal.SizeOf<uint>();
 
             unsafe
             {

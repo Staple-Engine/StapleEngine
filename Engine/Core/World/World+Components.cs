@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple
 {
@@ -57,7 +58,9 @@ namespace Staple
         /// <typeparam name="T">The component type</typeparam>
         /// <param name="entity">The entity to add the component to</param>
         /// <returns>The component instance, or default</returns>
-        public T AddComponent<T>(Entity entity) where T : IComponent
+        public T AddComponent
+            <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>
+            (Entity entity) where T : IComponent
         {
             return (T)AddComponent(entity, typeof(T));
         }
@@ -68,7 +71,9 @@ namespace Staple
         /// <param name="entity">The entity to add the component to</param>
         /// <param name="t">The component type</param>
         /// <returns>The component instance, or default</returns>
-        public IComponent AddComponent(Entity entity, Type t)
+        public IComponent AddComponent(Entity entity,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+            Type t)
         {
             lock (lockObject)
             {
