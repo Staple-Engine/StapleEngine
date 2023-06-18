@@ -9,12 +9,62 @@ namespace Staple
     /// </summary>
     public partial class Mesh
     {
+        /// <summary>
+        /// Whether this mesh is readable by the CPU
+        /// </summary>
         public readonly bool isReadable = true;
+
+        /// <summary>
+        /// Whether this mesh is writable
+        /// </summary>
         public readonly bool isWritable = true;
 
+        /// <summary>
+        /// The bounds of the mesh
+        /// </summary>
         public AABB bounds { get; internal set; }
 
-        public MeshIndexFormat IndexFormat => indexFormat;
+        /// <summary>
+        /// The format of the indices for this mesh
+        /// </summary>
+        public MeshIndexFormat IndexFormat
+        {
+            get => indexFormat;
+
+            set
+            {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
+                changed = true;
+
+                indexFormat = value;
+
+                indices = new int[0];
+            }
+        }
+
+        /// <summary>
+        /// The mesh's primitive type
+        /// </summary>
+        public MeshTopology MeshTopology
+        {
+            get => meshTopology;
+
+            set
+            {
+                if(isWritable == false)
+                {
+                    return;
+                }
+
+                changed = true;
+
+                meshTopology = value;
+            }
+        }
 
         /// <summary>
         /// Sets or gets the current vertices.
@@ -501,8 +551,14 @@ namespace Staple
             }
         }
 
+        /// <summary>
+        /// Total amount of vertices
+        /// </summary>
         public int VertexCount => vertices?.Length ?? 0;
 
+        /// <summary>
+        /// Total amount of indices
+        /// </summary>
         public int IndexCount => indices?.Length ?? 0;
 
         public Mesh() { }
@@ -533,15 +589,65 @@ namespace Staple
 
         public void UploadMeshData()
         {
+            changed = false;
+
             vertexBuffer?.Destroy();
             indexBuffer?.Destroy();
 
             vertexBuffer = null;
             indexBuffer = null;
 
-            if(indices == null || vertices == null)
+            if (vertices == null || vertices.Length == 0)
             {
-                return;
+                throw new InvalidOperationException($"Mesh has no vertices");
+            }
+
+            if (indices == null || indices.Length == 0)
+            {
+                throw new InvalidOperationException($"Mesh has no indices");
+            }
+
+            switch(meshTopology)
+            {
+                case MeshTopology.Triangles:
+
+                    if(indices.Length % 3 != 0)
+                    {
+                        throw new InvalidOperationException($"Triangle mesh doesn't have the right amount of indices. Has: {indices.Length}. Should be a multiple of 3");
+                    }
+
+                    break;
+
+                case MeshTopology.Points:
+
+                    break;
+
+                case MeshTopology.TriangleStrip:
+
+                    if(indices.Length < 3)
+                    {
+                        throw new InvalidOperationException($"Triangle Strip mesh doesn't have the right amount of indices. Has: {indices.Length}. Should have at least 3");
+                    }
+
+                    break;
+
+                case MeshTopology.Lines:
+
+                    if (indices.Length % 2 != 0)
+                    {
+                        throw new InvalidOperationException($"Line mesh doesn't have the right amount of indices. Has: {indices.Length}. Should be a multiple of 2");
+                    }
+
+                    break;
+
+                case MeshTopology.LineStrip:
+
+                    if (indices.Length < 2)
+                    {
+                        throw new InvalidOperationException($"Line Strip mesh doesn't have the right amount of indices. Has: {indices.Length}. Should have at least 2");
+                    }
+
+                    break;
             }
 
             var layout = GetVertexLayout(this);

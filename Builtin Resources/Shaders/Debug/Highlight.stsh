@@ -1,0 +1,47 @@
+{
+	"type": "VertexFragment",
+	"sourceBlend": "SrcAlpha",
+	"destinationBlend": "OneMinusSrcAlpha",
+	"parameters": [
+		{
+			"name": "a_position",
+			"semantic": "Varying",
+			"type": "vec3",
+			"attribute": "POSITION"
+		},
+		{
+			"name": "mainColor",
+			"semantic": "Uniform",
+			"type": "Color"
+		}
+	],
+	"vertex": {
+		"inputs": [
+			"a_position"
+		],
+		"outputs": [
+		],
+		"code": [
+			"void main()",
+			"{",
+			"	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);",
+			"",
+			"	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));",
+			"",
+			"	gl_Position = v_pos;",
+			"}"
+		]
+	},
+	"fragment": {
+		"inputs": [
+		],
+		"code": [
+			"uniform vec4 mainColor;",
+			"",
+			"void main()",
+			"{",
+			"	gl_FragColor = mainColor;",
+			"}"
+		]
+	}
+}

@@ -36,5 +36,11 @@ namespace Staple.Internal
 
         [Key(1)]
         public List<ShaderUniform> uniforms = new();
+
+        [Key(2)]
+        public BlendMode sourceBlend = BlendMode.Off;
+
+        [Key(3)]
+        public BlendMode destinationBlend = BlendMode.Off;
     }
 }

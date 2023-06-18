@@ -244,7 +244,11 @@ namespace Baker
 
                     var generatedShader = new SerializableShader()
                     {
-                        metadata = new ShaderMetadata(),
+                        metadata = new ShaderMetadata()
+                        {
+                            sourceBlend = shader.sourceBlend,
+                            destinationBlend = shader.destinationBlend,
+                        }
                     };
 
                     if (shader.parameters != null)

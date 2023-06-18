@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Bgfx
 {
     public static partial class bgfx
@@ -10,6 +8,8 @@ namespace Bgfx
         const string DllName = "libbgfx.dylib";
         #elif LINUX
         const string DllName = "libbgfx.so";
+        #else
+        const string DllName = "invalid";
         #endif
     }
 }

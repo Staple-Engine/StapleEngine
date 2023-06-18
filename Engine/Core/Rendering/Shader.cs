@@ -19,6 +19,7 @@ namespace Staple.Internal
         internal readonly bgfx.ShaderHandle vertexShader;
         internal readonly bgfx.ShaderHandle fragmentShader;
         internal readonly bgfx.ProgramHandle program;
+        internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
         internal List<UniformInfo> uniforms = new();
 
@@ -32,6 +33,9 @@ namespace Staple.Internal
             this.vertexShader = vertexShader;
             this.fragmentShader = fragmentShader;
             this.program = program;
+
+            sourceBlend = metadata.sourceBlend;
+            destinationBlend = metadata.destinationBlend;
 
             foreach(var uniform in metadata.uniforms)
             {
@@ -92,6 +96,16 @@ namespace Staple.Internal
         ~Shader()
         {
             Destroy();
+        }
+
+        internal bgfx.StateFlags BlendingFlag()
+        {
+            if(sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
+            {
+                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
+            }
+
+            return 0;
         }
 
         internal UniformInfo GetUniform(string name)

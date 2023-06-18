@@ -1,0 +1,14 @@
+{
+	"shaderPath": "Shaders/Debug/Highlight.stsh",
+	"parameters": {
+		"mainColor":  {
+			"type": "Color",
+			"colorValue": {
+				"r": 0,
+				"g": 128,
+				"b": 0,
+				"a": 128
+			}
+		}
+	}
+}

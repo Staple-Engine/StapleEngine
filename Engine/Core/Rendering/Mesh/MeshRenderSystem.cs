@@ -16,6 +16,46 @@ namespace Staple
 
         private readonly List<RenderInfo> renderers = new();
 
+        public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, ushort viewID)
+        {
+            if(mesh == null || material == null || material.Disposed || material.shader == null || material.shader.Disposed)
+            {
+                return;
+            }
+
+            if(mesh.changed)
+            {
+                mesh.UploadMeshData();
+            }
+
+            var matrix = new Transform()
+            {
+                Position = position,
+                LocalRotation = rotation,
+                LocalScale = scale,
+            }.Matrix;
+
+            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
+                bgfx.StateFlags.WriteA |
+                bgfx.StateFlags.WriteZ |
+                bgfx.StateFlags.DepthTestLequal |
+                mesh.PrimitiveFlag() |
+                material.shader.BlendingFlag();
+
+            unsafe
+            {
+                _ = bgfx.set_transform(&matrix, 1);
+            }
+
+            bgfx.set_state((ulong)state, 0);
+
+            material.ApplyProperties();
+
+            mesh.SetActive();
+
+            bgfx.submit(viewID, material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+        }
+
         public void Destroy()
         {
         }
@@ -67,7 +107,10 @@ namespace Staple
 
         public void Submit()
         {
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
+            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
+                bgfx.StateFlags.WriteA |
+                bgfx.StateFlags.WriteZ |
+                bgfx.StateFlags.DepthTestLequal;
 
             foreach (var pair in renderers)
             {
@@ -78,7 +121,7 @@ namespace Staple
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                bgfx.set_state((ulong)state, 0);
+                bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.material.shader.BlendingFlag()), 0);
 
                 pair.renderer.material.ApplyProperties();
 

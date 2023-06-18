@@ -110,7 +110,10 @@ namespace Staple
                 return;
             }
 
-            var state = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.DepthTestGequal | bgfx.StateFlags.PtTristrip;
+            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
+                bgfx.StateFlags.WriteA |
+                bgfx.StateFlags.DepthTestLequal |
+                spriteMesh.PrimitiveFlag();
 
             for (var i = 0; i < sprites.Count; i++)
             {
@@ -123,7 +126,7 @@ namespace Staple
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                bgfx.set_state((ulong)state, 0);
+                bgfx.set_state((ulong)(state | s.material.shader.BlendingFlag()), 0);
 
                 s.material.shader.SetColor(Material.MainColorProperty, s.color);
                 s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);

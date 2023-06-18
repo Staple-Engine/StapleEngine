@@ -109,6 +109,7 @@
     <Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
     <Compile Include="Physics\ColliderMask.cs" />
     <Compile Include="Physics\Physics.cs" />
+    <Compile Include="Rendering\BlendMode.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
     <Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
     <Compile Include="Rendering\Mesh\Mesh.cs" />

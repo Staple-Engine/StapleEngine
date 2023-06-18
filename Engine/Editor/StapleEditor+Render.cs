@@ -43,6 +43,8 @@ namespace Staple.Editor
                                 system.Process(entity, transform, related, SceneView);
 
                                 ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
+
+                                MeshRenderSystem.DrawMesh(Mesh.Cube, transform.Position, transform.Rotation, renderable.localBounds.extents, debugHighlightMaterial, SceneView);
                             }
                         }
                     }

@@ -1,5 +1,7 @@
 {
 	"type": "VertexFragment",
+	"sourceBlend": "SrcAlpha",
+	"destinationBlend": "OneMinusSrcAlpha",
 	"parameters": [
 		{
 			"name": "v_texcoord0",

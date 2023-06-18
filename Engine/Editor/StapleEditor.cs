@@ -104,6 +104,8 @@ namespace Staple.Editor
 
         private Dictionary<Entity, EntityBody> pickEntityBodies = new();
 
+        private Material debugHighlightMaterial;
+
         public void Run()
         {
             LayerMask.AllLayers = editorSettings.layers;
@@ -220,12 +222,14 @@ namespace Staple.Editor
                 style.WindowRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
 
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
+                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
+
+                debugHighlightMaterial = ResourceManager.instance.LoadMaterial("Materials/DebugHighlight.mat");
 
                 LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 

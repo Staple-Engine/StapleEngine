@@ -1,10 +1,9 @@
-﻿using Staple.Internal;
+﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple
 {
@@ -27,6 +26,7 @@ namespace Staple
         internal Vector2[] uv8;
         internal int[] indices;
         internal MeshIndexFormat indexFormat = MeshIndexFormat.UInt16;
+        internal MeshTopology meshTopology = MeshTopology.TriangleStrip;
         internal VertexBuffer vertexBuffer;
         internal IndexBuffer indexBuffer;
 
@@ -136,6 +136,11 @@ namespace Staple
             isWritable = writable;
         }
 
+        internal bgfx.StateFlags PrimitiveFlag()
+        {
+            return (bgfx.StateFlags)meshTopology;
+        }
+
         internal void Destroy()
         {
             vertexBuffer?.Destroy();
@@ -223,66 +228,66 @@ namespace Staple
 
             var builder = new VertexLayoutBuilder();
 
-            builder.Add(Bgfx.bgfx.Attrib.Position, 3, Bgfx.bgfx.AttribType.Float);
+            builder.Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float);
 
             if(mesh.HasNormals)
             {
-                builder.Add(Bgfx.bgfx.Attrib.Normal, 3, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Normal, 3, bgfx.AttribType.Float);
             }
 
             if (mesh.HasTangents)
             {
-                builder.Add(Bgfx.bgfx.Attrib.Tangent, 4, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Tangent, 4, bgfx.AttribType.Float);
             }
 
             if (mesh.HasBitangents)
             {
-                builder.Add(Bgfx.bgfx.Attrib.Bitangent, 4, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Bitangent, 4, bgfx.AttribType.Float);
             }
 
             if (mesh.HasColors || mesh.HasColors32)
             {
-                builder.Add(Bgfx.bgfx.Attrib.Color0, 4, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV2)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord1, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord1, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV3)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord2, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord2, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV4)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord3, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord3, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV5)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord4, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord4, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV6)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord5, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord5, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV7)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord6, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord6, 2, bgfx.AttribType.Float);
             }
 
             if (mesh.HasUV8)
             {
-                builder.Add(Bgfx.bgfx.Attrib.TexCoord7, 2, Bgfx.bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.TexCoord7, 2, bgfx.AttribType.Float);
             }
 
             layout = builder.Build();
