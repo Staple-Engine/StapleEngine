@@ -1,7 +1,6 @@
 ﻿using MessagePack;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -11,6 +10,8 @@ namespace Staple
     {
         public static void Run(string[] args)
         {
+            MessagePackInit.Initialize();
+
             AppSettings settings = null;
 
             var baseDirectory = AppContext.BaseDirectory;

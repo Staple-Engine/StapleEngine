@@ -1,9 +1,11 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<SceneObjectKind>))]
     public enum SceneObjectKind
     {
         Entity
@@ -73,15 +75,11 @@ namespace Staple.Internal
         public string type;
 
         [Key(1)]
+        [JsonIgnore]
         public List<SceneComponentParameter> parameters = new();
 
         [IgnoreMember]
         public Dictionary<string, object> data;
-
-        public bool ShouldSerializeparameters()
-        {
-            return false;
-        }
     }
 
     [Serializable]
@@ -108,6 +106,18 @@ namespace Staple.Internal
 
         [Key(6)]
         public string layer;
+    }
+
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, IncludeFields = true)]
+    [JsonSerializable(typeof(SceneObject))]
+    [JsonSerializable(typeof(List<SceneObject>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<SceneObjectKind>))]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(SceneObjectTransform))]
+    [JsonSerializable(typeof(List<SceneComponent>))]
+    internal partial class SceneObjectSerializationContext : JsonSerializerContext
+    {
     }
 
     [MessagePackObject]

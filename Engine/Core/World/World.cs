@@ -79,7 +79,8 @@ namespace Staple
             /// <summary>
             /// The type to instantiate
             /// </summary>
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
             public Type type;
 
             /// <summary>

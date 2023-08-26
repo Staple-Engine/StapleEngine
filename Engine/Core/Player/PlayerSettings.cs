@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Staple
 {
@@ -9,11 +9,11 @@ namespace Staple
     [Serializable]
     internal class PlayerSettings
     {
-        public WindowMode windowMode = WindowMode.Windowed;
-        public VideoFlags videoFlags = VideoFlags.Vsync;
-        public int screenWidth;
-        public int screenHeight;
-        public int monitorIndex = 0;
+        public WindowMode windowMode { get; set; } = WindowMode.Windowed;
+        public VideoFlags videoFlags { get; set; } = VideoFlags.Vsync;
+        public int screenWidth { get; set; }
+        public int screenHeight { get; set; }
+        public int monitorIndex { get; set; } = 0;
 
         [JsonIgnore]
         public int AALevel
@@ -26,5 +26,14 @@ namespace Staple
                     videoFlags.HasFlag(VideoFlags.MSAAX16) ? 16 : 0;
             }
         }
+    }
+
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+    [JsonSerializable(typeof(PlayerSettings))]
+    [JsonSerializable(typeof(WindowMode))]
+    [JsonSerializable(typeof(VideoFlags))]
+    [JsonSerializable(typeof(int))]
+    internal partial class PlayerSettingsSerializationContext : JsonSerializerContext
+    {
     }
 }

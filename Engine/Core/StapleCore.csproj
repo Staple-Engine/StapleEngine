@@ -20,7 +20,7 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL</DefineConstants>
+    <DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL;STAPLE_AOT_STAGING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,19 +29,23 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL</DefineConstants>
+    <DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL;STAPLE_AOT_STAGING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+	
+  <PropertyGroup>
+	<StripSymbols>true</StripSymbols>
+	<PublishAot>true</PublishAot>
+	<IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+	
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Reference Include="glfwnet">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
     </Reference>
     <Reference Include="MessagePack">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -54,6 +58,10 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="MessagePack\**" />
+    <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bindings\bgfx.cs" />
@@ -88,6 +96,8 @@
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
+    <Compile Include="MessagePackGenerated\MessagePackGenerated.cs" />
+    <Compile Include="MessagePackGenerated\MessagePackInit.cs" />
     <Compile Include="Physics\3D\BodyMotionType.cs" />
     <Compile Include="Physics\3D\Components\BoxCollider3D.cs" />
     <Compile Include="Physics\3D\Components\CapsuleCollider3D.cs" />
@@ -119,6 +129,7 @@
     <Compile Include="Rendering\VertexBufferType.cs" />
     <Compile Include="Rendering\VideoFlags.cs" />
     <Compile Include="Rendering\WindowMode.cs" />
+    <Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
     <Compile Include="Serialization\Scene\SerializableScene.cs" />
     <Compile Include="Serialization\App\AppSettingsHeader.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />

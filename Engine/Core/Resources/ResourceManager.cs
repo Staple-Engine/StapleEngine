@@ -1,10 +1,11 @@
 ﻿using MessagePack;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
@@ -158,7 +159,7 @@ namespace Staple.Internal
 
             try
             {
-                var sceneObjects = JsonConvert.DeserializeObject<List<SceneObject>>(data);
+                var sceneObjects = JsonSerializer.Deserialize(data, SceneObjectSerializationContext.Default.ListSceneObject);
                 var localIDs = new Dictionary<int, Transform>();
                 var parents = new Dictionary<int, int>();
 

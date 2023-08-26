@@ -1,11 +1,11 @@
 ﻿using Bgfx;
-using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 [assembly: InternalsVisibleTo("StapleEditor")]
 
@@ -61,25 +61,24 @@ namespace Staple
             {
                 var data = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"));
 
-                playerSettings = JsonConvert.DeserializeObject<PlayerSettings>(data);
+                playerSettings = JsonSerializer.Deserialize(data, PlayerSettingsSerializationContext.Default.PlayerSettings);
             }
-            catch(System.Exception)
+            catch(System.Exception e)
             {
+                playerSettings = new PlayerSettings()
+                {
+                    windowMode = appSettings.defaultWindowMode,
+                    screenWidth = appSettings.defaultWindowWidth,
+                    screenHeight = appSettings.defaultWindowHeight,
+                };
             }
-
-            playerSettings ??= new PlayerSettings()
-            {
-                windowMode = appSettings.defaultWindowMode,
-                screenWidth = appSettings.defaultWindowWidth,
-                screenHeight = appSettings.defaultWindowHeight,
-            };
         }
 
         public void SavePlayerSettings()
         {
             try
             {
-                var data = JsonConvert.SerializeObject(playerSettings);
+                var data = JsonSerializer.Serialize(playerSettings, PlayerSettingsSerializationContext.Default.PlayerSettings);
 
                 File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"), data);
             }
@@ -153,6 +152,7 @@ namespace Staple
             LoadPlayerSettings();
             SavePlayerSettings();
 
+            /*
             try
             {
                 playerAssembly = Assembly.LoadFrom("Data/Game.dll");
@@ -167,6 +167,7 @@ namespace Staple
             {
                 Log.Info("Loaded player assembly");
             }
+            */
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
                 appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags));
@@ -218,10 +219,12 @@ namespace Staple
                 if (playerAssembly != null)
                 {
                     var types = playerAssembly.GetTypes()
-                        .Where(x => typeof(IEntitySystem).IsAssignableFrom(x));
+                        .Where(x => typeof(IEntitySystem).IsAssignableFrom(x)).ToArray();
 
-                    foreach (var type in types)
+                    for(var i = 0; i < types.Length; i++)
                     {
+                        var type = types[i];
+
                         try
                         {
                             var instance = (IEntitySystem)Activator.CreateInstance(type);

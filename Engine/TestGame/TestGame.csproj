@@ -24,6 +24,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <PropertyGroup>
+	<StripSymbols>true</StripSymbols>
+	<StripSymbols>true</StripSymbols>
+	<IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

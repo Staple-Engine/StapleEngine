@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Staple
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<VideoFlags>))]
     [Flags]
     public enum VideoFlags
     {

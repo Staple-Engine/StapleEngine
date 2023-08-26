@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -264,6 +263,8 @@ namespace Staple
                                     var value = (string)pair.Value;
                                     color = new Color32(value);
                                 }
+                                //TODO
+                                /*
                                 else if (v.GetType() == typeof(JObject))
                                 {
                                     var o = (JObject)v;
@@ -283,6 +284,7 @@ namespace Staple
 
                                     color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
                                 }
+                                */
 
                                 if (field.FieldType == typeof(Color32))
                                 {
