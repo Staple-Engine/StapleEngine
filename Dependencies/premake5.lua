@@ -149,6 +149,8 @@ project "bimg"
 		path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz/"),
 	}
 	
+	excludes { path.join(BIMG_DIR, "3rdparty/lodepng/lodepng.cpp") }
+	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
 
