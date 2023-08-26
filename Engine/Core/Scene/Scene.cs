@@ -164,14 +164,12 @@ namespace Staple
 
             foreach (var component in sceneObject.components)
             {
-#if STAPLE_AOT_STAGING
                 var type = Type.GetType(component.type);
-#else
-                var type = Type.GetType(component.type) ?? AppPlayer.active?.playerAssembly?.GetType(component.type);
-#endif
 
                 if (type == null)
                 {
+                    Log.Error($"Failed to create component {component.type} for entity {sceneObject.name}");
+
                     continue;
                 }
 

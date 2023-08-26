@@ -20,7 +20,7 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL;STAPLE_AOT_STAGING</DefineConstants>
+    <DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,7 +29,7 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
-    <DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL;STAPLE_AOT_STAGING</DefineConstants>
+    <DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
