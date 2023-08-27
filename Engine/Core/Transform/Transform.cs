@@ -143,7 +143,7 @@ namespace Staple
             {
                 if(parent != null)
                 {
-                    return parent.Rotation + rotation;
+                    return parent.Rotation * rotation;
                 }
 
                 return rotation;

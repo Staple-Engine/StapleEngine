@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 #if _DEBUG
 [assembly: InternalsVisibleTo("StapleCoreTests")]
@@ -186,65 +187,43 @@ namespace Staple
                     {
                         var field = type.GetField(pair.Key);
 
-                        if (field != null && pair.Value != null)
+                        if (field != null && pair.Value != null && pair.Value is JsonElement element)
                         {
-                            if (field.FieldType == typeof(bool) && pair.Value.GetType() == typeof(bool))
+                            if (field.FieldType == typeof(bool) && (element.ValueKind == JsonValueKind.False || element.ValueKind == JsonValueKind.True))
                             {
-                                field.SetValue(componentInstance, (bool)pair.Value);
+                                field.SetValue(componentInstance, element.GetBoolean());
                             }
-                            else if (field.FieldType == typeof(float))
+                            else if (field.FieldType == typeof(float) && element.ValueKind == JsonValueKind.Number)
                             {
-                                if (pair.Value.GetType() == typeof(float))
-                                {
-                                    field.SetValue(componentInstance, (float)pair.Value);
-                                }
-                                else if (pair.Value.GetType() == typeof(int))
-                                {
-                                    field.SetValue(componentInstance, (int)pair.Value);
-                                }
+                                field.SetValue(componentInstance, element.GetSingle());
                             }
-                            else if (field.FieldType == typeof(int))
+                            else if (field.FieldType == typeof(int) && element.ValueKind == JsonValueKind.Number)
                             {
-                                if (pair.Value.GetType() == typeof(float))
+                                field.SetValue(componentInstance, element.GetInt32());
+                            }
+                            else if (field.FieldType == typeof(string) && element.ValueKind == JsonValueKind.String)
+                            {
+                                field.SetValue(componentInstance, element.GetString());
+                            }
+                            else if (field.FieldType.IsEnum && element.ValueKind == JsonValueKind.String)
+                            {
+                                if(Enum.TryParse(field.FieldType, element.GetString(), true, out var value))
                                 {
-                                    field.SetValue(componentInstance, (int)((float)pair.Value));
-                                }
-                                else if (pair.Value.GetType() == typeof(int))
-                                {
-                                    field.SetValue(componentInstance, (int)pair.Value);
+                                    field.SetValue(componentInstance, value);
                                 }
                             }
-                            else if (field.FieldType == typeof(string) && pair.Value.GetType() == typeof(string))
+                            else if (field.FieldType == typeof(Material) && element.ValueKind == JsonValueKind.String)
                             {
-                                field.SetValue(componentInstance, (string)pair.Value);
-                            }
-                            else if (field.FieldType.IsEnum && pair.Value.GetType() == typeof(string))
-                            {
-                                try
-                                {
-                                    var value = Enum.Parse(field.FieldType, (string)pair.Value);
-
-                                    if (value != null)
-                                    {
-                                        field.SetValue(componentInstance, value);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                }
-                            }
-                            else if (field.FieldType == typeof(Material) && pair.Value.GetType() == typeof(string))
-                            {
-                                var value = ResourceManager.instance.LoadMaterial((string)pair.Value);
+                                var value = ResourceManager.instance.LoadMaterial(element.GetString());
 
                                 if (value != null)
                                 {
                                     field.SetValue(componentInstance, value);
                                 }
                             }
-                            else if (field.FieldType == typeof(Texture) && pair.Value.GetType() == typeof(string))
+                            else if (field.FieldType == typeof(Texture) && element.ValueKind == JsonValueKind.String)
                             {
-                                var value = ResourceManager.instance.LoadTexture((string)pair.Value);
+                                var value = ResourceManager.instance.LoadTexture(element.GetString());
 
                                 if (value != null)
                                 {
@@ -253,36 +232,28 @@ namespace Staple
                             }
                             else if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
                             {
-                                var v = pair.Value;
                                 var color = Color32.White;
 
-                                if (v.GetType() == typeof(string))
+                                if (element.ValueKind == JsonValueKind.String)
                                 {
-                                    var value = (string)pair.Value;
-                                    color = new Color32(value);
+                                    color = new Color32(element.GetString());
                                 }
-                                //TODO
-                                /*
-                                else if (v.GetType() == typeof(JObject))
+                                else if (element.ValueKind == JsonValueKind.Object)
                                 {
-                                    var o = (JObject)v;
+                                    try
+                                    {
+                                        var r = element.GetProperty("r").GetInt32();
+                                        var g = element.GetProperty("g").GetInt32();
+                                        var b = element.GetProperty("b").GetInt32();
+                                        var a = element.GetProperty("a").GetInt32();
 
-                                    var r = o.GetValue("r").Value<int?>();
-                                    var g = o.GetValue("g").Value<int?>();
-                                    var b = o.GetValue("b").Value<int?>();
-                                    var a = o.GetValue("a").Value<int?>();
-
-                                    if (r == null ||
-                                        g == null ||
-                                        b == null ||
-                                        a == null)
+                                        color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
+                                    }
+                                    catch(Exception e)
                                     {
                                         continue;
                                     }
-
-                                    color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
                                 }
-                                */
 
                                 if (field.FieldType == typeof(Color32))
                                 {
@@ -293,9 +264,9 @@ namespace Staple
                                     field.SetValue(componentInstance, (Color)color);
                                 }
                             }
-                            else if(field.FieldType == typeof(Mesh) && pair.Value.GetType() == typeof(string))
+                            else if(field.FieldType == typeof(Mesh) && element.ValueKind == JsonValueKind.String)
                             {
-                                var value = ResourceManager.instance.LoadMesh((string)pair.Value);
+                                var value = ResourceManager.instance.LoadMesh(element.GetString());
 
                                 if(value != null)
                                 {

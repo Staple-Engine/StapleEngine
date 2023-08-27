@@ -21,7 +21,29 @@
                 pickEntityBodies.Remove(entity);
             }
 
-            if(Physics3D.Instance.CreateBox(entity, bounds.extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false, 0, out var body))
+            var extents = bounds.extents;
+
+            var needsBoundsFix = extents.X <= 0 || extents.Y <= 0 || extents.Z <= 0;
+
+            if(needsBoundsFix)
+            {
+                if(extents.X <= 0)
+                {
+                    extents.X = 1.0f;
+                }
+
+                if (extents.Y <= 0)
+                {
+                    extents.Y = 1.0f;
+                }
+
+                if (extents.Z <= 0)
+                {
+                    extents.Z = 1.0f;
+                }
+            }
+
+            if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false, 0, out var body))
             {
                 pickEntityBodies.Add(entity, new EntityBody()
                 {
