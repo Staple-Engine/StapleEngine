@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Staple
 {
@@ -40,5 +41,13 @@ namespace Staple
 
             return t.value;
         }
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(bool))]
+    [JsonSerializable(typeof(ColliderMask.Item))]
+    internal partial class ColliderMaskItemSerializationContext : JsonSerializerContext
+    {
     }
 }

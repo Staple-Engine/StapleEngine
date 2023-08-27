@@ -1,7 +1,9 @@
 ﻿using MessagePack;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureMetadataQuality>))]
     public enum TextureMetadataQuality
     {
         Default,
@@ -9,6 +11,7 @@ namespace Staple.Internal
         Highest
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureMetadataFormat>))]
     public enum TextureMetadataFormat
     {
         R1,
@@ -96,12 +99,14 @@ namespace Staple.Internal
         ASTC10x5,
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureType>))]
     public enum TextureType
     {
         SRGB,
         NormalMap,
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureWrap>))]
     public enum TextureWrap
     {
         Repeat,
@@ -109,6 +114,7 @@ namespace Staple.Internal
         Mirror,
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureFilter>))]
     public enum TextureFilter
     {
         Point,
@@ -157,5 +163,19 @@ namespace Staple.Internal
 
         [Key(12)]
         public bool readBack = false;
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(TextureMetadata))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureType>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataFormat>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataQuality>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureFilter>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureWrap>))]
+    [JsonSerializable(typeof(bool))]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(float))]
+    internal partial class TextureMetadataSerializationContext : JsonSerializerContext
+    {
     }
 }

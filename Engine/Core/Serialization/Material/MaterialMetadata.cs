@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<MaterialParameterType>))]
     public enum MaterialParameterType
     {
         Vector2,
@@ -38,6 +40,13 @@ namespace Staple.Internal
         {
             return new Vector4(x, y, 0, 0);
         }
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(float))]
+    [JsonSerializable(typeof(Vector2Holder))]
+    internal partial class Vector2HolderSerializationContext : JsonSerializerContext
+    {
     }
 
     [Serializable]
@@ -84,6 +93,13 @@ namespace Staple.Internal
         }
     }
 
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(float))]
+    [JsonSerializable(typeof(Vector3Holder))]
+    internal partial class Vector3HolderSerializationContext : JsonSerializerContext
+    {
+    }
+
     [Serializable]
     [MessagePackObject]
     public class Vector4Holder
@@ -104,6 +120,13 @@ namespace Staple.Internal
         {
             return new Vector4(x, y, z, w);
         }
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(float))]
+    [JsonSerializable(typeof(Vector4Holder))]
+    internal partial class Vector4HolderSerializationContext : JsonSerializerContext
+    {
     }
 
     [Serializable]
@@ -129,6 +152,18 @@ namespace Staple.Internal
         public Color32 colorValue;
     }
 
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterType>))]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(Color32))]
+    [JsonSerializable(typeof(Vector2Holder))]
+    [JsonSerializable(typeof(Vector3Holder))]
+    [JsonSerializable(typeof(Vector4Holder))]
+    [JsonSerializable(typeof(MaterialParameter))]
+    internal partial class MaterialParameterSerializationContext : JsonSerializerContext
+    {
+    }
+
     [Serializable]
     [MessagePackObject]
     public class MaterialMetadata
@@ -138,5 +173,13 @@ namespace Staple.Internal
 
         [Key(1)]
         public Dictionary<string, MaterialParameter> parameters = new();
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(Dictionary<string, MaterialParameter>))]
+    [JsonSerializable(typeof(MaterialMetadata))]
+    internal partial class MaterialMetadataSerializationContext : JsonSerializerContext
+    {
     }
 }

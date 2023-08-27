@@ -2,8 +2,8 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using Staple.Internal;
+using System.Text.Json;
 
 namespace Staple.Editor
 {
@@ -57,11 +57,7 @@ namespace Staple.Editor
                             {
                                 if(File.Exists($"{node.path}.meta") == false)
                                 {
-                                    var settings = new JsonSerializerSettings();
-
-                                    settings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-
-                                    var jsonData = JsonConvert.SerializeObject(new TextureMetadata(), Formatting.Indented, settings);
+                                    var jsonData = JsonSerializer.Serialize(new TextureMetadata(), TextureMetadataSerializationContext.Default.TextureMetadata);
 
                                     File.WriteAllText($"{node.path}.meta", jsonData);
                                 }
@@ -78,10 +74,12 @@ namespace Staple.Editor
 
             try
             {
-                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json")));
+                projectAppSettings = JsonSerializer.Deserialize(File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json")),
+                    AppSettingsSerializationContext.Default.AppSettings);
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Log.Error($"Failed to load project app settings: {e}");
             }
 
             if(projectAppSettings != null)
@@ -108,6 +106,11 @@ namespace Staple.Editor
             }
 
             //TODO: Build for each API
+
+            if(projectAppSettings == null)
+            {
+                return;
+            }
 
             var renderers = new HashSet<string>();
 

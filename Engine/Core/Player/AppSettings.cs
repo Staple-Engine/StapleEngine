@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Staple
 {
@@ -108,5 +109,20 @@ namespace Staple
         /// </summary>
         [Key(11)]
         public List<ColliderMask.Item> colliderMask = new();
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(List<string>))]
+    [JsonSerializable(typeof(Dictionary<AppPlatform, List<RendererType>>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<RendererType>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<WindowMode>))]
+    [JsonSerializable(typeof(List<ColliderMask.Item>))]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(bool))]
+    [JsonSerializable(typeof(AppSettings))]
+    internal partial class AppSettingsSerializationContext : JsonSerializerContext
+    {
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Bgfx;
+using System.Text.Json.Serialization;
 
 namespace Staple
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureFlags>))]
     public enum TextureFlags: ulong
     {
 		None = bgfx.TextureFlags.None,

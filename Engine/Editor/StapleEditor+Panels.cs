@@ -1,14 +1,11 @@
 ﻿using ImGuiNET;
-using Newtonsoft.Json;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using System.Threading.Tasks.Sources;
-using System.Xml.Linq;
+using System.Text.Json;
 
 namespace Staple.Editor
 {
@@ -593,7 +590,7 @@ namespace Staple.Editor
                         {
                             var serializableScene = Scene.current.Serialize();
 
-                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented);
+                            var text = JsonSerializer.Serialize(serializableScene.objects, SerializableSceneSerializationContext.Default.ListSceneObject);
 
                             try
                             {

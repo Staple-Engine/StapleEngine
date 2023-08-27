@@ -33,6 +33,11 @@
 
         public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
         {
+            if(bounds.extents.LengthSquared() == 0)
+            {
+                return;
+            }
+
             if (pickEntityBodies.TryGetValue(entity, out var pair) == false || (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
             {
                 ReplaceEntityBody(entity, transform, bounds);

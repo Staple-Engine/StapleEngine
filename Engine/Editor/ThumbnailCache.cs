@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System.Collections.Generic;
 using System.IO;
 

@@ -36,6 +36,14 @@ namespace Staple.Internal
         public Vector3Holder scale = new();
     }
 
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(Vector3Holder))]
+    [JsonSerializable(typeof(SceneObjectTransform))]
+
+    internal partial class SceneObjectTransformSerializationContext : JsonSerializerContext
+    {
+    }
+
     [MessagePackObject]
     public class SceneComponentParameter
     {
@@ -82,6 +90,20 @@ namespace Staple.Internal
         public Dictionary<string, object> data;
     }
 
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(Dictionary<string, object>))]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(float))]
+    [JsonSerializable(typeof(bool))]
+    [JsonSerializable(typeof(Vector2Holder))]
+    [JsonSerializable(typeof(Vector3Holder))]
+    [JsonSerializable(typeof(Vector4Holder))]
+
+    internal partial class SceneComponentSerializationContext : JsonSerializerContext
+    {
+    }
+
     [Serializable]
     [MessagePackObject]
     public class SceneObject
@@ -108,13 +130,16 @@ namespace Staple.Internal
         public string layer;
     }
 
-    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, IncludeFields = true)]
+    [JsonSourceGenerationOptions(IncludeFields = true)]
     [JsonSerializable(typeof(SceneObject))]
     [JsonSerializable(typeof(List<SceneObject>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<SceneObjectKind>))]
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(int))]
     [JsonSerializable(typeof(SceneObjectTransform))]
+    [JsonSerializable(typeof(Vector2Holder))]
+    [JsonSerializable(typeof(Vector3Holder))]
+    [JsonSerializable(typeof(Vector4Holder))]
     [JsonSerializable(typeof(List<SceneComponent>))]
     internal partial class SceneObjectSerializationContext : JsonSerializerContext
     {
@@ -144,5 +169,12 @@ namespace Staple.Internal
     {
         [Key(0)]
         public List<SceneObject> objects = new();
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(List<SceneObject>))]
+    [JsonSerializable(typeof(SceneObject))]
+    internal partial class SerializableSceneSerializationContext : JsonSerializerContext
+    {
     }
 }
