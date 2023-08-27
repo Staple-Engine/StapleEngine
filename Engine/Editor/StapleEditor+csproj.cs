@@ -28,6 +28,43 @@ namespace Staple.Editor
             BuildGame();
         }
 
+        public void BuildPlayer()
+        {
+            using var collection = new ProjectCollection();
+
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectPath = Path.Combine(projectDirectory, "Player.csproj");
+            var outPath = Path.Combine(projectDirectory, "publish");
+
+            var args = $" publish -r win-x64 \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+
+            var processInfo = new ProcessStartInfo("dotnet", args)
+            {
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
+            };
+
+            var process = new Process
+            {
+                StartInfo = processInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false)
+                {
+                    var line = process.StandardOutput.ReadLine();
+
+                    if (line != null)
+                    {
+                        Log.Info(line);
+                    }
+                }
+            }
+        }
+
         public void BuildGame()
         {
             using var collection = new ProjectCollection();
