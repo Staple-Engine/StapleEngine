@@ -161,18 +161,20 @@ namespace Staple.Editor
 
             var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging\" -editor {string.Join(" ", renderers)}".Replace("\\", "/");
 
-            var processInfo = new ProcessStartInfo(bakerPath, args);
+            var processInfo = new ProcessStartInfo(bakerPath, args)
+            {
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
+            };
 
-            processInfo.CreateNoWindow = true;
-            processInfo.RedirectStandardOutput = true;
-            processInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            processInfo.WorkingDirectory = Environment.CurrentDirectory;
+            var process = new Process
+            {
+                StartInfo = processInfo
+            };
 
-            var process = new Process();
-
-            process.StartInfo = processInfo;
-
-            if(process.Start())
+            if (process.Start())
             {
                 while(process.HasExited == false)
                 {
@@ -184,6 +186,8 @@ namespace Staple.Editor
                     }
                 }
             }
+
+            UpdateCSProj();
         }
     }
 }

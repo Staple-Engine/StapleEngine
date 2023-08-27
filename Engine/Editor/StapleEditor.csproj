@@ -41,6 +41,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="StapleEditor+csproj.cs" />
     <Compile Include="StapleEditor+Physics.cs" />
     <Compile Include="ImGuiProxy.cs" />
     <Compile Include="ImGuiUtils.cs" />
@@ -50,6 +51,9 @@
     <Compile Include="StapleEditor.cs" />
     <Compile Include="StapleEditor+Project.cs" />
     <Compile Include="ThumbnailCache.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="17.7.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\StapleCore.csproj" />
