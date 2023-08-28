@@ -65,7 +65,7 @@ namespace Staple
             renderers.Clear();
         }
 
-        public void Preprocess(Entity entity, Transform transform, IComponent renderer)
+        public void Preprocess(World world, Entity entity, Transform transform, IComponent renderer)
         {
             var r = renderer as MeshRenderer;
 
@@ -83,7 +83,7 @@ namespace Staple
             r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
         }
 
-        public void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId)
+        public void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId)
         {
             var r = renderer as MeshRenderer;
 

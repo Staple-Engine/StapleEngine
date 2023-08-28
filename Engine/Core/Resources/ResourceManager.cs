@@ -218,6 +218,8 @@ namespace Staple.Internal
 
             if (data == null)
             {
+                Log.Error($"[ResourceManager] Failed to load scene at path {path}");
+
                 return null;
             }
 
@@ -232,6 +234,8 @@ namespace Staple.Internal
                 if (header == null || header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) == false ||
                     header.version != SerializableSceneHeader.ValidVersion)
                 {
+                    Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid header");
+
                     return null;
                 }
 
@@ -239,6 +243,8 @@ namespace Staple.Internal
 
                 if (sceneData == null || sceneData.objects == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid scene data");
+
                     return null;
                 }
 
@@ -285,6 +291,8 @@ namespace Staple.Internal
             }
             catch (Exception e)
             {
+                Log.Error($"[ResourceManager] Failed to load scene at path {path}: {e}");
+
                 return null;
             }
         }
@@ -296,7 +304,7 @@ namespace Staple.Internal
         /// <returns>The scene, or null</returns>
         public Scene LoadScene(string name)
         {
-            return LoadSceneFromPath(Path.Combine("Assets/Scenes", $"{name}.stsc"));
+            return LoadSceneFromPath(Path.Combine("Scenes", $"{name}.stsc"));
         }
 
         /// <summary>
@@ -354,6 +362,8 @@ namespace Staple.Internal
 
             if (data == null)
             {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}");
+
                 return null;
             }
 
@@ -366,6 +376,8 @@ namespace Staple.Internal
                 if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
                     header.version != SerializableShaderHeader.ValidVersion)
                 {
+                    Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
+
                     return null;
                 }
 
@@ -373,6 +385,8 @@ namespace Staple.Internal
 
                 if (shaderData == null || shaderData.metadata == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid shader data");
+
                     return null;
                 }
 
@@ -408,6 +422,8 @@ namespace Staple.Internal
             }
             catch (Exception e)
             {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
+
                 return null;
             }
         }
@@ -428,6 +444,8 @@ namespace Staple.Internal
 
             if (data == null)
             {
+                Log.Error($"[ResourceManager] Failed to load material at path {path}");
+
                 return null;
             }
 
@@ -437,8 +455,12 @@ namespace Staple.Internal
             {
                 var header = MessagePackSerializer.Deserialize<SerializableMaterialHeader>(stream);
 
-                if (header == null || header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) == false || header.version != SerializableMaterialHeader.ValidVersion)
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) == false ||
+                    header.version != SerializableMaterialHeader.ValidVersion)
                 {
+                    Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid header");
+
                     return null;
                 }
 
@@ -446,11 +468,15 @@ namespace Staple.Internal
 
                 if (materialData == null || materialData.metadata == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid data");
+
                     return null;
                 }
 
                 if ((materialData.metadata.shaderPath?.Length ?? 0) == 0)
                 {
+                    Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid shader path");
+
                     return null;
                 }
 
@@ -458,6 +484,8 @@ namespace Staple.Internal
 
                 if (shader == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load material at path {path}: Failed to load shader");
+
                     return null;
                 }
 
@@ -501,6 +529,8 @@ namespace Staple.Internal
             }
             catch (Exception e)
             {
+                Log.Error($"[ResourceManager] Failed to load material at path {path}: {e}");
+
                 return null;
             }
         }
@@ -523,6 +553,8 @@ namespace Staple.Internal
 
             if(data == null)
             {
+                Log.Error($"[ResourceManager] Failed to load texture at path {path}");
+
                 return null;
             }
 
@@ -532,8 +564,12 @@ namespace Staple.Internal
             {
                 var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
 
-                if (header == null || header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false || header.version != SerializableTextureHeader.ValidVersion)
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
+                    header.version != SerializableTextureHeader.ValidVersion)
                 {
+                    Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
+
                     return null;
                 }
 
@@ -541,6 +577,8 @@ namespace Staple.Internal
 
                 if (textureData == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid texture data");
+
                     return null;
                 }
 
@@ -548,6 +586,8 @@ namespace Staple.Internal
 
                 if (texture == null)
                 {
+                    Log.Error($"[ResourceManager] Failed to load texture at path {path}: Failed to create texture");
+
                     return null;
                 }
 
@@ -564,6 +604,8 @@ namespace Staple.Internal
             }
             catch (Exception e)
             {
+                Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
+
                 return null;
             }
         }

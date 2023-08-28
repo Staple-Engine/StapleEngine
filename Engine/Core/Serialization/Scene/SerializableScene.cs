@@ -171,7 +171,7 @@ namespace Staple.Internal
         public List<SceneObject> objects = new();
     }
 
-    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
     [JsonSerializable(typeof(List<SceneObject>))]
     [JsonSerializable(typeof(SceneObject))]
     internal partial class SerializableSceneSerializationContext : JsonSerializerContext

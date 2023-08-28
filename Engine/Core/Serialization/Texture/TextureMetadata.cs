@@ -165,7 +165,7 @@ namespace Staple.Internal
         public bool readBack = false;
     }
 
-    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
     [JsonSerializable(typeof(TextureMetadata))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureType>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataFormat>))]

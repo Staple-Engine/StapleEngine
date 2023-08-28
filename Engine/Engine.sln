@@ -9,6 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "Player\Player.csp
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "Core\StapleCore.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CAAD8B33-701A-4505-8451-C3F5B76DC596} = {CAAD8B33-701A-4505-8451-C3F5B76DC596}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
 EndProject
@@ -17,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestGame", "TestGame\TestGame.csproj", "{BF10A474-ABDD-FE7F-D4F6-EC27C022340E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCoreTests", "StapleCoreTests\StapleCoreTests.csproj", "{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeRegistration", "TypeRegistration\TypeRegistration.csproj", "{CAAD8B33-701A-4505-8451-C3F5B76DC596}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +53,10 @@ Global
 		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAAD8B33-701A-4505-8451-C3F5B76DC596}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAAD8B33-701A-4505-8451-C3F5B76DC596}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAAD8B33-701A-4505-8451-C3F5B76DC596}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAAD8B33-701A-4505-8451-C3F5B76DC596}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

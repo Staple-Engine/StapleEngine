@@ -27,9 +27,13 @@
 
   <PropertyGroup>
 	<StripSymbols>true</StripSymbols>
-	<StripSymbols>true</StripSymbols>
+	<PublishAOT>true</PublishAOT>
 	<IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </ItemGroup>

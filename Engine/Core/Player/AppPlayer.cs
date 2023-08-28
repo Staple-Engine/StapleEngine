@@ -25,8 +25,6 @@ namespace Staple
 
         public static AppPlayer active;
 
-        internal Assembly playerAssembly;
-
         public AppPlayer(AppSettings settings, string[] args)
         {
             appSettings = settings;
@@ -152,23 +150,6 @@ namespace Staple
             LoadPlayerSettings();
             SavePlayerSettings();
 
-            /*
-            try
-            {
-                playerAssembly = Assembly.LoadFrom("Data/Game.dll");
-            }
-            catch(System.Exception e)
-            {
-                Log.Error($"Error: Failed to load player assembly: {e}");
-
-                return;
-            }
-            finally
-            {
-                Log.Info("Loaded player assembly");
-            }
-            */
-
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
                 appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags));
 
@@ -216,28 +197,32 @@ namespace Staple
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
 
-                if (playerAssembly != null)
+                var types = TypeCache.AllTypes()
+                    .Where(x => typeof(IEntitySystem).IsAssignableFrom(x) && x != typeof(IEntitySystem))
+                    .ToArray();
+
+                Log.Info($"Loading {types.Length} entity systems");
+
+                foreach(var type in types)
                 {
-                    var types = playerAssembly.GetTypes()
-                        .Where(x => typeof(IEntitySystem).IsAssignableFrom(x)).ToArray();
-
-                    for(var i = 0; i < types.Length; i++)
+                    try
                     {
-                        var type = types[i];
+                        var instance = (IEntitySystem)Activator.CreateInstance(type);
 
-                        try
+                        if (instance != null)
                         {
-                            var instance = (IEntitySystem)Activator.CreateInstance(type);
+                            EntitySystemManager.GetEntitySystem(instance.UpdateType)?.RegisterSystem(instance);
 
-                            if (instance != null)
-                            {
-                                EntitySystemManager.GetEntitySystem(instance.UpdateType)?.RegisterSystem(instance);
-                            }
+                            Log.Info($"Created entity system {type.FullName}");
                         }
-                        catch (System.Exception e)
+                        else
                         {
-                            Log.Warning($"Player: Failed to load entity system {type.FullName}: {e}");
+                            Log.Info($"Failed to create entity system {type.FullName}");
                         }
+                    }
+                    catch (System.Exception e)
+                    {
+                        Log.Warning($"Player: Failed to load entity system {type.FullName}: {e}");
                     }
                 }
 

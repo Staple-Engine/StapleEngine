@@ -28,7 +28,7 @@ namespace Staple
         }
     }
 
-    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
     [JsonSerializable(typeof(PlayerSettings))]
     [JsonSerializable(typeof(WindowMode))]
     [JsonSerializable(typeof(VideoFlags))]

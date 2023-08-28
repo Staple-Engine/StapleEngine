@@ -23,20 +23,22 @@ namespace Staple
         /// Pre-processes an entity.
         /// Use this to prepare information before the rendering pass, such as updating bounds.
         /// </summary>
+        /// <param name="world">The world the entity belongs to</param>
         /// <param name="entity">The entity</param>
         /// <param name="transform">The entity's transform</param>
         /// <param name="renderer">The related component</param>
-        void Preprocess(Entity entity, Transform transform, IComponent renderer);
+        void Preprocess(World world, Entity entity, Transform transform, IComponent renderer);
 
         /// <summary>
         /// Processes the entity.
         /// This is when you should handle the entity's data in order to render.
         /// </summary>
+        /// <param name="world">The world the entity belongs to</param>
         /// <param name="entity">The entity</param>
         /// <param name="transform">The entity's transform</param>
         /// <param name="renderer">The related component</param>
         /// <param name="viewId">The current view ID</param>
-        void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId);
+        void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId);
 
         /// <summary>
         /// Submits all rendering commands to the renderer.

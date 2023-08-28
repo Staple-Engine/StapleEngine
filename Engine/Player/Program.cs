@@ -6,6 +6,8 @@ namespace Staple
     {
         public static void Main(string[] args)
         {
+            TypeCacheRegistration.RegisterAll();
+
             StaplePlayer.Run(args);
         }
     }

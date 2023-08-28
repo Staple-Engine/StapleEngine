@@ -34,6 +34,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Editor\StapleEditor.csproj" />
   </ItemGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\EditorApp\bin\$(Configuration)\net7.0\StapleEditorApp* $(SolutionDir)..\Staging
 $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Core\bin\$(Configuration)\net7.0\StapleCore.dll $(SolutionDir)..\Staging

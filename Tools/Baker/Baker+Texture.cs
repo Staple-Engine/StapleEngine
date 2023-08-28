@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Baker
 {
@@ -59,6 +57,12 @@ namespace Baker
                 if (index >= 0 && index < outputFile.Length)
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+                }
+
+                if (ShouldProcessFile(textureFiles[i], outputFile) == false &&
+                    ShouldProcessFile(textureFiles[i].Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
+                {
+                    continue;
                 }
 
                 Console.WriteLine($"\t\t -> {outputFile}");

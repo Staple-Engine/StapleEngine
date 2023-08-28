@@ -2,6 +2,7 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -22,6 +23,8 @@ namespace Staple
             public Color color;
             public Texture texture;
             public ushort viewID;
+            public int sortingOrder;
+            public uint layer;
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace Staple
             sprites.Clear();
         }
 
-        public void Preprocess(Entity entity, Transform transform, IComponent renderer)
+        public void Preprocess(World world, Entity entity, Transform transform, IComponent renderer)
         {
             var r = renderer as Sprite;
 
@@ -67,7 +70,7 @@ namespace Staple
             }
         }
 
-        public void Process(Entity entity, Transform transform, IComponent renderer, ushort viewId)
+        public void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId)
         {
             var r = renderer as Sprite;
 
@@ -91,13 +94,17 @@ namespace Staple
 
             var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
 
+            var layer = world.GetEntityLayer(entity);
+
             sprites.Add(new SpriteRenderInfo()
             {
                 color = r.color,
                 material = r.material,
                 texture = r.texture,
                 transform = matrix,
-                viewID = viewId
+                viewID = viewId,
+                sortingOrder = r.sortingOrder,
+                layer = layer,
             });
         }
 
@@ -110,14 +117,19 @@ namespace Staple
                 return;
             }
 
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
+            var state = bgfx.StateFlags.WriteRgb |
                 bgfx.StateFlags.WriteA |
                 bgfx.StateFlags.DepthTestLequal |
                 spriteMesh.PrimitiveFlag();
 
-            for (var i = 0; i < sprites.Count; i++)
+            var orderedSprites = sprites
+                .OrderBy(x => x.layer)
+                .ThenBy(x => x.sortingOrder)
+                .ToList();
+
+            for (var i = 0; i < orderedSprites.Count; i++)
             {
-                var s = sprites[i];
+                var s = orderedSprites[i];
 
                 unsafe
                 {

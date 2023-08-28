@@ -13,7 +13,14 @@ namespace Baker
     {
         private static void ProcessShaders(string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
         {
-            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "Dependencies", "bgfx", "src"))}\"";
+            var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+            while(pieces.Count > 0 && pieces.LastOrDefault() != "StapleEngine")
+            {
+                pieces.RemoveAt(pieces.Count - 1);
+            }
+
+            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Dependencies", "bgfx", "src"))}\"";
 
             var shaderFiles = new List<string>();
 
@@ -49,6 +56,11 @@ namespace Baker
                     if (index >= 0 && index < outputFile.Length)
                     {
                         outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+                    }
+
+                    if (ShouldProcessFile(shaderFiles[i], outputFile) == false)
+                    {
+                        continue;
                     }
 
                     Console.WriteLine($"\t\t -> {outputFile}");

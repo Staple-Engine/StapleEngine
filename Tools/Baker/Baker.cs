@@ -49,6 +49,30 @@ namespace Baker
             }
         }
 
+        public static bool ShouldProcessFile(string from, string to)
+        {
+            var lastFromWrite = DateTime.MinValue;
+            var lastToWrite = DateTime.MinValue;
+
+            try
+            {
+                lastFromWrite = File.GetLastWriteTime(from);
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                lastToWrite = File.GetLastWriteTime(to);
+            }
+            catch (Exception)
+            {
+            }
+
+            return lastFromWrite > lastToWrite;
+        }
+
         public static void Main(string[] args)
         {
             if (args.Length == 0)

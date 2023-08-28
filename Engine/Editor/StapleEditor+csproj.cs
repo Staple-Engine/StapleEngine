@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Evaluation;
-using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,80 +25,6 @@ namespace Staple.Editor
             GeneratePlayerCSProj();
 
             BuildGame();
-        }
-
-        public void BuildPlayer()
-        {
-            using var collection = new ProjectCollection();
-
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
-            var projectPath = Path.Combine(projectDirectory, "Player.csproj");
-            var outPath = Path.Combine(projectDirectory, "publish");
-
-            var args = $" publish -r win-x64 \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
-
-            var processInfo = new ProcessStartInfo("dotnet", args)
-            {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            if (process.Start())
-            {
-                while (process.HasExited == false)
-                {
-                    var line = process.StandardOutput.ReadLine();
-
-                    if (line != null)
-                    {
-                        Log.Info(line);
-                    }
-                }
-            }
-        }
-
-        public void BuildGame()
-        {
-            using var collection = new ProjectCollection();
-
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
-            var projectPath = Path.Combine(projectDirectory, "Game.csproj");
-            var outPath = Path.Combine(projectDirectory, "bin");
-
-            var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
-
-            var processInfo = new ProcessStartInfo("dotnet", args)
-            {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            if (process.Start())
-            {
-                while (process.HasExited == false)
-                {
-                    var line = process.StandardOutput.ReadLine();
-
-                    if (line != null)
-                    {
-                        Log.Info(line);
-                    }
-                }
-            }
         }
 
         private void GenerateGameCSProj()
@@ -150,7 +75,21 @@ namespace Staple.Editor
                 p.SetProperty(pair.Key, pair.Value);
             }
 
+            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
+            {
+                higherDir.RemoveAt(higherDir.Count - 1);
+            }
+
+            var typeRegistrationPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "Engine", "TypeRegistration", "TypeRegistration.csproj");
+
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
+            p.AddItem("ProjectReference", typeRegistrationPath,
+                new KeyValuePair<string, string>[] {
+                    new("OutputItemType", "Analyzer"),
+                    new("ReferenceOutputAssembly", "false")
+                });
 
             var parts = AppContext.BaseDirectory.Replace("\\", "/").Split("/".ToCharArray()).ToList();
 
@@ -236,7 +175,21 @@ namespace Staple.Editor
                 p.SetProperty(pair.Key, pair.Value);
             }
 
+            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
+            {
+                higherDir.RemoveAt(higherDir.Count - 1);
+            }
+
+            var typeRegistrationPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "Engine", "TypeRegistration", "TypeRegistration.csproj");
+
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
+            p.AddItem("ProjectReference", typeRegistrationPath,
+                new KeyValuePair<string, string>[] {
+                    new("OutputItemType", "Analyzer"),
+                    new("ReferenceOutputAssembly", "false")
+                });
 
             var parts = AppContext.BaseDirectory.Replace("\\", "/").Split("/".ToCharArray()).ToList();
 

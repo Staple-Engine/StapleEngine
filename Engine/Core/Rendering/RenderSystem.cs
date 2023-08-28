@@ -210,7 +210,7 @@ namespace Staple
                                     {
                                         if (call.relatedComponent.GetType() == system.RelatedComponent())
                                         {
-                                            system.Process(call.entity, stagingTransform, call.relatedComponent, viewID);
+                                            system.Process(Scene.current.world, call.entity, stagingTransform, call.relatedComponent, viewID);
                                         }
                                     }
                                 }
@@ -266,14 +266,14 @@ namespace Staple
 
                             if (related != null)
                             {
-                                system.Preprocess(entity, t, related);
+                                system.Preprocess(Scene.current.world, entity, t, related);
 
                                 if (related is Renderable renderable &&
                                     renderable.enabled)
                                 {
                                     renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
 
-                                    if(renderable.isVisible)
+                                    if(renderable.isVisible && renderable.forceRenderingOff == false)
                                     {
                                         AddDrawCall(entity, t, related, renderable, viewID);
                                     }

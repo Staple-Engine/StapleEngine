@@ -24,9 +24,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="MessagePack">
       <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
@@ -109,9 +106,17 @@
 	<Compile Include="..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
 		<Link>Engine\Core\Serialization\Texture\SerializableTexture.cs</Link>
 	</Compile>
+	<Compile Include="..\Engine\Core\Serialization\Json\JsonStringEnumConverter.cs">
+		<Link>Engine\Core\Serialization\Json\JsonStringEnumConverter.cs</Link>
+	</Compile>
 	<Compile Include="..\Engine\Core\Physics\ColliderMask.cs">
 		<Link>Engine\Core\Physics\ColliderMask.cs</Link>
 	</Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)bin\Debug\net7.0\*.exe $(SolutionDir)\bin

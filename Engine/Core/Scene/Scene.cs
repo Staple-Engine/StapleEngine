@@ -165,7 +165,7 @@ namespace Staple
 
             foreach (var component in sceneObject.components)
             {
-                var type = Type.GetType(component.type);
+                var type = TypeCache.GetType(component.type);
 
                 if (type == null)
                 {
