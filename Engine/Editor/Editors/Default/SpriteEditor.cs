@@ -1,5 +1,4 @@
-﻿
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Staple.Editor
 {
@@ -20,11 +19,6 @@ namespace Staple.Editor
             }
 
             return false;
-        }
-
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
         }
     }
 }

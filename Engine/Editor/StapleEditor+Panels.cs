@@ -132,7 +132,7 @@ namespace Staple.Editor
                 if (texture != null)
                 {
                     ImGui.BeginChildFrame(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
-                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(width, height));
+                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y));
                     ImGui.End();
                 }
             }
@@ -196,11 +196,15 @@ namespace Staple.Editor
                         }
                         else if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
                         {
+                            EditorGUI.Changed = false;
+
                             editor.OnInspectorGUI();
                         }
                         else
                         {
                             defaultEditor.target = component;
+
+                            EditorGUI.Changed = false;
 
                             defaultEditor.OnInspectorGUI();
                         }
