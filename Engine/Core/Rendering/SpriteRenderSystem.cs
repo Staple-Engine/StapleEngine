@@ -1,10 +1,8 @@
 ﻿using Bgfx;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace Staple
 {
@@ -94,8 +92,6 @@ namespace Staple
 
             var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
 
-            var layer = world.GetEntityLayer(entity);
-
             sprites.Add(new SpriteRenderInfo()
             {
                 color = r.color,
@@ -104,7 +100,7 @@ namespace Staple
                 transform = matrix,
                 viewID = viewId,
                 sortingOrder = r.sortingOrder,
-                layer = layer,
+                layer = r.sortingLayer,
             });
         }
 

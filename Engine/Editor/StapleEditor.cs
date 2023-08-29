@@ -106,6 +106,8 @@ namespace Staple.Editor
 
         private Material debugHighlightMaterial;
 
+        private Dictionary<string, Dictionary<int, Editor>> cachedEditors = new();
+
         public void Run()
         {
             LayerMask.AllLayers = editorSettings.layers;
@@ -154,6 +156,8 @@ namespace Staple.Editor
                 io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
                 io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
                 io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+
+                EditorGUI.io = io;
 
                 var style = ImGui.GetStyle();
 

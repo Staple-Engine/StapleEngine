@@ -1,11 +1,12 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using System.Text.Json;
 
 namespace Staple.Editor
 {
@@ -38,6 +39,64 @@ namespace Staple.Editor
                         if (ImGui.IsItemClicked())
                         {
                             selectedEntity = transform.entity;
+
+                            cachedEditors.Clear();
+
+                            var counter = 0;
+
+                            Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                            {
+                                counter++;
+
+                                if (component is Transform transform)
+                                {
+                                    return;
+                                }
+
+                                var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+                                var fieldCounter = 0;
+
+                                foreach (var field in fields)
+                                {
+                                    var type = field.FieldType;
+                                    var value = field.GetValue(component);
+
+                                    Editor editor = Editor.CreateEditor(value);
+
+                                    if(editor == null)
+                                    {
+                                        var customAttributes = field.GetCustomAttributes();
+
+                                        foreach(var attribute in customAttributes)
+                                        {
+                                            editor = Editor.CreateEditor(attribute);
+
+                                            if(editor != null)
+                                            {
+                                                editor.target = value;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if(editor != null)
+                                    {
+                                        var key = $"{counter}{component.GetType().Name}";
+
+                                        if (cachedEditors.TryGetValue(key, out var cache) == false)
+                                        {
+                                            cache = new Dictionary<int, Editor>();
+
+                                            cachedEditors.Add(key, cache);
+                                        }
+
+                                        cache.Add(fieldCounter, editor);
+                                    }
+
+                                    fieldCounter++;
+                                }
+                            });
                         }
 
                         foreach (var child in transform)
@@ -197,196 +256,224 @@ namespace Staple.Editor
                         else
                         {
                             var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+                            var fieldCounter = 0;
 
                             foreach (var field in fields)
                             {
                                 var type = field.FieldType;
 
-                                if (type.IsEnum)
+                                if(cachedEditors.TryGetValue($"{counter}{component.GetType().Name}", out var editors) &&
+                                    editors.TryGetValue(fieldCounter, out var editor))
                                 {
-                                    var values = Enum.GetValues(type)
-                                        .OfType<Enum>()
-                                        .ToList();
+                                    var value = field.GetValue(component);
 
-                                    var value = (Enum)field.GetValue(component);
+                                    editor.target = value;
 
-                                    var current = values.IndexOf(value);
+                                    editor.OnInspectorGUI();
 
-                                    var valueStrings = values
-                                        .Select(x => x.ToString())
-                                        .ToList();
+                                    value = editor.target;
 
-                                    if (ImGui.BeginCombo(field.Name, value.ToString()))
+                                    field.SetValue(component, value);
+                                }
+                                else
+                                {
+                                    if (type.IsEnum)
                                     {
-                                        for (var j = 0; j < valueStrings.Count; j++)
-                                        {
-                                            bool selected = j == current;
+                                        var values = Enum.GetValues(type)
+                                            .OfType<Enum>()
+                                            .ToList();
 
-                                            if (ImGui.Selectable(valueStrings[j], selected))
+                                        var value = (Enum)field.GetValue(component);
+
+                                        var current = values.IndexOf(value);
+
+                                        var valueStrings = values
+                                            .Select(x => x.ToString())
+                                            .ToList();
+
+                                        if (ImGui.BeginCombo(field.Name, value.ToString()))
+                                        {
+                                            for (var j = 0; j < valueStrings.Count; j++)
                                             {
-                                                field.SetValue(component, values[j]);
+                                                bool selected = j == current;
+
+                                                if (ImGui.Selectable(valueStrings[j], selected))
+                                                {
+                                                    field.SetValue(component, values[j]);
+                                                }
                                             }
+
+                                            ImGui.EndCombo();
                                         }
-
-                                        ImGui.EndCombo();
                                     }
-                                }
-                                else if (type == typeof(string))
-                                {
-                                    var value = (string)field.GetValue(component);
-
-                                    if (ImGui.InputText(field.Name, ref value, uint.MaxValue))
+                                    else if (type == typeof(string))
                                     {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(Vector2))
-                                {
-                                    var value = (Vector2)field.GetValue(component);
+                                        var value = (string)field.GetValue(component);
 
-                                    if (ImGui.InputFloat2(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(Vector3))
-                                {
-                                    var value = (Vector3)field.GetValue(component);
-
-                                    if (ImGui.InputFloat3(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(Vector4))
-                                {
-                                    var value = (Vector4)field.GetValue(component);
-
-                                    if (ImGui.InputFloat4(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(Quaternion))
-                                {
-                                    var quaternion = (Quaternion)field.GetValue(component);
-
-                                    var value = Math.ToEulerAngles(quaternion);
-
-                                    if (ImGui.InputFloat3(field.Name, ref value))
-                                    {
-                                        quaternion = Math.FromEulerAngles(value);
-
-                                        field.SetValue(component, quaternion);
-                                    }
-                                }
-                                else if (type == typeof(int))
-                                {
-                                    var value = (int)field.GetValue(component);
-
-                                    if (ImGui.InputInt(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(bool))
-                                {
-                                    var value = (bool)field.GetValue(component);
-
-                                    if (ImGui.Checkbox(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(float))
-                                {
-                                    var value = (float)field.GetValue(component);
-
-                                    if (ImGui.InputFloat(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(double))
-                                {
-                                    var value = (double)field.GetValue(component);
-
-                                    if (ImGui.InputDouble(field.Name, ref value))
-                                    {
-                                        field.SetValue(component, value);
-                                    }
-                                }
-                                else if (type == typeof(byte))
-                                {
-                                    var current = (byte)field.GetValue(component);
-                                    var value = (int)current;
-
-                                    if (ImGui.InputInt(field.Name, ref value))
-                                    {
-                                        if (value < 0)
+                                        if (ImGui.InputText(field.Name, ref value, uint.MaxValue))
                                         {
-                                            value = 0;
+                                            field.SetValue(component, value);
                                         }
+                                    }
+                                    else if (type == typeof(Vector2))
+                                    {
+                                        var value = (Vector2)field.GetValue(component);
 
-                                        if (value > 255)
+                                        if (ImGui.InputFloat2(field.Name, ref value))
                                         {
-                                            value = 255;
+                                            field.SetValue(component, value);
                                         }
-
-                                        field.SetValue(component, (byte)value);
                                     }
-                                }
-                                else if (type == typeof(short))
-                                {
-                                    var current = (short)field.GetValue(component);
-                                    var value = (int)current;
-
-                                    if (ImGui.InputInt(field.Name, ref value))
+                                    else if (type == typeof(Vector3))
                                     {
-                                        if (value < short.MinValue)
+                                        var value = (Vector3)field.GetValue(component);
+
+                                        if (ImGui.InputFloat3(field.Name, ref value))
                                         {
-                                            value = short.MinValue;
+                                            field.SetValue(component, value);
                                         }
+                                    }
+                                    else if (type == typeof(Vector4))
+                                    {
+                                        var value = (Vector4)field.GetValue(component);
 
-                                        if (value > short.MaxValue)
+                                        if (ImGui.InputFloat4(field.Name, ref value))
                                         {
-                                            value = short.MaxValue;
+                                            field.SetValue(component, value);
                                         }
-
-                                        field.SetValue(component, value);
                                     }
-                                }
-                                else if(type == typeof(Color) || type == typeof(Color32))
-                                {
-                                    Color c;
-
-                                    if(type == typeof(Color))
+                                    else if (type == typeof(Quaternion))
                                     {
-                                        c = (Color)field.GetValue(component);
+                                        var quaternion = (Quaternion)field.GetValue(component);
+
+                                        var value = Math.ToEulerAngles(quaternion);
+
+                                        if (ImGui.InputFloat3(field.Name, ref value))
+                                        {
+                                            quaternion = Math.FromEulerAngles(value);
+
+                                            field.SetValue(component, quaternion);
+                                        }
                                     }
-                                    else
+                                    else if (type == typeof(uint))
                                     {
-                                        c = (Color)((Color32)field.GetValue(component));
+                                        var value = (int)(uint)field.GetValue(component);
+
+                                        if (ImGui.InputInt(field.Name, ref value))
+                                        {
+                                            field.SetValue(component, (uint)value);
+                                        }
                                     }
-
-                                    var colorComponents = new Vector4(c.r, c.g, c.b, c.a);
-
-                                    if(ImGui.ColorPicker4(field.Name, ref colorComponents, ImGuiColorEditFlags.DefaultOptions | ImGuiColorEditFlags.DisplayHex))
+                                    else if (type == typeof(int))
                                     {
-                                        var newColor = new Color(colorComponents.X, colorComponents.Y, colorComponents.Z, colorComponents.W);
+                                        var value = (int)field.GetValue(component);
+
+                                        if (ImGui.InputInt(field.Name, ref value))
+                                        {
+                                            field.SetValue(component, value);
+                                        }
+                                    }
+                                    else if (type == typeof(bool))
+                                    {
+                                        var value = (bool)field.GetValue(component);
+
+                                        if (ImGui.Checkbox(field.Name, ref value))
+                                        {
+                                            field.SetValue(component, value);
+                                        }
+                                    }
+                                    else if (type == typeof(float))
+                                    {
+                                        var value = (float)field.GetValue(component);
+
+                                        if (ImGui.InputFloat(field.Name, ref value))
+                                        {
+                                            field.SetValue(component, value);
+                                        }
+                                    }
+                                    else if (type == typeof(double))
+                                    {
+                                        var value = (double)field.GetValue(component);
+
+                                        if (ImGui.InputDouble(field.Name, ref value))
+                                        {
+                                            field.SetValue(component, value);
+                                        }
+                                    }
+                                    else if (type == typeof(byte))
+                                    {
+                                        var current = (byte)field.GetValue(component);
+                                        var value = (int)current;
+
+                                        if (ImGui.InputInt(field.Name, ref value))
+                                        {
+                                            if (value < 0)
+                                            {
+                                                value = 0;
+                                            }
+
+                                            if (value > 255)
+                                            {
+                                                value = 255;
+                                            }
+
+                                            field.SetValue(component, (byte)value);
+                                        }
+                                    }
+                                    else if (type == typeof(short))
+                                    {
+                                        var current = (short)field.GetValue(component);
+                                        var value = (int)current;
+
+                                        if (ImGui.InputInt(field.Name, ref value))
+                                        {
+                                            if (value < short.MinValue)
+                                            {
+                                                value = short.MinValue;
+                                            }
+
+                                            if (value > short.MaxValue)
+                                            {
+                                                value = short.MaxValue;
+                                            }
+
+                                            field.SetValue(component, value);
+                                        }
+                                    }
+                                    else if (type == typeof(Color) || type == typeof(Color32))
+                                    {
+                                        Color c;
 
                                         if (type == typeof(Color))
                                         {
-                                            field.SetValue(component, newColor);
+                                            c = (Color)field.GetValue(component);
                                         }
                                         else
                                         {
-                                            var c2 = (Color32)newColor;
+                                            c = (Color)((Color32)field.GetValue(component));
+                                        }
 
-                                            field.SetValue(component, c2);
+                                        var colorComponents = new Vector4(c.r, c.g, c.b, c.a);
+
+                                        if (ImGui.ColorPicker4(field.Name, ref colorComponents, ImGuiColorEditFlags.DefaultOptions | ImGuiColorEditFlags.DisplayHex))
+                                        {
+                                            var newColor = new Color(colorComponents.X, colorComponents.Y, colorComponents.Z, colorComponents.W);
+
+                                            if (type == typeof(Color))
+                                            {
+                                                field.SetValue(component, newColor);
+                                            }
+                                            else
+                                            {
+                                                var c2 = (Color32)newColor;
+
+                                                field.SetValue(component, c2);
+                                            }
                                         }
                                     }
                                 }
+
+                                fieldCounter++;
                             }
                         }
 
@@ -590,7 +677,7 @@ namespace Staple.Editor
                         {
                             var serializableScene = Scene.current.Serialize();
 
-                            var text = JsonSerializer.Serialize(serializableScene.objects, SerializableSceneSerializationContext.Default.ListSceneObject);
+                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented);
 
                             try
                             {

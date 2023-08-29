@@ -45,21 +45,14 @@ namespace Staple.Internal
 
                     foreach (var field in fields)
                     {
-                        if (field.FieldType == typeof(bool))
+                        if (field.FieldType == typeof(bool) ||
+                            field.FieldType == typeof(float) ||
+                            field.FieldType == typeof(double) ||
+                            field.FieldType == typeof(int) ||
+                            field.FieldType == typeof(uint) ||
+                            field.FieldType == typeof(string))
                         {
-                            sceneComponent.data.Add(field.Name, (bool)field.GetValue(component));
-                        }
-                        else if (field.FieldType == typeof(float))
-                        {
-                            sceneComponent.data.Add(field.Name, (float)field.GetValue(component));
-                        }
-                        else if (field.FieldType == typeof(int))
-                        {
-                            sceneComponent.data.Add(field.Name, (int)field.GetValue(component));
-                        }
-                        else if (field.FieldType == typeof(string))
-                        {
-                            sceneComponent.data.Add(field.Name, (string)field.GetValue(component));
+                            sceneComponent.data.Add(field.Name, field.GetValue(component));
                         }
                         else if (field.FieldType.IsEnum)
                         {
@@ -94,6 +87,12 @@ namespace Staple.Internal
                             var color = (Color)field.GetValue(component);
 
                             sceneComponent.data.Add(field.Name, "#" + color.UIntValue.ToString("X2"));
+                        }
+                        else if(field.FieldType == typeof(LayerMask))
+                        {
+                            var mask = (LayerMask)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, mask.value);
                         }
                     }
 

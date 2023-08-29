@@ -20,6 +20,12 @@ namespace Staple
         /// </summary>
         public Color color = Color.White;
 
+        /// <summary>
+        /// The sprite's sorting layer
+        /// </summary>
+        [SortingLayer]
+        public uint sortingLayer;
+
         internal void OnDestroy()
         {
             material?.Destroy();
