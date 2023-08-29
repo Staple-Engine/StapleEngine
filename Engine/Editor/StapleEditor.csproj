@@ -42,11 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Editors\CustomEditorAttribute.cs" />
-    <Compile Include="Editors\Default\SortingLayerEditor.cs" />
+    <Compile Include="Editors\Default\SpriteEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="StapleEditor+Build.cs" />
     <Compile Include="StapleEditor+csproj.cs" />
+    <Compile Include="StapleEditor+Game.cs" />
     <Compile Include="StapleEditor+Physics.cs" />
     <Compile Include="ImGuiProxy.cs" />
     <Compile Include="ImGuiUtils.cs" />

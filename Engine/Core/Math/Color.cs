@@ -44,7 +44,7 @@ namespace Staple
 
         public static bool operator ==(Color a, Color b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
 
-        public static bool operator !=(Color a, Color b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
+        public static bool operator !=(Color a, Color b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 
         public override int GetHashCode()
         {

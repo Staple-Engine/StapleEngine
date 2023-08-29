@@ -25,6 +25,7 @@ namespace Staple.Editor
             GeneratePlayerCSProj();
 
             BuildGame();
+            LoadGame();
         }
 
         private void GenerateGameCSProj()

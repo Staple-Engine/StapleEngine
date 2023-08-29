@@ -240,8 +240,6 @@ namespace Staple.Editor
                             activeTexture.idx = fontTexture.handle.idx;
                         }
 
-                        bgfx.set_texture(0, textureUniform, activeTexture, uint.MaxValue);
-
                         var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
                             (drawCmd.ClipRect.Y - clipPos.Y) * clipScale.Y,
                             (drawCmd.ClipRect.Z - clipPos.X) * clipScale.X,
@@ -252,6 +250,8 @@ namespace Staple.Editor
                         {
                             var x = (ushort)Math.Max(clipRect.X, 0);
                             var y = (ushort)Math.Max(clipRect.Y, 0);
+
+                            bgfx.set_texture(0, textureUniform, activeTexture, uint.MaxValue);
 
                             bgfx.set_scissor(x, y,
                                 (ushort)(Math.Min(clipRect.Z, 65535.0f) - x),

@@ -9,6 +9,11 @@ namespace Staple
     {
         internal static Dictionary<string, Type> types = new();
 
+        public static void Clear()
+        {
+            types.Clear();
+        }
+
         [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
             DynamicallyAccessedMemberTypes.PublicParameterlessConstructor |
             DynamicallyAccessedMemberTypes.PublicFields |

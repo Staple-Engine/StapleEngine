@@ -23,7 +23,6 @@ namespace Staple
         /// <summary>
         /// The sprite's sorting layer
         /// </summary>
-        [SortingLayer]
         public uint sortingLayer;
 
         internal void OnDestroy()

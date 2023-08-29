@@ -203,8 +203,6 @@ namespace Staple.Editor
                     return;
                 }
             }
-
-
         }
 
         public void BuildGame()

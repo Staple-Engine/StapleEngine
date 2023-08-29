@@ -64,7 +64,6 @@
     <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\SortingLayerAttribute.cs" />
     <Compile Include="Bindings\bgfx.cs" />
     <Compile Include="Bindings\bgfx_dllname.cs" />
     <Compile Include="Entities\Camera\Camera.cs" />

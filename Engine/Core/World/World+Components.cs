@@ -1,11 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
 
 namespace Staple
 {
     public partial class World
     {
+        /// <summary>
+        /// Unloads all components from an assembly (Used for editor purposes)
+        /// </summary>
+        /// <param name="assembly">The assembly to unload from</param>
+        internal void UnloadComponentsFromAssembly(Assembly assembly)
+        {
+            lock(lockObject)
+            {
+                var keys = componentsRepository.Keys.ToList();
+
+                for(var i = 0; i < keys.Count; i++)
+                {
+                    var key = keys[i];
+                    var value = componentsRepository[key];
+
+                    if(value.type.Assembly == assembly)
+                    {
+                        componentsRepository.Remove(key);
+
+                        foreach(var entity in entities)
+                        {
+                            if(entity.components.Contains(i))
+                            {
+                                entity.components.Remove(i);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Finds a component's index in the components repository
         /// </summary>

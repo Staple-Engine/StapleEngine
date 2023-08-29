@@ -6,5 +6,10 @@ namespace Staple.Editor
     internal class CustomEditorAttribute : Attribute
     {
         public Type target;
+
+        public CustomEditorAttribute(Type target)
+        {
+            this.target = target;
+        }
     }
 }

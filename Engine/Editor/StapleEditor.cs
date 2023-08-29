@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
 
@@ -47,6 +49,28 @@ namespace Staple.Editor
         {
             public AABB bounds;
             public IBody3D body;
+        }
+
+        class GameAssemblyLoadContext : AssemblyLoadContext
+        {
+            private AssemblyDependencyResolver resolver;
+
+            public GameAssemblyLoadContext(string path) : base(true)
+            {
+                resolver = new AssemblyDependencyResolver(path);
+            }
+
+            protected override Assembly Load(AssemblyName assemblyName)
+            {
+                string? assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+
+                if (assemblyPath != null)
+                {
+                    return LoadFromAssemblyPath(assemblyPath);
+                }
+
+                return null;
+            }
         }
 
         internal const int ClearView = 0;
@@ -106,10 +130,18 @@ namespace Staple.Editor
 
         private Material debugHighlightMaterial;
 
-        private Dictionary<string, Dictionary<int, Editor>> cachedEditors = new();
+        private Dictionary<string, Editor> cachedEditors = new();
+
+        private Editor defaultEditor = new();
+
+        private GameAssemblyLoadContext gameAssemblyLoadContext;
+
+        private WeakReference<Assembly> gameAssembly;
 
         public void Run()
         {
+            ReloadTypeCache();
+
             LayerMask.AllLayers = editorSettings.layers;
             LayerMask.AllSortingLayers = editorSettings.sortingLayers;
 
@@ -245,6 +277,11 @@ namespace Staple.Editor
                 var io = ImGui.GetIO();
 
                 bgfx.touch(ClearView);
+
+                if(window.screenWidth == 0 || window.screenHeight == 0)
+                {
+                    return;
+                }
 
                 if(viewportType == ViewportType.Scene)
                 {

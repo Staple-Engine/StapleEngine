@@ -1,4 +1,3 @@
-using Staple;
 using Staple.Editor;
 using System;
 
@@ -9,8 +8,6 @@ namespace StapleEditorApp
         [STAThread]
         static void Main(string[] args)
         {
-            TypeCacheRegistration.RegisterAll();
-
             new StapleEditor().Run();
         }
     }
