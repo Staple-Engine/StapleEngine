@@ -23,7 +23,7 @@ namespace Staple.Editor
 
             if(index >= 0)
             {
-                cachePath = Path.Combine(basePath, "Cache", "Staging", "d3d11", path.Substring(index + "Assets/".Length));
+                cachePath = Path.Combine(basePath, "Cache", "Staging", path.Substring(index + "Assets\\".Length));
             }
 
             try

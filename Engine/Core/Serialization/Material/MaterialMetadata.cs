@@ -169,9 +169,12 @@ namespace Staple.Internal
     public class MaterialMetadata
     {
         [Key(0)]
-        public string shaderPath;
+        public string guid = Guid.NewGuid().ToString();
 
         [Key(1)]
+        public string shaderPath;
+
+        [Key(2)]
         public Dictionary<string, MaterialParameter> parameters = new();
     }
 

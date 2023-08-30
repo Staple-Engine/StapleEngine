@@ -1,7 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -76,28 +75,7 @@ namespace Staple.Editor
                 p.SetProperty(pair.Key, pair.Value);
             }
 
-            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
-
-            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
-            {
-                higherDir.RemoveAt(higherDir.Count - 1);
-            }
-
-            var typeRegistrationPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "Engine", "TypeRegistration", "TypeRegistration.csproj");
-
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
-            p.AddItem("ProjectReference", typeRegistrationPath,
-                new KeyValuePair<string, string>[] {
-                    new("OutputItemType", "Analyzer"),
-                    new("ReferenceOutputAssembly", "false")
-                });
-
-            var parts = AppContext.BaseDirectory.Replace("\\", "/").Split("/".ToCharArray()).ToList();
-
-            while (parts.Count > 0 && parts.LastOrDefault() != "Engine")
-            {
-                parts.RemoveAt(parts.Count - 1);
-            }
 
             void Recursive(string path)
             {
@@ -192,14 +170,7 @@ namespace Staple.Editor
                     new("ReferenceOutputAssembly", "false")
                 });
 
-            var parts = AppContext.BaseDirectory.Replace("\\", "/").Split("/".ToCharArray()).ToList();
-
-            while (parts.Count > 0 && parts.LastOrDefault() != "Engine")
-            {
-                parts.RemoveAt(parts.Count - 1);
-            }
-
-            var programPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, parts), "Player", "Program.cs");
+            var programPath = Path.Combine(StapleBasePath, "Engine", "Player", "Program.cs");
 
             p.AddItem("Compile", Path.GetFullPath(programPath));
 

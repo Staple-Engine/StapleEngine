@@ -45,6 +45,20 @@ namespace Baker
             {
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
+                var guid = Guid.NewGuid().ToString();
+
+                try
+                {
+                    var meta = Path.ChangeExtension(shaderFiles[i], ".stsh.meta");
+
+                    guid = File.ReadAllText(meta);
+
+                    Console.WriteLine($"\t\tReusing guid {guid}");
+                }
+                catch(Exception)
+                {
+                }
+
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(shaderFiles[i]));
                 var file = Path.GetFileName(shaderFiles[i]);
 
@@ -258,6 +272,7 @@ namespace Baker
                     {
                         metadata = new ShaderMetadata()
                         {
+                            guid = guid,
                             sourceBlend = shader.sourceBlend,
                             destinationBlend = shader.destinationBlend,
                         }

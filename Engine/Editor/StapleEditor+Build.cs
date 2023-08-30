@@ -1,6 +1,5 @@
 ﻿using Microsoft.Build.Evaluation;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -44,13 +43,6 @@ namespace Staple.Editor
                         Log.Info(line);
                     }
                 }
-            }
-
-            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
-
-            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
-            {
-                higherDir.RemoveAt(higherDir.Count - 1);
             }
 
             if ((process.HasExited && process.ExitCode == 0) == false)
@@ -110,7 +102,7 @@ namespace Staple.Editor
 
             var assetsDirectory = Path.Combine(basePath, "Assets");
 
-            var baseResourcesPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "DefaultResources");
+            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
 
             try
             {
@@ -176,7 +168,7 @@ namespace Staple.Editor
                 return;
             }
 
-            var baseStagingPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "Staging");
+            var baseStagingPath = Path.Combine(StapleBasePath, "Staging");
 
             var dependencies = new string[]
             {

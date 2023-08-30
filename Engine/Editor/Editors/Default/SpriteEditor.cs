@@ -7,15 +7,31 @@ namespace Staple.Editor
     {
         public override bool RenderField(FieldInfo field)
         {
-            if(field.Name == "sortingLayer")
+            switch(field.Name)
             {
-                var value = (uint)field.GetValue(target);
+                case nameof(Sprite.sortingLayer):
 
-                value = (uint)EditorGUI.Dropdown(field.Name, LayerMask.AllSortingLayers.ToArray(), (int)value);
+                    {
+                        var value = (uint)field.GetValue(target);
 
-                field.SetValue(target, value);
+                        value = (uint)EditorGUI.Dropdown(field.Name, LayerMask.AllSortingLayers.ToArray(), (int)value);
 
-                return true;
+                        field.SetValue(target, value);
+
+                        return true;
+                    }
+
+                case nameof(Sprite.texture):
+
+                    {
+                        var value = (Texture)field.GetValue(target);
+
+                        value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name, value);
+
+                        field.SetValue(target, value);
+                    }
+
+                    return true;
             }
 
             return false;

@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Staple.Internal
@@ -126,42 +127,45 @@ namespace Staple.Internal
     public class TextureMetadata
     {
         [Key(0)]
-        public TextureType type = TextureType.SRGB;
+        public string guid = Guid.NewGuid().ToString();
 
         [Key(1)]
-        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
+        public TextureType type = TextureType.SRGB;
 
         [Key(2)]
-        public TextureMetadataQuality quality = TextureMetadataQuality.Default;
+        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
 
         [Key(3)]
-        public TextureFilter filter = TextureFilter.Linear;
+        public TextureMetadataQuality quality = TextureMetadataQuality.Default;
 
         [Key(4)]
-        public TextureWrap wrapU = TextureWrap.Clamp;
+        public TextureFilter filter = TextureFilter.Linear;
 
         [Key(5)]
-        public TextureWrap wrapV = TextureWrap.Clamp;
+        public TextureWrap wrapU = TextureWrap.Clamp;
 
         [Key(6)]
-        public TextureWrap wrapW = TextureWrap.Clamp;
+        public TextureWrap wrapV = TextureWrap.Clamp;
 
         [Key(7)]
-        public bool premultiplyAlpha = false;
+        public TextureWrap wrapW = TextureWrap.Clamp;
 
         [Key(8)]
-        public int maxSize = 2048;
+        public bool premultiplyAlpha = false;
 
         [Key(9)]
-        public bool useMipmaps = true;
+        public int maxSize = 2048;
 
         [Key(10)]
-        public bool isLinear = false;
+        public bool useMipmaps = true;
 
         [Key(11)]
-        public float spriteScale = 1;
+        public bool isLinear = false;
 
         [Key(12)]
+        public float spriteScale = 1;
+
+        [Key(13)]
         public bool readBack = false;
     }
 

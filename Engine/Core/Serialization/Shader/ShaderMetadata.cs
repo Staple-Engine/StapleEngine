@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 
 namespace Staple.Internal
@@ -32,15 +33,18 @@ namespace Staple.Internal
     public class ShaderMetadata
     {
         [Key(0)]
-        public ShaderType type = ShaderType.VertexFragment;
+        public string guid = Guid.NewGuid().ToString();
 
         [Key(1)]
-        public List<ShaderUniform> uniforms = new();
+        public ShaderType type = ShaderType.VertexFragment;
 
         [Key(2)]
-        public BlendMode sourceBlend = BlendMode.Off;
+        public List<ShaderUniform> uniforms = new();
 
         [Key(3)]
+        public BlendMode sourceBlend = BlendMode.Off;
+
+        [Key(4)]
         public BlendMode destinationBlend = BlendMode.Off;
     }
 }

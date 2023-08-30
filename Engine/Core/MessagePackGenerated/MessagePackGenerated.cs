@@ -738,7 +738,8 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(2);
+            writer.WriteArrayHeader(3);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.shaderPath, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Serialize(ref writer, value.parameters, options);
         }
@@ -760,9 +761,12 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.shaderPath = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
+                        ____result.shaderPath = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 2:
                         ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Deserialize(ref reader, options);
                         break;
                     default:
@@ -1602,7 +1606,8 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(4);
+            writer.WriteArrayHeader(5);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderType>().Serialize(ref writer, value.type, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>().Serialize(ref writer, value.uniforms, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Serialize(ref writer, value.sourceBlend, options);
@@ -1626,15 +1631,18 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderType>().Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.uniforms = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>().Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderType>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.sourceBlend = formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Deserialize(ref reader, options);
+                        ____result.uniforms = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>().Deserialize(ref reader, options);
                         break;
                     case 3:
+                        ____result.sourceBlend = formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Deserialize(ref reader, options);
+                        break;
+                    case 4:
                         ____result.destinationBlend = formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Deserialize(ref reader, options);
                         break;
                     default:
@@ -1710,7 +1718,8 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(13);
+            writer.WriteArrayHeader(14);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Serialize(ref writer, value.type, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Serialize(ref writer, value.format, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Serialize(ref writer, value.quality, options);
@@ -1743,42 +1752,45 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
+                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.filter = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>().Deserialize(ref reader, options);
+                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.wrapU = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
+                        ____result.filter = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.wrapV = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
+                        ____result.wrapU = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.wrapW = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
+                        ____result.wrapV = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.premultiplyAlpha = reader.ReadBoolean();
+                        ____result.wrapW = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 8:
-                        ____result.maxSize = reader.ReadInt32();
+                        ____result.premultiplyAlpha = reader.ReadBoolean();
                         break;
                     case 9:
-                        ____result.useMipmaps = reader.ReadBoolean();
+                        ____result.maxSize = reader.ReadInt32();
                         break;
                     case 10:
-                        ____result.isLinear = reader.ReadBoolean();
+                        ____result.useMipmaps = reader.ReadBoolean();
                         break;
                     case 11:
-                        ____result.spriteScale = reader.ReadSingle();
+                        ____result.isLinear = reader.ReadBoolean();
                         break;
                     case 12:
+                        ____result.spriteScale = reader.ReadSingle();
+                        break;
+                    case 13:
                         ____result.readBack = reader.ReadBoolean();
                         break;
                     default:

@@ -1,9 +1,9 @@
-﻿using System.IO;
+﻿using Newtonsoft.Json;
+using System.IO;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
-using System.Text.Json;
 
 namespace Staple.Editor
 {
@@ -14,6 +14,10 @@ namespace Staple.Editor
             basePath = ThumbnailCache.basePath = path;
 
             Log.Info($"Base Path: {basePath}");
+
+            AssetDatabase.basePath = basePath;
+
+            AssetDatabase.Reload();
 
             UpdateProjectBrowserNodes();
 
@@ -51,20 +55,42 @@ namespace Staple.Editor
                     }
                     else
                     {
-                        if(node.TypeString.ToUpperInvariant() == "TEXTURE")
+                        switch(node.resourceType)
                         {
-                            try
-                            {
-                                if(File.Exists($"{node.path}.meta") == false)
+                            case ProjectResourceType.Texture:
                                 {
-                                    var jsonData = JsonSerializer.Serialize(new TextureMetadata(), TextureMetadataSerializationContext.Default.TextureMetadata);
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata(), Formatting.Indented);
 
-                                    File.WriteAllText($"{node.path}.meta", jsonData);
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (System.Exception)
+                                    {
+                                    }
                                 }
-                            }
-                            catch(System.Exception)
-                            {
-                            }
+
+                                break;
+
+                            case ProjectResourceType.Shader:
+
+                                {
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            File.WriteAllText($"{node.path}.meta", Guid.NewGuid().ToString());
+                                        }
+                                    }
+                                    catch (System.Exception)
+                                    {
+                                    }
+                                }
+
+                                break;
                         }
                     }
                 }
@@ -74,8 +100,7 @@ namespace Staple.Editor
 
             try
             {
-                projectAppSettings = JsonSerializer.Deserialize(File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json")),
-                    AppSettingsSerializationContext.Default.AppSettings);
+                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json")));
             }
             catch(Exception e)
             {

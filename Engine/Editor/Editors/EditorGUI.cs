@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Editor
@@ -6,6 +7,9 @@ namespace Staple.Editor
     public static class EditorGUI
     {
         internal static ImGuiIOPtr io;
+        internal static StapleEditor editor;
+
+        internal static Dictionary<string, object> pendingObjectPickers = new();
 
         public static bool Changed { get; internal set; }
 
@@ -93,6 +97,42 @@ namespace Staple.Editor
             Changed |= ImGui.ColorPicker4(label, ref v);
 
             return new Color(v.X, v.Y, v.Z, v.W);
+        }
+
+        public static object ObjectPicker(System.Type type, string name, object current)
+        {
+            ImGui.Text(name);
+
+            ImGui.SameLine();
+
+            ImGui.Text(current?.ToString() ?? "(None)");
+
+            ImGui.SameLine();
+
+            var key = $"{type.FullName}{current}";
+
+            if (ImGui.SmallButton("o"))
+            {
+                editor.showingAssetPicker = true;
+                editor.assetPickerSearch = "";
+                editor.assetPickerType = type;
+                editor.assetPickerKey = key;
+            }
+
+            if(pendingObjectPickers.ContainsKey(key) == false)
+            {
+                pendingObjectPickers.Add(key, current);
+            }
+            else if (pendingObjectPickers[key] != current)
+            {
+                var newValue = pendingObjectPickers[key];
+
+                pendingObjectPickers.Remove(key);
+
+                return newValue;
+            }
+
+            return current;
         }
     }
 }

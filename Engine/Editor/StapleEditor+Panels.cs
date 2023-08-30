@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -10,7 +11,7 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        public void Entities(ImGuiIOPtr io)
+        private void Entities(ImGuiIOPtr io)
         {
             ImGui.Begin("Entities");
 
@@ -92,7 +93,7 @@ namespace Staple.Editor
             ImGui.End();
         }
 
-        public void Viewport(ImGuiIOPtr io)
+        private void Viewport(ImGuiIOPtr io)
         {
             ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
 
@@ -140,7 +141,7 @@ namespace Staple.Editor
             ImGui.End();
         }
 
-        public void Components(ImGuiIOPtr io)
+        private void Components(ImGuiIOPtr io)
         {
             ImGui.Begin("Inspector");
 
@@ -221,7 +222,7 @@ namespace Staple.Editor
             ImGui.End();
         }
 
-        public void BottomPanel(ImGuiIOPtr io)
+        private void BottomPanel(ImGuiIOPtr io)
         {
             ImGui.Begin("BottomPanel");
 
@@ -262,7 +263,7 @@ namespace Staple.Editor
             ImGui.End();
         }
 
-        public void ProjectBrowser(ImGuiIOPtr io)
+        private void ProjectBrowser(ImGuiIOPtr io)
         {
             ImGui.BeginChildFrame(ImGui.GetID("FolderTree"), new Vector2(150, 300));
 
@@ -380,11 +381,11 @@ namespace Staple.Editor
             ImGui.EndChildFrame();
         }
 
-        public void Console(ImGuiIOPtr io)
+        private void Console(ImGuiIOPtr io)
         {
         }
 
-        public void Dockspace()
+        private void Dockspace()
         {
             var windowFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
                 ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus |
@@ -434,6 +435,128 @@ namespace Staple.Editor
             }
 
             ImGui.End();
+        }
+
+        private void AssetPicker(ImGuiIOPtr io)
+        {
+            if(showingAssetPicker)
+            {
+                ImGui.Begin("AssetPicker", ImGuiWindowFlags.NoDocking);
+
+                ImGui.InputText("Search", ref assetPickerSearch, uint.MaxValue);
+
+                ImGui.BeginChildFrame(ImGui.GetID("AssetList"), Vector2.Zero);
+
+                var validItems = new List<ProjectBrowserNode>();
+
+                void Handle(ProjectBrowserNode child)
+                {
+                    switch (child.type)
+                    {
+                        case ProjectBrowserNodeType.Folder:
+
+                            Recursive(child);
+
+                            break;
+
+                        case ProjectBrowserNodeType.File:
+
+                            if ((assetPickerSearch?.Length ?? 0) > 0 &&
+                                child.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
+                            {
+                                return;
+                            }
+
+                            switch (assetPickerType)
+                            {
+                                case Type t when t == typeof(Texture) || t.IsSubclassOf(typeof(Texture)):
+
+                                    if (child.resourceType == ProjectResourceType.Texture)
+                                    {
+                                        validItems.Add(child);
+                                    }
+
+                                    break;
+
+                                case Type t when t == typeof(Material):
+
+                                    if (child.resourceType == ProjectResourceType.Material)
+                                    {
+                                        validItems.Add(child);
+                                    }
+
+                                    break;
+                            }
+
+                            break;
+                    }
+                }
+
+                void Recursive(ProjectBrowserNode source)
+                {
+                    foreach(var child in source.subnodes)
+                    {
+                        Handle(child);
+                    }
+                }
+
+                foreach(var node in projectBrowserNodes)
+                {
+                    switch(node.type)
+                    {
+                        case ProjectBrowserNodeType.Folder:
+
+                            Recursive(node);
+
+                            break;
+
+                        case ProjectBrowserNodeType.File:
+
+                            Handle(node);
+
+                            break;
+                    }
+                }
+
+                editorResources.TryGetValue("FileIcon", out var texture);
+
+                var gridItems = validItems
+                    .Select(x => new ImGuiUtils.ContentGridItem()
+                    {
+                        name = x.name,
+                        texture = texture,
+                    }).ToList();
+
+                ImGuiUtils.ContentGrid(gridItems, contentPanelPadding, contentPanelThumbnailSize,
+                (index, item) =>
+                {
+                },
+                (index, item) =>
+                {
+                    var i = validItems[index];
+
+                    switch(i.resourceType)
+                    {
+                        case ProjectResourceType.Material:
+
+                            break;
+
+                        case ProjectResourceType.Texture:
+
+                            break;
+
+                        case ProjectResourceType.Shader:
+
+                            break;
+                    }
+
+                    showingAssetPicker = false;
+                });
+
+                ImGui.EndChildFrame();
+
+                ImGui.End();
+            }
         }
     }
 }

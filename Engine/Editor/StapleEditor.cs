@@ -4,6 +4,7 @@ using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -27,6 +28,15 @@ namespace Staple.Editor
             InspectScene,
         }
 
+        enum ProjectResourceType
+        {
+            Material,
+            Texture,
+            Shader,
+            Scene,
+            Other
+        }
+
         enum ViewportType
         {
             Scene,
@@ -42,7 +52,7 @@ namespace Staple.Editor
             public List<ProjectBrowserNode> subnodes = new();
             public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
 
-            public string TypeString;
+            public ProjectResourceType resourceType;
         }
 
         class EntityBody
@@ -70,6 +80,21 @@ namespace Staple.Editor
                 }
 
                 return null;
+            }
+        }
+
+        internal static string StapleBasePath
+        {
+            get
+            {
+                var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+                while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
+                {
+                    higherDir.RemoveAt(higherDir.Count - 1);
+                }
+
+                return string.Join(Path.DirectorySeparatorChar, higherDir);
             }
         }
 
@@ -138,9 +163,19 @@ namespace Staple.Editor
 
         private WeakReference<Assembly> gameAssembly;
 
+        internal bool showingAssetPicker = false;
+
+        internal Type assetPickerType;
+
+        internal string assetPickerSearch = "";
+
+        internal string assetPickerKey;
+
         public void Run()
         {
             ReloadTypeCache();
+
+            ResourceManager.instance.resourcePaths.Add("");
 
             LayerMask.AllLayers = editorSettings.layers;
             LayerMask.AllSortingLayers = editorSettings.sortingLayers;
@@ -190,6 +225,7 @@ namespace Staple.Editor
                 io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
                 EditorGUI.io = io;
+                EditorGUI.editor = this;
 
                 var style = ImGui.GetStyle();
 
@@ -345,6 +381,7 @@ namespace Staple.Editor
                 Entities(io);
                 Components(io);
                 BottomPanel(io);
+                AssetPicker(io);
 
                 imgui.EndFrame();
             };
@@ -452,19 +489,19 @@ namespace Staple.Editor
                         {
                             case ".mat":
 
-                                node.TypeString = "Material";
+                                node.resourceType = ProjectResourceType.Material;
 
                                 break;
 
                             case ".stsh":
 
-                                node.TypeString = "Shader";
+                                node.resourceType = ProjectResourceType.Shader;
 
                                 break;
 
                             case ".stsc":
 
-                                node.TypeString = "Scene";
+                                node.resourceType = ProjectResourceType.Scene;
                                 node.action = ProjectBrowserNodeAction.InspectScene;
 
                                 break;
@@ -475,13 +512,13 @@ namespace Staple.Editor
                             case ".gif":
                             case ".bmp":
 
-                                node.TypeString = "Texture";
+                                node.resourceType = ProjectResourceType.Texture;
 
                                 break;
 
                             default:
 
-                                node.TypeString = "";
+                                node.resourceType = ProjectResourceType.Other;
 
                                 break;
                         }
@@ -515,9 +552,9 @@ namespace Staple.Editor
                 {
                     case ProjectBrowserNodeType.File:
 
-                        switch(node.TypeString.ToUpperInvariant())
+                        switch(node.resourceType)
                         {
-                            case "TEXTURE":
+                            case ProjectResourceType.Texture:
 
                                 item.texture = ThumbnailCache.GetThumbnail(node.path);
 

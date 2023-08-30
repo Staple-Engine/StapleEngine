@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
@@ -73,7 +72,9 @@ namespace Staple.Internal
             {
                 try
                 {
-                    return File.ReadAllBytes(Path.Combine(resourcePath, path));
+                    var p = Path.Combine(resourcePath, path);
+
+                    return File.ReadAllBytes(p);
                 }
                 catch (Exception)
                 {
