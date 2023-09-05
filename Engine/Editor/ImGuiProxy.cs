@@ -2,13 +2,9 @@
 using ImGuiNET;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Staple.Editor
 {
@@ -23,6 +19,8 @@ namespace Staple.Editor
         public Texture fontTexture;
         public bgfx.TextureHandle activeTexture;
 
+        public ImFontPtr editorFont;
+
         private bool frameBegun = false;
 
         public bool Initialize()
@@ -34,6 +32,16 @@ namespace Staple.Editor
             ImGui.SetCurrentContext(ImGuiContext);
 
             ImGuiIO.Fonts.AddFontDefault();
+
+            var bytes = Convert.FromBase64String(FontData.IntelOneMonoRegular);
+
+            unsafe
+            {
+                fixed(byte * ptr = bytes)
+                {
+                    editorFont = ImGuiIO.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, bytes.Length, 18);
+                }
+            }
 
             SetupImGuiKeyMaps(ImGuiIO);
 
@@ -130,6 +138,8 @@ namespace Staple.Editor
 
             ImGui.NewFrame();
 
+            ImGui.PushFont(editorFont);
+
             frameBegun = true;
         }
 
@@ -138,6 +148,8 @@ namespace Staple.Editor
             if (frameBegun)
             {
                 frameBegun = false;
+
+                ImGui.PopFont();
 
                 ImGui.Render();
 

@@ -72,7 +72,7 @@ namespace Staple.Editor
 
             protected override Assembly Load(AssemblyName assemblyName)
             {
-                string? assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+                var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
 
                 if (assemblyPath != null)
                 {

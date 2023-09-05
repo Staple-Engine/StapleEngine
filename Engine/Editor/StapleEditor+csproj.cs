@@ -121,6 +121,7 @@ namespace Staple.Editor
                 { "PublishAOT", "true" },
                 { "IsAOTCompatible", "true" },
                 { "AppDesignerFolder", "Properties" },
+                { "OptimizationPreference", "Speed" },
             };
 
             var p = new Project(collection);

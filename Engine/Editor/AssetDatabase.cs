@@ -86,6 +86,10 @@ namespace Staple.Editor
 
                     assets.Add(guid, file);
                 }
+                else
+                {
+                    Log.Warning($"[AssetDatabase] Missing guid for potential asset at {file}. Skipping...");
+                }
             }
 
             Log.Info($"[AssetDatabase] Reloaded Asset Database with {assets.Count} assets");
