@@ -51,6 +51,19 @@ namespace Staple.Editor
                 {
                     if(node.type == ProjectBrowserNodeType.Folder)
                     {
+                        {
+                            try
+                            {
+                                if (File.Exists($"{node.path}.meta") == false)
+                                {
+                                    File.WriteAllText($"{node.path}.meta", Guid.NewGuid().ToString());
+                                }
+                            }
+                            catch (System.Exception)
+                            {
+                            }
+                        }
+
                         Recursive(node.subnodes);
                     }
                     else
@@ -113,6 +126,17 @@ namespace Staple.Editor
                 LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
 
                 window.appSettings.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
+
+                foreach(var pair in projectAppSettings.renderers)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging", pair.Key.ToString()));
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
             }
 
             RefreshStaging();
@@ -122,25 +146,17 @@ namespace Staple.Editor
         {
             var bakerPath = Path.Combine(Environment.CurrentDirectory, "..", "Tools", "bin", "Baker");
 
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging", "d3d11"));
-            }
-            catch (Exception)
-            {
-            }
-
-            //TODO: Build for each API
+            UpdateCSProj();
 
             if(projectAppSettings == null)
             {
                 return;
             }
 
-            var renderers = new HashSet<string>();
-
-            foreach(var pair in projectAppSettings.renderers)
+            foreach (var pair in projectAppSettings.renderers)
             {
+                var renderers = new HashSet<string>();
+
                 foreach(var item in pair.Value)
                 {
                     switch(item)
@@ -182,37 +198,35 @@ namespace Staple.Editor
                             break;
                     }
                 }
-            }
 
-            var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging\" -editor {string.Join(" ", renderers)}".Replace("\\", "/");
+                var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{pair.Key}\" -editor {string.Join(" ", renderers)}".Replace("\\", "/");
 
-            var processInfo = new ProcessStartInfo(bakerPath, args)
-            {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            if (process.Start())
-            {
-                while(process.HasExited == false)
+                var processInfo = new ProcessStartInfo(bakerPath, args)
                 {
-                    var line = process.StandardOutput.ReadLine();
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Environment.CurrentDirectory
+                };
 
-                    if(line != null)
+                var process = new Process
+                {
+                    StartInfo = processInfo
+                };
+
+                if (process.Start())
+                {
+                    while (process.HasExited == false)
                     {
-                        Log.Info(line);
+                        var line = process.StandardOutput.ReadLine();
+
+                        if (line != null)
+                        {
+                            Log.Info(line);
+                        }
                     }
                 }
             }
-
-            UpdateCSProj();
         }
     }
 }

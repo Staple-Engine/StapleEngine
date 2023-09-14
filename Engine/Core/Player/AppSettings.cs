@@ -84,6 +84,20 @@ namespace Staple
                     RendererType.Metal
                 }
             },
+            {
+                AppPlatform.Android,
+                new List<RendererType>()
+                {
+                    RendererType.Vulkan,
+                }
+            },
+            {
+                AppPlatform.iOS,
+                new List<RendererType>()
+                {
+                    RendererType.Metal,
+                }
+            }
         };
 
         /// <summary>

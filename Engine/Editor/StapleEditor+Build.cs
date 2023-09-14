@@ -8,16 +8,50 @@ namespace Staple.Editor
 {
     partial class StapleEditor
     {
-        public void BuildPlayer()
+        public void BuildPlayer(AppPlatform platform, string outPath)
         {
             using var collection = new ProjectCollection();
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
-            var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging");
+            var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", platform.ToString());
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
-            var outPath = Path.Combine(projectDirectory, "publish");
 
-            var args = $" publish -r win-x64 \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+            var platformRuntime = "";
+
+            switch(platform)
+            {
+                case AppPlatform.Windows:
+
+                    platformRuntime = "win-x64";
+
+                    break;
+
+                case AppPlatform.Linux:
+
+                    platformRuntime = "linux-x64";
+
+                    break;
+
+                case AppPlatform.MacOSX:
+
+                    platformRuntime = "osx-x64";
+
+                    break;
+
+                case AppPlatform.Android:
+
+                    platformRuntime = "android-arm64";
+
+                    break;
+
+                case AppPlatform.iOS:
+
+                    platformRuntime = "ios-arm64";
+
+                    break;
+            }
+
+            var args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
 
             var processInfo = new ProcessStartInfo("dotnet", args)
             {
@@ -102,7 +136,7 @@ namespace Staple.Editor
 
             var assetsDirectory = Path.Combine(basePath, "Assets");
 
-            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
+            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources", platform.ToString());
 
             try
             {

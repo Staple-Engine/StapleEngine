@@ -83,20 +83,7 @@ namespace Staple.Editor
             }
         }
 
-        internal static string StapleBasePath
-        {
-            get
-            {
-                var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
-
-                while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
-                {
-                    higherDir.RemoveAt(higherDir.Count - 1);
-                }
-
-                return string.Join(Path.DirectorySeparatorChar, higherDir);
-            }
-        }
+        internal static string StapleBasePath => Storage.StapleBasePath;
 
         internal const int ClearView = 0;
         internal const int SceneView = 254;
@@ -162,6 +149,10 @@ namespace Staple.Editor
         private GameAssemblyLoadContext gameAssemblyLoadContext;
 
         private WeakReference<Assembly> gameAssembly;
+
+        private bool showingBuildWindow = false;
+
+        private AppPlatform buildPlatform = AppPlatform.Windows;
 
         internal bool showingAssetPicker = false;
 
@@ -382,6 +373,7 @@ namespace Staple.Editor
                 Components(io);
                 BottomPanel(io);
                 AssetPicker(io);
+                BuildWindow(io);
 
                 imgui.EndFrame();
             };

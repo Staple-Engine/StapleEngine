@@ -356,7 +356,7 @@ namespace Staple
 
                 init.platformData.ndt = null;
 
-                AppPlatform platform = AppPlatform.Windows;
+                AppPlatform platform;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -364,7 +364,7 @@ namespace Staple
 
                     platform = AppPlatform.Windows;
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
                 {
                     var display = Native.GetX11Display();
                     var windowHandle = Native.GetX11Window(window);
@@ -386,6 +386,20 @@ namespace Staple
                     init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
 
                     platform = AppPlatform.MacOSX;
+                }
+                else
+                {
+                    Log.Error("[RenderWindow] Unsupported platform");
+
+                    bgfxReferences--;
+
+                    Glfw.Terminate();
+
+                    glfwReferences--;
+
+                    Environment.Exit(1);
+
+                    return;
                 }
 
                 if (appSettings.renderers.TryGetValue(platform, out renderers) == false)

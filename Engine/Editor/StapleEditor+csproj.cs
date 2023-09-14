@@ -155,14 +155,7 @@ namespace Staple.Editor
                 p.SetProperty(pair.Key, pair.Value);
             }
 
-            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
-
-            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
-            {
-                higherDir.RemoveAt(higherDir.Count - 1);
-            }
-
-            var typeRegistrationPath = Path.Combine(string.Join(Path.DirectorySeparatorChar, higherDir), "Engine", "TypeRegistration", "TypeRegistration.csproj");
+            var typeRegistrationPath = Path.Combine(StapleBasePath, "Engine", "TypeRegistration", "TypeRegistration.csproj");
 
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
             p.AddItem("ProjectReference", typeRegistrationPath,

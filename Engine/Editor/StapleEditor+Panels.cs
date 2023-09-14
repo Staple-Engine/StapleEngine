@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using NativeFileDialogs.Net;
 using Newtonsoft.Json;
 using Staple.Internal;
 using System;
@@ -405,6 +406,11 @@ namespace Staple.Editor
             {
                 if (ImGui.BeginMenu("File"))
                 {
+                    if(ImGui.MenuItem("Build"))
+                    {
+                        showingBuildWindow = true;
+                    }
+
                     if (ImGui.MenuItem("Save"))
                     {
                         if (Scene.current != null && lastOpenScene != null)
@@ -554,6 +560,36 @@ namespace Staple.Editor
                 });
 
                 ImGui.EndChildFrame();
+
+                ImGui.End();
+            }
+        }
+
+        private void BuildWindow(ImGuiIOPtr io)
+        {
+            if(showingBuildWindow)
+            {
+                ImGui.Begin("Build", ImGuiWindowFlags.NoDocking);
+
+                var values = Enum.GetValues<AppPlatform>()
+                    .Where(x => projectAppSettings.renderers.Keys.Any(y => y == x))
+                    .ToList();
+
+                var current = values.IndexOf(buildPlatform);
+
+                var valueStrings = values
+                    .Select(x => x.ToString())
+                    .ToArray();
+
+                buildPlatform = values[EditorGUI.Dropdown("Platform", valueStrings, current)];
+
+                if(EditorGUI.Button("Build"))
+                {
+                    if(Nfd.PickFolder(out var path, basePath) == NfdStatus.Ok)
+                    {
+                        BuildPlayer(buildPlatform, path);
+                    }
+                }
 
                 ImGui.End();
             }

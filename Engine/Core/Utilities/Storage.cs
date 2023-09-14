@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Staple
 {
@@ -22,13 +24,66 @@ namespace Staple
                     return basePath;
                 }
 
-                //TODO: other OSs
+                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow");
+                }
+                else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+                {
+                    basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
 
-                basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow");
+                    try
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
+                else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
+
+                    try
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                else
+                {
+                    //TODO: Other platforms
+                }
 
                 return basePath;
             }
         }
+
+        private static Lazy<string> stapleBasePath = new(() =>
+        {
+            var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+            while (higherDir.Count > 0 && higherDir.LastOrDefault() != "StapleEngine")
+            {
+                higherDir.RemoveAt(higherDir.Count - 1);
+            }
+
+            if (higherDir.Count == 0)
+            {
+                return null;
+            }
+
+            return string.Join(Path.DirectorySeparatorChar, higherDir);
+        });
+
+        /// <summary>
+        /// Attempts to find the base path for the Staple Engine folder.
+        /// Assumes we're running somewhere inside that folder.
+        /// Returns null if the directory isn't found.
+        /// </summary>
+        public static string StapleBasePath => stapleBasePath.Value;
 
         /// <summary>
         /// The current app's name

@@ -18,6 +18,11 @@ namespace Staple.Editor
             ImGui.Spacing();
         }
 
+        public static bool Button(string label)
+        {
+            return ImGui.Button(label);
+        }
+
         public static int IntField(string label, int value)
         {
             Changed |= ImGui.InputInt(label, ref value);

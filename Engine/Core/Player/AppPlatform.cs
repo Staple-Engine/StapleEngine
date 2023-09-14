@@ -8,5 +8,7 @@ namespace Staple
         Windows,
         Linux,
         MacOSX,
+        Android,
+        iOS
     }
 }
