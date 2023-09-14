@@ -36,6 +36,14 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "NfdSharp"
+	kind "SharedLib"
+	language "C#"
+	
+	files {
+		"NfdSharp/**.cs"
+	}
+
 project "glfwnet"
 	kind "SharedLib"
 	language "C#"

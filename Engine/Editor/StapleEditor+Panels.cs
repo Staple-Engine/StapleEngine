@@ -602,9 +602,51 @@ namespace Staple.Editor
 
                 if(EditorGUI.Button("Build"))
                 {
-                    if(Nfd.PickFolder(basePath, out var path) == Nfd.NfdResult.NFD_OKAY)
+                    var result = Nfd.PickFolder(Path.GetFullPath(basePath), out var path);
+
+                    if (result == Nfd.NfdResult.NFD_OKAY)
                     {
-                        BuildPlayer(buildPlatform, path);
+                        showingProgress = true;
+                        progressFraction = 0;
+
+                        ImGui.OpenPopup("ShowingProgress");
+
+                        StartBackgroundTask((ref float progressFraction) =>
+                        {
+                            BuildPlayer(buildPlatform, path);
+
+                            return true;
+                        });
+                    }
+                    else
+                    {
+                        Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
+                    }
+                }
+
+                if (showingProgress)
+                {
+                    ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
+                    ImGui.SetNextWindowSize(new Vector2(300, 200));
+
+                    ImGui.BeginPopupModal("ShowingProgress", ref showingProgress,
+                        ImGuiWindowFlags.NoTitleBar |
+                        ImGuiWindowFlags.NoDocking |
+                        ImGuiWindowFlags.NoResize |
+                        ImGuiWindowFlags.NoMove);
+
+                    ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
+
+                    ImGui.EndPopup();
+
+                    lock(backgroundLock)
+                    {
+                        if(backgroundThreads.Count == 0)
+                        {
+                            showingProgress = false;
+
+                            ImGui.CloseCurrentPopup();
+                        }
                     }
                 }
 

@@ -10,6 +10,11 @@ namespace Staple.Editor
     {
         public void BuildPlayer(AppPlatform platform, string outPath)
         {
+            lock(backgroundLock)
+            {
+                progressFraction = 0;
+            }
+
             using var collection = new ProjectCollection();
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
@@ -20,7 +25,12 @@ namespace Staple.Editor
 
             GeneratePlayerCSProj(platform);
 
-            switch(platform)
+            lock (backgroundLock)
+            {
+                progressFraction = 0.1f;
+            }
+
+            switch (platform)
             {
                 case AppPlatform.Windows:
 
@@ -87,6 +97,12 @@ namespace Staple.Editor
 
                 return;
             }
+
+            lock (backgroundLock)
+            {
+                progressFraction = 0.5f;
+            }
+
             try
             {
                 Directory.CreateDirectory(Path.Combine(outPath, "Data"));
@@ -172,6 +188,11 @@ namespace Staple.Editor
                 return;
             }
 
+            lock (backgroundLock)
+            {
+                progressFraction = 0.6f;
+            }
+
             try
             {
                 var directories = Directory.GetDirectories(assetsCacheDirectory);
@@ -230,6 +251,11 @@ namespace Staple.Editor
 
                     return;
                 }
+            }
+
+            lock (backgroundLock)
+            {
+                progressFraction = 1;
             }
         }
 

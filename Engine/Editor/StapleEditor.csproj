@@ -31,6 +31,9 @@
     <Reference Include="ImGui.NET">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\ImGui.NET.dll</HintPath>
     </Reference>
+	<Reference Include="NfdSharp">
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\NfdSharp.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Reference Include="Newtonsoft.Json">
@@ -39,6 +42,9 @@
     <Reference Include="ImGui.NET">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\ImGui.NET.dll</HintPath>
     </Reference>
+	<Reference Include="NfdSharp">
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\NfdSharp.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetDatabase.cs" />
@@ -47,6 +53,7 @@
     <Compile Include="Editors\Default\SpriteEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
+    <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />
     <Compile Include="StapleEditor+csproj.cs" />
     <Compile Include="StapleEditor+Game.cs" />
@@ -62,13 +69,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.7.2" />
-    <PackageReference Include="NfdSharp" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Editor\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging</PostBuildEvent>
+    <PostBuildEvent>
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Editor\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\NativeFileDialog\binaries\*.[DLL] $(SolutionDir)..\Staging
+	</PostBuildEvent>
   </PropertyGroup>
 </Project>

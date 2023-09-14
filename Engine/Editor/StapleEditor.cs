@@ -5,11 +5,11 @@ using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using System.Threading;
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
 
@@ -96,6 +96,11 @@ namespace Staple.Editor
         internal const int ClearView = 0;
         internal const int SceneView = 254;
 
+        internal delegate bool BackgroundTaskProgressCallback(ref float progress);
+
+        private List<Thread> backgroundThreads = new();
+        private object backgroundLock = new();
+
         private RenderWindow window;
 
         private ImGuiProxy imgui;
@@ -158,6 +163,12 @@ namespace Staple.Editor
         private AppPlatform buildPlatform = AppPlatform.Windows;
 
         private AppPlatform currentPlatform = AppPlatform.Windows;
+
+        private bool showingProgress = false;
+
+        private float progressFraction = 0;
+
+        private bool shouldTerminate = false;
 
         internal bool showingAssetPicker = false;
 
@@ -398,6 +409,22 @@ namespace Staple.Editor
 
             window.OnCleanup = () =>
             {
+                lock(backgroundLock)
+                {
+                    shouldTerminate = true;
+                }
+
+                for(; ; )
+                {
+                    lock(backgroundLock)
+                    {
+                        if(backgroundThreads.Count == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+
                 imgui.Destroy();
 
                 renderSystem.Shutdown();

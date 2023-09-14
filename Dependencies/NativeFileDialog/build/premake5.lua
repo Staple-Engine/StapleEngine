@@ -76,6 +76,7 @@ workspace "NativeFileDialog"
     filter "system:windows"
       language "C++"
       files {root_dir.."src/nfd_win.cpp"}
+	  defines { "NFD_SHARED" }
 
     filter {"action:gmake or action:xcode4"}
       buildoptions {"-fno-exceptions"}
