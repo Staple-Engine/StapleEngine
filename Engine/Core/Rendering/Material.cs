@@ -7,7 +7,7 @@ namespace Staple
     /// <summary>
     /// Material resource
     /// </summary>
-    public class Material
+    public sealed class Material
     {
         internal const string MainColorProperty = "mainColor";
         internal const string MainTextureProperty = "mainTexture";

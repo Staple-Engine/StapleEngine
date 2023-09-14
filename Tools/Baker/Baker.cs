@@ -1,6 +1,8 @@
+using Staple;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Baker
@@ -82,7 +84,8 @@ namespace Baker
                     "\t-o [path]: set output directory\n" +
                     "\t-i [path]: set input directory\n" +
                     "\t-sd [define]: add a shader define\n" +
-                    "\t-editor: enable editor mode, which uses different directories" +
+                    "\t-editor: enable editor mode, which uses different directories\n" +
+                    $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                     "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                     "\t\tValid values are:\n" +
                     "\t\t\td3d11\n" +
@@ -137,11 +140,36 @@ namespace Baker
             var renderers = new List<Renderer>();
             bool setRenderer = false;
             bool editorMode = false;
+            AppPlatform platform = AppPlatform.Windows;
 
             for (var i = 0; i < args.Length; i++)
             {
                 switch (args[i])
                 {
+                    case "-platform":
+
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("Invalid argument `-platform`: missing platform ID");
+
+                            Environment.Exit(1);
+
+                            return;
+                        }
+
+                        if (Enum.TryParse(args[i + 1], true, out platform) == false)
+                        {
+                            Console.WriteLine("Invalid argument `-platform`: invalid platform ID");
+
+                            Environment.Exit(1);
+
+                            return;
+                        }
+
+                        i++;
+
+                        break;
+
                     case "-o":
 
                         if (i + 1 >= args.Length)
@@ -270,11 +298,11 @@ namespace Baker
                 return;
             }
 
-            ProcessShaders(shadercPath, inputPath, outputPath, shaderDefines, renderers);
-            ProcessTextures(texturecPath, inputPath, outputPath);
-            ProcessMaterials(inputPath, outputPath);
-            ProcessScenes(inputPath, outputPath, editorMode);
-            ProcessAppSettings(inputPath, outputPath, editorMode);
+            ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
+            ProcessTextures(platform, texturecPath, inputPath, outputPath);
+            ProcessMaterials(platform, inputPath, outputPath);
+            ProcessScenes(platform, inputPath, outputPath, editorMode);
+            ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }
     }
 }

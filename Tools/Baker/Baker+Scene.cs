@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessScenes(string inputPath, string outputPath, bool editorMode)
+        private static void ProcessScenes(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
         {
             var sceneFiles = new List<string>();
 

@@ -1,5 +1,5 @@
 {
-  "guid": "037ec061-1f99-4641-8eec-83f7ffbcfeae",
+  "guid": "5da2f744-bc4a-470f-af75-5bc86bb95538",
   "type": "SRGB",
   "format": "RGBA8",
   "quality": "Default",
@@ -11,6 +11,20 @@
   "maxSize": 2048,
   "useMipmaps": true,
   "isLinear": false,
-  "spriteScale": 1,
-  "readBack": false
+  "spriteScale": 1.0,
+  "readBack": false,
+  "overrides": {
+    "iOS": {
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Android": {
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    }
+  }
 }

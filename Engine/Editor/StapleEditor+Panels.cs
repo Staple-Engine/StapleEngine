@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
-using NativeFileDialogs.Net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using NfdSharp;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -365,6 +366,12 @@ namespace Staple.Editor
                                         Scene.current = scene;
 
                                         ResetScenePhysics();
+
+                                        UpdateLastSession(new LastSessionInfo()
+                                        {
+                                            currentPlatform = currentPlatform,
+                                            lastOpenScene = lastOpenScene,
+                                        });
                                     }
 
                                     break;
@@ -406,18 +413,19 @@ namespace Staple.Editor
             {
                 if (ImGui.BeginMenu("File"))
                 {
-                    if(ImGui.MenuItem("Build"))
-                    {
-                        showingBuildWindow = true;
-                    }
-
                     if (ImGui.MenuItem("Save"))
                     {
                         if (Scene.current != null && lastOpenScene != null)
                         {
                             var serializableScene = Scene.current.Serialize();
 
-                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented);
+                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, new JsonSerializerSettings()
+                            {
+                                Converters =
+                                {
+                                    new StringEnumConverter(),
+                                }
+                            });
 
                             try
                             {
@@ -428,6 +436,15 @@ namespace Staple.Editor
                             }
                         }
                     }
+
+                    ImGui.Separator();
+
+                    if (ImGui.MenuItem("Build"))
+                    {
+                        showingBuildWindow = true;
+                    }
+
+                    ImGui.Separator();
 
                     if (ImGui.MenuItem("Exit"))
                     {
@@ -585,7 +602,7 @@ namespace Staple.Editor
 
                 if(EditorGUI.Button("Build"))
                 {
-                    if(Nfd.PickFolder(out var path, basePath) == NfdStatus.Ok)
+                    if(Nfd.PickFolder(basePath, out var path) == Nfd.NfdResult.NFD_OKAY)
                     {
                         BuildPlayer(buildPlatform, path);
                     }

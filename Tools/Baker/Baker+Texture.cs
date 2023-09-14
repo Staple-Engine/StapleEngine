@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessTextures(string texturecPath, string inputPath, string outputPath)
+        private static void ProcessTextures(AppPlatform platform, string texturecPath, string inputPath, string outputPath)
         {
             var textureFiles = new List<string>();
 
@@ -108,7 +109,25 @@ namespace Baker
                 {
                 }
 
-                var parameters = $"-t {metadata.format} -q {metadata.quality.ToString().ToLowerInvariant()} --max {metadata.maxSize} --as dds";
+                var format = metadata.format;
+                var quality = metadata.quality;
+                var maxSize = metadata.maxSize;
+                var premultiplyAlpha = metadata.premultiplyAlpha;
+
+                if(metadata.overrides.TryGetValue(platform, out var overrides))
+                {
+                    format = overrides.format;
+                    quality = overrides.quality;
+                    maxSize = overrides.maxSize;
+                    premultiplyAlpha = overrides.premultiplyAlpha;
+                }
+
+                var parameters = $"-t {format} -q {quality.ToString().ToLowerInvariant()} --max {maxSize} --as dds";
+
+                if (premultiplyAlpha)
+                {
+                    parameters += " --pma";
+                }
 
                 if (metadata.isLinear)
                 {
@@ -127,11 +146,6 @@ namespace Baker
                         parameters += " --normalmap";
 
                         break;
-                }
-
-                if (metadata.premultiplyAlpha)
-                {
-                    parameters += " --pma";
                 }
 
                 try

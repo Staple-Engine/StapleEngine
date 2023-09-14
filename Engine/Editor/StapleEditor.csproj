@@ -62,8 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.7.2" />
-    <PackageReference Include="NativeFileDialogs.Net" Version="1.0.0" />
-    <PackageReference Include="NativeFileDialogs.Net.Runtime" Version="1.0.0" />
+    <PackageReference Include="NfdSharp" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\StapleCore.csproj" />

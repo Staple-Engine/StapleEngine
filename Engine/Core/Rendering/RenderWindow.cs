@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 [assembly: InternalsVisibleTo("StapleEditor")]
@@ -356,38 +355,9 @@ namespace Staple
 
                 init.platformData.ndt = null;
 
-                AppPlatform platform;
+                var platform = Platform.CurrentPlatform;
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
-
-                    platform = AppPlatform.Windows;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
-                {
-                    var display = Native.GetX11Display();
-                    var windowHandle = Native.GetX11Window(window);
-
-                    if (display == IntPtr.Zero || window == IntPtr.Zero)
-                    {
-                        display = Native.GetWaylandDisplay();
-                        windowHandle = Native.GetWaylandWindow(window);
-                    }
-
-                    init.platformData.ndt = display.ToPointer();
-                    init.platformData.nwh = windowHandle.ToPointer();
-
-                    platform = AppPlatform.Linux;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
-                    init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
-
-                    platform = AppPlatform.MacOSX;
-                }
-                else
+                if(platform.HasValue == false)
                 {
                     Log.Error("[RenderWindow] Unsupported platform");
 
@@ -402,7 +372,43 @@ namespace Staple
                     return;
                 }
 
-                if (appSettings.renderers.TryGetValue(platform, out renderers) == false)
+                switch(platform.Value)
+                {
+                    case AppPlatform.Windows:
+
+                        init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
+
+                        break;
+
+                    case AppPlatform.Linux:
+
+                        {
+                            var display = Native.GetX11Display();
+                            var windowHandle = Native.GetX11Window(window);
+
+                            if (display == IntPtr.Zero || window == IntPtr.Zero)
+                            {
+                                display = Native.GetWaylandDisplay();
+                                windowHandle = Native.GetWaylandWindow(window);
+                            }
+
+                            init.platformData.ndt = display.ToPointer();
+                            init.platformData.nwh = windowHandle.ToPointer();
+                        }
+
+                        break;
+
+                    case AppPlatform.MacOSX:
+
+                        {
+                            init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
+                            init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
+                        }
+
+                        break;
+                }
+
+                if (appSettings.renderers.TryGetValue(platform.Value, out renderers) == false)
                 {
                     Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
 

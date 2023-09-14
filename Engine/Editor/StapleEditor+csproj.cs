@@ -2,13 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Staple.Editor
 {
     partial class StapleEditor
     {
-        internal void UpdateCSProj()
+        private static Dictionary<AppPlatform, string[]> platformDefines = new()
+        {
+            { AppPlatform.Windows, new string[]{ "STAPLE_ENGINE", "STAPLE_WINDOWS" } },
+            { AppPlatform.Linux, new string[]{ "STAPLE_ENGINE", "STAPLE_LINUX" } },
+            { AppPlatform.MacOSX, new string[]{ "STAPLE_ENGINE", "STAPLE_MACOSX" } },
+            { AppPlatform.Android, new string[]{ "STAPLE_ENGINE", "STAPLE_ANDROID" } },
+            { AppPlatform.iOS, new string[]{ "STAPLE_ENGINE", "STAPLE_IOS" } },
+        };
+
+        internal void UpdateCSProj(AppPlatform platform)
         {
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
 
@@ -20,14 +28,13 @@ namespace Staple.Editor
             {
             }
 
-            GenerateGameCSProj();
-            GeneratePlayerCSProj();
+            GenerateGameCSProj(platform);
 
             BuildGame();
             LoadGame();
         }
 
-        private void GenerateGameCSProj()
+        private void GenerateGameCSProj(AppPlatform platform)
         {
             using var collection = new ProjectCollection();
 
@@ -44,6 +51,13 @@ namespace Staple.Editor
                 { "AppDesignerFolder", "Properties" },
             };
 
+            var platformDefinesString = "";
+
+            if (platformDefines.TryGetValue(platform, out var defines) && defines.Length > 0)
+            {
+                platformDefinesString = $";{string.Join(";", defines)}";
+            }
+
             var p = new Project(collection);
 
             p.Xml.Sdk = "Microsoft.NET.Sdk";
@@ -55,7 +69,7 @@ namespace Staple.Editor
             debugProperty.AddProperty("DebugType", "pdbonly");
             debugProperty.AddProperty("DebugSymbols", "true");
             debugProperty.AddProperty("Optimize", "false");
-            debugProperty.AddProperty("DefineConstants", "_DEBUG");
+            debugProperty.AddProperty("DefineConstants", $"_DEBUG{platformDefinesString}");
             debugProperty.AddProperty("ErrorReport", "prompt");
             debugProperty.AddProperty("WarningLevel", "4");
 
@@ -66,7 +80,7 @@ namespace Staple.Editor
             releaseProperty.AddProperty("DebugType", "portable");
             releaseProperty.AddProperty("DebugSymbols", "true");
             releaseProperty.AddProperty("Optimize", "true");
-            releaseProperty.AddProperty("DefineConstants", "NDEBUG");
+            releaseProperty.AddProperty("DefineConstants", $"NDEBUG{platformDefinesString}");
             releaseProperty.AddProperty("ErrorReport", "prompt");
             releaseProperty.AddProperty("WarningLevel", "4");
 
@@ -106,7 +120,7 @@ namespace Staple.Editor
             p.Save(Path.Combine(projectDirectory, "Game.csproj"));
         }
 
-        private void GeneratePlayerCSProj()
+        private void GeneratePlayerCSProj(AppPlatform platform)
         {
             using var collection = new ProjectCollection();
 
@@ -124,6 +138,13 @@ namespace Staple.Editor
                 { "OptimizationPreference", "Speed" },
             };
 
+            var platformDefinesString = "";
+
+            if(platformDefines.TryGetValue(platform, out var defines) && defines.Length > 0)
+            {
+                platformDefinesString = $";{string.Join(";", defines)}";
+            }
+
             var p = new Project(collection);
 
             p.Xml.Sdk = "Microsoft.NET.Sdk";
@@ -135,7 +156,7 @@ namespace Staple.Editor
             debugProperty.AddProperty("DebugType", "pdbonly");
             debugProperty.AddProperty("DebugSymbols", "true");
             debugProperty.AddProperty("Optimize", "false");
-            debugProperty.AddProperty("DefineConstants", "_DEBUG");
+            debugProperty.AddProperty("DefineConstants", $"_DEBUG{platformDefinesString}");
             debugProperty.AddProperty("ErrorReport", "prompt");
             debugProperty.AddProperty("WarningLevel", "4");
 
@@ -146,7 +167,7 @@ namespace Staple.Editor
             releaseProperty.AddProperty("DebugType", "portable");
             releaseProperty.AddProperty("DebugSymbols", "true");
             releaseProperty.AddProperty("Optimize", "true");
-            releaseProperty.AddProperty("DefineConstants", "NDEBUG");
+            releaseProperty.AddProperty("DefineConstants", $"NDEBUG{platformDefinesString}");
             releaseProperty.AddProperty("ErrorReport", "prompt");
             releaseProperty.AddProperty("WarningLevel", "4");
 

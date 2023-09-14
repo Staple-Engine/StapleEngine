@@ -46,59 +46,19 @@ namespace Staple
         /// Which layers to use
         /// </summary>
         [Key(5)]
-        public List<string> layers = new List<string>()
-        {
-            "Default",
-        };
+        public List<string> layers = new();
 
         /// <summary>
         /// Which sorting layers to use
         /// </summary>
         [Key(6)]
-        public List<string> sortingLayers = new List<string>()
-        {
-            "Default",
-        };
+        public List<string> sortingLayers = new();
 
         /// <summary>
         /// Which renderers to use per platform
         /// </summary>
         [Key(7)]
-        public Dictionary<AppPlatform, List<RendererType>> renderers = new Dictionary<AppPlatform, List<RendererType>>
-        {
-            {
-                AppPlatform.Windows,
-                new List<RendererType>() {
-                    RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan, RendererType.OpenGL
-                }
-            },
-            {
-                AppPlatform.Linux,
-                new List<RendererType>() {
-                    RendererType.Vulkan, RendererType.OpenGL
-                }
-            },
-            {
-                AppPlatform.MacOSX,
-                new List<RendererType>() {
-                    RendererType.Metal
-                }
-            },
-            {
-                AppPlatform.Android,
-                new List<RendererType>()
-                {
-                    RendererType.Vulkan,
-                }
-            },
-            {
-                AppPlatform.iOS,
-                new List<RendererType>()
-                {
-                    RendererType.Metal,
-                }
-            }
-        };
+        public Dictionary<AppPlatform, List<RendererType>> renderers = new();
 
         /// <summary>
         /// Default mode for the game window
@@ -123,6 +83,62 @@ namespace Staple
         /// </summary>
         [Key(11)]
         public List<ColliderMask.Item> colliderMask = new();
+
+        [IgnoreMember]
+        public static AppSettings Default
+        {
+            get
+            {
+                return new AppSettings()
+                {
+                    appName = "Test",
+                    companyName = "Test Company",
+                    layers = new()
+                    {
+                        "Default",
+                    },
+                    sortingLayers = new ()
+                    {
+                        "Default",
+                    },
+                    renderers = new()
+                    {
+                        {
+                            AppPlatform.Windows,
+                            new List<RendererType>() {
+                                RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan, RendererType.OpenGL
+                            }
+                        },
+                        {
+                            AppPlatform.Linux,
+                            new List<RendererType>() {
+                                RendererType.Vulkan, RendererType.OpenGL
+                            }
+                        },
+                        {
+                            AppPlatform.MacOSX,
+                            new List<RendererType>() {
+                                RendererType.Metal
+                            }
+                        },
+                        {
+                            AppPlatform.Android,
+                            new List<RendererType>()
+                            {
+                                RendererType.Vulkan,
+                            }
+                        },
+                        {
+                            AppPlatform.iOS,
+                            new List<RendererType>()
+                            {
+                                RendererType.Metal,
+                            }
+                        }
+                    },
+                };
+            }
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]

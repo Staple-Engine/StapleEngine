@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
+using Newtonsoft.Json.Converters;
 
 namespace Staple.Editor
 {
@@ -76,7 +77,13 @@ namespace Staple.Editor
                                     {
                                         if (File.Exists($"{node.path}.meta") == false)
                                         {
-                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata(), Formatting.Indented);
+                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata(), Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
@@ -113,11 +120,15 @@ namespace Staple.Editor
 
             try
             {
-                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json")));
+                var json = File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json"));
+
+                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
             }
             catch(Exception e)
             {
                 Log.Error($"Failed to load project app settings: {e}");
+
+                projectAppSettings = AppSettings.Default;
             }
 
             if(projectAppSettings != null)
@@ -139,67 +150,87 @@ namespace Staple.Editor
                 }
             }
 
-            RefreshStaging();
+            var lastSession = GetLastSession();
+
+            if(lastSession != null)
+            {
+                currentPlatform = lastSession.currentPlatform;
+                lastOpenScene = lastSession.lastOpenScene;
+            }
+
+            RefreshStaging(currentPlatform);
+
+            if((lastOpenScene?.Length ?? 0) > 0)
+            {
+                var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+
+                if (scene != null)
+                {
+                    Scene.current = scene;
+
+                    ResetScenePhysics();
+                }
+            }
         }
 
-        public void RefreshStaging()
+        public void RefreshStaging(AppPlatform platform)
         {
             var bakerPath = Path.Combine(Environment.CurrentDirectory, "..", "Tools", "bin", "Baker");
 
-            UpdateCSProj();
+            UpdateCSProj(platform);
 
             if(projectAppSettings == null)
             {
                 return;
             }
 
-            foreach (var pair in projectAppSettings.renderers)
+            if(projectAppSettings.renderers.TryGetValue(platform, out var renderers))
             {
-                var renderers = new HashSet<string>();
+                var rendererParameters = new HashSet<string>();
 
-                foreach(var item in pair.Value)
+                foreach(var item in renderers)
                 {
                     switch(item)
                     {
                         case RendererType.Direct3D11:
 
-                            renderers.Add("-r d3d11");
+                            rendererParameters.Add("-r d3d11");
 
                             break;
 
                         case RendererType.Direct3D12:
 
-                            renderers.Add("-r d3d12");
+                            rendererParameters.Add("-r d3d12");
 
                             break;
 
                         case RendererType.Metal:
 
-                            renderers.Add("-r metal");
+                            rendererParameters.Add("-r metal");
 
                             break;
 
                         case RendererType.OpenGL:
 
-                            renderers.Add("-r opengl");
+                            rendererParameters.Add("-r opengl");
 
                             break;
 
                         case RendererType.OpenGLES:
 
-                            renderers.Add("-r opengles");
+                            rendererParameters.Add("-r opengles");
 
                             break;
 
                         case RendererType.Vulkan:
 
-                            renderers.Add("-r spirv");
+                            rendererParameters.Add("-r spirv");
 
                             break;
                     }
                 }
 
-                var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{pair.Key}\" -editor {string.Join(" ", renderers)}".Replace("\\", "/");
+                var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
 
                 var processInfo = new ProcessStartInfo(bakerPath, args)
                 {

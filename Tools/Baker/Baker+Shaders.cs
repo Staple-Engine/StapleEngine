@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessShaders(string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
+        private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
         {
             var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
 

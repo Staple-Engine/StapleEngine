@@ -1,5 +1,6 @@
 using Bgfx;
 using ImGuiNET;
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,13 @@ namespace Staple.Editor
             public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
 
             public ProjectResourceType resourceType;
+        }
+
+        [Serializable]
+        class LastSessionInfo
+        {
+            public string lastOpenScene;
+            public AppPlatform currentPlatform;
         }
 
         class EntityBody
@@ -129,12 +137,7 @@ namespace Staple.Editor
 
         private Transform cameraTransform = new Transform();
 
-        private AppSettings editorSettings = new AppSettings()
-        {
-            runInBackground = true,
-            appName = "Staple Editor",
-            companyName = "Staple Engine",
-        };
+        private AppSettings editorSettings = AppSettings.Default;
 
         private AppSettings projectAppSettings;
 
@@ -154,6 +157,8 @@ namespace Staple.Editor
 
         private AppPlatform buildPlatform = AppPlatform.Windows;
 
+        private AppPlatform currentPlatform = AppPlatform.Windows;
+
         internal bool showingAssetPicker = false;
 
         internal Type assetPickerType;
@@ -167,6 +172,10 @@ namespace Staple.Editor
             ReloadTypeCache();
 
             ResourceManager.instance.resourcePaths.Add("");
+
+            editorSettings.runInBackground = true;
+            editorSettings.appName = "Staple Editor";
+            editorSettings.companyName = "Staple Engine";
 
             LayerMask.AllLayers = editorSettings.layers;
             LayerMask.AllSortingLayers = editorSettings.sortingLayers;
@@ -397,6 +406,37 @@ namespace Staple.Editor
             };
 
             window.Run();
+        }
+
+        private LastSessionInfo GetLastSession()
+        {
+            var path = Path.Combine(basePath, "Cache", "LastSession.json");
+
+            try
+            {
+                var text = File.ReadAllText(path);
+
+                return JsonConvert.DeserializeObject<LastSessionInfo>(text);
+            }
+            catch(Exception)
+            {
+                return null;
+            }
+        }
+
+        private void UpdateLastSession(LastSessionInfo info)
+        {
+            var path = Path.Combine(basePath, "Cache", "LastSession.json");
+
+            try
+            {
+                var text = JsonConvert.SerializeObject(info, Formatting.Indented);
+
+                File.WriteAllText(path, text);
+            }
+            catch(Exception)
+            {
+            }
         }
 
         private void LoadEditorTexture(string name, string path)

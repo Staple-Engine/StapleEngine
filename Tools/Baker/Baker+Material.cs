@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessMaterials(string inputPath, string outputPath)
+        private static void ProcessMaterials(AppPlatform platform, string inputPath, string outputPath)
         {
             var materialFiles = new List<string>();
 

@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Staple.Internal
@@ -124,6 +125,22 @@ namespace Staple.Internal
     }
 
     [MessagePackObject]
+    public class TextureMetadataOverride
+    {
+        [Key(0)]
+        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
+
+        [Key(1)]
+        public TextureMetadataQuality quality = TextureMetadataQuality.Default;
+
+        [Key(2)]
+        public int maxSize = 2048;
+
+        [Key(3)]
+        public bool premultiplyAlpha = false;
+    }
+
+    [MessagePackObject]
     public class TextureMetadata
     {
         [Key(0)]
@@ -167,10 +184,30 @@ namespace Staple.Internal
 
         [Key(13)]
         public bool readBack = false;
+
+        [Key(14)]
+        public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
+        {
+            {
+                AppPlatform.iOS, new TextureMetadataOverride()
+                {
+                     format = TextureMetadataFormat.ASTC4x4,
+                }
+            },
+            {
+                AppPlatform.Android, new TextureMetadataOverride()
+                {
+                     format = TextureMetadataFormat.ASTC4x4,
+                }
+            },
+        };
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
     [JsonSerializable(typeof(TextureMetadata))]
+    [JsonSerializable(typeof(TextureMetadataOverride))]
+    [JsonSerializable(typeof(Dictionary<AppPlatform, TextureMetadataOverride>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureType>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataFormat>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataQuality>))]

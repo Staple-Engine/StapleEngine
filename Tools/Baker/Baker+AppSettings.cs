@@ -10,7 +10,7 @@ namespace Baker
 {
     static partial class Program
     {
-        private static void ProcessAppSettings(string inputPath, string outputPath, bool editorMode)
+        private static void ProcessAppSettings(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
         {
             Console.WriteLine($"Processing AppSettings");
 

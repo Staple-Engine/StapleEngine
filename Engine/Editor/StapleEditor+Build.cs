@@ -18,6 +18,8 @@ namespace Staple.Editor
 
             var platformRuntime = "";
 
+            GeneratePlayerCSProj(platform);
+
             switch(platform)
             {
                 case AppPlatform.Windows:

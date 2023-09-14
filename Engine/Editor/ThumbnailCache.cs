@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Staple.Editor
 {
@@ -17,13 +18,20 @@ namespace Staple.Editor
                 return texture;
             }
 
+            var platform = Platform.CurrentPlatform;
+
+            if(platform.HasValue == false)
+            {
+                return null;
+            }
+
             var cachePath = path;
 
             var index = path.IndexOf("Assets");
 
             if(index >= 0)
             {
-                cachePath = Path.Combine(basePath, "Cache", "Staging", path.Substring(index + "Assets\\".Length));
+                cachePath = Path.Combine(basePath, "Cache", "Staging", platform.Value.ToString(), path.Substring(index + "Assets\\".Length));
             }
 
             try
