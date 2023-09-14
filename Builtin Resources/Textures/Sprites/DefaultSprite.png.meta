@@ -10,5 +10,13 @@
 	"wrapU": "Clamp",
 	"wrapV": "Clamp",
 	"filter": "Linear",
-	"spriteScale": 0.25
+	"spriteScale": 0.25,
+	"overrides": {
+		"iOS": {
+			"format": "ASTC4x4"
+		},
+		"Android": {
+			"format": "ASTC4x4"
+		}
+	}
 }

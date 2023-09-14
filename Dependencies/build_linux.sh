@@ -1,6 +1,7 @@
 #!/bin/sh
 
 premake5 --os=linux gmake
+premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake
 premake5 --os=linux --file=premake5_dotnet.lua vs2022
 
 cd build/vs2022
