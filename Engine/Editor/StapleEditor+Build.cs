@@ -154,31 +154,28 @@ namespace Staple.Editor
 
             var assetsDirectory = Path.Combine(basePath, "Assets");
 
-            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources", platform.ToString());
+            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
 
             try
             {
-                var directories = Directory.GetDirectories(baseResourcesPath);
+                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{platform}.pak");
 
-                foreach (var directory in directories)
+                if (File.Exists(defaultResourcesPath) == false)
                 {
-                    CopyDirectory(directory, Path.Combine(outPath, "Data", Path.GetFileName(directory)));
+                    Log.Error($"Failed to build player: Missing DefaultResources-{platform} pak file");
+
+                    return;
                 }
 
-                var files = Directory.GetFiles(baseResourcesPath);
-
-                foreach (var file in files)
+                try
                 {
-                    try
-                    {
-                        File.Copy(file, Path.Combine(outPath, "Data", Path.GetFileName(file)), true);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"Failed to build player: {e}");
+                    File.Copy(defaultResourcesPath, Path.Combine(outPath, "Data", "DefaultResources.pak"), true);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to build player: {e}");
 
-                        return;
-                    }
+                    return;
                 }
             }
             catch (Exception e)
@@ -193,34 +190,37 @@ namespace Staple.Editor
                 progressFraction = 0.6f;
             }
 
-            try
+            args = $"-p -i \"{assetsCacheDirectory}\" -o {Path.Combine(outPath, "Data", "Resources.pak")}";
+
+            processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
             {
-                var directories = Directory.GetDirectories(assetsCacheDirectory);
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
+            };
 
-                foreach (var directory in directories)
+            process = new Process
+            {
+                StartInfo = processInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false)
                 {
-                    CopyDirectory(directory, Path.Combine(outPath, "Data", Path.GetFileName(directory)));
-                }
+                    var line = process.StandardOutput.ReadLine();
 
-                var files = Directory.GetFiles(assetsCacheDirectory);
-
-                foreach (var file in files)
-                {
-                    try
+                    if (line != null)
                     {
-                        File.Copy(file, Path.Combine(outPath, "Data", Path.GetFileName(file)), true);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"Failed to build player: {e}");
-
-                        return;
+                        Log.Info(line);
                     }
                 }
             }
-            catch (Exception e)
+
+            if ((process.HasExited && process.ExitCode == 0) == false)
             {
-                Log.Error($"Failed to build player: {e}");
+                Log.Error($"Failed to build player: Unable to pack resources");
 
                 return;
             }

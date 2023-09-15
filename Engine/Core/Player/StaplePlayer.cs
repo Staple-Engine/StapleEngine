@@ -20,9 +20,17 @@ namespace Staple
             baseDirectory = Environment.CurrentDirectory;
 #endif
 
+            if (ResourceManager.instance.LoadPak(Path.Combine(baseDirectory, "Data", "DefaultResources.pak")) == false ||
+                ResourceManager.instance.LoadPak(Path.Combine(baseDirectory, "Data", "Resources.pak")) == false)
+            {
+                Console.WriteLine($"Failed to load player resources");
+
+                Environment.Exit(1);
+            }
+
             try
             {
-                var data = File.ReadAllBytes($"{baseDirectory}/Data/AppSettings");
+                var data = ResourceManager.instance.LoadFile("AppSettings");
 
                 using var stream = new MemoryStream(data);
 

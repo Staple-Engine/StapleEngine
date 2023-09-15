@@ -29,27 +29,16 @@ namespace Staple
             appSettings = settings;
             active = this;
 
-            var baseDirectory = AppContext.BaseDirectory;
-
-#if _DEBUG
-            baseDirectory = Environment.CurrentDirectory;
-#endif
-
-            ResourceManager.instance.resourcePaths.Add(Path.Combine(baseDirectory, "Data"));
-
             Storage.Update(appSettings.appName, appSettings.companyName);
 
-            for (var i = 0; i < args.Length; i++)
+            var path = Path.Combine(Storage.PersistentDataPath, "Player.log");
+
+            Log.SetLog(new FSLog(path));
+
+            Log.Instance.onLog += (type, message) =>
             {
-                if (args[i] == "-datadir")
-                {
-                    if(i + 1 < args.Length)
-                    {
-                        ResourceManager.instance.resourcePaths.Clear();
-                        ResourceManager.instance.resourcePaths.Add(args[i + 1]);
-                    }
-                }
-            }
+                Console.WriteLine($"[{type}] {message}");
+            };
         }
 
         public void LoadPlayerSettings()
@@ -137,15 +126,6 @@ namespace Staple
 
         public void Run()
         {
-            var path = Path.Combine(Storage.PersistentDataPath, "Player.log");
-
-            Log.SetLog(new FSLog(path));
-
-            Log.Instance.onLog += (type, message) =>
-            {
-                Console.WriteLine($"[{type}] {message}");
-            };
-
             LoadPlayerSettings();
             SavePlayerSettings();
 

@@ -94,6 +94,11 @@ namespace Packer
                 }
             }
 
+            Console.WriteLine($"Packer starting with parameters:\n" +
+                $"Mode: {mode}\n" +
+                $"Input Dirs:\n{string.Join("\n", inputDirectories)}\n" +
+                $"Output: {outputPath}\n");
+
             switch (mode)
             {
                 case Mode.List:

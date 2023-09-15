@@ -232,7 +232,7 @@ namespace Staple.Internal
         {
             try
             {
-                var headerBuffer = MessagePackSerializer.Serialize(new Header(), MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                var headerBuffer = MessagePackSerializer.Serialize(new Header());
 
                 var length = headerBuffer.Length;
 
@@ -244,7 +244,7 @@ namespace Staple.Internal
 
                 foreach (var entry in entries)
                 {
-                    var buffer = MessagePackSerializer.Serialize(entry, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                    var buffer = MessagePackSerializer.Serialize(entry);
 
                     length = buffer.Length;
 
@@ -291,11 +291,13 @@ namespace Staple.Internal
                     return false;
                 }
 
-                var header = MessagePackSerializer.Deserialize<Header>(buffer, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                var header = MessagePackSerializer.Deserialize<Header>(buffer);
 
                 if(header.header.SequenceEqual(ValidHeader) == false ||
                     header.version != ValidVersion)
                 {
+                    Console.WriteLine($"[ResourcePak] Invalid Header");
+
                     return false;
                 }
 
@@ -315,7 +317,7 @@ namespace Staple.Internal
                         return false;
                     }
 
-                    var entry = MessagePackSerializer.Deserialize<Entry>(buffer, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                    var entry = MessagePackSerializer.Deserialize<Entry>(buffer);
 
                     entries.Add(entry);
                     offsets.Add(reader.Position);
@@ -332,6 +334,8 @@ namespace Staple.Internal
             }
             catch (Exception e)
             {
+                Console.WriteLine($"[ResourcePak] Error deserializing: {e}");
+
                 return false;
             }
 

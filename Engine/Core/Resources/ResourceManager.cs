@@ -53,7 +53,7 @@ namespace Staple.Internal
                 {
                     stream.Dispose();
 
-                    Log.Error($"Failed to load resource pak at {path}: Likely invalid file");
+                    Console.WriteLine($"[Error] Failed to load resource pak at {path}: Likely invalid file");
 
                     return false;
                 }
@@ -64,7 +64,7 @@ namespace Staple.Internal
             }
             catch(Exception e)
             {
-                Log.Debug($"Failed to load resource pak at {path}: {e}");
+                Console.WriteLine($"[Error] Failed to load resource pak at {path}: {e}");
 
                 return false;
             }
@@ -115,13 +115,15 @@ namespace Staple.Internal
         /// <returns>The byte array, or null</returns>
         public byte[] LoadFile(string path)
         {
+            var pakPath = path.Replace(Path.DirectorySeparatorChar, '/');
+
             foreach(var pair in resourcePaks)
             {
                 var pak = pair.Value;
 
                 foreach(var file in pak.Files)
                 {
-                    if(string.Equals(file.path, path, StringComparison.InvariantCultureIgnoreCase))
+                    if(string.Equals(file.path, pakPath, StringComparison.InvariantCultureIgnoreCase))
                     {
                         using var stream = pak.OpenGuid(file.guid);
 
