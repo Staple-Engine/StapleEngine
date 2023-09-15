@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Staple.Internal
 {
-    internal class ResourcePak
+    public class ResourcePak
     {
         public readonly static char[] ValidHeader = new char[] { 'S', 'T', 'P', 'A', 'K' };
         public const byte ValidVersion = 1;
@@ -142,10 +142,20 @@ namespace Staple.Internal
             }
         }
 
+        public class FileInfo
+        {
+            public string guid;
+            public string path;
+            public long size;
+        }
+
         private List<Entry> entries = new();
         private List<long> offsets = new();
+        private List<FileInfo> files = new();
         private Stream backend;
         internal static object fileLock = new();
+
+        public IEnumerable<FileInfo> Files => files;
 
         public void Clear()
         {
@@ -154,13 +164,17 @@ namespace Staple.Internal
 
         public void AddEntry(string guid, string path, Stream stream)
         {
+            if(Guid.TryParse(guid, out var _guid) == false)
+            {
+                _guid = Guid.NewGuid();
+            }
+
             var entry = new Entry
             {
-                guid = Enumerable.Range(0, guid.Length / 2)
-                    .Select(x => Convert.ToByte(guid.Substring(x * 2, 2), 16))
-                    .ToArray(),
+                guid = _guid.ToByteArray(),
                 path = path,
                 size = stream.Length,
+                stream = stream,
             };
 
             entries.Add(entry);
@@ -206,18 +220,25 @@ namespace Staple.Internal
 
         public Stream OpenGuid(string guid)
         {
-            var bytes = Enumerable.Range(0, guid.Length / 2)
-                .Select(x => Convert.ToByte(guid.Substring(x * 2, 2), 16))
-                .ToArray();
+            if(Guid.TryParse(guid, out var _guid))
+            {
+                return OpenGuid(_guid.ToByteArray());
+            }
 
-            return OpenGuid(bytes);
+            return null;
         }
 
-        public bool Serialize(Stream writer)
+        internal bool Serialize(Stream writer)
         {
             try
             {
                 var headerBuffer = MessagePackSerializer.Serialize(new Header(), MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+
+                var length = headerBuffer.Length;
+
+                var bytes = BitConverter.GetBytes(length);
+
+                writer.Write(bytes);
 
                 writer.Write(headerBuffer);
 
@@ -225,12 +246,18 @@ namespace Staple.Internal
                 {
                     var buffer = MessagePackSerializer.Serialize(entry, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
 
+                    length = buffer.Length;
+
+                    bytes = BitConverter.GetBytes(length);
+
+                    writer.Write(bytes);
+
                     writer.Write(buffer);
 
                     entry.stream.CopyTo(writer);
                 }
             }
-            catch(Exception)
+            catch(Exception e)
             {
                 return false;
             }
@@ -238,13 +265,33 @@ namespace Staple.Internal
             return true;
         }
 
-        public bool Deserialize(Stream reader)
+        internal bool Deserialize(Stream reader)
         {
             entries.Clear();
+            offsets.Clear();
+            files.Clear();
 
             try
             {
-                var header = MessagePackSerializer.Deserialize<Header>(reader);
+                var length = 0;
+
+                var intBytes = new byte[sizeof(int)];
+
+                if(reader.Read(intBytes) != sizeof(int))
+                {
+                    return false;
+                }
+
+                length = BitConverter.ToInt32(intBytes);
+
+                var buffer = new byte[length];
+
+                if(reader.Read(buffer) != length)
+                {
+                    return false;
+                }
+
+                var header = MessagePackSerializer.Deserialize<Header>(buffer, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
 
                 if(header.header.SequenceEqual(ValidHeader) == false ||
                     header.version != ValidVersion)
@@ -254,15 +301,36 @@ namespace Staple.Internal
 
                 while (reader.Position < reader.Length)
                 {
-                    var entry = MessagePackSerializer.Deserialize<Entry>(reader);
+                    if(reader.Read(intBytes) != sizeof(int))
+                    {
+                        return false;
+                    }
+
+                    length = BitConverter.ToInt32(intBytes);
+
+                    buffer = new byte[length];
+
+                    if(reader.Read(buffer) != length)
+                    {
+                        return false;
+                    }
+
+                    var entry = MessagePackSerializer.Deserialize<Entry>(buffer, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
 
                     entries.Add(entry);
                     offsets.Add(reader.Position);
 
-                    reader.Position = reader.Position + (long)entry.size;
+                    files.Add(new FileInfo()
+                    {
+                        guid = new Guid(entry.guid).ToString(),
+                        path = entry.path,
+                        size = entry.size,
+                    });
+
+                    reader.Position = reader.Position + entry.size;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return false;
             }

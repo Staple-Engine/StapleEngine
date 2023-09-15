@@ -25,102 +25,104 @@
   </PropertyGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Reference Include="MessagePack">
-      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="MessagePack">
-      <HintPath>..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Baker\Baker+AppSettings.cs" />
-    <Compile Include="Baker\Baker+Material.cs" />
-    <Compile Include="Baker\Baker+Scene.cs" />
-    <Compile Include="Baker\Baker+Shaders.cs" />
-    <Compile Include="Baker\Baker+Texture.cs" />
-    <Compile Include="Baker\Baker.cs" />
-    <Compile Include="Baker\Renderer.cs" />
-    <Compile Include="Baker\ShaderCompilerType.cs" />
-    <Compile Include="Baker\ShaderParameter.cs" />
-    <Compile Include="Baker\ShaderParameterSemantic.cs" />
-    <Compile Include="Baker\ShaderPiece.cs" />
-    <Compile Include="Baker\UnprocessedShader.cs" />
-    <Compile Include="..\Engine\Core\Bindings\bgfx.cs">
+    <Compile Include="Baker+AppSettings.cs" />
+    <Compile Include="Baker+Material.cs" />
+    <Compile Include="Baker+Scene.cs" />
+    <Compile Include="Baker+Shaders.cs" />
+    <Compile Include="Baker+Texture.cs" />
+    <Compile Include="Baker.cs" />
+    <Compile Include="Renderer.cs" />
+    <Compile Include="ShaderCompilerType.cs" />
+    <Compile Include="ShaderParameter.cs" />
+    <Compile Include="ShaderParameterSemantic.cs" />
+    <Compile Include="ShaderPiece.cs" />
+    <Compile Include="UnprocessedShader.cs" />
+    <Compile Include="..\..\Engine\Core\Bindings\bgfx.cs">
       <Link>Engine\Core\Bindings\bgfx.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Bindings\bgfx_dllname.cs">
+    <Compile Include="..\..\Engine\Core\Bindings\bgfx_dllname.cs">
       <Link>Engine\Core\Bindings\bgfx_dllname.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Math\Color.cs">
+    <Compile Include="..\..\Engine\Core\Math\Color.cs">
       <Link>Engine\Core\Math\Color.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Math\Color32.cs">
+    <Compile Include="..\..\Engine\Core\Math\Color32.cs">
       <Link>Engine\Core\Math\Color32.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Math\Math.cs">
+    <Compile Include="..\..\Engine\Core\Math\Math.cs">
       <Link>Engine\Core\Math\Math.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Player\AppPlatform.cs">
+    <Compile Include="..\..\Engine\Core\Player\AppPlatform.cs">
       <Link>Engine\Core\Player\AppPlatform.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Player\AppSettings.cs">
+    <Compile Include="..\..\Engine\Core\Player\AppSettings.cs">
       <Link>Engine\Core\Player\AppSettings.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Rendering\BlendMode.cs">
+    <Compile Include="..\..\Engine\Core\Rendering\BlendMode.cs">
       <Link>Engine\Core\Rendering\BlendMode.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Rendering\RendererType.cs">
+    <Compile Include="..\..\Engine\Core\Rendering\RendererType.cs">
       <Link>Engine\Core\Rendering\RendererType.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Rendering\WindowMode.cs">
+    <Compile Include="..\..\Engine\Core\Rendering\WindowMode.cs">
       <Link>Engine\Core\Rendering\WindowMode.cs</Link>
     </Compile>
-    <Compile Include="..\Engine\Core\Scene\SceneList.cs">
+    <Compile Include="..\..\Engine\Core\Scene\SceneList.cs">
       <Link>Engine\Core\Scene\SceneList.cs</Link>
     </Compile>
-	<Compile Include="..\Engine\Core\Serialization\App\AppSettingsHeader.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\App\AppSettingsHeader.cs">
 		<Link>Engine\Core\Serialization\App\AppSettingsHeader.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Material\MaterialMetadata.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Material\MaterialMetadata.cs">
 		<Link>Engine\Core\Serialization\Material\MaterialMetadata.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Material\SerializableMaterial.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Material\SerializableMaterial.cs">
 		<Link>Engine\Core\Serialization\Material\SerializableMaterial.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Scene\SerializableScene.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Scene\SerializableScene.cs">
 		<Link>Engine\Core\Serialization\Scene\SerializableScene.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Shader\SerializableShader.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Shader\SerializableShader.cs">
 		<Link>Engine\Core\Serialization\Shader\SerializableShader.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Shader\ShaderMetadata.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Shader\ShaderMetadata.cs">
 		<Link>Engine\Core\Serialization\Shader\ShaderMetadata.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Texture\TextureMetadata.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Texture\TextureMetadata.cs">
 		<Link>Engine\Core\Serialization\Texture\TextureMetadata.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
 		<Link>Engine\Core\Serialization\Texture\SerializableTexture.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Serialization\Json\JsonStringEnumConverter.cs">
+	<Compile Include="..\..\Engine\Core\Serialization\Json\JsonStringEnumConverter.cs">
 		<Link>Engine\Core\Serialization\Json\JsonStringEnumConverter.cs</Link>
 	</Compile>
-	<Compile Include="..\Engine\Core\Physics\ColliderMask.cs">
+	<Compile Include="..\..\Engine\Core\Physics\ColliderMask.cs">
 		<Link>Engine\Core\Physics\ColliderMask.cs</Link>
 	</Compile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)bin\Debug\net7.0\*.exe $(SolutionDir)\bin
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
+    <PostBuildEvent>
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)Baker\bin\Debug\net7.0\*.exe $(SolutionDir)\bin
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)Baker\bin\Debug\net7.0\*.dll $(SolutionDir)\bin
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 </Project>

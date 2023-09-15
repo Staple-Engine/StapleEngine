@@ -57,6 +57,20 @@ namespace Baker
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
 
+                var guid = Guid.NewGuid().ToString();
+
+                try
+                {
+                    var meta = Path.ChangeExtension(sceneFiles[i], ".stsc.meta");
+
+                    guid = File.ReadAllText(meta);
+
+                    Console.WriteLine($"\t\tReusing guid {guid}");
+                }
+                catch (Exception)
+                {
+                }
+
                 Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
@@ -256,6 +270,7 @@ namespace Baker
                     var scene = new SerializableScene()
                     {
                         objects = metadata,
+                        guid = guid,
                     };
 
                     var header = new SerializableSceneHeader();

@@ -95,8 +95,9 @@ namespace Staple.Editor
 
                                 break;
 
-                            case ProjectResourceType.Shader:
+                            default:
 
+                                if(node.path.EndsWith(".meta") == false)
                                 {
                                     try
                                     {

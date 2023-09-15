@@ -174,6 +174,9 @@ namespace Staple.Internal
     public class SerializableScene
     {
         [Key(0)]
+        public string guid = Guid.NewGuid().ToString();
+
+        [Key(1)]
         public List<SceneObject> objects = new();
     }
 
