@@ -45,9 +45,9 @@ namespace Staple
         /// </summary>
         /// <param name="current">The current time</param>
         /// <param name="last">The previous time</param>
-        internal static void UpdateClock(double current, double last)
+        internal static void UpdateClock(DateTime current, DateTime last)
         {
-            var delta = (float)(current - last);
+            var delta = (float)(current - last).TotalSeconds;
 
             time += delta;
 

@@ -1,16 +1,13 @@
 ﻿using Bgfx;
-using GLFW;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
 [assembly: InternalsVisibleTo("StapleEditor")]
 
-namespace Staple
+namespace Staple.Internal
 {
     /// <summary>
     /// Window for rendering
@@ -20,13 +17,13 @@ namespace Staple
         public const int ClearView = 0;
 
         //In case we have more than one window in the future
-        internal static int glfwReferences = 0;
+        internal static int windowReferences = 0;
         internal static int bgfxReferences = 0;
 
         public int screenWidth = 0;
         public int screenHeight = 0;
         public bool hasFocus = true;
-        public NativeWindow window;
+        public IRenderWindow window;
         public bgfx.RendererType rendererType;
         public bgfx.ResetFlags resetFlags;
         public Action OnFixedUpdate;
@@ -48,7 +45,7 @@ namespace Staple
         /// </summary>
         public void Run()
         {
-            if(appSettings.multiThreadedRenderer)
+            if (appSettings.multiThreadedRenderer)
             {
                 MultiThreadedLoop();
             }
@@ -66,7 +63,7 @@ namespace Staple
             {
                 OnInit?.Invoke();
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Log.Error($"RenderWindow Init Exception: {e}");
 
@@ -78,26 +75,26 @@ namespace Staple
                 return;
             }
 
-            double last = Glfw.Time;
+            var last = DateTime.Now;
 
             var fixedTimer = 0.0f;
 
-            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false && shouldStop == false)
+            while (window.ShouldClose == false && shouldStop == false)
             {
                 Input.Character = 0;
                 Input.MouseDelta = Vector2.Zero;
                 Input.MouseRelativePosition = Vector2.Zero;
 
-                Glfw.PollEvents();
+                window.PollEvents();
 
                 lock (renderLock)
                 {
                     shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
                 }
 
-                Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
+                window.GetWindowSize(out var currentW, out var currentH);
 
-                if ((currentW != screenWidth || currentH != screenHeight) && window.IsClosed == false)
+                if ((currentW != screenWidth || currentH != screenHeight) && window.ShouldClose == false)
                 {
                     screenWidth = currentW;
                     screenHeight = currentH;
@@ -106,7 +103,7 @@ namespace Staple
                     {
                         OnScreenSizeChange?.Invoke(hasFocus);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
                     }
                 }
@@ -119,7 +116,7 @@ namespace Staple
                     {
                         OnScreenSizeChange?.Invoke(hasFocus);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
                     }
 
@@ -131,9 +128,9 @@ namespace Staple
 
                 CheckEvents();
 
-                double current = Glfw.Time;
+                var current = DateTime.Now;
 
-                fixedTimer += (float)(current - last);
+                fixedTimer += (float)(current - last).TotalSeconds;
 
                 //Prevent hard stuck
                 var tries = 0;
@@ -154,7 +151,7 @@ namespace Staple
             {
                 OnCleanup?.Invoke();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
             }
         }
@@ -183,13 +180,13 @@ namespace Staple
                                 }
                             }
 
-                            if (glfwReferences > 0)
+                            if (windowReferences > 0)
                             {
-                                glfwReferences--;
+                                windowReferences--;
 
-                                if (glfwReferences == 0)
+                                if (windowReferences == 0)
                                 {
-                                    Glfw.Terminate();
+                                    window.Terminate();
                                 }
                             }
 
@@ -214,33 +211,33 @@ namespace Staple
             {
                 OnInit?.Invoke();
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Log.Error($"Error initializing: {e}");
 
                 shouldStop = true;
             }
 
-            double last = Glfw.Time;
+            var last = DateTime.Now;
 
             var fixedTimer = 0.0f;
 
-            while (Glfw.WindowShouldClose(window) == false && window.IsClosed == false && shouldStop == false)
+            while (window.ShouldClose == false && shouldStop == false)
             {
                 Input.Character = 0;
                 Input.MouseDelta = Vector2.Zero;
                 Input.MouseRelativePosition = Vector2.Zero;
 
-                Glfw.PollEvents();
+                window.PollEvents();
 
                 lock (renderLock)
                 {
                     shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
                 }
 
-                Glfw.GetFramebufferSize(window, out var currentW, out var currentH);
+                window.GetWindowSize(out var currentW, out var currentH);
 
-                if ((currentW != screenWidth || currentH != screenHeight) && window.IsClosed == false)
+                if ((currentW != screenWidth || currentH != screenHeight) && window.ShouldClose == false)
                 {
                     screenWidth = currentW;
                     screenHeight = currentH;
@@ -249,7 +246,7 @@ namespace Staple
                     {
                         OnScreenSizeChange?.Invoke(hasFocus);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
                     }
                 }
@@ -262,7 +259,7 @@ namespace Staple
                     {
                         OnScreenSizeChange?.Invoke(hasFocus);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
                     }
 
@@ -272,9 +269,9 @@ namespace Staple
                     }
                 }
 
-                double current = Glfw.Time;
+                var current = DateTime.Now;
 
-                fixedTimer += (float)(current - last);
+                fixedTimer += (float)(current - last).TotalSeconds;
 
                 //Prevent hard stuck
                 var tries = 0;
@@ -288,14 +285,14 @@ namespace Staple
                     tries++;
                 }
 
-                last = Glfw.Time;
+                last = DateTime.Now;
             }
 
             try
             {
                 OnCleanup?.Invoke();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
             }
 
@@ -323,23 +320,23 @@ namespace Staple
         /// </summary>
         public void Cleanup()
         {
-            if(bgfxReferences > 0)
+            if (bgfxReferences > 0)
             {
                 bgfxReferences--;
 
-                if(bgfxReferences == 0)
+                if (bgfxReferences == 0)
                 {
                     bgfx.shutdown();
                 }
             }
 
-            if (glfwReferences > 0)
+            if (windowReferences > 0)
             {
-                glfwReferences--;
+                windowReferences--;
 
-                if(glfwReferences == 0)
+                if (windowReferences == 0)
                 {
-                    Glfw.Terminate();
+                    window.Terminate();
                 }
             }
         }
@@ -357,56 +354,31 @@ namespace Staple
 
                 var platform = Platform.CurrentPlatform;
 
-                if(platform.HasValue == false)
+                if (platform.HasValue == false)
                 {
                     Log.Error("[RenderWindow] Unsupported platform");
 
                     bgfxReferences--;
 
-                    Glfw.Terminate();
+                    if(bgfxReferences == 0)
+                    {
+                        bgfx.shutdown();
+                    }
 
-                    glfwReferences--;
+                    windowReferences--;
+
+                    if(windowReferences == 0)
+                    {
+                        window.Terminate();
+                    }
 
                     Environment.Exit(1);
 
                     return;
                 }
 
-                switch(platform.Value)
-                {
-                    case AppPlatform.Windows:
-
-                        init.platformData.nwh = Native.GetWin32Window(window).ToPointer();
-
-                        break;
-
-                    case AppPlatform.Linux:
-
-                        {
-                            var display = Native.GetX11Display();
-                            var windowHandle = Native.GetX11Window(window);
-
-                            if (display == IntPtr.Zero || window == IntPtr.Zero)
-                            {
-                                display = Native.GetWaylandDisplay();
-                                windowHandle = Native.GetWaylandWindow(window);
-                            }
-
-                            init.platformData.ndt = display.ToPointer();
-                            init.platformData.nwh = windowHandle.ToPointer();
-                        }
-
-                        break;
-
-                    case AppPlatform.MacOSX:
-
-                        {
-                            init.platformData.ndt = (void*)Native.GetCocoaMonitor(window.Monitor);
-                            init.platformData.nwh = Native.GetCocoaWindow(window).ToPointer();
-                        }
-
-                        break;
-                }
+                init.platformData.ndt = window.MonitorPointer(platform.Value).ToPointer();
+                init.platformData.nwh = window.WindowPointer(platform.Value).ToPointer();
 
                 if (appSettings.renderers.TryGetValue(platform.Value, out renderers) == false)
                 {
@@ -414,9 +386,17 @@ namespace Staple
 
                     bgfxReferences--;
 
-                    Glfw.Terminate();
+                    if(bgfxReferences == 0)
+                    {
+                        bgfx.shutdown();
+                    }
 
-                    glfwReferences--;
+                    windowReferences--;
+
+                    if(windowReferences == 0)
+                    {
+                        window.Terminate();
+                    }
 
                     Environment.Exit(1);
 
@@ -424,9 +404,10 @@ namespace Staple
                 }
             }
 
-            Glfw.GetFramebufferSize(window, out screenWidth, out screenHeight);
+            window.GetWindowSize(out screenWidth, out screenHeight);
 
             rendererType = bgfx.RendererType.Count;
+
             init.resolution.width = (uint)screenWidth;
             init.resolution.height = (uint)screenHeight;
             init.resolution.reset = (uint)resetFlags;
@@ -486,7 +467,7 @@ namespace Staple
                     {
                         ok = bgfx.init(&init);
 
-                        if(ok)
+                        if (ok)
                         {
                             Log.Info($"[RenderWindow] {renderer} OK!");
 
@@ -497,15 +478,23 @@ namespace Staple
                     }
                 }
 
-                if(ok == false)
+                if (ok == false)
                 {
                     Log.Error($"[RenderWindow] Failed to find a working renderer, terminating...");
 
                     bgfxReferences--;
 
-                    Glfw.Terminate();
+                    if (bgfxReferences == 0)
+                    {
+                        bgfx.shutdown();
+                    }
 
-                    glfwReferences--;
+                    windowReferences--;
+
+                    if(windowReferences == 0)
+                    {
+                        window.Terminate();
+                    }
 
                     Environment.Exit(1);
 
@@ -565,9 +554,9 @@ namespace Staple
             }
         }
 
-        private void RenderFrame(ref double lastTime)
+        private void RenderFrame(ref DateTime lastTime)
         {
-            double current = Glfw.Time;
+            var current = DateTime.Now;
 
             Time.UpdateClock(current, lastTime);
 
@@ -577,7 +566,7 @@ namespace Staple
             {
                 OnUpdate?.Invoke();
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Log.Error($"RenderWindow Render Exception: {e}");
             }
@@ -607,7 +596,7 @@ namespace Staple
                 renderThreadReady = true;
             }
 
-            double last = Glfw.Time;
+            var last = DateTime.Now;
 
             for (; ; )
             {
@@ -656,7 +645,7 @@ namespace Staple
 
             Log.Info($"[RenderWindow] Creating {windowMode} window {appSettings.appName} with size {width}x{height} ({resizableString}) for monitor {monitorIndex}");
 
-            if (glfwReferences > 0)
+            if (windowReferences > 0)
             {
                 Log.Error($"[RenderWindow] Multiple windows are not supported!");
 
@@ -669,61 +658,40 @@ namespace Staple
                 resetFlags = resetFlags,
             };
 
-            if(glfwReferences == 0)
+            if(Platform.IsWindows || Platform.IsLinux || Platform.IsMacOS)
             {
-                Glfw.Init();
+                renderWindow.window = new GLFWRenderWindow();
             }
 
-            glfwReferences++;
-
-            Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
-            Glfw.WindowHint(Hint.Resizable, resizable);
-
-            var monitor = Glfw.Monitors.Skip(monitorIndex).FirstOrDefault();
-
-            if (monitor == null)
+            if(renderWindow.window == null)
             {
-                monitor = Glfw.PrimaryMonitor;
+                Log.Error($"[RenderWindow] Missing render window implementation!");
+
+                return null;
             }
+
+            if (windowReferences == 0)
+            {
+                renderWindow.window.Init();
+            }
+
+            windowReferences++;
 
             renderWindow.resetFlags = resetFlags;
 
-            switch (windowMode)
+            var originalWidth = width;
+            var originalHeight = height;
+
+            if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, monitorIndex) == false)
             {
-                case WindowMode.Windowed:
+                Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {originalWidth}x{originalHeight}");
 
-                    renderWindow.window = new NativeWindow(width, height, appSettings.appName);
+                windowReferences--;
 
-                    break;
-
-                case WindowMode.Fullscreen:
-
-                    renderWindow.window = new NativeWindow(width, height, appSettings.appName, monitor, Window.None);
-
-                    break;
-
-                case WindowMode.Borderless:
-
-                    Glfw.WindowHint(Hint.Floating, true);
-                    Glfw.WindowHint(Hint.Decorated, false);
-
-                    var videoMode = Glfw.GetVideoMode(monitor);
-
-                    width = videoMode.Width;
-                    height = videoMode.Height;
-
-                    renderWindow.window = new NativeWindow(width, height, appSettings.appName);
-
-                    break;
-            }
-
-            if (renderWindow.window == null)
-            {
-                Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {width}x{height}");
-
-                glfwReferences--;
-
-                Glfw.Terminate();
+                if(windowReferences == 0)
+                {
+                    renderWindow.window.Terminate();
+                }
 
                 return null;
             }
@@ -732,40 +700,7 @@ namespace Staple
 
             Input.window = renderWindow.window;
 
-            Glfw.SetKeyCallback(renderWindow.window, (_, key, scancode, action, mods) =>
-            {
-                Input.KeyCallback(key, scancode, action, mods);
-            });
-
-            Glfw.SetCharCallback(renderWindow.window, (_, codepoint) =>
-            {
-                Input.CharCallback(codepoint);
-            });
-
-            Glfw.SetCursorPositionCallback(renderWindow.window, (_, xpos, ypos) =>
-            {
-                Input.CursorPosCallback((float)xpos, (float)ypos);
-            });
-
-            Glfw.SetMouseButtonCallback(renderWindow.window, (_, button, state, modifiers) =>
-            {
-                Input.MouseButtonCallback(button, state, modifiers);
-            });
-
-            Glfw.SetScrollCallback(renderWindow.window, (_, xOffset, yOffset) =>
-            {
-                Input.MouseScrollCallback((float)xOffset, (float)yOffset);
-            });
-
-            //TODO: Decide whether to keep this.
-            /*
-            if (Glfw.RawMouseMotionSupported())
-            {
-                Glfw.SetInputMode(renderWindow.window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
-            }
-            */
-
-            if(appSettings.multiThreadedRenderer == false)
+            if (appSettings.multiThreadedRenderer == false)
             {
                 renderWindow.InitBGFX();
             }

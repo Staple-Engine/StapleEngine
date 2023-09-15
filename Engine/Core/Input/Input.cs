@@ -1,5 +1,4 @@
-﻿using GLFW;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -42,7 +41,7 @@ namespace Staple
         /// </summary>
         public static Vector2 MouseDelta { get; internal set; }
 
-        internal static Window window;
+        internal static IRenderWindow window;
 
         internal static void HandleMouseDeltaEvent(AppEvent appEvent)
         {
@@ -97,30 +96,6 @@ namespace Staple
             }
         }
 
-        internal static void MouseButtonCallback(GLFW.MouseButton button, GLFW.InputState state, ModifierKeys modifiers)
-        {
-            AppEventQueue.instance.Add(AppEvent.Mouse(button, state, modifiers));
-        }
-
-        internal static void CursorPosCallback(float xpos, float ypos)
-        {
-            var newPos = new Vector2(xpos, ypos);
-
-            MouseRelativePosition = newPos - MousePosition;
-
-            MousePosition = newPos;
-        }
-
-        internal static void HandleTextEvent(AppEvent appEvent)
-        {
-            Character = appEvent.character;
-        }
-
-        internal static void CharCallback(uint codepoint)
-        {
-            AppEventQueue.instance.Add(AppEvent.Text(codepoint));
-        }
-
         internal static void HandleKeyEvent(AppEvent appEvent)
         {
             KeyCode code = (KeyCode)appEvent.key.key;
@@ -164,9 +139,18 @@ namespace Staple
             }
         }
 
-        internal static void KeyCallback(Keys key, int scancode, GLFW.InputState state, ModifierKeys mods)
+        internal static void CursorPosCallback(float xpos, float ypos)
         {
-            AppEventQueue.instance.Add(AppEvent.Key(key, scancode, state, mods));
+            var newPos = new Vector2(xpos, ypos);
+
+            MouseRelativePosition = newPos - MousePosition;
+
+            MousePosition = newPos;
+        }
+
+        internal static void HandleTextEvent(AppEvent appEvent)
+        {
+            Character = appEvent.character;
         }
 
         /// <summary>
@@ -234,7 +218,7 @@ namespace Staple
         /// </summary>
         public static void LockCursor()
         {
-            Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Disabled);
+            window.LockCursor();
         }
 
         /// <summary>
@@ -242,7 +226,7 @@ namespace Staple
         /// </summary>
         public static void UnlockCursor()
         {
-            Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Normal);
+            window.UnlockCursor();
         }
 
         /// <summary>
@@ -250,7 +234,7 @@ namespace Staple
         /// </summary>
         public static void HideCursor()
         {
-            Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Hidden);
+            window.HideCursor();
         }
 
         /// <summary>
@@ -258,7 +242,7 @@ namespace Staple
         /// </summary>
         public static void ShowCursor()
         {
-            Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Normal);
+            window.ShowCursor();
         }
     }
 }
