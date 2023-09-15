@@ -254,6 +254,70 @@ namespace Packer
 
                 case Mode.Unpack:
 
+                    {
+                        var inputPath = inputDirectories.FirstOrDefault();
+
+                        if ((inputPath?.Length ?? 0) == 0)
+                        {
+                            Console.WriteLine($"Unable to unpack: Missing `-i` parameter.");
+
+                            Environment.Exit(1);
+                        }
+
+                        if ((outputPath?.Length ?? 0) == 0)
+                        {
+                            Console.WriteLine($"Unable to unpack: Missing `-o` parameter.");
+
+                            Environment.Exit(1);
+                        }
+
+                        try
+                        {
+                            Directory.CreateDirectory(outputPath);
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        try
+                        {
+                            using var stream = File.OpenRead(inputPath);
+
+                            var resourcePak = new ResourcePak();
+
+                            if(resourcePak.Deserialize(stream) == false)
+                            {
+                                Console.WriteLine($"Failed to unpack pak, aborting... (File failed to be read)");
+
+                                Environment.Exit(1);
+                            }
+
+                            foreach(var file in resourcePak.Files)
+                            {
+                                try
+                                {
+                                    Directory.CreateDirectory(Path.Combine(outputPath, Path.GetDirectoryName(file.path)));
+                                }
+                                catch(Exception)
+                                {
+                                }
+
+                                using var fileStream = resourcePak.OpenGuid(file.guid);
+                                using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
+
+                                fileStream.CopyTo(outStream);
+                            }
+
+                            Console.WriteLine($"Extracted {resourcePak.Files.Count()} files");
+                        }
+                        catch(Exception e)
+                        {
+                            Console.WriteLine($"Failed to unpack pak, aborting... (Exception: {e})");
+
+                            Environment.Exit(1);
+                        }
+                    }
+
                     break;
             }
         }
