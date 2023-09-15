@@ -119,7 +119,10 @@
     <Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
     <Compile Include="Physics\ColliderMask.cs" />
     <Compile Include="Physics\Physics.cs" />
+    <Compile Include="Player\Platform.cs" />
     <Compile Include="Rendering\BlendMode.cs" />
+    <Compile Include="Rendering\Windowing\Impls\GLFWRenderWindow.cs" />
+    <Compile Include="Rendering\Windowing\IRenderWindow.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
     <Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
     <Compile Include="Rendering\Mesh\Mesh.cs" />
@@ -164,7 +167,7 @@
     <Compile Include="Rendering\RenderBufferFlags.cs" />
     <Compile Include="Rendering\RenderSystem.cs" />
     <Compile Include="Rendering\RenderTarget.cs" />
-    <Compile Include="Rendering\RenderWindow.cs" />
+    <Compile Include="Rendering\Windowing\RenderWindow.cs" />
     <Compile Include="Rendering\RendererType.cs" />
     <Compile Include="Rendering\Shader.cs" />
     <Compile Include="Rendering\SpriteRenderSystem.cs" />
