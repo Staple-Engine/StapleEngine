@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Staple.Editor
 {
-    partial class StapleEditor
+    internal partial class StapleEditor
     {
         public void BuildPlayer(AppPlatform platform, string outPath)
         {

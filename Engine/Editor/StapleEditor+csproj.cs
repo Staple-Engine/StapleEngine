@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Staple.Editor
 {
-    partial class StapleEditor
+    internal partial class StapleEditor
     {
         private static Dictionary<AppPlatform, string[]> platformDefines = new()
         {

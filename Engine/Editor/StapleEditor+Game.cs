@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Staple.Editor
 {
-    partial class StapleEditor
+    internal partial class StapleEditor
     {
         public void LoadGame()
         {

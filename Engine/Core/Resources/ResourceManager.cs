@@ -22,11 +22,53 @@ namespace Staple.Internal
         private readonly Dictionary<string, Material> cachedMaterials = new();
         private readonly Dictionary<string, Shader> cachedShaders = new();
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
+        private Dictionary<string, ResourcePak> resourcePaks = new();
 
         /// <summary>
         /// The default instance of the resource manager
         /// </summary>
         public static ResourceManager instance = new();
+
+        /// <summary>
+        /// Loads a resource pak to use for resources
+        /// </summary>
+        /// <param name="path">The path to load from. This does not use the resource paths previously set here</param>
+        /// <returns>Whether the pak was loaded</returns>
+        internal bool LoadPak(string path)
+        {
+            try
+            {
+                if(resourcePaks.ContainsKey(path))
+                {
+                    Log.Debug($"Attempted to load resource pak twice for path {path}");
+
+                    return false;
+                }
+
+                var stream = File.OpenRead(path);
+
+                var resourcePak = new ResourcePak();
+
+                if(resourcePak.Deserialize(stream) == false)
+                {
+                    stream.Dispose();
+
+                    Log.Error($"Failed to load resource pak at {path}: Likely invalid file");
+
+                    return false;
+                }
+
+                resourcePaks.Add(path, resourcePak);
+
+                return true;
+            }
+            catch(Exception e)
+            {
+                Log.Debug($"Failed to load resource pak at {path}: {e}");
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Destroys all resources
@@ -59,6 +101,11 @@ namespace Staple.Internal
             {
                 pair.Value?.Destroy();
             }
+
+            foreach(var pair in resourcePaks)
+            {
+                pair.Value.Dispose();
+            }
         }
 
         /// <summary>
@@ -68,6 +115,33 @@ namespace Staple.Internal
         /// <returns>The byte array, or null</returns>
         public byte[] LoadFile(string path)
         {
+            foreach(var pair in resourcePaks)
+            {
+                var pak = pair.Value;
+
+                foreach(var file in pak.Files)
+                {
+                    if(string.Equals(file.path, path, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        using var stream = pak.OpenGuid(file.guid);
+
+                        if(stream != null)
+                        {
+                            var memoryStream = new MemoryStream();
+
+                            stream.CopyTo(memoryStream);
+
+                            return memoryStream.ToArray();
+                        }
+                    }
+                }
+            }
+
+            if(Path.IsPathRooted(path))
+            {
+                return File.ReadAllBytes(path);
+            }
+
             foreach(var resourcePath in resourcePaths)
             {
                 try

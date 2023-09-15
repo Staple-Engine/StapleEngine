@@ -182,8 +182,6 @@ namespace Staple.Editor
         {
             ReloadTypeCache();
 
-            ResourceManager.instance.resourcePaths.Add("");
-
             editorSettings.runInBackground = true;
             editorSettings.appName = "Staple Editor";
             editorSettings.companyName = "Staple Engine";
@@ -200,6 +198,13 @@ namespace Staple.Editor
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
+            if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
+            {
+                Log.Error("Failed to load default resources pak");
+
+                return;
+            }
+
             window = RenderWindow.Create(1024, 768, true, WindowMode.Windowed, editorSettings, 0, bgfx.ResetFlags.Vsync);
 
             if(window == null)
@@ -210,8 +215,6 @@ namespace Staple.Editor
             window.OnInit = () =>
             {
                 Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
-
-                ResourceManager.instance.resourcePaths.Add($"{Environment.CurrentDirectory}/Data");
 
                 LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
                 LoadEditorTexture("FileIcon", "Textures/files.png");

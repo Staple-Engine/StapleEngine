@@ -8,7 +8,7 @@ using Newtonsoft.Json.Converters;
 
 namespace Staple.Editor
 {
-    partial class StapleEditor
+    internal partial class StapleEditor
     {
         public void LoadProject(string path)
         {

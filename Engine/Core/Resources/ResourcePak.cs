@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Staple.Internal
 {
-    public class ResourcePak
+    public class ResourcePak : IDisposable
     {
         public readonly static char[] ValidHeader = new char[] { 'S', 'T', 'P', 'A', 'K' };
         public const byte ValidVersion = 1;
@@ -338,6 +338,14 @@ namespace Staple.Internal
             backend = reader;
 
             return true;
+        }
+
+        public void Dispose()
+        {
+            if(backend != null)
+            {
+                backend.Dispose();
+            }
         }
     }
 }
