@@ -132,6 +132,7 @@
     <Compile Include="Rendering\VertexBufferType.cs" />
     <Compile Include="Rendering\VideoFlags.cs" />
     <Compile Include="Rendering\WindowMode.cs" />
+    <Compile Include="Resources\ResourcePak.cs" />
     <Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
     <Compile Include="Serialization\Scene\SerializableScene.cs" />
     <Compile Include="Serialization\App\AppSettingsHeader.cs" />
