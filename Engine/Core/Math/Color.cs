@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Staple
@@ -8,23 +9,30 @@ namespace Staple
     /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    [MessagePackObject]
     public struct Color
     {
-        public float r, g, b, a;
+        [Key(0)]
+        public float r;
+
+        [Key(1)]
+        public float g;
+
+        [Key(2)]
+        public float b;
+
+        [Key(3)]
+        public float a;
 
         /// <summary>
         /// Converts to a uint
         /// </summary>
-        public uint UIntValue
-        {
-            get
-            {
-                return ((Color32)this).UIntValue;
-            }
-        }
+        [IgnoreMember]
+        public readonly uint UIntValue => ((Color32)this).UIntValue;
 
         public static readonly Color White = new(1, 1, 1, 1);
         public static readonly Color Black = new(0, 0, 0, 1);
+        public static readonly Color Clear = new(0, 0, 0, 0);
 
         public Color(float R, float G, float B, float A)
         {
@@ -46,12 +54,12 @@ namespace Staple
 
         public static bool operator !=(Color a, Color b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return r.GetHashCode() ^ g.GetHashCode() ^ b.GetHashCode() ^ a.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             if(obj == null)
             {

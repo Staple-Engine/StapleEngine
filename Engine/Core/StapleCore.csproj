@@ -96,6 +96,9 @@
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
+    <Compile Include="Math\Rect.cs" />
+    <Compile Include="Math\RectFloat.cs" />
+    <Compile Include="Math\Vector2Int.cs" />
     <Compile Include="MessagePackGenerated\MessagePackGenerated.cs" />
     <Compile Include="MessagePackGenerated\MessagePackInit.cs" />
     <Compile Include="Physics\3D\BodyMotionType.cs" />
@@ -159,7 +162,7 @@
     <Compile Include="Player\StaplePlayer.cs" />
     <Compile Include="Player\SubsystemManager.cs" />
     <Compile Include="Player\Time.cs" />
-    <Compile Include="Rendering\AABB.cs" />
+    <Compile Include="Math\AABB.cs" />
     <Compile Include="Rendering\FrustumCuller.cs" />
     <Compile Include="Rendering\IRenderSystem.cs" />
     <Compile Include="Rendering\IndexBuffer.cs" />

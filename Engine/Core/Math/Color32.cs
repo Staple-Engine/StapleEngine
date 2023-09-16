@@ -28,16 +28,11 @@ namespace Staple
         /// Converts to a uint
         /// </summary>
         [IgnoreMember]
-        public uint UIntValue
-        {
-            get
-            {
-                return (uint)(r << 24) + (uint)(g << 16) + (uint)(b << 8) + a;
-            }
-        }
+        public readonly uint UIntValue => (uint)(r << 24) + (uint)(g << 16) + (uint)(b << 8) + a;
 
         public static readonly Color32 White = new(255, 255, 255, 255);
-        public static readonly Color32 Black = new(0, 0, 0, 255); 
+        public static readonly Color32 Black = new(0, 0, 0, 255);
+        public static readonly Color32 Clear = new(0, 0, 0, 0);
 
         public Color32(byte R, byte G, byte B, byte A)
         {
@@ -97,12 +92,12 @@ namespace Staple
 
         public static bool operator !=(Color32 a, Color32 b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return r.GetHashCode() ^ g.GetHashCode() ^ b.GetHashCode() ^ a.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             if(obj == null)
             {

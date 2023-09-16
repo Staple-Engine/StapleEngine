@@ -1,36 +1,44 @@
-﻿using System.Numerics;
+﻿using MessagePack;
+using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple
 {
     /// <summary>
     /// Axis Aligned Bounding Box
     /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    [MessagePackObject]
     public struct AABB
     {
         /// <summary>
         /// The center of the box
         /// </summary>
+        [Key(0)]
         public Vector3 center;
 
         /// <summary>
         /// The extents of the box (distance from the box as a radius)
         /// </summary>
+        [Key(1)]
         public Vector3 extents;
 
         /// <summary>
         /// The minimum position of the box
         /// </summary>
-        public Vector3 Min => new(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
+        public readonly Vector3 Min => new(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
 
         /// <summary>
         /// The maximum position of the box
         /// </summary>
-        public Vector3 Max => new(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
+        public readonly Vector3 Max => new(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
 
         /// <summary>
         /// The size of the box
         /// </summary>
-        public Vector3 Size => extents * 2;
+        public readonly Vector3 Size => extents * 2;
 
         /// <summary>
         /// Creates an Axis Aligned Bounding Box from a center and size
@@ -49,11 +57,11 @@ namespace Staple
         /// </summary>
         /// <param name="point">The point to check</param>
         /// <returns>Whether it contains a point</returns>
-        public bool Contains(Vector3 point)
+        public readonly bool Contains(Vector3 point)
         {
             //Slight optimization to prevent many function calls
-            var min = this.Min;
-            var max = this.Max;
+            var min = Min;
+            var max = Max;
 
             return point.X >= min.X && point.Y >= min.Y && point.Z >= min.Z &&
                 point.X <= max.X && point.Y <= max.Y && point.Z <= max.Z;
@@ -77,7 +85,12 @@ namespace Staple
             extents += amount / 2;
         }
 
-        internal static AABB FromPoints(Vector3[] points)
+        /// <summary>
+        /// Calculates a AABB from a list of points
+        /// </summary>
+        /// <param name="points">The points to validate</param>
+        /// <returns>The AABB</returns>
+        public static AABB FromPoints(Vector3[] points)
         {
             var min = Vector3.One * 999999;
             var max = Vector3.One * -999999;
@@ -115,7 +128,7 @@ namespace Staple
                 }
             }
 
-            return new AABB((min + max) / 2, (max - min));
+            return new AABB((min + max) / 2, max - min);
         }
     }
 }
