@@ -11,7 +11,7 @@ Status: Extremely early state, unusable for games at this point
 * Entities inspired by both modern ECS and Unity-style
 * Scenes
 * Input (Keyboard and Mouse for now)
-* Math classes (with some of them based on `System.Numerics`(.NET)
+* Math classes (with some of them based on `System.Numerics`(.NET))
 * Materials
 * Sprites
 * Textures
@@ -35,6 +35,14 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 Finally, go to `Engine` and build the `Engine` solution and run the `Player` project in the repo main folder. It should also be usable inside the `Staging` folder, as `Player.exe`.
 
 ## Linux
+
+### Required Packages
+
+#### Ubuntu
+
+`sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev`
+
+### Instructions (After required packages)
 
 To compile dependencies, go to `Dependencies` and run `build_linux.sh`.
 

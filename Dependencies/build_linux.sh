@@ -23,6 +23,8 @@ cd ../bgfx
 
 make GENIE=../GENie/bin/linux/genie tools -j $(nproc)
 
+mkdir -p ../../Tools/bin
+
 cp .build/linux64_gcc/bin/*cRelease ../../Tools/bin
 
 cd ../../

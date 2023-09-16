@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Staple.Internal;
 
 namespace Staple
 {
