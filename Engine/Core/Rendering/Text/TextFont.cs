@@ -3,10 +3,9 @@ using FreeTypeSharp.Native;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Staple
+namespace Staple.Internal
 {
     internal class TextFont : IDisposable
     {
@@ -24,7 +23,7 @@ namespace Staple
 
             set
             {
-                if(value <= 0)
+                if(value <= 0 || face == null || library == null)
                 {
                     return;
                 }
@@ -111,12 +110,10 @@ namespace Staple
 
             FontSize = parameters.fontSize;
 
-            FT_Vector kerning;
-
             var fromIndex = face.GetCharIndex(from);
             var toIndex = face.GetCharIndex(to);
 
-            if(FT.FT_Get_Kerning(face.Face, fromIndex, toIndex, (uint)FT_Kerning_Mode.FT_KERNING_DEFAULT, out kerning) != FT_Error.FT_Err_Ok)
+            if(FT.FT_Get_Kerning(face.Face, fromIndex, toIndex, (uint)FT_Kerning_Mode.FT_KERNING_DEFAULT, out var kerning) != FT_Error.FT_Err_Ok)
             {
                 return 0;
             }

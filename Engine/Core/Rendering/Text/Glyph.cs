@@ -1,4 +1,4 @@
-﻿namespace Staple
+﻿namespace Staple.Internal
 {
     internal class Glyph
     {
