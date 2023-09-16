@@ -50,6 +50,12 @@ namespace Staple
 
         public static Color operator *(Color a, Color b) => new(a.r * b.r, a.g * b.g, a.b * b.b, a.a * b.a);
 
+        public static Color operator *(Color a, float b) => new(a.r * b, a.g * b, a.b * b, a.a * b);
+
+        public static Color operator /(Color a, Color b) => new(a.r / b.r, a.g / b.g, a.b / b.b, a.a / b.a);
+
+        public static Color operator /(Color a, float b) => new(a.r / b, a.g / b, a.b / b, a.a / b);
+
         public static bool operator ==(Color a, Color b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
 
         public static bool operator !=(Color a, Color b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;

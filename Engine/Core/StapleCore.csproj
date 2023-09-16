@@ -40,24 +40,22 @@
 	<IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 	
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <ItemGroup>
     <Reference Include="glfwnet">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
     </Reference>
     <Reference Include="MessagePack">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Reference Include="glfwnet">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
-    </Reference>
-    <Reference Include="MessagePack">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<Reference Include="FreeTypeSharp">
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\FreeTypeSharp.dll</HintPath>
+	</Reference>
+	<Reference Include="JoltPhysicsSharp">
+		<HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="MessagePack\**" />
@@ -124,6 +122,9 @@
     <Compile Include="Physics\Physics.cs" />
     <Compile Include="Player\Platform.cs" />
     <Compile Include="Rendering\BlendMode.cs" />
+    <Compile Include="Rendering\Text\Glyph.cs" />
+    <Compile Include="Rendering\Text\TextFont.cs" />
+    <Compile Include="Rendering\Text\TextParameters.cs" />
     <Compile Include="Rendering\Windowing\Impls\GLFWRenderWindow.cs" />
     <Compile Include="Rendering\Windowing\IRenderWindow.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
@@ -196,10 +197,5 @@
     <Compile Include="Utilities\Log\Log.cs" />
     <Compile Include="Utilities\Randomizer.cs" />
     <Compile Include="Utilities\Storage.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="JoltPhysicsSharp">
-      <HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
