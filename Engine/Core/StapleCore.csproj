@@ -122,6 +122,7 @@
     <Compile Include="Physics\Physics.cs" />
     <Compile Include="Player\Platform.cs" />
     <Compile Include="Rendering\BlendMode.cs" />
+    <Compile Include="Rendering\Text\TextRenderer.cs" />
     <Compile Include="Rendering\Text\Glyph.cs" />
     <Compile Include="Rendering\Text\TextFont.cs" />
     <Compile Include="Rendering\Text\TextParameters.cs" />
