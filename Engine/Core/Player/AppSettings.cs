@@ -91,13 +91,13 @@ namespace Staple
             {
                 return new AppSettings()
                 {
-                    appName = "Test",
-                    companyName = "Test Company",
+                    appName = "Game",
+                    companyName = "Default Company",
                     layers = new()
                     {
                         "Default",
                     },
-                    sortingLayers = new ()
+                    sortingLayers = new()
                     {
                         "Default",
                     },
@@ -105,34 +105,37 @@ namespace Staple
                     {
                         {
                             AppPlatform.Windows,
-                            new List<RendererType>() {
+                            new()
+                            {
                                 RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan, RendererType.OpenGL
                             }
                         },
                         {
                             AppPlatform.Linux,
-                            new List<RendererType>() {
-                                RendererType.Vulkan, RendererType.OpenGL
+                            new()
+                            {
+                                RendererType.OpenGL, RendererType.Vulkan
                             }
                         },
                         {
                             AppPlatform.MacOSX,
-                            new List<RendererType>() {
+                            new()
+                            {
                                 RendererType.Metal
                             }
                         },
                         {
                             AppPlatform.Android,
-                            new List<RendererType>()
+                            new()
                             {
-                                RendererType.Vulkan,
+                                RendererType.Vulkan, RendererType.OpenGLES
                             }
                         },
                         {
                             AppPlatform.iOS,
-                            new List<RendererType>()
+                            new()
                             {
-                                RendererType.Metal,
+                                RendererType.Metal
                             }
                         }
                     },
