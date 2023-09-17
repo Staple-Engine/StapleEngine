@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace CrossCopy
@@ -12,7 +13,10 @@ namespace CrossCopy
 
             for(var i = 0; i < args.Length; i++)
             {
-                args[i] = args[i].Replace("[DLL]", dllExt);
+                args[i] = args[i]
+					.Replace("[DLL]", dllExt)
+					.Replace('\\', Path.DirectorySeparatorChar)
+					.Replace('/', Path.DirectorySeparatorChar);
             }
 
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
