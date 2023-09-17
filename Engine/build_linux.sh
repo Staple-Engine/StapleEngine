@@ -1,4 +1,4 @@
 #!/bin/sh
 
-dotnet publish Engine.sln -c Debug
-dotnet publish Engine.sln -c Release
+dotnet build Engine.sln -c Debug
+dotnet build Engine.sln -c Release

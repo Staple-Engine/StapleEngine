@@ -425,7 +425,7 @@ namespace Staple.Internal
 
                 case RendererType.Vulkan:
 
-                    path = "vulkan/" + path;
+                    path = "spirv/" + path;
 
                     break;
             }

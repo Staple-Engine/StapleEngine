@@ -47,18 +47,25 @@ namespace Staple
                 throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
             }
 
-            Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+            try
             {
-                var message = inMessage ?? inExpression;
+                Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+                {
+                    var message = inMessage ?? inExpression;
 
-                var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
+                    var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
 
-                System.Diagnostics.Debug.WriteLine(outMessage);
+                    System.Diagnostics.Debug.WriteLine(outMessage);
 
-                Log.Info(outMessage);
+                    Log.Info(outMessage);
 
-                return true;
-            });
+                    return true;
+                });
+            }
+            catch(Exception)
+            {
+                Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
+            }
 
             allocator = new(AllocatorSize);
             jobThreadPool = new(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers);

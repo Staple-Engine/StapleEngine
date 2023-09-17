@@ -75,9 +75,9 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)\Editor\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\build\vs2022\bin\$(Configuration)\net7.0\*.dll $(SolutionDir)..\Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\NativeFileDialog\binaries\*.[DLL] $(SolutionDir)..\Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)Editor/bin/$(Configuration)/net7.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/$(Configuration)/net7.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL] $(SolutionDir)../Staging
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

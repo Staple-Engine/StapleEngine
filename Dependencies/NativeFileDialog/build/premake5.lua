@@ -25,7 +25,7 @@ end
 workspace "NativeFileDialog"
   -- these dir specifications assume the generated files have been moved
   -- into a subdirectory.  ex: $root/build/makefile
-  local root_dir = path.join(path.getdirectory(_SCRIPT),"../../")
+  local root_dir = path.join(path.getdirectory(_SCRIPT),"../")
   local build_dir = path.join(root_dir,"build/")
   configurations { "Release", "Debug" }
 

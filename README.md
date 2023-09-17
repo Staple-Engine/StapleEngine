@@ -40,7 +40,7 @@ Finally, go to `Engine` and build the `Engine` solution and run the `Player` pro
 
 #### Ubuntu
 
-`sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev`
+`sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev`
 
 ### Instructions (After required packages)
 
