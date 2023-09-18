@@ -225,13 +225,13 @@ namespace Staple.Editor
                 return;
             }
 
-            var baseStagingPath = Path.Combine(StapleBasePath, "Staging");
+            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", buildPlatform.ToString());
 
             var dependencies = new string[]
             {
-                Directory.GetFiles(baseStagingPath, "*bgfx.*").FirstOrDefault(),
-                Directory.GetFiles(baseStagingPath, "*glfw.*").FirstOrDefault(),
-                Directory.GetFiles(baseStagingPath, "*joltc.*").FirstOrDefault(),
+                Directory.GetFiles(redistPath, "*bgfx.*").FirstOrDefault(),
+                Directory.GetFiles(redistPath, "*glfw.*").FirstOrDefault(),
+                Directory.GetFiles(redistPath, "*joltc.*").FirstOrDefault(),
             };
 
             foreach (var file in dependencies)
@@ -243,7 +243,7 @@ namespace Staple.Editor
 
                 try
                 {
-                    File.Copy(file, Path.Combine(outPath, file.Replace($"{baseStagingPath}{Path.DirectorySeparatorChar}", "")), true);
+                    File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
                 }
                 catch (Exception e)
                 {
