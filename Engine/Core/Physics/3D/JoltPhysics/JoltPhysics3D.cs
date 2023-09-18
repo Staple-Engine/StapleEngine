@@ -183,7 +183,7 @@ namespace Staple
 
             var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
 
-            physicsSystem.Update(deltaTime, collisionSteps, 1, allocator, jobThreadPool);
+            physicsSystem.Update(deltaTime, collisionSteps, allocator, jobThreadPool);
 
             foreach(var pair in bodies)
             {
@@ -362,7 +362,7 @@ namespace Staple
         {
             if(body is JoltBodyPair pair)
             {
-                physicsSystem.BodyInterface.AddBody(pair.body, activated ? ActivationMode.Activate : ActivationMode.DontActivate);
+                physicsSystem.BodyInterface.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
             }
         }
 
@@ -387,7 +387,7 @@ namespace Staple
                 triggerQuery = triggerQuery,
             };
 
-            if (physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
+            if (physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
             {
                 if(TryFindBody(hit.BodyID, out body))
                 {
@@ -425,7 +425,7 @@ namespace Staple
         {
             if(body is JoltBodyPair pair)
             {
-                physicsSystem.BodyInterface.SetPosition(pair.body.ID, newPosition, pair.body.IsActive ? ActivationMode.Activate : ActivationMode.DontActivate);
+                physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
             }
         }
 
@@ -433,7 +433,7 @@ namespace Staple
         {
             if (body is JoltBodyPair pair)
             {
-                physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? ActivationMode.Activate : ActivationMode.DontActivate);
+                physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
             }
         }
 

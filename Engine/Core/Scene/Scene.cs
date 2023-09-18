@@ -6,9 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-#if _DEBUG
 [assembly: InternalsVisibleTo("StapleCoreTests")]
-#endif
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
 

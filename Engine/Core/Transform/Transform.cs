@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-#if _DEBUG
 [assembly: InternalsVisibleTo("StapleCoreTests")]
-#endif
 
 namespace Staple
 {
