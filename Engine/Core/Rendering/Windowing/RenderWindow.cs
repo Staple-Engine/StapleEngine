@@ -85,6 +85,8 @@ namespace Staple.Internal
                 Input.MouseDelta = Vector2.Zero;
                 Input.MouseRelativePosition = Vector2.Zero;
 
+                Input.UpdateState();
+
                 window.PollEvents();
 
                 lock (renderLock)
@@ -227,6 +229,8 @@ namespace Staple.Internal
                 Input.Character = 0;
                 Input.MouseDelta = Vector2.Zero;
                 Input.MouseRelativePosition = Vector2.Zero;
+
+                Input.UpdateState();
 
                 window.PollEvents();
 

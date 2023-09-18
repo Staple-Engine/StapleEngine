@@ -43,6 +43,33 @@ namespace Staple
 
         internal static IRenderWindow window;
 
+        internal static void UpdateState()
+        {
+            foreach(var key in keyStates.Keys)
+            {
+                if (keyStates[key] == InputState.FirstRelease)
+                {
+                    keyStates[key] = InputState.Release;
+                }
+                else if (keyStates[key] == InputState.FirstPress)
+                {
+                    keyStates[key] = InputState.Press;
+                }
+            }
+
+            foreach (var key in mouseButtonStates.Keys)
+            {
+                if (mouseButtonStates[key] == InputState.FirstRelease)
+                {
+                    mouseButtonStates[key] = InputState.Release;
+                }
+                else if (mouseButtonStates[key] == InputState.FirstPress)
+                {
+                    mouseButtonStates[key] = InputState.Press;
+                }
+            }
+        }
+
         internal static void HandleMouseDeltaEvent(AppEvent appEvent)
         {
             MouseDelta = appEvent.mouseDelta;
