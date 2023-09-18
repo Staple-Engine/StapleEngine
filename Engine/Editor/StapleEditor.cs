@@ -409,9 +409,16 @@ namespace Staple.Editor
             {
                 var flags = AppPlayer.ResetFlags(VideoFlags.Vsync);
 
+                AppPlayer.ScreenWidth = window.screenWidth;
+                AppPlayer.ScreenHeight = window.screenHeight;
+
                 bgfx.reset((uint)window.screenWidth, (uint)window.screenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
+
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 0, 0);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+
+                bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
             };
 
             window.OnCleanup = () =>

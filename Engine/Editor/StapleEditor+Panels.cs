@@ -624,6 +624,11 @@ namespace Staple.Editor
                     }
                 }
 
+                if(EditorGUI.Button("Close"))
+                {
+                    showingBuildWindow = false;
+                }
+
                 if (showingProgress)
                 {
                     ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
