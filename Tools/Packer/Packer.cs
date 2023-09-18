@@ -178,6 +178,11 @@ namespace Packer
                                 var localPath = Path.GetRelativePath(basePath, file).Replace(Path.DirectorySeparatorChar, '/');
                                 var guid = PackerUtils.ExtractGuid(file) ?? Guid.NewGuid().ToString();
 
+                                if(fileGuids.Any(x => x == guid))
+                                {
+                                    Console.WriteLine($"Warning: Duplicate guid found for file {file}: {guid}");
+                                }
+
                                 filePaths.Add(file);
                                 localFilePaths.Add(localPath);
                                 fileStreams.Add(new FileStream(file, FileMode.Open));
@@ -307,10 +312,22 @@ namespace Packer
                                 {
                                 }
 
-                                using var fileStream = resourcePak.OpenGuid(file.guid);
-                                using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
+                                if(resourcePak.Files.Count(x => x.guid == file.guid) > 1)
+                                {
+                                    Console.WriteLine($"Duplicate guid {file.guid} found for file {file.path}");
 
-                                fileStream.CopyTo(outStream);
+                                    using var fileStream = resourcePak.Open(file.path);
+                                    using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
+
+                                    fileStream.CopyTo(outStream);
+                                }
+                                else
+                                {
+                                    using var fileStream = resourcePak.OpenGuid(file.guid);
+                                    using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
+
+                                    fileStream.CopyTo(outStream);
+                                }
                             }
 
                             Console.WriteLine($"Extracted {resourcePak.Files.Count()} files");

@@ -91,6 +91,7 @@ workspace "NativeFileDialog"
       language "C"
       files {root_dir.."src/nfd_gtk.c"}
       buildoptions {"`pkg-config --cflags gtk+-3.0`"}
+      linkoptions {"`pkg-config --libs gtk+-3.0`"}
     filter {"system:linux", "options:linux_backend=zenity"}
       language "C"
       files {root_dir.."src/nfd_zenity.c"}

@@ -125,7 +125,7 @@ namespace Staple.Internal
                 {
                     if(string.Equals(file.path, pakPath, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        using var stream = pak.OpenGuid(file.guid);
+                        using var stream = pak.Open(file.path);
 
                         if(stream != null)
                         {
@@ -141,7 +141,14 @@ namespace Staple.Internal
 
             if(Path.IsPathRooted(path))
             {
-                return File.ReadAllBytes(path);
+                try
+                {
+                    return File.ReadAllBytes(path);
+                }
+                catch(Exception)
+                {
+                    return null;
+                }
             }
 
             foreach(var resourcePath in resourcePaths)

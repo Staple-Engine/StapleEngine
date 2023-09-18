@@ -229,9 +229,9 @@ namespace Staple.Editor
 
             var dependencies = new string[]
             {
-                Directory.GetFiles(baseStagingPath, "bgfx.*").FirstOrDefault(),
-                Directory.GetFiles(baseStagingPath, "glfw.*").FirstOrDefault(),
-                Directory.GetFiles(baseStagingPath, "joltc.*").FirstOrDefault(),
+                Directory.GetFiles(baseStagingPath, "*bgfx.*").FirstOrDefault(),
+                Directory.GetFiles(baseStagingPath, "*glfw.*").FirstOrDefault(),
+                Directory.GetFiles(baseStagingPath, "*joltc.*").FirstOrDefault(),
             };
 
             foreach (var file in dependencies)

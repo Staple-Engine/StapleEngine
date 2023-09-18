@@ -198,6 +198,10 @@ namespace Staple.Editor
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
+            Log.Info($"Current Platform: {Platform.CurrentPlatform.Value}");
+
+            currentPlatform = buildPlatform = Platform.CurrentPlatform.Value;
+
             if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
             {
                 Log.Error("Failed to load default resources pak");
@@ -536,12 +540,17 @@ namespace Staple.Editor
 
                     foreach(var file in files)
                     {
+                        if(file.EndsWith(".meta"))
+                        {
+                            continue;
+                        }
+
                         var node = new ProjectBrowserNode()
                         {
                             name = Path.GetFileNameWithoutExtension(file),
                             extension = Path.GetExtension(file),
                             path = file,
-                            subnodes = new List<ProjectBrowserNode>(),
+                            subnodes = new(),
                             type = ProjectBrowserNodeType.File
                         };
 
