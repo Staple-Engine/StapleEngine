@@ -32,8 +32,10 @@ namespace Staple.Editor
 
                         shouldQuit = callback(ref t);
                     }
-                    catch(Exception)
+                    catch(Exception e)
                     {
+                        Log.Error($"Background Task Error: {e}");
+
                         shouldQuit = true;
                     }
 

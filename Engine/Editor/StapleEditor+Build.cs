@@ -15,13 +15,9 @@ namespace Staple.Editor
                 progressFraction = 0;
             }
 
-            using var collection = new ProjectCollection();
-
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
             var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", platform.ToString());
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
-
-            var platformRuntime = "";
 
             GeneratePlayerCSProj(platform);
 
@@ -30,7 +26,183 @@ namespace Staple.Editor
                 progressFraction = 0.1f;
             }
 
-            string args;
+            string targetResourcesPath;
+
+            switch (platform)
+            {
+                case AppPlatform.Android:
+
+                    targetResourcesPath = Path.Combine(projectDirectory, "Assets");
+
+                    break;
+
+                case AppPlatform.Windows:
+                case AppPlatform.Linux:
+                case AppPlatform.MacOSX:
+
+                    targetResourcesPath = Path.Combine(outPath, "Data");
+
+                    break;
+
+                default:
+
+                    targetResourcesPath = Path.Combine(outPath, "Data");
+
+                    break;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(targetResourcesPath);
+            }
+            catch (Exception)
+            {
+            }
+
+            void CopyDirectory(string sourceDir, string destinationDir)
+            {
+                var dir = new DirectoryInfo(sourceDir);
+
+                if (!dir.Exists)
+                    throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+                DirectoryInfo[] dirs = dir.GetDirectories();
+
+                try
+                {
+                    Directory.CreateDirectory(destinationDir);
+                }
+                catch (Exception)
+                {
+                }
+
+                foreach (FileInfo file in dir.GetFiles())
+                {
+                    string targetFilePath = Path.Combine(destinationDir, file.Name);
+
+                    try
+                    {
+                        file.CopyTo(targetFilePath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Failed to build player: {e}");
+
+                        return;
+                    }
+                }
+
+                foreach (DirectoryInfo subDir in dirs)
+                {
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+
+                    CopyDirectory(subDir.FullName, newDestinationDir);
+                }
+            }
+
+            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
+
+            try
+            {
+                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{platform}.pak");
+
+                if (File.Exists(defaultResourcesPath) == false)
+                {
+                    Log.Error($"Failed to build player: Missing DefaultResources-{platform} pak file");
+
+                    return;
+                }
+
+                try
+                {
+                    File.Copy(defaultResourcesPath, Path.Combine(targetResourcesPath, "DefaultResources.pak"), true);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to build player: {e}");
+
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to build player: {e}");
+
+                return;
+            }
+
+            lock (backgroundLock)
+            {
+                progressFraction = 0.6f;
+            }
+
+            var args = $"-p -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, "Resources.pak")}\"";
+
+            var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
+            {
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
+            };
+
+            var process = new Process
+            {
+                StartInfo = processInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false)
+                {
+                    var line = process.StandardOutput.ReadLine();
+
+                    if (line != null)
+                    {
+                        Log.Info(line);
+                    }
+                }
+            }
+
+            if ((process.HasExited && process.ExitCode == 0) == false)
+            {
+                Log.Error($"Failed to build player: Unable to pack resources");
+
+                return;
+            }
+
+            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", buildPlatform.ToString());
+
+            if(Directory.Exists(redistPath))
+            {
+                var dependencies = new string[]
+                {
+                    Directory.GetFiles(redistPath, "*bgfx.*").FirstOrDefault(),
+                    Directory.GetFiles(redistPath, "*glfw.*").FirstOrDefault(),
+                    Directory.GetFiles(redistPath, "*joltc.*").FirstOrDefault(),
+                };
+
+                foreach (var file in dependencies)
+                {
+                    if (file == null)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Failed to build player: {e}");
+
+                        return;
+                    }
+                }
+            }
+
+            var platformRuntime = "";
 
             switch (platform)
             {
@@ -89,134 +261,7 @@ namespace Staple.Editor
                     break;
             }
 
-            var processInfo = new ProcessStartInfo("dotnet", args)
-            {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            if (process.Start())
-            {
-                while (process.HasExited == false)
-                {
-                    var line = process.StandardOutput.ReadLine();
-
-                    if (line != null)
-                    {
-                        Log.Info(line);
-                    }
-                }
-            }
-
-            if ((process.HasExited && process.ExitCode == 0) == false)
-            {
-                Log.Error($"Failed to build player: Unable to complete build");
-
-                return;
-            }
-
-            lock (backgroundLock)
-            {
-                progressFraction = 0.5f;
-            }
-
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(outPath, "Data"));
-            }
-            catch (Exception)
-            {
-            }
-
-            void CopyDirectory(string sourceDir, string destinationDir)
-            {
-                var dir = new DirectoryInfo(sourceDir);
-
-                if (!dir.Exists)
-                    throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
-
-                DirectoryInfo[] dirs = dir.GetDirectories();
-
-                try
-                {
-                    Directory.CreateDirectory(destinationDir);
-                }
-                catch (Exception)
-                {
-                }
-
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    string targetFilePath = Path.Combine(destinationDir, file.Name);
-
-                    try
-                    {
-                        file.CopyTo(targetFilePath, true);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"Failed to build player: {e}");
-
-                        return;
-                    }
-                }
-
-                foreach (DirectoryInfo subDir in dirs)
-                {
-                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
-
-                    CopyDirectory(subDir.FullName, newDestinationDir);
-                }
-            }
-
-            var assetsDirectory = Path.Combine(basePath, "Assets");
-
-            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
-
-            try
-            {
-                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{platform}.pak");
-
-                if (File.Exists(defaultResourcesPath) == false)
-                {
-                    Log.Error($"Failed to build player: Missing DefaultResources-{platform} pak file");
-
-                    return;
-                }
-
-                try
-                {
-                    File.Copy(defaultResourcesPath, Path.Combine(outPath, "Data", "DefaultResources.pak"), true);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to build player: {e}");
-
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to build player: {e}");
-
-                return;
-            }
-
-            lock (backgroundLock)
-            {
-                progressFraction = 0.6f;
-            }
-
-            args = $"-p -i \"{assetsCacheDirectory}\" -o {Path.Combine(outPath, "Data", "Resources.pak")}";
-
-            processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
+            processInfo = new ProcessStartInfo("dotnet", args)
             {
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -244,37 +289,9 @@ namespace Staple.Editor
 
             if ((process.HasExited && process.ExitCode == 0) == false)
             {
-                Log.Error($"Failed to build player: Unable to pack resources");
+                Log.Error($"Failed to build player: Unable to complete build");
 
                 return;
-            }
-
-            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", buildPlatform.ToString());
-
-            var dependencies = new string[]
-            {
-                Directory.GetFiles(redistPath, "*bgfx.*").FirstOrDefault(),
-                Directory.GetFiles(redistPath, "*glfw.*").FirstOrDefault(),
-                Directory.GetFiles(redistPath, "*joltc.*").FirstOrDefault(),
-            };
-
-            foreach (var file in dependencies)
-            {
-                if (file == null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to build player: {e}");
-
-                    return;
-                }
             }
 
             lock (backgroundLock)

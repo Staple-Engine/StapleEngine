@@ -143,6 +143,7 @@ namespace Staple.Editor
                 { "StripSymbols", "true" },
                 { "AppDesignerFolder", "Properties" },
                 { "OptimizationPreference", "Speed" },
+                { "Nullable", "enable" },
             };
 
             var platformDefinesString = "";
@@ -200,6 +201,7 @@ namespace Staple.Editor
                     p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
                     p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                    p.SetProperty("EnableLLVM", "True");
 
                     break;
 
@@ -226,10 +228,28 @@ namespace Staple.Editor
                     new("ReferenceOutputAssembly", "false")
                 });
 
-            var programPath = Path.Combine(StapleBasePath, "Engine", "Player", "Program.cs");
+            switch(platform)
+            {
+                case AppPlatform.Android:
 
-            p.AddItem("Compile", Path.GetFullPath(programPath));
+                    {
+                        var activityPath = Path.Combine(StapleBasePath, "Engine", "Player", "Android", "StapleActivity.cs");
 
+                        p.AddItem("Compile", Path.GetFullPath(activityPath));
+                    }
+
+                    break;
+
+                default:
+
+                    {
+                        var programPath = Path.Combine(StapleBasePath, "Engine", "Player", "Program.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(programPath));
+                    }
+
+                    break;
+            }
             void Recursive(string path)
             {
                 try
