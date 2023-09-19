@@ -84,6 +84,36 @@ namespace Staple
         [Key(11)]
         public List<ColliderMask.Item> colliderMask = new();
 
+        /// <summary>
+        /// The app's bundle ID
+        /// </summary>
+        [Key(12)]
+        public string appBundleID = "com.companyName.TestApp";
+
+        /// <summary>
+        /// The app build ID
+        /// </summary>
+        [Key(13)]
+        public int appVersion = 1;
+
+        /// <summary>
+        /// The display value for the app version
+        /// </summary>
+        [Key(14)]
+        public string appDisplayVersion = "1.0";
+
+        /// <summary>
+        /// Android Minimum SDK
+        /// </summary>
+        [Key(15)]
+        public int androidMinSDK = 26;
+
+        /// <summary>
+        /// iOS Minimum deployment target
+        /// </summary>
+        [Key(16)]
+        public int iOSDeploymentTarget = 13;
+
         [IgnoreMember]
         public static AppSettings Default
         {
@@ -93,6 +123,9 @@ namespace Staple
                 {
                     appName = "Game",
                     companyName = "Default Company",
+                    appBundleID = "com.companyname.TestApp",
+                    appVersion = 1,
+                    appDisplayVersion = "1.0",
                     layers = new()
                     {
                         "Default",
@@ -107,14 +140,14 @@ namespace Staple
                             AppPlatform.Windows,
                             new()
                             {
-                                RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan, RendererType.OpenGL
+                                RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan
                             }
                         },
                         {
                             AppPlatform.Linux,
                             new()
                             {
-                                RendererType.OpenGL, RendererType.Vulkan
+                                RendererType.Vulkan, RendererType.OpenGL
                             }
                         },
                         {

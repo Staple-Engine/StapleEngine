@@ -28,16 +28,19 @@ namespace Staple
         /// <summary>
         /// The minimum position of the box
         /// </summary>
+        [IgnoreMember]
         public readonly Vector3 Min => new(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
 
         /// <summary>
         /// The maximum position of the box
         /// </summary>
+        [IgnoreMember]
         public readonly Vector3 Max => new(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
 
         /// <summary>
         /// The size of the box
         /// </summary>
+        [IgnoreMember]
         public readonly Vector3 Size => extents * 2;
 
         /// <summary>

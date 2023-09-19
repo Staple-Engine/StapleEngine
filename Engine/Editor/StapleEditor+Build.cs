@@ -30,6 +30,8 @@ namespace Staple.Editor
                 progressFraction = 0.1f;
             }
 
+            string args;
+
             switch (platform)
             {
                 case AppPlatform.Windows:
@@ -63,7 +65,29 @@ namespace Staple.Editor
                     break;
             }
 
-            var args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+            switch(platform)
+            {
+                case AppPlatform.Windows:
+                case AppPlatform.Linux:
+                case AppPlatform.MacOSX:
+
+                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+
+                    break;
+
+                case AppPlatform.Android:
+                case AppPlatform.iOS:
+
+                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\"";
+
+                    break;
+
+                default:
+
+                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+
+                    break;
+            }
 
             var processInfo = new ProcessStartInfo("dotnet", args)
             {
@@ -93,7 +117,7 @@ namespace Staple.Editor
 
             if ((process.HasExited && process.ExitCode == 0) == false)
             {
-                Log.Error($"Failed to build player: Unable to complete native build");
+                Log.Error($"Failed to build player: Unable to complete build");
 
                 return;
             }

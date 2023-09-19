@@ -16,6 +16,15 @@ namespace Staple.Editor
             { AppPlatform.iOS, new string[]{ "STAPLE_ENGINE", "STAPLE_IOS" } },
         };
 
+        private static Dictionary<AppPlatform, string> platformFramework = new()
+        {
+            { AppPlatform.Windows, "net7.0" },
+            { AppPlatform.Linux, "net7.0" },
+            { AppPlatform.MacOSX, "net7.0" },
+            { AppPlatform.Android, "net7.0-android" },
+            { AppPlatform.iOS, "net7.0-ios" },
+        };
+
         internal void UpdateCSProj(AppPlatform platform)
         {
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
@@ -130,10 +139,8 @@ namespace Staple.Editor
             var projectProperties = new Dictionary<string, string>()
             {
                 { "OutputType", "Exe" },
-                { "TargetFramework", "net7.0" },
+                { "TargetFramework", platformFramework[platform] },
                 { "StripSymbols", "true" },
-                { "PublishAOT", "true" },
-                { "IsAOTCompatible", "true" },
                 { "AppDesignerFolder", "Properties" },
                 { "OptimizationPreference", "Speed" },
             };
@@ -176,9 +183,43 @@ namespace Staple.Editor
                 p.SetProperty(pair.Key, pair.Value);
             }
 
+            switch(platform)
+            {
+                case AppPlatform.Windows:
+                case AppPlatform.Linux:
+                case AppPlatform.MacOSX:
+
+                    p.SetProperty("PublishAOT", "true");
+                    p.SetProperty("IsAOTCompatible", "true");
+
+                    break;
+
+                case AppPlatform.Android:
+
+                    p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
+                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+
+                    break;
+
+                case AppPlatform.iOS:
+
+                    p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.iOSDeploymentTarget.ToString());
+                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+
+                    break;
+            }
+
             var typeRegistrationPath = Path.Combine(StapleBasePath, "Engine", "TypeRegistration", "TypeRegistration.csproj");
 
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
+            p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "MessagePack.dll")) });
+            p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "JoltPhysicsSharp.dll")) });
+            p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "glfwnet.dll")) });
+            p.AddItem("Reference", "FreeTypeSharp", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "FreeTypeSharp.dll")) });
             p.AddItem("ProjectReference", typeRegistrationPath,
                 new KeyValuePair<string, string>[] {
                     new("OutputItemType", "Analyzer"),
@@ -216,6 +257,64 @@ namespace Staple.Editor
             Recursive(assetsDirectory);
 
             p.Save(Path.Combine(projectDirectory, "Player.csproj"));
+
+            if(platform == AppPlatform.Android)
+            {
+                void MakeDirectory(string path)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                bool SaveResource(string path, string data)
+                {
+                    try
+                    {
+                        File.WriteAllText(path, data);
+                    }
+                    catch (Exception)
+                    {
+                        Log.Error($"Failed generating csproj: Failed to save a resource");
+
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                MakeDirectory(Path.Combine(projectDirectory, "Resources"));
+                MakeDirectory(Path.Combine(projectDirectory, "Resources", "values"));
+
+                var manifest = $$"""
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:label="@string/app_name" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
+  </application>
+  <uses-permission android:name="android.permission.INTERNET" />
+</manifest>
+""";
+
+                if(SaveResource(Path.Combine(projectDirectory, "AndroidManifest.xml"), manifest) == false)
+                {
+                    return;
+                }
+
+                var strings = $$"""
+<resources>
+    <string name="app_name">{{projectAppSettings.appName}}</string>
+</resources>
+""";
+
+                if (SaveResource(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
+                {
+                    return;
+                }
+            }
         }
     }
 }

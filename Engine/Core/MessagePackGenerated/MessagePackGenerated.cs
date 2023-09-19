@@ -50,7 +50,7 @@ namespace MessagePack.Resolvers
 
         static GeneratedResolverGetFormatterHelper()
         {
-            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(53)
+            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(56)
             {
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 0 },
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>), 1 },
@@ -76,35 +76,38 @@ namespace MessagePack.Resolvers
                 { typeof(global::Staple.Internal.TextureWrap), 21 },
                 { typeof(global::Staple.RendererType), 22 },
                 { typeof(global::Staple.WindowMode), 23 },
-                { typeof(global::Staple.AppSettings), 24 },
-                { typeof(global::Staple.ColliderMask.Item), 25 },
-                { typeof(global::Staple.Color32), 26 },
-                { typeof(global::Staple.Internal.AppSettingsHeader), 27 },
-                { typeof(global::Staple.Internal.MaterialMetadata), 28 },
-                { typeof(global::Staple.Internal.MaterialParameter), 29 },
-                { typeof(global::Staple.Internal.ResourcePak.Entry), 30 },
-                { typeof(global::Staple.Internal.ResourcePak.Header), 31 },
-                { typeof(global::Staple.Internal.SceneComponent), 32 },
-                { typeof(global::Staple.Internal.SceneComponentParameter), 33 },
-                { typeof(global::Staple.Internal.SceneList), 34 },
-                { typeof(global::Staple.Internal.SceneListHeader), 35 },
-                { typeof(global::Staple.Internal.SceneObject), 36 },
-                { typeof(global::Staple.Internal.SceneObjectTransform), 37 },
-                { typeof(global::Staple.Internal.SerializableMaterial), 38 },
-                { typeof(global::Staple.Internal.SerializableMaterialHeader), 39 },
-                { typeof(global::Staple.Internal.SerializableScene), 40 },
-                { typeof(global::Staple.Internal.SerializableSceneHeader), 41 },
-                { typeof(global::Staple.Internal.SerializableShader), 42 },
-                { typeof(global::Staple.Internal.SerializableShaderHeader), 43 },
-                { typeof(global::Staple.Internal.SerializableTexture), 44 },
-                { typeof(global::Staple.Internal.SerializableTextureHeader), 45 },
-                { typeof(global::Staple.Internal.ShaderMetadata), 46 },
-                { typeof(global::Staple.Internal.ShaderUniform), 47 },
-                { typeof(global::Staple.Internal.TextureMetadata), 48 },
-                { typeof(global::Staple.Internal.TextureMetadataOverride), 49 },
-                { typeof(global::Staple.Internal.Vector2Holder), 50 },
-                { typeof(global::Staple.Internal.Vector3Holder), 51 },
-                { typeof(global::Staple.Internal.Vector4Holder), 52 },
+                { typeof(global::Staple.AABB), 24 },
+                { typeof(global::Staple.AppSettings), 25 },
+                { typeof(global::Staple.ColliderMask.Item), 26 },
+                { typeof(global::Staple.Color), 27 },
+                { typeof(global::Staple.Color32), 28 },
+                { typeof(global::Staple.Internal.AppSettingsHeader), 29 },
+                { typeof(global::Staple.Internal.MaterialMetadata), 30 },
+                { typeof(global::Staple.Internal.MaterialParameter), 31 },
+                { typeof(global::Staple.Internal.ResourcePak.Entry), 32 },
+                { typeof(global::Staple.Internal.ResourcePak.Header), 33 },
+                { typeof(global::Staple.Internal.SceneComponent), 34 },
+                { typeof(global::Staple.Internal.SceneComponentParameter), 35 },
+                { typeof(global::Staple.Internal.SceneList), 36 },
+                { typeof(global::Staple.Internal.SceneListHeader), 37 },
+                { typeof(global::Staple.Internal.SceneObject), 38 },
+                { typeof(global::Staple.Internal.SceneObjectTransform), 39 },
+                { typeof(global::Staple.Internal.SerializableMaterial), 40 },
+                { typeof(global::Staple.Internal.SerializableMaterialHeader), 41 },
+                { typeof(global::Staple.Internal.SerializableScene), 42 },
+                { typeof(global::Staple.Internal.SerializableSceneHeader), 43 },
+                { typeof(global::Staple.Internal.SerializableShader), 44 },
+                { typeof(global::Staple.Internal.SerializableShaderHeader), 45 },
+                { typeof(global::Staple.Internal.SerializableTexture), 46 },
+                { typeof(global::Staple.Internal.SerializableTextureHeader), 47 },
+                { typeof(global::Staple.Internal.ShaderMetadata), 48 },
+                { typeof(global::Staple.Internal.ShaderUniform), 49 },
+                { typeof(global::Staple.Internal.TextureMetadata), 50 },
+                { typeof(global::Staple.Internal.TextureMetadataOverride), 51 },
+                { typeof(global::Staple.Internal.Vector2Holder), 52 },
+                { typeof(global::Staple.Internal.Vector3Holder), 53 },
+                { typeof(global::Staple.Internal.Vector4Holder), 54 },
+                { typeof(global::Staple.Vector2Int), 55 },
             };
         }
 
@@ -142,35 +145,38 @@ namespace MessagePack.Resolvers
                 case 21: return new MessagePack.Formatters.Staple.Internal.TextureWrapFormatter();
                 case 22: return new MessagePack.Formatters.Staple.RendererTypeFormatter();
                 case 23: return new MessagePack.Formatters.Staple.WindowModeFormatter();
-                case 24: return new MessagePack.Formatters.Staple.AppSettingsFormatter();
-                case 25: return new MessagePack.Formatters.Staple.ColliderMask_ItemFormatter();
-                case 26: return new MessagePack.Formatters.Staple.Color32Formatter();
-                case 27: return new MessagePack.Formatters.Staple.Internal.AppSettingsHeaderFormatter();
-                case 28: return new MessagePack.Formatters.Staple.Internal.MaterialMetadataFormatter();
-                case 29: return new MessagePack.Formatters.Staple.Internal.MaterialParameterFormatter();
-                case 30: return new MessagePack.Formatters.Staple.Internal.ResourcePak_EntryFormatter();
-                case 31: return new MessagePack.Formatters.Staple.Internal.ResourcePak_HeaderFormatter();
-                case 32: return new MessagePack.Formatters.Staple.Internal.SceneComponentFormatter();
-                case 33: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterFormatter();
-                case 34: return new MessagePack.Formatters.Staple.Internal.SceneListFormatter();
-                case 35: return new MessagePack.Formatters.Staple.Internal.SceneListHeaderFormatter();
-                case 36: return new MessagePack.Formatters.Staple.Internal.SceneObjectFormatter();
-                case 37: return new MessagePack.Formatters.Staple.Internal.SceneObjectTransformFormatter();
-                case 38: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialFormatter();
-                case 39: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialHeaderFormatter();
-                case 40: return new MessagePack.Formatters.Staple.Internal.SerializableSceneFormatter();
-                case 41: return new MessagePack.Formatters.Staple.Internal.SerializableSceneHeaderFormatter();
-                case 42: return new MessagePack.Formatters.Staple.Internal.SerializableShaderFormatter();
-                case 43: return new MessagePack.Formatters.Staple.Internal.SerializableShaderHeaderFormatter();
-                case 44: return new MessagePack.Formatters.Staple.Internal.SerializableTextureFormatter();
-                case 45: return new MessagePack.Formatters.Staple.Internal.SerializableTextureHeaderFormatter();
-                case 46: return new MessagePack.Formatters.Staple.Internal.ShaderMetadataFormatter();
-                case 47: return new MessagePack.Formatters.Staple.Internal.ShaderUniformFormatter();
-                case 48: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatter();
-                case 49: return new MessagePack.Formatters.Staple.Internal.TextureMetadataOverrideFormatter();
-                case 50: return new MessagePack.Formatters.Staple.Internal.Vector2HolderFormatter();
-                case 51: return new MessagePack.Formatters.Staple.Internal.Vector3HolderFormatter();
-                case 52: return new MessagePack.Formatters.Staple.Internal.Vector4HolderFormatter();
+                case 24: return new MessagePack.Formatters.Staple.AABBFormatter();
+                case 25: return new MessagePack.Formatters.Staple.AppSettingsFormatter();
+                case 26: return new MessagePack.Formatters.Staple.ColliderMask_ItemFormatter();
+                case 27: return new MessagePack.Formatters.Staple.ColorFormatter();
+                case 28: return new MessagePack.Formatters.Staple.Color32Formatter();
+                case 29: return new MessagePack.Formatters.Staple.Internal.AppSettingsHeaderFormatter();
+                case 30: return new MessagePack.Formatters.Staple.Internal.MaterialMetadataFormatter();
+                case 31: return new MessagePack.Formatters.Staple.Internal.MaterialParameterFormatter();
+                case 32: return new MessagePack.Formatters.Staple.Internal.ResourcePak_EntryFormatter();
+                case 33: return new MessagePack.Formatters.Staple.Internal.ResourcePak_HeaderFormatter();
+                case 34: return new MessagePack.Formatters.Staple.Internal.SceneComponentFormatter();
+                case 35: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterFormatter();
+                case 36: return new MessagePack.Formatters.Staple.Internal.SceneListFormatter();
+                case 37: return new MessagePack.Formatters.Staple.Internal.SceneListHeaderFormatter();
+                case 38: return new MessagePack.Formatters.Staple.Internal.SceneObjectFormatter();
+                case 39: return new MessagePack.Formatters.Staple.Internal.SceneObjectTransformFormatter();
+                case 40: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialFormatter();
+                case 41: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialHeaderFormatter();
+                case 42: return new MessagePack.Formatters.Staple.Internal.SerializableSceneFormatter();
+                case 43: return new MessagePack.Formatters.Staple.Internal.SerializableSceneHeaderFormatter();
+                case 44: return new MessagePack.Formatters.Staple.Internal.SerializableShaderFormatter();
+                case 45: return new MessagePack.Formatters.Staple.Internal.SerializableShaderHeaderFormatter();
+                case 46: return new MessagePack.Formatters.Staple.Internal.SerializableTextureFormatter();
+                case 47: return new MessagePack.Formatters.Staple.Internal.SerializableTextureHeaderFormatter();
+                case 48: return new MessagePack.Formatters.Staple.Internal.ShaderMetadataFormatter();
+                case 49: return new MessagePack.Formatters.Staple.Internal.ShaderUniformFormatter();
+                case 50: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatter();
+                case 51: return new MessagePack.Formatters.Staple.Internal.TextureMetadataOverrideFormatter();
+                case 52: return new MessagePack.Formatters.Staple.Internal.Vector2HolderFormatter();
+                case 53: return new MessagePack.Formatters.Staple.Internal.Vector3HolderFormatter();
+                case 54: return new MessagePack.Formatters.Staple.Internal.Vector4HolderFormatter();
+                case 55: return new MessagePack.Formatters.Staple.Vector2IntFormatter();
                 default: return null;
             }
         }
@@ -453,6 +459,52 @@ namespace MessagePack.Formatters.Staple
     using global::System.Buffers;
     using global::MessagePack;
 
+    public sealed class AABBFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AABB>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.AABB value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
+            writer.WriteArrayHeader(2);
+            formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Serialize(ref writer, value.center, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Serialize(ref writer, value.extents, options);
+        }
+
+        public global::Staple.AABB Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
+            var length = reader.ReadArrayHeader();
+            var __center__ = default(global::System.Numerics.Vector3);
+            var __extents__ = default(global::System.Numerics.Vector3);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __center__ = formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Deserialize(ref reader, options);
+                        break;
+                    case 1:
+                        __extents__ = formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Deserialize(ref reader, options);
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.AABB(__center__, __extents__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
     public sealed class AppSettingsFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AppSettings>
     {
 
@@ -465,7 +517,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(12);
+            writer.WriteArrayHeader(17);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -478,6 +530,11 @@ namespace MessagePack.Formatters.Staple
             writer.Write(value.defaultWindowWidth);
             writer.Write(value.defaultWindowHeight);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>().Serialize(ref writer, value.colliderMask, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appBundleID, options);
+            writer.Write(value.appVersion);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appDisplayVersion, options);
+            writer.Write(value.androidMinSDK);
+            writer.Write(value.iOSDeploymentTarget);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -531,6 +588,21 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 11:
                         ____result.colliderMask = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>().Deserialize(ref reader, options);
+                        break;
+                    case 12:
+                        ____result.appBundleID = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 13:
+                        ____result.appVersion = reader.ReadInt32();
+                        break;
+                    case 14:
+                        ____result.appDisplayVersion = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 15:
+                        ____result.androidMinSDK = reader.ReadInt32();
+                        break;
+                    case 16:
+                        ____result.iOSDeploymentTarget = reader.ReadInt32();
                         break;
                     default:
                         reader.Skip();
@@ -595,6 +667,60 @@ namespace MessagePack.Formatters.Staple
         }
     }
 
+    public sealed class ColorFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Color>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Color value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(4);
+            writer.Write(value.r);
+            writer.Write(value.g);
+            writer.Write(value.b);
+            writer.Write(value.a);
+        }
+
+        public global::Staple.Color Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            var length = reader.ReadArrayHeader();
+            var __r__ = default(float);
+            var __g__ = default(float);
+            var __b__ = default(float);
+            var __a__ = default(float);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __r__ = reader.ReadSingle();
+                        break;
+                    case 1:
+                        __g__ = reader.ReadSingle();
+                        break;
+                    case 2:
+                        __b__ = reader.ReadSingle();
+                        break;
+                    case 3:
+                        __a__ = reader.ReadSingle();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.Color(__r__, __g__, __b__, __a__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
     public sealed class Color32Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Color32>
     {
 
@@ -644,6 +770,50 @@ namespace MessagePack.Formatters.Staple
             }
 
             var ____result = new global::Staple.Color32(__r__, __g__, __b__, __a__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
+    public sealed class Vector2IntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Vector2Int>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Vector2Int value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(2);
+            writer.Write(value.X);
+            writer.Write(value.Y);
+        }
+
+        public global::Staple.Vector2Int Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            var length = reader.ReadArrayHeader();
+            var __X__ = default(int);
+            var __Y__ = default(int);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __X__ = reader.ReadInt32();
+                        break;
+                    case 1:
+                        __Y__ = reader.ReadInt32();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.Vector2Int(__X__, __Y__);
             reader.Depth--;
             return ____result;
         }
