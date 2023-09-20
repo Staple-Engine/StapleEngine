@@ -3,7 +3,6 @@ using Android.OS;
 using Staple;
 using Staple.Internal;
 using System;
-using System.IO;
 using System.Threading;
 
 namespace Player
@@ -16,6 +15,9 @@ namespace Player
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            Java.Lang.JavaSystem.LoadLibrary("log");
+            Java.Lang.JavaSystem.LoadLibrary("bgfx");
 
             var renderWindow = AndroidRenderWindow.Instance;
 
