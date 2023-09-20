@@ -125,11 +125,11 @@ namespace Staple
 
         internal static void HandleKeyEvent(AppEvent appEvent)
         {
-            KeyCode code = (KeyCode)appEvent.key.key;
+            var code = appEvent.key.key;
 
             bool pressed = appEvent.type == AppEventType.KeyDown;
 
-            InputState keyState = pressed ? InputState.FirstPress : InputState.Release;
+            var keyState = pressed ? InputState.FirstPress : InputState.Release;
 
             if (keyStates.ContainsKey(code))
             {

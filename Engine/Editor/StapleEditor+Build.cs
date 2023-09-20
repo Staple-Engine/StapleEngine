@@ -248,9 +248,14 @@ namespace Staple.Editor
                     break;
 
                 case AppPlatform.Android:
+
+                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\" -p:TargetFramework=net7.0-android";
+
+                    break;
+
                 case AppPlatform.iOS:
 
-                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\"";
+                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\" -p:TargetFramework=net7.0-ios";
 
                     break;
 

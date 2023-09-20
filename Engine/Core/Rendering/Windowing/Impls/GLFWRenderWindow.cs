@@ -1,4 +1,5 @@
-﻿using GLFW;
+﻿#if !ANDROID
+using GLFW;
 using System.Linq;
 
 namespace Staple.Internal
@@ -59,7 +60,7 @@ namespace Staple.Internal
 
             Glfw.SetKeyCallback(window, (_, key, scancode, action, mods) =>
             {
-                AppEventQueue.instance.Add(AppEvent.Key(key, scancode, action, mods));
+                AppEventQueue.instance.Add(AppEvent.Key((KeyCode)key, scancode, (InputState)action, (ModifierKeys)mods));
             });
 
             Glfw.SetCharCallback(window, (_, codepoint) =>
@@ -74,7 +75,7 @@ namespace Staple.Internal
 
             Glfw.SetMouseButtonCallback(window, (_, button, state, modifiers) =>
             {
-                AppEventQueue.instance.Add(AppEvent.Mouse(button, state, modifiers));
+                AppEventQueue.instance.Add(AppEvent.Mouse((MouseButton)button, (InputState)state, (ModifierKeys)modifiers));
             });
 
             Glfw.SetScrollCallback(window, (_, xOffset, yOffset) =>
@@ -201,3 +202,4 @@ namespace Staple.Internal
         }
     }
 }
+#endif

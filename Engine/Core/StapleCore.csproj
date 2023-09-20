@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net7.0;net7.0-android</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -39,11 +39,16 @@
 	<PublishAot>true</PublishAot>
 	<IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+
+	<Reference Include="glfwnet">
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
+	</Reference>
+
+  </ItemGroup>
 	
   <ItemGroup>
-    <Reference Include="glfwnet">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\glfwnet.dll</HintPath>
-    </Reference>
     <Reference Include="MessagePack">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
@@ -126,6 +131,7 @@
     <Compile Include="Rendering\Text\Glyph.cs" />
     <Compile Include="Rendering\Text\TextFont.cs" />
     <Compile Include="Rendering\Text\TextParameters.cs" />
+    <Compile Include="Rendering\Windowing\Impls\AndroidRenderWindow.cs" />
     <Compile Include="Rendering\Windowing\Impls\GLFWRenderWindow.cs" />
     <Compile Include="Rendering\Windowing\IRenderWindow.cs" />
     <Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />

@@ -135,15 +135,17 @@ namespace Staple.Editor
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
             var assetsDirectory = Path.Combine(basePath, "Assets");
+            var targetFramework = platformFramework[platform];
 
             var projectProperties = new Dictionary<string, string>()
             {
                 { "OutputType", "Exe" },
-                { "TargetFramework", platformFramework[platform] },
+                { "TargetFramework", targetFramework },
                 { "StripSymbols", "true" },
                 { "AppDesignerFolder", "Properties" },
                 { "OptimizationPreference", "Speed" },
                 { "Nullable", "enable" },
+                { "AllowUnsafeBlocks", "true" },
             };
 
             var platformDefinesString = "";
@@ -217,11 +219,32 @@ namespace Staple.Editor
 
             var typeRegistrationPath = Path.Combine(StapleBasePath, "Engine", "TypeRegistration", "TypeRegistration.csproj");
 
-            p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
-            p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "MessagePack.dll")) });
-            p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "JoltPhysicsSharp.dll")) });
-            p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "glfwnet.dll")) });
-            p.AddItem("Reference", "FreeTypeSharp", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "FreeTypeSharp.dll")) });
+            p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[]
+            {
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "StapleCore.dll"))
+            });
+            
+            p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[]
+            {
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "MessagePack.dll"))
+            });
+            
+            p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[]
+            {
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "JoltPhysicsSharp.dll"))
+            });
+
+            if(platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
+            {
+                p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] {
+                    new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "glfwnet.dll"))
+                });
+            }
+
+            p.AddItem("Reference", "FreeTypeSharp", new KeyValuePair<string, string>[] {
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "FreeTypeSharp.dll"))
+            });
+
             p.AddItem("ProjectReference", typeRegistrationPath,
                 new KeyValuePair<string, string>[] {
                     new("OutputItemType", "Analyzer"),

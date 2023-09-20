@@ -662,10 +662,14 @@ namespace Staple.Internal
                 resetFlags = resetFlags,
             };
 
+#if ANDROID
+            renderWindow.window = AndroidRenderWindow.Instance;
+#else
             if(Platform.IsWindows || Platform.IsLinux || Platform.IsMacOS)
             {
                 renderWindow.window = new GLFWRenderWindow();
             }
+#endif
 
             if(renderWindow.window == null)
             {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Internal
@@ -14,19 +15,60 @@ namespace Staple.Internal
         Text,
     }
 
+    internal enum InputState
+    {
+        Release,
+        Press,
+        Repeat,
+    }
+
+    internal enum MouseButton
+    {
+        Button1,
+        Button2,
+        Button3,
+        Button4,
+        Button5,
+        Button6,
+        Button7,
+        Button8,
+
+        Left = Button1,
+
+        Right = Button2,
+
+        Middle = Button3
+    }
+
+    [Flags]
+    internal enum ModifierKeys
+    {
+        Shift = 0x0001,
+
+        Control = 0x0002,
+
+        Alt = 0x0004,
+
+        Super = 0x0008,
+
+        CapsLock = 0x0010,
+
+        NumLock = 0x0020
+    }
+
     internal struct MouseEvent
     {
-        public GLFW.MouseButton button;
-        public GLFW.InputState state;
-        public GLFW.ModifierKeys modifiers;
+        public MouseButton button;
+        public InputState state;
+        public ModifierKeys modifiers;
     }
 
     internal struct KeyboardEvent
     {
-        public GLFW.Keys key;
+        public KeyCode key;
         public int scancode;
-        public GLFW.InputState state;
-        public GLFW.ModifierKeys mods;
+        public InputState state;
+        public ModifierKeys mods;
     }
 
     /// <summary>
@@ -59,7 +101,7 @@ namespace Staple.Internal
             };
         }
 
-        public static AppEvent Key(GLFW.Keys key, int scancode, GLFW.InputState state, GLFW.ModifierKeys mods)
+        public static AppEvent Key(KeyCode key, int scancode, InputState state, ModifierKeys mods)
         {
             var keyEvent = new KeyboardEvent()
             {
@@ -71,12 +113,12 @@ namespace Staple.Internal
 
             return new()
             {
-                type = state != GLFW.InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
+                type = state != InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
                 key = keyEvent,
             };
         }
 
-        public static AppEvent Mouse(GLFW.MouseButton button, GLFW.InputState state, GLFW.ModifierKeys modifiers)
+        public static AppEvent Mouse(MouseButton button, InputState state, ModifierKeys modifiers)
         {
             var mouseEvent = new MouseEvent()
             {
@@ -87,7 +129,7 @@ namespace Staple.Internal
 
             return new()
             {
-                type = state == GLFW.InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
+                type = state == InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
                 mouse = mouseEvent,
             };
         }

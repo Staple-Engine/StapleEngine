@@ -61,7 +61,7 @@ namespace Staple
         /// <summary>
         /// Whether we're running on android
         /// </summary>
-#if STAPLE_ANDROID
+#if ANDROID
         public static bool IsAndroid => true;
 #else
         public static bool IsAndroid => false;
@@ -70,7 +70,7 @@ namespace Staple
         /// <summary>
         /// Whether we're running on iOS
         /// </summary>
-#if STAPLE_IOS
+#if IOS
         public static bool IsiOS => true;
 #else
         public static bool IsiOS => false;

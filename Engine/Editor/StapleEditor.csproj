@@ -69,9 +69,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.7.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\StapleCore.csproj" />
+	<Reference Include="StapleCore">
+		<HintPath>..\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

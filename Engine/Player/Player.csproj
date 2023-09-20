@@ -45,7 +45,9 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\StapleCore.csproj" />
+	<Reference Include="StapleCore">
+		<HintPath>..\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
