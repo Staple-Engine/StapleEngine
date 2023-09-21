@@ -8,6 +8,8 @@ namespace Staple.Internal
     {
         public NativeWindow window;
 
+        public bool ContextLost { get; set; } = false;
+
         public bool IsFocused => window.IsFocused;
 
         public bool ShouldClose => Glfw.WindowShouldClose(window) || window.IsClosed;

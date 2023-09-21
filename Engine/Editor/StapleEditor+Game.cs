@@ -11,7 +11,7 @@ namespace Staple.Editor
         {
             UnloadGame();
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
             var outPath = Path.Combine(projectDirectory, "bin");
 
             var assemblyPath = Path.Combine(outPath, "Game.dll");

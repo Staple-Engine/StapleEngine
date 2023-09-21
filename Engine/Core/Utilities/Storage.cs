@@ -24,11 +24,14 @@ namespace Staple
                     return basePath;
                 }
 
-                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#if ANDROID
+                basePath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+#else
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow");
                 }
-                else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
                 {
                     basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
 
@@ -36,11 +39,11 @@ namespace Staple
                     {
                         Directory.CreateDirectory(basePath);
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
                 }
-                else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
 
@@ -56,6 +59,7 @@ namespace Staple
                 {
                     //TODO: Other platforms
                 }
+#endif
 
                 return basePath;
             }

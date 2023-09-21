@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 
 namespace Staple.Editor
 {
@@ -27,7 +28,7 @@ namespace Staple.Editor
 
         internal void UpdateCSProj(AppPlatform platform)
         {
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
 
             try
             {
@@ -47,7 +48,7 @@ namespace Staple.Editor
         {
             using var collection = new ProjectCollection();
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
             var assetsDirectory = Path.Combine(basePath, "Assets");
 
             var projectProperties = new Dictionary<string, string>()
@@ -133,7 +134,15 @@ namespace Staple.Editor
         {
             using var collection = new ProjectCollection();
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
+            }
+            catch(Exception)
+            {
+            }
+
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
             var assetsDirectory = Path.Combine(basePath, "Assets");
             var targetFramework = platformFramework[platform];
 
@@ -204,6 +213,7 @@ namespace Staple.Editor
                     p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
                     p.SetProperty("EnableLLVM", "True");
+                    p.SetProperty("RuntimeIdentifiers", "android-arm64");
 
                     break;
 
@@ -329,6 +339,9 @@ namespace Staple.Editor
 
                     return true;
                 }
+
+                MakeDirectory(Path.Combine(projectDirectory, "lib"));
+                MakeDirectory(Path.Combine(projectDirectory, "lib", "arm64-v8a"));
 
                 MakeDirectory(Path.Combine(projectDirectory, "Resources"));
                 MakeDirectory(Path.Combine(projectDirectory, "Resources", "values"));

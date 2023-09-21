@@ -37,6 +37,8 @@ namespace Staple.Internal
         public object renderLock = new();
         private bool renderThreadReady = false;
         private Thread renderThread;
+        private bgfx.Init init = new bgfx.Init();
+        private AppPlatform currentPlatform;
 
         public static RendererType CurrentRenderer;
 
@@ -53,6 +55,35 @@ namespace Staple.Internal
             {
                 SingleThreadLoop();
             }
+        }
+
+        private void CheckContextLost()
+        {
+            //TODO
+            /*
+            if (window.ContextLost)
+            {
+                window.ContextLost = false;
+
+                bgfx.shutdown();
+
+                unsafe
+                {
+                    init.platformData.nwh = window.WindowPointer(currentPlatform).ToPointer();
+
+                    fixed(bgfx.Init *i = &init)
+                    {
+                        bgfx.init(i);
+                    }
+
+                    window.GetWindowSize(out var width, out var height);
+
+                    bgfx.reset((ushort)width, (ushort)height, (uint)resetFlags, bgfx.TextureFormat.RGBA8);
+                }
+
+                //TODO: Re-init all resources
+            }
+            */
         }
 
         private void SingleThreadLoop()
@@ -109,6 +140,8 @@ namespace Staple.Internal
                     {
                     }
                 }
+
+                CheckContextLost();
 
                 if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
                 {
@@ -255,6 +288,8 @@ namespace Staple.Internal
                     }
                 }
 
+                CheckContextLost();
+
                 if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
                 {
                     hasFocus = window.IsFocused;
@@ -347,12 +382,16 @@ namespace Staple.Internal
 
         private void InitBGFX()
         {
-            var init = new bgfx.Init();
             var renderers = new List<RendererType>();
+
+            init = new bgfx.Init();
 
             unsafe
             {
-                bgfx.init_ctor(&init);
+                fixed(bgfx.Init *i = &init)
+                {
+                    bgfx.init_ctor(i);
+                }
 
                 init.platformData.ndt = null;
 
@@ -381,10 +420,12 @@ namespace Staple.Internal
                     return;
                 }
 
-                init.platformData.ndt = window.MonitorPointer(platform.Value).ToPointer();
-                init.platformData.nwh = window.WindowPointer(platform.Value).ToPointer();
+                currentPlatform = platform.Value;
 
-                if (appSettings.renderers.TryGetValue(platform.Value, out renderers) == false)
+                init.platformData.ndt = window.MonitorPointer(currentPlatform).ToPointer();
+                init.platformData.nwh = window.WindowPointer(currentPlatform).ToPointer();
+
+                if (appSettings.renderers.TryGetValue(currentPlatform, out renderers) == false)
                 {
                     Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
 
@@ -469,7 +510,10 @@ namespace Staple.Internal
 
                     unsafe
                     {
-                        ok = bgfx.init(&init);
+                        fixed(bgfx.Init *i = &init)
+                        {
+                            ok = bgfx.init(i);
+                        }
 
                         if (ok)
                         {

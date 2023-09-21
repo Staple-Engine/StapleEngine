@@ -15,11 +15,13 @@ namespace Staple.Editor
                 progressFraction = 0;
             }
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
             var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", platform.ToString());
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
 
             GeneratePlayerCSProj(platform);
+
+            RefreshStaging(platform, false);
 
             lock (backgroundLock)
             {
@@ -175,12 +177,7 @@ namespace Staple.Editor
 
             if(Directory.Exists(redistPath))
             {
-                var dependencies = new string[]
-                {
-                    Directory.GetFiles(redistPath, "*bgfx.*").FirstOrDefault(),
-                    Directory.GetFiles(redistPath, "*glfw.*").FirstOrDefault(),
-                    Directory.GetFiles(redistPath, "*joltc.*").FirstOrDefault(),
-                };
+                var dependencies = Directory.GetFiles(redistPath);
 
                 foreach (var file in dependencies)
                 {
@@ -191,7 +188,20 @@ namespace Staple.Editor
 
                     try
                     {
-                        File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
+                        switch(platform)
+                        {
+                            case AppPlatform.Android:
+
+                                File.Copy(file, Path.Combine(projectDirectory, "lib", "arm64-v8a", file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
+
+                                break;
+
+                            default:
+
+                                File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
+
+                                break;
+                        }
                     }
                     catch (Exception e)
                     {
@@ -309,7 +319,7 @@ namespace Staple.Editor
         {
             using var collection = new ProjectCollection();
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
             var projectPath = Path.Combine(projectDirectory, "Game.csproj");
             var outPath = Path.Combine(projectDirectory, "bin");
 

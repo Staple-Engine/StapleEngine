@@ -18,6 +18,10 @@ namespace Staple.Internal
         /// </summary>
         public List<string> resourcePaths = new();
 
+#if ANDROID
+        internal Android.Content.Res.AssetManager assetManager;
+#endif
+
         private readonly Dictionary<string, Texture> cachedTextures = new();
         private readonly Dictionary<string, Material> cachedMaterials = new();
         private readonly Dictionary<string, Shader> cachedShaders = new();
@@ -45,7 +49,17 @@ namespace Staple.Internal
                     return false;
                 }
 
+#if ANDROID
+                var s = assetManager.Open(path);
+
+                var stream = new MemoryStream();
+
+                s.CopyTo(stream);
+
+                stream.Position = 0;
+#else
                 var stream = File.OpenRead(path);
+#endif
 
                 var resourcePak = new ResourcePak();
 

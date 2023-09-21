@@ -2,6 +2,8 @@
 {
     internal interface IRenderWindow
     {
+        bool ContextLost { get; set; }
+
         bool IsFocused { get; }
 
         bool ShouldClose { get; }

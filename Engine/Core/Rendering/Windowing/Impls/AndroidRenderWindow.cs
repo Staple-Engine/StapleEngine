@@ -10,17 +10,56 @@ namespace Staple.Internal
 {
     internal class AndroidRenderWindow : IRenderWindow
     {
-        public bool isInBackground = false;
-        public bool shouldClose = false;
-        public int screenWidth;
-        public int screenHeight;
-        public nint window;
+        internal bool isInBackground = false;
+        internal bool shouldClose = false;
+        internal int screenWidth;
+        internal int screenHeight;
+        internal nint window;
+        internal bool contextLost = false;
+        internal object lockObject = new();
 
         public static AndroidRenderWindow Instance = new();
 
-        public bool IsFocused => isInBackground == false;
+        public bool IsFocused
+        {
+            get
+            {
+                lock(lockObject)
+                {
+                    return isInBackground == false;
+                }
+            }
+        }
 
-        public bool ShouldClose => shouldClose;
+        public bool ShouldClose
+        {
+            get
+            {
+                lock(lockObject)
+                {
+                    return shouldClose;
+                }
+            }
+        }
+
+        public bool ContextLost
+        {
+            get
+            {
+                lock(lockObject)
+                {
+                    return contextLost;
+                }
+            }
+
+            set
+            {
+                lock(lockObject)
+                {
+                    contextLost = value;
+                }
+            }
+        }
 
         public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex)
         {

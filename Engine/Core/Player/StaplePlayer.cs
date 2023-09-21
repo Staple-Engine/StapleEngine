@@ -54,6 +54,8 @@ namespace Staple
             }
             catch (Exception e)
             {
+                Console.WriteLine($"Failed to load appsettings: {e}");
+
                 Environment.Exit(1);
 
                 return;
