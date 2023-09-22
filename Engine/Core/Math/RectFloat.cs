@@ -4,8 +4,10 @@ namespace Staple
 {
     public struct RectFloat
     {
-        public Vector2 position;
-        public Vector2 size;
+        public float left;
+        public float right;
+        public float top;
+        public float bottom;
 
         public RectFloat()
         {
@@ -13,34 +15,26 @@ namespace Staple
 
         public RectFloat(Vector2 position, Vector2 size)
         {
-            this.position = position;
-            this.size = size;
+            left = position.X;
+            top = position.Y;
+            right = position.X + size.X;
+            bottom = position.Y + size.Y;
         }
 
-        public RectFloat(float x, float y, float width, float height)
+        public RectFloat(float left, float right, float top, float bottom)
         {
-            position = new(x, y);
-            size = new(width, height);
+            this.left = left;
+            this.right = right;
+            this.top = top;
+            this.bottom = bottom;
         }
 
-        public readonly Vector2 Min => position;
+        public readonly Vector2 Min => new Vector2(left, top);
 
-        public readonly Vector2 Max => position + size;
+        public readonly Vector2 Max => new Vector2(right, bottom);
 
-        public readonly float Width => size.X;
+        public readonly float Width => right - left;
 
-        public readonly float Height => size.Y;
-
-        public readonly float X => position.X;
-
-        public readonly float Y => position.Y;
-
-        public readonly float XMin => position.X;
-
-        public readonly float YMin => position.Y;
-
-        public readonly float XMax => position.X + size.X;
-
-        public readonly float YMax => position.Y + size.Y;
+        public readonly float Height => bottom - top;
     }
 }

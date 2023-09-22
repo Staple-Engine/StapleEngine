@@ -28,6 +28,12 @@ namespace Staple
             this.Y = Y;
         }
 
+        [IgnoreMember]
+        public static readonly Vector2Int Zero = new Vector2Int();
+
+        [IgnoreMember]
+        public static readonly Vector2Int One = new Vector2Int(1, 1);
+
         public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
 
         public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new(a.X - b.X, a.Y - b.Y);

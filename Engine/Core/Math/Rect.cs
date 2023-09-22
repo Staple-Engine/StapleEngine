@@ -4,8 +4,10 @@ namespace Staple
 {
     public struct Rect
     {
-        public Vector2Int position;
-        public Vector2Int size;
+        public int left;
+        public int right;
+        public int top;
+        public int bottom;
 
         public Rect()
         {
@@ -13,34 +15,26 @@ namespace Staple
 
         public Rect(Vector2Int position, Vector2Int size)
         {
-            this.position = position;
-            this.size = size;
+            left = position.X;
+            top = position.Y;
+            right = position.X + size.X;
+            bottom = position.Y + size.Y;
         }
 
-        public Rect(int x, int y, int width, int height)
+        public Rect(int left, int right, int top, int bottom)
         {
-            position = new(x, y);
-            size = new(width, height);
+            this.left = left;
+            this.right = right;
+            this.top = top;
+            this.bottom = bottom;
         }
 
-        public readonly Vector2Int Min => position;
+        public readonly Vector2Int Min => new Vector2Int(left, top);
 
-        public readonly Vector2Int Max => position + size;
+        public readonly Vector2Int Max => new Vector2Int(right, bottom);
 
-        public readonly int Width => size.X;
+        public readonly int Width => right - left;
 
-        public readonly int Height => size.Y;
-
-        public readonly int X => position.X;
-
-        public readonly int Y => position.Y;
-
-        public readonly int XMin => position.X;
-
-        public readonly int YMin => position.Y;
-
-        public readonly int XMax => position.X + size.X;
-
-        public readonly int YMax => position.Y + size.Y;
+        public readonly int Height => bottom - top;
     }
 }

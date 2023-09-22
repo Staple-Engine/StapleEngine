@@ -161,13 +161,12 @@ namespace Staple.Internal
 
                 glyph.advance = (int)(bitmapGlyph->root.advance.x.ToInt64() >> 16);
 
-                var width = bitmap.width;
-                var height = bitmap.rows;
+                var width = (int)bitmap.width;
+                var height = (int)bitmap.rows;
 
                 if(width > 0 && height > 0)
                 {
-                    glyph.bounds.position = new Vector2Int(bitmapGlyph->left, bitmapGlyph->top);
-                    glyph.bounds.size = new Vector2Int((int)width, (int)height);
+                    glyph.bounds = new Rect(bitmapGlyph->left, bitmapGlyph->left + width, bitmapGlyph->top, bitmapGlyph->top + height);
 
                     var pixelBuffer = new byte[width * height * 4];
 

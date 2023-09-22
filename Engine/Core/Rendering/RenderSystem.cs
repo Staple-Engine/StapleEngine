@@ -53,6 +53,8 @@ namespace Staple
 
         internal static byte Priority = 1;
 
+        private TextRenderer textRenderer = new();
+
         /// <summary>
         /// Calculates the blending function for blending flags
         /// </summary>

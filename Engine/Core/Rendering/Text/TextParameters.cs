@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Staple.Internal;
 
 namespace Staple
@@ -13,7 +14,7 @@ namespace Staple
         public float rotation;
         public int fontSize = 12;
 
-        internal TextFont font;
+        internal WeakReference<TextFont> font;
 
         public TextParameters Clone()
         {
@@ -75,6 +76,13 @@ namespace Staple
         public TextParameters Position(Vector2 position)
         {
             this.position = position;
+
+            return this;
+        }
+
+        internal TextParameters Font(TextFont font)
+        {
+            this.font = new WeakReference<TextFont>(font);
 
             return this;
         }
