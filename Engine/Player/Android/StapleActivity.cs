@@ -151,6 +151,7 @@ namespace Player
 
             var surfaceView = FindViewById<SurfaceView>(Resource.Id.surface);
 
+            surfaceView.Holder.SetKeepScreenOn(true);
             surfaceView.Holder.AddCallback(this);
         }
 
