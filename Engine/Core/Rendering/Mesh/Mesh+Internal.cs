@@ -84,6 +84,8 @@ namespace Staple
                     };
 
                     _quad.UploadMeshData();
+
+                    defaultMeshes.Add("Internal/Quad", _quad);
                 }
 
                 return _quad;
@@ -122,6 +124,8 @@ namespace Staple
                     };
 
                     _cube.UploadMeshData();
+
+                    defaultMeshes.Add("Internal/Cube", _quad);
                 }
 
                 return _cube;
@@ -444,12 +448,6 @@ namespace Staple
 
         internal static Mesh GetDefaultMesh(string path)
         {
-            if(defaultMeshes.Count == 0)
-            {
-                defaultMeshes.Add("Internal/Quad", Quad);
-                defaultMeshes.Add("Internal/Cube", Cube);
-            }
-
             if(defaultMeshes.TryGetValue(path, out var mesh))
             {
                 return mesh;

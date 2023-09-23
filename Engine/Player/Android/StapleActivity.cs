@@ -29,6 +29,9 @@ namespace Player
         [DllImport("android", CallingConvention = CallingConvention.Cdecl)]
         private extern static nint ANativeWindow_fromSurface(nint env, nint surface);
 
+        [DllImport("nativewindow", CallingConvention = CallingConvention.Cdecl)]
+        private extern static nint ANativeWindow_release(nint window);
+
         private void InitIfNeeded()
         {
             if(loopThread == null)
@@ -67,6 +70,11 @@ namespace Player
 
             renderWindow.screenWidth = width;
             renderWindow.screenHeight = height;
+
+            if(renderWindow.window != nint.Zero)
+            {
+                ANativeWindow_release(renderWindow.window);
+            }
 
             renderWindow.window = nativeWindow;
 

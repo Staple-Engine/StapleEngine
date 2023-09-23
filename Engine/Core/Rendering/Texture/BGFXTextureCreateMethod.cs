@@ -40,6 +40,7 @@ namespace Staple.Internal
 
                     texture.path = path;
                     texture.metadata = metadata;
+                    texture.info = info;
 
                     return true;
                 }

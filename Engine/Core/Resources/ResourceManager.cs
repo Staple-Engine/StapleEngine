@@ -127,22 +127,32 @@ namespace Staple.Internal
         /// </summary>
         internal void RecreateResources()
         {
+            Log.Debug("Recreating resources");
+
             try
             {
-                Material.WhiteTexture?.Create();
+                if(Material.WhiteTexture?.Create() ?? false)
+                {
+                    Log.Debug("Recreated default white texture");
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Log.Debug($"Failed to recreate default white texture: {e}");
             }
 
             foreach (var pair in cachedTextures)
             {
                 try
                 {
-                    pair.Value?.Create();
+                    if(pair.Value?.Create() ?? false)
+                    {
+                        Log.Debug($"Recreated texture {pair.Key}");
+                    }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"Failed to recreate texture: {e}");
                 }
             }
 
@@ -150,10 +160,14 @@ namespace Staple.Internal
             {
                 try
                 {
-                    pair.Value?.Create();
+                    if (pair.Value?.Create() ?? false)
+                    {
+                        Log.Debug($"Recreated shader {pair.Key}");
+                    }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"Failed to recreate shader: {e}");
                 }
             }
 
@@ -162,20 +176,28 @@ namespace Staple.Internal
                 try
                 {
                     pair.Value?.Recreate();
+
+                    Log.Debug($"Recreated mesh {pair.Key}");
                 }
-                catch(Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"Failed to recreate mesh: {e}");
                 }
             }
+
+            Log.Debug($"Recreating {Mesh.defaultMeshes.Count} default meshes");
 
             foreach (var pair in Mesh.defaultMeshes)
             {
                 try
                 {
                     pair.Value?.Recreate();
+
+                    Log.Debug($"Recreated mesh {pair.Key}");
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"Failed to recreate mesh: {e}");
                 }
             }
         }
