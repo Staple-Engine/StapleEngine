@@ -68,21 +68,22 @@ namespace Player
 
             var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
 
-            var renderWindow = AndroidRenderWindow.Instance;
-
-            renderWindow.screenWidth = width;
-            renderWindow.screenHeight = height;
-
-            Log.Debug($"Screen size: {width}x{height}");
-
-            renderWindow.window = nativeWindow;
-
-            if (loopThread != null)
+            AndroidRenderWindow.Instance.Mutate((renderWindow) =>
             {
-                renderWindow.ContextLost = true;
+                renderWindow.screenWidth = width;
+                renderWindow.screenHeight = height;
 
-                return;
-            }
+                Log.Debug($"Screen size: {width}x{height}");
+
+                renderWindow.window = nativeWindow;
+
+                if (loopThread != null)
+                {
+                    renderWindow.ContextLost = true;
+
+                    return;
+                }
+            });
 
             InitIfNeeded();
         }

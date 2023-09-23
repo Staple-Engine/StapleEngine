@@ -130,7 +130,7 @@ namespace Staple.Editor
             p.Save(Path.Combine(projectDirectory, "Game.csproj"));
         }
 
-        private void GeneratePlayerCSProj(AppPlatform platform)
+        private void GeneratePlayerCSProj(AppPlatform platform, bool debug)
         {
             using var collection = new ProjectCollection();
 
@@ -145,6 +145,7 @@ namespace Staple.Editor
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
             var assetsDirectory = Path.Combine(basePath, "Assets");
             var targetFramework = platformFramework[platform];
+            var configurationName = debug ? "Debug" : "Release";
 
             var projectProperties = new Dictionary<string, string>()
             {
@@ -231,28 +232,28 @@ namespace Staple.Editor
 
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[]
             {
-                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "StapleCore.dll"))
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "StapleCore.dll"))
             });
             
             p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[]
             {
-                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "MessagePack.dll"))
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "MessagePack.dll"))
             });
             
             p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[]
             {
-                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "JoltPhysicsSharp.dll"))
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "JoltPhysicsSharp.dll"))
             });
 
             if(platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
             {
                 p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] {
-                    new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "glfwnet.dll"))
+                    new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "glfwnet.dll"))
                 });
             }
 
             p.AddItem("Reference", "FreeTypeSharp", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", "Release", targetFramework, "FreeTypeSharp.dll"))
+                new("HintPath", Path.Combine(StapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "FreeTypeSharp.dll"))
             });
 
             p.AddItem("ProjectReference", typeRegistrationPath,

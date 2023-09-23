@@ -180,6 +180,8 @@ namespace Staple.Internal
                 }
             }
 
+            Disposed = false;
+
             return true;
         }
 

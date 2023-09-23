@@ -171,11 +171,21 @@ namespace Staple.Internal
                 }
             }
 
+            foreach (var pair in cachedMaterials)
+            {
+                if(pair.Value == null)
+                {
+                    continue;
+                }
+
+                pair.Value.Disposed = false;
+            }
+
             foreach (var pair in cachedMeshes)
             {
                 try
                 {
-                    pair.Value?.Recreate();
+                    pair.Value?.UploadMeshData();
 
                     Log.Debug($"Recreated mesh {pair.Key}");
                 }
@@ -185,13 +195,11 @@ namespace Staple.Internal
                 }
             }
 
-            Log.Debug($"Recreating {Mesh.defaultMeshes.Count} default meshes");
-
             foreach (var pair in Mesh.defaultMeshes)
             {
                 try
                 {
-                    pair.Value?.Recreate();
+                    pair.Value?.UploadMeshData();
 
                     Log.Debug($"Recreated mesh {pair.Key}");
                 }

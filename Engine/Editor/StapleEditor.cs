@@ -164,6 +164,8 @@ namespace Staple.Editor
 
         private AppPlatform currentPlatform = AppPlatform.Windows;
 
+        private bool buildPlayerDebug = false;
+
         private bool showingProgress = false;
 
         private float progressFraction = 0;

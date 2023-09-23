@@ -20,8 +20,4 @@
     <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/JoltPhysics/$(Configuration)/*.[DLL] $(TargetDir)" />
-  </Target>
-
 </Project>

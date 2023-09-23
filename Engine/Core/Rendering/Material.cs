@@ -52,6 +52,11 @@ namespace Staple
         /// </summary>
         public bool Disposed { get; internal set; } = false;
 
+        ~Material()
+        {
+            Destroy();
+        }
+
         /// <summary>
         /// Destroys this material's resources.
         /// </summary>
@@ -65,11 +70,6 @@ namespace Staple
             Disposed = true;
 
             shader?.Destroy();
-        }
-
-        ~Material()
-        {
-            Destroy();
         }
 
         /// <summary>

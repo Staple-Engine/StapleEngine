@@ -72,7 +72,12 @@ namespace Staple.Internal
         /// <param name="count">The amount of indices to use</param>
         public void SetActive(uint start, uint count)
         {
-            if(handle.Valid)
+            if (Disposed)
+            {
+                return;
+            }
+
+            if (handle.Valid)
             {
                 bgfx.set_index_buffer(handle, start, count);
             }

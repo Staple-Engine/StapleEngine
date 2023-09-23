@@ -76,7 +76,17 @@ namespace Staple
 
         internal bool Create()
         {
-            return renderTarget || createMethod.Create(this);
+            if(renderTarget && Disposed)
+            {
+                return false;
+            }
+
+            if(renderTarget || createMethod.Create(this))
+            {
+                Disposed = false;
+            }
+
+            return true;
         }
 
         /// <summary>

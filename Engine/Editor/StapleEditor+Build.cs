@@ -8,7 +8,7 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        public void BuildPlayer(AppPlatform platform, string outPath)
+        public void BuildPlayer(AppPlatform platform, string outPath, bool debug)
         {
             lock(backgroundLock)
             {
@@ -18,8 +18,9 @@ namespace Staple.Editor
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
             var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", platform.ToString());
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
+            var configurationName = debug ? "Debug" : "Release";
 
-            GeneratePlayerCSProj(platform);
+            GeneratePlayerCSProj(platform, debug);
 
             RefreshStaging(platform, false);
 
@@ -173,7 +174,7 @@ namespace Staple.Editor
                 return;
             }
 
-            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", buildPlatform.ToString());
+            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", configurationName, buildPlatform.ToString());
 
             if(Directory.Exists(redistPath))
             {
@@ -253,25 +254,25 @@ namespace Staple.Editor
                 case AppPlatform.Linux:
                 case AppPlatform.MacOSX:
 
-                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained";
 
                     break;
 
                 case AppPlatform.Android:
 
-                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\" -p:TargetFramework=net7.0-android";
+                    args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-android";
 
                     break;
 
                 case AppPlatform.iOS:
 
-                    args = $" build \"{projectPath}\" -c Release -o \"{outPath}\" -p:TargetFramework=net7.0-ios";
+                    args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-ios";
 
                     break;
 
                 default:
 
-                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c Release -o \"{outPath}\" --self-contained";
+                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained";
 
                     break;
             }

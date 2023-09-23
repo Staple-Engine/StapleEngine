@@ -1,6 +1,4 @@
 ﻿#if ANDROID
-using Android.App;
-using Android.Views;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -19,6 +17,14 @@ namespace Staple.Internal
         internal object lockObject = new();
 
         public static AndroidRenderWindow Instance = new();
+
+        public void Mutate(Action<AndroidRenderWindow> callback)
+        {
+            lock(lockObject)
+            {
+                callback(this);
+            }
+        }
 
         public bool IsFocused
         {
@@ -72,18 +78,27 @@ namespace Staple.Internal
 
         public void EnterBackground()
         {
-            isInBackground = true;
+            lock(lockObject)
+            {
+                isInBackground = true;
+            }
         }
 
         public void EnterForeground()
         {
-            isInBackground = false;
+            lock(lockObject)
+            {
+                isInBackground = false;
+            }
         }
 
         public void GetWindowSize(out int width, out int height)
         {
-            width = screenWidth;
-            height = screenHeight;
+            lock(lockObject)
+            {
+                width = screenWidth;
+                height = screenHeight;
+            }
         }
 
         public void HideCursor()
@@ -121,7 +136,10 @@ namespace Staple.Internal
 
         public nint WindowPointer(AppPlatform platform)
         {
-            return window;
+            lock(lockObject)
+            {
+                return window;
+            }
         }
     }
 }

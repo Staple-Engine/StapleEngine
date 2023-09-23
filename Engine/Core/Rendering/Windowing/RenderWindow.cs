@@ -63,21 +63,11 @@ namespace Staple.Internal
             {
                 window.ContextLost = false;
 
+                ResourceManager.instance.Destroy();
+
                 bgfx.shutdown();
 
-                unsafe
-                {
-                    init.platformData.nwh = window.WindowPointer(currentPlatform).ToPointer();
-
-                    fixed(bgfx.Init *i = &init)
-                    {
-                        bgfx.init(i);
-                    }
-
-                    window.GetWindowSize(out var width, out var height);
-
-                    bgfx.reset((ushort)width, (ushort)height, (uint)resetFlags, bgfx.TextureFormat.RGBA8);
-                }
+                InitBGFX();
 
                 ResourceManager.instance.RecreateResources();
             }

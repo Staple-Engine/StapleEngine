@@ -15,7 +15,10 @@ namespace Staple.Internal
         public bgfx.TransientVertexBuffer transientHandle;
         public readonly VertexBufferType type;
 
-        private bool destroyed = false;
+        /// <summary>
+        /// Whether this was destroyed
+        /// </summary>
+        internal bool Disposed { get; private set; } = false;
 
         internal unsafe VertexBuffer(VertexLayout layout, bgfx.VertexBufferHandle handle)
         {
@@ -54,12 +57,12 @@ namespace Staple.Internal
         /// </summary>
         internal void Destroy()
         {
-            if (destroyed)
+            if (Disposed)
             {
                 return;
             }
 
-            destroyed = true;
+            Disposed = true;
 
             switch(type)
             {
@@ -70,6 +73,8 @@ namespace Staple.Internal
                         bgfx.destroy_vertex_buffer(handle);
                     }
 
+                    handle = default;
+
                     break;
 
                 case VertexBufferType.Dynamic:
@@ -78,6 +83,8 @@ namespace Staple.Internal
                     {
                         bgfx.destroy_dynamic_vertex_buffer(dynamicHandle);
                     }
+
+                    dynamicHandle = default;
 
                     break;
             }
@@ -91,7 +98,12 @@ namespace Staple.Internal
         /// <param name="count">Vertex count to use</param>
         internal void SetActive(byte stream, uint start, uint count)
         {
-            if(handle.Valid)
+            if (Disposed)
+            {
+                return;
+            }
+
+            if (handle.Valid)
             {
                 bgfx.set_vertex_buffer(stream, handle, start, count);
             }
@@ -119,7 +131,12 @@ namespace Staple.Internal
         /// <param name="startVertex">The starting vertex</param>
         public void Update<T>(T[] data, int startVertex) where T: unmanaged
         {
-            if(type != VertexBufferType.Dynamic)
+            if (Disposed)
+            {
+                return;
+            }
+
+            if (type != VertexBufferType.Dynamic)
             {
                 return;
             }
@@ -166,6 +183,11 @@ namespace Staple.Internal
         /// <param name="startVertex">The starting vertex</param>
         public void Update(byte[] data, int startVertex)
         {
+            if (Disposed)
+            {
+                return;
+            }
+
             if (type != VertexBufferType.Dynamic)
             {
                 return;

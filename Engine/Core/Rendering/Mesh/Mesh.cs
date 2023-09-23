@@ -587,14 +587,6 @@ namespace Staple
             indexBuffer = null;
         }
 
-        public void Recreate()
-        {
-            vertexBuffer = null;
-            indexBuffer = null;
-
-            UploadMeshData();
-        }
-
         public void UploadMeshData()
         {
             changed = false;
@@ -722,6 +714,7 @@ namespace Staple
             if(indexBuffer == null)
             {
                 vertexBuffer?.Destroy();
+                vertexBuffer = null;
             }
 
             bounds = AABB.FromPoints(vertices);

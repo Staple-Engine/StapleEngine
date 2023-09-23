@@ -600,6 +600,8 @@ namespace Staple.Editor
 
                 buildPlatform = values[EditorGUI.Dropdown("Platform", valueStrings, current)];
 
+                buildPlayerDebug = EditorGUI.Toggle("Debug Build", buildPlayerDebug);
+
                 if(EditorGUI.Button("Build"))
                 {
                     var result = Nfd.PickFolder(Path.GetFullPath(basePath), out var path);
@@ -613,7 +615,7 @@ namespace Staple.Editor
 
                         StartBackgroundTask((ref float progressFraction) =>
                         {
-                            BuildPlayer(buildPlatform, path);
+                            BuildPlayer(buildPlatform, path, buildPlayerDebug);
 
                             return true;
                         });
