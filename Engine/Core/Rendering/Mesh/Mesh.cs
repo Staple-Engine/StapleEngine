@@ -587,6 +587,14 @@ namespace Staple
             indexBuffer = null;
         }
 
+        public void Recreate()
+        {
+            vertexBuffer = null;
+            indexBuffer = null;
+
+            UploadMeshData();
+        }
+
         public void UploadMeshData()
         {
             changed = false;

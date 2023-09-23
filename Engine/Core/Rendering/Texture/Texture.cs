@@ -9,11 +9,13 @@ namespace Staple
     /// </summary>
     public class Texture
     {
-        internal readonly bgfx.TextureHandle handle;
-        internal readonly bgfx.TextureInfo info;
-        internal readonly TextureMetadata metadata;
+        internal bgfx.TextureHandle handle;
+        internal bgfx.TextureInfo info;
+        internal TextureMetadata metadata;
         internal string path;
         internal bool renderTarget = false;
+
+        private ITextureCreateMethod createMethod;
 
         public bool Disposed { get; private set; } = false;
 
@@ -37,18 +39,17 @@ namespace Staple
         /// </summary>
         public int SpriteHeight => (int)(info.height * metadata.spriteScale);
 
-        internal Texture(string path, TextureMetadata metadata, bgfx.TextureHandle handle, bgfx.TextureInfo info)
+        /// <summary>
+        /// Create a texture from an existing bgfx texture
+        /// </summary>
+        /// <param name="textureHandle">The handle</param>
+        /// <param name="width">The texture's width</param>
+        /// <param name="height">The texture's height</param>
+        /// <param name="readBack">Whether it can be read back</param>
+        internal Texture(bgfx.TextureHandle textureHandle, ushort width, ushort height, bool readBack)
         {
-            this.path = path;
-            this.metadata = metadata;
-            this.handle = handle;
-            this.info = info;
-        }
-
-        internal Texture(bgfx.TextureHandle handle, ushort width, ushort height, bool readBack, bool renderTarget)
-        {
-            this.handle = handle;
-            this.renderTarget = renderTarget;
+            handle = textureHandle;
+            renderTarget = true;
 
             metadata = new TextureMetadata()
             {
@@ -63,9 +64,19 @@ namespace Staple
             };
         }
 
+        internal Texture(ITextureCreateMethod createMethod)
+        {
+            this.createMethod = createMethod;
+        }
+
         ~Texture()
         {
             Destroy();
+        }
+
+        internal bool Create()
+        {
+            return renderTarget || createMethod.Create(this);
         }
 
         /// <summary>
@@ -73,14 +84,14 @@ namespace Staple
         /// </summary>
         internal void Destroy()
         {
-            if(Disposed)
+            if (Disposed)
             {
                 return;
             }
 
             Disposed = true;
 
-            if(handle.Valid)
+            if (handle.Valid)
             {
                 bgfx.destroy_texture(handle);
             }
@@ -108,20 +119,9 @@ namespace Staple
         /// <returns>The texture or null</returns>
         public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
-            unsafe
-            {
-                var handle = bgfx.create_texture_2d(width, height, hasMips, layers, format, (ulong)flags, null);
+            var texture = new Texture(new EmptyTextureCreateMethod(width, height, hasMips, layers, format, flags));
 
-                if(handle.Valid == false)
-                {
-                    return null;
-                }
-
-                var renderTarget = flags.HasFlag(TextureFlags.RenderTarget);
-                var readBack = flags.HasFlag(TextureFlags.ReadBack);
-
-                return new Texture(handle, width, height, renderTarget, readBack);
-            }
+            return texture.Create() ? texture : null;
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Staple
                 var components = ColorComponents.Default;
                 var format = bgfx.TextureFormat.RGBA8;
 
-                switch(colorComponents)
+                switch (colorComponents)
                 {
                     case StandardTextureColorComponents.RGB:
 
@@ -174,22 +174,22 @@ namespace Staple
 
                 data = imageData.Data;
 
-                if(components == ColorComponents.Grey)
+                if (components == ColorComponents.Grey)
                 {
                     var newData = new byte[imageData.Width * imageData.Height * 3];
 
-                    for(int i = 0, index = 0; i < data.Length; i++, index += 3)
+                    for (int i = 0, index = 0; i < data.Length; i++, index += 3)
                     {
                         newData[index] = newData[index + 1] = newData[index + 2] = data[i];
                     }
 
                     data = newData;
                 }
-                else if(components == ColorComponents.GreyAlpha)
+                else if (components == ColorComponents.GreyAlpha)
                 {
                     var newData = new byte[imageData.Width * imageData.Height * 4];
 
-                    for (int i = 0, index = 0; i < data.Length; i+=2, index += 4)
+                    for (int i = 0, index = 0; i < data.Length; i += 2, index += 4)
                     {
                         newData[index] = newData[index + 1] = newData[index + 2] = data[i];
                         newData[index + 3] = data[i + 1];
@@ -205,7 +205,7 @@ namespace Staple
                     },
                     format, flags);
             }
-            catch(System.Exception e)
+            catch (System.Exception e)
             {
                 Log.Error($"[Texture] Failed to load texture at {path}: {e}");
 
@@ -227,31 +227,9 @@ namespace Staple
         public static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
             bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
-            unsafe
-            {
-                ProcessFlags(ref flags, metadata);
+            var texture = new Texture(new PixelTextureCreateMethod(path, data, width, height, metadata, format, flags));
 
-                fixed (void* ptr = data)
-                {
-                    bgfx.Memory* memory = bgfx.copy(ptr, (uint)data.Length);
-
-                    var handle = bgfx.create_texture_2d(width, height, metadata.useMipmaps, 1, format, (ulong)flags, memory);
-
-                    if (handle.Valid == false)
-                    {
-                        return null;
-                    }
-
-                    return new Texture(path, metadata, handle, new bgfx.TextureInfo()
-                    {
-                        bitsPerPixel = 24,
-                        format = format,
-                        height = height,
-                        width = width,
-                        numLayers = 1,
-                    });
-                }
-            }
+            return texture.Create() ? texture : null;
         }
 
         /// <summary>
@@ -265,26 +243,9 @@ namespace Staple
         /// <returns>The texture or null</returns>
         internal static Texture Create(string path, byte[] data, TextureMetadata metadata, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
-            unsafe
-            {
-                ProcessFlags(ref flags, metadata);
+            var texture = new Texture(new BGFXTextureCreateMethod(path, data, metadata, flags, skip));
 
-                bgfx.TextureInfo info;
-
-                fixed(void *ptr = data)
-                {
-                    bgfx.Memory* memory = bgfx.copy(ptr, (uint)data.Length);
-
-                    var handle = bgfx.create_texture(memory, (ulong)flags, skip, &info);
-
-                    if(handle.Valid == false)
-                    {
-                        return null;
-                    }
-
-                    return new Texture(path, metadata, handle, info);
-                }
-            }
+            return texture.Create() ? texture : null;
         }
 
         /// <summary>

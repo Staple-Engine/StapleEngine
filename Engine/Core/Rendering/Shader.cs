@@ -14,34 +14,13 @@ namespace Staple.Internal
         {
             public ShaderUniform uniform;
             public bgfx.UniformHandle handle;
-        }
+            public object value;
 
-        internal readonly bgfx.ShaderHandle vertexShader;
-        internal readonly bgfx.ShaderHandle fragmentShader;
-        internal readonly bgfx.ProgramHandle program;
-        internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
-
-        internal List<UniformInfo> uniforms = new();
-
-        /// <summary>
-        /// Whether this shader has been disposed
-        /// </summary>
-        public bool Disposed { get; internal set; } = false;
-
-        internal Shader(ShaderMetadata metadata, bgfx.ShaderHandle vertexShader, bgfx.ShaderHandle fragmentShader, bgfx.ProgramHandle program)
-        {
-            this.vertexShader = vertexShader;
-            this.fragmentShader = fragmentShader;
-            this.program = program;
-
-            sourceBlend = metadata.sourceBlend;
-            destinationBlend = metadata.destinationBlend;
-
-            foreach(var uniform in metadata.uniforms)
+            public bool Create()
             {
                 bgfx.UniformType type;
 
-                switch(uniform.type)
+                switch (uniform.type)
                 {
                     case ShaderUniformType.Vector4:
 
@@ -75,27 +54,133 @@ namespace Staple.Internal
 
                     default:
 
-                        continue;
+                        return false;
                 }
 
-                var handle = bgfx.create_uniform(uniform.name, type, 1);
+                handle = bgfx.create_uniform(uniform.name, type, 1);
 
-                if(handle.Valid == false)
-                {
-                    continue;
-                }
-
-                uniforms.Add(new UniformInfo()
-                {
-                    handle = handle,
-                    uniform = uniform,
-                });
+                return handle.Valid;
             }
+        }
+
+        internal bgfx.ShaderHandle vertexShader;
+        internal bgfx.ShaderHandle fragmentShader;
+        internal bgfx.ProgramHandle program;
+
+        internal readonly ShaderMetadata metadata;
+        internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
+        internal readonly byte[] vertexShaderSource;
+        internal readonly byte[] fragmentShaderSource;
+
+        internal List<UniformInfo> uniforms = new();
+
+        /// <summary>
+        /// Whether this shader has been disposed
+        /// </summary>
+        public bool Disposed { get; internal set; } = false;
+
+        internal Shader(ShaderMetadata metadata, byte[] vertexShaderSource, byte[] fragmentShaderSource)
+        {
+            this.vertexShaderSource = vertexShaderSource;
+            this.fragmentShaderSource = fragmentShaderSource;
+            this.metadata = metadata;
+
+            sourceBlend = metadata.sourceBlend;
+            destinationBlend = metadata.destinationBlend;
         }
 
         ~Shader()
         {
             Destroy();
+        }
+
+        internal unsafe bool Create()
+        {
+            bgfx.Memory* vs, fs;
+
+            fixed (void* ptr = vertexShaderSource)
+            {
+                vs = bgfx.copy(ptr, (uint)vertexShaderSource.Length);
+            }
+
+            fixed (void* ptr = fragmentShaderSource)
+            {
+                fs = bgfx.copy(ptr, (uint)fragmentShaderSource.Length);
+            }
+
+            vertexShader = bgfx.create_shader(vs);
+            fragmentShader = bgfx.create_shader(fs);
+
+            if (vertexShader.Valid == false || fragmentShader.Valid == false)
+            {
+                return false;
+            }
+
+            program = bgfx.create_program(vertexShader, fragmentShader, true);
+
+            if (program.Valid == false)
+            {
+                bgfx.destroy_shader(vertexShader);
+                bgfx.destroy_shader(fragmentShader);
+
+                return false;
+            }
+
+            if(uniforms.Count > 0)
+            {
+                foreach(var uniform in uniforms)
+                {
+                    if(uniform.Create())
+                    {
+                        if(uniform.value != null)
+                        {
+                            switch(uniform.value)
+                            {
+                                case Vector4 v:
+
+                                    SetVector4(uniform.uniform.name, v);
+
+                                    break;
+
+                                case Texture t:
+
+                                    SetTexture(uniform.uniform.name, t);
+
+                                    break;
+
+                                case Matrix3x3 m:
+
+                                    SetMatrix3x3(uniform.uniform.name, m);
+
+                                    break;
+
+                                case Matrix4x4 m:
+
+                                    SetMatrix4x4(uniform.uniform.name, m);
+
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var uniform in metadata.uniforms)
+                {
+                    var u = new UniformInfo()
+                    {
+                        uniform = uniform,
+                    };
+
+                    if (u.Create())
+                    {
+                        uniforms.Add(u);
+                    }
+                }
+            }
+
+            return true;
         }
 
         internal bgfx.StateFlags BlendingFlag()
@@ -137,6 +222,8 @@ namespace Staple.Internal
                 return;
             }
 
+            uniform.value = value;
+
             unsafe
             {
                 bgfx.set_uniform(uniform.handle, &value, 1);
@@ -164,6 +251,8 @@ namespace Staple.Internal
 
             var colorValue = new Vector4(value.r, value.g, value.b, value.a);
 
+            uniform.value = value;
+
             unsafe
             {
                 bgfx.set_uniform(uniform.handle, &colorValue, 1);
@@ -188,6 +277,8 @@ namespace Staple.Internal
             {
                 return;
             }
+
+            uniform.value = value;
 
             unsafe
             {
@@ -214,6 +305,8 @@ namespace Staple.Internal
                 return;
             }
 
+            uniform.value = value;
+
             unsafe
             {
                 bgfx.set_uniform(uniform.handle, &value, 1);
@@ -238,6 +331,8 @@ namespace Staple.Internal
             {
                 return;
             }
+
+            uniform.value = value;
 
             unsafe
             {
@@ -288,35 +383,16 @@ namespace Staple.Internal
                         return null;
 
                     case ShaderType.VertexFragment:
+
                         {
-                            bgfx.Memory* vs, fs;
+                            var shader = new Shader(data.metadata, data.vertexShader, data.fragmentShader);
 
-                            fixed (void* ptr = data.vertexShader)
+                            if(shader.Create())
                             {
-                                vs = bgfx.copy(ptr, (uint)data.vertexShader.Length);
+                                return shader;
                             }
 
-                            fixed (void* ptr = data.fragmentShader)
-                            {
-                                fs = bgfx.copy(ptr, (uint)data.fragmentShader.Length);
-                            }
-
-                            bgfx.ShaderHandle vsHandle = bgfx.create_shader(vs);
-                            bgfx.ShaderHandle fsHandle = bgfx.create_shader(fs);
-
-                            if (vsHandle.Valid == false || fsHandle.Valid == false)
-                            {
-                                return null;
-                            }
-
-                            bgfx.ProgramHandle programHandle = bgfx.create_program(vsHandle, fsHandle, true);
-
-                            if (programHandle.Valid == false)
-                            {
-                                return null;
-                            }
-
-                            return new Shader(data.metadata, vsHandle, fsHandle, programHandle);
+                            return null;
                         }
 
                     default:

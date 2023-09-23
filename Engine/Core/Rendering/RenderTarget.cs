@@ -7,7 +7,7 @@ namespace Staple
     /// <summary>
     /// Render Target resource. Used to render to texture.
     /// </summary>
-    public class RenderTarget
+    public sealed class RenderTarget
     {
         private static ulong counter = 0;
 
@@ -212,7 +212,7 @@ namespace Staple
             var width = (byte)(AppPlayer.ScreenWidth * factor);
             var height = (byte)(AppPlayer.ScreenHeight * factor);
 
-            var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack), true);
+            var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack));
 
             return new RenderTarget()
             {

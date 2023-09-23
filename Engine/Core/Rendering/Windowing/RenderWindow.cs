@@ -59,8 +59,6 @@ namespace Staple.Internal
 
         private void CheckContextLost()
         {
-            //TODO
-            /*
             if (window.ContextLost)
             {
                 window.ContextLost = false;
@@ -81,9 +79,8 @@ namespace Staple.Internal
                     bgfx.reset((ushort)width, (ushort)height, (uint)resetFlags, bgfx.TextureFormat.RGBA8);
                 }
 
-                //TODO: Re-init all resources
+                ResourceManager.instance.RecreateResources();
             }
-            */
         }
 
         private void SingleThreadLoop()

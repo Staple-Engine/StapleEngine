@@ -11,6 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "Core\StapleCo
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditorApp", "EditorApp\StapleEditorApp.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
 EndProject

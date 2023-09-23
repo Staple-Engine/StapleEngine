@@ -127,6 +127,10 @@
     <Compile Include="Physics\Physics.cs" />
     <Compile Include="Player\Platform.cs" />
     <Compile Include="Rendering\BlendMode.cs" />
+    <Compile Include="Rendering\Texture\BGFXTextureCreateMethod.cs" />
+    <Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
+    <Compile Include="Rendering\Texture\ITextureCreateMethod.cs" />
+    <Compile Include="Rendering\Texture\PixelTextureCreateMethod.cs" />
     <Compile Include="Rendering\Text\TextRenderer.cs" />
     <Compile Include="Rendering\Text\Glyph.cs" />
     <Compile Include="Rendering\Text\TextFont.cs" />
@@ -183,8 +187,8 @@
     <Compile Include="Rendering\RendererType.cs" />
     <Compile Include="Rendering\Shader.cs" />
     <Compile Include="Rendering\SpriteRenderSystem.cs" />
-    <Compile Include="Rendering\Texture.cs" />
-    <Compile Include="Rendering\TextureFlags.cs" />
+    <Compile Include="Rendering\Texture\Texture.cs" />
+    <Compile Include="Rendering\Texture\TextureFlags.cs" />
     <Compile Include="Rendering\VertexBuffer.cs" />
     <Compile Include="Rendering\VertexLayout.cs" />
     <Compile Include="Rendering\VertexLayoutBuilder.cs" />

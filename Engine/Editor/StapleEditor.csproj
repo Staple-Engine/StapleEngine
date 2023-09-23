@@ -25,7 +25,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <Reference Include="Newtonsoft.Json">
+	  <Reference Include="StapleCore">
+		  <HintPath>..\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ImGui.NET">
@@ -36,7 +39,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Reference Include="Newtonsoft.Json">
+	  <Reference Include="StapleCore">
+		  <HintPath>..\Core\bin\Release\net7.0\StapleCore.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ImGui.NET">
@@ -69,9 +75,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.7.2" />
-	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

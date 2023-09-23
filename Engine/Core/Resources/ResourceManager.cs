@@ -123,6 +123,64 @@ namespace Staple.Internal
         }
 
         /// <summary>
+        /// Attempts to recreate resources (used usually when context is lost and bgfx was restarted)
+        /// </summary>
+        internal void RecreateResources()
+        {
+            try
+            {
+                Material.WhiteTexture?.Create();
+            }
+            catch (Exception)
+            {
+            }
+
+            foreach (var pair in cachedTextures)
+            {
+                try
+                {
+                    pair.Value?.Create();
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            foreach (var pair in cachedShaders)
+            {
+                try
+                {
+                    pair.Value?.Create();
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            foreach (var pair in cachedMeshes)
+            {
+                try
+                {
+                    pair.Value?.Recreate();
+                }
+                catch(Exception)
+                {
+                }
+            }
+
+            foreach (var pair in Mesh.defaultMeshes)
+            {
+                try
+                {
+                    pair.Value?.Recreate();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
+        /// <summary>
         /// Attempts to load a file as a byte array
         /// </summary>
         /// <param name="path">The path to load</param>
