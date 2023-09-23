@@ -20,8 +20,10 @@ namespace Player
         Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
         ResizeableActivity = false,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
-        AlwaysRetainTaskState = true)]
-    public class StapleActivity : Activity, ISurfaceHolderCallback
+        AlwaysRetainTaskState = true,
+        Exported = true,
+        LaunchMode = LaunchMode.SingleInstance)]
+    public class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
     {
         private Thread? loopThread;
         private AppSettings? appSettings;
@@ -44,11 +46,11 @@ namespace Player
                     }
                     catch (Exception e)
                     {
-                        Android.Util.Log.Debug("Staple", $"Exception while running player: {e}");
+                        Log.Debug($"Exception while running player: {e}");
                     }
                     finally
                     {
-                        Android.Util.Log.Debug("Staple", $"Finishing Staple activity");
+                        Log.Debug("Finishing Staple activity");
 
                         AndroidRenderWindow.Instance.shouldClose = true;
 
@@ -62,7 +64,7 @@ namespace Player
 
         public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
         {
-            Android.Util.Log.Debug("Staple", $"Surface Changed");
+            Log.Debug("Surface Changed");
 
             var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
 
@@ -71,10 +73,7 @@ namespace Player
             renderWindow.screenWidth = width;
             renderWindow.screenHeight = height;
 
-            if(renderWindow.window != nint.Zero)
-            {
-                ANativeWindow_release(renderWindow.window);
-            }
+            Log.Debug($"Screen size: {width}x{height}");
 
             renderWindow.window = nativeWindow;
 
@@ -90,12 +89,16 @@ namespace Player
 
         public void SurfaceCreated(ISurfaceHolder holder)
         {
-            Android.Util.Log.Debug("Staple", $"Surface Created");
+            Log.Debug("Surface Created");
         }
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
-            Android.Util.Log.Debug("Staple", $"Surface Destroyed");
+            Log.Debug("Surface Destroyed");
+
+            var renderWindow = AndroidRenderWindow.Instance;
+
+            renderWindow.EnterBackground();
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -119,7 +122,7 @@ namespace Player
             if (ResourceManager.instance.LoadPak("DefaultResources.pak") == false ||
                 ResourceManager.instance.LoadPak("Resources.pak") == false)
             {
-                Console.WriteLine($"Failed to load player resources");
+                Console.WriteLine("Failed to load player resources");
 
                 System.Environment.Exit(1);
             }
@@ -135,7 +138,7 @@ namespace Player
                 if (header == null || header.header.SequenceEqual(AppSettingsHeader.ValidHeader) == false ||
                     header.version != AppSettingsHeader.ValidVersion)
                 {
-                    throw new Exception($"Invalid app settings header");
+                    throw new Exception("Invalid app settings header");
                 }
 
                 appSettings = MessagePackSerializer.Deserialize<AppSettings>(stream);
@@ -175,6 +178,10 @@ namespace Player
             base.OnResume();
 
             AndroidRenderWindow.Instance.EnterForeground();
+        }
+
+        public void SurfaceRedrawNeeded(ISurfaceHolder holder)
+        {
         }
     }
 }
