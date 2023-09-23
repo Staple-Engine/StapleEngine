@@ -109,7 +109,12 @@ namespace Staple.Internal
 
                 lock (renderLock)
                 {
-                    shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
+                    shouldRender = window.Unavailable == false && (appSettings.runInBackground == true || window.IsFocused == true);
+                }
+
+                if (window.Unavailable)
+                {
+                    continue;
                 }
 
                 window.GetWindowSize(out var currentW, out var currentH);
@@ -256,7 +261,12 @@ namespace Staple.Internal
 
                 lock (renderLock)
                 {
-                    shouldRender = appSettings.runInBackground == true || window.IsFocused == true;
+                    shouldRender = window.Unavailable == false && (appSettings.runInBackground == true || window.IsFocused == true);
+                }
+
+                if (window.Unavailable)
+                {
+                    continue;
                 }
 
                 window.GetWindowSize(out var currentW, out var currentH);

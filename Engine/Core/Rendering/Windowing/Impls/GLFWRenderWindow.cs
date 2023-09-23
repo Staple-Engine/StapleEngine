@@ -14,6 +14,8 @@ namespace Staple.Internal
 
         public bool ShouldClose => Glfw.WindowShouldClose(window) || window.IsClosed;
 
+        public bool Unavailable => false;
+
         public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex)
         {
             Glfw.WindowHint(Hint.ClientApi, ClientApi.None);

@@ -11,7 +11,7 @@ namespace Staple.Editor
 
             unsafe
             {
-                var projection = Camera.Projection(null, Entity.Empty, camera);
+                var projection = Camera.Projection(Scene.current?.world, Entity.Empty, camera);
                 var view = cameraTransform.Matrix;
 
                 Matrix4x4.Invert(view, out view);
@@ -21,13 +21,6 @@ namespace Staple.Editor
 
             if(Scene.current?.world != null)
             {
-                var mouseRay = new Ray(Camera.ScreenPointToWorld(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform), cameraTransform.Forward);
-
-                if (Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10))
-                {
-                    Log.Info($"Hit {Scene.current.world.GetEntityName(body.Entity)}");
-                }
-
                 Scene.current.world.ForEach((Entity entity, ref Transform transform) =>
                 {
                     foreach(var system in renderSystem.renderSystems)

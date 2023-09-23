@@ -8,6 +8,8 @@
 
         bool ShouldClose { get; }
 
+        bool Unavailable { get; }
+
         bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex);
 
         void PollEvents();

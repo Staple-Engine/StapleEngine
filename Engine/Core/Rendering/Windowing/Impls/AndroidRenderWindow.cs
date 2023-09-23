@@ -14,6 +14,7 @@ namespace Staple.Internal
         internal int screenHeight;
         internal nint window;
         internal bool contextLost = false;
+        internal bool unavailable = false;
         internal object lockObject = new();
 
         public static AndroidRenderWindow Instance = new();
@@ -23,6 +24,17 @@ namespace Staple.Internal
             lock(lockObject)
             {
                 callback(this);
+            }
+        }
+
+        public bool Unavailable
+        {
+            get
+            {
+                lock(lockObject)
+                {
+                    return unavailable;
+                }
             }
         }
 

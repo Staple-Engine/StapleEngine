@@ -64,7 +64,7 @@ namespace Player
 
         public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
         {
-            Log.Debug("Surface Changed");
+            Log.Debug($"Surface Changed - Screen size: {width}x{height}");
 
             var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
 
@@ -72,10 +72,8 @@ namespace Player
             {
                 renderWindow.screenWidth = width;
                 renderWindow.screenHeight = height;
-
-                Log.Debug($"Screen size: {width}x{height}");
-
                 renderWindow.window = nativeWindow;
+                renderWindow.unavailable = false;
 
                 if (loopThread != null)
                 {
@@ -97,9 +95,10 @@ namespace Player
         {
             Log.Debug("Surface Destroyed");
 
-            var renderWindow = AndroidRenderWindow.Instance;
-
-            renderWindow.EnterBackground();
+            AndroidRenderWindow.Instance.Mutate((renderWindow) =>
+            {
+                renderWindow.unavailable = true;
+            });
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
