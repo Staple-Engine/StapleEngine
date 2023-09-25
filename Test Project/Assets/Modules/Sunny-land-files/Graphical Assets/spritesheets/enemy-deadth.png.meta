@@ -1,7 +1,7 @@
 {
   "guid": "b0a18108-e64a-498f-8c51-4e8e2fd860ed",
   "type": "SRGB",
-  "format": "BC3",
+  "format": "RGBA8",
   "quality": "Default",
   "filter": "Point",
   "wrapU": "Clamp",
@@ -30,7 +30,7 @@
     },
     "Windows": {
       "shouldOverride": false,
-      "format": "BC3",
+      "format": "RGBA8",
       "quality": "Default",
       "maxSize": 2048,
       "premultiplyAlpha": true
