@@ -184,6 +184,8 @@ namespace Staple.Editor
 
         internal string assetPickerKey;
 
+        private PlayerSettings playerSettings;
+
         public static WeakReference<StapleEditor> instance;
 
         public void Run()
@@ -219,7 +221,10 @@ namespace Staple.Editor
                 return;
             }
 
-            window = RenderWindow.Create(1024, 768, true, WindowMode.Windowed, editorSettings, 0, bgfx.ResetFlags.Vsync);
+            playerSettings = PlayerSettings.Load(editorSettings);
+
+            window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
+                playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             if(window == null)
             {
@@ -444,10 +449,12 @@ namespace Staple.Editor
 
             window.OnScreenSizeChange = (hasFocus) =>
             {
-                var flags = AppPlayer.ResetFlags(VideoFlags.Vsync);
+                var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
 
-                AppPlayer.ScreenWidth = window.width;
-                AppPlayer.ScreenHeight = window.height;
+                AppPlayer.ScreenWidth = playerSettings.screenWidth = window.width;
+                AppPlayer.ScreenHeight = playerSettings.screenHeight = window.height;
+
+                PlayerSettings.Save(playerSettings);
 
                 bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
 

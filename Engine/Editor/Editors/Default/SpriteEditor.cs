@@ -14,7 +14,7 @@ namespace Staple.Editor
                     {
                         var value = (uint)field.GetValue(target);
 
-                        value = (uint)EditorGUI.Dropdown(field.Name, LayerMask.AllSortingLayers.ToArray(), (int)value);
+                        value = (uint)EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), LayerMask.AllSortingLayers.ToArray(), (int)value);
 
                         field.SetValue(target, value);
 
@@ -26,7 +26,7 @@ namespace Staple.Editor
                     {
                         var value = (Texture)field.GetValue(target);
 
-                        value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name, value);
+                        value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
 
                         field.SetValue(target, value);
                     }

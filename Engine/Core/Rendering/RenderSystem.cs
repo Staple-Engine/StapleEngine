@@ -98,6 +98,45 @@ namespace Staple
             }
         }
 
+        public static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
+        {
+            var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
+
+            if (videoFlags.HasFlag(VideoFlags.Vsync))
+            {
+                resetFlags |= bgfx.ResetFlags.Vsync;
+            }
+
+            if (videoFlags.HasFlag(VideoFlags.MSAAX2))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX2;
+            }
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX4))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX4;
+            }
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX8))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX8;
+            }
+            else if (videoFlags.HasFlag(VideoFlags.MSAAX16))
+            {
+                resetFlags |= bgfx.ResetFlags.MsaaX16;
+            }
+
+            if (videoFlags.HasFlag(VideoFlags.HDR10))
+            {
+                resetFlags |= bgfx.ResetFlags.Hdr10;
+            }
+
+            if (videoFlags.HasFlag(VideoFlags.HiDPI))
+            {
+                resetFlags |= bgfx.ResetFlags.Hidpi;
+            }
+
+            return resetFlags;
+        }
+
         public void Startup()
         {
             renderSystems.Add(new SpriteRenderSystem());

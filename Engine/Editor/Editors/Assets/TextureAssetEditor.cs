@@ -62,7 +62,7 @@ namespace Staple.Editor
                     textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                 }
 
-                var newIndex = EditorGUI.Dropdown(field.Name, textureMaxSizes, index);
+                var newIndex = EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), textureMaxSizes, index);
 
                 if(index != newIndex)
                 {

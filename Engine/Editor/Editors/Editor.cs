@@ -49,8 +49,9 @@ namespace Staple.Editor
                 }
 
                 var type = field.FieldType;
+                var fieldName = field.Name.ExpandCamelCaseName();
 
-                switch(type)
+                switch (type)
                 {
                     case Type t when t.IsEnum:
 
@@ -67,7 +68,7 @@ namespace Staple.Editor
                                 .Select(x => x.ToString())
                                 .ToArray();
 
-                            var newValue = values[EditorGUI.Dropdown(field.Name, valueStrings, current)];
+                            var newValue = values[EditorGUI.Dropdown(fieldName, valueStrings, current)];
 
                             field.SetValue(target, newValue);
                         }
@@ -79,7 +80,7 @@ namespace Staple.Editor
                         {
                             var value = (string)field.GetValue(target);
 
-                            var newValue = EditorGUI.TextField(field.Name, value);
+                            var newValue = EditorGUI.TextField(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -94,7 +95,7 @@ namespace Staple.Editor
                         {
                             var value = (Vector2)field.GetValue(target);
 
-                            var newValue = EditorGUI.Vector2Field(field.Name, value);
+                            var newValue = EditorGUI.Vector2Field(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -109,7 +110,7 @@ namespace Staple.Editor
                         {
                             var value = (Vector3)field.GetValue(target);
 
-                            var newValue = EditorGUI.Vector3Field(field.Name, value);
+                            var newValue = EditorGUI.Vector3Field(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -124,7 +125,7 @@ namespace Staple.Editor
                         {
                             var value = (Vector4)field.GetValue(target);
 
-                            var newValue = EditorGUI.Vector4Field(field.Name, value);
+                            var newValue = EditorGUI.Vector4Field(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -141,7 +142,7 @@ namespace Staple.Editor
 
                             var value = Math.ToEulerAngles(quaternion);
 
-                            var newValue = EditorGUI.Vector3Field(field.Name, value);
+                            var newValue = EditorGUI.Vector3Field(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -158,7 +159,7 @@ namespace Staple.Editor
                         {
                             var value = (int)(uint)field.GetValue(target);
 
-                            var newValue = EditorGUI.IntField(field.Name, value);
+                            var newValue = EditorGUI.IntField(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -173,7 +174,7 @@ namespace Staple.Editor
                         {
                             var value = (int)field.GetValue(target);
 
-                            var newValue = EditorGUI.IntField(field.Name, value);
+                            var newValue = EditorGUI.IntField(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -188,7 +189,7 @@ namespace Staple.Editor
                         {
                             var value = (bool)field.GetValue(target);
 
-                            var newValue = EditorGUI.Toggle(field.Name, value);
+                            var newValue = EditorGUI.Toggle(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -203,7 +204,7 @@ namespace Staple.Editor
                         {
                             var value = (float)field.GetValue(target);
 
-                            var newValue = EditorGUI.FloatField(field.Name, value);
+                            var newValue = EditorGUI.FloatField(fieldName, value);
 
                             if (newValue != value)
                             {
@@ -218,7 +219,7 @@ namespace Staple.Editor
                         {
                             var value = (double)field.GetValue(target);
 
-                            if (ImGui.InputDouble(field.Name, ref value))
+                            if (ImGui.InputDouble(fieldName, ref value))
                             {
                                 field.SetValue(target, value);
                             }
@@ -232,7 +233,7 @@ namespace Staple.Editor
                             var current = (byte)field.GetValue(target);
                             var value = (int)current;
 
-                            if (ImGui.InputInt(field.Name, ref value))
+                            if (ImGui.InputInt(fieldName, ref value))
                             {
                                 if (value < 0)
                                 {
@@ -256,7 +257,7 @@ namespace Staple.Editor
                             var current = (short)field.GetValue(target);
                             var value = (int)current;
 
-                            if (ImGui.InputInt(field.Name, ref value))
+                            if (ImGui.InputInt(fieldName, ref value))
                             {
                                 if (value < short.MinValue)
                                 {
@@ -280,7 +281,7 @@ namespace Staple.Editor
                             var current = (ushort)field.GetValue(target);
                             var value = (int)current;
 
-                            if (ImGui.InputInt(field.Name, ref value))
+                            if (ImGui.InputInt(fieldName, ref value))
                             {
                                 if (value < ushort.MinValue)
                                 {
@@ -312,7 +313,7 @@ namespace Staple.Editor
                                 c = (Color)((Color32)field.GetValue(target));
                             }
 
-                            var newValue = EditorGUI.ColorField(field.Name, c);
+                            var newValue = EditorGUI.ColorField(fieldName, c);
 
                             if (newValue != c)
                             {

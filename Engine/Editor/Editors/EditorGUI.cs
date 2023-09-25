@@ -81,7 +81,7 @@ namespace Staple.Editor
 
         public static int Dropdown(string label, string[] options, int current)
         {
-            Changed |= ImGui.Combo(label, ref current, string.Join("\0", options));
+            Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");
 
             return current;
         }

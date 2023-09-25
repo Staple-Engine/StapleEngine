@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Staple
@@ -24,6 +26,38 @@ namespace Staple
                     videoFlags.HasFlag(VideoFlags.MSAAX4) ? 4 :
                     videoFlags.HasFlag(VideoFlags.MSAAX8) ? 8 :
                     videoFlags.HasFlag(VideoFlags.MSAAX16) ? 16 : 0;
+            }
+        }
+
+        public static PlayerSettings Load(AppSettings appSettings)
+        {
+            try
+            {
+                var data = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"));
+
+                return JsonSerializer.Deserialize(data, PlayerSettingsSerializationContext.Default.PlayerSettings);
+            }
+            catch (System.Exception e)
+            {
+                return new PlayerSettings()
+                {
+                    windowMode = appSettings.defaultWindowMode,
+                    screenWidth = appSettings.defaultWindowWidth,
+                    screenHeight = appSettings.defaultWindowHeight,
+                };
+            }
+        }
+
+        public static void Save(PlayerSettings playerSettings)
+        {
+            try
+            {
+                var data = JsonSerializer.Serialize(playerSettings, PlayerSettingsSerializationContext.Default.PlayerSettings);
+
+                File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"), data);
+            }
+            catch (System.Exception)
+            {
             }
         }
     }

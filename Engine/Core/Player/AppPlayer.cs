@@ -41,80 +41,9 @@ namespace Staple
             };
         }
 
-        public void LoadPlayerSettings()
-        {
-            try
-            {
-                var data = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"));
-
-                playerSettings = JsonSerializer.Deserialize(data, PlayerSettingsSerializationContext.Default.PlayerSettings);
-            }
-            catch(System.Exception e)
-            {
-                playerSettings = new PlayerSettings()
-                {
-                    windowMode = appSettings.defaultWindowMode,
-                    screenWidth = appSettings.defaultWindowWidth,
-                    screenHeight = appSettings.defaultWindowHeight,
-                };
-            }
-        }
-
-        public void SavePlayerSettings()
-        {
-            try
-            {
-                var data = JsonSerializer.Serialize(playerSettings, PlayerSettingsSerializationContext.Default.PlayerSettings);
-
-                File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "PlayerSettings.json"), data);
-            }
-            catch(System.Exception)
-            {
-            }
-        }
-
-        public static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
-        {
-            var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
-
-            if (videoFlags.HasFlag(VideoFlags.Vsync))
-            {
-                resetFlags |= bgfx.ResetFlags.Vsync;
-            }
-
-            if (videoFlags.HasFlag(VideoFlags.MSAAX2))
-            {
-                resetFlags |= bgfx.ResetFlags.MsaaX2;
-            }
-            else if (videoFlags.HasFlag(VideoFlags.MSAAX4))
-            {
-                resetFlags |= bgfx.ResetFlags.MsaaX4;
-            }
-            else if (videoFlags.HasFlag(VideoFlags.MSAAX8))
-            {
-                resetFlags |= bgfx.ResetFlags.MsaaX8;
-            }
-            else if (videoFlags.HasFlag(VideoFlags.MSAAX16))
-            {
-                resetFlags |= bgfx.ResetFlags.MsaaX16;
-            }
-
-            if (videoFlags.HasFlag(VideoFlags.HDR10))
-            {
-                resetFlags |= bgfx.ResetFlags.Hdr10;
-            }
-
-            if (videoFlags.HasFlag(VideoFlags.HiDPI))
-            {
-                resetFlags |= bgfx.ResetFlags.Hidpi;
-            }
-
-            return resetFlags;
-        }
-
         public void ResetRendering(bool hasFocus)
         {
-            var flags = ResetFlags(playerSettings.videoFlags);
+            var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
 
             if(hasFocus == false && appSettings.runInBackground == false)
             {
@@ -126,11 +55,11 @@ namespace Staple
 
         public void Run()
         {
-            LoadPlayerSettings();
-            SavePlayerSettings();
+            playerSettings = PlayerSettings.Load(appSettings);
+            PlayerSettings.Save(playerSettings);
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-                appSettings, playerSettings.monitorIndex, ResetFlags(playerSettings.videoFlags));
+                appSettings, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             renderWindow.OnInit = () =>
             {
@@ -237,6 +166,8 @@ namespace Staple
                 ScreenHeight = playerSettings.screenHeight = renderWindow.height;
 
                 ResetRendering(focus);
+
+                PlayerSettings.Save(playerSettings);
             };
 
             renderWindow.OnCleanup = () =>
