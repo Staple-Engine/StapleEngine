@@ -20,8 +20,8 @@ namespace Staple.Internal
         internal static int windowReferences = 0;
         internal static int bgfxReferences = 0;
 
-        public int screenWidth = 0;
-        public int screenHeight = 0;
+        public int width = 0;
+        public int height = 0;
         public bool hasFocus = true;
         public IRenderWindow window;
         public bgfx.RendererType rendererType;
@@ -119,10 +119,10 @@ namespace Staple.Internal
 
                 window.GetWindowSize(out var currentW, out var currentH);
 
-                if ((currentW != screenWidth || currentH != screenHeight) && window.ShouldClose == false)
+                if ((currentW != width || currentH != height) && window.ShouldClose == false)
                 {
-                    screenWidth = currentW;
-                    screenHeight = currentH;
+                    width = currentW;
+                    height = currentH;
 
                     try
                     {
@@ -271,10 +271,10 @@ namespace Staple.Internal
 
                 window.GetWindowSize(out var currentW, out var currentH);
 
-                if ((currentW != screenWidth || currentH != screenHeight) && window.ShouldClose == false)
+                if ((currentW != width || currentH != height) && window.ShouldClose == false)
                 {
-                    screenWidth = currentW;
-                    screenHeight = currentH;
+                    width = currentW;
+                    height = currentH;
 
                     try
                     {
@@ -446,12 +446,12 @@ namespace Staple.Internal
                 }
             }
 
-            window.GetWindowSize(out screenWidth, out screenHeight);
+            window.GetWindowSize(out width, out height);
 
             rendererType = bgfx.RendererType.Count;
 
-            init.resolution.width = (uint)screenWidth;
-            init.resolution.height = (uint)screenHeight;
+            init.resolution.width = (uint)width;
+            init.resolution.height = (uint)height;
             init.resolution.reset = (uint)resetFlags;
 
             var ok = false;
@@ -565,7 +565,7 @@ namespace Staple.Internal
                 {
                     case AppEventType.ResetFlags:
 
-                        bgfx.reset((uint)screenWidth, (uint)screenHeight, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
+                        bgfx.reset((uint)width, (uint)height, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
                         bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
                         break;

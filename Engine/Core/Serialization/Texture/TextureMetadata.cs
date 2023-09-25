@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Staple.Internal
@@ -143,6 +144,21 @@ namespace Staple.Internal
     [MessagePackObject]
     public class TextureMetadata
     {
+        [IgnoreMember]
+        public static readonly int[] TextureMaxSizes = new int[]
+        {
+            32,
+            64,
+            128,
+            256,
+            512,
+            1024,
+            2048,
+            4096,
+            8192,
+            16384,
+        };
+
         [Key(0)]
         public string guid = Guid.NewGuid().ToString();
 
@@ -150,7 +166,7 @@ namespace Staple.Internal
         public TextureType type = TextureType.SRGB;
 
         [Key(2)]
-        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
+        public TextureMetadataFormat format = TextureMetadataFormat.BC3;
 
         [Key(3)]
         public TextureMetadataQuality quality = TextureMetadataQuality.Default;
@@ -201,6 +217,61 @@ namespace Staple.Internal
                 }
             },
         };
+
+        public static bool operator==(TextureMetadata lhs, TextureMetadata rhs)
+        {
+            return lhs.guid == rhs.guid &&
+                lhs.type == rhs.type &&
+                lhs.format == rhs.format &&
+                lhs.quality == rhs.quality &&
+                lhs.filter == rhs.filter &&
+                lhs.wrapU == rhs.wrapU &&
+                lhs.wrapV == rhs.wrapV &&
+                lhs.wrapW == rhs.wrapW && 
+                lhs.premultiplyAlpha == rhs.premultiplyAlpha &&
+                lhs.maxSize == rhs.maxSize &&
+                lhs.useMipmaps == rhs.useMipmaps &&
+                lhs.isLinear == rhs.isLinear &&
+                lhs.spriteScale == rhs.spriteScale &&
+                lhs.readBack == rhs.readBack &&
+                lhs.overrides.Keys.Count == rhs.overrides.Keys.Count &&
+                lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && object.Equals(lhs.overrides[x], rhs.overrides[x]));
+        }
+
+        public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
+        {
+            return lhs.guid != rhs.guid ||
+                lhs.type != rhs.type ||
+                lhs.format != rhs.format ||
+                lhs.quality != rhs.quality ||
+                lhs.filter != rhs.filter ||
+                lhs.wrapU != rhs.wrapU ||
+                lhs.wrapV != rhs.wrapV ||
+                lhs.wrapW != rhs.wrapW ||
+                lhs.premultiplyAlpha != rhs.premultiplyAlpha ||
+                lhs.maxSize != rhs.maxSize ||
+                lhs.useMipmaps != rhs.useMipmaps ||
+                lhs.isLinear != rhs.isLinear ||
+                lhs.spriteScale != rhs.spriteScale ||
+                lhs.readBack != rhs.readBack ||
+                lhs.overrides.Keys.Count != rhs.overrides.Keys.Count &&
+                lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || object.Equals(lhs.overrides[x], rhs.overrides[x]) == false);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if(obj is TextureMetadata rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]

@@ -233,8 +233,8 @@ namespace Staple
 
             renderWindow.OnScreenSizeChange = (focus) =>
             {
-                ScreenWidth = playerSettings.screenWidth = renderWindow.screenWidth;
-                ScreenHeight = playerSettings.screenHeight = renderWindow.screenHeight;
+                ScreenWidth = playerSettings.screenWidth = renderWindow.width;
+                ScreenHeight = playerSettings.screenHeight = renderWindow.height;
 
                 ResetRendering(focus);
             };

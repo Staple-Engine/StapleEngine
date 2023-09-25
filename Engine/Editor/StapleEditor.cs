@@ -110,6 +110,10 @@ namespace Staple.Editor
 
         private Entity selectedEntity;
 
+        private ProjectBrowserNode selectedProjectNode;
+
+        private object selectedProjectNodeData;
+
         private int activeBottomTab = 0;
 
         private string basePath;
@@ -138,9 +142,9 @@ namespace Staple.Editor
 
         private Dictionary<string, Texture> editorResources = new();
 
-        private Camera camera = new Camera();
+        private Camera camera = new();
 
-        private Transform cameraTransform = new Transform();
+        private Transform cameraTransform = new();
 
         private AppSettings editorSettings = AppSettings.Default;
 
@@ -180,8 +184,12 @@ namespace Staple.Editor
 
         internal string assetPickerKey;
 
+        public static WeakReference<StapleEditor> instance;
+
         public void Run()
         {
+            instance = new WeakReference<StapleEditor>(this);
+
             ReloadTypeCache();
 
             editorSettings.runInBackground = true;
@@ -334,7 +342,7 @@ namespace Staple.Editor
 
                 bgfx.touch(ClearView);
 
-                if(window.screenWidth == 0 || window.screenHeight == 0)
+                if(window.width == 0 || window.height == 0)
                 {
                     return;
                 }
@@ -378,14 +386,20 @@ namespace Staple.Editor
                     }
                 }
 
-                io.DisplaySize = new Vector2(window.screenWidth, window.screenHeight);
+                io.DisplaySize = new Vector2(window.width, window.height);
                 io.DisplayFramebufferScale = new Vector2(1, 1);
 
                 if (gameRenderTarget != null && Scene.current != null)
                 {
                     RenderTarget.SetActive(1, gameRenderTarget);
 
+                    AppPlayer.ScreenWidth = gameRenderTarget.width;
+                    AppPlayer.ScreenHeight = gameRenderTarget.height;
+
                     renderSystem.Update();
+
+                    AppPlayer.ScreenWidth = window.width;
+                    AppPlayer.ScreenHeight = window.height;
                 }
 
                 imgui.BeginFrame();
@@ -399,10 +413,31 @@ namespace Staple.Editor
                 Dockspace();
                 Viewport(io);
                 Entities(io);
-                Components(io);
+                Inspector(io);
                 BottomPanel(io);
                 AssetPicker(io);
                 BuildWindow(io);
+
+                if(Scene.current?.world != null)
+                {
+                    var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+
+                    var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
+
+                    ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
+
+                    ImGui.Text($"Mouse Ray:");
+
+                    ImGui.Text($"Position: {mouseRay.position.X}, {mouseRay.position.Y}, {mouseRay.position.Z}");
+
+                    ImGui.Text($"Direction: {mouseRay.direction.X}, {mouseRay.direction.Y}, {mouseRay.direction.Z}");
+
+                    ImGui.Checkbox("Hit", ref hit);
+
+                    ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
+
+                    ImGui.End();
+                }
 
                 imgui.EndFrame();
             };
@@ -411,10 +446,10 @@ namespace Staple.Editor
             {
                 var flags = AppPlayer.ResetFlags(VideoFlags.Vsync);
 
-                AppPlayer.ScreenWidth = window.screenWidth;
-                AppPlayer.ScreenHeight = window.screenHeight;
+                AppPlayer.ScreenWidth = window.width;
+                AppPlayer.ScreenHeight = window.height;
 
-                bgfx.reset((uint)window.screenWidth, (uint)window.screenHeight, (uint)flags, bgfx.TextureFormat.RGBA8);
+                bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
 
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);

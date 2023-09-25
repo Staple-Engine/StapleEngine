@@ -21,7 +21,7 @@ namespace Staple.Editor
         {
             assets.Clear();
 
-            var files = new string[0];
+            var files = Array.Empty<string>();
 
             try
             {

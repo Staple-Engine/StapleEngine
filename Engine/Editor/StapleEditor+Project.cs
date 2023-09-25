@@ -174,11 +174,16 @@ namespace Staple.Editor
             }
         }
 
-        public void RefreshStaging(AppPlatform platform, bool updatecsproj = true)
+        public void RefreshAssets(bool updateProject)
+        {
+            RefreshStaging(currentPlatform, updateProject);
+        }
+
+        public void RefreshStaging(AppPlatform platform, bool updateProject = true)
         {
             var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
 
-            if(updatecsproj)
+            if(updateProject)
             {
                 UpdateCSProj(platform);
             }

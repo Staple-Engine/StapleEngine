@@ -13,14 +13,35 @@ namespace Staple.Editor
 
         public static bool Changed { get; internal set; }
 
+        public static void SameLine()
+        {
+            ImGui.SameLine();
+        }
+
         public static void Space()
         {
             ImGui.Spacing();
         }
 
+        public static void Label(string text)
+        {
+            ImGui.Text(text);
+        }
+
         public static bool Button(string label)
         {
             return ImGui.Button(label);
+        }
+
+        public static bool ButtonDisabled(string label)
+        {
+            ImGui.BeginDisabled();
+
+            var result = ImGui.Button(label);
+
+            ImGui.EndDisabled();
+
+            return result;
         }
 
         public static int IntField(string label, int value)
@@ -138,6 +159,16 @@ namespace Staple.Editor
             }
 
             return current;
+        }
+
+        public static void Texture(Texture texture, Vector2 size)
+        {
+            if(texture == null)
+            {
+                return;
+            }
+
+            ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size);
         }
     }
 }
