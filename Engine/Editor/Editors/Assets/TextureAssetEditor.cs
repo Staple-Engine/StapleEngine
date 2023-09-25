@@ -205,6 +205,31 @@ namespace Staple.Editor
                 EditorGUI.ButtonDisabled("Revert");
             }
 
+            if(EditorGUI.Button("Apply to all in folder"))
+            {
+                try
+                {
+                    var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.meta");
+                    var json = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
+                    {
+                        Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                    });
+
+                    foreach(var file in files)
+                    {
+                        File.WriteAllText(file, json);
+                    }
+
+                    EditorUtils.RefreshAssets(false);
+                }
+                catch(Exception)
+                {
+                }
+            }
+
             if (previewTexture != null)
             {
                 EditorGUI.Label("Preview");

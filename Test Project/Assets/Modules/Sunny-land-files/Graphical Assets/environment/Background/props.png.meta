@@ -1,0 +1,39 @@
+{
+  "guid": "fe5b9491-4e86-45f7-b347-6dda3c007ee0",
+  "type": "SRGB",
+  "format": "BC3",
+  "quality": "Default",
+  "filter": "Point",
+  "wrapU": "Clamp",
+  "wrapV": "Clamp",
+  "wrapW": "Clamp",
+  "premultiplyAlpha": true,
+  "maxSize": 2048,
+  "useMipmaps": false,
+  "isLinear": false,
+  "spriteScale": 1.0,
+  "readBack": false,
+  "overrides": {
+    "iOS": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Android": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Windows": {
+      "shouldOverride": false,
+      "format": "BC3",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": true
+    }
+  }
+}
