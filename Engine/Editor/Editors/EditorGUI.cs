@@ -1,5 +1,7 @@
 ﻿using ImGuiNET;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Editor
@@ -10,6 +12,8 @@ namespace Staple.Editor
         internal static StapleEditor editor;
 
         internal static Dictionary<string, object> pendingObjectPickers = new();
+
+        private static Dictionary<string, object> cachedEnumValues = new();
 
         public static bool Changed { get; internal set; }
 
@@ -77,6 +81,29 @@ namespace Staple.Editor
             Changed |= ImGui.InputFloat4(label, ref value);
 
             return value;
+        }
+
+        public static T EnumDropdown<T>(string label, T value) where T: struct, Enum
+        {
+            if(cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
+            {
+                v = Enum.GetValues<T>()
+                    .ToList();
+
+                cachedEnumValues.Add(typeof(T).FullName, v);
+            }
+
+            var values = v as List<T>;
+
+            var current = values.IndexOf(value);
+
+            var valueStrings = values
+                .Select(x => x.ToString())
+                .ToArray();
+
+            var newValue = values[Dropdown(label, valueStrings, current)];
+
+            return newValue;
         }
 
         public static int Dropdown(string label, string[] options, int current)

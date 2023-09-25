@@ -129,15 +129,18 @@ namespace Staple.Internal
     public class TextureMetadataOverride
     {
         [Key(0)]
-        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
+        public bool shouldOverride = false;
 
         [Key(1)]
-        public TextureMetadataQuality quality = TextureMetadataQuality.Default;
+        public TextureMetadataFormat format = TextureMetadataFormat.RGBA8;
 
         [Key(2)]
-        public int maxSize = 2048;
+        public TextureMetadataQuality quality = TextureMetadataQuality.Default;
 
         [Key(3)]
+        public int maxSize = 2048;
+
+        [Key(4)]
         public bool premultiplyAlpha = false;
     }
 
@@ -207,13 +210,15 @@ namespace Staple.Internal
             {
                 AppPlatform.iOS, new TextureMetadataOverride()
                 {
-                     format = TextureMetadataFormat.ASTC4x4,
+                    shouldOverride = true,
+                    format = TextureMetadataFormat.ASTC4x4,
                 }
             },
             {
                 AppPlatform.Android, new TextureMetadataOverride()
                 {
-                     format = TextureMetadataFormat.ASTC4x4,
+                    shouldOverride = true,
+                    format = TextureMetadataFormat.ASTC4x4,
                 }
             },
         };

@@ -2106,7 +2106,8 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(4);
+            writer.WriteArrayHeader(5);
+            writer.Write(value.shouldOverride);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Serialize(ref writer, value.format, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Serialize(ref writer, value.quality, options);
             writer.Write(value.maxSize);
@@ -2130,15 +2131,18 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
+                        ____result.shouldOverride = reader.ReadBoolean();
                         break;
                     case 1:
-                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
+                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.maxSize = reader.ReadInt32();
+                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
                         break;
                     case 3:
+                        ____result.maxSize = reader.ReadInt32();
+                        break;
+                    case 4:
                         ____result.premultiplyAlpha = reader.ReadBoolean();
                         break;
                     default:

@@ -114,7 +114,7 @@ namespace Baker
                 var maxSize = metadata.maxSize;
                 var premultiplyAlpha = metadata.premultiplyAlpha;
 
-                if(metadata.overrides.TryGetValue(platform, out var overrides))
+                if(metadata.overrides.TryGetValue(platform, out var overrides) && overrides.shouldOverride)
                 {
                     format = overrides.format;
                     quality = overrides.quality;

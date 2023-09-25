@@ -46,7 +46,9 @@ namespace Staple.Editor
 
         public override bool RenderField(FieldInfo field)
         {
-            if(field.Name == nameof(TextureMetadata.guid))
+            var metadata = target as TextureMetadata;
+
+            if (field.Name == nameof(TextureMetadata.guid))
             {
                 return true;
             }
@@ -70,6 +72,73 @@ namespace Staple.Editor
                 }
 
                 return true;
+            }
+
+            if(field.Name == nameof(TextureMetadata.overrides))
+            {
+                if(ImGui.BeginTabBar($"##{metadata.guid}_OVERRIDES"))
+                {
+                    var platformTypes = Enum.GetValues<AppPlatform>();
+
+                    foreach(var platform in platformTypes)
+                    {
+                        if(ImGui.BeginTabItem(platform.ToString()))
+                        {
+                            var overrides = metadata.overrides;
+
+                            if (overrides.TryGetValue(platform, out var item) == false)
+                            {
+                                item = new();
+
+                                overrides.Add(platform, item);
+                            }
+
+                            item.shouldOverride = EditorGUI.Toggle("Override", item.shouldOverride);
+
+                            if(item.shouldOverride == false)
+                            {
+                                ImGui.BeginDisabled();
+                            }
+
+                            var format = item.shouldOverride ? item.format : metadata.format;
+
+                            var quality = item.shouldOverride ? item.quality : metadata.quality;
+
+                            var maxSize = item.shouldOverride ? item.maxSize : metadata.maxSize;
+
+                            var premultiplyAlpha = item.shouldOverride ? item.premultiplyAlpha : metadata.premultiplyAlpha;
+
+                            item.format = EditorGUI.EnumDropdown("Format", format);
+
+                            item.quality = EditorGUI.EnumDropdown("Quality", quality);
+
+                            var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, maxSize);
+
+                            if (textureMaxSizes.Length == 0)
+                            {
+                                textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
+                            }
+
+                            var newIndex = EditorGUI.Dropdown("Max Size", textureMaxSizes, index);
+
+                            if (index != newIndex)
+                            {
+                                item.maxSize = TextureMetadata.TextureMaxSizes[newIndex];
+                            }
+
+                            item.premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", premultiplyAlpha);
+
+                            if (item.shouldOverride == false)
+                            {
+                                ImGui.EndDisabled();
+                            }
+
+                            ImGui.EndTabItem();
+                        }
+                    }
+
+                    ImGui.EndTabBar();
+                }
             }
 
             return base.RenderField(field);
