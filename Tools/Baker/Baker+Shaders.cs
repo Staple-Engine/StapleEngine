@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Baker
 {
@@ -44,6 +45,9 @@ namespace Baker
 
             for (var i = 0; i < shaderFiles.Count; i++)
             {
+                //Guid collision fix
+                Thread.Sleep(25);
+
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
                 var guid = Guid.NewGuid().ToString();

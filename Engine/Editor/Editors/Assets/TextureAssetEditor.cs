@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Threading;
 
 namespace Staple.Editor
 {
@@ -108,9 +109,9 @@ namespace Staple.Editor
 
                             var premultiplyAlpha = item.shouldOverride ? item.premultiplyAlpha : metadata.premultiplyAlpha;
 
-                            item.format = EditorGUI.EnumDropdown("Format", format);
+                            format = EditorGUI.EnumDropdown("Format", format);
 
-                            item.quality = EditorGUI.EnumDropdown("Quality", quality);
+                            quality = EditorGUI.EnumDropdown("Quality", quality);
 
                             var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, maxSize);
 
@@ -123,14 +124,21 @@ namespace Staple.Editor
 
                             if (index != newIndex)
                             {
-                                item.maxSize = TextureMetadata.TextureMaxSizes[newIndex];
+                                maxSize = TextureMetadata.TextureMaxSizes[newIndex];
                             }
 
-                            item.premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", premultiplyAlpha);
+                            premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", premultiplyAlpha);
 
                             if (item.shouldOverride == false)
                             {
                                 ImGui.EndDisabled();
+                            }
+                            else
+                            {
+                                item.format = format;
+                                item.quality = quality;
+                                item.maxSize = maxSize;
+                                item.premultiplyAlpha = premultiplyAlpha;
                             }
 
                             ImGui.EndTabItem();
@@ -179,9 +187,7 @@ namespace Staple.Editor
                         field.SetValue(original, field.GetValue(metadata));
                     }
 
-                    EditorUtils.RefreshAssets(false);
-
-                    UpdatePreview();
+                    EditorUtils.RefreshAssets(false, UpdatePreview);
                 }
 
                 EditorGUI.SameLine();
@@ -210,20 +216,39 @@ namespace Staple.Editor
                 try
                 {
                     var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.meta");
-                    var json = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
-                    {
-                        Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                    });
 
                     foreach(var file in files)
                     {
+                        //Guid uniqueness fix
+                        Thread.Sleep(25);
+
+                        var newMetadata = metadata.Clone();
+
+                        try
+                        {
+                            var data = File.ReadAllText(file);
+
+                            var existing = JsonConvert.DeserializeObject<TextureMetadata>(data);
+
+                            newMetadata.guid = existing.guid;
+                        }
+                        catch(Exception)
+                        {
+                            newMetadata.guid = Guid.NewGuid().ToString();
+                        }
+
+                        var json = JsonConvert.SerializeObject(newMetadata, Formatting.Indented, new JsonSerializerSettings()
+                        {
+                            Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                        });
+
                         File.WriteAllText(file, json);
                     }
 
-                    EditorUtils.RefreshAssets(false);
+                    EditorUtils.RefreshAssets(false, UpdatePreview);
                 }
                 catch(Exception)
                 {

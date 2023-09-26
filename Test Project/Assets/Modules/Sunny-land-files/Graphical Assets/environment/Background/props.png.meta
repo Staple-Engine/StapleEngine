@@ -1,5 +1,5 @@
 {
-  "guid": "fe5b9491-4e86-45f7-b347-6dda3c007ee0",
+  "guid": "8e195c0e-a418-485d-9678-009e9544ccb6",
   "type": "SRGB",
   "format": "RGBA8",
   "quality": "Default",
@@ -33,7 +33,7 @@
       "format": "RGBA8",
       "quality": "Default",
       "maxSize": 2048,
-      "premultiplyAlpha": true
+      "premultiplyAlpha": false
     }
   }
 }

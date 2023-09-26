@@ -284,7 +284,7 @@ namespace Staple.Editor
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntPtr GetImGuiTexture(Texture texture)
         {
-            if(texture == null || texture.handle.Valid == false)
+            if(texture == null || texture.handle.Valid == false || texture.Disposed)
             {
                 return IntPtr.Zero;
             }

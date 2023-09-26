@@ -282,232 +282,127 @@ namespace Staple.Editor
 
         private void ProjectBrowser(ImGuiIOPtr io)
         {
-            ImGui.BeginChildFrame(ImGui.GetID("FolderTree"), new Vector2(150, 300));
-
-            void Recursive(ProjectBrowserNode node)
+            projectBrowser.Draw(io, (item) =>
             {
-                if(node.type != ProjectBrowserNodeType.Folder)
+                selectedEntity = Entity.Empty;
+                selectedProjectNode = item.type == ProjectBrowserNodeType.File ? item : null;
+                selectedProjectNodeData = null;
+
+                cachedEditors.Clear();
+
+                if (selectedProjectNode == null)
                 {
                     return;
                 }
 
-                var flags = ImGuiTreeNodeFlags.SpanFullWidth;
-                var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
+                var data = string.Empty;
 
-                if (hasChildren == false)
+                try
                 {
-                    flags |= ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf;
+                    data = File.ReadAllText($"{item.path}.meta");
+                }
+                catch (Exception)
+                {
                 }
 
-                if (ImGui.TreeNodeEx($"{node.name}##0", flags))
+                if (data.Length > 0)
                 {
-                    if(hasChildren)
+                    object original = null;
+
+                    switch (item.resourceType)
                     {
-                        foreach (var subnode in node.subnodes)
-                        {
-                            Recursive(subnode);
-                        }
+                        case ProjectResourceType.Texture:
 
-                        ImGui.TreePop();
-                    }
-
-                    if(ImGui.IsItemClicked())
-                    {
-                        currentContentNode = node;
-
-                        UpdateCurrentContentNodes(node.subnodes);
-                    }
-                }
-            }
-
-            if(ImGui.TreeNodeEx("Assets", ImGuiTreeNodeFlags.SpanFullWidth))
-            {
-                if (ImGui.IsItemClicked())
-                {
-                    currentContentNode = null;
-
-                    UpdateCurrentContentNodes(projectBrowserNodes);
-                }
-
-                foreach (var node in projectBrowserNodes)
-                {
-                    Recursive(node);
-                }
-
-                ImGui.TreePop();
-            }
-
-            ImGui.EndChildFrame();
-
-            ImGui.SameLine();
-
-            ImGui.BeginChildFrame(ImGui.GetID("ProjectBrowser"), new Vector2(0, 0));
-
-            ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
-                (index, _) =>
-                {
-                    ProjectBrowserNode item = null;
-
-                    if (currentContentNode == null)
-                    {
-                        item = projectBrowserNodes[index];
-                    }
-                    else
-                    {
-                        item = index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null;
-                    }
-
-                    if (item == null)
-                    {
-                        return;
-                    }
-
-                    selectedEntity = Entity.Empty;
-                    selectedProjectNode = item.type == ProjectBrowserNodeType.File ? item : null;
-                    selectedProjectNodeData = null;
-
-                    cachedEditors.Clear();
-
-                    if(selectedProjectNode == null)
-                    {
-                        return;
-                    }
-
-                    var data = string.Empty;
-
-                    try
-                    {
-                        data = File.ReadAllText($"{item.path}.meta");
-                    }
-                    catch(Exception)
-                    {
-                    }
-
-                    if(data.Length > 0)
-                    {
-                        object original = null;
-
-                        switch (item.resourceType)
-                        {
-                            case ProjectResourceType.Texture:
-
-                                try
-                                {
-                                    original = JsonConvert.DeserializeObject<TextureMetadata>(data);
-                                    selectedProjectNodeData = JsonConvert.DeserializeObject<TextureMetadata>(data);
-                                }
-                                catch(Exception)
-                                {
-                                }
-
-                                if(original != null && selectedProjectNodeData != null)
-                                {
-                                    var cachePath = item.path;
-
-                                    var pathIndex = item.path.IndexOf("Assets");
-
-                                    if (pathIndex >= 0)
-                                    {
-                                        cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
-                                    }
-
-                                    var editor = new TextureAssetEditor()
-                                    {
-                                        original = original as TextureMetadata,
-                                        path = $"{item.path}.meta",
-                                        cachePath = cachePath,
-                                    };
-
-                                    cachedEditors.Add("", editor);
-
-                                    editor.UpdatePreview();
-                                }
-
-                                break;
-
-                            case ProjectResourceType.Material:
-
-                                try
-                                {
-                                    selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ProjectResourceType.Shader:
-
-                                try
-                                {
-                                    selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-                        }
-                    }
-                },
-                (index, _) =>
-                {
-                    ProjectBrowserNode item = null;
-
-                    if(currentContentNode == null)
-                    {
-                        currentContentNode = projectBrowserNodes[index];
-
-                        item = currentContentNode;
-                    }
-                    else
-                    {
-                        item = index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null;
-                    }
-
-                    if (item == null)
-                    {
-                        return;
-                    }
-
-                    if(item.subnodes.Count == 0)
-                    {
-                        if(item.type == ProjectBrowserNodeType.File)
-                        {
-                            switch(item.action)
+                            try
                             {
-                                case ProjectBrowserNodeAction.InspectScene:
-
-                                    var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
-
-                                    if (scene != null)
-                                    {
-                                        lastOpenScene = item.path;
-                                        Scene.current = scene;
-
-                                        ResetScenePhysics();
-
-                                        UpdateLastSession(new LastSessionInfo()
-                                        {
-                                            currentPlatform = currentPlatform,
-                                            lastOpenScene = lastOpenScene,
-                                        });
-                                    }
-
-                                    break;
+                                original = JsonConvert.DeserializeObject<TextureMetadata>(data);
+                                selectedProjectNodeData = JsonConvert.DeserializeObject<TextureMetadata>(data);
                             }
+                            catch (Exception)
+                            {
+                            }
+
+                            if (original != null && selectedProjectNodeData != null)
+                            {
+                                var cachePath = item.path;
+
+                                var pathIndex = item.path.IndexOf("Assets");
+
+                                if (pathIndex >= 0)
+                                {
+                                    cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
+                                }
+
+                                var editor = new TextureAssetEditor()
+                                {
+                                    original = original as TextureMetadata,
+                                    path = $"{item.path}.meta",
+                                    cachePath = cachePath,
+                                };
+
+                                cachedEditors.Add("", editor);
+
+                                editor.UpdatePreview();
+                            }
+
+                            break;
+
+                        case ProjectResourceType.Material:
+
+                            try
+                            {
+                                selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            break;
+
+                        case ProjectResourceType.Shader:
+
+                            try
+                            {
+                                selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            break;
+                    }
+                }
+            },
+            (item) =>
+            {
+                if(item.type != ProjectBrowserNodeType.File)
+                {
+                    return;
+                }
+
+                switch (item.action)
+                {
+                    case ProjectBrowserNodeAction.InspectScene:
+
+                        var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
+
+                        if (scene != null)
+                        {
+                            lastOpenScene = item.path;
+                            Scene.current = scene;
+
+                            ResetScenePhysics();
+
+                            UpdateLastSession(new LastSessionInfo()
+                            {
+                                currentPlatform = currentPlatform,
+                                lastOpenScene = lastOpenScene,
+                            });
                         }
-                    }
-                    else
-                    {
-                        currentContentNode = item;
 
-                        UpdateCurrentContentNodes(item.subnodes);
-                    }
-                });
-
-            ImGui.EndChildFrame();
+                        break;
+                }
+            });
         }
 
         private void Console(ImGuiIOPtr io)
@@ -644,7 +539,7 @@ namespace Staple.Editor
                     }
                 }
 
-                foreach(var node in projectBrowserNodes)
+                foreach(var node in projectBrowser.projectBrowserNodes)
                 {
                     switch(node.type)
                     {
@@ -662,7 +557,7 @@ namespace Staple.Editor
                     }
                 }
 
-                editorResources.TryGetValue("FileIcon", out var texture);
+                projectBrowser.editorResources.TryGetValue("FileIcon", out var texture);
 
                 var gridItems = validItems
                     .Select(x => new ImGuiUtils.ContentGridItem()
@@ -671,31 +566,31 @@ namespace Staple.Editor
                         texture = texture,
                     }).ToList();
 
-                ImGuiUtils.ContentGrid(gridItems, contentPanelPadding, contentPanelThumbnailSize,
-                (index, item) =>
-                {
-                },
-                (index, item) =>
-                {
-                    var i = validItems[index];
-
-                    switch(i.resourceType)
+                ImGuiUtils.ContentGrid(gridItems, Staple.Editor.ProjectBrowser.contentPanelPadding, Staple.Editor.ProjectBrowser.contentPanelThumbnailSize,
+                    (index, item) =>
                     {
-                        case ProjectResourceType.Material:
+                    },
+                    (index, item) =>
+                    {
+                        var i = validItems[index];
 
-                            break;
+                        switch(i.resourceType)
+                        {
+                            case ProjectResourceType.Material:
 
-                        case ProjectResourceType.Texture:
+                                break;
 
-                            break;
+                            case ProjectResourceType.Texture:
 
-                        case ProjectResourceType.Shader:
+                                break;
 
-                            break;
-                    }
+                            case ProjectResourceType.Shader:
 
-                    showingAssetPicker = false;
-                });
+                                break;
+                        }
+
+                        showingAssetPicker = false;
+                    });
 
                 ImGui.EndChildFrame();
 
@@ -752,34 +647,44 @@ namespace Staple.Editor
                     showingBuildWindow = false;
                 }
 
-                if (showingProgress)
-                {
-                    ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
-                    ImGui.SetNextWindowSize(new Vector2(300, 200));
-
-                    ImGui.BeginPopupModal("ShowingProgress", ref showingProgress,
-                        ImGuiWindowFlags.NoTitleBar |
-                        ImGuiWindowFlags.NoDocking |
-                        ImGuiWindowFlags.NoResize |
-                        ImGuiWindowFlags.NoMove);
-
-                    ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
-
-                    ImGui.EndPopup();
-
-                    lock(backgroundLock)
-                    {
-                        if(backgroundThreads.Count == 0)
-                        {
-                            showingProgress = false;
-
-                            ImGui.CloseCurrentPopup();
-                        }
-                    }
-                }
-
                 ImGui.End();
             }
+        }
+
+        private void ProgressPopup(ImGuiIOPtr io)
+        {
+            if(wasShowingProgress != showingProgress && showingProgress)
+            {
+                ImGui.OpenPopup("ShowingProgress");
+            }
+
+            if (showingProgress)
+            {
+                ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
+                ImGui.SetNextWindowSize(new Vector2(300, 200));
+
+                ImGui.BeginPopupModal("ShowingProgress", ref showingProgress,
+                    ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoDocking |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoMove);
+
+                ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
+
+                ImGui.EndPopup();
+
+                lock (backgroundLock)
+                {
+                    if (backgroundThreads.Count == 0)
+                    {
+                        showingProgress = false;
+
+                        ImGui.CloseCurrentPopup();
+                    }
+                }
+            }
+
+            wasShowingProgress = showingProgress;
         }
     }
 }

@@ -539,7 +539,7 @@ namespace Staple.Internal
                     break;
             }
 
-            if (cachedShaders.TryGetValue(path, out var shader) && shader != null)
+            if (cachedShaders.TryGetValue(path, out var shader) && shader != null && shader.Disposed == false)
             {
                 return shader;
             }
@@ -601,7 +601,7 @@ namespace Staple.Internal
 
                 if (shader != null)
                 {
-                    cachedShaders.Add(path, shader);
+                    cachedShaders.AddOrSetKey(path, shader);
                 }
 
                 return shader;
@@ -621,7 +621,7 @@ namespace Staple.Internal
         /// <returns>The material, or null</returns>
         public Material LoadMaterial(string path)
         {
-            if(cachedMaterials.TryGetValue(path, out var material) && material != null)
+            if(cachedMaterials.TryGetValue(path, out var material) && material != null && material.Disposed == false)
             {
                 return material;
             }
@@ -702,14 +702,7 @@ namespace Staple.Internal
                     }
                 }
 
-                if (cachedMaterials.ContainsKey(path))
-                {
-                    cachedMaterials[path] = material;
-                }
-                else
-                {
-                    cachedMaterials.Add(path, material);
-                }
+                cachedMaterials.AddOrSetKey(path, material);
 
                 return material;
             }
@@ -730,7 +723,7 @@ namespace Staple.Internal
         /// <returns>The texture, or null</returns>
         public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0)
         {
-            if(cachedTextures.TryGetValue(path, out var texture) && texture != null)
+            if(cachedTextures.TryGetValue(path, out var texture) && texture != null && texture.Disposed == false)
             {
                 return texture;
             }
@@ -777,14 +770,7 @@ namespace Staple.Internal
                     return null;
                 }
 
-                if (cachedTextures.ContainsKey(path))
-                {
-                    cachedTextures[path] = texture;
-                }
-                else
-                {
-                    cachedTextures.Add(path, texture);
-                }
+                cachedTextures.AddOrSetKey(path, texture);
 
                 return texture;
             }

@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
-using Newtonsoft.Json.Converters;
 
 namespace Staple.Editor
 {
@@ -12,27 +11,25 @@ namespace Staple.Editor
     {
         public void LoadProject(string path)
         {
-            basePath = ThumbnailCache.basePath = path;
+            basePath =
+                ThumbnailCache.basePath =
+                csProjManager.basePath =
+                projectBrowser.basePath =
+                AssetDatabase.basePath = Path.GetFullPath(path);
 
-            Log.Info($"Base Path: {basePath}");
+            csProjManager.stapleBasePath = StapleBasePath;
 
-            AssetDatabase.basePath = basePath;
+            Log.Info($"Project Path: {basePath}");
+
+            projectBrowser.UpdateProjectBrowserNodes();
+
+            projectBrowser.CreateMissingMetaFiles();
 
             AssetDatabase.Reload();
-
-            UpdateProjectBrowserNodes();
 
             try
             {
                 Directory.CreateDirectory(Path.Combine(basePath, "Cache"));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Thumbnails"));
             }
             catch (Exception)
             {
@@ -45,79 +42,6 @@ namespace Staple.Editor
             catch (Exception)
             {
             }
-
-            void Recursive(List<ProjectBrowserNode> nodes)
-            {
-                foreach (var node in nodes)
-                {
-                    if(node.type == ProjectBrowserNodeType.Folder)
-                    {
-                        {
-                            try
-                            {
-                                if (File.Exists($"{node.path}.meta") == false)
-                                {
-                                    File.WriteAllText($"{node.path}.meta", Guid.NewGuid().ToString());
-                                }
-                            }
-                            catch (System.Exception)
-                            {
-                            }
-                        }
-
-                        Recursive(node.subnodes);
-                    }
-                    else
-                    {
-                        switch(node.resourceType)
-                        {
-                            case ProjectResourceType.Texture:
-                                {
-                                    try
-                                    {
-                                        if (File.Exists($"{node.path}.meta") == false)
-                                        {
-                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata(), Formatting.Indented, new JsonSerializerSettings()
-                                            {
-                                                Converters =
-                                                {
-                                                    new StringEnumConverter(),
-                                                }
-                                            });
-
-                                            File.WriteAllText($"{node.path}.meta", jsonData);
-                                        }
-                                    }
-                                    catch (System.Exception)
-                                    {
-                                    }
-                                }
-
-                                break;
-
-                            default:
-
-                                if(node.path.EndsWith(".meta") == false)
-                                {
-                                    try
-                                    {
-                                        if (File.Exists($"{node.path}.meta") == false)
-                                        {
-                                            File.WriteAllText($"{node.path}.meta", Guid.NewGuid().ToString());
-                                        }
-                                    }
-                                    catch (System.Exception)
-                                    {
-                                    }
-                                }
-
-                                break;
-                        }
-                    }
-                }
-            }
-
-            Recursive(projectBrowserNodes);
 
             try
             {

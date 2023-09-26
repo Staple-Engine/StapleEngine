@@ -17,43 +17,10 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        enum ProjectBrowserNodeType
-        {
-            File,
-            Folder
-        }
-
-        enum ProjectBrowserNodeAction
-        {
-            None,
-            InspectScene,
-        }
-
-        enum ProjectResourceType
-        {
-            Material,
-            Texture,
-            Shader,
-            Scene,
-            Other
-        }
-
         enum ViewportType
         {
             Scene,
             Game
-        }
-
-        class ProjectBrowserNode
-        {
-            public string name;
-            public string path;
-            public ProjectBrowserNodeType type;
-            public string extension;
-            public List<ProjectBrowserNode> subnodes = new();
-            public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
-
-            public ProjectResourceType resourceType;
         }
 
         [Serializable]
@@ -120,8 +87,6 @@ namespace Staple.Editor
 
         private string lastOpenScene;
 
-        private List<ProjectBrowserNode> projectBrowserNodes = new();
-
         private RenderTarget gameRenderTarget;
 
         private readonly RenderSystem renderSystem = new();
@@ -131,16 +96,6 @@ namespace Staple.Editor
         private Color32 clearColor = new Color(0, 0, 0, 0);
 
         private ViewportType viewportType = ViewportType.Scene;
-
-        private float contentPanelThumbnailSize = 64;
-
-        private float contentPanelPadding = 16;
-
-        private ProjectBrowserNode currentContentNode;
-
-        private List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
-
-        private Dictionary<string, Texture> editorResources = new();
 
         private Camera camera = new();
 
@@ -170,9 +125,11 @@ namespace Staple.Editor
 
         private bool buildPlayerDebug = false;
 
-        private bool showingProgress = false;
+        internal bool showingProgress = false;
 
-        private float progressFraction = 0;
+        internal bool wasShowingProgress = false;
+
+        internal float progressFraction = 0;
 
         private bool shouldTerminate = false;
 
@@ -185,6 +142,10 @@ namespace Staple.Editor
         internal string assetPickerKey;
 
         private PlayerSettings playerSettings;
+
+        private CSProjManager csProjManager = new();
+
+        private ProjectBrowser projectBrowser = new();
 
         public static WeakReference<StapleEditor> instance;
 
@@ -235,8 +196,8 @@ namespace Staple.Editor
             {
                 Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
-                LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
-                LoadEditorTexture("FileIcon", "Textures/files.png");
+                projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
+                projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
 
                 imgui = new ImGuiProxy();
 
@@ -407,6 +368,7 @@ namespace Staple.Editor
                     AppPlayer.ScreenHeight = window.height;
                 }
 
+                ThumbnailCache.OnFrameStart();
                 imgui.BeginFrame();
 
                 var viewport = ImGui.GetMainViewport();
@@ -422,8 +384,9 @@ namespace Staple.Editor
                 BottomPanel(io);
                 AssetPicker(io);
                 BuildWindow(io);
+                ProgressPopup(io);
 
-                if(Scene.current?.world != null)
+                if (Scene.current?.world != null)
                 {
                     var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
 
@@ -521,194 +484,6 @@ namespace Staple.Editor
             }
             catch(Exception)
             {
-            }
-        }
-
-        private void LoadEditorTexture(string name, string path)
-        {
-            path = Path.Combine(Environment.CurrentDirectory, "Editor Resources", path);
-
-            try
-            {
-                var texture = Texture.CreateStandard(path, File.ReadAllBytes(path), StandardTextureColorComponents.RGBA);
-
-                if(texture != null)
-                {
-                    editorResources.Add(name, texture);
-                }
-            }
-            catch(Exception)
-            {
-            }
-        }
-
-        public void UpdateProjectBrowserNodes()
-        {
-            if(basePath == null)
-            {
-                projectBrowserNodes = new List<ProjectBrowserNode>();
-            }
-            else
-            {
-                projectBrowserNodes = new List<ProjectBrowserNode>();
-
-                void Recursive(string p, List<ProjectBrowserNode> nodes)
-                {
-                    string[] directories = Array.Empty<string>();
-                    string[] files = Array.Empty<string>();
-
-                    try
-                    {
-                        directories = Directory.GetDirectories(p);
-                    }
-                    catch(Exception)
-                    {
-                    }
-
-                    try
-                    {
-                        files = Directory.GetFiles(p);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    foreach(var directory in directories)
-                    {
-                        var subnodes = new List<ProjectBrowserNode>();
-
-                        Recursive(directory, subnodes);
-
-                        nodes.Add(new ProjectBrowserNode()
-                        {
-                            name = Path.GetFileName(directory),
-                            extension = "",
-                            path = directory,
-                            type = ProjectBrowserNodeType.Folder,
-                            subnodes = subnodes,
-                        });
-                    }
-
-                    foreach(var file in files)
-                    {
-                        if(file.EndsWith(".meta"))
-                        {
-                            continue;
-                        }
-
-                        var node = new ProjectBrowserNode()
-                        {
-                            name = Path.GetFileNameWithoutExtension(file),
-                            extension = Path.GetExtension(file),
-                            path = file,
-                            subnodes = new(),
-                            type = ProjectBrowserNodeType.File
-                        };
-
-                        nodes.Add(node);
-
-                        switch (node.extension)
-                        {
-                            case ".mat":
-
-                                node.resourceType = ProjectResourceType.Material;
-
-                                break;
-
-                            case ".stsh":
-
-                                node.resourceType = ProjectResourceType.Shader;
-
-                                break;
-
-                            case ".stsc":
-
-                                node.resourceType = ProjectResourceType.Scene;
-                                node.action = ProjectBrowserNodeAction.InspectScene;
-
-                                break;
-
-                            case ".png":
-                            case ".jpg":
-                            case ".jpeg":
-                            case ".gif":
-                            case ".bmp":
-
-                                node.resourceType = ProjectResourceType.Texture;
-
-                                break;
-
-                            default:
-
-                                node.resourceType = ProjectResourceType.Other;
-
-                                break;
-                        }
-                    }
-                }
-
-                Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes);
-
-                UpdateCurrentContentNodes(projectBrowserNodes);
-            }
-        }
-
-        private void UpdateCurrentContentNodes(List<ProjectBrowserNode> nodes)
-        {
-            currentContentBrowserNodes.Clear();
-
-            foreach (var node in nodes)
-            {
-                if(node.path.EndsWith(".meta"))
-                {
-                    continue;
-                }
-
-                var item = new ImGuiUtils.ContentGridItem()
-                {
-                    name = node.name,
-                };
-
-                //TODO
-                switch (node.type)
-                {
-                    case ProjectBrowserNodeType.File:
-
-                        switch(node.resourceType)
-                        {
-                            case ProjectResourceType.Texture:
-
-                                item.texture = ThumbnailCache.GetThumbnail(node.path);
-
-                                break;
-
-                            default:
-
-                                {
-                                    if (editorResources.TryGetValue("FileIcon", out var texture))
-                                    {
-                                        item.texture = texture;
-                                    }
-                                }
-
-                                break;
-                        }
-
-                        break;
-
-                    case ProjectBrowserNodeType.Folder:
-
-                        {
-                            if (editorResources.TryGetValue("FolderIcon", out var texture))
-                            {
-                                item.texture = texture;
-                            }
-                        }
-
-                        break;
-                }
-
-                currentContentBrowserNodes.Add(item);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System;
+using ImGuiNET;
 
 namespace Staple.Editor
 {
@@ -115,16 +116,28 @@ namespace Staple.Editor
             return $"{size}{byteSizes[counter]}";
         }
 
-        public static void RefreshAssets()
+        public static void RefreshAssets(Action onFinish)
         {
-            RefreshAssets(true);
+            RefreshAssets(true, onFinish);
         }
 
-        internal static void RefreshAssets(bool updateProject)
+        internal static void RefreshAssets(bool updateProject, Action onFinish)
         {
             if (StapleEditor.instance.TryGetTarget(out var editor))
             {
-                editor.RefreshAssets(updateProject);
+                editor.showingProgress = true;
+                editor.progressFraction = 0;
+
+                editor.StartBackgroundTask((ref float progressFraction) =>
+                {
+                    editor.RefreshAssets(updateProject);
+
+                    ThumbnailCache.Clear();
+
+                    onFinish?.Invoke();
+
+                    return true;
+                });
             }
         }
     }

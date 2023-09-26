@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace Staple.Editor
 {
@@ -20,7 +19,7 @@ namespace Staple.Editor
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
             var configurationName = debug ? "Debug" : "Release";
 
-            GeneratePlayerCSProj(platform, debug);
+            csProjManager.GeneratePlayerCSProj(platform, projectAppSettings, debug);
 
             RefreshStaging(platform, false);
 

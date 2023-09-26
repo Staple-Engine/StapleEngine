@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Baker
 {
@@ -27,6 +28,9 @@ namespace Baker
 
             for (var i = 0; i < materialFiles.Count; i++)
             {
+                //Guid collision fix
+                Thread.Sleep(25);
+
                 Console.WriteLine($"\t{materialFiles[i]}");
 
                 try

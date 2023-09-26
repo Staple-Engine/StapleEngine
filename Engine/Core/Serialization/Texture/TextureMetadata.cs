@@ -223,6 +223,28 @@ namespace Staple.Internal
             },
         };
 
+        public TextureMetadata Clone()
+        {
+            return new TextureMetadata()
+            {
+                guid = guid,
+                filter = filter,
+                format = format,
+                isLinear = isLinear,
+                maxSize = maxSize,
+                overrides = new(overrides),
+                premultiplyAlpha = premultiplyAlpha,
+                quality = quality,
+                readBack = readBack,
+                spriteScale = spriteScale,
+                type = type,
+                useMipmaps = useMipmaps,
+                wrapU = wrapU,
+                wrapV = wrapV,
+                wrapW = wrapW,
+            };
+        }
+
         public static bool operator==(TextureMetadata lhs, TextureMetadata rhs)
         {
             return lhs.guid == rhs.guid &&

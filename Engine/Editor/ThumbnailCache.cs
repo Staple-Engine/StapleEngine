@@ -7,6 +7,7 @@ namespace Staple.Editor
     internal class ThumbnailCache
     {
         private static Dictionary<string, Texture> cachedThumbnails = new();
+        private static List<Texture> pendingDestructionTextures = new();
 
         internal static string basePath;
 
@@ -50,14 +51,34 @@ namespace Staple.Editor
             return texture;
         }
 
+        public static void OnFrameStart()
+        {
+            foreach(var texture in pendingDestructionTextures)
+            {
+                texture.Destroy();
+            }
+
+            pendingDestructionTextures.Clear();
+        }
+
         public static void Clear()
         {
             foreach(var pair in cachedThumbnails)
             {
-                pair.Value.Destroy();
+                pendingDestructionTextures.Add(pair.Value);
             }
 
             cachedThumbnails.Clear();
+        }
+
+        public static void ClearSingle(string path)
+        {
+            if(cachedThumbnails.TryGetValue(path, out var texture))
+            {
+                cachedThumbnails.Remove(path);
+
+                pendingDestructionTextures.Add(texture);
+            }
         }
     }
 }

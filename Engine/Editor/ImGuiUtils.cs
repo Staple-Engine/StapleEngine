@@ -11,6 +11,7 @@ namespace Staple.Editor
         {
             public string name;
             public Texture texture;
+            public Func<Texture, Texture> ensureValidTexture;
         }
 
         public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize,
@@ -28,6 +29,8 @@ namespace Staple.Editor
                 var item = items[i];
 
                 ImGui.PushID($"{item.name}##0");
+
+                item.texture = item.ensureValidTexture(item.texture);
 
                 ImGui.ImageButton("", ImGuiProxy.GetImGuiTexture(item.texture), new Vector2(thumbnailSize, thumbnailSize), new Vector2(0, 0), new Vector2(1, 1));
 

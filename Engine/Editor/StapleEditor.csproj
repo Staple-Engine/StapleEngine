@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetDatabase.cs" />
+    <Compile Include="CSProjManager.cs" />
     <Compile Include="EditorFont.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />
@@ -67,6 +68,11 @@
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="EditorUtils.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowserNodeAction.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="ResourceUtils.cs" />
     <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />
