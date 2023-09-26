@@ -84,6 +84,7 @@ namespace Staple.Internal
 
         [Key(1)]
         [JsonIgnore]
+        [System.NonSerialized]
         public List<SceneComponentParameter> parameters = new();
 
         [IgnoreMember]

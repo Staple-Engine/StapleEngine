@@ -14,7 +14,8 @@ namespace Staple.Editor
             public string guid;
         }
 
-        private static Dictionary<string, string> assets = new();
+        private static readonly Dictionary<string, string> assets = new();
+
         internal static string basePath;
 
         public static void Reload()

@@ -24,7 +24,7 @@ namespace Staple.Editor
 
         public ProjectBrowserNode currentContentNode;
 
-        private List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
+        private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
 
         internal Dictionary<string, Texture> editorResources = new();
 
@@ -56,7 +56,7 @@ namespace Staple.Editor
             {
                 projectBrowserNodes = new List<ProjectBrowserNode>();
 
-                void Recursive(string p, List<ProjectBrowserNode> nodes)
+                static void Recursive(string p, List<ProjectBrowserNode> nodes)
                 {
                     string[] directories = Array.Empty<string>();
                     string[] files = Array.Empty<string>();
@@ -237,7 +237,7 @@ namespace Staple.Editor
 
         public void CreateMissingMetaFiles()
         {
-            void Recursive(List<ProjectBrowserNode> nodes)
+            static void Recursive(List<ProjectBrowserNode> nodes)
             {
                 foreach (var node in nodes)
                 {

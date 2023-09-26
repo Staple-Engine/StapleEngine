@@ -74,9 +74,6 @@ namespace Staple
                             new Vector2(1, 0),
                         },
 
-                        /// <summary>
-                        /// The indices for a normal quad sprite
-                        /// </summary>
                         indices = new int[]
                         {
                             0, 1, 2, 2, 3, 0

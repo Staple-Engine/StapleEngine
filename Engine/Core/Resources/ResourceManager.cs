@@ -26,7 +26,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, Material> cachedMaterials = new();
         private readonly Dictionary<string, Shader> cachedShaders = new();
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
-        private Dictionary<string, ResourcePak> resourcePaks = new();
+        private readonly Dictionary<string, ResourcePak> resourcePaks = new();
 
         /// <summary>
         /// The default instance of the resource manager

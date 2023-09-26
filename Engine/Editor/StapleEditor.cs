@@ -38,7 +38,7 @@ namespace Staple.Editor
 
         class GameAssemblyLoadContext : AssemblyLoadContext
         {
-            private AssemblyDependencyResolver resolver;
+            private readonly AssemblyDependencyResolver resolver;
 
             public GameAssemblyLoadContext(string path) : base(true)
             {
@@ -65,15 +65,12 @@ namespace Staple.Editor
 
         internal delegate bool BackgroundTaskProgressCallback(ref float progress);
 
-        private List<Thread> backgroundThreads = new();
-        private object backgroundLock = new();
+        private readonly List<Thread> backgroundThreads = new();
+        private readonly object backgroundLock = new();
 
         private RenderWindow window;
 
         private ImGuiProxy imgui;
-
-        private readonly ImGuiWindowFlags mainPanelFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoMove |
-            ImGuiWindowFlags.NoBringToFrontOnFocus;
 
         private Entity selectedEntity;
 
@@ -97,21 +94,21 @@ namespace Staple.Editor
 
         private ViewportType viewportType = ViewportType.Scene;
 
-        private Camera camera = new();
+        private readonly Camera camera = new();
 
-        private Transform cameraTransform = new();
+        private readonly Transform cameraTransform = new();
 
-        private AppSettings editorSettings = AppSettings.Default;
+        private readonly AppSettings editorSettings = AppSettings.Default;
 
         private AppSettings projectAppSettings;
 
-        private Dictionary<Entity, EntityBody> pickEntityBodies = new();
+        private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
 
         private Material debugHighlightMaterial;
 
-        private Dictionary<string, Editor> cachedEditors = new();
+        private readonly Dictionary<string, Editor> cachedEditors = new();
 
-        private Editor defaultEditor = new();
+        private readonly Editor defaultEditor = new();
 
         private GameAssemblyLoadContext gameAssemblyLoadContext;
 
@@ -143,9 +140,9 @@ namespace Staple.Editor
 
         private PlayerSettings playerSettings;
 
-        private CSProjManager csProjManager = new();
+        private readonly CSProjManager csProjManager = new();
 
-        private ProjectBrowser projectBrowser = new();
+        private readonly ProjectBrowser projectBrowser = new();
 
         public static WeakReference<StapleEditor> instance;
 

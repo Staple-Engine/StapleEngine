@@ -15,7 +15,7 @@ namespace Staple
         internal string path;
         internal bool renderTarget = false;
 
-        private ITextureCreateMethod createMethod;
+        private readonly ITextureCreateMethod createMethod;
 
         public bool Disposed { get; private set; } = false;
 

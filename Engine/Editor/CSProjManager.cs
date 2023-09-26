@@ -7,9 +7,9 @@ namespace Staple.Editor
 {
     internal class CSProjManager
     {
-        private Dictionary<string, DateTime> fileModifyStates = new();
+        private readonly Dictionary<string, DateTime> fileModifyStates = new();
 
-        private Dictionary<AppPlatform, string[]> platformDefines = new()
+        private readonly Dictionary<AppPlatform, string[]> platformDefines = new()
         {
             { AppPlatform.Windows, new string[]{ "STAPLE_ENGINE", "STAPLE_WINDOWS" } },
             { AppPlatform.Linux, new string[]{ "STAPLE_ENGINE", "STAPLE_LINUX" } },
@@ -18,7 +18,7 @@ namespace Staple.Editor
             { AppPlatform.iOS, new string[]{ "STAPLE_ENGINE", "STAPLE_IOS" } },
         };
 
-        private Dictionary<AppPlatform, string> platformFramework = new()
+        private readonly Dictionary<AppPlatform, string> platformFramework = new()
         {
             { AppPlatform.Windows, "net7.0" },
             { AppPlatform.Linux, "net7.0" },

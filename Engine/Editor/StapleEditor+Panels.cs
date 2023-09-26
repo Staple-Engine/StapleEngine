@@ -41,6 +41,9 @@ namespace Staple.Editor
                             selectedProjectNodeData = null;
 
                             cachedEditors.Clear();
+                            EditorGUI.pendingObjectPickers.Clear();
+
+                            showingAssetPicker = false;
 
                             var counter = 0;
 
@@ -289,6 +292,9 @@ namespace Staple.Editor
                 selectedProjectNodeData = null;
 
                 cachedEditors.Clear();
+                EditorGUI.pendingObjectPickers.Clear();
+
+                showingAssetPicker = false;
 
                 if (selectedProjectNode == null)
                 {
@@ -564,6 +570,7 @@ namespace Staple.Editor
                     {
                         name = x.name,
                         texture = texture,
+                        ensureValidTexture = (_) => texture,
                     }).ToList();
 
                 ImGuiUtils.ContentGrid(gridItems, Staple.Editor.ProjectBrowser.contentPanelPadding, Staple.Editor.ProjectBrowser.contentPanelThumbnailSize,
@@ -581,6 +588,33 @@ namespace Staple.Editor
                                 break;
 
                             case ProjectResourceType.Texture:
+
+                                {
+                                    var cachePath = i.path;
+
+                                    var cacheIndex = i.path.IndexOf("Assets");
+
+                                    if (cacheIndex >= 0)
+                                    {
+                                        cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
+                                    }
+
+                                    try
+                                    {
+                                        texture = ResourceManager.instance.LoadTexture(cachePath);
+                                    }
+                                    catch (System.Exception)
+                                    {
+                                    }
+
+                                    if(texture != null)
+                                    {
+                                        if(EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                        {
+                                            EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
+                                        }
+                                    }
+                                }
 
                                 break;
 

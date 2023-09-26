@@ -23,6 +23,8 @@ namespace Staple.Editor
 
         private bool frameBegun = false;
 
+        private readonly KeyCode[] keyCodes = Enum.GetValues<KeyCode>();
+
         public bool Initialize()
         {
             ImGuiContext = ImGui.CreateContext();
@@ -116,7 +118,7 @@ namespace Staple.Editor
 
             io.MousePos = Input.MousePosition;
 
-            foreach(KeyCode key in Enum.GetValues(typeof(KeyCode)))
+            foreach(var key in keyCodes)
             {
                 if(key == KeyCode.Unknown)
                 {
@@ -205,25 +207,11 @@ namespace Staple.Editor
 
                     var size = numVertices * sizeof(ImDrawVert);
 
-                    byte[] data = new byte[size];
-
-                    Marshal.Copy(cmdList.VtxBuffer.Data, data, 0, data.Length);
-
-                    for (var j = 0; j < size; j++)
-                    {
-                        tvb.data[j] = data[j];
-                    }
+                    Buffer.MemoryCopy((void *)cmdList.VtxBuffer.Data, tvb.data, size, size);
 
                     size = numIndices * sizeof(ushort);
 
-                    data = new byte[size];
-
-                    Marshal.Copy(cmdList.IdxBuffer.Data, data, 0, data.Length);
-
-                    for (var j = 0; j < size; j++)
-                    {
-                        tib.data[j] = data[j];
-                    }
+                    Buffer.MemoryCopy((void *)cmdList.IdxBuffer.Data, tib.data, size, size);
 
                     for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                     {

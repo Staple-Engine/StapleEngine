@@ -6,8 +6,8 @@ namespace Staple.Editor
 {
     internal class ThumbnailCache
     {
-        private static Dictionary<string, Texture> cachedThumbnails = new();
-        private static List<Texture> pendingDestructionTextures = new();
+        private static readonly Dictionary<string, Texture> cachedThumbnails = new();
+        private static readonly List<Texture> pendingDestructionTextures = new();
 
         internal static string basePath;
 

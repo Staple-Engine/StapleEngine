@@ -16,7 +16,7 @@ namespace Staple.Internal
             public int references;
         }
 
-        private Dictionary<int, TextResourceInfo> textResources = new();
+        private readonly Dictionary<int, TextResourceInfo> textResources = new();
         private TextFont defaultFont;
 
         public TextRenderer()
@@ -284,9 +284,9 @@ namespace Staple.Internal
                 mesh.UploadMeshData();
             }
 
-            var actualParams = parameters.font != null && parameters.font.TryGetTarget(out var textFont) ? parameters : parameters.Font(defaultFont);
+            var actualParams = parameters.font != null && parameters.font.TryGetTarget(out _) ? parameters : parameters.Font(defaultFont);
 
-            var font = parameters.font.TryGetTarget(out textFont) ? textFont : defaultFont;
+            var font = parameters.font.TryGetTarget(out var textFont) ? textFont : defaultFont;
 
             if(font == null)
             {

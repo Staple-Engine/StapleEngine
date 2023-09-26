@@ -27,7 +27,7 @@ namespace Staple.Internal
         /// <summary>
         /// Whether this buffer is transient
         /// </summary>
-        private bool isTransient = false;
+        private readonly bool isTransient = false;
 
         public unsafe IndexBuffer(bgfx.IndexBufferHandle handle)
         {

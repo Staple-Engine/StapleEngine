@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,11 +11,11 @@ namespace Staple.Internal
     /// </summary>
     internal class Shader
     {
-        internal class UniformInfo
+        internal class UniformInfo<T>
         {
             public ShaderUniform uniform;
             public bgfx.UniformHandle handle;
-            public object value;
+            public T value;
 
             public bool Create()
             {
@@ -72,7 +73,7 @@ namespace Staple.Internal
         internal readonly byte[] vertexShaderSource;
         internal readonly byte[] fragmentShaderSource;
 
-        internal List<UniformInfo> uniforms = new();
+        internal Dictionary<ShaderUniformType, object> uniforms = new();
 
         /// <summary>
         /// Whether this shader has been disposed
@@ -113,6 +114,16 @@ namespace Staple.Internal
 
             if (vertexShader.Valid == false || fragmentShader.Valid == false)
             {
+                if(vertexShader.Valid)
+                {
+                    bgfx.destroy_shader(vertexShader);
+                }
+
+                if(fragmentShader.Valid)
+                {
+                    bgfx.destroy_shader(vertexShader);
+                }
+
                 return false;
             }
 
@@ -128,39 +139,58 @@ namespace Staple.Internal
 
             if(uniforms.Count > 0)
             {
-                foreach(var uniform in uniforms)
+                void Apply<T>(object value, Action<UniformInfo<T>> callback)
                 {
-                    if(uniform.Create())
+                    if (value is Dictionary<int, UniformInfo<T>> container)
                     {
-                        if(uniform.value != null)
+                        foreach (var p in container)
                         {
-                            switch(uniform.value)
+                            var uniform = p.Value;
+
+                            if (uniform.Create())
                             {
-                                case Vector4 v:
-
-                                    SetVector4(uniform.uniform.name, v);
-
-                                    break;
-
-                                case Texture t:
-
-                                    SetTexture(uniform.uniform.name, t);
-
-                                    break;
-
-                                case Matrix3x3 m:
-
-                                    SetMatrix3x3(uniform.uniform.name, m);
-
-                                    break;
-
-                                case Matrix4x4 m:
-
-                                    SetMatrix4x4(uniform.uniform.name, m);
-
-                                    break;
+                                if (uniform.value != null)
+                                {
+                                    callback?.Invoke(uniform);
+                                }
                             }
                         }
+                    }
+                }
+
+                foreach (var pair in uniforms)
+                {
+                    switch(pair.Key)
+                    {
+                        case ShaderUniformType.Texture:
+
+                            Apply<Texture>(pair.Value, (uniform) => SetTexture(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Matrix3x3:
+
+                            Apply<Matrix3x3>(pair.Value, (uniform) => SetMatrix3x3(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Matrix4x4:
+
+                            Apply<Matrix4x4>(pair.Value, (uniform) => SetMatrix4x4(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Vector4:
+
+                            Apply<Vector4>(pair.Value, (uniform) => SetVector4(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Color:
+
+                            Apply<Color>(pair.Value, (uniform) => SetColor(uniform.uniform.name, uniform.value));
+
+                            break;
                     }
                 }
             }
@@ -168,14 +198,60 @@ namespace Staple.Internal
             {
                 foreach (var uniform in metadata.uniforms)
                 {
-                    var u = new UniformInfo()
+                    void Add<T>()
                     {
-                        uniform = uniform,
-                    };
+                        if (uniforms.TryGetValue(uniform.type, out var container) == false)
+                        {
+                            container = new Dictionary<int, UniformInfo<T>>();
 
-                    if (u.Create())
+                            uniforms.Add(uniform.type, container);
+                        }
+
+                        if (container is Dictionary<int, UniformInfo<T>> c)
+                        {
+                            var u = new UniformInfo<T>()
+                            {
+                                uniform = uniform,
+                            };
+
+                            if (u.Create())
+                            {
+                                c.Add(u.uniform.name.GetHashCode(), u);
+                            }
+                        }
+                    }
+
+                    switch (uniform.type)
                     {
-                        uniforms.Add(u);
+                        case ShaderUniformType.Texture:
+
+                            Add<Texture>();
+
+                            break;
+
+                        case ShaderUniformType.Matrix3x3:
+
+                            Add<Matrix3x3>();
+
+                            break;
+
+                        case ShaderUniformType.Matrix4x4:
+
+                            Add<Matrix4x4>();
+
+                            break;
+
+                        case ShaderUniformType.Vector4:
+
+                            Add<Vector4>();
+
+                            break;
+
+                        case ShaderUniformType.Color:
+
+                            Add<Color>();
+
+                            break;
                     }
                 }
             }
@@ -195,14 +271,28 @@ namespace Staple.Internal
             return 0;
         }
 
-        internal UniformInfo GetUniform(string name)
+        internal UniformInfo<T> GetUniform<T>(ShaderUniformType type, string name)
         {
             if (Disposed)
             {
                 return null;
             }
 
-            return uniforms.FirstOrDefault(x => x.uniform.name == name);
+            return uniforms.TryGetValue(type, out var container) &&
+                container is Dictionary<int, UniformInfo<T>> c &&
+                c.TryGetValue(name.GetHashCode(), out var outValue) ? outValue : null;
+        }
+
+        internal UniformInfo<T> GetUniform<T>(ShaderUniformType type, int hashCode)
+        {
+            if (Disposed)
+            {
+                return null;
+            }
+
+            return uniforms.TryGetValue(type, out var container) &&
+                container is Dictionary<int, UniformInfo<T>> c &&
+                c.TryGetValue(hashCode, out var outValue) ? outValue : null;
         }
 
         /// <summary>
@@ -217,9 +307,9 @@ namespace Staple.Internal
                 return;
             }
 
-            var uniform = GetUniform(name);
+            var uniform = GetUniform<Vector4>(ShaderUniformType.Vector4, name);
 
-            if(uniform == null || uniform.uniform.type != ShaderUniformType.Vector4)
+            if(uniform == null)
             {
                 return;
             }
@@ -244,9 +334,10 @@ namespace Staple.Internal
                 return;
             }
 
-            var uniform = GetUniform(name);
 
-            if (uniform == null || uniform.uniform.type != ShaderUniformType.Color)
+            var uniform = GetUniform<Color>(ShaderUniformType.Color, name);
+
+            if (uniform == null)
             {
                 return;
             }
@@ -268,14 +359,14 @@ namespace Staple.Internal
         /// <param name="value">The value</param>
         public void SetTexture(string name, Texture value)
         {
-            if (Disposed)
+            if (Disposed || value == null || value.Disposed)
             {
                 return;
             }
 
-            var uniform = GetUniform(name);
+            var uniform = GetUniform<Texture>(ShaderUniformType.Texture, name);
 
-            if (value == null || uniform == null || uniform.uniform.type != ShaderUniformType.Texture)
+            if (uniform == null)
             {
                 return;
             }
@@ -300,9 +391,9 @@ namespace Staple.Internal
                 return;
             }
 
-            var uniform = GetUniform(name);
+            var uniform = GetUniform<Matrix4x4>(ShaderUniformType.Matrix4x4, name);
 
-            if (uniform == null || uniform.uniform.type != ShaderUniformType.Matrix4x4)
+            if (uniform == null)
             {
                 return;
             }
@@ -327,9 +418,9 @@ namespace Staple.Internal
                 return;
             }
 
-            var uniform = GetUniform(name);
+            var uniform = GetUniform<Matrix3x3>(ShaderUniformType.Matrix3x3, name);
 
-            if (uniform == null || uniform.uniform.type != ShaderUniformType.Matrix3x3)
+            if (uniform == null)
             {
                 return;
             }
@@ -359,11 +450,55 @@ namespace Staple.Internal
                 bgfx.destroy_program(program);
             }
 
-            foreach(var uniform in uniforms)
+            void DestroyUniforms<T>(object value)
             {
-                if(uniform.handle.Valid)
+                if (value is Dictionary<int, UniformInfo<T>> container)
                 {
-                    bgfx.destroy_uniform(uniform.handle);
+                    foreach (var p in container)
+                    {
+                        var uniform = p.Value;
+
+                        if (uniform.handle.Valid)
+                        {
+                            bgfx.destroy_uniform(uniform.handle);
+                        }
+                    }
+                }
+            }
+
+            foreach (var pair in uniforms)
+            {
+                switch(pair.Key)
+                {
+                    case ShaderUniformType.Texture:
+
+                        DestroyUniforms<Texture>(pair.Value);
+
+                        break;
+
+                    case ShaderUniformType.Vector4:
+
+                        DestroyUniforms<Vector4>(pair.Value);
+
+                        break;
+
+                    case ShaderUniformType.Matrix3x3:
+
+                        DestroyUniforms<Matrix3x3>(pair.Value);
+
+                        break;
+
+                    case ShaderUniformType.Matrix4x4:
+
+                        DestroyUniforms<Matrix4x4>(pair.Value);
+
+                        break;
+
+                    case ShaderUniformType.Color:
+
+                        DestroyUniforms<Color>(pair.Value);
+
+                        break;
                 }
             }
         }

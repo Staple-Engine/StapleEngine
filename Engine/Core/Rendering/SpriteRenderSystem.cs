@@ -144,6 +144,8 @@ namespace Staple
 
                 bgfx.submit(s.viewID, s.material.shader.program, 0, (byte)discardFlags);
             }
+
+            sprites.Clear();
         }
     }
 }

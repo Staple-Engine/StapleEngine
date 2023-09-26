@@ -28,30 +28,12 @@ namespace Staple.Editor
                 progressFraction = 0.1f;
             }
 
-            string targetResourcesPath;
-
-            switch (platform)
+            string targetResourcesPath = platform switch
             {
-                case AppPlatform.Android:
-
-                    targetResourcesPath = Path.Combine(projectDirectory, "Assets");
-
-                    break;
-
-                case AppPlatform.Windows:
-                case AppPlatform.Linux:
-                case AppPlatform.MacOSX:
-
-                    targetResourcesPath = Path.Combine(outPath, "Data");
-
-                    break;
-
-                default:
-
-                    targetResourcesPath = Path.Combine(outPath, "Data");
-
-                    break;
-            }
+                AppPlatform.Android => Path.Combine(projectDirectory, "Assets"),
+                AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => Path.Combine(outPath, "Data"),
+                _ => Path.Combine(outPath, "Data"),
+            };
 
             try
             {
@@ -61,7 +43,7 @@ namespace Staple.Editor
             {
             }
 
-            void CopyDirectory(string sourceDir, string destinationDir)
+            static void CopyDirectory(string sourceDir, string destinationDir)
             {
                 var dir = new DirectoryInfo(sourceDir);
 

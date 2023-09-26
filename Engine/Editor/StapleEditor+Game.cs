@@ -62,10 +62,7 @@ namespace Staple.Editor
                         renderSystem.renderSystems.Remove(r);
                     }
 
-                    if(Scene.current != null)
-                    {
-                        Scene.current.world.UnloadComponentsFromAssembly(assembly);
-                    }
+                    Scene.current?.world.UnloadComponentsFromAssembly(assembly);
                 }
 
                 gameAssembly = null;

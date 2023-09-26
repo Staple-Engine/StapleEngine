@@ -13,9 +13,11 @@
 	"spriteScale": 0.25,
 	"overrides": {
 		"iOS": {
+			"shouldOverride": true,
 			"format": "ASTC4x4"
 		},
 		"Android": {
+			"shouldOverride": true,
 			"format": "ASTC4x4"
 		}
 	}

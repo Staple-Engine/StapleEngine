@@ -295,7 +295,6 @@ namespace Staple.Internal
         /// <summary>
         /// Creates a vertex buffer from an array of data
         /// </summary>
-        /// <typeparam name="T">A struct type</typeparam>
         /// <param name="data">An array of vertices</param>
         /// <param name="layout">The vertex layout to use</param>
         /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>

@@ -1,4 +1,6 @@
-﻿namespace Staple
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Staple
 {
     /// <summary>
     /// Represents a 3x3 matrix
@@ -19,6 +21,44 @@
 
                 return matrix;
             }
+        }
+
+        public override readonly int GetHashCode()
+        {
+            return M11.GetHashCode() ^ M12.GetHashCode() ^ M13.GetHashCode() ^
+                M21.GetHashCode() ^ M22.GetHashCode() ^ M23.GetHashCode() ^
+                M31.GetHashCode() ^ M32.GetHashCode() ^ M33.GetHashCode();
+        }
+
+        public static bool operator==(Matrix3x3 lhs, Matrix3x3 rhs)
+        {
+            return lhs.M11 == rhs.M11 &&
+                lhs.M12 == rhs.M12 &&
+                lhs.M13 == rhs.M13 &&
+                lhs.M21 == rhs.M21 &&
+                lhs.M22 == rhs.M22 &&
+                lhs.M23 == rhs.M23 &&
+                lhs.M31 == rhs.M31 &&
+                lhs.M32 == rhs.M32 &&
+                lhs.M33 == rhs.M33;
+        }
+
+        public static bool operator !=(Matrix3x3 lhs, Matrix3x3 rhs)
+        {
+            return lhs.M11 != rhs.M11 ||
+                lhs.M12 != rhs.M12 ||
+                lhs.M13 != rhs.M13 ||
+                lhs.M21 != rhs.M21 ||
+                lhs.M22 != rhs.M22 ||
+                lhs.M23 != rhs.M23 ||
+                lhs.M31 != rhs.M31 ||
+                lhs.M32 != rhs.M32 ||
+                lhs.M33 != rhs.M33;
+        }
+
+        public override readonly bool Equals([NotNullWhen(true)] object obj)
+        {
+            return obj is Matrix3x3 m && this == m;
         }
     }
 }
