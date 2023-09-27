@@ -197,7 +197,7 @@ namespace Staple.Editor
                     {
                         bool ValidRegion(int x, int y)
                         {
-                            for(int regionY = 0, yPos = (y * texture.Width) * 4; regionY < metadata.spriteTextureGridSize.Y; regionY++, yPos += metadata.spriteTextureGridSize.X * 4)
+                            for(int regionY = 0, yPos = (y * texture.Width) * 4; regionY < metadata.spriteTextureGridSize.Y; regionY++, yPos += texture.Width * 4)
                             {
                                 for(int regionX = 0, xPos = x * 4; regionX < metadata.spriteTextureGridSize.X; regionX++, xPos += 4)
                                 {
@@ -354,11 +354,38 @@ namespace Staple.Editor
 
                 var height = width / aspect;
 
+                var currentCursor = ImGui.GetCursorScreenPos();
+
                 EditorGUI.Texture(previewTexture, new Vector2(width, height));
+
+                var textureCursor = ImGui.GetCursorScreenPos();
+
+                if(metadata.type == TextureType.Sprite)
+                {
+                    var scale = width / previewTexture.Width;
+
+                    foreach (var sprite in metadata.sprites)
+                    {
+                        var position = new Vector2Int(Math.RoundToInt(currentCursor.X + sprite.left * scale),
+                            Math.RoundToInt(currentCursor.Y + sprite.top * scale));
+
+                        var size = new Vector2Int(Math.RoundToInt(sprite.Width * scale), Math.RoundToInt(sprite.Height * scale));
+
+                        var rect = new Rect(position, size);
+
+                        ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
+                            new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
+                    }
+                }
 
                 EditorGUI.Label($"{previewTexture.Width}x{previewTexture.Height}");
                 EditorGUI.Label($"Disk Size: {EditorUtils.ByteSizeString(diskSize)}");
                 EditorGUI.Label($"VRAM usage: {EditorUtils.ByteSizeString(VRAMSize)}");
+
+                if(metadata.type == TextureType.Sprite)
+                {
+                    EditorGUI.Label($"{metadata.sprites.Count} sprites");
+                }
             }
         }
     }
