@@ -1,6 +1,6 @@
 {
-  "guid": "fb44a7ff-0576-4b57-9547-cd95a6a8a4da",
-  "type": "SRGB",
+  "guid": "0bb1a8bb-c180-4880-bfab-01b32a29e315",
+  "type": "Sprite",
   "format": "RGBA8",
   "quality": "Default",
   "filter": "Point",
@@ -11,8 +11,21 @@
   "maxSize": 2048,
   "useMipmaps": false,
   "isLinear": false,
-  "spriteScale": 1.0,
+  "spritePixelsPerUnit": 100,
   "readBack": false,
+  "spriteTextureMethod": "Single",
+  "spriteTextureGridSize": {
+    "X": 0,
+    "Y": 0
+  },
+  "sprites": [
+    {
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 32
+    }
+  ],
   "overrides": {
     "iOS": {
       "shouldOverride": true,

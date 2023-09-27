@@ -69,6 +69,15 @@ namespace Staple.Editor
             return value;
         }
 
+        public static Vector2Int Vector2IntField(string label, Vector2Int value)
+        {
+            var values = new int[] { value.X, value.Y };
+
+            Changed |= ImGui.InputInt2(label, ref values[0]);
+
+            return new Vector2Int(values[0], values[1]);
+        }
+
         public static Vector3 Vector3Field(string label, Vector3 value)
         {
             Changed |= ImGui.InputFloat3(label, ref value);

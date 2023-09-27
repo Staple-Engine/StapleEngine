@@ -54,6 +54,16 @@ namespace Staple.Editor
                 return true;
             }
 
+            if(field.Name.StartsWith("sprite") && metadata.type != TextureType.Sprite)
+            {
+                return true;
+            }
+
+            if(field.Name == nameof(TextureMetadata.sprites))
+            {
+                return true;
+            }
+
             if(field.Name == nameof(TextureMetadata.maxSize))
             {
                 var current = (int)field.GetValue(target);
@@ -152,6 +162,76 @@ namespace Staple.Editor
             return base.RenderField(field);
         }
 
+        private void UpdateSprites(string path, TextureMetadata metadata, Texture texture)
+        {
+            if (metadata.type != TextureType.Sprite)
+            {
+                metadata.sprites.Clear();
+
+                return;
+            }
+
+            switch (metadata.spriteTextureMethod)
+            {
+                case SpriteTextureMethod.Single:
+
+                    metadata.sprites.Clear();
+
+                    if (texture != null)
+                    {
+                        metadata.sprites.Add(new Rect(Vector2Int.Zero, new Vector2Int(texture.Width, texture.Height)));
+                    }
+
+                    break;
+
+                case SpriteTextureMethod.Grid:
+
+                    metadata.sprites.Clear();
+
+                    if (texture != null &&
+                        metadata.spriteTextureGridSize.X > 0 &&
+                        metadata.spriteTextureGridSize.Y > 0 &&
+                        ThumbnailCache.TryGetTextureData(path, out var rawTextureData) &&
+                        rawTextureData.width == texture.Width &&
+                        rawTextureData.height == texture.Height)
+                    {
+                        bool ValidRegion(int x, int y)
+                        {
+                            for(int regionY = 0, yPos = (y * texture.Width) * 4; regionY < metadata.spriteTextureGridSize.Y; regionY++, yPos += metadata.spriteTextureGridSize.X * 4)
+                            {
+                                for(int regionX = 0, xPos = x * 4; regionX < metadata.spriteTextureGridSize.X; regionX++, xPos += 4)
+                                {
+                                    if (rawTextureData.data[yPos + xPos + 3] != 0)
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+
+                            return false;
+                        }
+
+                        var size = new Vector2Int(texture.Width / metadata.spriteTextureGridSize.X,
+                            texture.Height / metadata.spriteTextureGridSize.Y);
+
+                        for (int y = 0, yPos = 0; y < size.Y; y++, yPos += metadata.spriteTextureGridSize.Y)
+                        {
+                            for (int x = 0, xPos = 0; x < size.X; x++, xPos += metadata.spriteTextureGridSize.X)
+                            {
+                                if(ValidRegion(xPos, yPos) == false)
+                                {
+                                    continue;
+                                }
+
+                                metadata.sprites.Add(new Rect(new Vector2Int(xPos, yPos), metadata.spriteTextureGridSize));
+                            }
+                        }
+                    }
+
+                    break;
+            }
+        }
+
         public override void OnInspectorGUI ()
         {
             base.OnInspectorGUI();
@@ -164,6 +244,8 @@ namespace Staple.Editor
             {
                 if (EditorGUI.Button("Apply"))
                 {
+                    UpdateSprites(path, metadata, previewTexture);
+
                     try
                     {
                         var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
@@ -237,15 +319,22 @@ namespace Staple.Editor
                             newMetadata.guid = Guid.NewGuid().ToString();
                         }
 
-                        var json = JsonConvert.SerializeObject(newMetadata, Formatting.Indented, new JsonSerializerSettings()
-                        {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                        var texture = ThumbnailCache.GetThumbnail(file.Replace(".meta", ""));
 
-                        File.WriteAllText(file, json);
+                        if(texture != null)
+                        {
+                            UpdateSprites(file.Replace(".meta", ""), newMetadata, texture);
+
+                            var json = JsonConvert.SerializeObject(newMetadata, Formatting.Indented, new JsonSerializerSettings()
+                            {
+                                Converters =
+                                {
+                                    new StringEnumConverter(),
+                                }
+                            });
+
+                            File.WriteAllText(file, json);
+                        }
                     }
 
                     EditorUtils.RefreshAssets(false, UpdatePreview);

@@ -30,14 +30,9 @@ namespace Staple
         public int Height => info.height;
 
         /// <summary>
-        /// The texture's width as a sprite
+        /// The texture's sprite scale
         /// </summary>
-        public int SpriteWidth => (int)(info.width * metadata.spriteScale);
-
-        /// <summary>
-        /// The texture's height as a sprite
-        /// </summary>
-        public int SpriteHeight => (int)(info.height * metadata.spriteScale);
+        public float SpriteScale => info.width / (float)metadata.spritePixelsPerUnit;
 
         /// <summary>
         /// Create a texture from an existing bgfx texture
@@ -53,7 +48,6 @@ namespace Staple
 
             metadata = new TextureMetadata()
             {
-                spriteScale = 1,
                 readBack = readBack,
             };
 
@@ -135,47 +129,41 @@ namespace Staple
         }
 
         /// <summary>
-        /// Creates a texture from a standard format (JPG/PNG/BMP/TGA/PSD)
+        /// Loads the raw texture data from a standard format image data
         /// </summary>
-        /// <param name="path">The file path of the texture</param>
-        /// <param name="data">The file data in bytes</param>
-        /// <param name="colorComponents">The color components we want for this image</param>
-        /// <param name="flags">Additional texture flags</param>
-        /// <returns>The texture, or null</returns>
-        public static Texture CreateStandard(string path, byte[] data, StandardTextureColorComponents colorComponents, TextureFlags flags = TextureFlags.None)
+        /// <param name="data">The data of the raw image file, in bytes</param>
+        /// <param name="colorComponents">The color components we want</param>
+        /// <returns>The raw texture data with the pixel data, width, height, and color components</returns>
+        /// <remarks>The data passed here should be of standard raw image files such as png or jpg</remarks>
+        public static RawTextureData LoadStandard(byte[] data, StandardTextureColorComponents colorComponents)
         {
             try
             {
                 var components = ColorComponents.Default;
-                var format = bgfx.TextureFormat.RGBA8;
 
                 switch (colorComponents)
                 {
                     case StandardTextureColorComponents.RGB:
 
                         components = ColorComponents.RedGreenBlue;
-                        format = bgfx.TextureFormat.RGB8;
 
                         break;
 
                     case StandardTextureColorComponents.RGBA:
 
                         components = ColorComponents.RedGreenBlueAlpha;
-                        format = bgfx.TextureFormat.RGBA8;
 
                         break;
 
                     case StandardTextureColorComponents.Greyscale:
 
                         components = ColorComponents.Grey;
-                        format = bgfx.TextureFormat.RGB8;
 
                         break;
 
                     case StandardTextureColorComponents.GreyscaleAlpha:
 
                         components = ColorComponents.GreyAlpha;
-                        format = bgfx.TextureFormat.RGBA8;
 
                         break;
                 }
@@ -208,7 +196,61 @@ namespace Staple
                     data = newData;
                 }
 
-                return CreatePixels(path, imageData.Data, (ushort)imageData.Width, (ushort)imageData.Height,
+                return new RawTextureData()
+                {
+                    colorComponents = colorComponents,
+                    width = imageData.Width,
+                    height = imageData.Height,
+                    data = data,
+                };
+            }
+            catch (System.Exception e)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a texture from a standard format (JPG/PNG/BMP/TGA/PSD)
+        /// </summary>
+        /// <param name="path">The file path of the texture</param>
+        /// <param name="data">The file data in bytes</param>
+        /// <param name="colorComponents">The color components we want for this image</param>
+        /// <param name="flags">Additional texture flags</param>
+        /// <returns>The texture, or null</returns>
+        public static Texture CreateStandard(string path, byte[] data, StandardTextureColorComponents colorComponents, TextureFlags flags = TextureFlags.None)
+        {
+            try
+            {
+                var rawData = LoadStandard(data, colorComponents);
+
+                if(rawData == null)
+                {
+                    Log.Error($"[Texture] Failed to load texture at {path}: Failed to load image data");
+
+                    return null;
+                }
+
+                var format = bgfx.TextureFormat.RGBA8;
+
+                switch (colorComponents)
+                {
+                    case StandardTextureColorComponents.RGB:
+                    case StandardTextureColorComponents.Greyscale:
+
+                        format = bgfx.TextureFormat.RGB8;
+
+                        break;
+
+                    case StandardTextureColorComponents.RGBA:
+                    case StandardTextureColorComponents.GreyscaleAlpha:
+
+                        format = bgfx.TextureFormat.RGBA8;
+
+                        break;
+                }
+
+                return CreatePixels(path, rawData.data, (ushort)rawData.width, (ushort)rawData.height,
                     new TextureMetadata()
                     {
                         useMipmaps = false,
@@ -268,6 +310,7 @@ namespace Staple
             switch (metadata.type)
             {
                 case TextureType.SRGB:
+                case TextureType.Sprite:
 
                     flags |= TextureFlags.SRGB;
 

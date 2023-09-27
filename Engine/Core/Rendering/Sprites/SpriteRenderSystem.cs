@@ -20,6 +20,7 @@ namespace Staple
             public Material material;
             public Color color;
             public Texture texture;
+            public Rect textureRect;
             public ushort viewID;
             public int sortingOrder;
             public uint layer;
@@ -52,28 +53,32 @@ namespace Staple
 
         public void Preprocess(World world, Entity entity, Transform transform, IComponent renderer)
         {
-            var r = renderer as Sprite;
+            var r = renderer as SpriteRenderer;
 
             //We recalculate the bounds of this sprite
-            if(r.texture != null &&
-                r.texture.Disposed == false &&
+            if (r.sprite != null &&
+                r.sprite.texture != null &&
+                r.sprite.texture.Disposed == false &&
                 r.material != null &&
                 r.material.Disposed == false &&
                 r.material.shader != null &&
                 r.material.Disposed == false)
             {
-                r.localBounds = new AABB(Vector3.Zero, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));
+                var size = new Vector3(r.sprite.textureRect.Width * r.sprite.texture.SpriteScale, r.sprite.textureRect.Height * r.sprite.texture.SpriteScale, 0);
 
-                r.bounds = new AABB(transform.Position, new Vector3(r.texture.SpriteWidth, r.texture.SpriteHeight, 0));
+                r.localBounds = new AABB(Vector3.Zero, size);
+
+                r.bounds = new AABB(transform.Position, size);
             }
         }
 
         public void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId)
         {
-            var r = renderer as Sprite;
+            var r = renderer as SpriteRenderer;
 
-            if(r.texture == null ||
-                r.texture.Disposed ||
+            if (r.sprite == null ||
+                r.sprite.texture == null ||
+                r.sprite.texture.Disposed ||
                 r.material == null ||
                 r.material.shader == null ||
                 r.material.Disposed ||
@@ -84,10 +89,10 @@ namespace Staple
 
             var scale = Vector3.Zero;
 
-            if (r.texture != null)
+            if (r.sprite.texture != null)
             {
-                scale.X = r.texture.SpriteWidth;
-                scale.Y = r.texture.SpriteHeight;
+                scale.X = r.sprite.textureRect.Width * r.sprite.texture.SpriteScale;
+                scale.Y = r.sprite.textureRect.Height * r.sprite.texture.SpriteScale;
             }
 
             var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
@@ -96,7 +101,8 @@ namespace Staple
             {
                 color = r.color,
                 material = r.material,
-                texture = r.texture,
+                texture = r.sprite.texture,
+                textureRect = r.sprite.textureRect,
                 transform = matrix,
                 viewID = viewId,
                 sortingOrder = r.sortingOrder,
@@ -108,7 +114,7 @@ namespace Staple
         {
             spriteMesh ??= Mesh.Quad;
 
-            if(sprites.Count == 0 || spriteMesh.SetActive() == false)
+            if (sprites.Count == 0 || spriteMesh.SetActive() == false)
             {
                 return;
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Staple.Internal
 {
@@ -41,10 +42,15 @@ namespace Staple.Internal
                         data = new Dictionary<string, object>(),
                     };
 
-                    var fields = component.GetType().GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                    var fields = component.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
                     foreach (var field in fields)
                     {
+                        if(field.GetCustomAttribute<NonSerializedAttribute>() != null)
+                        {
+                            continue;
+                        }
+
                         if (field.FieldType == typeof(bool) ||
                             field.FieldType == typeof(float) ||
                             field.FieldType == typeof(double) ||

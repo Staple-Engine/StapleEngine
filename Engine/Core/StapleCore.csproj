@@ -67,6 +67,7 @@
     <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\HideInInspectorAttribute.cs" />
     <Compile Include="Bindings\bgfx.cs" />
     <Compile Include="Bindings\bgfx_dllname.cs" />
     <Compile Include="Entities\Camera\Camera.cs" />
@@ -79,7 +80,8 @@
     <Compile Include="Entities\IEntitySystem.cs" />
     <Compile Include="Entities\MeshRenderer.cs" />
     <Compile Include="Entities\Renderable.cs" />
-    <Compile Include="Entities\Sprite.cs" />
+    <Compile Include="Rendering\Sprites\Sprite.cs" />
+    <Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
     <Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
@@ -131,6 +133,7 @@
     <Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
     <Compile Include="Rendering\Texture\ITextureCreateMethod.cs" />
     <Compile Include="Rendering\Texture\PixelTextureCreateMethod.cs" />
+    <Compile Include="Rendering\Texture\RawTextureData.cs" />
     <Compile Include="Rendering\Text\TextRenderer.cs" />
     <Compile Include="Rendering\Text\Glyph.cs" />
     <Compile Include="Rendering\Text\TextFont.cs" />
@@ -186,7 +189,7 @@
     <Compile Include="Rendering\Windowing\RenderWindow.cs" />
     <Compile Include="Rendering\RendererType.cs" />
     <Compile Include="Rendering\Shader.cs" />
-    <Compile Include="Rendering\SpriteRenderSystem.cs" />
+    <Compile Include="Rendering\Sprites\SpriteRenderSystem.cs" />
     <Compile Include="Rendering\Texture\Texture.cs" />
     <Compile Include="Rendering\Texture\TextureFlags.cs" />
     <Compile Include="Rendering\VertexBuffer.cs" />

@@ -2,14 +2,14 @@
 
 namespace Staple.Editor
 {
-    [CustomEditor(typeof(Sprite))]
-    internal class SpriteEditor : Editor
+    [CustomEditor(typeof(SpriteRenderer))]
+    internal class SpriteRendererEditor : Editor
     {
         public override bool RenderField(FieldInfo field)
         {
             switch(field.Name)
             {
-                case nameof(Sprite.sortingLayer):
+                case nameof(SpriteRenderer.sortingLayer):
 
                     {
                         var value = (uint)field.GetValue(target);
@@ -21,12 +21,12 @@ namespace Staple.Editor
                         return true;
                     }
 
-                case nameof(Sprite.texture):
+                case nameof(SpriteRenderer.sprite):
 
                     {
-                        var value = (Texture)field.GetValue(target);
+                        var value = (Sprite)field.GetValue(target);
 
-                        value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
+                        value = (Sprite)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
 
                         field.SetValue(target, value);
                     }

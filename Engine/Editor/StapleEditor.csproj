@@ -64,7 +64,7 @@
     <Compile Include="EditorFont.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />
-    <Compile Include="Editors\Default\SpriteEditor.cs" />
+    <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="EditorUtils.cs" />

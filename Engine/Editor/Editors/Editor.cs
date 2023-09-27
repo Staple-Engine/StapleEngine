@@ -43,6 +43,11 @@ namespace Staple.Editor
 
             foreach (var field in fields)
             {
+                if(field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
+                {
+                    continue;
+                }
+
                 if(RenderField(field))
                 {
                     continue;
@@ -96,6 +101,21 @@ namespace Staple.Editor
                             var value = (Vector2)field.GetValue(target);
 
                             var newValue = EditorGUI.Vector2Field(fieldName, value);
+
+                            if (newValue != value)
+                            {
+                                field.SetValue(target, newValue);
+                            }
+                        }
+
+                        break;
+
+                    case Type t when t == typeof(Vector2Int):
+
+                        {
+                            var value = (Vector2Int)field.GetValue(target);
+
+                            var newValue = EditorGUI.Vector2IntField(fieldName, value);
 
                             if (newValue != value)
                             {

@@ -1,29 +1,24 @@
 namespace Staple
 {
     /// <summary>
-    /// Sprite component
+    /// Sprite Renderer component
     /// </summary>
-    public class Sprite : Renderable
+    public class SpriteRenderer : Renderable
     {
         /// <summary>
-        /// The sprite's material
+        /// The renderer's material
         /// </summary>
         public Material material;
 
         /// <summary>
-        /// The sprite's texture
+        /// The sprite to use
         /// </summary>
-        public Texture texture;
+        public Sprite sprite;
 
         /// <summary>
         /// The sprite's color
         /// </summary>
         public Color color = Color.White;
-
-        /// <summary>
-        /// The sprite's sorting layer
-        /// </summary>
-        public uint sortingLayer;
 
         internal void OnDestroy()
         {

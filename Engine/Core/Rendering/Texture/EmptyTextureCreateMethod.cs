@@ -39,7 +39,6 @@ namespace Staple.Internal
                 texture.renderTarget = renderTarget;
                 texture.metadata = new()
                 {
-                    spriteScale = 1,
                     readBack = readBack,
                 };
 

@@ -26,6 +26,11 @@
         public LayerMask renderingLayerMask;
 
         /// <summary>
+        /// The sorting layer for this renderer
+        /// </summary>
+        public uint sortingLayer;
+
+        /// <summary>
         /// The sorting order for this renderer
         /// </summary>
         public int sortingOrder;

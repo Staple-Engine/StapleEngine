@@ -1,12 +1,20 @@
-﻿using System.Numerics;
+﻿using MessagePack;
 
 namespace Staple
 {
+    [MessagePackObject]
     public struct Rect
     {
+        [Key(0)]
         public int left;
+
+        [Key(1)]
         public int right;
+
+        [Key(2)]
         public int top;
+
+        [Key(3)]
         public int bottom;
 
         public Rect()
@@ -29,12 +37,24 @@ namespace Staple
             this.bottom = bottom;
         }
 
-        public readonly Vector2Int Min => new Vector2Int(left, top);
+        [IgnoreMember]
+        public readonly Vector2Int Min => new(left, top);
 
-        public readonly Vector2Int Max => new Vector2Int(right, bottom);
+        [IgnoreMember]
+        public readonly Vector2Int Max => new(right, bottom);
 
+        [IgnoreMember]
         public readonly int Width => right - left;
 
+        [IgnoreMember]
         public readonly int Height => bottom - top;
+
+        public bool ShouldSerializeMin() => false;
+
+        public bool ShouldSerializeMax() => false;
+
+        public bool ShouldSerializeWidth() => false;
+
+        public bool ShouldSerializeHeight() => false;
     }
 }

@@ -107,6 +107,7 @@ namespace Staple.Internal
     {
         SRGB,
         NormalMap,
+        Sprite,
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter<TextureWrap>))]
@@ -123,6 +124,14 @@ namespace Staple.Internal
         Point,
         Linear,
         Anisotropic
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter<SpriteTextureMethod>))]
+    public enum SpriteTextureMethod
+    {
+        Single,
+        Grid,
+        Custom,
     }
 
     [MessagePackObject]
@@ -199,12 +208,21 @@ namespace Staple.Internal
         public bool isLinear = false;
 
         [Key(12)]
-        public float spriteScale = 1;
+        public int spritePixelsPerUnit = 100;
 
         [Key(13)]
         public bool readBack = false;
 
         [Key(14)]
+        public SpriteTextureMethod spriteTextureMethod = SpriteTextureMethod.Single;
+
+        [Key(15)]
+        public Vector2Int spriteTextureGridSize = Vector2Int.Zero;
+
+        [Key(16)]
+        public List<Rect> sprites = new();
+
+        [Key(17)]
         public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
         {
             {
@@ -236,12 +254,15 @@ namespace Staple.Internal
                 premultiplyAlpha = premultiplyAlpha,
                 quality = quality,
                 readBack = readBack,
-                spriteScale = spriteScale,
                 type = type,
                 useMipmaps = useMipmaps,
                 wrapU = wrapU,
                 wrapV = wrapV,
                 wrapW = wrapW,
+                sprites = new(sprites),
+                spriteTextureGridSize = spriteTextureGridSize,
+                spriteTextureMethod = spriteTextureMethod,
+                spritePixelsPerUnit = spritePixelsPerUnit,
             };
         }
 
@@ -259,10 +280,14 @@ namespace Staple.Internal
                 lhs.maxSize == rhs.maxSize &&
                 lhs.useMipmaps == rhs.useMipmaps &&
                 lhs.isLinear == rhs.isLinear &&
-                lhs.spriteScale == rhs.spriteScale &&
+                lhs.spritePixelsPerUnit == rhs.spritePixelsPerUnit &&
                 lhs.readBack == rhs.readBack &&
                 lhs.overrides.Keys.Count == rhs.overrides.Keys.Count &&
-                lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && object.Equals(lhs.overrides[x], rhs.overrides[x]));
+                lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && object.Equals(lhs.overrides[x], rhs.overrides[x])) &&
+                lhs.spriteTextureMethod == rhs.spriteTextureMethod &&
+                lhs.spriteTextureGridSize == rhs.spriteTextureGridSize &&
+                lhs.sprites.Count == rhs.sprites.Count &&
+                lhs.sprites.SequenceEqual(rhs.sprites);
         }
 
         public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
@@ -279,10 +304,14 @@ namespace Staple.Internal
                 lhs.maxSize != rhs.maxSize ||
                 lhs.useMipmaps != rhs.useMipmaps ||
                 lhs.isLinear != rhs.isLinear ||
-                lhs.spriteScale != rhs.spriteScale ||
+                lhs.spritePixelsPerUnit != rhs.spritePixelsPerUnit ||
                 lhs.readBack != rhs.readBack ||
                 lhs.overrides.Keys.Count != rhs.overrides.Keys.Count &&
-                lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || object.Equals(lhs.overrides[x], rhs.overrides[x]) == false);
+                lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || object.Equals(lhs.overrides[x], rhs.overrides[x]) == false) ||
+                lhs.spriteTextureMethod != rhs.spriteTextureMethod ||
+                lhs.spriteTextureGridSize != rhs.spriteTextureGridSize ||
+                lhs.sprites.Count != rhs.sprites.Count ||
+                lhs.sprites.SequenceEqual(rhs.sprites) == false;
         }
 
         public override bool Equals(object obj)
@@ -302,6 +331,8 @@ namespace Staple.Internal
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
+    [JsonSerializable(typeof(Vector2Int))]
+    [JsonSerializable(typeof(Rect))]
     [JsonSerializable(typeof(TextureMetadata))]
     [JsonSerializable(typeof(TextureMetadataOverride))]
     [JsonSerializable(typeof(Dictionary<AppPlatform, TextureMetadataOverride>))]
@@ -311,6 +342,7 @@ namespace Staple.Internal
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataQuality>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureFilter>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureWrap>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<SpriteTextureMethod>))]
     [JsonSerializable(typeof(bool))]
     [JsonSerializable(typeof(int))]
     [JsonSerializable(typeof(float))]

@@ -61,10 +61,16 @@
     <Compile Include="..\..\Engine\Core\Math\Color32.cs">
       <Link>Engine\Core\Math\Color32.cs</Link>
     </Compile>
-    <Compile Include="..\..\Engine\Core\Math\Math.cs">
-      <Link>Engine\Core\Math\Math.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Engine\Core\Player\AppPlatform.cs">
+	<Compile Include="..\..\Engine\Core\Math\Rect.cs">
+	  <Link>Engine\Core\Math\Rect.cs</Link>
+	</Compile>
+	<Compile Include="..\..\Engine\Core\Math\Vector2Int.cs">
+	  <Link>Engine\Core\Math\Vector2Int.cs</Link>
+	</Compile>
+	<Compile Include="..\..\Engine\Core\Math\Math.cs">
+	  <Link>Engine\Core\Math\Math.cs</Link>
+	</Compile>
+	<Compile Include="..\..\Engine\Core\Player\AppPlatform.cs">
       <Link>Engine\Core\Player\AppPlatform.cs</Link>
     </Compile>
     <Compile Include="..\..\Engine\Core\Player\AppSettings.cs">

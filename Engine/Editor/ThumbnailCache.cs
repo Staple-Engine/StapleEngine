@@ -8,8 +8,14 @@ namespace Staple.Editor
     {
         private static readonly Dictionary<string, Texture> cachedThumbnails = new();
         private static readonly List<Texture> pendingDestructionTextures = new();
+        private static readonly Dictionary<string, RawTextureData> cachedTextureData = new();
 
         internal static string basePath;
+
+        public static bool TryGetTextureData(string path, out RawTextureData textureData)
+        {
+            return cachedTextureData.TryGetValue(path, out textureData);
+        }
 
         public static Texture GetThumbnail(string path)
         {
@@ -21,6 +27,24 @@ namespace Staple.Editor
             var platform = Platform.CurrentPlatform;
 
             if(platform.HasValue == false)
+            {
+                return null;
+            }
+
+            RawTextureData rawTextureData;
+
+            try
+            {
+                var data = File.ReadAllBytes(path);
+
+                rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+            }
+            catch(System.Exception)
+            {
+                return null;
+            }
+
+            if(rawTextureData == null)
             {
                 return null;
             }
@@ -46,6 +70,7 @@ namespace Staple.Editor
             if(texture != null)
             {
                 cachedThumbnails.Add(path, texture);
+                cachedTextureData.Add(path, rawTextureData);
             }
 
             return texture;
@@ -69,6 +94,7 @@ namespace Staple.Editor
             }
 
             cachedThumbnails.Clear();
+            cachedTextureData.Clear();
         }
 
         public static void ClearSingle(string path)
@@ -76,6 +102,7 @@ namespace Staple.Editor
             if(cachedThumbnails.TryGetValue(path, out var texture))
             {
                 cachedThumbnails.Remove(path);
+                cachedTextureData.Remove(path);
 
                 pendingDestructionTextures.Add(texture);
             }

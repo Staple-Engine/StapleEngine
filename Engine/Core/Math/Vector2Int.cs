@@ -29,10 +29,10 @@ namespace Staple
         }
 
         [IgnoreMember]
-        public static readonly Vector2Int Zero = new Vector2Int();
+        public static readonly Vector2Int Zero = new();
 
         [IgnoreMember]
-        public static readonly Vector2Int One = new Vector2Int(1, 1);
+        public static readonly Vector2Int One = new(1, 1);
 
         public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
 
