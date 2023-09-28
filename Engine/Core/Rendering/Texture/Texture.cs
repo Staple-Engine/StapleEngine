@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using Staple.Internal;
 using StbImageSharp;
+using System.Linq;
 
 namespace Staple
 {
@@ -398,6 +399,69 @@ namespace Staple
             {
                 flags |= TextureFlags.ReadBack;
             }
+        }
+
+        public static bool PackTextures(RawTextureData[] textureData, int width, int height, int maxSize, int padding, out Rect[] outRects, out RawTextureData outTextureData)
+        {
+            outRects = default;
+            outTextureData = default;
+
+            if(textureData.Any(x => x.colorComponents != StandardTextureColorComponents.RGBA))
+            {
+                return false;
+            }
+
+            if(width > maxSize || height > maxSize)
+            {
+                return false;
+            }
+
+            var pack = new MaxRectsBinPack(width, height, false);
+
+            var rects = new Rect[textureData.Length];
+
+            var doublePadding = padding * 2;
+
+            for(var i = 0; i < rects.Length; i++)
+            {
+                var texture = textureData[i];
+
+                var rect = pack.Insert(texture.width + doublePadding, texture.height + doublePadding, MaxRectsBinPack.FreeRectChoiceHeuristic.RectBestShortSideFit);
+
+                if(rect.Width == 0 || rect.Height == 0)
+                {
+                    return PackTextures(textureData, width * (width <= height ? 2 : 1), height * (height <= width ? 2 : 1), maxSize, padding, out outRects, out outTextureData);
+                }
+
+                rects[i] = rect;
+            }
+
+            outTextureData = new()
+            {
+                width = width,
+                height = height,
+                colorComponents = StandardTextureColorComponents.RGBA,
+                data = new byte[width * height * 4],
+            };
+
+            for(var i = 0; i < rects.Length; i++)
+            {
+                var texture = textureData[i];
+                var rect = rects[i];
+
+                rect.left += padding;
+                rect.top += padding;
+                rect.Width -= padding;
+                rect.Height -= padding;
+
+                rects[i] = rect;
+
+                outTextureData.Blit(0, 0, rect.Width, rect.Height, texture.width * 4, texture.data, rect.left, rect.top);
+            }
+
+            outRects = rects;
+
+            return true;
         }
 
         //TODO

@@ -153,6 +153,24 @@ namespace Staple.Internal
         public bool premultiplyAlpha = false;
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter<TextureSpriteRotation>))]
+    public enum TextureSpriteRotation
+    {
+        None,
+        FlipY,
+        FlipX,
+    }
+
+    [MessagePackObject]
+    public class TextureSpriteInfo
+    {
+        [Key(0)]
+        public Rect rect;
+
+        [Key(1)]
+        public TextureSpriteRotation rotation;
+    }
+
     [MessagePackObject]
     public class TextureMetadata
     {
@@ -220,9 +238,15 @@ namespace Staple.Internal
         public Vector2Int spriteTextureGridSize = Vector2Int.Zero;
 
         [Key(16)]
-        public List<Rect> sprites = new();
+        public List<TextureSpriteInfo> sprites = new();
 
         [Key(17)]
+        public bool shouldPack = false;
+
+        [Key(18)]
+        public int padding = 0;
+
+        [Key(19)]
         public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
         {
             {
@@ -263,6 +287,8 @@ namespace Staple.Internal
                 spriteTextureGridSize = spriteTextureGridSize,
                 spriteTextureMethod = spriteTextureMethod,
                 spritePixelsPerUnit = spritePixelsPerUnit,
+                shouldPack = shouldPack,
+                padding = padding,
             };
         }
 
@@ -287,7 +313,9 @@ namespace Staple.Internal
                 lhs.spriteTextureMethod == rhs.spriteTextureMethod &&
                 lhs.spriteTextureGridSize == rhs.spriteTextureGridSize &&
                 lhs.sprites.Count == rhs.sprites.Count &&
-                lhs.sprites.SequenceEqual(rhs.sprites);
+                lhs.sprites.SequenceEqual(rhs.sprites) &&
+                lhs.shouldPack == rhs.shouldPack &&
+                lhs.padding == rhs.padding;
         }
 
         public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
@@ -311,7 +339,9 @@ namespace Staple.Internal
                 lhs.spriteTextureMethod != rhs.spriteTextureMethod ||
                 lhs.spriteTextureGridSize != rhs.spriteTextureGridSize ||
                 lhs.sprites.Count != rhs.sprites.Count ||
-                lhs.sprites.SequenceEqual(rhs.sprites) == false;
+                lhs.sprites.SequenceEqual(rhs.sprites) == false ||
+                lhs.shouldPack != rhs.shouldPack ||
+                lhs.padding != rhs.padding;
         }
 
         public override bool Equals(object obj)
@@ -333,11 +363,13 @@ namespace Staple.Internal
     [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
     [JsonSerializable(typeof(Vector2Int))]
     [JsonSerializable(typeof(Rect))]
+    [JsonSerializable(typeof(TextureSpriteInfo))]
     [JsonSerializable(typeof(TextureMetadata))]
     [JsonSerializable(typeof(TextureMetadataOverride))]
     [JsonSerializable(typeof(Dictionary<AppPlatform, TextureMetadataOverride>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureType>))]
+    [JsonSerializable(typeof(JsonStringEnumConverter<TextureSpriteRotation>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataFormat>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureMetadataQuality>))]
     [JsonSerializable(typeof(JsonStringEnumConverter<TextureFilter>))]

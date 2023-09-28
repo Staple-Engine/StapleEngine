@@ -1,6 +1,6 @@
 {
 	"guid": "fe19196d-0c54-413a-a0fd-6ef91124007a",
-	"type": "SRGB",
+	"type": "Sprite",
 	"useMipmaps": true,
 	"quality": "Default",
 	"isLinear": false,
@@ -10,7 +10,9 @@
 	"wrapU": "Clamp",
 	"wrapV": "Clamp",
 	"filter": "Linear",
-	"spriteScale": 0.25,
+	"padding": 0,
+	"shouldPack": false,
+	"spriteTextureMethod": "Single",
 	"overrides": {
 		"iOS": {
 			"shouldOverride": true,

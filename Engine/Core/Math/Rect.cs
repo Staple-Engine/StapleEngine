@@ -44,10 +44,26 @@ namespace Staple
         public readonly Vector2Int Max => new(right, bottom);
 
         [IgnoreMember]
-        public readonly int Width => right - left;
+        public int Width
+        {
+            readonly get => right - left;
+
+            set
+            {
+                right = value + left;
+            }
+        }
 
         [IgnoreMember]
-        public readonly int Height => bottom - top;
+        public int Height
+        {
+            readonly get => bottom - top;
+
+            set
+            {
+                bottom = value + top;
+            }
+        }
 
         public bool ShouldSerializeMin() => false;
 

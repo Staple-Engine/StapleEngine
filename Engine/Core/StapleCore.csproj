@@ -80,6 +80,17 @@
     <Compile Include="Entities\IEntitySystem.cs" />
     <Compile Include="Entities\MeshRenderer.cs" />
     <Compile Include="Entities\Renderable.cs" />
+    <Compile Include="External\MaxRectsBinPack.cs" />
+	<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
+	<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
+	<Compile Include="External\StbImageResizeSharp\src\StbImageResize.cs" />
+	<Compile Include="External\StbImageResizeSharp\src\StbImageResize.Generated.cs" />
+	<Compile Include="External\StbImageWriteSharp\src\ColorComponents.cs" />
+    <Compile Include="External\StbImageWriteSharp\src\CRuntime.cs" />
+    <Compile Include="External\StbImageWriteSharp\src\ImageWriter.cs" />
+    <Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
+    <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
+    <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
     <Compile Include="Rendering\Sprites\Sprite.cs" />
     <Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />

@@ -70,6 +70,8 @@ namespace Baker
                     continue;
                 }
 
+                var inputFile = textureFiles[i].Replace(".meta", "");
+
                 Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
@@ -126,7 +128,178 @@ namespace Baker
                     premultiplyAlpha = overrides.premultiplyAlpha;
                 }
 
-                var parameters = $"-t {format} -q {quality.ToString().ToLowerInvariant()} --max {maxSize} --as dds";
+                RawTextureData textureData;
+
+                try
+                {
+                    textureData = Texture.LoadStandard(File.ReadAllBytes(inputFile), StandardTextureColorComponents.RGBA);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"\t\tFailed to load image data");
+
+                    continue;
+                }
+
+                var scale = 1.0f;
+
+                if (textureData.width > maxSize || textureData.height > maxSize)
+                {
+                    if (textureData.width > textureData.height)
+                    {
+                        scale = maxSize / (float)textureData.width;
+                    }
+                    else
+                    {
+                        scale = maxSize / (float)textureData.height;
+                    }
+
+                    textureData.Resize((int)(textureData.width * scale), (int)(textureData.height * scale));
+                }
+
+                inputFile = "__temp";
+
+                var png = textureData.EncodePNG();
+
+                try
+                {
+                    File.WriteAllBytes(inputFile, png);
+                }
+                catch(Exception)
+                {
+                    Console.WriteLine("\t\tFailed to process: I/O Error");
+
+                    continue;
+                }
+
+                metadata.sprites.Clear();
+
+                if (metadata.type == TextureType.Sprite)
+                {
+                    var spriteTextures = new List<RawTextureData>();
+
+                    switch (metadata.spriteTextureMethod)
+                    {
+                        case SpriteTextureMethod.Single:
+
+                            metadata.sprites.Clear();
+
+                            if (textureData != null)
+                            {
+                                metadata.sprites.Add(new TextureSpriteInfo()
+                                {
+                                    rect = new Rect(Vector2Int.Zero, new Vector2Int(textureData.width, textureData.height))
+                                });
+                            }
+
+                            break;
+
+                        case SpriteTextureMethod.Grid:
+
+                            metadata.sprites.Clear();
+
+                            var gridSize = metadata.spriteTextureGridSize;
+
+                            if(scale != 1)
+                            {
+                                gridSize.X = Staple.Math.RoundToInt(gridSize.X * scale);
+                                gridSize.Y = Staple.Math.RoundToInt(gridSize.Y * scale);
+                            }
+
+                            if (gridSize.X > 0 &&
+                                gridSize.Y > 0)
+                            {
+                                bool ValidRegion(int x, int y)
+                                {
+                                    var rawData = new RawTextureData()
+                                    {
+                                        colorComponents = textureData.colorComponents,
+                                        width = gridSize.X,
+                                        height = gridSize.Y,
+                                        data = new byte[gridSize.X * gridSize.Y * 4],
+                                    };
+
+                                    var pitch = rawData.width * 4;
+
+                                    for (int regionY = 0, yPos = (y * textureData.width) * 4, destYPos = 0; regionY < gridSize.Y;
+                                        regionY++, yPos += textureData.width * 4, destYPos += rawData.width * 4)
+                                    {
+                                        Buffer.BlockCopy(textureData.data, yPos + x * 4, rawData.data, destYPos, pitch);
+                                    }
+
+                                    for (int regionY = 0, yPos = 0; regionY < rawData.height; regionY++, yPos += pitch)
+                                    {
+                                        for (int regionX = 0, xPos = 0; regionX < rawData.width; regionX++, xPos += 4)
+                                        {
+                                            if (rawData.data[xPos + yPos + 3] != 0)
+                                            {
+                                                if (metadata.shouldPack)
+                                                {
+                                                    spriteTextures.Add(rawData);
+                                                }
+
+                                                return true;
+                                            }
+                                        }
+                                    }
+
+                                    return false;
+                                }
+
+                                var size = new Vector2Int(textureData.width / gridSize.X,
+                                    textureData.height / gridSize.Y);
+
+                                for (int y = 0, yPos = 0; y < size.Y; y++, yPos += gridSize.Y)
+                                {
+                                    for (int x = 0, xPos = 0; x < size.X; x++, xPos += gridSize.X)
+                                    {
+                                        if (ValidRegion(xPos, yPos) == false)
+                                        {
+                                            continue;
+                                        }
+
+                                        metadata.sprites.Add(new TextureSpriteInfo()
+                                        {
+                                            rect = new Rect(new Vector2Int(xPos, yPos), gridSize)
+                                        });
+                                    }
+                                }
+                            }
+
+                            break;
+                    }
+
+                    if (metadata.shouldPack)
+                    {
+                        if (spriteTextures.Count > 1)
+                        {
+                            metadata.sprites.Clear();
+
+                            var packed = Texture.PackTextures(spriteTextures.ToArray(), 32, 32, maxSize, metadata.padding, out var rects, out textureData);
+
+                            if (packed)
+                            {
+                                foreach(var rect in rects)
+                                {
+                                    metadata.sprites.Add(new TextureSpriteInfo()
+                                    {
+                                        rect = rect,
+                                        rotation = TextureSpriteRotation.None,
+                                    });
+                                }
+
+                                var outData = textureData.EncodePNG();
+
+                                if (outData != null)
+                                {
+                                    File.WriteAllBytes(inputFile, outData);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var parameters = $"-t {format} -q {quality.ToString().ToLowerInvariant()} --as dds";
 
                 if (premultiplyAlpha)
                 {
@@ -167,7 +340,7 @@ namespace Baker
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = texturecPath,
-                        Arguments = $"-f \"{textureFiles[i].Replace(".meta", "")}\" -o \"{outputFileTemp}\" {parameters} --validate",
+                        Arguments = $"-f \"{inputFile}\" -o \"{outputFileTemp}\" {parameters} --validate",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true,
@@ -240,6 +413,7 @@ namespace Baker
                     try
                     {
                         File.Delete(outputFileTemp);
+                        File.Delete(inputFile);
                     }
                     catch (Exception)
                     {

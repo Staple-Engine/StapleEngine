@@ -75,5 +75,10 @@ namespace Staple
 
             return false;
         }
+
+        public override readonly string ToString()
+        {
+            return $"({X}, {Y})";
+        }
     }
 }
