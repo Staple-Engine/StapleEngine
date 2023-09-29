@@ -19,7 +19,12 @@ namespace Staple.Editor
                 bgfx.set_view_transform(SceneView, &view, &projection);
             }
 
-            if(Scene.current?.world != null)
+            foreach (var system in renderSystem.renderSystems)
+            {
+                system.Prepare();
+            }
+
+            if (Scene.current?.world != null)
             {
                 Scene.current.world.ForEach((Entity entity, ref Transform transform) =>
                 {

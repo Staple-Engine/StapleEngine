@@ -161,6 +161,11 @@ namespace Staple.Editor
         {
             currentContentBrowserNodes.Clear();
 
+            if(nodes != projectBrowserNodes)
+            {
+                ThumbnailCache.Clear();
+            }
+
             foreach (var node in nodes)
             {
                 if (node.path.EndsWith(".meta"))
