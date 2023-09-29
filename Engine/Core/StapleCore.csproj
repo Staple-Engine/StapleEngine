@@ -91,7 +91,6 @@
     <Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
-    <Compile Include="Rendering\Sprites\Sprite.cs" />
     <Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />

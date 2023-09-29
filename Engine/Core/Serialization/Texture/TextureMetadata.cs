@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text.Json.Serialization;
 
 namespace Staple.Internal
@@ -151,12 +152,55 @@ namespace Staple.Internal
 
         [Key(4)]
         public bool premultiplyAlpha = false;
+
+        public static bool operator==(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
+        {
+            return lhs.shouldOverride == rhs.shouldOverride &&
+                lhs.format == rhs.format &&
+                lhs.quality == rhs.quality &&
+                lhs.maxSize == rhs.maxSize &&
+                lhs.premultiplyAlpha == rhs.premultiplyAlpha;
+        }
+
+        public static bool operator !=(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
+        {
+            return lhs.shouldOverride != rhs.shouldOverride ||
+                lhs.format != rhs.format ||
+                lhs.quality != rhs.quality ||
+                lhs.maxSize != rhs.maxSize ||
+                lhs.premultiplyAlpha != rhs.premultiplyAlpha;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is null)
+            {
+                return false;
+            }
+
+            if(obj is TextureMetadataOverride o && this == o)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return shouldOverride.GetHashCode() ^
+                format.GetHashCode() ^
+                quality.GetHashCode() ^
+                maxSize.GetHashCode() ^
+                premultiplyAlpha.GetHashCode();
+        }
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter<TextureSpriteRotation>))]
     public enum TextureSpriteRotation
     {
         None,
+        Duplicate,
         FlipY,
         FlipX,
     }
@@ -169,6 +213,9 @@ namespace Staple.Internal
 
         [Key(1)]
         public TextureSpriteRotation rotation;
+
+        [Key(2)]
+        public Rect originalRect;
     }
 
     [MessagePackObject]
@@ -247,6 +294,9 @@ namespace Staple.Internal
         public int padding = 0;
 
         [Key(19)]
+        public bool trimDuplicates = false;
+
+        [Key(20)]
         public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
         {
             {
@@ -289,6 +339,7 @@ namespace Staple.Internal
                 spritePixelsPerUnit = spritePixelsPerUnit,
                 shouldPack = shouldPack,
                 padding = padding,
+                trimDuplicates = trimDuplicates,
             };
         }
 
@@ -309,13 +360,14 @@ namespace Staple.Internal
                 lhs.spritePixelsPerUnit == rhs.spritePixelsPerUnit &&
                 lhs.readBack == rhs.readBack &&
                 lhs.overrides.Keys.Count == rhs.overrides.Keys.Count &&
-                lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && object.Equals(lhs.overrides[x], rhs.overrides[x])) &&
+                lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && lhs.overrides[x] == rhs.overrides[x]) &&
                 lhs.spriteTextureMethod == rhs.spriteTextureMethod &&
                 lhs.spriteTextureGridSize == rhs.spriteTextureGridSize &&
                 lhs.sprites.Count == rhs.sprites.Count &&
                 lhs.sprites.SequenceEqual(rhs.sprites) &&
                 lhs.shouldPack == rhs.shouldPack &&
-                lhs.padding == rhs.padding;
+                lhs.padding == rhs.padding &&
+                lhs.trimDuplicates == rhs.trimDuplicates;
         }
 
         public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
@@ -335,13 +387,15 @@ namespace Staple.Internal
                 lhs.spritePixelsPerUnit != rhs.spritePixelsPerUnit ||
                 lhs.readBack != rhs.readBack ||
                 lhs.overrides.Keys.Count != rhs.overrides.Keys.Count &&
-                lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || object.Equals(lhs.overrides[x], rhs.overrides[x]) == false) ||
+                lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || lhs.overrides[x] != rhs.overrides[x]) ||
                 lhs.spriteTextureMethod != rhs.spriteTextureMethod ||
                 lhs.spriteTextureGridSize != rhs.spriteTextureGridSize ||
                 lhs.sprites.Count != rhs.sprites.Count ||
                 lhs.sprites.SequenceEqual(rhs.sprites) == false ||
                 lhs.shouldPack != rhs.shouldPack ||
-                lhs.padding != rhs.padding;
+                lhs.padding != rhs.padding ||
+                lhs.overrides != rhs.overrides ||
+                lhs.trimDuplicates != rhs.trimDuplicates;
         }
 
         public override bool Equals(object obj)

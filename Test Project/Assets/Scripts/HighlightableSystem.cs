@@ -21,7 +21,7 @@ namespace TestGame
 
             var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
 
-            world.ForEach((Entity entity, ref HighlightableComponent component, ref Sprite renderer) =>
+            world.ForEach((Entity entity, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
             {
                 renderer.color = Color.White;
             });
@@ -30,7 +30,7 @@ namespace TestGame
             {
                 var entity = body.Entity;
 
-                var renderer = world.GetComponent<Sprite>(entity);
+                var renderer = world.GetComponent<SpriteRenderer>(entity);
 
                 if(renderer != null)
                 {

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Numerics;
+using System.Reflection;
 
 namespace Staple.Editor
 {
@@ -7,6 +8,8 @@ namespace Staple.Editor
     {
         public override bool RenderField(FieldInfo field)
         {
+            var renderer = target as SpriteRenderer;
+
             switch(field.Name)
             {
                 case nameof(SpriteRenderer.sortingLayer):
@@ -21,15 +24,28 @@ namespace Staple.Editor
                         return true;
                     }
 
-                case nameof(SpriteRenderer.sprite):
+                case nameof(SpriteRenderer.texture):
 
                     {
-                        var value = (Sprite)field.GetValue(target);
+                        var value = (Texture)field.GetValue(target);
 
-                        value = (Sprite)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
+                        value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
 
                         field.SetValue(target, value);
+
+                        if(value != null && renderer.spriteIndex >= 0 && renderer.spriteIndex < value.metadata.sprites.Count)
+                        {
+                            EditorGUI.Label("Selected Sprite");
+
+                            EditorGUI.SameLine();
+
+                            EditorGUI.TextureRect(value, value.metadata.sprites[renderer.spriteIndex].rect, new Vector2(32, 32));
+                        }
                     }
+
+                    return true;
+
+                case nameof(SpriteRenderer.spriteIndex):
 
                     return true;
             }

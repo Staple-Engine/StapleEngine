@@ -40,11 +40,12 @@
 		},
 		"components": [
 			{
-				"type": "Staple.Sprite",
+				"type": "Staple.SpriteRenderer",
 				"data": {
 					"color": "#FFFFFF",
 					"material": "Materials/Sprite.mat",
-					"texture": "Textures/Sprites/DefaultSprite.png"
+					"texture": "Textures/Sprites/DefaultSprite.png",
+					"spriteIndex": 0
 				}
 			},
 			{
@@ -75,11 +76,12 @@
 		},
 		"components": [
 			{
-				"type": "Staple.Sprite",
+				"type": "Staple.SpriteRenderer",
 				"data": {
 					"color": "#FFFFFF",
 					"material": "Materials/Sprite.mat",
-					"texture": "Textures/Sprites/DefaultSprite.png"
+					"texture": "Textures/Sprites/DefaultSprite.png",
+					"spriteIndex": 0
 				}
 			},
 			{

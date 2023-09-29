@@ -450,7 +450,7 @@ namespace Staple.Internal
                 bgfx.destroy_program(program);
             }
 
-            void DestroyUniforms<T>(object value)
+            static void DestroyUniforms<T>(object value)
             {
                 if (value is Dictionary<int, UniformInfo<T>> container)
                 {

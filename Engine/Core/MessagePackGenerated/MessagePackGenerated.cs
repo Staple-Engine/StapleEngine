@@ -2150,7 +2150,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(20);
+            writer.WriteArrayHeader(21);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Serialize(ref writer, value.type, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Serialize(ref writer, value.format, options);
@@ -2170,6 +2170,7 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>>().Serialize(ref writer, value.sprites, options);
             writer.Write(value.shouldPack);
             writer.Write(value.padding);
+            writer.Write(value.trimDuplicates);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>().Serialize(ref writer, value.overrides, options);
         }
 
@@ -2247,6 +2248,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.padding = reader.ReadInt32();
                         break;
                     case 19:
+                        ____result.trimDuplicates = reader.ReadBoolean();
+                        break;
+                    case 20:
                         ____result.overrides = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>().Deserialize(ref reader, options);
                         break;
                     default:
@@ -2334,9 +2338,10 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(2);
+            writer.WriteArrayHeader(3);
             formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Serialize(ref writer, value.rect, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>().Serialize(ref writer, value.rotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Serialize(ref writer, value.originalRect, options);
         }
 
         public global::Staple.Internal.TextureSpriteInfo Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2360,6 +2365,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 1:
                         ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>().Deserialize(ref reader, options);
+                        break;
+                    case 2:
+                        ____result.originalRect = formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

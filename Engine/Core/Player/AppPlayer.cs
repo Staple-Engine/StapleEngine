@@ -80,7 +80,7 @@ namespace Staple
 
                     renderWindow.shouldStop = true;
 
-                    throw new System.Exception("Failed to load scene list");
+                    throw new Exception("Failed to load scene list");
                 }
 
                 Log.Info("Loaded scene list");
@@ -91,13 +91,13 @@ namespace Staple
                 {
                     Physics3D.Instance = new Physics3D(new JoltPhysics3D());
                 }
-                catch(System.Exception e)
+                catch(Exception e)
                 {
                     Log.Error(e.ToString());
 
                     renderWindow.shouldStop = true;
 
-                    throw new System.Exception("Failed to initialize physics");
+                    throw new Exception("Failed to initialize physics");
                 }
 
                 SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
@@ -128,7 +128,7 @@ namespace Staple
                             Log.Info($"Failed to create entity system {type.FullName}");
                         }
                     }
-                    catch (System.Exception e)
+                    catch (Exception e)
                     {
                         Log.Warning($"Player: Failed to load entity system {type.FullName}: {e}");
                     }
@@ -142,7 +142,7 @@ namespace Staple
 
                     renderWindow.shouldStop = true;
 
-                    throw new System.Exception("Failed to load main scene");
+                    throw new Exception("Failed to load main scene");
                 }
 
                 Log.Info("Loaded first scene");

@@ -19,16 +19,25 @@ namespace Staple.Editor
         public string path;
         public string cachePath;
         public Texture previewTexture;
+        public Texture originalTexture;
 
         private string[] textureMaxSizes = Array.Empty<string>();
         private long diskSize = 0;
+        private long originalDiskSize = 0;
         private uint VRAMSize = 0;
+        private uint originalVRAMSize = 0;
 
         public void UpdatePreview()
         {
+            var metadata = target as TextureMetadata;
+
             previewTexture?.Destroy();
+            originalTexture?.Destroy();
+
+            ThumbnailCache.ClearSingle(path.Replace(".meta", ""));
 
             previewTexture = ResourceUtils.LoadTexture(cachePath);
+            originalTexture = metadata.shouldPack ? ThumbnailCache.GetTexture(path.Replace(".meta", "")) : null;
 
             if(previewTexture == null)
             {
@@ -38,12 +47,14 @@ namespace Staple.Editor
             try
             {
                 diskSize = new FileInfo(cachePath).Length;
+                originalDiskSize = new FileInfo(path.Replace(".meta", "")).Length;
             }
             catch(Exception)
             {
             }
 
             VRAMSize = previewTexture.info.storageSize;
+            originalVRAMSize = originalTexture?.info.storageSize ?? 0;
         }
 
         public override bool RenderField(FieldInfo field)
@@ -63,6 +74,7 @@ namespace Staple.Editor
                     return true;
 
                 case nameof(TextureMetadata.padding):
+                case nameof(TextureMetadata.trimDuplicates):
 
                     return metadata.shouldPack == false;
 
@@ -278,44 +290,118 @@ namespace Staple.Editor
 
             if (previewTexture != null)
             {
-                EditorGUI.Label("Preview");
-
-                var width = ImGui.GetContentRegionAvail().X;
-
-                var aspect = previewTexture.Width / (float)previewTexture.Height;
-
-                var height = width / aspect;
-
-                var currentCursor = ImGui.GetCursorScreenPos();
-
-                EditorGUI.Texture(previewTexture, new Vector2(width, height));
-
-                var textureCursor = ImGui.GetCursorScreenPos();
-
-                if(metadata.type == TextureType.Sprite)
+                void DrawTexture(Texture texture, long diskSize, uint VRAMSize, List<TextureSpriteInfo> sprites, bool isOriginal)
                 {
-                    var scale = width / previewTexture.Width;
+                    var width = ImGui.GetContentRegionAvail().X;
 
-                    foreach (var sprite in previewTexture.metadata.sprites)
+                    var aspect = texture.Width / (float)texture.Height;
+
+                    var height = width / aspect;
+
+                    var currentCursor = ImGui.GetCursorScreenPos();
+
+                    EditorGUI.Texture(texture, new Vector2(width, height));
+
+                    var textureCursor = ImGui.GetCursorScreenPos();
+
+                    if (metadata.type == TextureType.Sprite)
                     {
-                        var position = new Vector2Int(Math.RoundToInt(currentCursor.X + sprite.rect.left * scale),
-                            Math.RoundToInt(currentCursor.Y + sprite.rect.top * scale));
+                        var scale = width / texture.Width;
 
-                        var size = new Vector2Int(Math.RoundToInt(sprite.rect.Width * scale), Math.RoundToInt(sprite.rect.Height * scale));
-                        var rect = new Rect(position, size);
+                        foreach (var sprite in sprites)
+                        {
+                            if(isOriginal == false && sprite.rotation != TextureSpriteRotation.None)
+                            {
+                                continue;
+                            }
 
-                        ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
-                            new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
+                            var spriteRect = isOriginal ? sprite.originalRect : sprite.rect;
+
+                            var position = new Vector2Int(Math.RoundToInt(currentCursor.X + spriteRect.left * scale),
+                                Math.RoundToInt(currentCursor.Y + spriteRect.top * scale));
+
+                            var size = new Vector2Int(Math.RoundToInt(spriteRect.Width * scale), Math.RoundToInt(spriteRect.Height * scale));
+                            var rect = new Rect(position, size);
+
+                            ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
+                                new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
+
+                            if(isOriginal)
+                            {
+                                void CenteredText(string text)
+                                {
+                                    Vector2 textSize = ImGui.CalcTextSize(text);
+
+                                    ImGui.GetWindowDrawList().AddText(new Vector2(rect.Min.X + (rect.Width - textSize.X) / 2,
+                                        rect.Min.Y + (rect.Height - textSize.Y) / 2),
+                                        ImGuiProxy.ImGuiRGBA(255, 255, 255, 255), text);
+                                }
+                            
+                                switch (sprite.rotation)
+                                {
+                                    case TextureSpriteRotation.FlipX:
+
+                                        CenteredText("X");
+
+                                        break;
+
+                                    case TextureSpriteRotation.FlipY:
+
+                                        CenteredText("Y");
+
+                                        break;
+
+                                    case TextureSpriteRotation.Duplicate:
+
+                                        CenteredText("D");
+
+                                        break;
+
+                                    case TextureSpriteRotation.None:
+
+                                        break;
+                                }
+                            }
+                        }
+                    }
+
+                    EditorGUI.Label($"{texture.Width}x{texture.Height}");
+                    EditorGUI.Label($"Disk Size: {EditorUtils.ByteSizeString(diskSize)}");
+                    EditorGUI.Label($"VRAM usage: {EditorUtils.ByteSizeString(VRAMSize)}");
+
+                    if (metadata.type == TextureType.Sprite)
+                    {
+                        EditorGUI.Label($"{texture.metadata.sprites.Count} sprites");
                     }
                 }
 
-                EditorGUI.Label($"{previewTexture.Width}x{previewTexture.Height}");
-                EditorGUI.Label($"Disk Size: {EditorUtils.ByteSizeString(diskSize)}");
-                EditorGUI.Label($"VRAM usage: {EditorUtils.ByteSizeString(VRAMSize)}");
-
-                if(metadata.type == TextureType.Sprite)
+                if (previewTexture != null && previewTexture.Disposed == false &&
+                    originalTexture != null && originalTexture.Disposed == false)
                 {
-                    EditorGUI.Label($"{previewTexture.metadata.sprites.Count} sprites");
+                    if (ImGui.BeginTabBar("##TextureAssetPreviewTexture"))
+                    {
+                        if (ImGui.BeginTabItem("Preview"))
+                        {
+                            DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.metadata.sprites, true);
+
+                            ImGui.EndTabItem();
+                        }
+
+                        if(ImGui.BeginTabItem("Processed"))
+                        {
+                            DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
+
+                            ImGui.EndTabItem();
+                        }
+
+                        ImGui.EndTabBar();
+                    }
+                }
+                else if(previewTexture != null)
+                {
+                    EditorGUI.Label("Preview:");
+
+                    DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
                 }
             }
         }

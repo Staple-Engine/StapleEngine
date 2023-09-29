@@ -213,5 +213,18 @@ namespace Staple.Editor
 
             ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size);
         }
+
+        public static void TextureRect(Texture texture, Rect rect, Vector2 size)
+        {
+            if (texture == null)
+            {
+                return;
+            }
+
+            var uv0 = new Vector2(rect.left / (float)texture.Width, rect.top / (float)texture.Height);
+            var uv1 = new Vector2(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
+
+            ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, uv0, uv1);
+        }
     }
 }

@@ -35,12 +35,15 @@ namespace Staple.Internal
         public bool shouldStop = false;
         public bool shouldRender = true;
         public object renderLock = new();
+
         private bool renderThreadReady = false;
         private Thread renderThread;
         private bgfx.Init init = new bgfx.Init();
         private AppPlatform currentPlatform;
 
-        public static RendererType CurrentRenderer;
+        public bool Paused => hasFocus == false && appSettings.runInBackground == false;
+
+        public static RendererType CurrentRenderer { get; internal set; }
 
         /// <summary>
         /// Runs the window main loop
@@ -155,20 +158,32 @@ namespace Staple.Internal
 
                 CheckEvents();
 
-                var current = DateTime.Now;
-
-                fixedTimer += (float)(current - last).TotalSeconds;
-
-                //Prevent hard stuck
-                var tries = 0;
-
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                if (Paused)
                 {
-                    fixedTimer -= Time.fixedDeltaTime;
+                    fixedTimer = 0;
+                }
+                else
+                {
+                    var current = DateTime.Now;
 
-                    OnFixedUpdate?.Invoke();
+                    fixedTimer += (float)(current - last).TotalSeconds;
 
-                    tries++;
+                    //Prevent hard stuck
+                    var tries = 0;
+
+                    while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                    {
+                        fixedTimer -= Time.fixedDeltaTime;
+
+                        OnFixedUpdate?.Invoke();
+
+                        tries++;
+                    }
+
+                    if(tries >= 3)
+                    {
+                        fixedTimer = 0;
+                    }
                 }
 
                 RenderFrame(ref last);
@@ -305,20 +320,32 @@ namespace Staple.Internal
                     }
                 }
 
-                var current = DateTime.Now;
-
-                fixedTimer += (float)(current - last).TotalSeconds;
-
-                //Prevent hard stuck
-                var tries = 0;
-
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                if (Paused)
                 {
-                    fixedTimer -= Time.fixedDeltaTime;
+                    fixedTimer = 0;
+                }
+                else
+                {
+                    var current = DateTime.Now;
 
-                    OnFixedUpdate?.Invoke();
+                    fixedTimer += (float)(current - last).TotalSeconds;
 
-                    tries++;
+                    //Prevent hard stuck
+                    var tries = 0;
+
+                    while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                    {
+                        fixedTimer -= Time.fixedDeltaTime;
+
+                        OnFixedUpdate?.Invoke();
+
+                        tries++;
+                    }
+
+                    if (tries >= 3)
+                    {
+                        fixedTimer = 0;
+                    }
                 }
 
                 last = DateTime.Now;
@@ -339,7 +366,7 @@ namespace Staple.Internal
                     shouldStop = true;
                 }
 
-                for (; ; )
+                for (; ;)
                 {
                     if (renderThread.IsAlive == false)
                     {
@@ -602,6 +629,13 @@ namespace Staple.Internal
         private void RenderFrame(ref DateTime lastTime)
         {
             var current = DateTime.Now;
+
+            if (Paused)
+            {
+                lastTime = current;
+
+                return;
+            }
 
             Time.UpdateClock(current, lastTime);
 

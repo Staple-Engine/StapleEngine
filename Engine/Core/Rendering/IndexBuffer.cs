@@ -38,6 +38,11 @@ namespace Staple.Internal
 
         public unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)
         {
+            this.handle = new bgfx.IndexBufferHandle()
+            {
+                idx = ushort.MaxValue,
+            };
+
             transientHandle = handle;
             isTransient = true;
         }
@@ -77,19 +82,19 @@ namespace Staple.Internal
                 return;
             }
 
-            if (handle.Valid)
-            {
-                bgfx.set_index_buffer(handle, start, count);
-            }
-            else if(transientHandle.handle.Valid)
+            if(isTransient)
             {
                 unsafe
                 {
-                    fixed(bgfx.TransientIndexBuffer *buffer = &transientHandle)
+                    fixed (bgfx.TransientIndexBuffer* buffer = &transientHandle)
                     {
                         bgfx.set_transient_index_buffer(buffer, start, count);
                     }
                 }
+            }
+            else
+            {
+                bgfx.set_index_buffer(handle, start, count);
             }
         }
 
@@ -111,7 +116,7 @@ namespace Staple.Internal
         /// <param name="flags">The buffer flags</param>
         /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
         /// <returns>The index buffer, or null</returns>
-        public static IndexBuffer Create(ushort[] data, RenderBufferFlags flags, bool isTransient = false)
+        public static IndexBuffer Create(Span<ushort> data, RenderBufferFlags flags, bool isTransient = false)
         {
             var size = Marshal.SizeOf<ushort>();
 
@@ -130,11 +135,10 @@ namespace Staple.Internal
 
                     try
                     {
-                        var temp = new byte[size * data.Length];
-
-                        Buffer.BlockCopy(data, 0, temp, 0, temp.Length);
-
-                        Marshal.Copy(temp, 0, (nint)handle.data, data.Length);
+                        fixed (void* dataPtr = data)
+                        {
+                            Buffer.MemoryCopy(dataPtr, handle.data, data.Length * size, data.Length * size);
+                        }
                     }
                     catch (Exception)
                     {
@@ -162,13 +166,11 @@ namespace Staple.Internal
         /// <summary>
         /// Creates an index buffer from uint data
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="flags"></param>
         /// <param name="data">The data</param>
         /// <param name="flags">The buffer flags</param>
         /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
         /// <returns>The index buffer, or null</returns>
-        public static IndexBuffer Create(uint[] data, RenderBufferFlags flags, bool isTransient = false)
+        public static IndexBuffer Create(Span<uint> data, RenderBufferFlags flags, bool isTransient = false)
         {
             var size = Marshal.SizeOf<uint>();
 
@@ -182,11 +184,10 @@ namespace Staple.Internal
 
                     try
                     {
-                        var temp = new byte[size * data.Length];
-
-                        Buffer.BlockCopy(data, 0, temp, 0, temp.Length);
-
-                        Marshal.Copy(temp, 0, (nint)handle.data, data.Length);
+                        fixed (void* dataPtr = data)
+                        {
+                            Buffer.MemoryCopy(dataPtr, handle.data, data.Length * size, data.Length * size);
+                        }
                     }
                     catch (Exception)
                     {

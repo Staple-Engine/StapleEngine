@@ -344,6 +344,7 @@ namespace Staple.Editor
                                     original = original as TextureMetadata,
                                     path = $"{item.path}.meta",
                                     cachePath = cachePath,
+                                    target = selectedProjectNodeData,
                                 };
 
                                 cachedEditors.Add("", editor);

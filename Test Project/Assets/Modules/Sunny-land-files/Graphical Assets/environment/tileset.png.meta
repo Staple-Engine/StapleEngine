@@ -11,7 +11,7 @@
   "maxSize": 2048,
   "useMipmaps": false,
   "isLinear": false,
-  "spritePixelsPerUnit": 100,
+  "spritePixelsPerUnit": 16,
   "readBack": false,
   "spriteTextureMethod": "Grid",
   "spriteTextureGridSize": {
@@ -21,6 +21,7 @@
   "sprites": [],
   "shouldPack": true,
   "padding": 1,
+  "trimDuplicates": true,
   "overrides": {
     "iOS": {
       "shouldOverride": true,
