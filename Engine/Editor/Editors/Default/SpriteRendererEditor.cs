@@ -43,7 +43,9 @@ namespace Staple.Editor
 
                             if (renderer.spriteIndex >= 0 && renderer.spriteIndex < value.metadata.sprites.Count)
                             {
-                                EditorGUI.TextureRect(value, value.metadata.sprites[renderer.spriteIndex].rect, new Vector2(32, 32));
+                                var sprite = value.metadata.sprites[renderer.spriteIndex];
+
+                                EditorGUI.TextureRect(value, sprite.rect, new Vector2(32, 32), sprite.rotation);
                             }
                             else
                             {

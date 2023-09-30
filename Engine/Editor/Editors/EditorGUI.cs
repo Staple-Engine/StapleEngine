@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -230,17 +231,36 @@ namespace Staple.Editor
             ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size);
         }
 
-        public static void TextureRect(Texture texture, Rect rect, Vector2 size)
+        public static void TextureRect(Texture texture, Rect rect, Vector2 size, TextureSpriteRotation rotation = TextureSpriteRotation.None)
         {
             if (texture == null)
             {
                 return;
             }
 
-            var uv0 = new Vector2(rect.left / (float)texture.Width, rect.top / (float)texture.Height);
-            var uv1 = new Vector2(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
+            var min = new Vector2(rect.left / (float)texture.Width, rect.top / (float)texture.Height);
+            var max = new Vector2(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
 
-            ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, uv0, uv1);
+            switch(rotation)
+            {
+                case TextureSpriteRotation.FlipX:
+
+                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, new Vector2(max.X, min.Y), new Vector2(min.X, max.Y));
+
+                    break;
+
+                case TextureSpriteRotation.FlipY:
+
+                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, new Vector2(min.X, max.Y), new Vector2(max.X, min.Y));
+
+                    break;
+
+                default:
+
+                    ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, min, max);
+
+                    break;
+            }
         }
     }
 }
