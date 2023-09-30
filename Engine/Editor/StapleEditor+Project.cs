@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
+using System.Text.RegularExpressions;
 
 namespace Staple.Editor
 {
@@ -206,5 +207,22 @@ namespace Staple.Editor
                 }
             }
         }
+
+        private static Regex cachePathRegex = CachePathRegex();
+
+        public static string GetAssetPathFromCache(string cachePath)
+        {
+            var matches = cachePathRegex.Matches(cachePath);
+
+            if (matches.Count > 0)
+            {
+                return Path.Combine("Assets", cachePath.Substring(matches[0].Value.Length));
+            }
+
+            return cachePath;
+        }
+
+        [GeneratedRegex("(.*?)(\\\\|\\/)Cache(\\\\|\\/)Staging(\\\\|\\/)(.*?)(\\\\|\\/)")]
+        private static partial Regex CachePathRegex();
     }
 }

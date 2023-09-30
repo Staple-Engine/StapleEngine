@@ -138,6 +138,16 @@ namespace Staple.Editor
 
         internal string assetPickerKey;
 
+        internal bool wasShowingSpritePicker = false;
+
+        internal bool showingSpritePicker = false;
+
+        internal Texture spritePickerTexture;
+
+        internal List<TextureSpriteInfo> spritePickerSprites;
+
+        internal Action<int> spritePickerCallback;
+
         private PlayerSettings playerSettings;
 
         private readonly CSProjManager csProjManager = new();
@@ -382,6 +392,7 @@ namespace Staple.Editor
                 AssetPicker(io);
                 BuildWindow(io);
                 ProgressPopup(io);
+                SpritePicker(io);
 
                 if (Scene.current?.world != null)
                 {

@@ -6,7 +6,13 @@ namespace Staple.Editor
 {
     internal class ThumbnailCache
     {
-        private static readonly Dictionary<string, Texture> cachedThumbnails = new();
+        private class TextureInfo
+        {
+            public Texture texture;
+            public string cachePath;
+        }
+
+        private static readonly Dictionary<string, TextureInfo> cachedThumbnails = new();
         private static readonly Dictionary<string, Texture> cachedTextures = new();
         private static readonly List<Texture> pendingDestructionTextures = new();
         private static readonly Dictionary<string, RawTextureData> cachedTextureData = new();
@@ -25,6 +31,16 @@ namespace Staple.Editor
 
         public static Texture GetTexture(string path)
         {
+            if(Path.IsPathRooted(path) == false)
+            {
+                var t = GetTexture(Path.Combine(basePath, path));
+
+                if(t != null)
+                {
+                    return t;
+                }
+            }
+
             if(cachedTextures.TryGetValue(path, out var texture))
             {
                 return texture;
@@ -74,9 +90,9 @@ namespace Staple.Editor
 
         public static Texture GetThumbnail(string path)
         {
-            if(cachedThumbnails.TryGetValue(path, out var texture))
+            if(cachedThumbnails.TryGetValue(path, out var t))
             {
-                return texture;
+                return t.texture;
             }
 
             var platform = Platform.CurrentPlatform;
@@ -113,6 +129,8 @@ namespace Staple.Editor
                 cachePath = Path.Combine(basePath, "Cache", "Staging", platform.Value.ToString(), path.Substring(index + "Assets\\".Length));
             }
 
+            Texture texture;
+
             try
             {
                 texture = ResourceManager.instance.LoadTexture(cachePath);
@@ -124,7 +142,12 @@ namespace Staple.Editor
 
             if(texture != null)
             {
-                cachedThumbnails.AddOrSetKey(path, texture);
+                cachedThumbnails.AddOrSetKey(path, new TextureInfo()
+                {
+                    texture = texture,
+                    cachePath = cachePath
+                });
+
                 cachedTextureData.AddOrSetKey(path, rawTextureData);
             }
 
@@ -145,7 +168,7 @@ namespace Staple.Editor
         {
             foreach(var pair in cachedThumbnails)
             {
-                pendingDestructionTextures.Add(pair.Value);
+                pendingDestructionTextures.Add(pair.Value.texture);
             }
 
             foreach(var pair in cachedTextures)
@@ -159,15 +182,15 @@ namespace Staple.Editor
 
         public static void ClearSingle(string path)
         {
-            if(cachedThumbnails.TryGetValue(path, out var texture))
+            if(cachedThumbnails.TryGetValue(path, out var t))
             {
                 cachedThumbnails.Remove(path);
                 cachedTextureData.Remove(path);
 
-                pendingDestructionTextures.Add(texture);
+                pendingDestructionTextures.Add(t.texture);
             }
 
-            if(cachedTextures.TryGetValue(path, out texture))
+            if(cachedTextures.TryGetValue(path, out var texture))
             {
                 cachedTextures.Remove(path);
 

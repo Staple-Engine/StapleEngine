@@ -13,9 +13,25 @@ namespace Staple.Editor
 
         internal static Dictionary<string, object> pendingObjectPickers = new();
 
-        private static Dictionary<string, object> cachedEnumValues = new();
+        private static readonly Dictionary<string, object> cachedEnumValues = new();
 
-        public static bool Changed { get; internal set; }
+        private static bool changed = false;
+        private static ulong counter = 0;
+
+        public static bool Changed
+        {
+            get => changed;
+
+            internal set
+            {
+                changed = value;
+
+                if(changed == false)
+                {
+                    counter = 0;
+                }
+            }
+        }
 
         public static void SameLine()
         {
@@ -34,14 +50,14 @@ namespace Staple.Editor
 
         public static bool Button(string label)
         {
-            return ImGui.Button(label);
+            return ImGui.Button($"{label}##{counter++}");
         }
 
         public static bool ButtonDisabled(string label)
         {
             ImGui.BeginDisabled();
 
-            var result = ImGui.Button(label);
+            var result = ImGui.Button($"{label}##{counter++}");
 
             ImGui.EndDisabled();
 
@@ -180,7 +196,7 @@ namespace Staple.Editor
 
             var key = $"{type.FullName}{name}{current}";
 
-            if (ImGui.SmallButton("O"))
+            if (ImGui.SmallButton($"O##{key}"))
             {
                 editor.showingAssetPicker = true;
                 editor.assetPickerSearch = "";

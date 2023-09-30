@@ -721,5 +721,34 @@ namespace Staple.Editor
 
             wasShowingProgress = showingProgress;
         }
+
+        private void SpritePicker(ImGuiIOPtr io)
+        {
+            if(wasShowingSpritePicker != showingSpritePicker && showingSpritePicker)
+            {
+                ImGui.OpenPopup("ShowingSpritePicker");
+            }
+
+            if(showingSpritePicker)
+            {
+                ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X / 4, io.DisplaySize.Y / 4));
+                ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X / 2, io.DisplaySize.Y / 2));
+
+                ImGui.BeginPopupModal("ShowingSpritePicker", ref showingSpritePicker,
+                    ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoDocking |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoMove);
+
+                Staple.Editor.SpritePicker.Draw(io, ref showingSpritePicker, spritePickerTexture, spritePickerSprites, spritePickerCallback);
+
+                ImGui.EndPopup();
+
+                if(showingSpritePicker == false)
+                {
+                    ImGui.CloseCurrentPopup();
+                }
+            }
+        }
     }
 }

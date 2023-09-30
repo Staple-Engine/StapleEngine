@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.IO;
+using System.Numerics;
 using System.Reflection;
 
 namespace Staple.Editor
@@ -33,13 +35,35 @@ namespace Staple.Editor
 
                         field.SetValue(target, value);
 
-                        if(value != null && renderer.spriteIndex >= 0 && renderer.spriteIndex < value.metadata.sprites.Count)
+                        if (value != null)
                         {
                             EditorGUI.Label("Selected Sprite");
 
                             EditorGUI.SameLine();
 
-                            EditorGUI.TextureRect(value, value.metadata.sprites[renderer.spriteIndex].rect, new Vector2(32, 32));
+                            if (renderer.spriteIndex >= 0 && renderer.spriteIndex < value.metadata.sprites.Count)
+                            {
+                                EditorGUI.TextureRect(value, value.metadata.sprites[renderer.spriteIndex].rect, new Vector2(32, 32));
+                            }
+                            else
+                            {
+                                EditorGUI.Label("(none)");
+                            }
+
+                            EditorGUI.SameLine();
+
+                            if (EditorGUI.Button("O##SpritePicker"))
+                            {
+                                if(StapleEditor.instance.TryGetTarget(out var editor))
+                                {
+                                    var assetPath = StapleEditor.GetAssetPathFromCache(value.path);
+
+                                    editor.showingSpritePicker = true;
+                                    editor.spritePickerTexture = ThumbnailCache.GetTexture(assetPath) ?? value;
+                                    editor.spritePickerSprites = value.metadata.sprites;
+                                    editor.spritePickerCallback = (index) => renderer.spriteIndex = index;
+                                }
+                            }
                         }
                     }
 

@@ -74,6 +74,7 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="ResourceUtils.cs" />
+    <Compile Include="SpritePicker.cs" />
     <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />
     <Compile Include="StapleEditor+csproj.cs" />

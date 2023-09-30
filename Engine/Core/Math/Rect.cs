@@ -1,4 +1,6 @@
 ﻿using MessagePack;
+using System;
+using System.Numerics;
 
 namespace Staple
 {
@@ -38,6 +40,9 @@ namespace Staple
         }
 
         [IgnoreMember]
+        public bool IsEmpty => left == 0 && right == 0 && top == 0 && bottom == 0;
+
+        [IgnoreMember]
         public readonly Vector2Int Min => new(left, top);
 
         [IgnoreMember]
@@ -64,6 +69,20 @@ namespace Staple
                 bottom = value + top;
             }
         }
+
+        public readonly bool Contains(Vector2Int v)
+        {
+            return v.X >= left && v.X <= right &&
+                v.Y >= top && v.Y <= bottom;
+        }
+
+        public readonly bool Contains(Vector2 v)
+        {
+            return v.X >= left && v.X <= right &&
+                v.Y >= top && v.Y <= bottom;
+        }
+
+        public bool ShouldSerializeIsEmpty() => false;
 
         public bool ShouldSerializeMin() => false;
 
