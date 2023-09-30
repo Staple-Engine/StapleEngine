@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Editor;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -79,7 +80,7 @@ namespace Staple.Internal
 
                             if (texture != null && texture.path != null)
                             {
-                                sceneComponent.data.Add(field.Name, texture.path);
+                                sceneComponent.data.Add(field.Name, StapleEditor.GetAssetPathFromCache(texture.path));
                             }
                         }
                         else if (field.FieldType == typeof(Color32))

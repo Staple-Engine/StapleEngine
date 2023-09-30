@@ -152,6 +152,8 @@ namespace Staple.Editor
 
         private void Inspector(ImGuiIOPtr io)
         {
+            EditorGUI.Changed = false;
+
             ImGui.Begin("Inspector");
 
             ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 0));
@@ -206,15 +208,11 @@ namespace Staple.Editor
                         }
                         else if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
                         {
-                            EditorGUI.Changed = false;
-
                             editor.OnInspectorGUI();
                         }
                         else
                         {
                             defaultEditor.target = component;
-
-                            EditorGUI.Changed = false;
 
                             defaultEditor.OnInspectorGUI();
                         }
@@ -227,7 +225,7 @@ namespace Staple.Editor
             }
             else if(selectedProjectNode != null && selectedProjectNodeData != null)
             {
-                if(cachedEditors.Count > 0)
+                if (cachedEditors.Count > 0)
                 {
                     var editor = cachedEditors.First().Value;
 

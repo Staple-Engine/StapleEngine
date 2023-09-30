@@ -60,6 +60,11 @@ namespace Staple.Editor
                                 {
                                     var assetPath = StapleEditor.GetAssetPathFromCache(value.path);
 
+                                    if(assetPath != value.path && Path.IsPathRooted(assetPath) == false)
+                                    {
+                                        assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
+                                    }
+
                                     editor.showingSpritePicker = true;
                                     editor.spritePickerTexture = ThumbnailCache.GetTexture(assetPath) ?? value;
                                     editor.spritePickerSprites = value.metadata.sprites;

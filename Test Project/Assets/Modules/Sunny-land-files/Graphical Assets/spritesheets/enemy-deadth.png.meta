@@ -11,21 +11,33 @@
   "maxSize": 2048,
   "useMipmaps": false,
   "isLinear": false,
-  "spritePixelsPerUnit": 100,
+  "spritePixelsPerUnit": 16,
   "readBack": false,
-  "spriteTextureMethod": "Single",
+  "spriteTextureMethod": "Grid",
   "spriteTextureGridSize": {
-    "X": 0,
-    "Y": 0
+    "X": 40,
+    "Y": 41
   },
   "sprites": [
     {
-      "left": 0,
-      "right": 240,
-      "top": 0,
-      "bottom": 41
+      "rect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "rotation": "None",
+      "originalRect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      }
     }
   ],
+  "shouldPack": false,
+  "padding": 0,
+  "trimDuplicates": false,
   "overrides": {
     "iOS": {
       "shouldOverride": true,

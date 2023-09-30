@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace Staple.Editor
 {
@@ -162,6 +163,30 @@ namespace Staple.Editor
             }
 
             pendingDestructionTextures.Clear();
+
+            if (Scene.current?.world != null)
+            {
+                Scene.current.world.Iterate((entity) =>
+                {
+                    Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                    {
+                        var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+                        foreach (var field in fields)
+                        {
+                            if (field.FieldType == typeof(Texture))
+                            {
+                                var value = (Texture)field.GetValue(component);
+
+                                if (value != null && value.Disposed && (value.path?.Length ?? 0) > 0)
+                                {
+                                    field.SetValue(component, ResourceManager.instance.LoadTexture(value.path));
+                                }
+                            }
+                        }
+                    });
+                });
+            }
         }
 
         public static void Clear()
