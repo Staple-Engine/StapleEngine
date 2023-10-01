@@ -27,6 +27,9 @@
     <Reference Include="MessagePack">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
+	<Reference Include="StapleCore">
+	  <HintPath>..\..\Engine\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Reference Include="Newtonsoft.Json">
@@ -35,82 +38,13 @@
     <Reference Include="MessagePack">
       <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
     </Reference>
+	<Reference Include="StapleCore">
+	  <HintPath>..\..\Engine\Core\bin\Release\net7.0\StapleCore.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PackerUtils.cs" />
     <Compile Include="Packer.cs" />
-	  <Compile Include="..\..\Engine\Core\Bindings\bgfx.cs">
-		  <Link>Engine\Core\Bindings\bgfx.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Bindings\bgfx_dllname.cs">
-		  <Link>Engine\Core\Bindings\bgfx_dllname.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Math\Color.cs">
-		  <Link>Engine\Core\Math\Color.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Math\Color32.cs">
-		  <Link>Engine\Core\Math\Color32.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Math\Rect.cs">
-		  <Link>Engine\Core\Math\Rect.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Math\Vector2Int.cs">
-		  <Link>Engine\Core\Math\Vector2Int.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Math\Math.cs">
-		  <Link>Engine\Core\Math\Math.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Player\AppPlatform.cs">
-		  <Link>Engine\Core\Player\AppPlatform.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Player\AppSettings.cs">
-		  <Link>Engine\Core\Player\AppSettings.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Rendering\BlendMode.cs">
-		  <Link>Engine\Core\Rendering\BlendMode.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Rendering\RendererType.cs">
-		  <Link>Engine\Core\Rendering\RendererType.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Rendering\WindowMode.cs">
-		  <Link>Engine\Core\Rendering\WindowMode.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Scene\SceneList.cs">
-		  <Link>Engine\Core\Scene\SceneList.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\App\AppSettingsHeader.cs">
-		  <Link>Engine\Core\Serialization\App\AppSettingsHeader.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Material\MaterialMetadata.cs">
-		  <Link>Engine\Core\Serialization\Material\MaterialMetadata.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Material\SerializableMaterial.cs">
-		  <Link>Engine\Core\Serialization\Material\SerializableMaterial.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Scene\SerializableScene.cs">
-		  <Link>Engine\Core\Serialization\Scene\SerializableScene.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Shader\SerializableShader.cs">
-		  <Link>Engine\Core\Serialization\Shader\SerializableShader.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Shader\ShaderMetadata.cs">
-		  <Link>Engine\Core\Serialization\Shader\ShaderMetadata.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Texture\TextureMetadata.cs">
-		  <Link>Engine\Core\Serialization\Texture\TextureMetadata.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
-		  <Link>Engine\Core\Serialization\Texture\SerializableTexture.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Serialization\Json\JsonStringEnumConverter.cs">
-		  <Link>Engine\Core\Serialization\Json\JsonStringEnumConverter.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Physics\ColliderMask.cs">
-		  <Link>Engine\Core\Physics\ColliderMask.cs</Link>
-	  </Compile>
-	  <Compile Include="..\..\Engine\Core\Resources\ResourcePak.cs">
-      <Link>Engine\Core\Resources\ResourcePak.cs</Link>
-    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)\Packer\bin\Debug\net7.0\*.exe $(SolutionDir)\bin

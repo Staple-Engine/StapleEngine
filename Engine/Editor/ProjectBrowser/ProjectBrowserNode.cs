@@ -8,9 +8,8 @@ namespace Staple.Editor
         public string path;
         public ProjectBrowserNodeType type;
         public string extension;
+        public string typeName;
         public List<ProjectBrowserNode> subnodes = new();
         public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
-
-        public ProjectResourceType resourceType;
     }
 }

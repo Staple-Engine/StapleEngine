@@ -50,19 +50,7 @@ namespace Baker
 
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
-                var guid = Guid.NewGuid().ToString();
-
-                try
-                {
-                    var meta = Path.ChangeExtension(shaderFiles[i], ".stsh.meta");
-
-                    guid = File.ReadAllText(meta);
-
-                    Console.WriteLine($"\t\tReusing guid {guid}");
-                }
-                catch(Exception)
-                {
-                }
+                var guid = FindGuid<Shader>(shaderFiles[i]);
 
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(shaderFiles[i]));
                 var file = Path.GetFileName(shaderFiles[i]);

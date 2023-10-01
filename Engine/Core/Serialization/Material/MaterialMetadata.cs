@@ -176,6 +176,9 @@ namespace Staple.Internal
 
         [Key(2)]
         public Dictionary<string, MaterialParameter> parameters = new();
+
+        [Key(3)]
+        public string typeName = typeof(Material).FullName;
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]

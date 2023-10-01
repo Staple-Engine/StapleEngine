@@ -46,5 +46,8 @@ namespace Staple.Internal
 
         [Key(4)]
         public BlendMode destinationBlend = BlendMode.Off;
+
+        [Key(5)]
+        public string typeName = typeof(Shader).FullName;
     }
 }

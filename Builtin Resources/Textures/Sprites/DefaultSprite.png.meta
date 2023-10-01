@@ -1,5 +1,6 @@
 {
 	"guid": "fe19196d-0c54-413a-a0fd-6ef91124007a",
+	"typeName": "Staple.Texture",
 	"type": "Sprite",
 	"useMipmaps": true,
 	"quality": "Default",

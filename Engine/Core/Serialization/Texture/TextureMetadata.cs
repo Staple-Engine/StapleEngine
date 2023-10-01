@@ -315,6 +315,9 @@ namespace Staple.Internal
             },
         };
 
+        [Key(21)]
+        public string typeName = typeof(Texture).FullName;
+
         public TextureMetadata Clone()
         {
             return new TextureMetadata()
@@ -340,6 +343,7 @@ namespace Staple.Internal
                 shouldPack = shouldPack,
                 padding = padding,
                 trimDuplicates = trimDuplicates,
+                typeName = typeName,
             };
         }
 
@@ -367,7 +371,8 @@ namespace Staple.Internal
                 lhs.sprites.SequenceEqual(rhs.sprites) &&
                 lhs.shouldPack == rhs.shouldPack &&
                 lhs.padding == rhs.padding &&
-                lhs.trimDuplicates == rhs.trimDuplicates;
+                lhs.trimDuplicates == rhs.trimDuplicates &&
+                lhs.typeName == rhs.typeName;
         }
 
         public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
@@ -395,7 +400,8 @@ namespace Staple.Internal
                 lhs.shouldPack != rhs.shouldPack ||
                 lhs.padding != rhs.padding ||
                 lhs.overrides != rhs.overrides ||
-                lhs.trimDuplicates != rhs.trimDuplicates;
+                lhs.trimDuplicates != rhs.trimDuplicates ||
+                lhs.typeName != rhs.typeName;
         }
 
         public override bool Equals(object obj)

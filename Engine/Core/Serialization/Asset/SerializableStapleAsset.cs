@@ -36,9 +36,12 @@ namespace Staple.Internal
     public class SerializableStapleAsset
     {
         [Key(0)]
-        public string typeName;
+        public string guid;
 
         [Key(1)]
+        public string typeName;
+
+        [Key(2)]
         public Dictionary<string, SerializableStapleAssetParameter> parameters = new();
     }
 }

@@ -67,6 +67,8 @@ namespace Baker
                     continue;
                 }
 
+                var guid = FindGuid<Texture>(textureFiles[i]);
+
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(textureFiles[i]));
                 var file = Path.GetFileName(textureFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file.Replace(".meta", ""));
@@ -105,6 +107,7 @@ namespace Baker
                 try
                 {
                     metadata = JsonConvert.DeserializeObject<TextureMetadata>(text);
+                    metadata.guid = guid;
                 }
                 catch (Exception)
                 {

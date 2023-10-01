@@ -3,24 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Staple.Internal;
 
 namespace Staple.Editor
 {
     internal static class AssetDatabase
     {
-        [Serializable]
-        private class GuidHolder
-        {
-            public string guid;
-        }
-
-        private static readonly Dictionary<string, string> assets = new();
+        private static readonly Dictionary<string, AssetHolder> assetsByGuid = new();
+        private static readonly Dictionary<string, AssetHolder> assetsByType = new();
 
         internal static string basePath;
 
         public static void Reload()
         {
-            assets.Clear();
+            assetsByGuid.Clear();
+            assetsByType.Clear();
 
             var files = Array.Empty<string>();
 
@@ -44,56 +41,34 @@ namespace Staple.Editor
 
             foreach(var file in files)
             {
-                string guid = null;
-
-                if(file.Contains(".stsh"))
+                try
                 {
-                    try
-                    {
-                        guid = File.ReadAllText(file);
-                    }
-                    catch(Exception)
-                    {
-                        continue;
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        var text = File.ReadAllText(file);
+                    var text = File.ReadAllText(file);
 
-                        var holder = JsonConvert.DeserializeObject<GuidHolder>(text);
+                    var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
 
-                        if(holder != null)
+                    if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
+                    {
+                        if(assetsByGuid.ContainsKey(holder.guid))
                         {
-                            guid = holder.guid;
+                            Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
+
+                            continue;
                         }
-                    }
-                    catch(Exception)
-                    {
-                        continue;
+
+                        assetsByGuid.AddOrSetKey(holder.guid, holder);
+                        assetsByType.AddOrSetKey(holder.typeName, holder);
                     }
                 }
-
-                if((guid?.Length ?? 0) > 0)
+                catch (Exception)
                 {
-                    if(assets.ContainsKey(guid))
-                    {
-                        Log.Error($"[AssetDatabase] Asset {file} has duplicate guid. Skipping...");
+                    Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping...");
 
-                        continue;
-                    }
-
-                    assets.Add(guid, file);
-                }
-                else
-                {
-                    Log.Warning($"[AssetDatabase] Missing guid for potential asset at {file}. Skipping...");
+                    continue;
                 }
             }
 
-            Log.Info($"[AssetDatabase] Reloaded Asset Database with {assets.Count} assets");
+            Log.Info($"[AssetDatabase] Reloaded Asset Database with {assetsByGuid.Count} assets");
         }
     }
 }

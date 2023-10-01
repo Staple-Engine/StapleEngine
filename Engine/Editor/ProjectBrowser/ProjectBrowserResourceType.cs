@@ -1,6 +1,6 @@
 ﻿namespace Staple.Editor
 {
-    internal enum ProjectResourceType
+    internal enum ProjectBrowserResourceType
     {
         Material,
         Texture,

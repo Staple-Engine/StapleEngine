@@ -313,68 +313,60 @@ namespace Staple.Editor
                 {
                     object original = null;
 
-                    switch (item.resourceType)
+                    if (item.typeName == typeof(Texture).FullName)
                     {
-                        case ProjectResourceType.Texture:
+                        try
+                        {
+                            original = JsonConvert.DeserializeObject<TextureMetadata>(data);
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<TextureMetadata>(data);
+                        }
+                        catch (Exception)
+                        {
+                        }
 
-                            try
+                        if (original != null && selectedProjectNodeData != null)
+                        {
+                            var cachePath = item.path;
+
+                            var pathIndex = item.path.IndexOf("Assets");
+
+                            if (pathIndex >= 0)
                             {
-                                original = JsonConvert.DeserializeObject<TextureMetadata>(data);
-                                selectedProjectNodeData = JsonConvert.DeserializeObject<TextureMetadata>(data);
-                            }
-                            catch (Exception)
-                            {
-                            }
-
-                            if (original != null && selectedProjectNodeData != null)
-                            {
-                                var cachePath = item.path;
-
-                                var pathIndex = item.path.IndexOf("Assets");
-
-                                if (pathIndex >= 0)
-                                {
-                                    cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
-                                }
-
-                                var editor = new TextureAssetEditor()
-                                {
-                                    original = original as TextureMetadata,
-                                    path = $"{item.path}.meta",
-                                    cachePath = cachePath,
-                                    target = selectedProjectNodeData,
-                                };
-
-                                cachedEditors.Add("", editor);
-
-                                editor.UpdatePreview();
+                                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
                             }
 
-                            break;
-
-                        case ProjectResourceType.Material:
-
-                            try
+                            var editor = new TextureAssetEditor()
                             {
-                                selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
-                            }
-                            catch (Exception)
-                            {
-                            }
+                                original = original as TextureMetadata,
+                                path = $"{item.path}.meta",
+                                cachePath = cachePath,
+                                target = selectedProjectNodeData,
+                            };
 
-                            break;
+                            cachedEditors.Add("", editor);
 
-                        case ProjectResourceType.Shader:
-
-                            try
-                            {
-                                selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
-                            }
-                            catch (Exception)
-                            {
-                            }
-
-                            break;
+                            editor.UpdatePreview();
+                        }
+                    }
+                    else if (item.name == typeof(Material).FullName)
+                    {
+                        try
+                        {
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if (item.name == typeof(Shader).FullName)
+                    {
+                        try
+                        {
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
+                        }
+                        catch (Exception)
+                        {
+                        }
                     }
                 }
             },
@@ -511,25 +503,9 @@ namespace Staple.Editor
                                 return;
                             }
 
-                            switch (assetPickerType)
+                            if(assetPickerType.FullName == child.typeName)
                             {
-                                case Type t when t == typeof(Texture) || t.IsSubclassOf(typeof(Texture)):
-
-                                    if (child.resourceType == ProjectResourceType.Texture)
-                                    {
-                                        validItems.Add(child);
-                                    }
-
-                                    break;
-
-                                case Type t when t == typeof(Material):
-
-                                    if (child.resourceType == ProjectResourceType.Material)
-                                    {
-                                        validItems.Add(child);
-                                    }
-
-                                    break;
+                                validItems.Add(child);
                             }
 
                             break;
@@ -580,46 +556,32 @@ namespace Staple.Editor
                     {
                         var i = validItems[index];
 
-                        switch(i.resourceType)
+                        if(i.typeName == typeof(Texture).FullName)
                         {
-                            case ProjectResourceType.Material:
+                            var cachePath = i.path;
 
-                                break;
+                            var cacheIndex = i.path.IndexOf("Assets");
 
-                            case ProjectResourceType.Texture:
+                            if (cacheIndex >= 0)
+                            {
+                                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
+                            }
 
+                            try
+                            {
+                                texture = ResourceManager.instance.LoadTexture(cachePath);
+                            }
+                            catch (System.Exception)
+                            {
+                            }
+
+                            if(texture != null)
+                            {
+                                if(EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
                                 {
-                                    var cachePath = i.path;
-
-                                    var cacheIndex = i.path.IndexOf("Assets");
-
-                                    if (cacheIndex >= 0)
-                                    {
-                                        cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
-                                    }
-
-                                    try
-                                    {
-                                        texture = ResourceManager.instance.LoadTexture(cachePath);
-                                    }
-                                    catch (System.Exception)
-                                    {
-                                    }
-
-                                    if(texture != null)
-                                    {
-                                        if(EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                        {
-                                            EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
-                                        }
-                                    }
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
                                 }
-
-                                break;
-
-                            case ProjectResourceType.Shader:
-
-                                break;
+                            }
                         }
 
                         showingAssetPicker = false;

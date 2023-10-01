@@ -27,6 +27,9 @@
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
 		</Reference>
+		<Reference Include="StapleCore">
+			<HintPath>..\..\Engine\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<Reference Include="Newtonsoft.Json">
@@ -34,6 +37,9 @@
 		</Reference>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+		</Reference>
+		<Reference Include="StapleCore">
+			<HintPath>..\..\Engine\Core\bin\Release\net7.0\StapleCore.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
@@ -49,198 +55,6 @@
 		<Compile Include="ShaderParameterSemantic.cs" />
 		<Compile Include="ShaderPiece.cs" />
 		<Compile Include="UnprocessedShader.cs" />
-		<Compile Include="..\..\Engine\Core\Bindings\bgfx.cs">
-			<Link>Engine\Core\Bindings\bgfx.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Bindings\bgfx_dllname.cs">
-			<Link>Engine\Core\Bindings\bgfx_dllname.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\MaxRectsBinPack.cs">
-			<Link>Engine\Core\External\MaxRectsBinPack.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\Hebron.Runtime\CRuntime.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\Hebron.Runtime\CRuntime.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\Hebron.Runtime\MemoryStats.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\Hebron.Runtime\MemoryStats.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\Hebron.Runtime\Utility.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\Hebron.Runtime\Utility.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\AnimatedFrameResult.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\AnimatedFrameResult.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\AnimatedGifEnumerator.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\AnimatedGifEnumerator.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\ColorComponents.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\ColorComponents.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\ImageInfo.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\ImageInfo.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\ImageResult.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\ImageResult.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\ImageResultFloat.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\ImageResultFloat.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Bmp.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Bmp.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Common.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Common.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Gif.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Gif.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Hdr.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Hdr.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Jpg.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Jpg.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Png.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Png.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Psd.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Psd.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Tga.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Tga.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageSharp\src\StbImage.Generated.Zlib.cs">
-			<Link>Engine\Core\External\StbImageSharp\src\StbImage.Generated.Zlib.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\ColorComponents.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\ColorComponents.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\CRuntime.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\CRuntime.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\ImageWriter.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\ImageWriter.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\MemoryStats.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\MemoryStats.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\StbImageWrite.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\StbImageWrite.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageWriteSharp\src\StbImageWrite.Generated.cs">
-			<Link>Engine\Core\External\StbImageWriteSharp\src\StbImageWrite.Generated.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageResizeSharp\src\CRuntime.cs">
-			<Link>Engine\Core\External\StbImageResizeSharp\src\CRuntime.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageResizeSharp\src\MemoryStats.cs">
-			<Link>Engine\Core\External\StbImageResizeSharp\src\MemoryStats.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageResizeSharp\src\StbImageResize.cs">
-			<Link>Engine\Core\External\StbImageResizeSharp\src\StbImageResize.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\External\StbImageResizeSharp\src\StbImageResize.Generated.cs">
-			<Link>Engine\Core\External\StbImageResizeSharp\src\StbImageResize.Generated.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Math\Color.cs">
-			<Link>Engine\Core\Math\Color.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Math\Color32.cs">
-			<Link>Engine\Core\Math\Color32.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Math\Rect.cs">
-			<Link>Engine\Core\Math\Rect.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Math\Vector2Int.cs">
-			<Link>Engine\Core\Math\Vector2Int.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Math\Math.cs">
-			<Link>Engine\Core\Math\Math.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Player\AppPlatform.cs">
-			<Link>Engine\Core\Player\AppPlatform.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Player\AppSettings.cs">
-			<Link>Engine\Core\Player\AppSettings.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\StandardTextureColorComponents.cs">
-			<Link>Engine\Core\Rendering\StandardTextureColorComponents.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\RawTextureData.cs">
-			<Link>Engine\Core\Rendering\Texture\RawTextureData.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\Texture.cs">
-			<Link>Engine\Core\Rendering\Texture\Texture.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\TextureFlags.cs">
-			<Link>Engine\Core\Rendering\Texture\TextureFlags.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\EmptyTextureCreateMethod.cs">
-			<Link>Engine\Core\Rendering\Texture\EmptyTextureCreateMethod.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\ITextureCreateMethod.cs">
-			<Link>Engine\Core\Rendering\Texture\ITextureCreateMethod.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\BGFXTextureCreateMethod.cs">
-			<Link>Engine\Core\Rendering\Texture\BGFXTextureCreateMethod.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\Texture\PixelTextureCreateMethod.cs">
-			<Link>Engine\Core\Rendering\Texture\PixelTextureCreateMethod.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\BlendMode.cs">
-			<Link>Engine\Core\Rendering\BlendMode.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\RendererType.cs">
-			<Link>Engine\Core\Rendering\RendererType.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Rendering\WindowMode.cs">
-			<Link>Engine\Core\Rendering\WindowMode.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Scene\SceneList.cs">
-			<Link>Engine\Core\Scene\SceneList.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\App\AppSettingsHeader.cs">
-			<Link>Engine\Core\Serialization\App\AppSettingsHeader.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Material\MaterialMetadata.cs">
-			<Link>Engine\Core\Serialization\Material\MaterialMetadata.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Material\SerializableMaterial.cs">
-			<Link>Engine\Core\Serialization\Material\SerializableMaterial.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Scene\SerializableScene.cs">
-			<Link>Engine\Core\Serialization\Scene\SerializableScene.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Shader\SerializableShader.cs">
-			<Link>Engine\Core\Serialization\Shader\SerializableShader.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Shader\ShaderMetadata.cs">
-			<Link>Engine\Core\Serialization\Shader\ShaderMetadata.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Texture\TextureMetadata.cs">
-			<Link>Engine\Core\Serialization\Texture\TextureMetadata.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Texture\SerializableTexture.cs">
-			<Link>Engine\Core\Serialization\Texture\SerializableTexture.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Serialization\Json\JsonStringEnumConverter.cs">
-			<Link>Engine\Core\Serialization\Json\JsonStringEnumConverter.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Physics\ColliderMask.cs">
-			<Link>Engine\Core\Physics\ColliderMask.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Utilities\Log\Log.cs">
-			<Link>Engine\Core\Utilities\Log\Log.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Utilities\Log\ILog.cs">
-			<Link>Engine\Core\Utilities\Log\ILog.cs</Link>
-		</Compile>
-		<Compile Include="..\..\Engine\Core\Utilities\Log\ConsoleLog.cs">
-			<Link>Engine\Core\Utilities\Log\ConsoleLog.cs</Link>
-		</Compile>
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Newtonsoft.Json">

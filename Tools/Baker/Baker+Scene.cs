@@ -50,6 +50,8 @@ namespace Baker
                     continue;
                 }
 
+                var guid = FindGuid<Scene>(sceneFiles[i]);
+
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(sceneFiles[i]));
                 var file = Path.GetFileName(sceneFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
@@ -59,20 +61,6 @@ namespace Baker
                 if (index >= 0 && index < outputFile.Length)
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-                }
-
-                var guid = Guid.NewGuid().ToString();
-
-                try
-                {
-                    var meta = Path.ChangeExtension(sceneFiles[i], ".stsc.meta");
-
-                    guid = File.ReadAllText(meta);
-
-                    Console.WriteLine($"\t\tReusing guid {guid}");
-                }
-                catch (Exception)
-                {
                 }
 
                 Console.WriteLine($"\t\t -> {outputFile}");

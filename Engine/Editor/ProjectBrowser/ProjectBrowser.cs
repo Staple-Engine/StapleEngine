@@ -28,6 +28,11 @@ namespace Staple.Editor
 
         internal Dictionary<string, Texture> editorResources = new();
 
+        public Texture GetEditorResource(string name)
+        {
+            return editorResources.TryGetValue(name, out var texture) ? texture : null;
+        }
+
         public void LoadEditorTexture(string name, string path)
         {
             path = Path.Combine(Environment.CurrentDirectory, "Editor Resources", path);
@@ -43,6 +48,36 @@ namespace Staple.Editor
             }
             catch (Exception)
             {
+            }
+        }
+
+        internal static ProjectBrowserResourceType ResourceTypeForExtension(string extension)
+        {
+            switch (extension)
+            {
+                case ".mat":
+
+                    return ProjectBrowserResourceType.Material;
+
+                case ".stsh":
+
+                    return ProjectBrowserResourceType.Shader;
+
+                case ".stsc":
+
+                    return ProjectBrowserResourceType.Scene;
+
+                case ".png":
+                case ".jpg":
+                case ".jpeg":
+                case ".gif":
+                case ".bmp":
+
+                    return ProjectBrowserResourceType.Texture;
+
+                default:
+
+                    return ProjectBrowserResourceType.Other;
             }
         }
 
@@ -90,6 +125,7 @@ namespace Staple.Editor
                             path = directory,
                             type = ProjectBrowserNodeType.Folder,
                             subnodes = subnodes,
+                            typeName = "Folder",
                         });
                     }
 
@@ -111,40 +147,36 @@ namespace Staple.Editor
 
                         nodes.Add(node);
 
-                        switch (node.extension)
+                        switch (ResourceTypeForExtension(node.extension))
                         {
-                            case ".mat":
+                            case ProjectBrowserResourceType.Material:
 
-                                node.resourceType = ProjectResourceType.Material;
-
-                                break;
-
-                            case ".stsh":
-
-                                node.resourceType = ProjectResourceType.Shader;
+                                node.typeName = typeof(Material).FullName;
 
                                 break;
 
-                            case ".stsc":
+                            case ProjectBrowserResourceType.Shader:
 
-                                node.resourceType = ProjectResourceType.Scene;
+                                node.typeName = typeof(Shader).FullName;
+
+                                break;
+
+                            case ProjectBrowserResourceType.Scene:
+
                                 node.action = ProjectBrowserNodeAction.InspectScene;
+                                node.typeName = typeof(Scene).FullName;
 
                                 break;
 
-                            case ".png":
-                            case ".jpg":
-                            case ".jpeg":
-                            case ".gif":
-                            case ".bmp":
+                            case ProjectBrowserResourceType.Texture:
 
-                                node.resourceType = ProjectResourceType.Texture;
+                                node.typeName = typeof(Texture).FullName;
 
                                 break;
 
                             default:
 
-                                node.resourceType = ProjectResourceType.Other;
+                                node.typeName = "Unknown";
 
                                 break;
                         }
@@ -182,39 +214,15 @@ namespace Staple.Editor
                 {
                     case ProjectBrowserNodeType.File:
 
-                        switch (node.resourceType)
+                        item.ensureValidTexture = (texture) =>
                         {
-                            case ProjectResourceType.Texture:
+                            if (texture?.Disposed ?? true)
+                            {
+                                return ThumbnailCache.GetThumbnail(node.path) ?? GetEditorResource("FileIcon");
+                            }
 
-                                item.ensureValidTexture = (texture) =>
-                                {
-                                    if (texture?.Disposed ?? true)
-                                    {
-                                        return ThumbnailCache.GetThumbnail(node.path);
-                                    }
-
-                                    return texture;
-                                };
-
-                                break;
-
-                            default:
-
-                                item.ensureValidTexture = (texture) =>
-                                {
-                                    if (texture?.Disposed ?? true)
-                                    {
-                                        if (editorResources.TryGetValue("FileIcon", out texture))
-                                        {
-                                            return texture;
-                                        }
-                                    }
-
-                                    return texture;
-                                };
-
-                                break;
-                        }
+                            return texture;
+                        };
 
                         break;
 
@@ -224,10 +232,7 @@ namespace Staple.Editor
                         {
                             if (texture?.Disposed ?? true)
                             {
-                                if (editorResources.TryGetValue("FolderIcon", out texture))
-                                {
-                                    return texture;
-                                }
+                                return GetEditorResource("FolderIcon");
                             }
 
                             return texture;
@@ -256,26 +261,37 @@ namespace Staple.Editor
 
                     if (node.type == ProjectBrowserNodeType.Folder)
                     {
+                        try
                         {
-                            try
+                            if (File.Exists($"{node.path}.meta") == false)
                             {
-                                if (File.Exists($"{node.path}.meta") == false)
+                                var holder = new AssetHolder()
                                 {
-                                    File.WriteAllText($"{node.path}.meta", Hash());
-                                }
+                                    guid = Hash(),
+                                    typeName = "Folder",
+                                };
+
+                                var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                                File.WriteAllText($"{node.path}.meta", json);
                             }
-                            catch (System.Exception)
-                            {
-                            }
+                        }
+                        catch (Exception)
+                        {
                         }
 
                         Recursive(node.subnodes);
                     }
                     else
                     {
-                        switch (node.resourceType)
+                        switch(node.extension)
                         {
-                            case ProjectResourceType.Texture:
+                            case ".png":
+                            case ".jpg":
+                            case ".jpeg":
+                            case ".gif":
+                            case ".bmp":
+
                                 {
                                     try
                                     {
@@ -285,18 +301,108 @@ namespace Staple.Editor
                                             {
                                                 guid = Hash(),
                                             },
-                                            Formatting.Indented, new JsonSerializerSettings()
-                                            {
-                                                Converters =
+                                                Formatting.Indented, new JsonSerializerSettings()
                                                 {
-                                                    new StringEnumConverter(),
-                                                }
-                                            });
+                                                    Converters =
+                                                    {
+                                                        new StringEnumConverter(),
+                                                    }
+                                                });
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
                                     }
-                                    catch (System.Exception)
+                                    catch (Exception)
+                                    {
+                                    }
+                                }
+
+                                break;
+
+                            case ".mat":
+
+                                {
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(Material).FullName,
+                                            },
+                                                Formatting.Indented, new JsonSerializerSettings()
+                                                {
+                                                    Converters =
+                                                    {
+                                                        new StringEnumConverter(),
+                                                    }
+                                                });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+                                }
+
+                                break;
+
+                            case ".stsh":
+
+                                {
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(Shader).FullName,
+                                            },
+                                                Formatting.Indented, new JsonSerializerSettings()
+                                                {
+                                                    Converters =
+                                                    {
+                                                        new StringEnumConverter(),
+                                                    }
+                                                });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+                                }
+
+                                break;
+
+                            case ".stsc":
+
+                                {
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(Scene).FullName,
+                                            },
+                                                Formatting.Indented, new JsonSerializerSettings()
+                                                {
+                                                    Converters =
+                                                    {
+                                                        new StringEnumConverter(),
+                                                    }
+                                                });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
                                     {
                                     }
                                 }
@@ -311,10 +417,18 @@ namespace Staple.Editor
                                     {
                                         if (File.Exists($"{node.path}.meta") == false)
                                         {
-                                            File.WriteAllText($"{node.path}.meta", Hash());
+                                            var holder = new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = "Unknown",
+                                            };
+
+                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                                            File.WriteAllText($"{node.path}.meta", json);
                                         }
                                     }
-                                    catch (System.Exception)
+                                    catch (Exception)
                                     {
                                     }
                                 }

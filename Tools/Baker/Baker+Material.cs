@@ -49,6 +49,8 @@ namespace Baker
                     continue;
                 }
 
+                var guid = FindGuid<Material>(materialFiles[i]);
+
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(materialFiles[i]));
                 var file = Path.GetFileName(materialFiles[i]);
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
@@ -79,6 +81,8 @@ namespace Baker
                 try
                 {
                     metadata = JsonConvert.DeserializeObject<MaterialMetadata>(text);
+
+                    metadata.guid = guid;
                 }
                 catch (Exception)
                 {

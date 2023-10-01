@@ -83,6 +83,7 @@
     <Compile Include="Entities\IEntitySystem.cs" />
     <Compile Include="Entities\MeshRenderer.cs" />
     <Compile Include="Entities\Renderable.cs" />
+    <Compile Include="Export\Export.cs" />
     <Compile Include="External\MaxRectsBinPack.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
@@ -165,6 +166,7 @@
     <Compile Include="Rendering\VideoFlags.cs" />
     <Compile Include="Rendering\WindowMode.cs" />
     <Compile Include="Resources\ResourcePak.cs" />
+    <Compile Include="Serialization\Asset\AssetHolder.cs" />
     <Compile Include="Serialization\Asset\SerializableStapleAsset.cs" />
     <Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
     <Compile Include="Serialization\Scene\SerializableScene.cs" />

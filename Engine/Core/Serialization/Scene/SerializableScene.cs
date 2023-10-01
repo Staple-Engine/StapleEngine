@@ -179,6 +179,9 @@ namespace Staple.Internal
 
         [Key(1)]
         public List<SceneObject> objects = new();
+
+        [Key(2)]
+        public string typeName = typeof(Scene).FullName;
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]

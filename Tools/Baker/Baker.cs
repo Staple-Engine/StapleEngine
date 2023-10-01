@@ -1,9 +1,12 @@
+using Newtonsoft.Json;
 using Staple;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using static Staple.Internal.ResourcePak;
 
 namespace Baker
 {
@@ -303,6 +306,47 @@ namespace Baker
             ProcessMaterials(platform, inputPath, outputPath);
             ProcessScenes(platform, inputPath, outputPath, editorMode);
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
+        }
+
+        internal static string FindGuid<T>(string path)
+        {
+            var guid = Guid.NewGuid().ToString();
+            var meta = path.EndsWith(".meta") ? path : $"{path}.meta";
+
+            try
+            {
+                var json = File.ReadAllText(meta);
+                var holder = JsonConvert.DeserializeObject<AssetHolder>(json);
+
+                if (holder != null && (holder.guid?.Length ?? 0) > 0 && holder.typeName == typeof(T).FullName)
+                {
+                    guid = holder.guid;
+
+                    Console.WriteLine($"\t\tReusing guid {guid}");
+                }
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    var holder = new AssetHolder()
+                    {
+                        guid = guid,
+                        typeName = typeof(T).FullName,
+                    };
+
+                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                    File.WriteAllText(meta, json);
+
+                    Console.WriteLine($"\t\tRegenerating meta");
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return guid;
         }
     }
 }
