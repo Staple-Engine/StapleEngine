@@ -205,20 +205,13 @@ namespace Staple
                                     field.SetValue(componentInstance, value);
                                 }
                             }
-                            else if (field.FieldType == typeof(Material) && element.ValueKind == JsonValueKind.String)
+                            else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null && element.ValueKind == JsonValueKind.String)
                             {
-                                var value = ResourceManager.instance.LoadMaterial(element.GetString());
+                                var path = element.GetString();
 
-                                if (value != null)
-                                {
-                                    field.SetValue(componentInstance, value);
-                                }
-                            }
-                            else if (field.FieldType == typeof(Texture) && element.ValueKind == JsonValueKind.String)
-                            {
-                                var value = ResourceManager.instance.LoadTexture(element.GetString());
+                                var value = AssetSerialization.GetPathAsset(field.FieldType, path);
 
-                                if (value != null)
+                                if(value != null)
                                 {
                                     field.SetValue(componentInstance, value);
                                 }
@@ -402,27 +395,9 @@ namespace Staple
                                                 field.SetValue(componentInstance, (Color)color);
                                             }
                                         }
-                                        else if (field.FieldType == typeof(Material))
+                                        else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null)
                                         {
-                                            var value = ResourceManager.instance.LoadMaterial(parameter.stringValue);
-
-                                            if (value != null)
-                                            {
-                                                field.SetValue(componentInstance, value);
-                                            }
-                                        }
-                                        else if (field.FieldType == typeof(Texture))
-                                        {
-                                            var value = ResourceManager.instance.LoadTexture(parameter.stringValue);
-
-                                            if (value != null)
-                                            {
-                                                field.SetValue(componentInstance, value);
-                                            }
-                                        }
-                                        else if (field.FieldType == typeof(Mesh))
-                                        {
-                                            var value = ResourceManager.instance.LoadMesh(parameter.stringValue);
+                                            var value = AssetSerialization.GetPathAsset(field.FieldType, parameter.stringValue);
 
                                             if (value != null)
                                             {

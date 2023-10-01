@@ -27,6 +27,44 @@ namespace Staple.Internal
             return cachePath;
         }
 
+        public static object GetPathAsset(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.Interfaces)]
+            Type type, string path)
+        {
+            var methods = type.GetMethods();
+
+            foreach (var method in methods)
+            {
+                if (method.IsStatic && method.IsPublic && method.Name == "Create")
+                {
+                    var parameters = method.GetParameters();
+
+                    if (parameters.Length != 1 || parameters[0].Name != "path")
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        var result = method.Invoke(null, new object[] { path });
+
+                        if (result == null || (result.GetType() != type && result.GetType().GetInterface(type.FullName) == null))
+                        {
+                            break;
+                        }
+
+                        return result;
+                    }
+                    catch (Exception e)
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         [GeneratedRegex("(.*?)(\\\\|\\/)Cache(\\\\|\\/)Staging(\\\\|\\/)(.*?)(\\\\|\\/)")]
         private static partial Regex CachePathRegex();
 

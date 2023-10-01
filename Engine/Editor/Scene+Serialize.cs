@@ -64,22 +64,15 @@ namespace Staple.Internal
                         {
                             sceneComponent.data.Add(field.Name, ((Enum)field.GetValue(component)).ToString());
                         }
-                        else if (field.FieldType == typeof(Material))
+                        else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null)
                         {
-                            var material = (Material)field.GetValue(component);
+                            var pathAsset = (IPathAsset)field.GetValue(component);
 
-                            if (material != null && material.path != null)
+                            if(pathAsset != null && (pathAsset.Path?.Length ?? 0) > 0)
                             {
-                                sceneComponent.data.Add(field.Name, material.path);
-                            }
-                        }
-                        else if (field.FieldType == typeof(Texture))
-                        {
-                            var texture = (Texture)field.GetValue(component);
+                                var path = AssetSerialization.GetAssetPathFromCache(pathAsset.Path);
 
-                            if (texture != null && texture.path != null)
-                            {
-                                sceneComponent.data.Add(field.Name, AssetSerialization.GetAssetPathFromCache(texture.path));
+                                sceneComponent.data.Add(field.Name, path);
                             }
                         }
                         else if (field.FieldType == typeof(Color32))

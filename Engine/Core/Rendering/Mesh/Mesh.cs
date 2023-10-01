@@ -7,7 +7,7 @@ namespace Staple
     /// <summary>
     /// Mesh Resource
     /// </summary>
-    public partial class Mesh
+    public partial class Mesh : IPathAsset
     {
         /// <summary>
         /// Whether this mesh is readable by the CPU
@@ -560,6 +560,15 @@ namespace Staple
         /// Total amount of indices
         /// </summary>
         public int IndexCount => indices?.Length ?? 0;
+
+        internal string path;
+
+        public string Path => path;
+
+        public static object Create(string path)
+        {
+            return ResourceManager.instance.LoadMesh(path);
+        }
 
         public Mesh() { }
 

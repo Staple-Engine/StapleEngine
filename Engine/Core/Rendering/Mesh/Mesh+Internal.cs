@@ -82,7 +82,9 @@ namespace Staple
 
                     _quad.UploadMeshData();
 
-                    defaultMeshes.Add("Internal/Quad", _quad);
+                    _quad.path = "Internal/Quad";
+
+                    defaultMeshes.Add(_quad.path, _quad);
                 }
 
                 return _quad;
@@ -122,7 +124,9 @@ namespace Staple
 
                     _cube.UploadMeshData();
 
-                    defaultMeshes.Add("Internal/Cube", _quad);
+                    _cube.path = "Internal/Cube";
+
+                    defaultMeshes.Add(_cube.path, _cube);
                 }
 
                 return _cube;
