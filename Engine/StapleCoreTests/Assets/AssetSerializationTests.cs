@@ -5,7 +5,13 @@ namespace CoreTests
 {
     internal class AssetSerializationTests
     {
-        class SimplePathAsset : IPathAsset
+        internal enum NewEnum
+        {
+            A,
+            B
+        }
+
+        internal class SimplePathAsset : IPathAsset
         {
             internal string path = "a/b/c";
 
@@ -20,12 +26,13 @@ namespace CoreTests
             }
         }
 
-        class SimpleAsset : IStapleAsset
+        internal class SimpleAsset : IStapleAsset
         {
             public int intValue = 1;
             public string stringValue = "test";
             public List<int> numbers = new(new int[] { 1, 2, 3 });
             public IPathAsset pathAsset = new SimplePathAsset();
+            public NewEnum enumValue = NewEnum.A;
 
             public void OnAfterDeserialize()
             {
@@ -47,6 +54,8 @@ namespace CoreTests
         [Test]
         public void TestSerialize()
         {
+            TypeCacheRegistration.RegisterAll();
+
             var asset = new SimpleAsset
             {
                 intValue = 2,
@@ -62,7 +71,7 @@ namespace CoreTests
 
             Assert.That(result.typeName, Is.EqualTo(typeof(SimpleAsset).FullName));
 
-            Assert.That(result.parameters, Has.Count.EqualTo(4));
+            Assert.That(result.parameters, Has.Count.EqualTo(5));
 
             Assert.Multiple(() =>
             {
@@ -70,6 +79,7 @@ namespace CoreTests
                 Assert.That(result.parameters.ContainsKey(nameof(SimpleAsset.stringValue)), Is.True);
                 Assert.That(result.parameters.ContainsKey(nameof(SimpleAsset.numbers)), Is.True);
                 Assert.That(result.parameters.ContainsKey(nameof(SimpleAsset.pathAsset)), Is.True);
+                Assert.That(result.parameters.ContainsKey(nameof(SimpleAsset.enumValue)), Is.True);
             });
 
             Assert.Multiple(() =>
@@ -78,11 +88,13 @@ namespace CoreTests
                 Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].typeName, Is.EqualTo(typeof(string).FullName));
                 Assert.That(result.parameters[nameof(SimpleAsset.numbers)].typeName, Is.EqualTo(typeof(List<int>).FullName));
                 Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].typeName, Is.EqualTo(typeof(SimplePathAsset).FullName));
+                Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].typeName, Is.EqualTo(typeof(NewEnum).FullName));
 
                 Assert.That(result.parameters[nameof(SimpleAsset.intValue)].value, Is.EqualTo(asset.intValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].value, Is.EqualTo(asset.stringValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.numbers)].value, Is.EqualTo(asset.numbers));
                 Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Path));
+                Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].value, Is.EqualTo(asset.enumValue));
             });
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
@@ -95,14 +107,13 @@ namespace CoreTests
         [Test]
         public void TestDeserialize()
         {
-            TypeCache.Clear();
-            TypeCache.RegisterType(typeof(SimpleAsset));
-            TypeCache.RegisterType(typeof(SimplePathAsset));
+            TypeCacheRegistration.RegisterAll();
 
             var asset = new SimpleAsset
             {
                 intValue = 2,
                 stringValue = "different",
+                enumValue = NewEnum.B,
             };
 
             asset.numbers.Clear();
@@ -129,6 +140,7 @@ namespace CoreTests
             Assert.That(newAsset.numbers, Is.EqualTo(asset.numbers));
             Assert.That(newAsset.pathAsset != null);
             Assert.That(newAsset.pathAsset.Path, Is.EqualTo("valid path"));
+            Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
         }
     }
 }

@@ -19,5 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 
 </Project>

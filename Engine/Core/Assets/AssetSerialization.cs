@@ -37,7 +37,7 @@ namespace Staple.Internal
         /// <returns>Whether it can be serialized</returns>
         private static bool IsValidType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
         {
-            if (type.IsPrimitive || type == typeof(string))
+            if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
             {
                 if (type == typeof(IntPtr) || type == typeof(UIntPtr))
                 {
@@ -175,7 +175,7 @@ namespace Staple.Internal
                 try
                 {
                     var field = type.GetField(pair.Key);
-                    var valueType = TypeCache.GetType(pair.Value.typeName) ?? Type.GetType(pair.Value.typeName);
+                    var valueType = TypeCache.GetType(pair.Value.typeName);
 
                     if (valueType == null ||
                         field == null ||

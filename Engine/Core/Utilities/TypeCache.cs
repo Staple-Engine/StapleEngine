@@ -17,7 +17,19 @@ namespace Staple
         [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         public static Type GetType(string name)
         {
-            return types.TryGetValue(name, out var type) ? type : null;
+            if(types.TryGetValue(name, out var type))
+            {
+                return type;
+            }
+
+            type = Type.GetType(name);
+
+            if(type != null)
+            {
+                types.Add(name, type);
+            }
+
+            return type;
         }
 
         public static Type[] AllTypes()
