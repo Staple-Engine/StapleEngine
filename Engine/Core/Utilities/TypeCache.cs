@@ -14,12 +14,7 @@ namespace Staple
             types.Clear();
         }
 
-        [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor |
-            DynamicallyAccessedMemberTypes.PublicFields |
-            DynamicallyAccessedMemberTypes.NonPublicFields |
-            DynamicallyAccessedMemberTypes.PublicMethods |
-            DynamicallyAccessedMemberTypes.NonPublicMethods)]
+        [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         public static Type GetType(string name)
         {
             return types.TryGetValue(name, out var type) ? type : null;
@@ -31,12 +26,7 @@ namespace Staple
         }
 
         public static void RegisterType(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-                DynamicallyAccessedMemberTypes.PublicParameterlessConstructor |
-                DynamicallyAccessedMemberTypes.PublicFields |
-                DynamicallyAccessedMemberTypes.NonPublicFields |
-                DynamicallyAccessedMemberTypes.PublicMethods |
-                DynamicallyAccessedMemberTypes.NonPublicMethods)]
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
             Type type)
         {
             if(types.ContainsKey(type.FullName))

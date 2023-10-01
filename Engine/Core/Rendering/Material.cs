@@ -7,7 +7,7 @@ namespace Staple
     /// <summary>
     /// Material resource
     /// </summary>
-    public sealed class Material
+    public sealed class Material : IPathAsset
     {
         internal const string MainColorProperty = "mainColor";
         internal const string MainTextureProperty = "mainTexture";
@@ -48,6 +48,11 @@ namespace Staple
         }
 
         /// <summary>
+        /// The asset's path (if any)
+        /// </summary>
+        public string Path => path;
+
+        /// <summary>
         /// Whether this material has been disposed and is now invalid.
         /// </summary>
         public bool Disposed { get; internal set; } = false;
@@ -71,6 +76,13 @@ namespace Staple
 
             shader?.Destroy();
         }
+
+        /// <summary>
+        /// IPathAsset implementation. Loads a material from path.
+        /// </summary>
+        /// <param name="path">The path to load from</param>
+        /// <returns>The material, or null</returns>
+        public static object Create(string path) => ResourceManager.instance.LoadMaterial(path);
 
         /// <summary>
         /// Sets a color property's value

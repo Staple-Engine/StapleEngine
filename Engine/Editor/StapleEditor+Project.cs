@@ -232,22 +232,5 @@ namespace Staple.Editor
                 }
             }
         }
-
-        private static Regex cachePathRegex = CachePathRegex();
-
-        public static string GetAssetPathFromCache(string cachePath)
-        {
-            var matches = cachePathRegex.Matches(cachePath);
-
-            if (matches.Count > 0)
-            {
-                return cachePath.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
-            }
-
-            return cachePath;
-        }
-
-        [GeneratedRegex("(.*?)(\\\\|\\/)Cache(\\\\|\\/)Staging(\\\\|\\/)(.*?)(\\\\|\\/)")]
-        private static partial Regex CachePathRegex();
     }
 }

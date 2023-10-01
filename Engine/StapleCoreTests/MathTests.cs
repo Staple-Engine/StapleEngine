@@ -8,9 +8,12 @@ namespace CoreTests
         [Test]
         public void TestNextPowerOf2()
         {
-            Assert.AreEqual(2, Staple.Math.NextPowerOfTwo(1));
-            Assert.AreEqual(32, Staple.Math.NextPowerOfTwo(21));
-            Assert.AreEqual(16, Staple.Math.NextPowerOfTwo(10));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Staple.Math.NextPowerOfTwo(1), Is.EqualTo(2));
+                Assert.That(Staple.Math.NextPowerOfTwo(21), Is.EqualTo(32));
+                Assert.That(Staple.Math.NextPowerOfTwo(10), Is.EqualTo(16));
+            });
         }
 
         [Test]
@@ -18,13 +21,16 @@ namespace CoreTests
         {
             var v = new Vector3();
 
-            Assert.AreEqual(Vector3.Zero, v);
+            Assert.That(v, Is.EqualTo(Vector3.Zero));
 
             v = new Vector3(1, 2, 3);
 
-            Assert.AreEqual(1, v.X);
-            Assert.AreEqual(2, v.Y);
-            Assert.AreEqual(3, v.Z);
+            Assert.Multiple(() =>
+            {
+                Assert.That(v.X, Is.EqualTo(1));
+                Assert.That(v.Y, Is.EqualTo(2));
+                Assert.That(v.Z, Is.EqualTo(3));
+            });
         }
 
         [Test]
@@ -36,21 +42,21 @@ namespace CoreTests
 
             v += add;
 
-            Assert.AreEqual(new Vector3(4, 4, 4), v);
+            Assert.That(v, Is.EqualTo(new Vector3(4, 4, 4)));
 
             var sub = new Vector3(3, 2, 1);
 
             v -= sub;
 
-            Assert.AreEqual(new Vector3(1, 2, 3), v);
+            Assert.That(v, Is.EqualTo(new Vector3(1, 2, 3)));
 
             v *= 2.0f;
 
-            Assert.AreEqual(new Vector3(2, 4, 6), v);
+            Assert.That(v, Is.EqualTo(new Vector3(2, 4, 6)));
 
             v /= 2.0f;
 
-            Assert.AreEqual(new Vector3(1, 2, 3), v);
+            Assert.That(v, Is.EqualTo(new Vector3(1, 2, 3)));
 
             Assert.IsTrue(v == new Vector3(1, 2, 3));
 
@@ -58,25 +64,28 @@ namespace CoreTests
 
             v *= Vector3.One * 2.0f;
 
-            Assert.AreEqual(new Vector3(2, 4, 6), v);
+            Assert.That(v, Is.EqualTo(new Vector3(2, 4, 6)));
 
             v /= Vector3.One * 2.0f;
 
-            Assert.AreEqual(new Vector3(1, 2, 3), v);
+            Assert.That(v, Is.EqualTo(new Vector3(1, 2, 3)));
         }
 
         [Test]
         public void TestMathRound()
         {
-            Assert.AreEqual(1.0f, Staple.Math.Round(0.5f));
-            Assert.AreEqual(0.0f, Staple.Math.Round(0.49f));
-            Assert.AreEqual(-1.0f, Staple.Math.Round(-0.5f));
-            Assert.AreEqual(0.0f, Staple.Math.Round(-0.49f));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Staple.Math.Round(0.5f), Is.EqualTo(1.0f));
+                Assert.That(Staple.Math.Round(0.49f), Is.EqualTo(0.0f));
+                Assert.That(Staple.Math.Round(-0.5f), Is.EqualTo(-1.0f));
+                Assert.That(Staple.Math.Round(-0.49f), Is.EqualTo(0.0f));
 
-            Assert.AreEqual(1, Staple.Math.RoundToInt(0.5f));
-            Assert.AreEqual(0, Staple.Math.RoundToInt(0.49f));
-            Assert.AreEqual(-1, Staple.Math.RoundToInt(-0.5f));
-            Assert.AreEqual(0, Staple.Math.RoundToInt(-0.49f));
+                Assert.That(Staple.Math.RoundToInt(0.5f), Is.EqualTo(1));
+                Assert.That(Staple.Math.RoundToInt(0.49f), Is.EqualTo(0));
+                Assert.That(Staple.Math.RoundToInt(-0.5f), Is.EqualTo(-1));
+                Assert.That(Staple.Math.RoundToInt(-0.49f), Is.EqualTo(0));
+            });
         }
 
         [Test]
@@ -89,10 +98,13 @@ namespace CoreTests
                 var quaternion = Staple.Math.FromEulerAngles(rotation);
                 var newRotation = Staple.Math.ToEulerAngles(quaternion);
 
-                Assert.AreEqual(0, newRotation.X);
-                Assert.AreEqual(0, newRotation.Z);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(newRotation.X, Is.EqualTo(0));
+                    Assert.That(newRotation.Z, Is.EqualTo(0));
 
-                Assert.AreEqual(i * 18, Staple.Math.RoundToInt(newRotation.Y));
+                    Assert.That(Staple.Math.RoundToInt(newRotation.Y), Is.EqualTo(i * 18));
+                });
             }
         }
     }

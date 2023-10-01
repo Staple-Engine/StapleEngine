@@ -8,7 +8,7 @@ namespace Staple
     /// <summary>
     /// Texture resource
     /// </summary>
-    public class Texture
+    public class Texture : IPathAsset
     {
         internal bgfx.TextureHandle handle;
         internal bgfx.TextureInfo info;
@@ -17,6 +17,8 @@ namespace Staple
         internal bool renderTarget = false;
 
         private readonly ITextureCreateMethod createMethod;
+
+        public string Path => path;
 
         public bool Disposed { get; private set; } = false;
 
@@ -101,6 +103,13 @@ namespace Staple
                 bgfx.destroy_texture(handle);
             }
         }
+
+        /// <summary>
+        /// IPathAsset implementation. Loads a texture from path.
+        /// </summary>
+        /// <param name="path">The path to load from</param>
+        /// <returns>The texture, or null</returns>
+        public static object Create(string path) => ResourceManager.instance.LoadTexture(path);
 
         /// <summary>
         /// Sets this texture active in a shader

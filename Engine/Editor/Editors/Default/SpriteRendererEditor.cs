@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Staple.Internal;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace Staple.Editor
                             {
                                 if(StapleEditor.instance.TryGetTarget(out var editor))
                                 {
-                                    var assetPath = StapleEditor.GetAssetPathFromCache(value.path);
+                                    var assetPath = AssetSerialization.GetAssetPathFromCache(value.path);
 
                                     if(assetPath != value.path && Path.IsPathRooted(assetPath) == false)
                                     {

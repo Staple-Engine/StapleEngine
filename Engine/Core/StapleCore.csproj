@@ -67,6 +67,9 @@
     <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\AssetSerialization.cs" />
+    <Compile Include="Assets\IPathAsset.cs" />
+    <Compile Include="Assets\IStapleAsset.cs" />
     <Compile Include="Attributes\HideInInspectorAttribute.cs" />
     <Compile Include="Bindings\bgfx.cs" />
     <Compile Include="Bindings\bgfx_dllname.cs" />
@@ -91,6 +94,7 @@
     <Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
+    <Compile Include="Rendering\Sprites\SpriteAnimation.cs" />
     <Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
@@ -161,6 +165,7 @@
     <Compile Include="Rendering\VideoFlags.cs" />
     <Compile Include="Rendering\WindowMode.cs" />
     <Compile Include="Resources\ResourcePak.cs" />
+    <Compile Include="Serialization\Asset\SerializableStapleAsset.cs" />
     <Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
     <Compile Include="Serialization\Scene\SerializableScene.cs" />
     <Compile Include="Serialization\App\AppSettingsHeader.cs" />
