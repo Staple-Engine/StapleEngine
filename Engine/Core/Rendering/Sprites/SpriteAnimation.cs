@@ -6,6 +6,7 @@ namespace Staple
     /// <summary>
     /// Represents a sprite animation
     /// </summary>
+    [AssetCategory("2D")]
     public class SpriteAnimation : IStapleAsset, IPathAsset
     {
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NfdSharp;
@@ -313,6 +314,15 @@ namespace Staple.Editor
                 {
                     object original = null;
 
+                    var cachePath = item.path;
+
+                    var pathIndex = item.path.IndexOf("Assets");
+
+                    if (pathIndex >= 0)
+                    {
+                        cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
+                    }
+
                     if (item.typeName == typeof(Texture).FullName)
                     {
                         try
@@ -326,15 +336,6 @@ namespace Staple.Editor
 
                         if (original != null && selectedProjectNodeData != null)
                         {
-                            var cachePath = item.path;
-
-                            var pathIndex = item.path.IndexOf("Assets");
-
-                            if (pathIndex >= 0)
-                            {
-                                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
-                            }
-
                             var editor = new TextureAssetEditor()
                             {
                                 original = original as TextureMetadata,
@@ -348,7 +349,7 @@ namespace Staple.Editor
                             editor.UpdatePreview();
                         }
                     }
-                    else if (item.name == typeof(Material).FullName)
+                    else if (item.typeName == typeof(Material).FullName)
                     {
                         try
                         {
@@ -358,7 +359,7 @@ namespace Staple.Editor
                         {
                         }
                     }
-                    else if (item.name == typeof(Shader).FullName)
+                    else if (item.typeName == typeof(Shader).FullName)
                     {
                         try
                         {
@@ -366,6 +367,56 @@ namespace Staple.Editor
                         }
                         catch (Exception)
                         {
+                        }
+                    }
+                    else
+                    {
+                        var type = TypeCache.GetType(item.typeName);
+
+                        if(type != null && typeof(IStapleAsset).IsAssignableFrom(type))
+                        {
+                            try
+                            {
+                                var byteData = File.ReadAllBytes(item.path);
+
+                                using var stream = new MemoryStream(byteData);
+
+                                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+
+                                if(header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
+                                    header.version == SerializableStapleAssetHeader.ValidVersion)
+                                {
+                                    var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+
+                                    if(asset != null)
+                                    {
+                                        selectedProjectNodeData = AssetSerialization.Deserialize(asset, CachePathResolver);
+                                        original = AssetSerialization.Deserialize(asset, CachePathResolver);
+
+                                        if (selectedProjectNodeData != null)
+                                        {
+                                            var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                                            if (editor == null)
+                                            {
+                                                editor = new StapleAssetEditor()
+                                                {
+                                                    target = selectedProjectNodeData,
+                                                };
+                                            }
+
+                                            editor.original = original;
+                                            editor.path = item.path;
+                                            editor.cachePath = cachePath;
+
+                                            cachedEditors.Add("", editor);
+                                        }
+                                    }
+                                }
+                            }
+                            catch(Exception)
+                            {
+                            }
                         }
                     }
                 }
@@ -462,6 +513,57 @@ namespace Staple.Editor
                     if (ImGui.MenuItem("Exit"))
                     {
                         window.shouldStop = true;
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if(ImGui.BeginMenu("Assets"))
+                {
+                    if(ImGui.BeginMenu("Create"))
+                    {
+                        foreach(var pair in registeredAssetTypes)
+                        {
+                            var name = pair.Value.Name;
+
+                            if(ImGui.MenuItem($"{name}##{pair.Key}"))
+                            {
+                                var fileName = name;
+                                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                                var assetPath = Path.Combine(currentPath, $"{fileName}.asset");
+
+                                try
+                                {
+                                    if(File.Exists(assetPath))
+                                    {
+                                        var counter = 1;
+
+                                        for(; ; )
+                                        {
+                                            assetPath = Path.Combine(currentPath, $"{fileName}{counter++}.asset");
+
+                                            if(File.Exists(assetPath) == false)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    var assetInstance = (IStapleAsset)Activator.CreateInstance(pair.Value);
+
+                                    if(assetInstance != null && SaveAsset(assetPath, assetInstance))
+                                    {
+                                        RefreshAssets(false);
+                                    }
+                                }
+                                catch(Exception e)
+                                {
+                                    Log.Error($"Failed to create asset at {assetPath}: {e}");
+                                }
+                            }
+                        }
+
+                        ImGui.EndMenu();
                     }
 
                     ImGui.EndMenu();

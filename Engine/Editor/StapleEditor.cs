@@ -154,6 +154,8 @@ namespace Staple.Editor
 
         private readonly ProjectBrowser projectBrowser = new();
 
+        private Dictionary<string, Type> registeredAssetTypes = new();
+
         public static WeakReference<StapleEditor> instance;
 
         public void Run()
@@ -494,5 +496,7 @@ namespace Staple.Editor
             {
             }
         }
+
+        private string CachePathResolver(string path) => Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
     }
 }

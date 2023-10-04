@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using Staple.Internal;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using MessagePack;
+using System.Linq;
 
 namespace Staple.Editor
 {
@@ -103,6 +105,33 @@ namespace Staple.Editor
         public void RefreshAssets(bool updateProject)
         {
             RefreshStaging(currentPlatform, updateProject);
+
+            var path = projectBrowser.currentContentNode?.path;
+
+            projectBrowser.UpdateProjectBrowserNodes();
+
+            if(path != null)
+            {
+                void Recursive(List<ProjectBrowserNode> nodes)
+                {
+                    foreach(var node in nodes)
+                    {
+                        if(node.type == ProjectBrowserNodeType.File)
+                        {
+                            continue;
+                        }
+
+                        if(node.path == path)
+                        {
+                            projectBrowser.currentContentNode = node;
+
+                            return;
+                        }
+
+                        Recursive(node.subnodes);
+                    }
+                }
+            }
         }
 
         public void RefreshStaging(AppPlatform platform, bool updateProject = true)
@@ -231,6 +260,56 @@ namespace Staple.Editor
                     });
                 }
             }
+        }
+
+        public static bool SaveAsset(string assetPath, IStapleAsset assetInstance)
+        {
+            try
+            {
+                var guidField = assetInstance.GetType().GetField("guid");
+                var guid = Guid.NewGuid().ToString();
+
+                if (guidField != null && guidField.FieldType == typeof(string) && guidField.GetValue(assetInstance) != null)
+                {
+                    guid = (string)guidField.GetValue(assetInstance);
+                }
+
+                var serialized = AssetSerialization.Serialize(assetInstance);
+
+                if (serialized != null)
+                {
+                    serialized.guid = guid;
+
+                    var header = new SerializableStapleAssetHeader();
+
+                    using (var stream = File.OpenWrite(assetPath))
+                    {
+                        using (var writer = new BinaryWriter(stream))
+                        {
+                            var encoded = MessagePackSerializer.Serialize(header)
+                                .Concat(MessagePackSerializer.Serialize(serialized));
+
+                            writer.Write(encoded.ToArray());
+                        }
+                    }
+
+                    var holder = new AssetHolder()
+                    {
+                        guid = guid,
+                        typeName = assetInstance.GetType().FullName,
+                    };
+
+                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                    File.WriteAllText($"{assetPath}.meta", json);
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

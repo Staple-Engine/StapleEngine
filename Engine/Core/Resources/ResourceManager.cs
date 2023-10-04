@@ -26,6 +26,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, Material> cachedMaterials = new();
         private readonly Dictionary<string, Shader> cachedShaders = new();
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
+        private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         private readonly Dictionary<string, ResourcePak> resourcePaks = new();
 
         /// <summary>
@@ -795,6 +796,136 @@ namespace Staple.Internal
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Attempts to load an asset of a specific type from a path
+        /// </summary>
+        /// <typeparam name="T">The asset type, which must implement IStapleAsset</typeparam>
+        /// <param name="path">The path to load from</param>
+        /// <param name="pathAssetResolver">A callback to resolve paths if needed. Receives the path as a parameter and should return the correct path</param>
+        /// <returns>The asset, or null</returns>
+        public T LoadAsset<T>(string path, Func<string, string> pathAssetResolver = null) where T: IStapleAsset
+        {
+            if(cachedAssets.TryGetValue(path, out var asset) && asset != null)
+            {
+                return (T)asset;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                return default;
+            }
+
+            using var stream = new MemoryStream(data);
+
+            try
+            {
+                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) == false ||
+                    header.version != SerializableStapleAssetHeader.ValidVersion)
+                {
+                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
+
+                    return default;
+                }
+
+                var assetBundle = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+
+                if (assetBundle == null)
+                {
+                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid asset data");
+
+                    return default;
+                }
+
+                if(assetBundle.typeName != typeof(T).FullName)
+                {
+                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Type {assetBundle.typeName} is not matching requested type {typeof(T).FullName}");
+
+                    return default;
+                }
+
+                asset = (T)AssetSerialization.Deserialize(assetBundle, pathAssetResolver);
+
+                if (asset != null)
+                {
+                    cachedAssets.AddOrSetKey(path, asset);
+                }
+
+                return (T)asset;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to load an asset of a specific type from a path
+        /// </summary>
+        /// <param name="path">The path to load from</param>
+        /// <param name="pathAssetResolver">A callback to resolve paths if needed. Receives the path as a parameter and should return the correct path</param>
+        /// <returns>The asset, or null</returns>
+        public IStapleAsset LoadAsset(string path, Func<string, string> pathAssetResolver = null)
+        {
+            if (cachedAssets.TryGetValue(path, out var asset) && asset != null)
+            {
+                return asset;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                return default;
+            }
+
+            using var stream = new MemoryStream(data);
+
+            try
+            {
+                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) == false ||
+                    header.version != SerializableStapleAssetHeader.ValidVersion)
+                {
+                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
+
+                    return default;
+                }
+
+                var assetBundle = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+
+                if (assetBundle == null)
+                {
+                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid asset data");
+
+                    return default;
+                }
+
+                asset = AssetSerialization.Deserialize(assetBundle, pathAssetResolver);
+
+                if (asset != null)
+                {
+                    cachedAssets.AddOrSetKey(path, asset);
+                }
+
+                return asset;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
+
+                return default;
+            }
         }
     }
 }

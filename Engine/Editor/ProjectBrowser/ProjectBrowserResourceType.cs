@@ -6,6 +6,7 @@
         Texture,
         Shader,
         Scene,
+        Asset,
         Other
     }
 }

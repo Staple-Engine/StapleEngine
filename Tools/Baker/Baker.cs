@@ -308,7 +308,7 @@ namespace Baker
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }
 
-        internal static string FindGuid<T>(string path)
+        internal static string FindGuid<T>(string path, bool ignoreType = false)
         {
             var guid = Guid.NewGuid().ToString();
             var meta = path.EndsWith(".meta") ? path : $"{path}.meta";
@@ -318,7 +318,7 @@ namespace Baker
                 var json = File.ReadAllText(meta);
                 var holder = JsonConvert.DeserializeObject<AssetHolder>(json);
 
-                if (holder != null && (holder.guid?.Length ?? 0) > 0 && holder.typeName == typeof(T).FullName)
+                if (holder != null && (holder.guid?.Length ?? 0) > 0 && (ignoreType || holder.typeName == typeof(T).FullName))
                 {
                     guid = holder.guid;
 

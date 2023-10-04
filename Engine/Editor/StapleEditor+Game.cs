@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,9 +33,15 @@ namespace Staple.Editor
 
                         foreach(var type in types)
                         {
-                            if(typeof(IComponent).IsAssignableFrom(type) || typeof(IEntitySystem).IsAssignableFrom(type))
+                            if(typeof(IComponent).IsAssignableFrom(type) || typeof(IEntitySystem).IsAssignableFrom(type) ||
+                                typeof(IStapleAsset).IsAssignableFrom(type))
                             {
                                 TypeCache.RegisterType(type);
+
+                                if(typeof(IStapleAsset).IsAssignableFrom(type))
+                                {
+                                    registeredAssetTypes.AddOrSetKey(type.FullName, type);
+                                }
                             }
                         }
                     }
@@ -84,6 +91,7 @@ namespace Staple.Editor
         public void ReloadTypeCache()
         {
             TypeCache.Clear();
+            registeredAssetTypes.Clear();
 
             var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
 
@@ -98,12 +106,20 @@ namespace Staple.Editor
             }
 
             t = t
-                .Where(x => (typeof(IComponent).IsAssignableFrom(x) || typeof(IEntitySystem).IsAssignableFrom(x)) && x.IsInterface == false)
+                .Where(x => (typeof(IComponent).IsAssignableFrom(x) ||
+                    typeof(IEntitySystem).IsAssignableFrom(x) ||
+                    typeof(IStapleAsset).IsAssignableFrom(x)) &&
+                    x.IsInterface == false)
                 .ToList();
 
             foreach (var v in t)
             {
                 TypeCache.RegisterType(v);
+
+                if(typeof(IStapleAsset).IsAssignableFrom(v))
+                {
+                    registeredAssetTypes.AddOrSetKey(v.FullName, v);
+                }
             }
         }
     }

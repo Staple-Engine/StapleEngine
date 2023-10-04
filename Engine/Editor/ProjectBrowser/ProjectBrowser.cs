@@ -55,6 +55,10 @@ namespace Staple.Editor
         {
             switch (extension)
             {
+                case ".asset":
+
+                    return ProjectBrowserResourceType.Asset;
+
                 case ".mat":
 
                     return ProjectBrowserResourceType.Material;
@@ -149,6 +153,25 @@ namespace Staple.Editor
 
                         switch (ResourceTypeForExtension(node.extension))
                         {
+                            case ProjectBrowserResourceType.Asset:
+
+                                try
+                                {
+                                    var text = File.ReadAllText($"{file}.meta");
+                                    var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
+
+                                    if(holder != null)
+                                    {
+                                        node.typeName = holder.typeName;
+                                    }
+                                }
+                                catch(Exception)
+                                {
+                                    node.typeName = "";
+                                }
+
+                                break;
+
                             case ProjectBrowserResourceType.Material:
 
                                 node.typeName = typeof(Material).FullName;
@@ -292,119 +315,151 @@ namespace Staple.Editor
                             case ".gif":
                             case ".bmp":
 
+                                try
                                 {
-                                    try
+                                    if (File.Exists($"{node.path}.meta") == false)
                                     {
-                                        if (File.Exists($"{node.path}.meta") == false)
+                                        var jsonData = JsonConvert.SerializeObject(new TextureMetadata()
                                         {
-                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata()
+                                            guid = Hash(),
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
                                             {
-                                                guid = Hash(),
-                                            },
-                                                Formatting.Indented, new JsonSerializerSettings()
-                                                {
-                                                    Converters =
-                                                    {
-                                                        new StringEnumConverter(),
-                                                    }
-                                                });
+                                                new StringEnumConverter(),
+                                            }
+                                        });
 
-                                            File.WriteAllText($"{node.path}.meta", jsonData);
-                                        }
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
-                                    catch (Exception)
-                                    {
-                                    }
+                                }
+                                catch (Exception)
+                                {
                                 }
 
                                 break;
 
                             case ".mat":
 
+                                try
                                 {
-                                    try
+                                    if (File.Exists($"{node.path}.meta") == false)
                                     {
-                                        if (File.Exists($"{node.path}.meta") == false)
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                         {
-                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            guid = Hash(),
+                                            typeName = typeof(Material).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
                                             {
-                                                guid = Hash(),
-                                                typeName = typeof(Material).FullName,
-                                            },
-                                                Formatting.Indented, new JsonSerializerSettings()
-                                                {
-                                                    Converters =
-                                                    {
-                                                        new StringEnumConverter(),
-                                                    }
-                                                });
+                                                new StringEnumConverter(),
+                                            }
+                                        });
 
-                                            File.WriteAllText($"{node.path}.meta", jsonData);
-                                        }
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
-                                    catch (Exception)
-                                    {
-                                    }
+                                }
+                                catch (Exception)
+                                {
                                 }
 
                                 break;
 
                             case ".stsh":
 
+                                try
                                 {
-                                    try
+                                    if (File.Exists($"{node.path}.meta") == false)
                                     {
-                                        if (File.Exists($"{node.path}.meta") == false)
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                         {
-                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            guid = Hash(),
+                                            typeName = typeof(Shader).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
                                             {
-                                                guid = Hash(),
-                                                typeName = typeof(Shader).FullName,
-                                            },
-                                                Formatting.Indented, new JsonSerializerSettings()
-                                                {
-                                                    Converters =
-                                                    {
-                                                        new StringEnumConverter(),
-                                                    }
-                                                });
+                                                new StringEnumConverter(),
+                                            }
+                                        });
 
-                                            File.WriteAllText($"{node.path}.meta", jsonData);
-                                        }
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
-                                    catch (Exception)
-                                    {
-                                    }
+                                }
+                                catch (Exception)
+                                {
                                 }
 
                                 break;
 
                             case ".stsc":
 
+                                try
                                 {
-                                    try
+                                    if (File.Exists($"{node.path}.meta") == false)
                                     {
-                                        if (File.Exists($"{node.path}.meta") == false)
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = typeof(Scene).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
+                                            {
+                                                new StringEnumConverter(),
+                                            }
+                                        });
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ".asset":
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var text = File.ReadAllText(node.path);
+                                        var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
+
+                                        if (holder != null)
+                                        {
+                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                                            File.WriteAllText($"{node.path}.meta", json);
+                                        }
+                                        else
                                         {
                                             var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                             {
                                                 guid = Hash(),
-                                                typeName = typeof(Scene).FullName,
+                                                typeName = "Unknown",
                                             },
-                                                Formatting.Indented, new JsonSerializerSettings()
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
                                                 {
-                                                    Converters =
-                                                    {
-                                                        new StringEnumConverter(),
-                                                    }
-                                                });
+                                                new StringEnumConverter(),
+                                                }
+                                            });
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
                                     }
-                                    catch (Exception)
-                                    {
-                                    }
+                                }
+                                catch (Exception)
+                                {
                                 }
 
                                 break;

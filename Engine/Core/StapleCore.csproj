@@ -70,6 +70,7 @@
     <Compile Include="Assets\AssetSerialization.cs" />
     <Compile Include="Assets\IPathAsset.cs" />
     <Compile Include="Assets\IStapleAsset.cs" />
+    <Compile Include="Attributes\AssetCategoryAttribute.cs" />
     <Compile Include="Attributes\HideInInspectorAttribute.cs" />
     <Compile Include="Bindings\bgfx.cs" />
     <Compile Include="Bindings\bgfx_dllname.cs" />

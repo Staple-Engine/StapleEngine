@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Staple.Internal;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -11,6 +12,21 @@ namespace Staple.Editor
     /// </summary>
     public class Editor
     {
+        /// <summary>
+        /// The original object that is being edited, if any
+        /// </summary>
+        public object original;
+
+        /// <summary>
+        /// The path to the asset
+        /// </summary>
+        public string path;
+
+        /// <summary>
+        /// The cache path to the asset
+        /// </summary>
+        public string cachePath;
+
         /// <summary>
         /// The target to edit
         /// </summary>
@@ -348,6 +364,18 @@ namespace Staple.Editor
                                     field.SetValue(target, c2);
                                 }
                             }
+                        }
+
+                        break;
+
+                    case Type t when typeof(IPathAsset).IsAssignableFrom(t):
+
+                        {
+                            var value = (IPathAsset)field.GetValue(target);
+
+                            var newValue = EditorGUI.ObjectPicker(t, fieldName, value);
+
+                            field.SetValue(target, newValue);
                         }
 
                         break;

@@ -15,9 +15,6 @@ namespace Staple.Editor
     [CustomEditor(typeof(TextureMetadata))]
     internal class TextureAssetEditor : Editor
     {
-        public TextureMetadata original;
-        public string path;
-        public string cachePath;
         public Texture previewTexture;
         public Texture originalTexture;
 
@@ -184,8 +181,9 @@ namespace Staple.Editor
             base.OnInspectorGUI();
 
             var metadata = (TextureMetadata)target;
+            var originalMetadata = (TextureMetadata)original;
 
-            var hasChanges = metadata != original;
+            var hasChanges = metadata != originalMetadata;
 
             if(hasChanges)
             {

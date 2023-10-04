@@ -62,6 +62,8 @@
     <Compile Include="AssetDatabase.cs" />
     <Compile Include="CSProjManager.cs" />
     <Compile Include="EditorFont.cs" />
+    <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />
+    <Compile Include="Editors\Assets\StapleAssetEditor.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />

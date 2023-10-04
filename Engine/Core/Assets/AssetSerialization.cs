@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -183,7 +184,7 @@ namespace Staple.Internal
             return outValue;
         }
 
-        public static object Deserialize(SerializableStapleAsset asset)
+        public static IStapleAsset Deserialize(SerializableStapleAsset asset, Func<string, string> pathAssetResolver = null)
         {
             if(asset == null)
             {
@@ -197,11 +198,11 @@ namespace Staple.Internal
                 return null;
             }
 
-            object instance;
+            IStapleAsset instance;
 
             try
             {
-                instance = Activator.CreateInstance(type);
+                instance = (IStapleAsset)Activator.CreateInstance(type);
             }
             catch(Exception)
             {
@@ -226,45 +227,79 @@ namespace Staple.Internal
                     {
                         if(pair.Value.value is string path)
                         {
-                            var methods = valueType.GetMethods();
-
-                            foreach(var method in methods)
+                            if(pathAssetResolver != null)
                             {
-                                if(method.IsStatic && method.IsPublic && method.Name == "Create")
-                                {
-                                    var parameters = method.GetParameters();
-
-                                    if(parameters.Length != 1 || parameters[0].Name != "path")
-                                    {
-                                        continue;
-                                    }
-
-                                    try
-                                    {
-                                        var result = method.Invoke(null, new object[] { path });
-
-                                        if(result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
-                                        {
-                                            break;
-                                        }
-
-                                        field.SetValue(instance, result);
-                                    }
-                                    catch(Exception e)
-                                    {
-                                        break;
-                                    }
-                                }
+                                path = pathAssetResolver(path);
                             }
+
+                            var result = GetPathAsset(valueType, path);
+
+                            if(result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
+                            {
+                                break;
+                            }
+
+                            field.SetValue(instance, result);
                         }
 
                         continue;
                     }
 
+                    if(field.FieldType.IsGenericType)
+                    {
+                        if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            var o = Activator.CreateInstance(field.FieldType);
+
+                            if(o == null)
+                            {
+                                continue;
+                            }
+
+                            var list = (IList)o;
+
+                            if(list == null)
+                            {
+                                continue;
+                            }
+
+                            var fail = false;
+
+                            if(pair.Value.value is object[] array)
+                            {
+                                foreach(var item in array)
+                                {
+                                    try
+                                    {
+                                        var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
+
+                                        list.Add(value);
+                                    }
+                                    catch(Exception)
+                                    {
+                                        fail = true;
+
+                                        break;
+                                    }
+                                }
+
+                                if(fail)
+                                {
+                                    continue;
+                                }
+
+                                field.SetValue(instance, list);
+                            }
+
+                            continue;
+                        }
+                    }
+
                     field.SetValue(instance, pair.Value.value);
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
+                    Log.Error($"Failed to load an asset of type {asset.typeName}: {e}");
                 }
             }
 
