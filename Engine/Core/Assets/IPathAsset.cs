@@ -8,7 +8,7 @@
         /// <summary>
         /// The asset's path (if any)
         /// </summary>
-        string Path { get; }
+        string Path { get; set; }
 
         static abstract object Create(string path);
     }

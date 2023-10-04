@@ -918,6 +918,11 @@ namespace Staple.Internal
                     cachedAssets.AddOrSetKey(path, asset);
                 }
 
+                if(asset is IPathAsset pathAsset)
+                {
+                    pathAsset.Path = path;
+                }
+
                 return asset;
             }
             catch (Exception e)

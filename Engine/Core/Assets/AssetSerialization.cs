@@ -15,10 +15,18 @@ namespace Staple.Internal
     internal static partial class AssetSerialization
     {
         private static Regex cachePathRegex = CachePathRegex();
+        private static Regex assetPathRegex = AssetPathRegex();
 
         public static string GetAssetPathFromCache(string cachePath)
         {
             var matches = cachePathRegex.Matches(cachePath);
+
+            if (matches.Count > 0)
+            {
+                return cachePath.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
+            }
+
+            matches = assetPathRegex.Matches(cachePath);
 
             if (matches.Count > 0)
             {
@@ -68,6 +76,9 @@ namespace Staple.Internal
 
         [GeneratedRegex("(.*?)(\\\\|\\/)Cache(\\\\|\\/)Staging(\\\\|\\/)(.*?)(\\\\|\\/)")]
         private static partial Regex CachePathRegex();
+
+        [GeneratedRegex("(.*?)(\\\\|\\/)Assets(\\\\|\\/)(.*?)")]
+        private static partial Regex AssetPathRegex();
 
         /// <summary>
         /// Checks whether a type is valid for serialization

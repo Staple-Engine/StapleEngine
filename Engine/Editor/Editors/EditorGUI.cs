@@ -2,6 +2,7 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -184,13 +185,22 @@ namespace Staple.Editor
 
             ImGui.SameLine();
 
+            string selectedName = null;
+
+            if (current is IPathAsset pathAsset)
+            {
+                selectedName = Path.GetFileNameWithoutExtension(pathAsset.Path);
+            }
+
+            selectedName ??= current?.ToString() ?? "(None)";
+
             if((type == typeof(Texture) || type.IsSubclassOf(typeof(Texture))) && current is Texture t && t.Disposed == false)
             {
                 ImGui.Image(ImGuiProxy.GetImGuiTexture(t), new Vector2(32, 32));
             }
             else
             {
-                ImGui.Text(current?.ToString() ?? "(None)");
+                ImGui.Text(selectedName);
             }
 
             ImGui.SameLine();

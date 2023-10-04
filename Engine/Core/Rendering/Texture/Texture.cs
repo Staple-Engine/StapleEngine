@@ -18,7 +18,12 @@ namespace Staple
 
         private readonly ITextureCreateMethod createMethod;
 
-        public string Path => path;
+        public string Path
+        {
+            get => path;
+
+            set => path = value;
+        }
 
         public bool Disposed { get; private set; } = false;
 

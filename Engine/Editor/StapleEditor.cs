@@ -497,6 +497,35 @@ namespace Staple.Editor
             }
         }
 
-        private string CachePathResolver(string path) => Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+        private string CachePathResolver(string path)
+        {
+            var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+
+            try
+            {
+                if (File.Exists(p))
+                {
+                    return p;
+                }
+            }
+            catch(Exception)
+            {
+            }
+
+            p = Path.Combine(basePath, "Assets", path);
+
+            try
+            {
+                if (File.Exists(p))
+                {
+                    return p;
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return path;
+        }
     }
 }

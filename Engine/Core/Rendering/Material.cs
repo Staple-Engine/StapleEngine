@@ -50,7 +50,12 @@ namespace Staple
         /// <summary>
         /// The asset's path (if any)
         /// </summary>
-        public string Path => path;
+        public string Path
+        {
+            get => path;
+
+            set => path = value;
+        }
 
         /// <summary>
         /// Whether this material has been disposed and is now invalid.

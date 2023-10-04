@@ -35,9 +35,19 @@ namespace Staple
         /// </summary>
         public bool flipY = false;
 
-        internal void OnDestroy()
-        {
-            material?.Destroy();
-        }
+        /// <summary>
+        /// (Temp) Optional sprite animation
+        /// </summary>
+        public SpriteAnimation animation;
+
+        /// <summary>
+        /// The current animation frame
+        /// </summary>
+        internal int currentFrame;
+
+        /// <summary>
+        /// The animation timer
+        /// </summary>
+        internal float timer;
     }
 }

@@ -657,33 +657,98 @@ namespace Staple.Editor
                     (index, item) =>
                     {
                         var i = validItems[index];
+                        var cachePath = i.path;
 
-                        if(i.typeName == typeof(Texture).FullName)
+                        var cacheIndex = i.path.IndexOf("Assets");
+
+                        if (cacheIndex >= 0)
                         {
-                            var cachePath = i.path;
+                            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
+                        }
 
-                            var cacheIndex = i.path.IndexOf("Assets");
+                        var type = Staple.Editor.ProjectBrowser.ResourceTypeForExtension(i.extension);
 
-                            if (cacheIndex >= 0)
-                            {
-                                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
-                            }
+                        switch(type)
+                        {
+                            case ProjectBrowserResourceType.Texture:
 
-                            try
-                            {
-                                texture = ResourceManager.instance.LoadTexture(cachePath);
-                            }
-                            catch (System.Exception)
-                            {
-                            }
-
-                            if(texture != null)
-                            {
-                                if(EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                try
                                 {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
+                                    texture = ResourceManager.instance.LoadTexture(cachePath);
                                 }
-                            }
+                                catch (System.Exception)
+                                {
+                                }
+
+                                if (texture != null)
+                                {
+                                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                    {
+                                        EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
+                                    }
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Asset:
+
+                                try
+                                {
+                                    var asset = ResourceManager.instance.LoadAsset(i.path, CachePathResolver);
+
+                                    if (asset != null && asset.GetType() == assetPickerType)
+                                    {
+                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                        {
+                                            EditorGUI.pendingObjectPickers[assetPickerKey] = asset;
+                                        }
+                                    }
+                                }
+                                catch (System.Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Material:
+
+                                try
+                                {
+                                    var material = ResourceManager.instance.LoadMaterial(cachePath);
+
+                                    if (material != null)
+                                    {
+                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                        {
+                                            EditorGUI.pendingObjectPickers[assetPickerKey] = material;
+                                        }
+                                    }
+                                }
+                                catch (System.Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Shader:
+
+                                try
+                                {
+                                    var shader = ResourceManager.instance.LoadShader(cachePath);
+
+                                    if (shader != null)
+                                    {
+                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                        {
+                                            EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
+                                        }
+                                    }
+                                }
+                                catch (System.Exception)
+                                {
+                                }
+
+                                break;
                         }
 
                         showingAssetPicker = false;

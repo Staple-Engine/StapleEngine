@@ -15,7 +15,12 @@ namespace CoreTests
         {
             internal string path = "a/b/c";
 
-            public string Path => path;
+            public string Path
+            {
+                get => path;
+
+                set => path = value;
+            }
 
             public static object Create(string path)
             {

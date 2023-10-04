@@ -563,7 +563,12 @@ namespace Staple
 
         internal string path;
 
-        public string Path => path;
+        public string Path
+        {
+            get => path;
+
+            set => path = value;
+        }
 
         public static object Create(string path)
         {
