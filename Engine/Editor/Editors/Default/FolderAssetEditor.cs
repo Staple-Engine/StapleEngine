@@ -12,7 +12,7 @@ namespace Staple.Editor
     {
         public override bool RenderField(FieldInfo field)
         {
-            if(field.Name == nameof(FolderAsset.guid) ||
+            if (field.Name == nameof(FolderAsset.guid) ||
                 field.Name == nameof(FolderAsset.typeName))
             {
                 return true;

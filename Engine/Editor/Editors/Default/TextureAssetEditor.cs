@@ -36,7 +36,7 @@ namespace Staple.Editor
             previewTexture = ResourceUtils.LoadTexture(cachePath);
             originalTexture = metadata.shouldPack ? ThumbnailCache.GetTexture(path.Replace(".meta", "")) : null;
 
-            if(previewTexture == null)
+            if (previewTexture == null)
             {
                 return;
             }
@@ -46,7 +46,7 @@ namespace Staple.Editor
                 diskSize = new FileInfo(cachePath).Length;
                 originalDiskSize = new FileInfo(path.Replace(".meta", "")).Length;
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
 
@@ -63,7 +63,7 @@ namespace Staple.Editor
                 return true;
             }
 
-            switch(field.Name)
+            switch (field.Name)
             {
                 case nameof(TextureMetadata.guid):
                 case nameof(TextureMetadata.sprites):
@@ -176,7 +176,7 @@ namespace Staple.Editor
             return base.RenderField(field);
         }
 
-        public override void OnInspectorGUI ()
+        public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
@@ -185,7 +185,7 @@ namespace Staple.Editor
 
             var hasChanges = metadata != originalMetadata;
 
-            if(hasChanges)
+            if (hasChanges)
             {
                 if (EditorGUI.Button("Apply"))
                 {
@@ -236,13 +236,13 @@ namespace Staple.Editor
                 EditorGUI.ButtonDisabled("Revert");
             }
 
-            if(EditorGUI.Button("Apply to all in folder"))
+            if (EditorGUI.Button("Apply to all in folder"))
             {
                 try
                 {
                     var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.meta");
 
-                    foreach(var file in files)
+                    foreach (var file in files)
                     {
                         //Guid uniqueness fix
                         Thread.Sleep(25);
@@ -257,14 +257,14 @@ namespace Staple.Editor
 
                             newMetadata.guid = existing.guid;
                         }
-                        catch(Exception)
+                        catch (Exception)
                         {
                             newMetadata.guid = Guid.NewGuid().ToString();
                         }
 
                         var texture = ThumbnailCache.GetThumbnail(file.Replace(".meta", ""));
 
-                        if(texture != null)
+                        if (texture != null)
                         {
                             var json = JsonConvert.SerializeObject(newMetadata, Formatting.Indented, new JsonSerializerSettings()
                             {
@@ -280,7 +280,7 @@ namespace Staple.Editor
 
                     EditorUtils.RefreshAssets(false, UpdatePreview);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Log.Error($"Failed to Apply All: {e}");
                 }
@@ -308,7 +308,7 @@ namespace Staple.Editor
 
                         foreach (var sprite in sprites)
                         {
-                            if(isOriginal == false && sprite.rotation != TextureSpriteRotation.None)
+                            if (isOriginal == false && sprite.rotation != TextureSpriteRotation.None)
                             {
                                 continue;
                             }
@@ -324,7 +324,7 @@ namespace Staple.Editor
                             ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
                                 new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
 
-                            if(isOriginal)
+                            if (isOriginal)
                             {
                                 void CenteredText(string text)
                                 {
@@ -334,7 +334,7 @@ namespace Staple.Editor
                                         rect.Min.Y + (rect.Height - textSize.Y) / 2),
                                         ImGuiProxy.ImGuiRGBA(255, 255, 255, 255), text);
                                 }
-                            
+
                                 switch (sprite.rotation)
                                 {
                                     case TextureSpriteRotation.FlipX:
@@ -385,7 +385,7 @@ namespace Staple.Editor
                             ImGui.EndTabItem();
                         }
 
-                        if(ImGui.BeginTabItem("Processed"))
+                        if (ImGui.BeginTabItem("Processed"))
                         {
                             DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
 
@@ -395,7 +395,7 @@ namespace Staple.Editor
                         ImGui.EndTabBar();
                     }
                 }
-                else if(previewTexture != null)
+                else if (previewTexture != null)
                 {
                     EditorGUI.Label("Preview:");
 
