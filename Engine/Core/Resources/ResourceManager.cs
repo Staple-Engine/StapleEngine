@@ -803,77 +803,32 @@ namespace Staple.Internal
         /// </summary>
         /// <typeparam name="T">The asset type, which must implement IStapleAsset</typeparam>
         /// <param name="path">The path to load from</param>
-        /// <param name="pathAssetResolver">A callback to resolve paths if needed. Receives the path as a parameter and should return the correct path</param>
         /// <returns>The asset, or null</returns>
-        public T LoadAsset<T>(string path, Func<string, string> pathAssetResolver = null) where T: IStapleAsset
+        public T LoadAsset<T>(string path) where T: IStapleAsset
         {
-            if(cachedAssets.TryGetValue(path, out var asset) && asset != null)
-            {
-                return (T)asset;
-            }
+            object value = LoadAsset(path);
 
-            var data = LoadFile(path);
-
-            if (data == null)
+            if(value == null)
             {
                 return default;
             }
 
-            using var stream = new MemoryStream(data);
-
-            try
+            if (value.GetType() != typeof(T))
             {
-                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
-
-                if (header == null ||
-                    header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) == false ||
-                    header.version != SerializableStapleAssetHeader.ValidVersion)
-                {
-                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
-
-                    return default;
-                }
-
-                var assetBundle = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
-
-                if (assetBundle == null)
-                {
-                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid asset data");
-
-                    return default;
-                }
-
-                if(assetBundle.typeName != typeof(T).FullName)
-                {
-                    Log.Error($"[ResourceManager] Failed to load asset at path {path}: Type {assetBundle.typeName} is not matching requested type {typeof(T).FullName}");
-
-                    return default;
-                }
-
-                asset = (T)AssetSerialization.Deserialize(assetBundle, pathAssetResolver);
-
-                if (asset != null)
-                {
-                    cachedAssets.AddOrSetKey(path, asset);
-                }
-
-                return (T)asset;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
+                Log.Error($"[ResourceManager] Failed to load asset at path {path}: Type {value.GetType().FullName} is not matching requested type {typeof(T).FullName}");
 
                 return default;
             }
+
+            return (T)value;
         }
 
         /// <summary>
         /// Attempts to load an asset of a specific type from a path
         /// </summary>
         /// <param name="path">The path to load from</param>
-        /// <param name="pathAssetResolver">A callback to resolve paths if needed. Receives the path as a parameter and should return the correct path</param>
         /// <returns>The asset, or null</returns>
-        public IStapleAsset LoadAsset(string path, Func<string, string> pathAssetResolver = null)
+        public IStapleAsset LoadAsset(string path)
         {
             if (cachedAssets.TryGetValue(path, out var asset) && asset != null)
             {
@@ -911,7 +866,7 @@ namespace Staple.Internal
                     return default;
                 }
 
-                asset = AssetSerialization.Deserialize(assetBundle, pathAssetResolver);
+                asset = AssetSerialization.Deserialize(assetBundle);
 
                 if (asset != null)
                 {

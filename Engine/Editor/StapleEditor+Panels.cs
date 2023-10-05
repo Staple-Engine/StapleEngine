@@ -390,8 +390,8 @@ namespace Staple.Editor
 
                                     if(asset != null)
                                     {
-                                        selectedProjectNodeData = AssetSerialization.Deserialize(asset, CachePathResolver);
-                                        original = AssetSerialization.Deserialize(asset, CachePathResolver);
+                                        selectedProjectNodeData = AssetSerialization.Deserialize(asset);
+                                        original = AssetSerialization.Deserialize(asset);
 
                                         if (selectedProjectNodeData != null)
                                         {
@@ -694,7 +694,7 @@ namespace Staple.Editor
 
                                 try
                                 {
-                                    var asset = ResourceManager.instance.LoadAsset(i.path, CachePathResolver);
+                                    var asset = ResourceManager.instance.LoadAsset(i.path);
 
                                     if (asset != null && asset.GetType() == assetPickerType)
                                     {

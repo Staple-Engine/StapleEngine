@@ -81,19 +81,71 @@ namespace Staple
         {
             var r = renderer as SpriteRenderer;
 
-            //We recalculate the bounds of this sprite
-            if (r.texture != null &&
+            var hasValidAnimation = r.animation != null &&
+                r.animation.texture != null &&
+                r.animation.texture.Disposed == false &&
+                r.animation.frames.Count > 0;
+
+            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+                hasValidAnimation;
+
+            if (hasValidTexture == false ||
+                r.texture != null &&
                 r.texture.Disposed == false &&
                 r.material != null &&
                 r.material.Disposed == false &&
                 r.material.shader != null &&
-                r.material.Disposed == false &&
-                r.spriteIndex >= 0 &&
-                r.spriteIndex < r.texture.metadata.sprites.Count)
+                r.material.Disposed == false)
             {
-                var sprite = r.texture.metadata.sprites[r.spriteIndex];
+                TextureSpriteInfo sprite;
+                Texture texture;
 
-                var size = new Vector3(sprite.rect.Width * r.texture.SpriteScale, sprite.rect.Height * r.texture.SpriteScale, 0);
+                if(hasValidAnimation)
+                {
+                    texture = r.animation.texture;
+
+                    r.timer += Time.deltaTime;
+
+                    var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
+
+                    while(r.timer >= timeStep && timeStep > 0)
+                    {
+                        r.timer -= timeStep;
+
+                        r.currentFrame++;
+
+                        if(r.currentFrame >= r.animation.frames.Count)
+                        {
+                            r.currentFrame = 0;
+                        }
+                    }
+
+                    if(r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                    {
+                        return;
+                    }
+
+                    var frame = r.animation.frames[r.currentFrame];
+
+                    if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                    {
+                        return;
+                    }
+
+                    sprite = r.animation.texture.metadata.sprites[frame];
+                }
+                else
+                {
+                    if(r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+                    {
+                        return;
+                    }
+
+                    texture = r.texture;
+                    sprite = r.texture.metadata.sprites[r.spriteIndex];
+                }
+
+                var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
 
                 r.localBounds = new AABB(Vector3.Zero, size);
 
@@ -105,26 +157,61 @@ namespace Staple
         {
             var r = renderer as SpriteRenderer;
 
-            if (r.texture == null ||
-                r.texture.Disposed ||
+            var hasValidAnimation = r.animation != null &&
+                r.animation.texture != null &&
+                r.animation.texture.Disposed == false &&
+                r.animation.frames.Count > 0;
+
+            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+                hasValidAnimation;
+
+            if (hasValidTexture == false ||
                 r.material == null ||
                 r.material.shader == null ||
                 r.material.Disposed ||
-                r.material.shader.Disposed ||
-                r.spriteIndex < 0 ||
-                r.spriteIndex >= r.texture.metadata.sprites.Count)
+                r.material.shader.Disposed)
             {
                 return;
             }
 
-            var sprite = r.texture.metadata.sprites[r.spriteIndex];
+            TextureSpriteInfo sprite;
+            Texture texture;
+
+            if (hasValidAnimation)
+            {
+                texture = r.animation.texture;
+
+                if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                {
+                    return;
+                }
+
+                var frame = r.animation.frames[r.currentFrame];
+
+                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                {
+                    return;
+                }
+
+                sprite = r.animation.texture.metadata.sprites[frame];
+            }
+            else
+            {
+                if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+                {
+                    return;
+                }
+
+                texture = r.texture;
+                sprite = r.texture.metadata.sprites[r.spriteIndex];
+            }
 
             var scale = Vector3.Zero;
 
-            if (r.texture != null)
+            if (texture != null)
             {
-                scale.X = sprite.rect.Width * r.texture.SpriteScale;
-                scale.Y = sprite.rect.Height * r.texture.SpriteScale;
+                scale.X = sprite.rect.Width * texture.SpriteScale;
+                scale.Y = sprite.rect.Height * texture.SpriteScale;
             }
 
             switch(sprite.rotation)
@@ -158,7 +245,7 @@ namespace Staple
             {
                 color = r.color,
                 material = r.material,
-                texture = r.texture,
+                texture = texture,
                 textureRect = sprite.rect,
                 transform = matrix,
                 viewID = viewId,

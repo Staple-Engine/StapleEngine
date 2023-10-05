@@ -17,29 +17,39 @@ namespace Staple.Internal
         private static Regex cachePathRegex = CachePathRegex();
         private static Regex assetPathRegex = AssetPathRegex();
 
-        public static string GetAssetPathFromCache(string cachePath)
+        /// <summary>
+        /// Callback to resolve path assets' paths, if needed.
+        /// </summary>
+        public static Func<string, string> pathAssetResolver;
+
+        public static string GetAssetPathFromCache(string path)
         {
-            var matches = cachePathRegex.Matches(cachePath);
+            var matches = cachePathRegex.Matches(path);
 
             if (matches.Count > 0)
             {
-                return cachePath.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
+                return path.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
             }
 
-            matches = assetPathRegex.Matches(cachePath);
+            matches = assetPathRegex.Matches(path);
 
             if (matches.Count > 0)
             {
-                return cachePath.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
+                return path.Substring(matches[0].Value.Length).Replace(Path.DirectorySeparatorChar, '/');
             }
 
-            return cachePath;
+            return path;
         }
 
         public static object GetPathAsset(
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.Interfaces)]
             Type type, string path)
         {
+            if(pathAssetResolver != null)
+            {
+                path = pathAssetResolver(path);
+            }
+
             var methods = type.GetMethods();
 
             foreach (var method in methods)
@@ -195,7 +205,7 @@ namespace Staple.Internal
             return outValue;
         }
 
-        public static IStapleAsset Deserialize(SerializableStapleAsset asset, Func<string, string> pathAssetResolver = null)
+        public static IStapleAsset Deserialize(SerializableStapleAsset asset)
         {
             if(asset == null)
             {
@@ -252,6 +262,13 @@ namespace Staple.Internal
 
                             field.SetValue(instance, result);
                         }
+
+                        continue;
+                    }
+
+                    if(pair.Value.value != null && field.FieldType == pair.Value.value.GetType())
+                    {
+                        field.SetValue(instance, pair.Value.value);
 
                         continue;
                     }

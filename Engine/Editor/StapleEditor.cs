@@ -171,6 +171,8 @@ namespace Staple.Editor
             LayerMask.AllLayers = editorSettings.layers;
             LayerMask.AllSortingLayers = editorSettings.sortingLayers;
 
+            AssetSerialization.pathAssetResolver = CachePathResolver;
+
             Storage.Update(editorSettings.appName, editorSettings.companyName);
 
             Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));

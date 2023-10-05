@@ -305,6 +305,7 @@ namespace Baker
             ProcessTextures(platform, texturecPath, inputPath, outputPath);
             ProcessMaterials(platform, inputPath, outputPath);
             ProcessScenes(platform, inputPath, outputPath, editorMode);
+            ProcessAssets(platform, inputPath, outputPath);
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }
 

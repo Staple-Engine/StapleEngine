@@ -39,6 +39,11 @@ namespace CoreTests
             public IPathAsset pathAsset = new SimplePathAsset();
             public NewEnum enumValue = NewEnum.A;
 
+            internal int notSerialized = 0;
+
+            [NonSerialized]
+            public int notSerialized2 = 0;
+
             public void OnAfterDeserialize()
             {
             }

@@ -76,6 +76,31 @@ namespace Packer
                     return null;
                 }
             }
+            else if(path.EndsWith(".asset"))
+            {
+                try
+                {
+                    var data = File.ReadAllBytes(path);
+
+                    using var stream = new MemoryStream(data);
+
+                    var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+
+                    if (header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) == false ||
+                        header.version != SerializableStapleAssetHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var value = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+
+                    return value.guid;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
             else if(textureExtensions.Any(x => path.EndsWith($".{x}")))
             {
                 try

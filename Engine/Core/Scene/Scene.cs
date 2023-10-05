@@ -397,7 +397,9 @@ namespace Staple
                                         }
                                         else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null)
                                         {
-                                            var value = AssetSerialization.GetPathAsset(field.FieldType, parameter.stringValue);
+                                            var path = parameter.stringValue;
+
+                                            var value = AssetSerialization.GetPathAsset(field.FieldType, path);
 
                                             if (value != null)
                                             {
