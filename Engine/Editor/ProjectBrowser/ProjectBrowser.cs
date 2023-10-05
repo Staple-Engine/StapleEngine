@@ -129,7 +129,7 @@ namespace Staple.Editor
                             path = directory,
                             type = ProjectBrowserNodeType.Folder,
                             subnodes = subnodes,
-                            typeName = "Folder",
+                            typeName = typeof(FolderAsset).FullName,
                         });
                     }
 
@@ -288,10 +288,10 @@ namespace Staple.Editor
                         {
                             if (File.Exists($"{node.path}.meta") == false)
                             {
-                                var holder = new AssetHolder()
+                                var holder = new FolderAsset()
                                 {
                                     guid = Hash(),
-                                    typeName = "Folder",
+                                    typeName = typeof(FolderAsset).FullName,
                                 };
 
                                 var json = JsonConvert.SerializeObject(holder, Formatting.Indented);

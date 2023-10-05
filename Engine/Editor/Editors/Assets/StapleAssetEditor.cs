@@ -19,7 +19,7 @@ namespace Staple.Editor
             var asset = (IStapleAsset)target;
             var originalAsset = (IStapleAsset)original;
 
-            var hasChanges = asset != original;
+            var hasChanges = asset != originalAsset;
 
             if (hasChanges)
             {
@@ -31,7 +31,7 @@ namespace Staple.Editor
 
                         foreach (var field in fields)
                         {
-                            field.SetValue(original, field.GetValue(asset));
+                            field.SetValue(originalAsset, field.GetValue(asset));
                         }
 
                         EditorUtils.RefreshAssets(false, null);
@@ -46,7 +46,7 @@ namespace Staple.Editor
 
                     foreach (var field in fields)
                     {
-                        field.SetValue(asset, field.GetValue(original));
+                        field.SetValue(asset, field.GetValue(originalAsset));
                     }
                 }
             }

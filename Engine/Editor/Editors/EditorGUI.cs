@@ -142,6 +142,8 @@ namespace Staple.Editor
 
         public static string TextField(string label, string value, int maxLength = 1000)
         {
+            value ??= "";
+
             Changed |= ImGui.InputText(label, ref value, (uint)maxLength);
 
             return value;

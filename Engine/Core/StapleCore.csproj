@@ -168,6 +168,7 @@
     <Compile Include="Rendering\WindowMode.cs" />
     <Compile Include="Resources\ResourcePak.cs" />
     <Compile Include="Serialization\Asset\AssetHolder.cs" />
+    <Compile Include="Serialization\Asset\FolderAsset.cs" />
     <Compile Include="Serialization\Asset\SerializableStapleAsset.cs" />
     <Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
     <Compile Include="Serialization\Scene\SerializableScene.cs" />

@@ -287,7 +287,7 @@ namespace Staple.Editor
             projectBrowser.Draw(io, (item) =>
             {
                 selectedEntity = Entity.Empty;
-                selectedProjectNode = item.type == ProjectBrowserNodeType.File ? item : null;
+                selectedProjectNode = item;
                 selectedProjectNodeData = null;
 
                 cachedEditors.Clear();
@@ -364,6 +364,28 @@ namespace Staple.Editor
                         try
                         {
                             selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if(item.typeName == typeof(FolderAsset).FullName)
+                    {
+                        try
+                        {
+                            original = JsonConvert.DeserializeObject<FolderAsset>(data);
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<FolderAsset>(data);
+
+                            var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                            if(editor != null)
+                            {
+                                editor.original = original;
+                                editor.path = $"{item.path}.meta";
+                                editor.cachePath = $"{cachePath}.meta";
+
+                                cachedEditors.Add("", editor);
+                            }
                         }
                         catch (Exception)
                         {
