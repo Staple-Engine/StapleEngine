@@ -291,7 +291,7 @@ namespace Staple.Editor
 
                     foreach (var file in files)
                     {
-                        if(Path.GetDirectoryName(file).Contains($"{Path.DirectorySeparatorChar}Editor{Path.DirectorySeparatorChar}"))
+                        if(file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
                         {
                             continue;
                         }
