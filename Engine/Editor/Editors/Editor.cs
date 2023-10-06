@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using Staple.Internal;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -12,6 +13,8 @@ namespace Staple.Editor
     /// </summary>
     public class Editor
     {
+        private static Type[] editorTypes;
+
         /// <summary>
         /// The original object that is being edited, if any
         /// </summary>
@@ -383,25 +386,40 @@ namespace Staple.Editor
             }
         }
 
+        internal static void UpdateEditorTypes()
+        {
+            editorTypes = Assembly.GetCallingAssembly().GetTypes()
+                    .Concat(Assembly.GetExecutingAssembly().GetTypes())
+                    .Concat(TypeCache.types.Select(x => x.Value))
+                    .Where(x => x.IsSubclassOf(typeof(Editor)))
+                    .Distinct()
+                    .ToArray();
+        }
+
         public static Editor CreateEditor(object target, Type editorType = null)
         {
+            var types = editorTypes;
+
             if (editorType == null)
             {
-                var type = target.GetType();
+                var targetType = target.GetType();
 
-                editorType = Assembly.GetCallingAssembly().GetTypes()
-                    .Concat(Assembly.GetExecutingAssembly().GetTypes())
-                    .FirstOrDefault(x =>
+                foreach (var type in types)
+                {
+                    var attribute = type.GetCustomAttribute<CustomEditorAttribute>();
+
+                    if (attribute == null || type.IsSubclassOf(typeof(Editor)) == false)
                     {
-                        var attribute = x.GetCustomAttribute<CustomEditorAttribute>();
+                        continue;
+                    }
 
-                        if (attribute == null || x.IsSubclassOf(typeof(Editor)) == false)
-                        {
-                            return false;
-                        }
+                    if (attribute.target == targetType)
+                    {
+                        editorType = type;
 
-                        return attribute.target == type;
-                    });
+                        break;
+                    }
+                }
             }
 
             if (editorType == null)
@@ -436,28 +454,33 @@ namespace Staple.Editor
                 return null;
             }
 
-            var type = targets.FirstOrDefault().GetType();
+            var targetType = targets.FirstOrDefault().GetType();
 
-            if (targets.Any(x => x.GetType() != type))
+            if (targets.Any(x => x.GetType() != targetType))
             {
                 return null;
             }
 
+            var types = editorTypes;
+
             if (editorType == null)
             {
-                editorType = Assembly.GetCallingAssembly().GetTypes()
-                    .Concat(Assembly.GetExecutingAssembly().GetTypes())
-                    .FirstOrDefault(x =>
+                foreach (var type in types)
+                {
+                    var attribute = type.GetCustomAttribute<CustomEditorAttribute>();
+
+                    if (attribute == null || type.IsSubclassOf(typeof(Editor)) == false)
                     {
-                        var attribute = x.GetCustomAttribute<CustomEditorAttribute>();
+                        continue;
+                    }
 
-                        if (attribute == null || x.IsSubclassOf(typeof(Editor)) == false)
-                        {
-                            return false;
-                        }
+                    if (attribute.target == targetType)
+                    {
+                        editorType = type;
 
-                        return attribute.target == type;
-                    });
+                        break;
+                    }
+                }
             }
 
             if (editorType == null)

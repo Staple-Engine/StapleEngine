@@ -1,21 +1,15 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Staple.Internal;
-using System;
-using System.IO;
+﻿using Staple.Internal;
 using System.Reflection;
 
 namespace Staple.Editor
 {
     [CustomEditor(typeof(IStapleAsset))]
-    internal class StapleAssetEditor : Editor
+    public class StapleAssetEditor : Editor
     {
         public bool ApplyChanges() => StapleEditor.SaveAsset(path, (IStapleAsset)target);
 
-        public override void OnInspectorGUI()
+        public void RenderApplyRevertFields()
         {
-            base.OnInspectorGUI();
-
             var asset = (IStapleAsset)target;
             var originalAsset = (IStapleAsset)original;
 
@@ -25,7 +19,7 @@ namespace Staple.Editor
             {
                 if (EditorGUI.Button("Apply"))
                 {
-                    if(ApplyChanges())
+                    if (ApplyChanges())
                     {
                         var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -58,6 +52,13 @@ namespace Staple.Editor
 
                 EditorGUI.ButtonDisabled("Revert");
             }
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            RenderApplyRevertFields();
         }
     }
 }

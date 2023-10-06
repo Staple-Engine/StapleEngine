@@ -35,6 +35,16 @@ namespace Staple.Editor
             }
         }
 
+        public static float HorizontalSpace()
+        {
+            return ImGui.GetContentRegionAvail().X;
+        }
+
+        public static float VerticalSpace()
+        {
+            return ImGui.GetContentRegionAvail().Y;
+        }
+
         public static void SameLine()
         {
             ImGui.SameLine();

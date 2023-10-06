@@ -33,15 +33,11 @@ namespace Staple.Editor
 
                         foreach(var type in types)
                         {
-                            if(typeof(IComponent).IsAssignableFrom(type) || typeof(IEntitySystem).IsAssignableFrom(type) ||
-                                typeof(IStapleAsset).IsAssignableFrom(type))
-                            {
-                                TypeCache.RegisterType(type);
+                            TypeCache.RegisterType(type);
 
-                                if(typeof(IStapleAsset).IsAssignableFrom(type))
-                                {
-                                    registeredAssetTypes.AddOrSetKey(type.FullName, type);
-                                }
+                            if(typeof(IStapleAsset).IsAssignableFrom(type))
+                            {
+                                registeredAssetTypes.AddOrSetKey(type.FullName, type);
                             }
                         }
                     }
@@ -50,6 +46,8 @@ namespace Staple.Editor
             catch(Exception)
             {
             }
+
+            Editor.UpdateEditorTypes();
         }
 
         public void UnloadGame()
@@ -104,13 +102,6 @@ namespace Staple.Editor
             {
                 t = t.Concat(assembly.GetTypes()).ToList();
             }
-
-            t = t
-                .Where(x => (typeof(IComponent).IsAssignableFrom(x) ||
-                    typeof(IEntitySystem).IsAssignableFrom(x) ||
-                    typeof(IStapleAsset).IsAssignableFrom(x)) &&
-                    x.IsInterface == false)
-                .ToList();
 
             foreach (var v in t)
             {

@@ -541,7 +541,7 @@ namespace Staple.Editor
             {
                 if (ImGui.IsItemClicked())
                 {
-                    currentContentNode = null;
+                    currentContentNode = nextNode = null;
 
                     UpdateCurrentContentNodes(projectBrowserNodes);
                 }

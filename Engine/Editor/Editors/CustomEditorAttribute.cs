@@ -3,7 +3,7 @@
 namespace Staple.Editor
 {
     [AttributeUsage(AttributeTargets.Class)]
-    internal class CustomEditorAttribute : Attribute
+    public class CustomEditorAttribute : Attribute
     {
         public Type target;
 

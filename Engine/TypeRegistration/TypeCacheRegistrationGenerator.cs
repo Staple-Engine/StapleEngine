@@ -11,15 +11,6 @@ namespace Staple
     [Generator]
     public class TypeCacheRegistrationGenerator : ISourceGenerator
     {
-
-        private static List<string> validInterfaces = new string[]
-        {
-            "IEntitySystem",
-            "IComponent",
-            "IPathAsset",
-            "IStapleAsset",
-        }.ToList();
-
         public void Initialize(GeneratorInitializationContext context)
         {
             /*

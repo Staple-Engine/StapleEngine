@@ -65,7 +65,7 @@ namespace Staple.Editor
             debugProperty.AddProperty("DebugType", "pdbonly");
             debugProperty.AddProperty("DebugSymbols", "true");
             debugProperty.AddProperty("Optimize", "false");
-            debugProperty.AddProperty("DefineConstants", $"_DEBUG{platformDefinesString}");
+            debugProperty.AddProperty("DefineConstants", $"_DEBUG;STAPLE_EDITOR{platformDefinesString}");
             debugProperty.AddProperty("ErrorReport", "prompt");
             debugProperty.AddProperty("WarningLevel", "4");
 
@@ -76,7 +76,7 @@ namespace Staple.Editor
             releaseProperty.AddProperty("DebugType", "portable");
             releaseProperty.AddProperty("DebugSymbols", "true");
             releaseProperty.AddProperty("Optimize", "true");
-            releaseProperty.AddProperty("DefineConstants", $"NDEBUG{platformDefinesString}");
+            releaseProperty.AddProperty("DefineConstants", $"NDEBUG;STAPLE_EDITOR{platformDefinesString}");
             releaseProperty.AddProperty("ErrorReport", "prompt");
             releaseProperty.AddProperty("WarningLevel", "4");
 
@@ -86,6 +86,7 @@ namespace Staple.Editor
             }
 
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
+            p.AddItem("Reference", "StapleEditor", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll")) });
 
             void Recursive(string path)
             {
@@ -290,6 +291,11 @@ namespace Staple.Editor
 
                     foreach (var file in files)
                     {
+                        if(Path.GetDirectoryName(file).Contains($"{Path.DirectorySeparatorChar}Editor{Path.DirectorySeparatorChar}"))
+                        {
+                            continue;
+                        }
+
                         p.AddItem("Compile", Path.GetFullPath(file));
                     }
 

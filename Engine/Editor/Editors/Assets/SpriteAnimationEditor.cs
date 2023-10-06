@@ -1,8 +1,5 @@
 ﻿using ImGuiNET;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Staple.Internal;
-using System;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
