@@ -48,21 +48,5 @@ namespace Staple
         {
             return ResourceManager.instance.LoadAsset<SpriteAnimation>(path);
         }
-
-        public void OnAfterDeserialize()
-        {
-        }
-
-        public void OnAfterSerialize()
-        {
-        }
-
-        public void OnBeforeDeserialize()
-        {
-        }
-
-        public void OnBeforeSerialize()
-        {
-        }
     }
 }

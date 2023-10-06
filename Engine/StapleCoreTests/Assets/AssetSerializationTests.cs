@@ -43,22 +43,6 @@ namespace CoreTests
 
             [NonSerialized]
             public int notSerialized2 = 0;
-
-            public void OnAfterDeserialize()
-            {
-            }
-
-            public void OnAfterSerialize()
-            {
-            }
-
-            public void OnBeforeDeserialize()
-            {
-            }
-
-            public void OnBeforeSerialize()
-            {
-            }
         }
 
         [Test]

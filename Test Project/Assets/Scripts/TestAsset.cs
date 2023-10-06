@@ -10,21 +10,5 @@ namespace TestGame
         public string stringValue;
         public float floatValue;
         public double doubleValue;
-
-        public void OnAfterDeserialize()
-        {
-        }
-
-        public void OnAfterSerialize()
-        {
-        }
-
-        public void OnBeforeDeserialize()
-        {
-        }
-
-        public void OnBeforeSerialize()
-        {
-        }
     }
 }
