@@ -4,7 +4,6 @@ using Staple.Internal;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Staple.Editor
 {

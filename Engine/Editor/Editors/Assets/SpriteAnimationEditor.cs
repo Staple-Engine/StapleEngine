@@ -125,7 +125,7 @@ namespace Staple.Editor
 
                 var sprite = asset.texture.metadata.sprites[frame];
 
-                var width = ImGui.GetContentRegionAvail().X;
+                var width = EditorGUI.RemainingHorizontalSpace();
 
                 var aspect = sprite.rect.Width / (float)sprite.rect.Height;
 

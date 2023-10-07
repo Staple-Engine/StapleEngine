@@ -16,6 +16,17 @@ namespace Staple
 
         internal WeakReference<TextFont> font;
 
+        public override int GetHashCode()
+        {
+            return textColor.GetHashCode() ^
+                secondaryTextColor.GetHashCode() ^
+                borderColor.GetHashCode() ^
+                position.GetHashCode() ^
+                borderSize.GetHashCode() ^
+                rotation.GetHashCode() ^
+                fontSize.GetHashCode();
+        }
+
         public TextParameters Clone()
         {
             return new()

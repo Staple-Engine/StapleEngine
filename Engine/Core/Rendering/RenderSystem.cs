@@ -146,6 +146,8 @@ namespace Staple
             {
                 needsDrawCalls = true;
             };
+
+            textRenderer.LoadDefaultFont();
         }
 
         public void Shutdown()
@@ -364,6 +366,11 @@ namespace Staple
                     relatedComponent = relatedComponent,
                 });
             }
+        }
+
+        public void RenderText(string text, TextParameters parameters, Material material, ushort viewID)
+        {
+            textRenderer.DrawText(text, parameters, material, viewID);
         }
     }
 }

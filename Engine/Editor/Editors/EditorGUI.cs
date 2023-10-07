@@ -35,12 +35,12 @@ namespace Staple.Editor
             }
         }
 
-        public static float HorizontalSpace()
+        public static float RemainingHorizontalSpace()
         {
             return ImGui.GetContentRegionAvail().X;
         }
 
-        public static float VerticalSpace()
+        public static float RemainingVerticalSpace()
         {
             return ImGui.GetContentRegionAvail().Y;
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Internal
@@ -19,9 +20,16 @@ namespace Staple.Internal
         private readonly Dictionary<int, TextResourceInfo> textResources = new();
         private TextFont defaultFont;
 
-        public TextRenderer()
+        public void LoadDefaultFont()
         {
-            //TODO: DefaultFont
+            var data = Convert.FromBase64String(FontData.IntelOneMonoRegular);
+
+            defaultFont = TextFont.FromData(data);
+
+            if(defaultFont != null)
+            {
+                Log.Debug($"[TextRenderer] Loaded default font");
+            }
         }
 
         public void ClearUnusedResources()
@@ -96,7 +104,17 @@ namespace Staple.Internal
 
                     if((resource.info?.pixels?.Length ?? 0) > 0)
                     {
-                        resource.sourceTexture = Texture.CreateStandard("", resource.info.pixels, StandardTextureColorComponents.RGBA);
+                        resource.sourceTexture = Texture.CreatePixels("", resource.info.pixels,
+                            (ushort)resource.info.bounds.Width, (ushort)resource.info.bounds.Height,
+                            new TextureMetadata()
+                            {
+                                filter = TextureFilter.Linear,
+                                format = TextureMetadataFormat.RGBA8,
+                                type = TextureType.SRGB,
+                                useMipmaps = false,
+                                spritePixelsPerUnit = 100,
+                            },
+                            Bgfx.bgfx.TextureFormat.RGBA8);
                     }
 
                     textResources.Add(key, resource);
@@ -325,9 +343,15 @@ namespace Staple.Internal
 
                             if(textResources.TryGetValue(actualParams.GetHashCode() ^ line[j].GetHashCode(), out var resource))
                             {
-                                var p = position + new Vector2(resource.info.bounds.left, -resource.info.bounds.top);
+                                var p = position + new Vector2(resource.info.bounds.left + resource.info.bounds.Width / 2, -resource.info.bounds.top + resource.info.bounds.Height / 2);
 
-                                MeshRenderSystem.DrawMesh(mesh, new Vector3(p, 0), Quaternion.Identity, Vector3.One, material, viewID);
+                                if(resource.sourceTexture != null)
+                                {
+                                    material.MainTexture = resource.sourceTexture;
+                                }
+
+                                MeshRenderSystem.DrawMesh(mesh, new Vector3(p, 0), Quaternion.Identity,
+                                    new Vector3(resource.info.bounds.Width, resource.info.bounds.Height, 1), material, viewID);
 
                                 position.X += resource.info.advance;
                             }
