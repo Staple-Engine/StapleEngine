@@ -148,7 +148,7 @@ namespace Staple.Editor
 
             var projectProperties = new Dictionary<string, string>()
             {
-                { "OutputType", "Exe" },
+                { "OutputType", debug ? "Exe" : "WinExe" },
                 { "TargetFramework", targetFramework },
                 { "StripSymbols", "true" },
                 { "AppDesignerFolder", "Properties" },
