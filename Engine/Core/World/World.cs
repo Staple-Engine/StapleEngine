@@ -9,24 +9,24 @@ namespace Staple
     /// </summary>
     public partial class World
     {
-        public delegate void ForEachCallback<T>(Entity entity, ref T a) where T : IComponent;
+        public delegate void ForEachCallback<T>(Entity entity, bool enabled, ref T a) where T : IComponent;
 
-        public delegate void ForEachCallback<T, T2>(Entity entity, ref T a, ref T2 b)
+        public delegate void ForEachCallback<T, T2>(Entity entity, bool enabled, ref T a, ref T2 b)
             where T : IComponent
             where T2 : IComponent;
 
-        public delegate void ForEachCallback<T, T2, T3>(Entity entity, ref T a, ref T2 b, ref T3 c)
+        public delegate void ForEachCallback<T, T2, T3>(Entity entity, bool enabled, ref T a, ref T2 b, ref T3 c)
             where T : IComponent
             where T2 : IComponent
             where T3 : IComponent;
 
-        public delegate void ForEachCallback<T, T2, T3, T4>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d)
+        public delegate void ForEachCallback<T, T2, T3, T4>(Entity entity, bool enabled, ref T a, ref T2 b, ref T3 c, ref T4 d)
             where T : IComponent
             where T2 : IComponent
             where T3 : IComponent
             where T4 : IComponent;
 
-        public delegate void ForEachCallback<T, T2, T3, T4, T5>(Entity entity, ref T a, ref T2 b, ref T3 c, ref T4 d, ref T5 e)
+        public delegate void ForEachCallback<T, T2, T3, T4, T5>(Entity entity, bool enabled, ref T a, ref T2 b, ref T3 c, ref T4 d, ref T5 e)
             where T : IComponent
             where T2 : IComponent
             where T3 : IComponent
@@ -54,6 +54,11 @@ namespace Staple
             /// Whether this entity is alive. If it's not, queries on it will fail.
             /// </summary>
             public bool alive;
+
+            /// <summary>
+            /// Whether this entity is enabled. If it's not, it will not be updated or rendered.
+            /// </summary>
+            public bool enabled;
 
             /// <summary>
             /// The active components for the entity

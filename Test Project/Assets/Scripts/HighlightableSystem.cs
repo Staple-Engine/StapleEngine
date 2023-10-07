@@ -21,8 +21,13 @@ namespace TestGame
 
             var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
 
-            world.ForEach((Entity entity, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
+            world.ForEach((Entity entity, bool enabled, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
             {
+                if (enabled == false)
+                {
+                    return;
+                }
+
                 renderer.color = Color.White;
             });
 

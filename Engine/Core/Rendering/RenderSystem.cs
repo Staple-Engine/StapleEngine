@@ -294,8 +294,13 @@ namespace Staple
                         frustumCuller.Update(view, projection);
                     }
 
-                    Scene.current.world.ForEach((Entity entity, ref Transform t) =>
+                    Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform t) =>
                     {
+                        if(enabled == false)
+                        {
+                            return;
+                        }
+
                         var layer = Scene.current.world.GetEntityLayer(entity);
 
                         if(camera.cullingLayers.HasLayer(layer) == false)

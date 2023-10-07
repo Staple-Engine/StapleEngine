@@ -102,6 +102,7 @@ namespace Staple.Internal
                 {
                     ID = entity.ID,
                     name = scene.world.GetEntityName(entity),
+                    enabled = scene.world.IsEntityEnabled(entity),
                     kind = SceneObjectKind.Entity,
                     parent = parent.ID,
                     transform = transform,

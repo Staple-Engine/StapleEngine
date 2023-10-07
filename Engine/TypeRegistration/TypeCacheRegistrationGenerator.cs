@@ -61,6 +61,13 @@ namespace Staple
                         return;
                     }
 
+                    if (typeName.ToUpperInvariant().Contains("DELEGATE"))
+                    {
+                        //source += $"            //Processing to {typeName}. Skipped (Delegate)\r\n";
+
+                        return;
+                    }
+
                     types.Add(typeName);
 
                     foreach(var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field))
@@ -114,6 +121,13 @@ namespace Staple
                         if(typeName.Contains("e__FixedBuffer"))
                         {
                             //source += $"            //Resolved to {typeName}. Skipped (FixedBuffer)\r\n";
+
+                            return;
+                        }
+
+                        if (typeName.ToUpperInvariant().Contains("DELEGATE"))
+                        {
+                            //source += $"            //Processing to {typeName}. Skipped (Delegate)\r\n";
 
                             return;
                         }

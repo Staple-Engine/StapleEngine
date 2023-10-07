@@ -69,8 +69,13 @@ namespace Staple
             {
                 var pieces = new List<CameraInfo>();
 
-                ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
+                ForEach((Entity entity, bool enabled, ref Camera camera, ref Transform transform) =>
                 {
+                    if(enabled == false)
+                    {
+                        return;
+                    }
+
                     pieces.Add(new CameraInfo()
                     {
                         entity = entity,

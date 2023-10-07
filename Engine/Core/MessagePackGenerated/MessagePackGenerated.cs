@@ -1630,7 +1630,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(7);
+            writer.WriteArrayHeader(8);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>().Serialize(ref writer, value.kind, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.ID);
@@ -1638,6 +1638,7 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>().Serialize(ref writer, value.transform, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>().Serialize(ref writer, value.components, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.layer, options);
+            writer.Write(value.enabled);
         }
 
         public global::Staple.Internal.SceneObject Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1676,6 +1677,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 6:
                         ____result.layer = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 7:
+                        ____result.enabled = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

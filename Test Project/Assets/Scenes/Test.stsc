@@ -1,97 +1,157 @@
 [
-	{
-		"kind": "Entity",
-		"name": "Camera",
-		"ID": 0,
-		"parent": -1,
-		"transform": {
-			"position": { "x": 0, "y": 0, "z": 0 },
-			"rotation": { "x": 0, "y": 0, "z": 0 },
-			"scale": { "x": 1, "y": 1, "z": 1 }
-		},
-		"components": [
-			{
-				"type": "Staple.Camera",
-				"data": {
-					"clearMode": "SolidColor",
-					"cameraType": "Orthographic",
-					"nearPlane": 0,
-					"clearColor": "#3366FF",
-					"cullingLayers": "Default"
-				}
-			},
-			{
-				"type": "TestGame.KeyboardControlComponent",
-				"data": {
-				}
-			}
-		]
-	},
-	{
-		"kind": "Entity",
-		"name": "Sprite",
-		"ID": 1,
-		"parent": -1,
-		"layer": "Other",
-		"transform": {
-			"position": { "x": 512, "y": 384, "z": 0 },
-			"rotation": { "x": 0, "y": 0, "z": 0 },
-			"scale": { "x": 0.5, "y": 0.5, "z": 0.5 }
-		},
-		"components": [
-			{
-				"type": "Staple.SpriteRenderer",
-				"data": {
-					"color": "#FFFFFF",
-					"material": "Materials/Sprite.mat",
-					"texture": "Textures/Sprites/DefaultSprite.png",
-					"spriteIndex": 0
-				}
-			},
-			{
-				"type": "TestGame.HighlightableComponent"
-			},
-			{
-				"type": "Staple.BoxCollider3D",
-				"data": {
-					"extents": {
-						"x": 100,
-						"y": 100,
-						"z": 100
-					},
-					"gravityFactor": 0
-				}
-			}
-		]
-	},
-	{
-		"kind": "Entity",
-		"name": "Child",
-		"ID": 2,
-		"parent": 1,
-		"transform": {
-			"position": { "x": 0, "y": 0, "z": 0 },
-			"rotation": { "x": 0, "y": 0, "z": 0 },
-			"scale": { "x": 0.5, "y": 0.5, "z": 0.5 }
-		},
-		"components": [
-			{
-				"type": "Staple.SpriteRenderer",
-				"data": {
-					"color": "#FFFFFF",
-					"material": "Materials/Sprite.mat",
-					"texture": "Textures/Sprites/DefaultSprite.png",
-					"spriteIndex": 0
-				}
-			},
-			{
-				"type": "TestGame.CircularMovementComponent",
-				"data": {
-					"speed": 200,
-					"distance": 400,
-					"followMouse": false
-				}
-			}
-		]
-	}
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 0,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "clearMode": "SolidColor",
+          "cameraType": "Orthographic",
+          "fov": 90.0,
+          "nearPlane": 0.0,
+          "farPlane": 1000.0,
+          "clearColor": "#3366FFFF",
+          "cullingLayers": 4294967295
+        }
+      },
+      {
+        "type": "TestGame.KeyboardControlComponent",
+        "data": {
+          "speed": 50.0,
+          "is3D": false
+        }
+      }
+    ],
+    "layer": null,
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Sprite",
+    "ID": 1,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 512.0,
+        "y": 384.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.SpriteRenderer",
+        "data": {
+          "material": "Materials/Sprite.mat",
+          "texture": "Textures/Sprites/DefaultSprite.png",
+          "spriteIndex": 0,
+          "color": "#FFFFFFFF",
+          "flipX": false,
+          "flipY": false,
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "renderingLayerMask": 0,
+          "sortingLayer": 0,
+          "sortingOrder": 0
+        }
+      },
+      {
+        "type": "TestGame.HighlightableComponent",
+        "data": {}
+      },
+      {
+        "type": "Staple.BoxCollider3D",
+        "data": {
+          "gravityFactor": 0.0,
+          "isTrigger": false,
+          "motionType": "Dynamic"
+        }
+      }
+    ],
+    "layer": null,
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Child",
+    "ID": 2,
+    "parent": 1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.SpriteRenderer",
+        "data": {
+          "material": "Materials/Sprite.mat",
+          "texture": "Textures/Sprites/DefaultSprite.png",
+          "spriteIndex": 0,
+          "color": "#FFFFFFFF",
+          "flipX": false,
+          "flipY": false,
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "renderingLayerMask": 0,
+          "sortingLayer": 0,
+          "sortingOrder": 0
+        }
+      },
+      {
+        "type": "TestGame.CircularMovementComponent",
+        "data": {
+          "t": 0.0,
+          "speed": 200.0,
+          "distance": 400.0,
+          "followMouse": false
+        }
+      }
+    ],
+    "layer": null,
+    "enabled": true
+  }
 ]

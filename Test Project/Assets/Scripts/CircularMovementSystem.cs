@@ -10,8 +10,13 @@ namespace TestGame
 
         public void Process(World world, float deltaTime)
         {
-            world.ForEach((Entity entity, ref CircularMovementComponent movement, ref Transform transform) =>
+            world.ForEach((Entity entity, bool enabled, ref CircularMovementComponent movement, ref Transform transform) =>
             {
+                if (enabled == false)
+                {
+                    return;
+                }
+
                 movement.t += deltaTime * movement.speed;
 
                 if (movement.followMouse)

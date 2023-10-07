@@ -168,6 +168,15 @@ namespace Staple.Editor
                     Scene.current.world.SetEntityName(selectedEntity, name);
                 }
 
+                var enabled = Scene.current.world.IsEntityEnabled(selectedEntity);
+
+                var newValue = EditorGUI.Toggle("Enabled", enabled);
+
+                if(newValue != enabled)
+                {
+                    Scene.current.world.SetEntityEnabled(selectedEntity, newValue);
+                }
+
                 var currentLayer = Scene.current.world.GetEntityLayer(selectedEntity);
                 var layers = LayerMask.AllLayers;
 

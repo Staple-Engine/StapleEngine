@@ -31,11 +31,13 @@ namespace Staple
 
                     try
                     {
-                        callback(new Entity()
+                        var e = new Entity()
                         {
                             ID = entity.ID,
                             generation = entity.generation,
-                        }, ref t);
+                        };
+
+                        callback(e, IsEntityEnabled(e, true), ref t);
 
                         componentsRepository[index].components[entity.ID] = t;
                     }
@@ -82,11 +84,13 @@ namespace Staple
 
                     try
                     {
-                        callback(new Entity()
+                        var e = new Entity()
                         {
                             ID = entity.ID,
                             generation = entity.generation,
-                        }, ref t, ref t2);
+                        };
+
+                        callback(e, IsEntityEnabled(e, true), ref t, ref t2);
 
                         componentsRepository[index].components[entity.ID] = t;
                         componentsRepository[index2].components[entity.ID] = t2;
@@ -140,11 +144,13 @@ namespace Staple
 
                     try
                     {
-                        callback(new Entity()
+                        var e = new Entity()
                         {
                             ID = entity.ID,
                             generation = entity.generation,
-                        }, ref t, ref t2, ref t3);
+                        };
+
+                        callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3);
 
                         componentsRepository[index].components[entity.ID] = t;
                         componentsRepository[index2].components[entity.ID] = t2;
@@ -205,11 +211,13 @@ namespace Staple
 
                     try
                     {
-                        callback(new Entity()
+                        var e = new Entity()
                         {
                             ID = entity.ID,
                             generation = entity.generation,
-                        }, ref t, ref t2, ref t3, ref t4);
+                        };
+
+                        callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4);
 
                         componentsRepository[index].components[entity.ID] = t;
                         componentsRepository[index2].components[entity.ID] = t2;
@@ -277,11 +285,13 @@ namespace Staple
 
                     try
                     {
-                        callback(new Entity()
+                        var e = new Entity()
                         {
                             ID = entity.ID,
                             generation = entity.generation,
-                        }, ref t, ref t2, ref t3, ref t4, ref t5);
+                        };
+
+                        callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4, ref t5);
 
                         componentsRepository[index].components[entity.ID] = t;
                         componentsRepository[index2].components[entity.ID] = t2;

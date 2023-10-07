@@ -26,8 +26,13 @@ namespace Staple.Editor
 
             if (Scene.current?.world != null)
             {
-                Scene.current.world.ForEach((Entity entity, ref Transform transform) =>
+                Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform transform) =>
                 {
+                    if(enabled == false)
+                    {
+                        return;
+                    }
+
                     foreach(var system in renderSystem.renderSystems)
                     {
                         var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());

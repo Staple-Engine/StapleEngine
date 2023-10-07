@@ -9,8 +9,13 @@ namespace TestGame
 
         public void Process(World world, float deltaTime)
         {
-            world.ForEach((Entity entity, ref KeyboardControlComponent component, ref Transform transform) =>
+            world.ForEach((Entity entity, bool enabled, ref KeyboardControlComponent component, ref Transform transform) =>
             {
+                if(enabled == false)
+                {
+                    return;
+                }
+
                 var direction = Vector3.Zero;
 
                 if (Input.GetKey(KeyCode.A))

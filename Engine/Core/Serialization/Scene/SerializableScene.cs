@@ -131,6 +131,9 @@ namespace Staple.Internal
 
         [Key(6)]
         public string layer;
+
+        [Key(7)]
+        public bool enabled;
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]

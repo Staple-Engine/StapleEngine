@@ -28,6 +28,87 @@ namespace Staple
         }
 
         /// <summary>
+        /// Checks whether an enity is enabled
+        /// </summary>
+        /// <param name="entity">The entity to check</param>
+        /// <returns>Whether the entity is enabled</returns>
+        public bool IsEntityEnabled(Entity entity, bool checkParent = false)
+        {
+            lock (lockObject)
+            {
+                if (entity.ID >= 0 &&
+                    entity.ID < entities.Count &&
+                    entities[entity.ID].alive &&
+                    entities[entity.ID].generation == entity.generation)
+                {
+                    if (entities[entity.ID].enabled == false)
+                    {
+                        return false;
+                    }
+
+                    if (checkParent == false)
+                    {
+                        return true;
+                    }
+
+                    var transform = GetComponent<Transform>(entity);
+
+                    if(transform == null)
+                    {
+                        return true;
+                    }
+
+                    bool Recursive(Transform t)
+                    {
+                        if(t == null)
+                        {
+                            return true;
+                        }
+
+                        if(IsEntityEnabled(t.entity, false) == false)
+                        {
+                            return false;
+                        }
+
+                        if(t.parent != null)
+                        {
+                            return Recursive(t.parent);
+                        }
+
+                        return true;
+                    }
+
+                    return Recursive(transform.parent);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Enables or disables an entity
+        /// </summary>
+        /// <param name="entity">The entity to change</param>
+        /// <param name="enabled">Whether it should be enabled</param>
+        public void SetEntityEnabled(Entity entity, bool enabled)
+        {
+            lock (lockObject)
+            {
+                if (entity.ID >= 0 &&
+                    entity.ID < entities.Count &&
+                    entities[entity.ID].alive &&
+                    entities[entity.ID].generation == entity.generation)
+                {
+                    var e = entities[entity.ID];
+                    
+                    e.enabled = enabled;
+
+                    entities[entity.ID] = e;
+                }
+            }
+        }
+
+        /// <summary>
         /// Creates an empty entity. It might be a recycled entity.
         /// </summary>
         /// <returns>The entity</returns>
@@ -42,6 +123,7 @@ namespace Staple
                         var other = entities[i];
 
                         other.alive = true;
+                        other.enabled = true;
 
                         entities[i] = other;
 
@@ -57,6 +139,7 @@ namespace Staple
                 {
                     ID = entities.Count,
                     alive = true,
+                    enabled = true,
                     components = new List<int>(),
                     name = DefaultEntityName,
                 };

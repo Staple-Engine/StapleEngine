@@ -183,6 +183,21 @@ namespace Staple
 
             var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
 
+            foreach (var pair in bodies)
+            {
+                if(Scene.current.world.IsEntityEnabled(pair.entity) == false)
+                {
+                    if(pair.body.IsActive)
+                    {
+                        physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
+                    }
+                }
+                else if(pair.body.IsActive == false)
+                {
+                    physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
+                }
+            }
+
             physicsSystem.Update(deltaTime, collisionSteps, allocator, jobThreadPool);
 
             foreach(var pair in bodies)
