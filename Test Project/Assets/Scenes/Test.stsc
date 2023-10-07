@@ -77,6 +77,7 @@
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
+          "animation": "Animations/OpossumWalk.asset",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -152,6 +153,6 @@
       }
     ],
     "layer": null,
-    "enabled": true
+    "enabled": false
   }
 ]

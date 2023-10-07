@@ -271,6 +271,8 @@ namespace Staple.Editor
                 StartInfo = processInfo
             };
 
+            Log.Debug($"[Build] dotnet {args}");
+
             if (process.Start())
             {
                 while (process.HasExited == false)

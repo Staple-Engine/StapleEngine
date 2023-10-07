@@ -75,7 +75,7 @@ namespace Staple.Internal
 
             unsafe
             {
-                return (int)(face.Size.Metrics.Height >> 6);
+                return face.Size.Metrics.Height.Value >> 6;
             }
         }
 
@@ -93,7 +93,7 @@ namespace Staple.Internal
 
             var kerning = face.GetKerning(fromIndex, toIndex, SharpFont.KerningMode.Default);
 
-            return (int)(kerning.X >> 6);
+            return kerning.X.Value >> 6;
         }
 
         public Glyph LoadGlyph(char character, TextParameters parameters)
@@ -113,7 +113,7 @@ namespace Staple.Internal
 
             var desc = face.Glyph.GetGlyph();
 
-            var origin = new SharpFont.FTVector();
+            var origin = new SharpFont.FTVector26Dot6();
 
             desc.ToBitmap(SharpFont.RenderMode.Normal, origin, true);
 
@@ -121,7 +121,7 @@ namespace Staple.Internal
 
             var bitmap = bitmapGlyph.Bitmap;
 
-            glyph.advance = (int)(bitmapGlyph.Root.Advance.X >> 16);
+            glyph.advance = bitmapGlyph.Root.Advance.X.Value >> 16;
 
             var width = (int)bitmap.Width;
             var height = (int)bitmap.Rows;

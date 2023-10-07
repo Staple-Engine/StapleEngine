@@ -36,13 +36,13 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
-project "FreeTypeSharp"
+project "SharpFont"
 	kind "SharedLib"
 	language "C#"
 	clr "Unsafe"
 	
 	files {
-		"FreeTypeSharp/**.cs"
+		"SharpFont/**.cs"
 	}
 
 project "NfdSharp"

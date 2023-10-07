@@ -56,7 +56,7 @@
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
 	<Reference Include="SharpFont">
-		<HintPath>..\..\Dependencies\SharpFont\SharpFont.dll</HintPath>
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\SharpFont.dll</HintPath>
 	</Reference>
 	<Reference Include="JoltPhysicsSharp">
 	    <HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>

@@ -251,8 +251,8 @@ namespace Staple.Editor
                 });
             }
 
-            p.AddItem("Reference", "FreeTypeSharp", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "FreeTypeSharp.dll"))
+            p.AddItem("Reference", "SharpFont", new KeyValuePair<string, string>[] {
+                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "SharpFont.dll"))
             });
 
             p.AddItem("ProjectReference", typeRegistrationPath,
@@ -260,6 +260,12 @@ namespace Staple.Editor
                     new("OutputItemType", "Analyzer"),
                     new("ReferenceOutputAssembly", "false")
                 });
+
+            var trimmerRootAssemblies = p.Xml.AddItemGroup();
+
+            trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player");
+            trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore");
+            trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "SharpFont");
 
             switch (platform)
             {

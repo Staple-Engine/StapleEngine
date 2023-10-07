@@ -140,6 +140,7 @@ namespace Staple
             var entity = CreateEntity();
 
             world.SetEntityName(entity, sceneObject.name);
+            world.SetEntityEnabled(entity, sceneObject.enabled);
 
             var layer = LayerMask.NameToLayer(sceneObject.layer);
 

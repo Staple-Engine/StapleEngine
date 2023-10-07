@@ -42,6 +42,7 @@ namespace Staple
                 void HandleNamedSymbol(INamedTypeSymbol t, string baseTypeName)
                 {
                     if (t.IsAbstract || t.IsGenericType ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == "RequiresUnreferencedCodeAttribute") ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
                     {
@@ -84,6 +85,7 @@ namespace Staple
                 void HandleSymbol(ISymbol t)
                 {
                     if (t.IsAbstract ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == "RequiresUnreferencedCodeAttribute") ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
                     {
