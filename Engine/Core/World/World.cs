@@ -159,6 +159,7 @@ namespace Staple
         }
 
         private readonly object lockObject = new();
+        private bool collectionModified = false;
         private readonly List<EntityInfo> entities = new();
         private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
     }

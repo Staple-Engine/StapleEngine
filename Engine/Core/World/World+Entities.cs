@@ -151,6 +151,8 @@ namespace Staple
                     pair.Value.AddComponent();
                 }
 
+                collectionModified = true;
+
                 return new Entity()
                 {
                     ID = newEntity.ID,
@@ -180,6 +182,8 @@ namespace Staple
 
                     e.generation++;
                     e.name = DefaultEntityName;
+
+                    collectionModified = true;
 
                     entities[e.ID] = e;
                 }

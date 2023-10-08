@@ -22,9 +22,16 @@ namespace Staple.Editor
 
             if (Scene.current != null)
             {
+                bool skip = false;
+
                 void Recursive(Transform transform)
                 {
-                    var flags = ImGuiTreeNodeFlags.SpanFullWidth;
+                    if(skip)
+                    {
+                        return;
+                    }
+
+                    var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow;
 
                     if (transform.ChildCount == 0)
                     {
@@ -35,35 +42,68 @@ namespace Staple.Editor
 
                     if (ImGui.TreeNodeEx($"{entityName}##0", flags))
                     {
-                        if (ImGui.IsItemClicked() && ImGui.IsItemToggledOpen() == false)
+                        if (ImGui.IsItemHovered())
                         {
-                            selectedEntity = transform.entity;
-                            selectedProjectNode = null;
-                            selectedProjectNodeData = null;
-
-                            cachedEditors.Clear();
-                            EditorGUI.pendingObjectPickers.Clear();
-
-                            showingAssetPicker = false;
-
-                            var counter = 0;
-
-                            Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                            if(ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                             {
-                                counter++;
+                                ImGui.OpenPopup($"{transform.entity.ID}_Context");
+                            }
+                            else if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                            {
+                                selectedEntity = transform.entity;
+                                selectedProjectNode = null;
+                                selectedProjectNodeData = null;
 
-                                if (component is Transform transform)
+                                cachedEditors.Clear();
+                                EditorGUI.pendingObjectPickers.Clear();
+
+                                showingAssetPicker = false;
+
+                                var counter = 0;
+
+                                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
                                 {
-                                    return;
+                                    counter++;
+
+                                    if (component is Transform transform)
+                                    {
+                                        return;
+                                    }
+
+                                    var editor = Editor.CreateEditor(component);
+
+                                    if (editor != null)
+                                    {
+                                        cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
+                                    }
+                                });
+                            }
+                        }
+
+                        if (ImGui.BeginPopup($"{transform.entity.ID}_Context"))
+                        {
+                            if (ImGui.MenuItem("Delete"))
+                            {
+                                void Recursive(Transform transform)
+                                {
+                                    foreach (var child in transform)
+                                    {
+                                        Recursive(child);
+                                    }
+
+                                    Scene.current.world.DestroyEntity(transform.entity);
                                 }
 
-                                var editor = Editor.CreateEditor(component);
+                                Recursive(transform);
 
-                                if(editor != null)
-                                {
-                                    cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
-                                }
-                            });
+                                ImGui.EndPopup();
+
+                                skip = true;
+
+                                return;
+                            }
+
+                            ImGui.EndPopup();
                         }
 
                         foreach (var child in transform)
@@ -88,6 +128,11 @@ namespace Staple.Editor
                 Scene.current.world.Iterate((entity) =>
                 {
                     var transform = Scene.current.GetComponent<Transform>(entity);
+
+                    if(transform == null)
+                    {
+                        return;
+                    }
 
                     if (transform.parent == null)
                     {

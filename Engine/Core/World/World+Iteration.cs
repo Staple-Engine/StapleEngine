@@ -20,6 +20,8 @@ namespace Staple
                     return;
                 }
 
+                collectionModified = false;
+
                 foreach (var entity in entities)
                 {
                     if (entity.alive == false || entity.components.Contains(index) == false)
@@ -45,6 +47,11 @@ namespace Staple
                     {
                         Log.Error($"Failed to process entity {entity.ID}: {e}");
                     }
+
+                    if (collectionModified)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -69,6 +76,8 @@ namespace Staple
                 {
                     return;
                 }
+
+                collectionModified = false;
 
                 foreach (var entity in entities)
                 {
@@ -99,6 +108,11 @@ namespace Staple
                     {
                         Log.Error($"Failed to process entity {entity.ID}: {e}");
                     }
+
+                    if (collectionModified)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -127,6 +141,8 @@ namespace Staple
                 {
                     return;
                 }
+
+                collectionModified = false;
 
                 foreach (var entity in entities)
                 {
@@ -160,6 +176,11 @@ namespace Staple
                     {
                         Log.Error($"Failed to process entity {entity.ID}: {e}");
                     }
+
+                    if (collectionModified)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -192,6 +213,8 @@ namespace Staple
                 {
                     return;
                 }
+
+                collectionModified = false;
 
                 foreach (var entity in entities)
                 {
@@ -227,6 +250,11 @@ namespace Staple
                     catch (Exception e)
                     {
                         Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    }
+
+                    if (collectionModified)
+                    {
+                        return;
                     }
                 }
             }
@@ -265,6 +293,8 @@ namespace Staple
                     return;
                 }
 
+                collectionModified = false;
+
                 foreach (var entity in entities)
                 {
                     if (entity.alive == false ||
@@ -302,6 +332,11 @@ namespace Staple
                     catch (Exception e)
                     {
                         Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    }
+
+                    if (collectionModified)
+                    {
+                        return;
                     }
                 }
             }
@@ -398,6 +433,11 @@ namespace Staple
                         ID = entity.ID,
                         generation = entity.generation,
                     });
+
+                    if (collectionModified)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -430,6 +470,11 @@ namespace Staple
                     callback(ref component);
 
                     componentsRepository[index].components[e.ID] = component;
+                }
+
+                if (collectionModified)
+                {
+                    return;
                 }
             }
         }
