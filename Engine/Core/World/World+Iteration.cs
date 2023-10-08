@@ -469,6 +469,11 @@ namespace Staple
 
                     callback(ref component);
 
+                    if(collectionModified)
+                    {
+                        return;
+                    }
+
                     componentsRepository[index].components[e.ID] = component;
                 }
 

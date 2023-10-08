@@ -39,6 +39,12 @@ namespace Staple.Editor
                             {
                                 registeredAssetTypes.AddOrSetKey(type.FullName, type);
                             }
+                            else if(typeof(IComponent).IsAssignableFrom(type) &&
+                                type.IsInterface == false &&
+                                type.GetCustomAttribute<AbstractComponentAttribute>() == null)
+                            {
+                                registeredComponents.Add(type);
+                            }
                         }
                     }
                 }
@@ -48,6 +54,8 @@ namespace Staple.Editor
             }
 
             Editor.UpdateEditorTypes();
+
+            registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
         }
 
         public void UnloadGame()
@@ -90,6 +98,7 @@ namespace Staple.Editor
         {
             TypeCache.Clear();
             registeredAssetTypes.Clear();
+            registeredComponents.Clear();
 
             var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
 
@@ -110,6 +119,12 @@ namespace Staple.Editor
                 if(typeof(IStapleAsset).IsAssignableFrom(v))
                 {
                     registeredAssetTypes.AddOrSetKey(v.FullName, v);
+                }
+                else if(typeof(IComponent).IsAssignableFrom(v) &&
+                    v.IsInterface == false &&
+                    v.GetCustomAttribute<AbstractComponentAttribute>() == null)
+                {
+                    registeredComponents.Add(v);
                 }
             }
         }

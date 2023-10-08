@@ -3,6 +3,7 @@
     /// <summary>
     /// Renderable base component
     /// </summary>
+    [AbstractComponent]
     public class Renderable : IComponent
     {
         /// <summary>

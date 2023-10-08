@@ -158,6 +158,8 @@ namespace Staple.Editor
 
         private Dictionary<string, Type> registeredAssetTypes = new();
 
+        private List<Type> registeredComponents = new();
+
         public static WeakReference<StapleEditor> instance;
 
         public void Run()

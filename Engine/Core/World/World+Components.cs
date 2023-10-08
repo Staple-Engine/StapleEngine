@@ -115,7 +115,10 @@ namespace Staple
         {
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return default;
                 }
@@ -174,6 +177,8 @@ namespace Staple
                     info.components[entity.ID] = component;
                 }
 
+                collectionModified = true;
+
                 return info.components[entity.ID];
             }
         }
@@ -197,7 +202,10 @@ namespace Staple
         {
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return;
                 }
@@ -212,6 +220,8 @@ namespace Staple
                     }
 
                     entities[entity.ID].components.Remove(componentIndex);
+
+                    collectionModified = true;
                 }
             }
         }
@@ -231,7 +241,10 @@ namespace Staple
 
             lock (lockObject)
             {
-                if (entity.ID < 0 || entity.ID >= entities.Count || entities[entity.ID].alive == false || entities[entity.ID].generation != entity.generation)
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return default;
                 }
@@ -271,20 +284,16 @@ namespace Staple
             {
                 var componentIndex = ComponentIndex(component.GetType());
 
-                if (componentIndex < 0)
+                if (componentIndex < 0 ||
+                    entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
                 {
                     return;
                 }
 
-                foreach (var e in entities)
-                {
-                    if (e.ID != entity.ID || e.generation != entity.generation || e.alive == false)
-                    {
-                        continue;
-                    }
-
-                    componentsRepository[componentIndex].components[e.ID] = component;
-                }
+                componentsRepository[componentIndex].components[entity.ID] = component;
             }
         }
     }

@@ -282,7 +282,7 @@ namespace Staple.Editor
 
                 Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
                 {
-                    if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth))
+                    if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow))
                     {
                         if (component is Transform transform)
                         {
@@ -299,15 +299,27 @@ namespace Staple.Editor
 
                             transform.LocalScale = EditorGUI.Vector3Field("Scale", transform.LocalScale);
                         }
-                        else if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
-                        {
-                            editor.OnInspectorGUI();
-                        }
                         else
                         {
-                            defaultEditor.target = component;
+                            if(ImGui.SmallButton("X"))
+                            {
+                                Scene.current.world.RemoveComponent(selectedEntity, component.GetType());
 
-                            defaultEditor.OnInspectorGUI();
+                                ImGui.TreePop();
+
+                                return;
+                            }
+
+                            if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
+                            {
+                                editor.OnInspectorGUI();
+                            }
+                            else
+                            {
+                                defaultEditor.target = component;
+
+                                defaultEditor.OnInspectorGUI();
+                            }
                         }
 
                         Scene.current.UpdateComponent(selectedEntity, component);
@@ -315,6 +327,48 @@ namespace Staple.Editor
                         ImGui.TreePop();
                     }
                 });
+
+                if(ImGui.Button("Add Component"))
+                {
+                    ImGui.OpenPopup("SelectedEntityComponentList");
+                }
+
+                if(ImGui.BeginPopup("SelectedEntityComponentList"))
+                {
+                    ImGui.SetNextWindowPos(new Vector2(ImGui.GetItemRectMin().X, ImGui.GetItemRectMax().Y));
+                    ImGui.SetNextWindowSize(new Vector2(ImGui.GetContentRegionAvail().X, 0));
+
+                    if(ImGui.Begin("##ComponentsList", ImGuiWindowFlags.NoTitleBar |
+                        ImGuiWindowFlags.NoMove |
+                        ImGuiWindowFlags.NoResize |
+                        ImGuiWindowFlags.Tooltip |
+                        ImGuiWindowFlags.NoFocusOnAppearing |
+                        ImGuiWindowFlags.ChildWindow))
+                    {
+                        foreach(var component in registeredComponents)
+                        {
+                            if(Scene.current.world.GetComponent(selectedEntity, component) != null)
+                            {
+                                continue;
+                            }
+
+                            ImGui.Selectable($"{component.Name}##0");
+
+                            if (ImGui.IsItemClicked())
+                            {
+                                Scene.current.world.AddComponent(selectedEntity, component);
+
+                                ImGui.CloseCurrentPopup();
+
+                                break;
+                            }
+                        }
+
+                        ImGui.End();
+                    }
+
+                    ImGui.EndPopup();
+                }
             }
             else if(selectedProjectNode != null && selectedProjectNodeData != null)
             {

@@ -2,6 +2,9 @@
 
 namespace Staple
 {
+    /// <summary>
+    /// Sets a category for a staple asset
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public class AssetCategoryAttribute : Attribute
     {

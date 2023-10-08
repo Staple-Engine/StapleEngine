@@ -1,5 +1,6 @@
 ﻿namespace Staple
 {
+    [AbstractComponent]
     public class Collider3D : IComponent
     {
         /// <summary>
