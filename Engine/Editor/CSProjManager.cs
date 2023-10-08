@@ -129,7 +129,7 @@ namespace Staple.Editor
             p.Save(Path.Combine(projectDirectory, "Game.csproj"));
         }
 
-        public void GeneratePlayerCSProj(AppPlatform platform, AppSettings projectAppSettings, bool debug)
+        public void GeneratePlayerCSProj(AppPlatform platform, AppSettings projectAppSettings, bool debug, bool nativeAOT)
         {
             using var collection = new ProjectCollection();
 
@@ -201,8 +201,20 @@ namespace Staple.Editor
                 case AppPlatform.Linux:
                 case AppPlatform.MacOSX:
 
-                    p.SetProperty("PublishAOT", "true");
-                    p.SetProperty("IsAOTCompatible", "true");
+                    if(nativeAOT)
+                    {
+                        p.SetProperty("PublishAOT", "true");
+                        p.SetProperty("IsAOTCompatible", "true");
+                    }
+                    else
+                    {
+                        p.SetProperty("PublishTrimmed", "true");
+                        p.SetProperty("PublishSingleFile", "true");
+                        p.SetProperty("IsTrimmable", "true");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                    }
 
                     break;
 

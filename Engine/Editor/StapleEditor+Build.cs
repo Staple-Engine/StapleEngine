@@ -7,7 +7,7 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        public void BuildPlayer(AppPlatform platform, string outPath, bool debug)
+        public void BuildPlayer(AppPlatform platform, string outPath, bool debug, bool nativeAOT)
         {
             lock(backgroundLock)
             {
@@ -19,7 +19,7 @@ namespace Staple.Editor
             var projectPath = Path.Combine(projectDirectory, "Player.csproj");
             var configurationName = debug ? "Debug" : "Release";
 
-            csProjManager.GeneratePlayerCSProj(platform, projectAppSettings, debug);
+            csProjManager.GeneratePlayerCSProj(platform, projectAppSettings, debug, nativeAOT);
 
             RefreshStaging(platform, false);
 
@@ -229,34 +229,12 @@ namespace Staple.Editor
                     break;
             }
 
-            switch(platform)
+            args = platform switch
             {
-                case AppPlatform.Windows:
-                case AppPlatform.Linux:
-                case AppPlatform.MacOSX:
-
-                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained";
-
-                    break;
-
-                case AppPlatform.Android:
-
-                    args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-android";
-
-                    break;
-
-                case AppPlatform.iOS:
-
-                    args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-ios";
-
-                    break;
-
-                default:
-
-                    args = $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained";
-
-                    break;
-            }
+                AppPlatform.Android => $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-android",
+                AppPlatform.iOS => $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-ios",
+                _ => $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained",
+            };
 
             processInfo = new ProcessStartInfo("dotnet", args)
             {

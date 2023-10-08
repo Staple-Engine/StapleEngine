@@ -122,6 +122,8 @@ namespace Staple.Editor
 
         private bool buildPlayerDebug = false;
 
+        private bool buildPlayerNativeAOT = false;
+
         internal bool showingProgress = false;
 
         internal bool wasShowingProgress = false;

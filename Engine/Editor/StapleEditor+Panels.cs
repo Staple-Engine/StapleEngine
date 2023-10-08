@@ -797,19 +797,9 @@ namespace Staple.Editor
             {
                 ImGui.Begin("Build", ImGuiWindowFlags.NoDocking);
 
-                var values = Enum.GetValues<AppPlatform>()
-                    .Where(x => projectAppSettings.renderers.Keys.Any(y => y == x))
-                    .ToList();
-
-                var current = values.IndexOf(buildPlatform);
-
-                var valueStrings = values
-                    .Select(x => x.ToString())
-                    .ToArray();
-
-                buildPlatform = values[EditorGUI.Dropdown("Platform", valueStrings, current)];
-
+                buildPlatform = EditorGUI.EnumDropdown("Platform", buildPlatform);
                 buildPlayerDebug = EditorGUI.Toggle("Debug Build", buildPlayerDebug);
+                buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", buildPlayerNativeAOT);
 
                 if(EditorGUI.Button("Build"))
                 {
@@ -824,7 +814,7 @@ namespace Staple.Editor
 
                         StartBackgroundTask((ref float progressFraction) =>
                         {
-                            BuildPlayer(buildPlatform, path, buildPlayerDebug);
+                            BuildPlayer(buildPlatform, path, buildPlayerDebug, buildPlayerNativeAOT);
 
                             return true;
                         });
@@ -835,7 +825,9 @@ namespace Staple.Editor
                     }
                 }
 
-                if(EditorGUI.Button("Close"))
+                EditorGUI.SameLine();
+
+                if (EditorGUI.Button("Close"))
                 {
                     showingBuildWindow = false;
                 }
