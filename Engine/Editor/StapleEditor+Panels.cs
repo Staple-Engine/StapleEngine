@@ -82,6 +82,23 @@ namespace Staple.Editor
 
                         if (ImGui.BeginPopup($"{transform.entity.ID}_Context"))
                         {
+                            if (ImGui.MenuItem("Create Entity"))
+                            {
+                                var entity = Scene.current.world.CreateEntity();
+
+                                var t = Scene.current.world.AddComponent<Transform>(entity);
+
+                                t.entity = entity;
+
+                                t.SetParent(transform);
+
+                                ImGui.EndPopup();
+
+                                skip = true;
+
+                                return;
+                            }
+
                             if (ImGui.MenuItem("Delete"))
                             {
                                 void Recursive(Transform transform)
@@ -139,6 +156,27 @@ namespace Staple.Editor
                         Recursive(transform);
                     }
                 });
+            }
+
+            if(ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            {
+                ImGui.OpenPopup("EntityPanelContext");
+            }
+
+            if(ImGui.BeginPopup("EntityPanelContext"))
+            {
+                if(ImGui.MenuItem("Create Entity"))
+                {
+                    var entity = Scene.current.world.CreateEntity();
+
+                    var transform = Scene.current.world.AddComponent<Transform>(entity);
+
+                    transform.entity = entity;
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndPopup();
             }
 
             ImGui.EndChildFrame();
