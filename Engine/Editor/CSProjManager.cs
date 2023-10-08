@@ -45,6 +45,8 @@ namespace Staple.Editor
                 { "PublishAOT", "true" },
                 { "IsAOTCompatible", "true" },
                 { "AppDesignerFolder", "Properties" },
+                { "TieredCompilation", "false" },
+                { "PublishReadyToRun", "false" },
             };
 
             var platformDefinesString = "";
@@ -155,6 +157,8 @@ namespace Staple.Editor
                 { "OptimizationPreference", "Speed" },
                 { "Nullable", "enable" },
                 { "AllowUnsafeBlocks", "true" },
+                { "TieredCompilation", "false" },
+                { "PublishReadyToRun", "false" },
             };
 
             var platformDefinesString = "";
