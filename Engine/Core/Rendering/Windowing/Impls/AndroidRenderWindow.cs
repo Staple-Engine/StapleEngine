@@ -23,6 +23,8 @@ namespace Staple.Internal
 
         public bool Maximized => false;
 
+        public Vector2Int Position { get; set; }
+
         public void Mutate(Action<AndroidRenderWindow> callback)
         {
             lock(lockObject)
@@ -83,7 +85,7 @@ namespace Staple.Internal
             }
         }
 
-        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, bool maximized, int monitorIndex)
+        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position, bool maximized, int monitorIndex)
         {
             return true;
         }

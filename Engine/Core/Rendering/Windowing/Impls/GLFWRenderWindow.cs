@@ -1,5 +1,6 @@
 ﻿#if !ANDROID
 using GLFW;
+using System;
 using System.Linq;
 
 namespace Staple.Internal
@@ -7,6 +8,10 @@ namespace Staple.Internal
     internal class GLFWRenderWindow : IRenderWindow
     {
         public NativeWindow window;
+
+        private bool movedWindow = false;
+        private DateTime movedWindowTimer;
+        private Vector2Int previousWindowPosition;
 
         public bool ContextLost { get; set; } = false;
 
@@ -18,22 +23,38 @@ namespace Staple.Internal
 
         public bool Maximized => window?.Maximized ?? false;
 
+        public Vector2Int Position
+        {
+            get => new(window.Position.X, window.Position.Y);
+
+            set => window.Position = new System.Drawing.Point(value.X, value.Y);
+        }
+
         public int MonitorIndex
         {
             get
             {
-                if(window == null)
+                if(window == null || window.Monitor == Monitor.None)
                 {
                     return 0;
                 }
 
-                //TODO
+                var monitors = Glfw.Monitors;
+
+                for(var i = 0; i < monitors.Length; i++)
+                {
+                    if (monitors[i] == window.Monitor)
+                    {
+                        return i;
+                    }
+                }
 
                 return 0;
             }
         }
 
-        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, bool maximized, int monitorIndex)
+        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position,
+            bool maximized, int monitorIndex)
         {
             Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
             Glfw.WindowHint(Hint.Resizable, resizable);
@@ -51,8 +72,13 @@ namespace Staple.Internal
 
                     window = new NativeWindow(width, height, title)
                     {
-                        Maximized = maximized
+                        Maximized = maximized,
                     };
+
+                    if(position.HasValue)
+                    {
+                        window.Position = new System.Drawing.Point(position.Value.X, position.Value.Y);
+                    }
 
                     break;
 
@@ -167,6 +193,23 @@ namespace Staple.Internal
         public void PollEvents()
         {
             Glfw.PollEvents();
+
+            var windowPosition = new Vector2Int(window.Position.X, window.Position.Y);
+
+            if(previousWindowPosition != windowPosition)
+            {
+                previousWindowPosition = windowPosition;
+
+                movedWindow = true;
+                movedWindowTimer = DateTime.Now;
+            }
+
+            if (movedWindow && (DateTime.Now - movedWindowTimer).TotalSeconds >= 1.0f)
+            {
+                movedWindow = false;
+
+                AppEventQueue.instance.Add(AppEvent.MoveWindow(windowPosition));
+            }
         }
 
         public void Init()

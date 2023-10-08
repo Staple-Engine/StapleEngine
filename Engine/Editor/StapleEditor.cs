@@ -198,6 +198,7 @@ namespace Staple.Editor
             playerSettings = PlayerSettings.Load(editorSettings);
 
             window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
+                playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
                 playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             if(window == null)
@@ -443,6 +444,13 @@ namespace Staple.Editor
 
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+            };
+
+            window.OnMove = (position) =>
+            {
+                playerSettings.windowPosition = position;
+
+                PlayerSettings.Save(playerSettings);
             };
 
             window.OnCleanup = () =>

@@ -28,14 +28,15 @@ namespace Staple.Internal
         internal bgfx.ResetFlags resetFlags;
         internal bool shouldStop = false;
         internal bool shouldRender = true;
+        internal object renderLock = new();
 
         public Action OnFixedUpdate;
         public Action OnUpdate;
         public Action OnInit;
         public Action OnCleanup;
         public Action<bool> OnScreenSizeChange;
+        public Action<Vector2Int> OnMove;
         public AppSettings appSettings;
-        public object renderLock = new();
 
         public int Width => width;
 
@@ -640,13 +641,25 @@ namespace Staple.Internal
 
                         break;
 
-                    case AppEventType.Maximize:
+                    case AppEventType.MaximizeWindow:
 
                         try
                         {
                             OnScreenSizeChange?.Invoke(hasFocus);
                         }
                         catch(Exception)
+                        {
+                        }
+
+                        break;
+
+                    case AppEventType.MoveWindow:
+
+                        try
+                        {
+                            OnMove?.Invoke(window.Position);
+                        }
+                        catch (Exception)
                         {
                         }
 
@@ -743,15 +756,20 @@ namespace Staple.Internal
         /// <param name="resizable">Whether it should be resizable</param>
         /// <param name="windowMode">The window mode</param>
         /// <param name="appSettings">Application Settings</param>
+        /// <param name="maximized">Whether the window should be maximized</param>
+        /// <param name="position">A specific position for the window, or null for default</param>
         /// <param name="monitorIndex">The monitor index to use</param>
         /// <param name="resetFlags">The starting reset flags</param>
         /// <returns>The window, or null</returns>
         public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
-            AppSettings appSettings, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
+            AppSettings appSettings, Vector2Int? position, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
             var resizableString = resizable ? "Resizable" : "Not resizable";
+            var maximizedString = maximized ? "Maximized" : "Normal";
+            var positionString = position.HasValue ? position.Value.ToString() : "(default)";
 
-            Log.Info($"[RenderWindow] Creating {windowMode} window {appSettings.appName} with size {width}x{height} ({resizableString}) for monitor {monitorIndex}");
+            Log.Info($"[RenderWindow] Creating {windowMode} window {appSettings.appName} with size {width}x{height} at {positionString} " +
+                $"({resizableString}, {maximizedString}) for monitor {monitorIndex}");
 
             if (windowReferences > 0)
             {
@@ -794,7 +812,7 @@ namespace Staple.Internal
             var originalWidth = width;
             var originalHeight = height;
 
-            if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, maximized, monitorIndex) == false)
+            if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, position, maximized, monitorIndex) == false)
             {
                 Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {originalWidth}x{originalHeight}");
 

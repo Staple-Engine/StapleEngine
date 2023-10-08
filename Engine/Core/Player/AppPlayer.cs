@@ -55,8 +55,9 @@ namespace Staple
             playerSettings = PlayerSettings.Load(appSettings);
             PlayerSettings.Save(playerSettings);
 
-            var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-                appSettings, playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+            var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode, appSettings,
+                playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
+                playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             renderWindow.OnInit = () =>
             {
@@ -155,6 +156,13 @@ namespace Staple
             renderWindow.OnUpdate = () =>
             {
                 SubsystemManager.instance.Update(SubsystemType.Update);
+            };
+
+            renderWindow.OnMove = (position) =>
+            {
+                playerSettings.windowPosition = position;
+
+                PlayerSettings.Save(playerSettings);
             };
 
             renderWindow.OnScreenSizeChange = (focus) =>

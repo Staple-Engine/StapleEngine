@@ -13,7 +13,8 @@ namespace Staple.Internal
         MouseUp,
         MouseDelta,
         Text,
-        Maximize,
+        MaximizeWindow,
+        MoveWindow,
     }
 
     internal enum InputState
@@ -84,12 +85,22 @@ namespace Staple.Internal
         public Bgfx.bgfx.ResetFlags resetFlags;
         public Vector2 mouseDelta;
         public bool maximized;
+        public Vector2Int windowPosition;
+
+        public static AppEvent MoveWindow(Vector2Int position)
+        {
+            return new()
+            {
+                type = AppEventType.MoveWindow,
+                windowPosition = position,
+            };
+        }
 
         public static AppEvent Maximize(bool maximized)
         {
             return new()
             {
-                type = AppEventType.Maximize,
+                type = AppEventType.MaximizeWindow,
                 maximized = maximized,
             };
         }

@@ -21,6 +21,8 @@ namespace Staple
 
         public int monitorIndex { get; set; } = 0;
 
+        public Vector2Int windowPosition { get; set; }
+
         public bool maximized { get; set; } = false;
 
         [JsonIgnore]
@@ -68,8 +70,9 @@ namespace Staple
         }
     }
 
-    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true, IncludeFields = true)]
     [JsonSerializable(typeof(PlayerSettings))]
+    [JsonSerializable(typeof(Vector2Int))]
     [JsonSerializable(typeof(WindowMode))]
     [JsonSerializable(typeof(VideoFlags))]
     [JsonSerializable(typeof(int))]
