@@ -85,7 +85,6 @@
     <Compile Include="Entities\MeshRenderer.cs" />
     <Compile Include="Entities\Renderable.cs" />
     <Compile Include="Export\Export.cs" />
-    <Compile Include="External\MaxRectsBinPack.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\StbImageResize.cs" />
@@ -117,7 +116,11 @@
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
     <Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
-    <Compile Include="Math\Rect.cs" />
+	<Compile Include="External\StbRectPackSharp\src\CRuntime.cs" />
+	<Compile Include="External\StbRectPackSharp\src\Packer.cs" />
+	<Compile Include="External\StbRectPackSharp\src\StbRectPack.cs" />
+	<Compile Include="External\StbRectPackSharp\src\StbRectPack.Generated.cs" />
+	<Compile Include="Math\Rect.cs" />
     <Compile Include="Math\RectFloat.cs" />
     <Compile Include="Math\Vector2Int.cs" />
     <Compile Include="MessagePackGenerated\MessagePackGenerated.cs" />
