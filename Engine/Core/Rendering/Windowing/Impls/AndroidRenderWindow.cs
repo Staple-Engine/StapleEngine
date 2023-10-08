@@ -19,6 +19,10 @@ namespace Staple.Internal
 
         public static AndroidRenderWindow Instance = new();
 
+        public int MonitorIndex => 0;
+
+        public bool Maximized => false;
+
         public void Mutate(Action<AndroidRenderWindow> callback)
         {
             lock(lockObject)
@@ -79,7 +83,7 @@ namespace Staple.Internal
             }
         }
 
-        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex)
+        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, bool maximized, int monitorIndex)
         {
             return true;
         }

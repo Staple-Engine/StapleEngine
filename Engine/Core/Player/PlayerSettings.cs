@@ -12,10 +12,16 @@ namespace Staple
     internal class PlayerSettings
     {
         public WindowMode windowMode { get; set; } = WindowMode.Windowed;
+
         public VideoFlags videoFlags { get; set; } = VideoFlags.Vsync;
+
         public int screenWidth { get; set; }
+
         public int screenHeight { get; set; }
+
         public int monitorIndex { get; set; } = 0;
+
+        public bool maximized { get; set; } = false;
 
         [JsonIgnore]
         public int AALevel
@@ -37,7 +43,7 @@ namespace Staple
 
                 return JsonSerializer.Deserialize(data, PlayerSettingsSerializationContext.Default.PlayerSettings);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 return new PlayerSettings()
                 {
@@ -67,6 +73,7 @@ namespace Staple
     [JsonSerializable(typeof(WindowMode))]
     [JsonSerializable(typeof(VideoFlags))]
     [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(bool))]
     internal partial class PlayerSettingsSerializationContext : JsonSerializerContext
     {
     }

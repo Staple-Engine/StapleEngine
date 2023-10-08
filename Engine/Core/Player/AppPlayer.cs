@@ -56,7 +56,7 @@ namespace Staple
             PlayerSettings.Save(playerSettings);
 
             var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-                appSettings, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+                appSettings, playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             renderWindow.OnInit = () =>
             {

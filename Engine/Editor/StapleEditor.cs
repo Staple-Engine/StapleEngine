@@ -198,7 +198,7 @@ namespace Staple.Editor
             playerSettings = PlayerSettings.Load(editorSettings);
 
             window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
-                playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+                playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
             if(window == null)
             {
@@ -430,6 +430,9 @@ namespace Staple.Editor
 
                 AppPlayer.ScreenWidth = playerSettings.screenWidth = window.width;
                 AppPlayer.ScreenHeight = playerSettings.screenHeight = window.height;
+
+                playerSettings.monitorIndex = window.MonitorIndex;
+                playerSettings.maximized = window.Maximized;
 
                 PlayerSettings.Save(playerSettings);
 

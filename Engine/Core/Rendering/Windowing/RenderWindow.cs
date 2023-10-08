@@ -20,21 +20,32 @@ namespace Staple.Internal
         internal static int windowReferences = 0;
         internal static int bgfxReferences = 0;
 
-        public int width = 0;
-        public int height = 0;
-        public bool hasFocus = true;
-        public IRenderWindow window;
-        public bgfx.RendererType rendererType;
-        public bgfx.ResetFlags resetFlags;
+        internal int width = 0;
+        internal int height = 0;
+        internal bool hasFocus = true;
+        internal IRenderWindow window;
+        internal bgfx.RendererType rendererType;
+        internal bgfx.ResetFlags resetFlags;
+        internal bool shouldStop = false;
+        internal bool shouldRender = true;
+
         public Action OnFixedUpdate;
         public Action OnUpdate;
         public Action OnInit;
         public Action OnCleanup;
         public Action<bool> OnScreenSizeChange;
         public AppSettings appSettings;
-        public bool shouldStop = false;
-        public bool shouldRender = true;
         public object renderLock = new();
+
+        public int Width => width;
+
+        public int Height => height;
+
+        public bool HasFocus => hasFocus;
+
+        public bool Maximized => window?.Maximized ?? false;
+
+        public int MonitorIndex => window?.MonitorIndex ?? 0;
 
         private bool renderThreadReady = false;
         private Thread renderThread;
@@ -78,7 +89,13 @@ namespace Staple.Internal
 
         private void SingleThreadLoop()
         {
-            OnScreenSizeChange?.Invoke(window.IsFocused);
+            try
+            {
+                OnScreenSizeChange?.Invoke(window.IsFocused);
+            }
+            catch(Exception)
+            {
+            }
 
             try
             {
@@ -622,6 +639,18 @@ namespace Staple.Internal
                         Input.HandleTextEvent(appEvent);
 
                         break;
+
+                    case AppEventType.Maximize:
+
+                        try
+                        {
+                            OnScreenSizeChange?.Invoke(hasFocus);
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        break;
                 }
             }
         }
@@ -718,7 +747,7 @@ namespace Staple.Internal
         /// <param name="resetFlags">The starting reset flags</param>
         /// <returns>The window, or null</returns>
         public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
-            AppSettings appSettings, int monitorIndex, bgfx.ResetFlags resetFlags)
+            AppSettings appSettings, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
         {
             var resizableString = resizable ? "Resizable" : "Not resizable";
 
@@ -765,7 +794,7 @@ namespace Staple.Internal
             var originalWidth = width;
             var originalHeight = height;
 
-            if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, monitorIndex) == false)
+            if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, maximized, monitorIndex) == false)
             {
                 Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {originalWidth}x{originalHeight}");
 

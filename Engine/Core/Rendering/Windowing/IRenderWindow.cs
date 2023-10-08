@@ -10,7 +10,11 @@
 
         bool Unavailable { get; }
 
-        bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex);
+        int MonitorIndex { get; }
+
+        bool Maximized { get; }
+
+        bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, bool maximized, int monitorIndex);
 
         void PollEvents();
 

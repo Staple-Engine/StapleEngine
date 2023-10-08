@@ -16,7 +16,24 @@ namespace Staple.Internal
 
         public bool Unavailable => false;
 
-        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, int monitorIndex)
+        public bool Maximized => window?.Maximized ?? false;
+
+        public int MonitorIndex
+        {
+            get
+            {
+                if(window == null)
+                {
+                    return 0;
+                }
+
+                //TODO
+
+                return 0;
+            }
+        }
+
+        public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, bool maximized, int monitorIndex)
         {
             Glfw.WindowHint(Hint.ClientApi, ClientApi.None);
             Glfw.WindowHint(Hint.Resizable, resizable);
@@ -32,7 +49,10 @@ namespace Staple.Internal
             {
                 case WindowMode.Windowed:
 
-                    window = new NativeWindow(width, height, title);
+                    window = new NativeWindow(width, height, title)
+                    {
+                        Maximized = maximized
+                    };
 
                     break;
 
@@ -85,6 +105,11 @@ namespace Staple.Internal
             Glfw.SetScrollCallback(window, (_, xOffset, yOffset) =>
             {
                 Input.MouseScrollCallback((float)xOffset, (float)yOffset);
+            });
+
+            Glfw.SetWindowMaximizeCallback(window, (_, maximized) =>
+            {
+                AppEventQueue.instance.Add(AppEvent.Maximize(maximized));
             });
 
             //TODO: Decide whether to keep this.
