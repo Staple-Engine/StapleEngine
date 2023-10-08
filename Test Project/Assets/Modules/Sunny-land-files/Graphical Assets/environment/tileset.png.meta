@@ -44,5 +44,6 @@
       "maxSize": 256,
       "premultiplyAlpha": true
     }
-  }
+  },
+  "typeName": "Staple.Texture"
 }

@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using Staple.Internal;
 using StbImageSharp;
+using StbRectPackSharp;
 using System.Linq;
 
 namespace Staple
@@ -415,7 +416,8 @@ namespace Staple
             }
         }
 
-        public static bool PackTextures(RawTextureData[] textureData, int width, int height, int maxSize, int padding, out Rect[] outRects, out RawTextureData outTextureData)
+        public static bool PackTextures(RawTextureData[] textureData, int width, int height, int maxSize, int padding, out Rect[] outRects, out RawTextureData outTextureData,
+            bool expandWidth = true, bool expandHeight = false)
         {
             outRects = default;
             outTextureData = default;
@@ -430,9 +432,9 @@ namespace Staple
                 return false;
             }
 
-            var pack = new MaxRectsBinPack(width, height, false);
+            var pack = new Packer(width, height);
 
-            var rects = new Rect[textureData.Length];
+            var rects = new PackerRectangle[textureData.Length];
 
             var doublePadding = padding * 2;
 
@@ -440,11 +442,14 @@ namespace Staple
             {
                 var texture = textureData[i];
 
-                var rect = pack.Insert(texture.width + doublePadding, texture.height + doublePadding, MaxRectsBinPack.FreeRectChoiceHeuristic.RectBestShortSideFit);
+                var rect = pack.PackRect(texture.width + doublePadding, texture.height + doublePadding, null);
 
-                if(rect.Width == 0 || rect.Height == 0)
+                if(rect == null)
                 {
-                    return PackTextures(textureData, width * (width <= height ? 2 : 1), height * (height <= width ? 2 : 1), maxSize, padding, out outRects, out outTextureData);
+                    pack.Dispose();
+
+                    return PackTextures(textureData, width * (expandWidth ? 2 : 1), height * (expandHeight ? 2 : 1), maxSize, padding, out outRects, out outTextureData,
+                        !expandWidth, !expandHeight);
                 }
 
                 rects[i] = rect;
@@ -458,22 +463,24 @@ namespace Staple
                 data = new byte[width * height * 4],
             };
 
+            outRects = new Rect[rects.Length];
+
             for(var i = 0; i < rects.Length; i++)
             {
                 var texture = textureData[i];
                 var rect = rects[i];
 
-                rect.left += padding;
-                rect.top += padding;
-                rect.Width -= padding;
-                rect.Height -= padding;
+                var outRect = new Rect(new Vector2Int(rect.X, rect.Y), new Vector2Int(rect.Width, rect.Height));
 
-                rects[i] = rect;
+                outRect.left += padding;
+                outRect.top += padding;
+                outRect.Width -= padding;
+                outRect.Height -= padding;
 
-                outTextureData.Blit(0, 0, rect.Width, rect.Height, texture.width * 4, texture.data, rect.left, rect.top);
+                outRects[i] = outRect;
+
+                outTextureData.Blit(0, 0, outRect.Width, outRect.Height, texture.width * 4, texture.data, outRect.left, outRect.top);
             }
-
-            outRects = rects;
 
             return true;
         }

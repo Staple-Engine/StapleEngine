@@ -236,6 +236,7 @@ namespace Staple.Internal
             16384,
         };
 
+        [HideInInspector]
         [Key(0)]
         public string guid = Guid.NewGuid().ToString();
 
@@ -284,6 +285,7 @@ namespace Staple.Internal
         [Key(15)]
         public Vector2Int spriteTextureGridSize = Vector2Int.Zero;
 
+        [HideInInspector]
         [Key(16)]
         public List<TextureSpriteInfo> sprites = new();
 
@@ -315,6 +317,7 @@ namespace Staple.Internal
             },
         };
 
+        [HideInInspector]
         [Key(21)]
         public string typeName = typeof(Texture).FullName;
 

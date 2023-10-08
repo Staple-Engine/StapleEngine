@@ -65,11 +65,6 @@ namespace Staple.Editor
 
             switch (field.Name)
             {
-                case nameof(TextureMetadata.guid):
-                case nameof(TextureMetadata.sprites):
-
-                    return true;
-
                 case nameof(TextureMetadata.padding):
                 case nameof(TextureMetadata.trimDuplicates):
 

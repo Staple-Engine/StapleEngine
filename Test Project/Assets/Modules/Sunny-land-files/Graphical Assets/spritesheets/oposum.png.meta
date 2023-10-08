@@ -35,8 +35,8 @@
       }
     }
   ],
-  "shouldPack": false,
-  "padding": 0,
+  "shouldPack": true,
+  "padding": 1,
   "trimDuplicates": false,
   "overrides": {
     "iOS": {
@@ -60,5 +60,6 @@
       "maxSize": 2048,
       "premultiplyAlpha": false
     }
-  }
+  },
+  "typeName": "Staple.Texture"
 }
