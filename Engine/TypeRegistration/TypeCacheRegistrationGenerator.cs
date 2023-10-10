@@ -1,9 +1,11 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Staple
@@ -41,8 +43,9 @@ namespace Staple
             {
                 void HandleNamedSymbol(INamedTypeSymbol t, string baseTypeName)
                 {
-                    if (t.IsAbstract || t.IsGenericType ||
-                        t.GetAttributes().Any(x => x.AttributeClass.Name == "RequiresUnreferencedCodeAttribute") ||
+                    if (t.IsAbstract || t.IsGenericType || t.Name.EndsWith("Attribute") ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
                     {
@@ -84,8 +87,9 @@ namespace Staple
 
                 void HandleSymbol(ISymbol t)
                 {
-                    if (t.IsAbstract ||
-                        t.GetAttributes().Any(x => x.AttributeClass.Name == "RequiresUnreferencedCodeAttribute") ||
+                    if (t.IsAbstract || t.Name.EndsWith("Attribute") ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
                     {

@@ -1,9 +1,11 @@
+#if ANDROID
 using Android.App;
 using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Android.Widget;
 using MessagePack;
 using Staple;
 using Staple.Internal;
@@ -23,16 +25,18 @@ namespace Player
         AlwaysRetainTaskState = true,
         Exported = true,
         LaunchMode = LaunchMode.SingleInstance)]
-    public class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
+    public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
     {
         private Thread? loopThread;
         private AppSettings? appSettings;
 
-        [DllImport("android", CallingConvention = CallingConvention.Cdecl)]
-        private extern static nint ANativeWindow_fromSurface(nint env, nint surface);
+        [LibraryImport("android")]
+        [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial nint ANativeWindow_fromSurface(nint env, nint surface);
 
-        [DllImport("nativewindow", CallingConvention = CallingConvention.Cdecl)]
-        private extern static nint ANativeWindow_release(nint window);
+        [LibraryImport("nativewindow")]
+        [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial nint ANativeWindow_release(nint window);
 
         private void InitIfNeeded()
         {
@@ -113,6 +117,22 @@ namespace Player
 
             SetContentView(Resource.Layout.activity_main);
 
+            if(Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            {
+                Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
+            }
+
+            if(Build.VERSION.SdkInt >= BuildVersionCodes.R)
+            {
+                Window.SetDecorFitsSystemWindows(false);
+                Window.InsetsController.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
+                Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+            else if(Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
+            {
+                Window.DecorView.SystemUiVisibility = StatusBarVisibility.Hidden;
+            }
+
             MessagePackInit.Initialize();
 
             TypeCacheRegistration.RegisterAll();
@@ -185,3 +205,4 @@ namespace Player
         }
     }
 }
+#endif

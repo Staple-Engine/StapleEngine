@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+	<Compile Include="Android/StapleActivity.cs" />
   </ItemGroup>
   <ItemGroup>
 	<Reference Include="StapleCore">

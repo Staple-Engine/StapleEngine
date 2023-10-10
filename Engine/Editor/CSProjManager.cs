@@ -148,9 +148,15 @@ namespace Staple.Editor
             var targetFramework = platformFramework[platform];
             var configurationName = debug ? "Debug" : "Release";
 
+            var exeType = platform switch
+            {
+                AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => debug ? "Exe" : "WinExe",
+                _ => "Exe",
+            };
+
             var projectProperties = new Dictionary<string, string>()
             {
-                { "OutputType", debug ? "Exe" : "WinExe" },
+                { "OutputType", exeType },
                 { "TargetFramework", targetFramework },
                 { "StripSymbols", "true" },
                 { "AppDesignerFolder", "Properties" },
