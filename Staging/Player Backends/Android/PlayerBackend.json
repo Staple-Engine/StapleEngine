@@ -1,0 +1,10 @@
+{
+	"name": "Android",
+	"platform": "Android",
+	"redistOutput": "lib/arm64-v8a",
+	"dataDir": "Assets",
+	"platformRuntime": "android-arm64",
+	"framework": "net7.0-android",
+	"publish": false,
+	"dataDirIsOutput": false
+}

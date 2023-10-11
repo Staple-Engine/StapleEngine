@@ -1,0 +1,10 @@
+{
+	"name": "MacOSX",
+	"platform": "MacOSX",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "osx-x64",
+	"framework": "net7.0",
+	"publish": true,
+	"dataDirIsOutput": true
+}

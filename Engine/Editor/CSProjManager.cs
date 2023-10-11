@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Evaluation;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -131,22 +132,99 @@ namespace Staple.Editor
             p.Save(Path.Combine(projectDirectory, "Game.csproj"));
         }
 
-        public void GeneratePlayerCSProj(AppPlatform platform, AppSettings projectAppSettings, bool debug, bool nativeAOT)
+        public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT)
         {
             using var collection = new ProjectCollection();
 
-            try
+            var p = new Project(collection);
+
+            void MakeDirectory(string path)
             {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
+                try
+                {
+                    Directory.CreateDirectory(path);
+                }
+                catch (Exception)
+                {
+                }
             }
-            catch (Exception)
+
+            void FindScripts(string path)
             {
+                try
+                {
+                    var files = Directory.GetFiles(path, "*.cs");
+
+                    foreach (var file in files)
+                    {
+                        if (file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
+                        {
+                            continue;
+                        }
+
+                        p.AddItem("Compile", Path.GetFullPath(file));
+                    }
+
+                    var directories = Directory.GetDirectories(path);
+
+                    foreach (var directory in directories)
+                    {
+                        FindScripts(directory);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed generating csproj: {e}");
+                }
             }
+
+            void CopyDirectory(string from, string to)
+            {
+                MakeDirectory(to);
+
+                try
+                {
+                    var files = Directory.GetFiles(from, "*");
+
+                    foreach(var file in files)
+                    {
+                        try
+                        {
+                            File.Copy(file, Path.Combine(to, Path.GetFileName(file)));
+                        }
+                        catch(Exception)
+                        {
+                        }
+                    }
+
+                    var directories = Directory.GetDirectories(from);
+
+                    foreach(var directory in directories)
+                    {
+                        CopyDirectory(directory, Path.Combine(to, Path.GetFileName(directory)));
+                    }
+                }
+                catch(Exception)
+                {
+                }
+            }
+
+            var platform = backend.platform;
+
+            MakeDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
             var assetsDirectory = Path.Combine(basePath, "Assets");
-            var targetFramework = platformFramework[platform];
             var configurationName = debug ? "Debug" : "Release";
+
+            CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
+
+            if(backend.dataDirIsOutput == false)
+            {
+                CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(projectDirectory, backend.redistOutput));
+            }
+
+            var targetFramework = platformFramework[platform];
 
             var exeType = platform switch
             {
@@ -173,8 +251,6 @@ namespace Staple.Editor
             {
                 platformDefinesString = $";{string.Join(";", defines)}";
             }
-
-            var p = new Project(collection);
 
             p.Xml.Sdk = "Microsoft.NET.Sdk";
 
@@ -312,54 +388,16 @@ namespace Staple.Editor
                     break;
             }
 
-            void Recursive(string path)
-            {
-                try
-                {
-                    var files = Directory.GetFiles(path, "*.cs");
-
-                    foreach (var file in files)
-                    {
-                        if(file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
-                        {
-                            continue;
-                        }
-
-                        p.AddItem("Compile", Path.GetFullPath(file));
-                    }
-
-                    var directories = Directory.GetDirectories(path);
-
-                    foreach (var directory in directories)
-                    {
-                        Recursive(directory);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed generating csproj: {e}");
-                }
-            }
-
-            Recursive(assetsDirectory);
+            FindScripts(assetsDirectory);
 
             p.Save(Path.Combine(projectDirectory, "Player.csproj"));
 
             if (platform == AppPlatform.Android)
             {
-                void MakeDirectory(string path)
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-
                 bool SaveResource(string path, string data)
                 {
+                    MakeDirectory(Path.GetDirectoryName(path));
+
                     try
                     {
                         File.WriteAllText(path, data);
@@ -374,26 +412,6 @@ namespace Staple.Editor
                     return true;
                 }
 
-                MakeDirectory(Path.Combine(projectDirectory, "lib"));
-                MakeDirectory(Path.Combine(projectDirectory, "lib", "arm64-v8a"));
-
-                MakeDirectory(Path.Combine(projectDirectory, "Resources"));
-                MakeDirectory(Path.Combine(projectDirectory, "Resources", "values"));
-
-                var manifest = $$"""
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:label="@string/app_name" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
-  </application>
-  <uses-permission android:name="android.permission.INTERNET" />
-</manifest>
-""";
-
-                if (SaveResource(Path.Combine(projectDirectory, "AndroidManifest.xml"), manifest) == false)
-                {
-                    return;
-                }
-
                 var strings = $$"""
 <resources>
     <string name="app_name">{{projectAppSettings.appName}}</string>
@@ -401,34 +419,6 @@ namespace Staple.Editor
 """;
 
                 if (SaveResource(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
-                {
-                    return;
-                }
-
-                var activity = $$"""
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
-using Staple;
-
-[Activity(Label = "@string/app_name",
-    MainLauncher = true,
-    Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
-    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
-    AlwaysRetainTaskState = true,
-    LaunchMode = LaunchMode.SingleInstance)]
-public class PlayerActivity : StapleActivity
-{
-    protected override void OnCreate(Bundle? savedInstanceState)
-    {
-        TypeCacheRegistration.RegisterAll();
-
-        base.OnCreate(savedInstanceState);
-    }
-}
-""";
-
-                if (SaveResource(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
                 {
                     return;
                 }

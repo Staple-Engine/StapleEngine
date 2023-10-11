@@ -934,7 +934,15 @@ namespace Staple.Editor
             {
                 ImGui.Begin("Build", ImGuiWindowFlags.NoDocking);
 
-                buildPlatform = EditorGUI.EnumDropdown("Platform", buildPlatform);
+                var current = Array.IndexOf(PlayerBackendManager.BackendNames, buildBackend);
+
+                current = EditorGUI.Dropdown("Platform", PlayerBackendManager.BackendNames, current);
+
+                if(current >= 0 && current <  PlayerBackendManager.BackendNames.Length)
+                {
+                    buildBackend = PlayerBackendManager.BackendNames[current];
+                }
+
                 buildPlayerDebug = EditorGUI.Toggle("Debug Build", buildPlayerDebug);
                 buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", buildPlayerNativeAOT);
 
@@ -944,17 +952,22 @@ namespace Staple.Editor
 
                     if (result == Nfd.NfdResult.NFD_OKAY)
                     {
-                        showingProgress = true;
-                        progressFraction = 0;
+                        var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
 
-                        ImGui.OpenPopup("ShowingProgress");
-
-                        StartBackgroundTask((ref float progressFraction) =>
+                        if(backend != null)
                         {
-                            BuildPlayer(buildPlatform, path, buildPlayerDebug, buildPlayerNativeAOT);
+                            showingProgress = true;
+                            progressFraction = 0;
 
-                            return true;
-                        });
+                            ImGui.OpenPopup("ShowingProgress");
+
+                            StartBackgroundTask((ref float progressFraction) =>
+                            {
+                                BuildPlayer(backend, path, buildPlayerDebug, buildPlayerNativeAOT);
+
+                                return true;
+                            });
+                        }
                     }
                     else
                     {

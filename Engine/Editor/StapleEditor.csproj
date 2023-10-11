@@ -60,6 +60,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetDatabase.cs" />
+    <Compile Include="Backends\PlayerBackend.cs" />
+    <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="CSProjManager.cs" />
     <Compile Include="Editors\Default\FolderAssetEditor.cs" />
     <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />

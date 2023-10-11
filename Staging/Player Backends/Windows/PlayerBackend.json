@@ -1,0 +1,10 @@
+{
+	"name": "Windows",
+	"platform": "Windows",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "win-x64",
+	"framework": "net7.0",
+	"publish": true,
+	"dataDirIsOutput": true
+}

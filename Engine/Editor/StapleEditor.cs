@@ -116,7 +116,7 @@ namespace Staple.Editor
 
         private bool showingBuildWindow = false;
 
-        private AppPlatform buildPlatform = AppPlatform.Windows;
+        private string buildBackend;
 
         private AppPlatform currentPlatform = AppPlatform.Windows;
 
@@ -186,9 +186,13 @@ namespace Staple.Editor
                 System.Console.WriteLine($"[{type}] {message}");
             };
 
+            PlayerBackendManager.Instance.Initialize();
+
             Log.Info($"Current Platform: {Platform.CurrentPlatform.Value}");
 
-            currentPlatform = buildPlatform = Platform.CurrentPlatform.Value;
+            currentPlatform = Platform.CurrentPlatform.Value;
+
+            buildBackend = PlayerBackendManager.Instance.GetBackend(currentPlatform).name;
 
             if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
             {

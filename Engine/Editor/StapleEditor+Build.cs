@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Evaluation;
+using Staple.Internal;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -7,42 +8,8 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        public void BuildPlayer(AppPlatform platform, string outPath, bool debug, bool nativeAOT)
+        public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT)
         {
-            lock(backgroundLock)
-            {
-                progressFraction = 0;
-            }
-
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
-            var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", platform.ToString());
-            var projectPath = Path.Combine(projectDirectory, "Player.csproj");
-            var configurationName = debug ? "Debug" : "Release";
-
-            csProjManager.GeneratePlayerCSProj(platform, projectAppSettings, debug, nativeAOT);
-
-            RefreshStaging(platform, false);
-
-            lock (backgroundLock)
-            {
-                progressFraction = 0.1f;
-            }
-
-            string targetResourcesPath = platform switch
-            {
-                AppPlatform.Android => Path.Combine(projectDirectory, "Assets"),
-                AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => Path.Combine(outPath, "Data"),
-                _ => Path.Combine(outPath, "Data"),
-            };
-
-            try
-            {
-                Directory.CreateDirectory(targetResourcesPath);
-            }
-            catch (Exception)
-            {
-            }
-
             static void CopyDirectory(string sourceDir, string destinationDir)
             {
                 var dir = new DirectoryInfo(sourceDir);
@@ -84,15 +51,44 @@ namespace Staple.Editor
                 }
             }
 
+            lock (backgroundLock)
+            {
+                progressFraction = 0;
+            }
+
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", backend.platform.ToString());
+            var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", backend.platform.ToString());
+            var projectPath = Path.Combine(projectDirectory, "Player.csproj");
+            var configurationName = debug ? "Debug" : "Release";
+
+            csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT);
+
+            RefreshStaging(backend.platform, false);
+
+            lock (backgroundLock)
+            {
+                progressFraction = 0.1f;
+            }
+
+            string targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : projectDirectory, backend.dataDir);
+
+            try
+            {
+                Directory.CreateDirectory(targetResourcesPath);
+            }
+            catch (Exception)
+            {
+            }
+
             var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
 
             try
             {
-                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{platform}.pak");
+                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{backend.platform}.pak");
 
                 if (File.Exists(defaultResourcesPath) == false)
                 {
-                    Log.Error($"Failed to build player: Missing DefaultResources-{platform} pak file");
+                    Log.Error($"Failed to build player: Missing DefaultResources-{backend.platform} pak file");
 
                     return;
                 }
@@ -113,6 +109,11 @@ namespace Staple.Editor
                 Log.Error($"Failed to build player: {e}");
 
                 return;
+            }
+
+            if (backend.dataDirIsOutput)
+            {
+                CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput));
             }
 
             lock (backgroundLock)
@@ -155,86 +156,14 @@ namespace Staple.Editor
                 return;
             }
 
-            var redistPath = Path.Combine(StapleBasePath, "Dependencies", "Redist", configurationName, buildPlatform.ToString());
-
-            if(Directory.Exists(redistPath))
+            if(backend.publish)
             {
-                var dependencies = Directory.GetFiles(redistPath);
-
-                foreach (var file in dependencies)
-                {
-                    if (file == null)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        switch(platform)
-                        {
-                            case AppPlatform.Android:
-
-                                File.Copy(file, Path.Combine(projectDirectory, "lib", "arm64-v8a", file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
-
-                                break;
-
-                            default:
-
-                                File.Copy(file, Path.Combine(outPath, file.Replace($"{redistPath}{Path.DirectorySeparatorChar}", "")), true);
-
-                                break;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"Failed to build player: {e}");
-
-                        return;
-                    }
-                }
+                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained";
             }
-
-            var platformRuntime = "";
-
-            switch (platform)
+            else
             {
-                case AppPlatform.Windows:
-
-                    platformRuntime = "win-x64";
-
-                    break;
-
-                case AppPlatform.Linux:
-
-                    platformRuntime = "linux-x64";
-
-                    break;
-
-                case AppPlatform.MacOSX:
-
-                    platformRuntime = "osx-x64";
-
-                    break;
-
-                case AppPlatform.Android:
-
-                    platformRuntime = "android-arm64";
-
-                    break;
-
-                case AppPlatform.iOS:
-
-                    platformRuntime = "ios-arm64";
-
-                    break;
+                args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
             }
-
-            args = platform switch
-            {
-                AppPlatform.Android => $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-android",
-                AppPlatform.iOS => $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework=net7.0-ios",
-                _ => $" publish -r {platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained",
-            };
 
             processInfo = new ProcessStartInfo("dotnet", args)
             {

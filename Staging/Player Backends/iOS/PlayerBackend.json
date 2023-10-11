@@ -1,0 +1,10 @@
+{
+	"name": "iOS",
+	"platform": "iOS",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "ios-arm64",
+	"framework": "net7.0-ios",
+	"publish": false,
+	"dataDirIsOutput": false
+}

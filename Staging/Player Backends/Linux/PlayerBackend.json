@@ -1,0 +1,10 @@
+{
+	"name": "Linux",
+	"platform": "Linux",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "linux-x64",
+	"framework": "net7.0",
+	"publish": true,
+	"dataDirIsOutput": true
+}
