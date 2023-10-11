@@ -62,6 +62,8 @@ namespace Staple.Internal
         /// </summary>
         public void Run()
         {
+            Threading.Initialize();
+
             if (appSettings.multiThreadedRenderer)
             {
                 MultiThreadedLoop();
@@ -498,6 +500,8 @@ namespace Staple.Internal
             init.resolution.width = (uint)width;
             init.resolution.height = (uint)height;
             init.resolution.reset = (uint)resetFlags;
+
+            Log.Info($"[RenderWindow] Initializing rendering: {width}x{height}");
 
             var ok = false;
 

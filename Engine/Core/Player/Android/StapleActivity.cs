@@ -14,25 +14,27 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Player
+namespace Staple
 {
-    [Activity(Label = "@string/app_name",
-        MainLauncher = true,
-        Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
-        ResizeableActivity = false,
-        ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
-        AlwaysRetainTaskState = true,
-        Exported = true,
-        LaunchMode = LaunchMode.SingleInstance)]
     public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
     {
         private Thread? loopThread;
         private AppSettings? appSettings;
+        private SurfaceView surfaceView;
 
         [LibraryImport("android")]
         [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial nint ANativeWindow_fromSurface(nint env, nint surface);
+
+        [LibraryImport("nativewindow")]
+        [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial int ANativeWindow_getWidth(nint window);
+
+        [LibraryImport("nativewindow")]
+        [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        private static partial int ANativeWindow_getHeight(nint window);
 
         [LibraryImport("nativewindow")]
         [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -68,26 +70,50 @@ namespace Player
 
         public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
         {
-            Log.Debug($"Surface Changed - Screen size: {width}x{height}");
-
-            var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
-
-            AndroidRenderWindow.Instance.Mutate((renderWindow) =>
+            void Finish()
             {
-                renderWindow.screenWidth = width;
-                renderWindow.screenHeight = height;
-                renderWindow.window = nativeWindow;
-                renderWindow.unavailable = false;
-
-                if (loopThread != null)
+                AndroidRenderWindow.Instance.Mutate((renderWindow) =>
                 {
-                    renderWindow.ContextLost = true;
+                    if (renderWindow.window != nint.Zero)
+                    {
+                        ANativeWindow_release(renderWindow.window);
+                    }
 
-                    return;
+                    var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
+
+                    Log.Debug($"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
+
+                    renderWindow.screenWidth = width;
+                    renderWindow.screenHeight = height;
+                    renderWindow.window = nativeWindow;
+                    renderWindow.unavailable = false;
+
+                    if (loopThread != null)
+                    {
+                        Log.Debug($"Context Lost");
+
+                        renderWindow.ContextLost = true;
+
+                        return;
+                    }
+                });
+
+                InitIfNeeded();
+            }
+
+            void Delay()
+            {
+                if (holder.IsCreating)
+                {
+                    Task.Delay(TimeSpan.FromMilliseconds(100)).ContinueWith((t) => Delay());
                 }
-            });
+                else
+                {
+                    Finish();
+                }
+            }
 
-            InitIfNeeded();
+            Delay();
         }
 
         public void SurfaceCreated(ISurfaceHolder holder)
@@ -115,9 +141,9 @@ namespace Player
             Java.Lang.JavaSystem.LoadLibrary("bgfx");
             Java.Lang.JavaSystem.LoadLibrary("joltc");
 
-            SetContentView(Resource.Layout.activity_main);
+            Threading.Initialize();
 
-            if(Build.VERSION.SdkInt >= BuildVersionCodes.P)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
             {
                 Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
             }
@@ -134,8 +160,6 @@ namespace Player
             }
 
             MessagePackInit.Initialize();
-
-            TypeCacheRegistration.RegisterAll();
 
             ResourceManager.instance.assetManager = Assets;
 
@@ -180,7 +204,9 @@ namespace Player
                 return;
             }
 
-            var surfaceView = FindViewById<SurfaceView>(Resource.Id.surface);
+            surfaceView = new SurfaceView(this);
+
+            SetContentView(surfaceView);
 
             surfaceView.Holder.SetKeepScreenOn(true);
             surfaceView.Holder.AddCallback(this);
@@ -198,6 +224,13 @@ namespace Player
             base.OnResume();
 
             AndroidRenderWindow.Instance.EnterForeground();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            AndroidRenderWindow.Instance.shouldClose = true;
         }
 
         public void SurfaceRedrawNeeded(ISurfaceHolder holder)

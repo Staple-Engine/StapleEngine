@@ -294,7 +294,7 @@ namespace Staple.Editor
                 case AppPlatform.Android:
 
                     {
-                        var activityPath = Path.Combine(stapleBasePath, "Engine", "Player", "Android", "StapleActivity.cs");
+                        var activityPath = Path.Combine(projectDirectory, "PlayerActivity.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(activityPath));
                     }
@@ -311,6 +311,7 @@ namespace Staple.Editor
 
                     break;
             }
+
             void Recursive(string path)
             {
                 try
@@ -403,8 +404,35 @@ namespace Staple.Editor
                 {
                     return;
                 }
+
+                var activity = $$"""
+using Android.App;
+using Android.Content.PM;
+using Android.OS;
+using Staple;
+
+[Activity(Label = "@string/app_name",
+    MainLauncher = true,
+    Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
+    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
+    AlwaysRetainTaskState = true,
+    LaunchMode = LaunchMode.SingleInstance)]
+public class PlayerActivity : StapleActivity
+{
+    protected override void OnCreate(Bundle? savedInstanceState)
+    {
+        TypeCacheRegistration.RegisterAll();
+
+        base.OnCreate(savedInstanceState);
+    }
+}
+""";
+
+                if (SaveResource(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
+                {
+                    return;
+                }
             }
         }
-
     }
 }

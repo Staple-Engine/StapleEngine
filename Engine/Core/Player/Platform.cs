@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
 
 namespace Staple
 {
@@ -46,34 +46,26 @@ namespace Staple
         /// <summary>
         /// Whether we're running on windows
         /// </summary>
-        public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        public static bool IsWindows => OperatingSystem.IsWindows();
 
         /// <summary>
         /// Whether we're running on linux
         /// </summary>
-        public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD);
+        public static bool IsLinux => OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD();
 
         /// <summary>
         /// Whether we're running on macOS
         /// </summary>
-        public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool IsMacOS => OperatingSystem.IsMacOS();
 
         /// <summary>
         /// Whether we're running on android
         /// </summary>
-#if ANDROID
-        public static bool IsAndroid => true;
-#else
-        public static bool IsAndroid => false;
-#endif
+        public static bool IsAndroid => OperatingSystem.IsAndroid();
 
         /// <summary>
         /// Whether we're running on iOS
         /// </summary>
-#if IOS
-        public static bool IsiOS => true;
-#else
-        public static bool IsiOS => false;
-#endif
+        public static bool IsiOS => OperatingSystem.IsIOS();
     }
 }

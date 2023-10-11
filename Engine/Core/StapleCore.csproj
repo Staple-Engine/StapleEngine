@@ -97,6 +97,7 @@
     <Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
     <Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
+    <Compile Include="Player\Android\StapleActivity.cs" />
     <Compile Include="Rendering\Sprites\SpriteAnimation.cs" />
     <Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
     <Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Serialization\Scene\SerializableScene.cs" />
     <Compile Include="Serialization\App\AppSettingsHeader.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />
+    <Compile Include="Utilities\Threading.cs" />
     <Compile Include="Utilities\TypeCache.cs" />
     <Compile Include="World\World+Components.cs" />
     <Compile Include="World\World+Entities.cs" />

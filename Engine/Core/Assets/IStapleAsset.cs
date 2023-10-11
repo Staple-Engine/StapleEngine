@@ -1,4 +1,4 @@
-﻿namespace Staple.Internal
+﻿namespace Staple
 {
     /// <summary>
     /// Represents a staple asset

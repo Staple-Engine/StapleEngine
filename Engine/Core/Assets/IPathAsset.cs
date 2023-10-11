@@ -1,4 +1,4 @@
-﻿namespace Staple.Internal
+﻿namespace Staple
 {
     /// <summary>
     /// Describes an asset that can be serialized as its path rather than its full data when used as a field

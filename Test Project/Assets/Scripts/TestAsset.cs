@@ -1,4 +1,4 @@
-using Staple.Internal;
+using Staple;
 
 namespace TestGame
 {
