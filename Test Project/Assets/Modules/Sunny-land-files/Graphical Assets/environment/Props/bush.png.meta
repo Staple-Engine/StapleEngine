@@ -20,12 +20,24 @@
   },
   "sprites": [
     {
-      "left": 0,
-      "right": 48,
-      "top": 0,
-      "bottom": 28
+      "rect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "rotation": "None",
+      "originalRect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      }
     }
   ],
+  "shouldPack": false,
+  "padding": 0,
+  "trimDuplicates": false,
   "overrides": {
     "iOS": {
       "shouldOverride": true,
@@ -48,5 +60,6 @@
       "maxSize": 2048,
       "premultiplyAlpha": false
     }
-  }
+  },
+  "typeName": "Staple.Texture"
 }

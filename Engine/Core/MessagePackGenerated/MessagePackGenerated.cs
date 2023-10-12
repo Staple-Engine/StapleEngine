@@ -567,7 +567,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(17);
+            writer.WriteArrayHeader(19);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -585,6 +585,8 @@ namespace MessagePack.Formatters.Staple
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appDisplayVersion, options);
             writer.Write(value.androidMinSDK);
             writer.Write(value.iOSDeploymentTarget);
+            writer.Write(value.portraitOrientation);
+            writer.Write(value.landscapeOrientation);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -653,6 +655,12 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 16:
                         ____result.iOSDeploymentTarget = reader.ReadInt32();
+                        break;
+                    case 17:
+                        ____result.portraitOrientation = reader.ReadBoolean();
+                        break;
+                    case 18:
+                        ____result.landscapeOrientation = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

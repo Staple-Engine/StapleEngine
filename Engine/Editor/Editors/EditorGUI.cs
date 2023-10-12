@@ -143,6 +143,19 @@ namespace Staple.Editor
             return newValue;
         }
 
+        public static T EnumDropdown<T>(string label, T value, List<T> values) where T : struct, Enum
+        {
+            var current = values.IndexOf(value);
+
+            var valueStrings = values
+                .Select(x => x.ToString())
+                .ToArray();
+
+            var newValue = values[Dropdown(label, valueStrings, current)];
+
+            return newValue;
+        }
+
         public static int Dropdown(string label, string[] options, int current)
         {
             Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");

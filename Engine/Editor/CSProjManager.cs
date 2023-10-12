@@ -310,7 +310,7 @@ namespace Staple.Editor
                     p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
                     p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                    p.SetProperty("EnableLLVM", "True");
+                    p.SetProperty("EnableLLVM", "true");
                     p.SetProperty("RuntimeIdentifiers", "android-arm64");
 
                     break;
@@ -419,6 +419,49 @@ namespace Staple.Editor
 """;
 
                 if (SaveResource(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
+                {
+                    return;
+                }
+
+                var orientationType = "Unspecified";
+
+                if(projectAppSettings.portraitOrientation == false || projectAppSettings.landscapeOrientation == false)
+                {
+                    if(projectAppSettings.portraitOrientation)
+                    {
+                        orientationType = "Portrait";
+                    }
+                    else if(projectAppSettings.landscapeOrientation)
+                    {
+                        orientationType = "Landscape";
+                    }
+                }
+
+                var activity = $$"""
+using Android.App;
+using Android.Content.PM;
+using Android.OS;
+using Staple;
+
+[Activity(Label = "@string/app_name",
+    MainLauncher = true,
+    Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
+    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
+    AlwaysRetainTaskState = true,
+    LaunchMode = LaunchMode.SingleInstance,
+    ScreenOrientation = ScreenOrientation.{{orientationType}})]
+public class PlayerActivity : StapleActivity
+{
+    protected override void OnCreate(Bundle? savedInstanceState)
+    {
+        TypeCacheRegistration.RegisterAll();
+
+        base.OnCreate(savedInstanceState);
+    }
+}
+""";
+
+                if (SaveResource(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
                 {
                     return;
                 }

@@ -57,6 +57,11 @@ namespace Staple.Internal
         /// </summary>
         public bool dataDirIsOutput;
 
+        /// <summary>
+        /// The renderers this supports
+        /// </summary>
+        public List<RendererType> renderers = new();
+
         public bool IsValid()
         {
             return (name?.Length ?? 0) > 0 &&
@@ -64,7 +69,8 @@ namespace Staple.Internal
                 (redistOutput?.Length ?? 0) > 0 &&
                 (dataDir?.Length ?? 0) > 0 &&
                 (platformRuntime?.Length ?? 0) > 0 &&
-                (framework?.Length ?? 0) > 0;
+                (framework?.Length ?? 0) > 0 &&
+                (renderers?.Count ?? 0) > 0;
         }
     }
 }

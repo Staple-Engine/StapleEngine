@@ -123,22 +123,21 @@ namespace Staple.Editor
 
         internal static void RefreshAssets(bool updateProject, Action onFinish)
         {
-            if (StapleEditor.instance.TryGetTarget(out var editor))
+            var editor = StapleEditor.instance;
+
+            editor.showingProgress = true;
+            editor.progressFraction = 0;
+
+            editor.StartBackgroundTask((ref float progressFraction) =>
             {
-                editor.showingProgress = true;
-                editor.progressFraction = 0;
+                editor.RefreshAssets(updateProject);
 
-                editor.StartBackgroundTask((ref float progressFraction) =>
-                {
-                    editor.RefreshAssets(updateProject);
+                ThumbnailCache.Clear();
 
-                    ThumbnailCache.Clear();
+                onFinish?.Invoke();
 
-                    onFinish?.Invoke();
-
-                    return true;
-                });
-            }
+                return true;
+            });
         }
     }
 }

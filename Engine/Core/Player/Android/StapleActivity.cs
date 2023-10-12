@@ -140,8 +140,13 @@ namespace Staple
             Java.Lang.JavaSystem.LoadLibrary("log");
             Java.Lang.JavaSystem.LoadLibrary("bgfx");
             Java.Lang.JavaSystem.LoadLibrary("joltc");
+            Java.Lang.JavaSystem.LoadLibrary("freetype6");
 
             Threading.Initialize();
+
+            surfaceView = new SurfaceView(this);
+
+            SetContentView(surfaceView);
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
             {
@@ -203,10 +208,6 @@ namespace Staple
 
                 return;
             }
-
-            surfaceView = new SurfaceView(this);
-
-            SetContentView(surfaceView);
 
             surfaceView.Holder.SetKeepScreenOn(true);
             surfaceView.Holder.AddCallback(this);

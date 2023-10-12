@@ -114,6 +114,18 @@ namespace Staple
         [Key(16)]
         public int iOSDeploymentTarget = 13;
 
+        /// <summary>
+        /// Whether to allow portrait orientation
+        /// </summary>
+        [Key(17)]
+        public bool portraitOrientation = true;
+
+        /// <summary>
+        /// Whether to allow landscape orientation
+        /// </summary>
+        [Key(18)]
+        public bool landscapeOrientation = true;
+
         [IgnoreMember]
         public static AppSettings Default
         {

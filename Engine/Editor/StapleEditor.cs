@@ -98,7 +98,7 @@ namespace Staple.Editor
 
         private readonly Transform cameraTransform = new();
 
-        private readonly AppSettings editorSettings = AppSettings.Default;
+        private readonly AppSettings editorSettings = Staple.AppSettings.Default;
 
         private AppSettings projectAppSettings;
 
@@ -156,15 +156,19 @@ namespace Staple.Editor
 
         private readonly ProjectBrowser projectBrowser = new();
 
-        private Dictionary<string, Type> registeredAssetTypes = new();
+        private readonly Dictionary<string, Type> registeredAssetTypes = new();
 
         private List<Type> registeredComponents = new();
 
-        public static WeakReference<StapleEditor> instance;
+        private bool showingAppSettings = false;
+
+        private static WeakReference<StapleEditor> privInstance;
+
+        public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
 
         public void Run()
         {
-            instance = new WeakReference<StapleEditor>(this);
+            privInstance = new WeakReference<StapleEditor>(this);
 
             ReloadTypeCache();
 
@@ -404,6 +408,7 @@ namespace Staple.Editor
                 BottomPanel(io);
                 AssetPicker(io);
                 BuildWindow(io);
+                AppSettings(io);
                 ProgressPopup(io);
                 SpritePicker(io);
 

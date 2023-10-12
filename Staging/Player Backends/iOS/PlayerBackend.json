@@ -6,5 +6,8 @@
 	"platformRuntime": "ios-arm64",
 	"framework": "net7.0-ios",
 	"publish": false,
-	"dataDirIsOutput": false
+	"dataDirIsOutput": false,
+	"renderers": [
+		"Metal"
+	]
 }

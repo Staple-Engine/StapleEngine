@@ -56,20 +56,18 @@ namespace Staple.Editor
 
                             if (EditorGUI.Button("O##SpritePicker"))
                             {
-                                if(StapleEditor.instance.TryGetTarget(out var editor))
+                                var editor = StapleEditor.instance;
+                                var assetPath = AssetSerialization.GetAssetPathFromCache(value.path);
+
+                                if(assetPath != value.path && Path.IsPathRooted(assetPath) == false)
                                 {
-                                    var assetPath = AssetSerialization.GetAssetPathFromCache(value.path);
-
-                                    if(assetPath != value.path && Path.IsPathRooted(assetPath) == false)
-                                    {
-                                        assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
-                                    }
-
-                                    editor.showingSpritePicker = true;
-                                    editor.spritePickerTexture = ThumbnailCache.GetTexture(assetPath) ?? value;
-                                    editor.spritePickerSprites = value.metadata.sprites;
-                                    editor.spritePickerCallback = (index) => renderer.spriteIndex = index;
+                                    assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                                 }
+
+                                editor.showingSpritePicker = true;
+                                editor.spritePickerTexture = ThumbnailCache.GetTexture(assetPath) ?? value;
+                                editor.spritePickerSprites = value.metadata.sprites;
+                                editor.spritePickerCallback = (index) => renderer.spriteIndex = index;
                             }
                         }
                     }
