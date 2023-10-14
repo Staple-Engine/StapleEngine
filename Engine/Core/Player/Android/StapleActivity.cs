@@ -4,14 +4,17 @@ using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Java.Interop;
 using MessagePack;
 using Staple;
 using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +23,10 @@ namespace Staple
 {
     public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
     {
-        private Thread? loopThread;
         private AppSettings? appSettings;
         private SurfaceView surfaceView;
+        private DateTime lastTime;
+        private float fixedTimer = 0.0f;
 
         [LibraryImport("android")]
         [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -40,38 +44,206 @@ namespace Staple
         [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         private static partial nint ANativeWindow_release(nint window);
 
+        class FrameCallback : Java.Lang.Object, Choreographer.IFrameCallback
+        {
+            public Action callback;
+
+            public void DoFrame(long frameTimeNanos)
+            {
+                callback?.Invoke();
+            }
+        }
+
+        private FrameCallback callback;
+
         private void InitIfNeeded()
         {
-            if(loopThread == null)
+            if (AppPlayer.instance?.renderWindow == null)
             {
-                loopThread = new Thread(new ParameterizedThreadStart((o) =>
+                new AppPlayer(appSettings, Array.Empty<string>(), false);
+
+                Log.Instance.onLog += (type, message) =>
                 {
-                    try
+                    switch(type)
                     {
-                        new AppPlayer(appSettings, new string[0]).Run();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"Exception while running player: {e}");
-                    }
-                    finally
-                    {
-                        Log.Debug("Finishing Staple activity");
+                        case Log.LogType.Info:
 
-                        AndroidRenderWindow.Instance.shouldClose = true;
+                            Android.Util.Log.Info("Staple", message);
 
-                        Finish();
+                            break;
+
+                        case Log.LogType.Error:
+
+                            Android.Util.Log.Error("Staple", message);
+
+                            break;
+
+                        case Log.LogType.Warning:
+
+                            Android.Util.Log.Warn("Staple", message);
+
+                            break;
+
+                        case Log.LogType.Debug:
+
+                            Android.Util.Log.Debug("Staple", message);
+
+                            break;
                     }
-                }));
+                };
+                
+                AppPlayer.instance.Create();
 
-                loopThread.Start();
+                if (AppPlayer.instance.renderWindow == null)
+                {
+                    System.Environment.Exit(1);
+                }
+
+                AndroidRenderWindow.Instance.Mutate((renderWindow) =>
+                {
+                    renderWindow.contextLost = false;
+                });
+
+                var renderWindow = AppPlayer.instance.renderWindow;
+
+                renderWindow.InitBGFX();
+
+                try
+                {
+                    renderWindow.OnScreenSizeChange?.Invoke(renderWindow.window.IsFocused);
+                }
+                catch (System.Exception)
+                {
+                }
+
+                try
+                {
+                    renderWindow.OnInit?.Invoke();
+                }
+                catch (System.Exception e)
+                {
+                    Log.Error($"RenderWindow Init Exception: {e}");
+
+                    System.Environment.Exit(1);
+
+                    return;
+                }
+
+                if (renderWindow.shouldStop)
+                {
+                    System.Environment.Exit(1);
+
+                    return;
+                }
+
+                callback = new FrameCallback()
+                {
+                    callback = Frame,
+                };
+
+                Choreographer.Instance.PostFrameCallback(callback);
             }
+        }
+
+        private void Frame()
+        {
+            Choreographer.Instance.PostFrameCallback(callback);
+
+            Input.Character = 0;
+            Input.MouseDelta = Vector2.Zero;
+            Input.MouseRelativePosition = Vector2.Zero;
+
+            Input.UpdateState();
+
+            var renderWindow = AppPlayer.instance.renderWindow;
+
+            renderWindow.window.PollEvents();
+
+            lock (renderWindow.renderLock)
+            {
+                renderWindow.shouldRender = renderWindow.window.Unavailable == false && (appSettings.runInBackground == true || renderWindow.window.IsFocused == true);
+            }
+
+            if (renderWindow.window.Unavailable)
+            {
+                return;
+            }
+
+            renderWindow.window.GetWindowSize(out var currentW, out var currentH);
+
+            if ((currentW != renderWindow.width || currentH != renderWindow.height) && renderWindow.window.ShouldClose == false)
+            {
+                renderWindow.width = currentW;
+                renderWindow.height = currentH;
+
+                try
+                {
+                    renderWindow.OnScreenSizeChange?.Invoke(renderWindow.hasFocus);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            renderWindow.CheckContextLost();
+
+            if (appSettings.runInBackground == false && renderWindow.window.IsFocused != renderWindow.hasFocus)
+            {
+                renderWindow.hasFocus = renderWindow.window.IsFocused;
+
+                try
+                {
+                    renderWindow.OnScreenSizeChange?.Invoke(renderWindow.hasFocus);
+                }
+                catch (Exception)
+                {
+                }
+
+                if (renderWindow.hasFocus == false)
+                {
+                    return;
+                }
+            }
+            
+            renderWindow.CheckEvents();
+
+            if (renderWindow.Paused)
+            {
+                fixedTimer = 0;
+            }
+            else
+            {
+                var current = DateTime.Now;
+
+                fixedTimer += (float)(current - lastTime).TotalSeconds;
+
+                //Prevent hard stuck
+                var tries = 0;
+
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                {
+                    fixedTimer -= Time.fixedDeltaTime;
+
+                    renderWindow.OnFixedUpdate?.Invoke();
+
+                    tries++;
+                }
+
+                if(tries >= 3)
+                {
+                    fixedTimer = 0;
+                }
+            }
+
+            renderWindow.RenderFrame(ref lastTime);
         }
 
         public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
         {
             void Finish()
             {
+                var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
+
                 AndroidRenderWindow.Instance.Mutate((renderWindow) =>
                 {
                     if (renderWindow.window != nint.Zero)
@@ -79,26 +251,27 @@ namespace Staple
                         ANativeWindow_release(renderWindow.window);
                     }
 
-                    var nativeWindow = ANativeWindow_fromSurface(JNIEnv.Handle, holder.Surface.Handle);
-
-                    Log.Debug($"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
-
                     renderWindow.screenWidth = width;
                     renderWindow.screenHeight = height;
                     renderWindow.window = nativeWindow;
                     renderWindow.unavailable = false;
 
-                    if (loopThread != null)
+                    renderWindow.ContextLost = true;
+                });
+
+                new Handler(Looper.MainLooper).Post(() =>
+                {
+                    try
                     {
-                        Log.Debug($"Context Lost");
-
-                        renderWindow.ContextLost = true;
-
-                        return;
+                        InitIfNeeded();
+                    }
+                    catch (Exception e)
+                    {
+                        Android.Util.Log.Error("Staple", $"Exception: {e}");
                     }
                 });
 
-                InitIfNeeded();
+                Log.Debug($"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
             }
 
             void Delay()
@@ -131,6 +304,11 @@ namespace Staple
             });
         }
 
+        protected virtual string[] AdditionalLibraries()
+        {
+            return Array.Empty<string>();
+        }
+
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -141,6 +319,11 @@ namespace Staple
             Java.Lang.JavaSystem.LoadLibrary("bgfx");
             Java.Lang.JavaSystem.LoadLibrary("joltc");
             Java.Lang.JavaSystem.LoadLibrary("freetype6");
+
+            foreach (var library in AdditionalLibraries())
+            {
+                Java.Lang.JavaSystem.LoadLibrary(library);
+            }
 
             Threading.Initialize();
 
@@ -153,13 +336,13 @@ namespace Staple
                 Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
             }
 
-            if(Build.VERSION.SdkInt >= BuildVersionCodes.R)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
             {
                 Window.SetDecorFitsSystemWindows(false);
                 Window.InsetsController.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
                 Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
             }
-            else if(Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
+            else if (Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
             {
                 Window.DecorView.SystemUiVisibility = StatusBarVisibility.Hidden;
             }
@@ -230,8 +413,14 @@ namespace Staple
         protected override void OnDestroy()
         {
             base.OnDestroy();
-
-            AndroidRenderWindow.Instance.shouldClose = true;
+            
+            try
+            {
+                AppPlayer.instance?.renderWindow.OnCleanup?.Invoke();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void SurfaceRedrawNeeded(ISurfaceHolder holder)

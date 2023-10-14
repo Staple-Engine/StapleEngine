@@ -74,7 +74,7 @@ namespace Staple.Internal
             }
         }
 
-        private void CheckContextLost()
+        internal void CheckContextLost()
         {
             if (window.ContextLost)
             {
@@ -424,7 +424,7 @@ namespace Staple.Internal
             }
         }
 
-        private void InitBGFX()
+        internal void InitBGFX()
         {
             var renderers = new List<RendererType>();
 
@@ -604,7 +604,7 @@ namespace Staple.Internal
 #endif
         }
 
-        private void CheckEvents()
+        internal void CheckEvents()
         {
             var appEvent = AppEventQueue.instance.Next();
 
@@ -672,7 +672,7 @@ namespace Staple.Internal
             }
         }
 
-        private void RenderFrame(ref DateTime lastTime)
+        internal void RenderFrame(ref DateTime lastTime)
         {
             var current = DateTime.Now;
 
@@ -830,14 +830,16 @@ namespace Staple.Internal
                 return null;
             }
 
-            bgfxReferences++;
-
             Input.window = renderWindow.window;
+
+#if !ANDROID
+            bgfxReferences++;
 
             if (appSettings.multiThreadedRenderer == false)
             {
                 renderWindow.InitBGFX();
             }
+#endif
 
             AppPlayer.ScreenWidth = width;
             AppPlayer.ScreenHeight = height;

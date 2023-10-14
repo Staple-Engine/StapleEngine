@@ -61,7 +61,7 @@ namespace Staple
                 return;
             }
 
-            new AppPlayer(settings, args).Run();
+            new AppPlayer(settings, args, true).Run();
         }
     }
 }

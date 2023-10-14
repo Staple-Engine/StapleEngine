@@ -18,12 +18,14 @@ namespace Staple
 
         public static bgfx.RendererType ActiveRendererType { get; internal set; }
 
-        public static AppPlayer active;
+        public static AppPlayer instance;
 
-        public AppPlayer(AppSettings settings, string[] args)
+        internal RenderWindow renderWindow;
+
+        public AppPlayer(AppSettings settings, string[] args, bool shouldConsoleLog)
         {
             appSettings = settings;
-            active = this;
+            instance = this;
 
             Storage.Update(appSettings.appName, appSettings.companyName);
 
@@ -31,10 +33,13 @@ namespace Staple
 
             Log.SetLog(new FSLog(path));
 
-            Log.Instance.onLog += (type, message) =>
+            if(shouldConsoleLog)
             {
-                Console.WriteLine($"[{type}] {message}");
-            };
+                Log.Instance.onLog += (type, message) =>
+                {
+                    Console.WriteLine($"[{type}] {message}");
+                };
+            }
         }
 
         public void ResetRendering(bool hasFocus)
@@ -49,14 +54,19 @@ namespace Staple
             AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
         }
 
-        public void Run()
+        public void Create()
         {
             playerSettings = PlayerSettings.Load(appSettings);
             PlayerSettings.Save(playerSettings);
 
-            var renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode, appSettings,
+            renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode, appSettings,
                 playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
                 playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+
+            if(renderWindow == null)
+            {
+                return;
+            }
 
             renderWindow.OnInit = () =>
             {
@@ -186,6 +196,16 @@ namespace Staple
 
                 Log.Cleanup();
             };
+        }
+
+        public void Run()
+        {
+            Create();
+
+            if(renderWindow == null)
+            {
+                return;
+            }
 
             renderWindow.Run();
         }
