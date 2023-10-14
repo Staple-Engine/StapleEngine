@@ -160,6 +160,11 @@ namespace Staple.Editor
         {
             Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");
 
+            if(current < 0)
+            {
+                current = 0;
+            }
+
             return current;
         }
 

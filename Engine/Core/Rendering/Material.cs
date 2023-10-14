@@ -156,7 +156,7 @@ namespace Staple
                     {
                         filter = TextureFilter.Linear,
                         format = TextureMetadataFormat.RGBA8,
-                        type = TextureType.SRGB,
+                        type = TextureType.Texture,
                         useMipmaps = false,
                     }, Bgfx.bgfx.TextureFormat.RGBA8);
                 }

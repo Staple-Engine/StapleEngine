@@ -325,10 +325,13 @@ namespace Staple
         {
             switch (metadata.type)
             {
-                case TextureType.SRGB:
+                case TextureType.Texture:
                 case TextureType.Sprite:
 
-                    flags |= TextureFlags.SRGB;
+                    if(metadata.isLinear == false)
+                    {
+                        flags |= TextureFlags.SRGB;
+                    }
 
                     break;
             }

@@ -100,7 +100,7 @@ namespace Staple
 
         public static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
         {
-            var resetFlags = bgfx.ResetFlags.SrgbBackbuffer;
+            var resetFlags = bgfx.ResetFlags.FlushAfterRender | bgfx.ResetFlags.FlipAfterRender; //bgfx.ResetFlags.SrgbBackbuffer;
 
             if (videoFlags.HasFlag(VideoFlags.Vsync))
             {

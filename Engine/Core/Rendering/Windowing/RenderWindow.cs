@@ -600,6 +600,7 @@ namespace Staple.Internal
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
 #if _DEBUG
+            //bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
             bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 #endif
         }

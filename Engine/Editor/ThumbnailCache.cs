@@ -69,7 +69,7 @@ namespace Staple.Editor
             {
                 filter = TextureFilter.Point,
                 format = TextureMetadataFormat.RGBA8,
-                type = TextureType.SRGB,
+                type = TextureType.Texture,
                 useMipmaps = false,
             }, Bgfx.bgfx.TextureFormat.RGBA8);
 

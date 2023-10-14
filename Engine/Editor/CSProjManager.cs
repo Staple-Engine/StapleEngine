@@ -236,7 +236,7 @@ namespace Staple.Editor
             {
                 { "OutputType", exeType },
                 { "TargetFramework", targetFramework },
-                { "StripSymbols", "true" },
+                { "StripSymbols", debug ? "false" : "true" },
                 { "AppDesignerFolder", "Properties" },
                 { "OptimizationPreference", "Speed" },
                 { "Nullable", "enable" },

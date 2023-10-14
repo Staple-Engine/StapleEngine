@@ -30,7 +30,7 @@
           "fov": 90.0,
           "nearPlane": 0.0,
           "farPlane": 1000.0,
-          "clearColor": "#3366FFFF",
+          "clearColor": "#82A1FFFF",
           "cullingLayers": 4294967295
         }
       },

@@ -106,7 +106,7 @@ namespace Staple.Internal
     [JsonConverter(typeof(JsonStringEnumConverter<TextureType>))]
     public enum TextureType
     {
-        SRGB,
+        Texture,
         NormalMap,
         Sprite,
     }
@@ -241,7 +241,7 @@ namespace Staple.Internal
         public string guid = Guid.NewGuid().ToString();
 
         [Key(1)]
-        public TextureType type = TextureType.SRGB;
+        public TextureType type = TextureType.Texture;
 
         [Key(2)]
         public TextureMetadataFormat format = TextureMetadataFormat.BC3;
@@ -271,7 +271,7 @@ namespace Staple.Internal
         public bool useMipmaps = true;
 
         [Key(11)]
-        public bool isLinear = false;
+        public bool isLinear = true;
 
         [Key(12)]
         public int spritePixelsPerUnit = 100;

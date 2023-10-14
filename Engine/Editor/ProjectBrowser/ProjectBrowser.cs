@@ -510,7 +510,7 @@ namespace Staple.Editor
                     return;
                 }
 
-                var flags = ImGuiTreeNodeFlags.SpanFullWidth;
+                var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow;
                 var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
 
                 if (hasChildren == false)
@@ -537,7 +537,7 @@ namespace Staple.Editor
                 }
             }
 
-            if (ImGui.TreeNodeEx("Assets", ImGuiTreeNodeFlags.SpanFullWidth))
+            if (ImGui.TreeNodeEx("Assets", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow))
             {
                 if (ImGui.IsItemClicked())
                 {

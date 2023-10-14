@@ -4,7 +4,7 @@
 	"type": "Sprite",
 	"useMipmaps": true,
 	"quality": "Default",
-	"isLinear": false,
+	"isLinear": true,
 	"premultiplyAlpha": false,
 	"maxSize": 2048,
 	"format": "BC1",

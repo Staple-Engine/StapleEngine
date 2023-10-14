@@ -10,7 +10,7 @@
   "premultiplyAlpha": true,
   "maxSize": 2048,
   "useMipmaps": false,
-  "isLinear": false,
+  "isLinear": true,
   "spritePixelsPerUnit": 100,
   "readBack": false,
   "spriteTextureMethod": "Single",
