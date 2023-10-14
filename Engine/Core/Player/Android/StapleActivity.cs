@@ -147,6 +147,11 @@ namespace Staple
 
         private void Frame()
         {
+            if(AndroidRenderWindow.Instance.ShouldClose)
+            {
+                return;
+            }
+
             Choreographer.Instance.PostFrameCallback(callback);
 
             Input.Character = 0;
@@ -413,6 +418,11 @@ namespace Staple
         protected override void OnDestroy()
         {
             base.OnDestroy();
+
+            AndroidRenderWindow.Instance.Mutate((renderWindow) =>
+            {
+                renderWindow.shouldClose = true;
+            });
             
             try
             {

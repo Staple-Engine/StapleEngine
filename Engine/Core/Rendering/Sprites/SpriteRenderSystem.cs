@@ -90,67 +90,67 @@ namespace Staple
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
-                r.texture != null &&
-                r.texture.Disposed == false &&
-                r.material != null &&
-                r.material.Disposed == false &&
-                r.material.shader != null &&
-                r.material.Disposed == false)
+                r.material == null ||
+                r.material.shader == null ||
+                r.material.Disposed ||
+                r.material.shader.Disposed)
             {
-                TextureSpriteInfo sprite;
-                Texture texture;
-
-                if(hasValidAnimation)
-                {
-                    texture = r.animation.texture;
-
-                    r.timer += Time.deltaTime;
-
-                    var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
-
-                    while(r.timer >= timeStep && timeStep > 0)
-                    {
-                        r.timer -= timeStep;
-
-                        r.currentFrame++;
-
-                        if(r.currentFrame >= r.animation.frames.Count)
-                        {
-                            r.currentFrame = 0;
-                        }
-                    }
-
-                    if(r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
-                    {
-                        return;
-                    }
-
-                    var frame = r.animation.frames[r.currentFrame];
-
-                    if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
-                    {
-                        return;
-                    }
-
-                    sprite = r.animation.texture.metadata.sprites[frame];
-                }
-                else
-                {
-                    if(r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
-                    {
-                        return;
-                    }
-
-                    texture = r.texture;
-                    sprite = r.texture.metadata.sprites[r.spriteIndex];
-                }
-
-                var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
-
-                r.localBounds = new AABB(Vector3.Zero, size);
-
-                r.bounds = new AABB(transform.Position, size);
+                return;
             }
+
+            TextureSpriteInfo sprite;
+            Texture texture;
+
+            if(hasValidAnimation)
+            {
+                texture = r.animation.texture;
+
+                r.timer += Time.deltaTime;
+
+                var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
+
+                while(r.timer >= timeStep && timeStep > 0)
+                {
+                    r.timer -= timeStep;
+
+                    r.currentFrame++;
+
+                    if(r.currentFrame >= r.animation.frames.Count)
+                    {
+                        r.currentFrame = 0;
+                    }
+                }
+
+                if(r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                {
+                    return;
+                }
+
+                var frame = r.animation.frames[r.currentFrame];
+
+                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                {
+                    return;
+                }
+
+                sprite = r.animation.texture.metadata.sprites[frame];
+            }
+            else
+            {
+                if(r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+                {
+                    return;
+                }
+
+                texture = r.texture;
+                sprite = r.texture.metadata.sprites[r.spriteIndex];
+            }
+
+            var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
+
+            r.localBounds = new AABB(Vector3.Zero, size);
+
+            r.bounds = new AABB(transform.Position, size);
         }
 
         public void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId)
