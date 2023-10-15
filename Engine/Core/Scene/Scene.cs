@@ -11,6 +11,8 @@ namespace Staple
     {
         internal World world = new();
 
+        internal static bool InstancingComponent = false;
+
         /// <summary>
         /// The currently active scene
         /// </summary>
@@ -136,6 +138,8 @@ namespace Staple
         internal Entity Instantiate(SceneObject sceneObject, out int localID, bool activate)
         {
             localID = sceneObject.ID;
+
+            InstancingComponent = true;
 
             var entity = CreateEntity();
 
@@ -443,9 +447,11 @@ namespace Staple
             {
                 world.IterateComponents(entity, (ref IComponent c) =>
                 {
-                    c.Invoke("Awake", entity, transform);
+                    world.EmitAddComponentEvent(entity, ref c);
                 });
             }
+
+            InstancingComponent = false;
 
             return entity;
         }

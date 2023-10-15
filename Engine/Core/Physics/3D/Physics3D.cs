@@ -168,6 +168,11 @@ namespace Staple
         /// <param name="body">The body to destroy</param>
         public void DestroyBody(IBody3D body)
         {
+            if(body == null)
+            {
+                return;
+            }
+
             impl.DestroyBody(body);
         }
 
@@ -258,10 +263,105 @@ namespace Staple
         #region Internal
         public void Startup()
         {
+            World.AddComponentAddedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var box = (BoxCollider3D)component;
+
+                CreateBox(entity, box.size, transform.Position, transform.Rotation, box.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), box.isTrigger, box.gravityFactor, out box.body);
+            });
+
+            World.AddComponentAddedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var capsule = (CapsuleCollider3D)component;
+
+                CreateCapsule(entity, capsule.height, capsule.radius, transform.Position, transform.Rotation, capsule.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), capsule.isTrigger, capsule.gravityFactor, out capsule.body);
+            });
+
+            World.AddComponentAddedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var cylinder = (CylinderCollider3D)component;
+
+                CreateCylinder(entity, cylinder.height, cylinder.radius, transform.Position, transform.Rotation, cylinder.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), cylinder.isTrigger, cylinder.gravityFactor, out cylinder.body);
+            });
+
+            World.AddComponentAddedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var mesh = (MeshCollider3D)component;
+
+                if (mesh.mesh == null)
+                {
+                    return;
+                }
+
+                CreateMesh(entity, mesh.mesh, transform.Position, transform.Rotation, mesh.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), mesh.isTrigger, mesh.gravityFactor, out mesh.body);
+            });
+
+            World.AddComponentAddedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var sphere = (SphereCollider3D)component;
+
+                CreateSphere(entity, sphere.radius, transform.Position, transform.Rotation, sphere.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), sphere.isTrigger, sphere.gravityFactor, out sphere.body);
+            });
+
+            World.AddComponentRemovedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var box = (BoxCollider3D)component;
+
+                DestroyBody(box.body);
+            });
+
+            World.AddComponentRemovedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var capsule = (CapsuleCollider3D)component;
+
+                DestroyBody(capsule.body);
+            });
+
+            World.AddComponentRemovedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var cylinder = (CylinderCollider3D)component;
+
+                DestroyBody(cylinder.body);
+            });
+
+            World.AddComponentRemovedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var mesh = (MeshCollider3D)component;
+
+                DestroyBody(mesh.body);
+            });
+
+            World.AddComponentRemovedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            {
+                var sphere = (SphereCollider3D)component;
+
+                DestroyBody(sphere.body);
+            });
         }
 
         public void Shutdown()
         {
+            if(Scene.current?.world != null)
+            {
+                Scene.current.world.Iterate((entity) =>
+                {
+                    Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                    {
+                        if (component.GetType().IsSubclassOf(typeof(Collider3D)))
+                        {
+                            var collider = (Collider3D)component;
+
+                            DestroyBody(collider.body);
+                        }
+                    });
+                });
+            }
+
             impl.Destroy();
 
             impl = null;

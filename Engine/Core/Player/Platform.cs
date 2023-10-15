@@ -43,6 +43,13 @@ namespace Staple
             }
         }
 
+        private static readonly Lazy<bool> isSteamDeck = new(() =>
+        {
+            var steamDeckVariable = Environment.GetEnvironmentVariable("SteamDeck");
+
+            return (steamDeckVariable?.Length ?? 0) > 0 && int.TryParse(steamDeckVariable, out var steamDeckValue) && steamDeckValue > 0;
+        });
+
         /// <summary>
         /// Whether we're running on windows
         /// </summary>
@@ -67,5 +74,20 @@ namespace Staple
         /// Whether we're running on iOS
         /// </summary>
         public static bool IsiOS => OperatingSystem.IsIOS();
+
+        /// <summary>
+        /// Whether we're running on steam deck
+        /// </summary>
+        public static bool IsSteamDeck => isSteamDeck.Value;
+
+        /// <summary>
+        /// Whether we're running on a mobile platform
+        /// </summary>
+        public static bool IsMobilePlatform => IsAndroid || IsiOS;
+
+        /// <summary>
+        /// Whether we're running on a desktop platform
+        /// </summary>
+        public static bool IsDesktopPlatform => IsWindows || IsLinux || IsMacOS || IsSteamDeck;
     }
 }

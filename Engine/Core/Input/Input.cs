@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple
@@ -20,6 +21,12 @@ namespace Staple
         private static readonly Dictionary<KeyCode, InputState> keyStates = new();
 
         private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = new();
+
+        private static readonly Dictionary<int, InputState> touchStates = new();
+
+        private static readonly Dictionary<int, Vector2> touchPositions = new();
+
+        private static readonly HashSet<int> touchKeysToRemove = new();
 
         /// <summary>
         /// Last input character
@@ -45,39 +52,100 @@ namespace Staple
 
         internal static void UpdateState()
         {
-            foreach(var key in keyStates.Keys)
+            static void Handle<T>(Dictionary<T, InputState> dict)
             {
-                if (keyStates[key] == InputState.FirstRelease)
+                foreach (var key in dict.Keys)
                 {
-                    keyStates[key] = InputState.Release;
-                }
-                else if (keyStates[key] == InputState.FirstPress)
-                {
-                    keyStates[key] = InputState.Press;
+                    if (dict[key] == InputState.FirstRelease)
+                    {
+                        dict[key] = InputState.Release;
+                    }
+                    else if (dict[key] == InputState.FirstPress)
+                    {
+                        dict[key] = InputState.Press;
+                    }
                 }
             }
 
-            foreach (var key in mouseButtonStates.Keys)
+            touchKeysToRemove.Clear();
+
+            foreach(var key in touchStates.Keys)
             {
-                if (mouseButtonStates[key] == InputState.FirstRelease)
+                if (touchStates[key] == InputState.Release)
                 {
-                    mouseButtonStates[key] = InputState.Release;
-                }
-                else if (mouseButtonStates[key] == InputState.FirstPress)
-                {
-                    mouseButtonStates[key] = InputState.Press;
+                    touchKeysToRemove.Add(key);
                 }
             }
+
+            foreach(var key in touchKeysToRemove)
+            {
+                touchStates.Remove(key);
+                touchPositions.Remove(key);
+            }
+
+            Handle(keyStates);
+            Handle(mouseButtonStates);
+            Handle(touchStates);
         }
 
         internal static void HandleMouseDeltaEvent(AppEvent appEvent)
         {
-            MouseDelta = appEvent.mouseDelta;
+            MouseDelta = appEvent.mouseDelta.delta;
         }
 
         internal static void MouseScrollCallback(float xOffset, float yOffset)
         {
             AppEventQueue.instance.Add(AppEvent.MouseDelta(new Vector2(xOffset, yOffset)));
+        }
+
+        internal static void HandleTouchEvent(AppEvent appEvent)
+        {
+            if (touchPositions.ContainsKey(appEvent.touchEvent.touchID))
+            {
+                touchPositions[appEvent.touchEvent.touchID] = appEvent.touchEvent.position;
+            }
+            else
+            {
+                touchPositions.Add(appEvent.touchEvent.touchID, appEvent.touchEvent.position);
+            }
+
+            bool pressed = appEvent.type == AppEventType.MouseDown;
+
+            InputState touchState = pressed ? InputState.FirstPress : InputState.Release;
+
+            if (touchStates.ContainsKey(appEvent.touchEvent.touchID))
+            {
+                touchState = touchStates[appEvent.touchEvent.touchID];
+
+                if (pressed)
+                {
+                    if (touchState == InputState.FirstPress)
+                    {
+                        touchState = InputState.Press;
+                    }
+                    else
+                    {
+                        touchState = InputState.FirstPress;
+                    }
+                }
+                else
+                {
+                    if (touchState == InputState.FirstRelease)
+                    {
+                        touchState = InputState.Release;
+                    }
+                    else
+                    {
+                        touchState = InputState.FirstRelease;
+                    }
+                }
+
+                touchStates[appEvent.touchEvent.touchID] = touchState;
+            }
+            else
+            {
+                touchStates.Add(appEvent.touchEvent.touchID, touchState);
+            }
         }
 
         internal static void HandleMouseButtonEvent(AppEvent appEvent)
@@ -178,6 +246,61 @@ namespace Staple
         internal static void HandleTextEvent(AppEvent appEvent)
         {
             Character = appEvent.character;
+        }
+
+        /// <summary>
+        /// How many fingers are currently active
+        /// </summary>
+        public static int TouchCount => touchStates.Count;
+
+        /// <summary>
+        /// Gets the pointer ID at a touch index. Used to query the correct pointer ID from an index based off TouchCount
+        /// </summary>
+        /// <param name="index">the index of the touch</param>
+        /// <returns>The Pointer ID associated with the index</returns>
+        public static int GetPointerID(int index)
+        {
+            return touchStates.Keys.Skip(index).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets the touch position at a specific pointer index
+        /// </summary>
+        /// <param name="pointerIndex">The pointer index (can get from GetPointerID)</param>
+        /// <returns>The position</returns>
+        public static Vector2 GetTouchPosition(int pointerIndex)
+        {
+            return touchPositions.TryGetValue(pointerIndex, out var position) ? position : Vector2.Zero;
+        }
+
+        /// <summary>
+        /// Check whether a finger is currently pressing
+        /// </summary>
+        /// <param name="pointerIndex">The pointer index (can get from GetPointerID)</param>
+        /// <returns>Whether pressed</returns>
+        public static bool GetTouch(int pointerIndex)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        }
+
+        /// <summary>
+        /// Check whether a finger just pressed
+        /// </summary>
+        /// <param name="pointerIndex">The pointer index (can get from GetPointerID)</param>
+        /// <returns>Whether pressed</returns>
+        public static bool GetTouchDown(int pointerIndex)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstPress;
+        }
+
+        /// <summary>
+        /// Check whether a finger just released
+        /// </summary>
+        /// <param name="pointerIndex">The pointer index (can get from GetPointerID)</param>
+        /// <returns>Whether just released</returns>
+        public static bool GetTouchUp(int pointerIndex)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstRelease;
         }
 
         /// <summary>

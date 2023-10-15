@@ -19,7 +19,23 @@ namespace TestGame
                 return;
             }
 
-            var worldPosition = Camera.ScreenPointToWorld(Input.MousePosition, world, c.entity, c.camera, c.transform);
+            var mousePosition = Vector2.Zero;
+
+            if(Platform.IsDesktopPlatform)
+            {
+                mousePosition = Input.MousePosition;
+            }
+            else
+            {
+                if(Input.TouchCount > 0)
+                {
+                    var pointer = Input.GetPointerID(0);
+
+                    mousePosition = Input.GetTouchPosition(pointer);
+                }
+            }
+
+            var worldPosition = Camera.ScreenPointToWorld(mousePosition, world, c.entity, c.camera, c.transform);
 
             world.ForEach((Entity entity, bool enabled, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
             {

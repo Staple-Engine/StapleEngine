@@ -207,6 +207,14 @@ namespace Staple.Editor
 
             playerSettings = PlayerSettings.Load(editorSettings);
 
+            if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
+            {
+                playerSettings.screenWidth = editorSettings.defaultWindowWidth;
+                playerSettings.screenHeight = editorSettings.defaultWindowHeight;
+
+                playerSettings.windowPosition = Vector2Int.Zero;
+            }
+
             window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
                 playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
                 playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
@@ -318,6 +326,8 @@ namespace Staple.Editor
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
+
+                Physics3D.Instance.Startup();
 
                 debugHighlightMaterial = ResourceManager.instance.LoadMaterial("Materials/DebugHighlight.mat");
 

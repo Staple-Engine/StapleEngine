@@ -421,6 +421,8 @@ namespace Staple
         {
             lock (lockObject)
             {
+                collectionModified = false;
+
                 foreach (var entity in entities)
                 {
                     if(entity.alive == false)
@@ -462,6 +464,8 @@ namespace Staple
                 {
                     return;
                 }
+
+                collectionModified = false;
 
                 foreach (var index in e.components)
                 {

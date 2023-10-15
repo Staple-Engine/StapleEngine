@@ -57,6 +57,15 @@ namespace Staple
         public void Create()
         {
             playerSettings = PlayerSettings.Load(appSettings);
+
+            if(playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
+            {
+                playerSettings.screenWidth = appSettings.defaultWindowWidth;
+                playerSettings.screenHeight = appSettings.defaultWindowHeight;
+
+                playerSettings.windowPosition = Vector2Int.Zero;
+            }
+
             PlayerSettings.Save(playerSettings);
 
             renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode, appSettings,

@@ -35,6 +35,8 @@ namespace Staple
 
         public delegate void IterateComponentCallback(ref IComponent component);
 
+        public delegate void OnComponentChangedCallback(Entity entity, Transform transform, ref IComponent component);
+
         /// <summary>
         /// Contains data on an entity
         /// </summary>
@@ -159,8 +161,12 @@ namespace Staple
         }
 
         private readonly object lockObject = new();
+        private static readonly object globalLockObject = new();
         private bool collectionModified = false;
         private readonly List<EntityInfo> entities = new();
         private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
+
+        private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = new();
+        private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = new();
     }
 }

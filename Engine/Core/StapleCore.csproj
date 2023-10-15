@@ -79,7 +79,6 @@
     <Compile Include="Entities\Camera\Camera.cs" />
     <Compile Include="Entities\Camera\CameraClearMode.cs" />
     <Compile Include="Entities\Camera\CameraType.cs" />
-    <Compile Include="Entities\ComponentExtensions.cs" />
     <Compile Include="Entities\Entity.cs" />
     <Compile Include="Entities\EntitySystemManager.cs" />
     <Compile Include="Entities\IComponent.cs" />

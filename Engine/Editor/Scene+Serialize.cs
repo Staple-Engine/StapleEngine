@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Reflection;
 
 namespace Staple.Internal
@@ -74,6 +75,51 @@ namespace Staple.Internal
 
                                 sceneComponent.data.Add(field.Name, path);
                             }
+                        }
+                        else if(field.FieldType == typeof(Vector2))
+                        {
+                            var value = (Vector2)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, new Vector2Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                            });
+                        }
+                        else if (field.FieldType == typeof(Vector3))
+                        {
+                            var value = (Vector3)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, new Vector3Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                            });
+                        }
+                        else if (field.FieldType == typeof(Vector4))
+                        {
+                            var value = (Vector4)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, new Vector4Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                                w = value.W,
+                            });
+                        }
+                        else if (field.FieldType == typeof(Quaternion))
+                        {
+                            var value = (Quaternion)field.GetValue(component);
+
+                            sceneComponent.data.Add(field.Name, new Vector4Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                                w = value.W,
+                            });
                         }
                         else if (field.FieldType == typeof(Color32))
                         {

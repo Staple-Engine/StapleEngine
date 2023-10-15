@@ -30,6 +30,12 @@
           "fov": 90.0,
           "nearPlane": 0.0,
           "farPlane": 1000.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
           "clearColor": "#82A1FFFF",
           "cullingLayers": 4294967295
         }
@@ -93,6 +99,11 @@
       {
         "type": "Staple.BoxCollider3D",
         "data": {
+          "size": {
+            "x": 100.0,
+            "y": 100.0,
+            "z": 100.0
+          },
           "gravityFactor": 0.0,
           "isTrigger": false,
           "motionType": "Dynamic"

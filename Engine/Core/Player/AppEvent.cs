@@ -15,6 +15,7 @@ namespace Staple.Internal
         Text,
         MaximizeWindow,
         MoveWindow,
+        Touch
     }
 
     internal enum InputState
@@ -73,6 +74,33 @@ namespace Staple.Internal
         public ModifierKeys mods;
     }
 
+    internal struct ResetEvent
+    {
+        public Bgfx.bgfx.ResetFlags resetFlags;
+    }
+
+    internal struct MouseDeltaEvent
+    {
+        public Vector2 delta;
+    }
+
+    internal struct MaximizeWindowEvent
+    {
+        public bool maximized;
+    }
+
+    internal struct MoveWindowEvent
+    {
+        public Vector2Int windowPosition;
+    }
+
+    internal struct TouchEvent
+    {
+        public int touchID;
+        public Vector2 position;
+        public InputState state;
+    }
+
     /// <summary>
     /// Stores information on an app event
     /// </summary>
@@ -82,17 +110,35 @@ namespace Staple.Internal
         public uint character;
         public KeyboardEvent key;
         public MouseEvent mouse;
-        public Bgfx.bgfx.ResetFlags resetFlags;
-        public Vector2 mouseDelta;
-        public bool maximized;
-        public Vector2Int windowPosition;
+        public ResetEvent reset;
+        public MouseDeltaEvent mouseDelta;
+        public MaximizeWindowEvent maximizeWindow;
+        public MoveWindowEvent moveWindow;
+        public TouchEvent touchEvent;
+
+        public static AppEvent Touch(int touchID, Vector2 position, InputState state)
+        {
+            return new()
+            {
+                type = AppEventType.Touch,
+                touchEvent = new()
+                {
+                    touchID = touchID,
+                    position = position,
+                    state = state,
+                },
+            };
+        }
 
         public static AppEvent MoveWindow(Vector2Int position)
         {
             return new()
             {
                 type = AppEventType.MoveWindow,
-                windowPosition = position,
+                moveWindow = new()
+                {
+                    windowPosition = position,
+                },
             };
         }
 
@@ -101,7 +147,10 @@ namespace Staple.Internal
             return new()
             {
                 type = AppEventType.MaximizeWindow,
-                maximized = maximized,
+                maximizeWindow = new()
+                {
+                    maximized = maximized,
+                },
             };
         }
 
@@ -119,7 +168,10 @@ namespace Staple.Internal
             return new()
             {
                 type = AppEventType.ResetFlags,
-                resetFlags = flags
+                reset = new()
+                {
+                    resetFlags = flags,
+                },
             };
         }
 
@@ -161,7 +213,10 @@ namespace Staple.Internal
             return new()
             {
                 type = AppEventType.MouseDelta,
-                mouseDelta = delta,
+                mouseDelta = new()
+                {
+                    delta = delta,
+                },
             };
         }
     }

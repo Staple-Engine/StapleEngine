@@ -171,7 +171,12 @@ namespace Staple
 
                     if(added == false)
                     {
-                        info.components[entity.ID].Invoke("OnDestroy");
+                        EmitRemoveComponentEvent(entity, ref component);
+                    }
+
+                    if(Scene.InstancingComponent == false)
+                    {
+                        EmitAddComponentEvent(entity, ref component);
                     }
 
                     info.components[entity.ID] = component;
@@ -216,7 +221,11 @@ namespace Staple
                 {
                     if (componentsRepository.TryGetValue(componentIndex, out var info))
                     {
-                        info.components[entity.ID].Invoke("OnDestroy");
+                        var component = info.components[entity.ID];
+
+                        EmitRemoveComponentEvent(entity, ref component);
+
+                        info.components[entity.ID] = component;
                     }
 
                     entities[entity.ID].components.Remove(componentIndex);
@@ -294,6 +303,150 @@ namespace Staple
                 }
 
                 componentsRepository[componentIndex].components[entity.ID] = component;
+            }
+        }
+
+        public static void AddComponentAddedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
+            OnComponentChangedCallback callback)
+        {
+            if(componentType.GetInterface(typeof(IComponent).FullName) == null)
+            {
+                return;
+            }
+
+            lock(globalLockObject)
+            {
+                if(componentAddedCallbacks.TryGetValue(componentType, out var c) == false)
+                {
+                    c = new();
+
+                    componentAddedCallbacks.Add(componentType, c);
+                }
+
+                if(c.Contains(callback))
+                {
+                    return;
+                }
+
+                c.Add(callback);
+            }
+        }
+
+        public static void AddComponentRemovedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
+            OnComponentChangedCallback callback)
+        {
+            if (componentType.GetInterface(typeof(IComponent).FullName) == null)
+            {
+                return;
+            }
+
+            lock (globalLockObject)
+            {
+                if (componentRemovedCallbacks.TryGetValue(componentType, out var c) == false)
+                {
+                    c = new();
+
+                    componentRemovedCallbacks.Add(componentType, c);
+                }
+
+                if (c.Contains(callback))
+                {
+                    return;
+                }
+
+                c.Add(callback);
+            }
+        }
+
+        internal void EmitAddComponentEvent(Entity entity, ref IComponent component)
+        {
+            if (component == null)
+            {
+                return;
+            }
+
+            lock (globalLockObject)
+            {
+                var transform = GetComponent<Transform>(entity);
+
+                if (componentAddedCallbacks.TryGetValue(component.GetType(), out var callbacks))
+                {
+                    var removedCallbacks = new Stack<int>();
+
+                    for (var i = 0; i < callbacks.Count; i++)
+                    {
+                        var callback = callbacks[i];
+
+                        if (callback == null)
+                        {
+                            removedCallbacks.Push(i);
+
+                            continue;
+                        }
+
+                        try
+                        {
+                            callback?.Invoke(entity, transform, ref component);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Debug($"[World] AddComponent: Failed to handle a component added callback: {ex}");
+                        }
+                    }
+
+                    while (removedCallbacks.Count > 0)
+                    {
+                        var item = removedCallbacks.Pop();
+
+                        callbacks.RemoveAt(item);
+                    }
+                }
+            }
+        }
+
+        internal void EmitRemoveComponentEvent(Entity entity, ref IComponent component)
+        {
+            if(component == null)
+            {
+                return;
+            }
+
+            lock (globalLockObject)
+            {
+                var transform = GetComponent<Transform>(entity);
+
+                if (componentRemovedCallbacks.TryGetValue(component.GetType(), out var callbacks))
+                {
+                    var removedCallbacks = new Stack<int>();
+
+                    for (var i = 0; i < callbacks.Count; i++)
+                    {
+                        var callback = callbacks[i];
+
+                        if (callback == null)
+                        {
+                            removedCallbacks.Push(i);
+
+                            continue;
+                        }
+
+                        try
+                        {
+                            callback?.Invoke(entity, transform, ref component);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[World] RemoveComponent: Failed to handle a component removed callback: {e}");
+                        }
+                    }
+
+                    while (removedCallbacks.Count > 0)
+                    {
+                        var item = removedCallbacks.Pop();
+
+                        callbacks.RemoveAt(item);
+                    }
+                }
             }
         }
     }

@@ -615,7 +615,7 @@ namespace Staple.Internal
                 {
                     case AppEventType.ResetFlags:
 
-                        bgfx.reset((uint)width, (uint)height, (uint)appEvent.resetFlags, bgfx.TextureFormat.RGBA8);
+                        bgfx.reset((uint)width, (uint)height, (uint)appEvent.reset.resetFlags, bgfx.TextureFormat.RGBA8);
                         bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
                         break;
@@ -667,6 +667,12 @@ namespace Staple.Internal
                         catch (Exception)
                         {
                         }
+
+                        break;
+
+                    case AppEventType.Touch:
+
+                        Input.HandleTouchEvent(appEvent);
 
                         break;
                 }
