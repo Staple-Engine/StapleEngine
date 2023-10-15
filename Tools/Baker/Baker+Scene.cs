@@ -196,10 +196,10 @@ namespace Baker
                                         continue;
                                     }
 
-                                    var x = o.GetValue("x")?.Value<int?>();
-                                    var y = o.GetValue("y")?.Value<int?>();
-                                    var z = o.GetValue("z")?.Value<int?>();
-                                    var w = o.GetValue("w")?.Value<int?>();
+                                    var x = o.GetValue("x")?.Value<float?>();
+                                    var y = o.GetValue("y")?.Value<float?>();
+                                    var z = o.GetValue("z")?.Value<float?>();
+                                    var w = o.GetValue("w")?.Value<float?>();
 
                                     if(x != null && y != null && z != null && w != null)
                                     {

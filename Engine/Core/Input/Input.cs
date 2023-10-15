@@ -109,9 +109,9 @@ namespace Staple
                 touchPositions.Add(appEvent.touchEvent.touchID, appEvent.touchEvent.position);
             }
 
-            bool pressed = appEvent.type == AppEventType.MouseDown;
+            bool pressed = appEvent.touchEvent.state == Internal.InputState.Press;
 
-            InputState touchState = pressed ? InputState.FirstPress : InputState.Release;
+            InputState touchState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
             if (touchStates.ContainsKey(appEvent.touchEvent.touchID))
             {
@@ -154,7 +154,7 @@ namespace Staple
 
             bool pressed = appEvent.type == AppEventType.MouseDown;
 
-            InputState mouseButtonState = pressed ? InputState.FirstPress : InputState.Release;
+            InputState mouseButtonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
             if (mouseButtonStates.ContainsKey(mouseButton))
             {
@@ -197,7 +197,7 @@ namespace Staple
 
             bool pressed = appEvent.type == AppEventType.KeyDown;
 
-            var keyState = pressed ? InputState.FirstPress : InputState.Release;
+            var keyState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
             if (keyStates.ContainsKey(code))
             {

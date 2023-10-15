@@ -221,6 +221,58 @@ namespace Staple
                                     field.SetValue(componentInstance, value);
                                 }
                             }
+                            else if(field.FieldType == typeof(Vector2) && element.ValueKind == JsonValueKind.Object)
+                            {
+                                try
+                                {
+                                    var x = element.GetProperty("x").GetDouble();
+                                    var y = element.GetProperty("y").GetDouble();
+
+                                    field.SetValue(componentInstance, new Vector2((float)x, (float)y));
+                                }
+                                catch (Exception e)
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (field.FieldType == typeof(Vector3) && element.ValueKind == JsonValueKind.Object)
+                            {
+                                try
+                                {
+                                    var x = element.GetProperty("x").GetDouble();
+                                    var y = element.GetProperty("y").GetDouble();
+                                    var z = element.GetProperty("z").GetDouble();
+
+                                    field.SetValue(componentInstance, new Vector3((float)x, (float)y, (float)z));
+                                }
+                                catch (Exception e)
+                                {
+                                    continue;
+                                }
+                            }
+                            else if ((field.FieldType == typeof(Vector4) || field.FieldType == typeof(Quaternion)) && element.ValueKind == JsonValueKind.Object)
+                            {
+                                try
+                                {
+                                    var x = element.GetProperty("x").GetDouble();
+                                    var y = element.GetProperty("y").GetDouble();
+                                    var z = element.GetProperty("z").GetDouble();
+                                    var w = element.GetProperty("w").GetDouble();
+
+                                    if(field.FieldType == typeof(Quaternion))
+                                    {
+                                        field.SetValue(componentInstance, new Quaternion((float)x, (float)y, (float)z, (float)w));
+                                    }
+                                    else
+                                    {
+                                        field.SetValue(componentInstance, new Vector4((float)x, (float)y, (float)z, (float)w));
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    continue;
+                                }
+                            }
                             else if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
                             {
                                 var color = Color32.White;
@@ -253,15 +305,6 @@ namespace Staple
                                 else
                                 {
                                     field.SetValue(componentInstance, (Color)color);
-                                }
-                            }
-                            else if(field.FieldType == typeof(Mesh) && element.ValueKind == JsonValueKind.String)
-                            {
-                                var value = ResourceManager.instance.LoadMesh(element.GetString());
-
-                                if(value != null)
-                                {
-                                    field.SetValue(componentInstance, value);
                                 }
                             }
                         }
