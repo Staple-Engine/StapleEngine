@@ -48,7 +48,7 @@
         }
       }
     ],
-    "layer": null,
+    "layer": "Default",
     "enabled": true
   },
   {
@@ -110,7 +110,7 @@
         }
       }
     ],
-    "layer": null,
+    "layer": "Default",
     "enabled": true
   },
   {
@@ -163,7 +163,7 @@
         }
       }
     ],
-    "layer": null,
+    "layer": "Default",
     "enabled": true
   }
 ]

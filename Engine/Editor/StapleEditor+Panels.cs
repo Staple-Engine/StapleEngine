@@ -1089,6 +1089,69 @@ namespace Staple.Editor
                     ImGui.TreePop();
                 }
 
+                if(ImGui.TreeNodeEx("Layers", ImGuiTreeNodeFlags.SpanFullWidth))
+                {
+                    void Handle(List<string> layers)
+                    {
+                        for (var i = 0; i < layers.Count; i++)
+                        {
+                            layers[i] = EditorGUI.TextField($"Layer {i + 1}##{layers.GetHashCode()}{i}", layers[i]);
+
+                            //Can't remove default layer
+                            if (i > 1)
+                            {
+                                EditorGUI.SameLine();
+
+                                if (EditorGUI.Button("Up##{layers.GetHashCode()}{i}"))
+                                {
+                                    (layers[i], layers[i - 1]) = (layers[i - 1], layers[i]);
+                                }
+                            }
+
+                            if (i > 0 && i + 1 < layers.Count)
+                            {
+                                EditorGUI.SameLine();
+
+                                if (EditorGUI.Button("Down##{layers.GetHashCode()}{i}"))
+                                {
+                                    (layers[i], layers[i + 1]) = (layers[i + 1], layers[i]);
+                                }
+                            }
+
+                            //Can't remove default layer
+                            if (i > 0)
+                            {
+                                EditorGUI.SameLine();
+
+                                if (EditorGUI.Button($"X##{layers.GetHashCode()}{i}"))
+                                {
+                                    layers.RemoveAt(i);
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(EditorGUI.Button($"+##{layers.GetHashCode()}"))
+                        {
+                            layers.Add("Layer");
+                        }
+
+                        LayerMask.AllLayers = projectAppSettings.layers;
+                        LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
+                    }
+
+                    EditorGUI.Label("Layers");
+
+                    Handle(projectAppSettings.layers);
+
+                    EditorGUI.Label("Sorting Layers");
+
+                    Handle(projectAppSettings.sortingLayers);
+
+                    ImGui.TreePop();
+                }
+
                 if (ImGui.TreeNodeEx("Rendering and Presentation", ImGuiTreeNodeFlags.SpanFullWidth))
                 {
                     projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", projectAppSettings.runInBackground);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
@@ -144,6 +145,19 @@ namespace Staple.Internal
                     components.Add(sceneComponent);
                 });
 
+                string entityLayer;
+
+                var index = scene.world.GetEntityLayer(entity);
+
+                if(index < LayerMask.AllLayers.Count)
+                {
+                    entityLayer = LayerMask.AllLayers[(int)index];
+                }
+                else
+                {
+                    entityLayer = LayerMask.AllLayers.FirstOrDefault();
+                }
+
                 var outEntity = new SceneObject()
                 {
                     ID = entity.ID,
@@ -153,6 +167,7 @@ namespace Staple.Internal
                     parent = parent.ID,
                     transform = transform,
                     components = components,
+                    layer = entityLayer,
                 };
 
                 outValue.objects.Add(outEntity);

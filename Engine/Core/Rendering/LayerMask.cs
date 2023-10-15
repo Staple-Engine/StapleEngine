@@ -30,6 +30,24 @@ namespace Staple
         }
 
         /// <summary>
+        /// Adds a layer to this layer mask
+        /// </summary>
+        /// <param name="index">The layer index</param>
+        internal void SetLayer(uint index)
+        {
+            value |= (uint)((1 << (int)index));
+        }
+
+        /// <summary>
+        /// Removes a layer from this layer mask
+        /// </summary>
+        /// <param name="index">The layer index</param>
+        internal void RemoveLayer(uint index)
+        {
+            value &= (uint)(~(1 << (int)index));
+        }
+
+        /// <summary>
         /// A default value with all layers.
         /// </summary>
         public static LayerMask Everything

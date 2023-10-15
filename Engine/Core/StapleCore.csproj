@@ -74,6 +74,7 @@
     <Compile Include="Attributes\AssetCategoryAttribute.cs" />
     <Compile Include="Attributes\ComponentCategoryAttribute.cs" />
     <Compile Include="Attributes\HideInInspectorAttribute.cs" />
+    <Compile Include="Attributes\SortingLayerAttribute.cs" />
     <Compile Include="Bindings\bgfx.cs" />
     <Compile Include="Bindings\bgfx_dllname.cs" />
     <Compile Include="Entities\Camera\Camera.cs" />

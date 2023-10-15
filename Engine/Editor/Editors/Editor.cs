@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -379,6 +380,75 @@ namespace Staple.Editor
                             var newValue = EditorGUI.ObjectPicker(t, fieldName, value);
 
                             field.SetValue(target, newValue);
+                        }
+
+                        break;
+
+                    case Type t when t == typeof(LayerMask):
+
+                        {
+                            var value = (LayerMask)field.GetValue(target);
+                            List<string> layers;
+
+                            if (field.FieldType.GetCustomAttribute<SortingLayerAttribute>() != null)
+                            {
+                                layers = LayerMask.AllSortingLayers;
+                            }
+                            else
+                            {
+                                layers = LayerMask.AllLayers;
+                            }
+
+                            var previewValue = "";
+
+                            var all = true;
+
+                            for (var i = 0; i < layers.Count; i++)
+                            {
+                                if (value.HasLayer((uint)i) == false)
+                                {
+                                    all = false;
+                                }
+                                else
+                                {
+                                    previewValue += (previewValue.Length > 0 ? ", " : "") + layers[i];
+                                }
+                            }
+
+                            if(all)
+                            {
+                                previewValue = "Everything";
+                            }
+                            else if(previewValue.Length == 0)
+                            {
+                                previewValue = "Nothing";
+                            }
+
+                            if (ImGui.BeginCombo(fieldName, previewValue))
+                            {
+                                for(var i = 0; i < layers.Count; i++)
+                                {
+                                    var selected = value.HasLayer((uint)i);
+
+                                    var selectedString = selected ? "* " : "  ";
+
+                                    if (ImGui.Selectable($"{selectedString}{layers[i]}##{value.GetHashCode()}", selected))
+                                    {
+                                        if(selected)
+                                        {
+                                            value.RemoveLayer((uint)i);
+                                        }
+                                        else
+                                        {
+                                            value.SetLayer((uint)i);
+                                        }
+                                    }
+                                }
+
+                                ImGui.EndCombo();
+
+                                field.SetValue(target, value);
+                            }
                         }
 
                         break;
