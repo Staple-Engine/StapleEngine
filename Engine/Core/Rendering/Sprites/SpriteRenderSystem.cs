@@ -280,16 +280,16 @@ namespace Staple
                 var s = orderedSprites[i];
 
                 spriteVertices[0].uv.X = s.textureRect.left / (float)s.texture.Width;
-                spriteVertices[0].uv.Y = s.textureRect.top / (float)s.texture.Height;
+                spriteVertices[0].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
 
                 spriteVertices[1].uv.X = s.textureRect.left / (float)s.texture.Width;
-                spriteVertices[1].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+                spriteVertices[1].uv.Y = s.textureRect.top / (float)s.texture.Height;
 
                 spriteVertices[2].uv.X = s.textureRect.right / (float)s.texture.Width;
-                spriteVertices[2].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+                spriteVertices[2].uv.Y = s.textureRect.top / (float)s.texture.Height;
 
                 spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
-                spriteVertices[3].uv.Y = s.textureRect.top / (float)s.texture.Height;
+                spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
 
                 var vertexBuffer = VertexBuffer.Create(spriteVertices.AsSpan(), vertexLayout, true);
 

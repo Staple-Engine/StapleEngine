@@ -18,6 +18,11 @@ namespace Staple
         public CameraType cameraType = CameraType.Perspective;
 
         /// <summary>
+        /// The camera's orthographic size, equal to half the screen size in world units
+        /// </summary>
+        public float orthographicSize = 5;
+
+        /// <summary>
         /// The field of view
         /// </summary>
         public float fov = 90;
@@ -75,7 +80,19 @@ namespace Staple
 
                 case CameraType.Orthographic:
 
-                    return Matrix4x4.CreateOrthographicOffCenter(0, camera.Width, camera.Height, 0, camera.nearPlane, camera.farPlane);
+                    if(camera.orthographicSize < 1)
+                    {
+                        Log.Error($"{world?.GetEntityName(entity)} camera component has invalid orthographic size: {camera.orthographicSize}");
+
+                        return Matrix4x4.Identity;
+                    }
+
+                    var scale = AppPlayer.ScreenHeight / (camera.orthographicSize * 2);
+
+                    var width = camera.Width / scale;
+                    var height = camera.Height / scale;
+
+                    return Matrix4x4.CreateOrthographic(width, height, camera.nearPlane, camera.farPlane);
 
                 default:
 

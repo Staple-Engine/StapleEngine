@@ -63,6 +63,7 @@
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="CSProjManager.cs" />
+    <Compile Include="Editors\Default\CameraEditor.cs" />
     <Compile Include="Editors\Default\FolderAssetEditor.cs" />
     <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />
     <Compile Include="Editors\Assets\StapleAssetEditor.cs" />

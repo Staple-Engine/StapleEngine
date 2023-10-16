@@ -41,7 +41,7 @@ namespace Staple
         /// <summary>
         /// The texture's sprite scale
         /// </summary>
-        public float SpriteScale => info.width / (float)metadata.spritePixelsPerUnit;
+        public float SpriteScale => 1.0f / (float)metadata.spritePixelsPerUnit;
 
         /// <summary>
         /// Create a texture from an existing bgfx texture

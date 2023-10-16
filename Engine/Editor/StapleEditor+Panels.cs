@@ -149,7 +149,7 @@ namespace Staple.Editor
 
                 void Recursive(Transform transform)
                 {
-                    if(skip)
+                    if(skip || transform == null)
                     {
                         return;
                     }
@@ -224,17 +224,7 @@ namespace Staple.Editor
 
                             if (ImGui.MenuItem("Delete"))
                             {
-                                void Recursive(Transform transform)
-                                {
-                                    foreach (var child in transform)
-                                    {
-                                        Recursive(child);
-                                    }
-
-                                    Scene.current.world.DestroyEntity(transform.entity);
-                                }
-
-                                Recursive(transform);
+                                Scene.current.world.DestroyEntity(transform.entity);
 
                                 ImGui.EndPopup();
 
@@ -254,11 +244,19 @@ namespace Staple.Editor
                             {
                                 var t = Scene.current.GetComponent<Transform>(childEntity);
 
-                                Recursive(t);
+                                if(t != null)
+                                {
+                                    Recursive(t);
+                                }
+                            }
+
+                            if(skip)
+                            {
+                                break;
                             }
                         }
 
-                        if (transform.ChildCount > 0)
+                        if (transform.ChildCount > 0 || skip)
                         {
                             ImGui.TreePop();
                         }

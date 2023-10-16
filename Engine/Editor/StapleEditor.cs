@@ -72,7 +72,7 @@ namespace Staple.Editor
 
         private ImGuiProxy imgui;
 
-        private Entity selectedEntity;
+        private Entity selectedEntity = Entity.Empty;
 
         private ProjectBrowserNode selectedProjectNode;
 

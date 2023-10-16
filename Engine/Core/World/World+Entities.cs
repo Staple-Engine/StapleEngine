@@ -122,6 +122,10 @@ namespace Staple
                     {
                         var other = entities[i];
 
+                        other.name = DefaultEntityName;
+                        other.generation++;
+                        other.layer = 0;
+
                         other.alive = true;
                         other.enabled = true;
 
@@ -178,14 +182,23 @@ namespace Staple
                         return;
                     }
 
-                    e.components.Clear();
+                    var transform = GetComponent<Transform>(entity);
 
-                    e.generation++;
-                    e.name = DefaultEntityName;
+                    transform?.SetParent(null);
+
+                    e.components.Clear();
+                    e.alive = false;
 
                     collectionModified = true;
 
                     entities[e.ID] = e;
+
+                    while(transform.ChildCount > 0)
+                    {
+                        var child = transform.GetChild(0);
+
+                        DestroyEntity(child.entity);
+                    }
                 }
             }
         }
