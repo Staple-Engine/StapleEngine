@@ -107,6 +107,12 @@ project "bgfx"
 		files {
 			path.join(BGFX_DIR, "src/*.mm"),
 		}
+
+		excludes {
+			path.join(BGFX_DIR, "src/amalgamated.mm"),
+		}
+
+		links { "Cocoa.framework", "IOKit.framework", "CoreGraphics.framework", "Metal.framework", "QuartzCore.framework" }
 	
 	filter "system:linux"
 		links {
@@ -231,6 +237,7 @@ project "glfw"
 			path.join(GLFW_DIR, "src/win32_*.*"),
 			path.join(GLFW_DIR, "src/wgl_context.*")
 		}
+
 	filter "system:linux"
 		defines "_GLFW_X11"
 
@@ -241,6 +248,7 @@ project "glfw"
 			path.join(GLFW_DIR, "src/x11*.*"),
 			path.join(GLFW_DIR, "src/xkb*.*")
 		}
+
 	filter "system:macosx"
 		defines "_GLFW_COCOA"
 
@@ -252,10 +260,17 @@ project "glfw"
 			path.join(GLFW_DIR, "src/osmesa_context.h"),
 
 			path.join(GLFW_DIR, "src/posix_thread.c"),
+			path.join(GLFW_DIR, "src/posix_module.c"),
 			path.join(GLFW_DIR, "src/nsgl_context.m"),
 			path.join(GLFW_DIR, "src/egl_context.c"),
 			path.join(GLFW_DIR, "src/nsgl_context.m"),
-			path.join(GLFW_DIR, "src/osmesa_context.c"),                       
+			path.join(GLFW_DIR, "src/osmesa_context.c"),
+		}
+
+		links {
+			"Cocoa.framework",
+			"OpenGL.framework",
+			"IOKit.framework"
 		}
 
 	filter "action:vs*"
