@@ -67,9 +67,9 @@
     <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\AssetSerialization.cs" />
-    <Compile Include="Assets\IPathAsset.cs" />
-    <Compile Include="Assets\IStapleAsset.cs" />
+    <Compile Include="Serialization\Asset\AssetSerialization.cs" />
+    <Compile Include="Serialization\Asset\IPathAsset.cs" />
+    <Compile Include="Serialization\Asset\IStapleAsset.cs" />
     <Compile Include="Attributes\AbstractComponentAttribute.cs" />
     <Compile Include="Attributes\AssetCategoryAttribute.cs" />
     <Compile Include="Attributes\ComponentCategoryAttribute.cs" />
