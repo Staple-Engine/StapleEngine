@@ -4,10 +4,5 @@
     {
         public Mesh mesh;
         public Material material;
-
-        internal void OnDestroy()
-        {
-            material?.Destroy();
-        }
     }
 }

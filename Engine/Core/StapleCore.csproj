@@ -84,8 +84,8 @@
     <Compile Include="Entities\EntitySystemManager.cs" />
     <Compile Include="Entities\IComponent.cs" />
     <Compile Include="Entities\IEntitySystem.cs" />
-    <Compile Include="Entities\MeshRenderer.cs" />
-    <Compile Include="Entities\Renderable.cs" />
+    <Compile Include="Rendering\Mesh\MeshRenderer.cs" />
+    <Compile Include="Rendering\Renderable.cs" />
     <Compile Include="Export\Export.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
