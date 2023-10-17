@@ -105,23 +105,26 @@ namespace Staple
             {
                 texture = r.animation.texture;
 
-                r.timer += Time.deltaTime;
-
-                var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
-
-                while(r.timer >= timeStep && timeStep > 0)
+                if(Platform.IsPlaying)
                 {
-                    r.timer -= timeStep;
+                    r.timer += Time.deltaTime;
 
-                    r.currentFrame++;
+                    var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
 
-                    if(r.currentFrame >= r.animation.frames.Count)
+                    while (r.timer >= timeStep && timeStep > 0)
                     {
-                        r.currentFrame = 0;
+                        r.timer -= timeStep;
+
+                        r.currentFrame++;
+
+                        if (r.currentFrame >= r.animation.frames.Count)
+                        {
+                            r.currentFrame = 0;
+                        }
                     }
                 }
 
-                if(r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
                 {
                     return;
                 }

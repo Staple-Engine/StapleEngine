@@ -47,7 +47,7 @@ namespace TestGame
                 renderer.color = Color.White;
             });
 
-            if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out var fraction))
+            if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out var fraction, maxDistance: 5))
             {
                 var entity = body.Entity;
 

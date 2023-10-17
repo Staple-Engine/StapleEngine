@@ -51,6 +51,16 @@ namespace Staple
         });
 
         /// <summary>
+        /// Whether we're running as a game
+        /// </summary>
+        public static bool IsPlaying { get; internal set; } = true;
+
+        /// <summary>
+        /// Whether we're running as an editor
+        /// </summary>
+        public static bool IsEditor { get; internal set; } = false;
+
+        /// <summary>
         /// Whether we're running on windows
         /// </summary>
         public static bool IsWindows => OperatingSystem.IsWindows();

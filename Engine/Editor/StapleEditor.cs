@@ -172,6 +172,9 @@ namespace Staple.Editor
 
             ReloadTypeCache();
 
+            Platform.IsPlaying = false;
+            Platform.IsEditor = true;
+
             editorSettings.runInBackground = true;
             editorSettings.appName = "Staple Editor";
             editorSettings.companyName = "Staple Engine";
