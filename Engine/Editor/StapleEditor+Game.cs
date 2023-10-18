@@ -45,6 +45,31 @@ namespace Staple.Editor
                             {
                                 registeredComponents.Add(type);
                             }
+                            else if (type.IsSubclassOf(typeof(EditorWindow)))
+                            {
+                                foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                                {
+                                    var menu = method.GetCustomAttribute<MenuItemAttribute>();
+
+                                    if (menu == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    var m = method;
+
+                                    AddMenuItem(menu.path, () =>
+                                    {
+                                        try
+                                        {
+                                            m.Invoke(null, null);
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+                                    });
+                                }
+                            }
                         }
                     }
                 }
@@ -125,6 +150,31 @@ namespace Staple.Editor
                     v.GetCustomAttribute<AbstractComponentAttribute>() == null)
                 {
                     registeredComponents.Add(v);
+                }
+                else if(v.IsSubclassOf(typeof(EditorWindow)))
+                {
+                    foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                    {
+                        var menu = method.GetCustomAttribute<MenuItemAttribute>();
+
+                        if(menu == null)
+                        {
+                            continue;
+                        }
+
+                        var m = method;
+
+                        AddMenuItem(menu.path, () =>
+                        {
+                            try
+                            {
+                                m.Invoke(null, null);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                    }
                 }
             }
         }

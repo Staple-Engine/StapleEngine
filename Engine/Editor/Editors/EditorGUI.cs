@@ -239,10 +239,7 @@ namespace Staple.Editor
 
             if (ImGui.SmallButton($"O##{key}"))
             {
-                editor.showingAssetPicker = true;
-                editor.assetPickerSearch = "";
-                editor.assetPickerType = type;
-                editor.assetPickerKey = key;
+                editor.ShowAssetPicker(type, key);
             }
 
             if(pendingObjectPickers.ContainsKey(key) == false)

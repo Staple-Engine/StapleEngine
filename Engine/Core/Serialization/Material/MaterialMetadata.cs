@@ -14,6 +14,9 @@ namespace Staple.Internal
         Vector4,
         Texture,
         Color,
+        Float,
+        Matrix3x3,
+        Matrix4x4,
     }
 
     [Serializable]
@@ -150,10 +153,14 @@ namespace Staple.Internal
 
         [Key(5)]
         public Color32 colorValue;
+
+        [Key(6)]
+        public float floatValue;
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]
     [JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterType>))]
+    [JsonSerializable(typeof(float))]
     [JsonSerializable(typeof(string))]
     [JsonSerializable(typeof(Color32))]
     [JsonSerializable(typeof(Vector2Holder))]

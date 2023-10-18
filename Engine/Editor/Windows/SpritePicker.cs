@@ -6,11 +6,23 @@ using System.Numerics;
 
 namespace Staple.Editor
 {
-    internal static class SpritePicker
+    internal class SpritePicker: EditorWindow
     {
-        public static void Draw(ImGuiIOPtr io, ref bool showing, Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)
+        public Texture texture;
+        public List<TextureSpriteInfo> sprites;
+        public Action<int> onFinish;
+
+        public SpritePicker()
         {
-            if(texture == null || sprites == null)
+            allowDocking = false;
+            windowType = EditorWindowType.Popup;
+        }
+
+        public override void OnGUI()
+        {
+            base.OnGUI();
+
+            if (texture == null || sprites == null)
             {
                 return;
             }
@@ -27,7 +39,7 @@ namespace Staple.Editor
 
             var scale = width / texture.Width;
 
-            for(var i = 0; i < sprites.Count; i++)
+            for (var i = 0; i < sprites.Count; i++)
             {
                 var sprite = sprites[i];
                 var spriteRect = sprite.originalRect.IsEmpty ? sprite.rect : sprite.originalRect;
@@ -41,9 +53,9 @@ namespace Staple.Editor
                 ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
                     new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
 
-                if(ImGui.IsMouseClicked(ImGuiMouseButton.Left) && rect.Contains(ImGui.GetMousePos()))
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && rect.Contains(ImGui.GetMousePos()))
                 {
-                    showing = false;
+                    Close();
 
                     onFinish?.Invoke(i);
 

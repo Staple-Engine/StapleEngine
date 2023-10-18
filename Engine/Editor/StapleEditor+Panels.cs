@@ -36,7 +36,10 @@ namespace Staple.Editor
                 {
                     if (ImGui.MenuItem("Project Settings"))
                     {
-                        showingAppSettings = true;
+                        var window = EditorWindow.GetWindow<AppSettingsWindow>();
+
+                        window.projectAppSettings = projectAppSettings;
+                        window.basePath = basePath;
                     }
 
                     if (ImGui.MenuItem("Save"))
@@ -67,7 +70,9 @@ namespace Staple.Editor
 
                     if (ImGui.MenuItem("Build"))
                     {
-                        showingBuildWindow = true;
+                        var window = EditorWindow.GetWindow<BuildWindow>();
+
+                        window.basePath = basePath;
                     }
 
                     ImGui.Separator();
@@ -131,6 +136,37 @@ namespace Staple.Editor
                     ImGui.EndMenu();
                 }
 
+                void Recursive(MenuItemInfo parent)
+                {
+                    if(parent.children.Count == 0)
+                    {
+                        if(ImGui.MenuItem($"{parent.name}##0") && parent.onClick != null)
+                        {
+                            try
+                            {
+                                parent.onClick();
+                            }
+                            catch(Exception)
+                            {
+                            }
+                        }
+                    }
+                    else if(ImGui.BeginMenu($"{parent.name}##0"))
+                    {
+                        foreach(var child in parent.children)
+                        {
+                            Recursive(child);
+                        }
+
+                        ImGui.EndMenu();
+                    }
+                }
+
+                foreach(var item in menuItems)
+                {
+                    Recursive(item);
+                }
+
                 ImGui.EndMainMenuBar();
             }
 
@@ -173,33 +209,7 @@ namespace Staple.Editor
                             }
                             else if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                             {
-                                selectedEntity = transform.entity;
-                                selectedProjectNode = null;
-                                selectedProjectNodeData = null;
-
-                                cachedEditors.Clear();
-                                EditorGUI.pendingObjectPickers.Clear();
-
-                                showingAssetPicker = false;
-
-                                var counter = 0;
-
-                                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
-                                {
-                                    counter++;
-
-                                    if (component is Transform transform)
-                                    {
-                                        return;
-                                    }
-
-                                    var editor = Editor.CreateEditor(component);
-
-                                    if (editor != null)
-                                    {
-                                        cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
-                                    }
-                                });
+                                SetSelectedEntity(transform.entity);
                             }
                         }
 
@@ -279,7 +289,7 @@ namespace Staple.Editor
                 });
             }
 
-            if(ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            if(ImGui.IsWindowHovered() && ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
             {
                 ImGui.OpenPopup("EntityPanelContext");
             }
@@ -560,7 +570,7 @@ namespace Staple.Editor
                 cachedEditors.Clear();
                 EditorGUI.pendingObjectPickers.Clear();
 
-                showingAssetPicker = false;
+                EditorWindow.GetWindow<AssetPickerWindow>().Close();
 
                 if (selectedProjectNode == null)
                 {
@@ -734,6 +744,7 @@ namespace Staple.Editor
                             {
                                 currentPlatform = currentPlatform,
                                 lastOpenScene = lastOpenScene,
+                                lastPickedBuildDirectories = lastPickedBuildDirectories,
                             });
                         }
 
@@ -744,249 +755,6 @@ namespace Staple.Editor
 
         private void Console(ImGuiIOPtr io)
         {
-        }
-
-        private void AssetPicker(ImGuiIOPtr io)
-        {
-            if(showingAssetPicker)
-            {
-                ImGui.Begin("AssetPicker", ImGuiWindowFlags.NoDocking);
-
-                ImGui.InputText("Search", ref assetPickerSearch, uint.MaxValue);
-
-                ImGui.BeginChildFrame(ImGui.GetID("AssetList"), Vector2.Zero);
-
-                var validItems = new List<ProjectBrowserNode>();
-
-                void Handle(ProjectBrowserNode child)
-                {
-                    switch (child.type)
-                    {
-                        case ProjectBrowserNodeType.Folder:
-
-                            Recursive(child);
-
-                            break;
-
-                        case ProjectBrowserNodeType.File:
-
-                            if ((assetPickerSearch?.Length ?? 0) > 0 &&
-                                child.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
-                            {
-                                return;
-                            }
-
-                            if(assetPickerType.FullName == child.typeName)
-                            {
-                                validItems.Add(child);
-                            }
-
-                            break;
-                    }
-                }
-
-                void Recursive(ProjectBrowserNode source)
-                {
-                    foreach(var child in source.subnodes)
-                    {
-                        Handle(child);
-                    }
-                }
-
-                foreach(var node in projectBrowser.projectBrowserNodes)
-                {
-                    switch(node.type)
-                    {
-                        case ProjectBrowserNodeType.Folder:
-
-                            Recursive(node);
-
-                            break;
-
-                        case ProjectBrowserNodeType.File:
-
-                            Handle(node);
-
-                            break;
-                    }
-                }
-
-                projectBrowser.editorResources.TryGetValue("FileIcon", out var texture);
-
-                var gridItems = validItems
-                    .Select(x => new ImGuiUtils.ContentGridItem()
-                    {
-                        name = x.name,
-                        texture = texture,
-                        ensureValidTexture = (_) => texture,
-                    }).ToList();
-
-                ImGuiUtils.ContentGrid(gridItems, Staple.Editor.ProjectBrowser.contentPanelPadding, Staple.Editor.ProjectBrowser.contentPanelThumbnailSize,
-                    (index, item) =>
-                    {
-                    },
-                    (index, item) =>
-                    {
-                        var i = validItems[index];
-                        var cachePath = i.path;
-
-                        var cacheIndex = i.path.IndexOf("Assets");
-
-                        if (cacheIndex >= 0)
-                        {
-                            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
-                        }
-
-                        var type = Staple.Editor.ProjectBrowser.ResourceTypeForExtension(i.extension);
-
-                        switch(type)
-                        {
-                            case ProjectBrowserResourceType.Texture:
-
-                                try
-                                {
-                                    texture = ResourceManager.instance.LoadTexture(cachePath);
-                                }
-                                catch (System.Exception)
-                                {
-                                }
-
-                                if (texture != null)
-                                {
-                                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                    {
-                                        EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
-                                    }
-                                }
-
-                                break;
-
-                            case ProjectBrowserResourceType.Asset:
-
-                                try
-                                {
-                                    var asset = ResourceManager.instance.LoadAsset(i.path);
-
-                                    if (asset != null && asset.GetType() == assetPickerType)
-                                    {
-                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                        {
-                                            EditorGUI.pendingObjectPickers[assetPickerKey] = asset;
-                                        }
-                                    }
-                                }
-                                catch (System.Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ProjectBrowserResourceType.Material:
-
-                                try
-                                {
-                                    var material = ResourceManager.instance.LoadMaterial(cachePath);
-
-                                    if (material != null)
-                                    {
-                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                        {
-                                            EditorGUI.pendingObjectPickers[assetPickerKey] = material;
-                                        }
-                                    }
-                                }
-                                catch (System.Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ProjectBrowserResourceType.Shader:
-
-                                try
-                                {
-                                    var shader = ResourceManager.instance.LoadShader(cachePath);
-
-                                    if (shader != null)
-                                    {
-                                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                        {
-                                            EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
-                                        }
-                                    }
-                                }
-                                catch (System.Exception)
-                                {
-                                }
-
-                                break;
-                        }
-
-                        showingAssetPicker = false;
-                    });
-
-                ImGui.EndChildFrame();
-
-                ImGui.End();
-            }
-        }
-
-        private void BuildWindow(ImGuiIOPtr io)
-        {
-            if(showingBuildWindow)
-            {
-                ImGui.Begin("Build", ImGuiWindowFlags.NoDocking);
-
-                var current = Array.IndexOf(PlayerBackendManager.BackendNames, buildBackend);
-
-                current = EditorGUI.Dropdown("Platform", PlayerBackendManager.BackendNames, current);
-
-                if(current >= 0 && current <  PlayerBackendManager.BackendNames.Length)
-                {
-                    buildBackend = PlayerBackendManager.BackendNames[current];
-                }
-
-                buildPlayerDebug = EditorGUI.Toggle("Debug Build", buildPlayerDebug);
-                buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", buildPlayerNativeAOT);
-
-                if(EditorGUI.Button("Build"))
-                {
-                    var result = Nfd.PickFolder(Path.GetFullPath(basePath), out var path);
-
-                    if (result == Nfd.NfdResult.NFD_OKAY)
-                    {
-                        var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
-
-                        if(backend != null)
-                        {
-                            showingProgress = true;
-                            progressFraction = 0;
-
-                            ImGui.OpenPopup("ShowingProgress");
-
-                            StartBackgroundTask((ref float progressFraction) =>
-                            {
-                                BuildPlayer(backend, path, buildPlayerDebug, buildPlayerNativeAOT);
-
-                                return true;
-                            });
-                        }
-                    }
-                    else
-                    {
-                        Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
-                    }
-                }
-
-                EditorGUI.SameLine();
-
-                if (EditorGUI.Button("Close"))
-                {
-                    showingBuildWindow = false;
-                }
-
-                ImGui.End();
-            }
         }
 
         private void ProgressPopup(ImGuiIOPtr io)
@@ -1023,257 +791,6 @@ namespace Staple.Editor
             }
 
             wasShowingProgress = showingProgress;
-        }
-
-        private void SpritePicker(ImGuiIOPtr io)
-        {
-            if(wasShowingSpritePicker != showingSpritePicker && showingSpritePicker)
-            {
-                ImGui.OpenPopup("ShowingSpritePicker");
-            }
-
-            if(showingSpritePicker)
-            {
-                ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X / 4, io.DisplaySize.Y / 4));
-                ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X / 2, io.DisplaySize.Y / 2));
-
-                ImGui.BeginPopupModal("ShowingSpritePicker", ref showingSpritePicker,
-                    ImGuiWindowFlags.NoTitleBar |
-                    ImGuiWindowFlags.NoDocking |
-                    ImGuiWindowFlags.NoResize |
-                    ImGuiWindowFlags.NoMove);
-
-                Staple.Editor.SpritePicker.Draw(io, ref showingSpritePicker, spritePickerTexture, spritePickerSprites, spritePickerCallback);
-
-                ImGui.EndPopup();
-
-                if(showingSpritePicker == false)
-                {
-                    ImGui.CloseCurrentPopup();
-                }
-            }
-        }
-
-        private void AppSettings(ImGuiIOPtr io)
-        {
-            if(showingAppSettings)
-            {
-                ImGui.Begin("AppSettings", ImGuiWindowFlags.NoDocking);
-
-                if (ImGui.TreeNodeEx("General", ImGuiTreeNodeFlags.SpanFullWidth))
-                {
-                    projectAppSettings.appName = EditorGUI.TextField("App Name", projectAppSettings.appName ?? "");
-
-                    projectAppSettings.companyName = EditorGUI.TextField("Company Name", projectAppSettings.companyName ?? "");
-
-                    projectAppSettings.appBundleID = EditorGUI.TextField("App Bundle ID", projectAppSettings.appBundleID ?? "");
-
-                    projectAppSettings.appDisplayVersion = EditorGUI.TextField("App Display Version", projectAppSettings.appDisplayVersion ?? "");
-
-                    projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", projectAppSettings.appVersion);
-
-                    ImGui.TreePop();
-                }
-
-                if (ImGui.TreeNodeEx("Timing", ImGuiTreeNodeFlags.SpanFullWidth))
-                {
-                    projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", projectAppSettings.fixedTimeFrameRate);
-
-                    if(projectAppSettings.fixedTimeFrameRate <= 0)
-                    {
-                        projectAppSettings.fixedTimeFrameRate = 1;
-                    }
-
-                    ImGui.TreePop();
-                }
-
-                if(ImGui.TreeNodeEx("Layers", ImGuiTreeNodeFlags.SpanFullWidth))
-                {
-                    void Handle(List<string> layers)
-                    {
-                        for (var i = 0; i < layers.Count; i++)
-                        {
-                            layers[i] = EditorGUI.TextField($"Layer {i + 1}##{layers.GetHashCode()}{i}", layers[i]);
-
-                            //Can't remove default layer
-                            if (i > 1)
-                            {
-                                EditorGUI.SameLine();
-
-                                if (EditorGUI.Button("Up##{layers.GetHashCode()}{i}"))
-                                {
-                                    (layers[i], layers[i - 1]) = (layers[i - 1], layers[i]);
-                                }
-                            }
-
-                            if (i > 0 && i + 1 < layers.Count)
-                            {
-                                EditorGUI.SameLine();
-
-                                if (EditorGUI.Button("Down##{layers.GetHashCode()}{i}"))
-                                {
-                                    (layers[i], layers[i + 1]) = (layers[i + 1], layers[i]);
-                                }
-                            }
-
-                            //Can't remove default layer
-                            if (i > 0)
-                            {
-                                EditorGUI.SameLine();
-
-                                if (EditorGUI.Button($"X##{layers.GetHashCode()}{i}"))
-                                {
-                                    layers.RemoveAt(i);
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(EditorGUI.Button($"+##{layers.GetHashCode()}"))
-                        {
-                            layers.Add("Layer");
-                        }
-
-                        LayerMask.AllLayers = projectAppSettings.layers;
-                        LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
-                    }
-
-                    EditorGUI.Label("Layers");
-
-                    Handle(projectAppSettings.layers);
-
-                    EditorGUI.Label("Sorting Layers");
-
-                    Handle(projectAppSettings.sortingLayers);
-
-                    ImGui.TreePop();
-                }
-
-                if (ImGui.TreeNodeEx("Rendering and Presentation", ImGuiTreeNodeFlags.SpanFullWidth))
-                {
-                    projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", projectAppSettings.runInBackground);
-
-                    projectAppSettings.multiThreadedRenderer = EditorGUI.Toggle("Multithreaded Renderer (experimental)", projectAppSettings.multiThreadedRenderer);
-
-                    if (ImGui.BeginTabBar("Platforms"))
-                    {
-                        foreach (var backendName in PlayerBackendManager.BackendNames)
-                        {
-                            var backend = PlayerBackendManager.Instance.GetBackend(backendName);
-
-                            if (ImGui.BeginTabItem($"{backend.name}##0"))
-                            {
-                                if (backend.platform == AppPlatform.Windows ||
-                                    backend.platform == AppPlatform.Linux ||
-                                    backend.platform == AppPlatform.MacOSX)
-                                {
-                                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window Mode *", projectAppSettings.defaultWindowMode);
-
-                                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window Width *", projectAppSettings.defaultWindowWidth);
-
-                                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window Height *", projectAppSettings.defaultWindowHeight);
-                                }
-                                else if (backend.platform == AppPlatform.Android ||
-                                    backend.platform == AppPlatform.iOS)
-                                {
-                                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait Orientation *", projectAppSettings.portraitOrientation);
-
-                                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape Orientation *", projectAppSettings.landscapeOrientation);
-
-                                    if (backend.platform == AppPlatform.Android)
-                                    {
-                                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Android Min SDK", projectAppSettings.androidMinSDK);
-
-                                        if(projectAppSettings.androidMinSDK < 26)
-                                        {
-                                            projectAppSettings.androidMinSDK = 26;
-                                        }
-                                    }
-                                    else if (backend.platform == AppPlatform.iOS)
-                                    {
-                                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS Deployment Target", projectAppSettings.iOSDeploymentTarget);
-
-                                        if(projectAppSettings.iOSDeploymentTarget < 13)
-                                        {
-                                            projectAppSettings.iOSDeploymentTarget = 13;
-                                        }
-                                    }
-                                }
-
-                                ImGui.Text("Renderers");
-
-                                if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
-                                {
-                                    renderers = new();
-
-                                    projectAppSettings.renderers.Add(backend.platform, renderers);
-                                }
-
-                                for (var i = 0; i < renderers.Count; i++)
-                                {
-                                    var result = EditorGUI.EnumDropdown($"Renderer##{i}", renderers[i], backend.renderers);
-
-                                    if (result != renderers[i] && renderers.All(x => x != result))
-                                    {
-                                        renderers[i] = result;
-                                    }
-
-                                    EditorGUI.SameLine();
-
-                                    if (EditorGUI.Button($"-##{i}"))
-                                    {
-                                        renderers.RemoveAt(i);
-
-                                        break;
-                                    }
-                                }
-
-                                if (EditorGUI.Button("+##Renderers"))
-                                {
-                                    renderers.Add(backend.renderers.FirstOrDefault());
-                                }
-
-                                ImGui.EndTabItem();
-                            }
-                        }
-
-                        ImGui.EndTabBar();
-                    }
-
-                    ImGui.TreePop();
-                }
-
-                ImGui.Text("* - Shared setting between platforms");
-
-                if(EditorGUI.Button("Apply Changes"))
-                {
-                    try
-                    {
-                        var json = JsonConvert.SerializeObject(projectAppSettings, Formatting.Indented, new JsonSerializerSettings()
-                        {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
-
-                        File.WriteAllText(Path.Combine(basePath, "Settings", "AppSettings.json"), json);
-                    }
-                    catch(Exception)
-                    {
-                    }
-                }
-
-                EditorGUI.SameLine();
-
-                if(EditorGUI.Button("Close"))
-                {
-                    showingAppSettings = false;
-                }
-
-                ImGui.End();
-            }
         }
     }
 }

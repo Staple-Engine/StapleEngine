@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetDatabase.cs" />
+    <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="CSProjManager.cs" />
@@ -72,6 +73,8 @@
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
+    <Compile Include="Editors\EditorWindow.cs" />
+    <Compile Include="Editors\EditorWindowType.cs" />
     <Compile Include="EditorUtils.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />
@@ -79,7 +82,7 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="ResourceUtils.cs" />
-    <Compile Include="SpritePicker.cs" />
+    <Compile Include="Windows\SpritePicker.cs" />
     <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />
     <Compile Include="StapleEditor+csproj.cs" />
@@ -93,6 +96,9 @@
     <Compile Include="StapleEditor.cs" />
     <Compile Include="StapleEditor+Project.cs" />
     <Compile Include="ThumbnailCache.cs" />
+    <Compile Include="Windows\AppSettingsWindow.cs" />
+    <Compile Include="Windows\AssetPickerWindow.cs" />
+    <Compile Include="Windows\BuildWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.7.2" />

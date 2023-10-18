@@ -1244,13 +1244,14 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(6);
+            writer.WriteArrayHeader(7);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MaterialParameterType>().Serialize(ref writer, value.type, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Serialize(ref writer, value.vec2Value, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.vec3Value, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.vec4Value, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.textureValue, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Color32>().Serialize(ref writer, value.colorValue, options);
+            writer.Write(value.floatValue);
         }
 
         public global::Staple.Internal.MaterialParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1286,6 +1287,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 5:
                         ____result.colorValue = formatterResolver.GetFormatterWithVerify<global::Staple.Color32>().Deserialize(ref reader, options);
+                        break;
+                    case 6:
+                        ____result.floatValue = reader.ReadSingle();
                         break;
                     default:
                         reader.Skip();

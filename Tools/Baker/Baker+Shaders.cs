@@ -271,15 +271,27 @@ namespace Baker
                         }
                     };
 
+                    //TODO: Add missing types
+                    ShaderUniformType TranslateShaderParameter(ShaderParameterType type)
+                    {
+                        return type switch
+                        {
+                            ShaderParameterType.Color => ShaderUniformType.Color,
+                            ShaderParameterType.vec4 => ShaderUniformType.Vector4,
+                            ShaderParameterType.Texture => ShaderUniformType.Texture,
+                            _ => ShaderUniformType.Vector4,
+                        };
+                    }
+
                     if (shader.parameters != null)
                     {
                         generatedShader.metadata.uniforms = shader.parameters
-                            .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform && Enum.TryParse<ShaderUniformType>(x.type, out var uniformType))
+                            .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform && Enum.TryParse<ShaderParameterType>(x.type, out var uniformType))
                             .Select(x => new ShaderUniform()
                             {
                                 name = x.name,
                                 //Should be fine, since it passed the Where clause
-                                type = Enum.TryParse<ShaderUniformType>(x.type, out var uniformType) ? uniformType : ShaderUniformType.Vector4,
+                                type = Enum.TryParse<ShaderParameterType>(x.type, out var uniformType) ? TranslateShaderParameter(uniformType) : ShaderUniformType.Vector4,
                             }).ToList();
                     }
 

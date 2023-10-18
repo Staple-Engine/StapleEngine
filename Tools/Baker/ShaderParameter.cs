@@ -2,6 +2,13 @@
 
 namespace Baker
 {
+    enum ShaderParameterType
+    {
+        Color,
+        vec4,
+        Texture,
+    }
+
     [Serializable]
     internal class ShaderParameter
     {

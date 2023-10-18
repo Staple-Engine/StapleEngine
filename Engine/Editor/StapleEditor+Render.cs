@@ -8,6 +8,7 @@ namespace Staple.Editor
         public void RenderScene()
         {
             bgfx.touch(SceneView);
+            bgfx.touch(WireframeView);
 
             unsafe
             {
@@ -17,7 +18,10 @@ namespace Staple.Editor
                 Matrix4x4.Invert(view, out view);
 
                 bgfx.set_view_transform(SceneView, &view, &projection);
+                bgfx.set_view_transform(WireframeView, &view, &projection);
             }
+
+            wireframeMaterial.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
             foreach (var system in renderSystem.renderSystems)
             {
@@ -47,7 +51,8 @@ namespace Staple.Editor
 
                                 ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
 
-                                MeshRenderSystem.DrawMesh(Mesh.Cube, transform.Position, transform.Rotation, renderable.localBounds.extents, debugHighlightMaterial, SceneView);
+                                MeshRenderSystem.DrawMesh(wireframeMesh, transform.Position, transform.Rotation, renderable.localBounds.extents * 2, wireframeMaterial,
+                                    WireframeView);
                             }
                         }
                     }

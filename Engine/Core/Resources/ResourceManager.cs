@@ -684,6 +684,59 @@ namespace Staple.Internal
 
                 foreach(var parameter in materialData.metadata.parameters)
                 {
+                    switch(parameter.Value.type)
+                    {
+                        case MaterialParameterType.Texture:
+
+                            var texture = LoadTexture(parameter.Value.textureValue);
+
+                            material.SetTexture(parameter.Key, texture);
+
+                            break;
+
+                        case MaterialParameterType.Matrix3x3:
+
+                            material.SetMatrix3x3(parameter.Key, new());
+
+                            break;
+
+                        case MaterialParameterType.Matrix4x4:
+
+                            material.SetMatrix4x4(parameter.Key, new());
+
+                            break;
+
+                        case MaterialParameterType.Vector2:
+
+                            material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2());
+
+                            break;
+
+                        case MaterialParameterType.Vector3:
+
+                            material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3());
+
+                            break;
+
+                        case MaterialParameterType.Vector4:
+
+                            material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4());
+
+                            break;
+
+                        case MaterialParameterType.Color:
+
+                            material.SetColor(parameter.Key, parameter.Value.colorValue);
+
+                            break;
+
+                        case MaterialParameterType.Float:
+
+                            material.SetFloat(parameter.Key, parameter.Value.floatValue);
+
+                            break;
+                    }
+
                     switch(parameter.Key)
                     {
                         case Material.MainTextureProperty:

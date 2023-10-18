@@ -1,0 +1,88 @@
+{
+	"type": "VertexFragment",
+	"sourceBlend": "SrcAlpha",
+	"destinationBlend": "OneMinusSrcAlpha",
+	"parameters": [
+		{
+			"name": "a_position",
+			"semantic": "Varying",
+			"type": "vec3",
+			"attribute": "POSITION"
+		},
+		{
+			"name": "v_view",
+			"semantic": "Varying",
+			"type": "vec3",
+			"attribute": "TEXCOORD0"
+		},
+		{
+			"name": "mainColor",
+			"semantic": "Uniform",
+			"type": "Color"
+		},
+		{
+			"name": "cameraPosition",
+			"semantic": "Uniform",
+			"type": "vec4"
+		},
+		{
+			"name": "opacity",
+			"semantic": "Uniform",
+			"type": "vec4"
+		},
+		{
+			"name": "thickness",
+			"semantic": "Uniform",
+			"type": "vec4"
+		}
+	],
+	"vertex": {
+		"inputs": [
+			"a_position"
+		],
+		"outputs": [
+			"v_view"
+		],
+		"code": [
+			"uniform vec4 cameraPosition;",
+			"",
+			"void main()",
+			"{",
+			"   mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);",
+			"",
+			"   vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));",
+			"",
+			"   v_view = cameraPosition.xyz - mul(u_model[0], vec4(a_position, 1.0)).xyz;",
+			"",
+			"   gl_Position = v_pos;",
+			"}"
+		]
+	},
+	"fragment": {
+		"inputs": [
+			"v_view"
+		],
+		"code": [
+			"uniform vec4 mainColor;",
+			"uniform vec4 opacity;",
+			"uniform vec4 thickness;",
+			"",
+			"void main()",
+			"{",
+			"   float o = opacity.r;",
+			"",
+			"   if(gl_FrontFacing) { o *= 0.5; }",
+			"",
+			"   vec3 fw = abs(dFdx(mainColor.rgb)) + abs(dFdy(mainColor.rgb));",
+			"",
+			"   vec3 val = smoothstep(vec3_splat(0.0), fw * thickness.r, mainColor.rgb);",
+			"",
+			"   float edge = min(min(val.x, val.y), val.z);",
+			"",
+			"   vec4 rgba = vec4(mainColor.rgb, (1.0 - edge) * o);",
+			"",
+			"   gl_FragColor = rgba;",
+			"}"
+		]
+	}
+}

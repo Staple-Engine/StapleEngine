@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -9,6 +10,21 @@ namespace Staple
     /// </summary>
     public sealed class Material : IPathAsset
     {
+        private class ParameterInfo
+        {
+            public MaterialParameterType type;
+            public object value;
+
+            public ParameterInfo Clone()
+            {
+                return new()
+                {
+                    type = type,
+                    value = value,
+                };
+            }
+        }
+
         internal const string MainColorProperty = "mainColor";
         internal const string MainTextureProperty = "mainTexture";
 
@@ -17,33 +33,53 @@ namespace Staple
         internal Shader shader;
         internal string path;
 
-        private Color mainColor;
+        private Dictionary<string, ParameterInfo> parameters = new();
 
         /// <summary>
         /// The material's main color
         /// </summary>
         public Color MainColor
         {
-            get => mainColor;
+            get => parameters.TryGetValue(MainColorProperty, out var parameter) ? (Color)parameter.value : Color.White;
 
             set
             {
-                mainColor = value;
+                if(parameters.TryGetValue(MainColorProperty, out var parameter) && parameter != null && parameter.type == MaterialParameterType.Color)
+                {
+                    parameter.value = value;
+                }
+                else
+                {
+                    parameters.AddOrSetKey(MainColorProperty, new ParameterInfo()
+                    {
+                        type = MaterialParameterType.Color,
+                        value = value,
+                    });
+                }
             }
         }
-
-        private Texture mainTexture;
 
         /// <summary>
         /// The material's main texture
         /// </summary>
         public Texture MainTexture
         {
-            get => mainTexture;
+            get => parameters.TryGetValue(MainTextureProperty, out var parameter) ? (Texture)parameter.value : null;
 
             set
             {
-                mainTexture = value;
+                if (parameters.TryGetValue(MainTextureProperty, out var parameter) && parameter != null && parameter.type == MaterialParameterType.Texture)
+                {
+                    parameter.value = value;
+                }
+                else
+                {
+                    parameters.AddOrSetKey(MainTextureProperty, new ParameterInfo()
+                    {
+                        type = MaterialParameterType.Texture,
+                        value = value,
+                    });
+                }
             }
         }
 
@@ -61,6 +97,19 @@ namespace Staple
         /// Whether this material has been disposed and is now invalid.
         /// </summary>
         public bool Disposed { get; internal set; } = false;
+
+        public Material()
+        {
+            SetColor(MainColorProperty, Color.White);
+        }
+
+        public Material(Material sourceMaterial)
+        {
+            foreach (var parameter in sourceMaterial.parameters)
+            {
+                parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
+            }
+        }
 
         ~Material()
         {
@@ -96,7 +145,93 @@ namespace Staple
         /// <param name="value">The color value</param>
         public void SetColor(string name, Color value)
         {
-            shader?.SetColor(name, value);
+            if(parameters.TryGetValue(name, out var parameter))
+            {
+                if(parameter.type == MaterialParameterType.Color)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Color,
+                    value = value,
+                });
+            }
+        }
+
+        /// <summary>
+        /// Sets a float property's value
+        /// </summary>
+        /// <param name="name">Property name</param>
+        /// <param name="value">The float value</param>
+        public void SetFloat(string name, float value)
+        {
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Float)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Float,
+                    value = value,
+                });
+            }
+        }
+
+        /// <summary>
+        /// Sets a Vector2 property's value
+        /// </summary>
+        /// <param name="name">Property name</param>
+        /// <param name="value">The Vector2 value</param>
+        public void SetVector2(string name, Vector2 value)
+        {
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Vector2)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Vector2,
+                    value = value,
+                });
+            }
+        }
+
+        /// <summary>
+        /// Sets a Vector3 property's value
+        /// </summary>
+        /// <param name="name">Property name</param>
+        /// <param name="value">The Vector3 value</param>
+        public void SetVector3(string name, Vector3 value)
+        {
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Vector3)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Vector3,
+                    value = value,
+                });
+            }
         }
 
         /// <summary>
@@ -106,7 +241,21 @@ namespace Staple
         /// <param name="value">The Vector4 value</param>
         public void SetVector4(string name, Vector4 value)
         {
-            shader?.SetVector4(name, value);
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Vector4)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Vector4,
+                    value = value,
+                });
+            }
         }
 
         /// <summary>
@@ -116,7 +265,21 @@ namespace Staple
         /// <param name="value">The Texture value</param>
         public void SetTexture(string name, Texture value)
         {
-            shader?.SetTexture(name, value);
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Texture)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Texture,
+                    value = value,
+                });
+            }
         }
 
         /// <summary>
@@ -126,7 +289,21 @@ namespace Staple
         /// <param name="value">The Matrix3x3 value</param>
         public void SetMatrix3x3(string name, Matrix3x3 value)
         {
-            shader?.SetMatrix3x3(name, value);
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Matrix3x3)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Matrix3x3,
+                    value = value,
+                });
+            }
         }
 
         /// <summary>
@@ -136,7 +313,21 @@ namespace Staple
         /// <param name="value">The Matrix4x4 value</param>
         public void SetMatrix4x4(string name, Matrix4x4 value)
         {
-            shader?.SetMatrix4x4(name, value);
+            if (parameters.TryGetValue(name, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Matrix4x4)
+                {
+                    parameter.value = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(name, new ParameterInfo()
+                {
+                    type = MaterialParameterType.Matrix4x4,
+                    value = value,
+                });
+            }
         }
 
         /// <summary>
@@ -144,7 +335,7 @@ namespace Staple
         /// </summary>
         internal void ApplyProperties()
         {
-            var t = mainTexture;
+            var t = MainTexture;
 
             if(t == null || t.Disposed)
             {
@@ -161,12 +352,62 @@ namespace Staple
                     }, Bgfx.bgfx.TextureFormat.RGBA8);
                 }
 
-                t = WhiteTexture;
+                SetTexture(MainTextureProperty, WhiteTexture);
             }
 
-            SetTexture(MainTextureProperty, t);
+            foreach(var parameter in parameters)
+            {
+                switch(parameter.Value.type)
+                {
+                    case MaterialParameterType.Texture:
 
-            SetColor(MainColorProperty, mainColor);
+                        shader?.SetTexture(parameter.Key, (Texture)parameter.Value.value);
+
+                        break;
+
+                    case MaterialParameterType.Matrix3x3:
+
+                        shader?.SetMatrix3x3(parameter.Key, (Matrix3x3)parameter.Value.value);
+
+                        break;
+
+                    case MaterialParameterType.Matrix4x4:
+
+                        shader?.SetMatrix4x4(parameter.Key, (Matrix4x4)parameter.Value.value);
+
+                        break;
+
+                    case MaterialParameterType.Float:
+
+                        shader?.SetVector4(parameter.Key, new Vector4((float)parameter.Value.value, 0, 0, 0));
+
+                        break;
+
+                    case MaterialParameterType.Vector2:
+
+                        shader?.SetVector4(parameter.Key, new Vector4((Vector2)parameter.Value.value, 0, 0));
+
+                        break;
+
+                    case MaterialParameterType.Vector3:
+
+                        shader?.SetVector4(parameter.Key, new Vector4((Vector3)parameter.Value.value, 0));
+
+                        break;
+
+                    case MaterialParameterType.Vector4:
+
+                        shader?.SetVector4(parameter.Key, (Vector4)parameter.Value.value);
+
+                        break;
+
+                    case MaterialParameterType.Color:
+
+                        shader?.SetColor(parameter.Key, (Color)parameter.Value.value);
+
+                        break;
+                }
+            }
         }
     }
 }

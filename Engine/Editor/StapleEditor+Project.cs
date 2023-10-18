@@ -85,6 +85,7 @@ namespace Staple.Editor
             {
                 currentPlatform = lastSession.currentPlatform;
                 lastOpenScene = lastSession.lastOpenScene;
+                lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
             }
 
             RefreshStaging(currentPlatform);

@@ -64,10 +64,9 @@ namespace Staple.Editor
                                     assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                                 }
 
-                                editor.showingSpritePicker = true;
-                                editor.spritePickerTexture = ThumbnailCache.GetTexture(assetPath) ?? value;
-                                editor.spritePickerSprites = value.metadata.sprites;
-                                editor.spritePickerCallback = (index) => renderer.spriteIndex = index;
+                                editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? value,
+                                    value.metadata.sprites,
+                                    (index) => renderer.spriteIndex = index);
                             }
                         }
                     }

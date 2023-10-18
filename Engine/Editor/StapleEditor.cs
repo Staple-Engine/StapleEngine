@@ -5,6 +5,7 @@ using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -28,12 +29,23 @@ namespace Staple.Editor
         {
             public string lastOpenScene;
             public AppPlatform currentPlatform;
+
+            public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
         }
 
         class EntityBody
         {
             public AABB bounds;
             public IBody3D body;
+        }
+
+        class MenuItemInfo
+        {
+            public string name;
+
+            public Action onClick;
+
+            public List<MenuItemInfo> children = new();
         }
 
         class GameAssemblyLoadContext : AssemblyLoadContext
@@ -61,7 +73,8 @@ namespace Staple.Editor
         internal static string StapleBasePath => Storage.StapleBasePath;
 
         internal const int ClearView = 0;
-        internal const int SceneView = 254;
+        internal const int SceneView = 253;
+        internal const int WireframeView = 254;
 
         internal delegate bool BackgroundTaskProgressCallback(ref float progress);
 
@@ -84,6 +97,8 @@ namespace Staple.Editor
 
         private string lastOpenScene;
 
+        internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
+
         private RenderTarget gameRenderTarget;
 
         private readonly RenderSystem renderSystem = new();
@@ -98,13 +113,15 @@ namespace Staple.Editor
 
         private readonly Transform cameraTransform = new();
 
-        private readonly AppSettings editorSettings = Staple.AppSettings.Default;
+        private readonly AppSettings editorSettings = AppSettings.Default;
 
         private AppSettings projectAppSettings;
 
         private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
 
-        private Material debugHighlightMaterial;
+        private Material wireframeMaterial;
+
+        private Mesh wireframeMesh;
 
         private readonly Dictionary<string, Editor> cachedEditors = new();
 
@@ -114,15 +131,13 @@ namespace Staple.Editor
 
         private WeakReference<Assembly> gameAssembly;
 
-        private bool showingBuildWindow = false;
-
-        private string buildBackend;
+        internal string buildBackend;
 
         private AppPlatform currentPlatform = AppPlatform.Windows;
 
-        private bool buildPlayerDebug = false;
+        internal bool buildPlayerDebug = false;
 
-        private bool buildPlayerNativeAOT = false;
+        internal bool buildPlayerNativeAOT = false;
 
         internal bool showingProgress = false;
 
@@ -131,24 +146,6 @@ namespace Staple.Editor
         internal float progressFraction = 0;
 
         private bool shouldTerminate = false;
-
-        internal bool showingAssetPicker = false;
-
-        internal Type assetPickerType;
-
-        internal string assetPickerSearch = "";
-
-        internal string assetPickerKey;
-
-        internal bool wasShowingSpritePicker = false;
-
-        internal bool showingSpritePicker = false;
-
-        internal Texture spritePickerTexture;
-
-        internal List<TextureSpriteInfo> spritePickerSprites;
-
-        internal Action<int> spritePickerCallback;
 
         private PlayerSettings playerSettings;
 
@@ -160,7 +157,9 @@ namespace Staple.Editor
 
         private List<Type> registeredComponents = new();
 
-        private bool showingAppSettings = false;
+        internal List<EditorWindow> editorWindows = new();
+
+        private List<MenuItemInfo> menuItems = new();
 
         private static WeakReference<StapleEditor> privInstance;
 
@@ -328,11 +327,43 @@ namespace Staple.Editor
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
+                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
                 Physics3D.Instance.Startup();
 
-                debugHighlightMaterial = ResourceManager.instance.LoadMaterial("Materials/DebugHighlight.mat");
+                wireframeMaterial = ResourceManager.instance.LoadMaterial("Materials/Wireframe.mat");
+
+                wireframeMaterial.SetVector4("opacity", new Vector4(1, 1, 1, 1));
+
+                wireframeMaterial.SetVector4("thickness", new Vector4(1, 1, 1, 1));
+
+                wireframeMesh = new Mesh(true, true);
+
+                wireframeMesh.Vertices = new Vector3[]
+                {
+                    new Vector3(-0.5f, 0.5f, 0.5f),
+                    Vector3.One * 0.5f,
+                    new Vector3(-0.5f, -0.5f, 0.5f),
+                    new Vector3(0.5f, -0.5f, 0.5f),
+                    new Vector3(-0.5f, 0.5f, -0.5f),
+                    new Vector3(0.5f, 0.5f, -0.5f),
+                    Vector3.One * -0.5f,
+                    new Vector3(0.5f, -0.5f, -0.5f),
+                };
+
+                wireframeMesh.Indices = new int[]
+                {
+                    0, 1, 2,
+                    3, 7, 1,
+                    5, 0, 4,
+                    2, 6, 7,
+                    4, 5
+                };
+
+                wireframeMesh.MeshTopology = MeshTopology.Lines;
 
                 LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 
@@ -419,11 +450,106 @@ namespace Staple.Editor
                 Entities(io);
                 Inspector(io);
                 BottomPanel(io);
-                AssetPicker(io);
-                BuildWindow(io);
-                AppSettings(io);
+
+                var currentWindows = new List<EditorWindow>(editorWindows);
+
+                for(var i = 0; i < currentWindows.Count; i++)
+                {
+                    var window = currentWindows[i];
+                    var shouldShow = false;
+
+                    var flags = ImGuiWindowFlags.None;
+
+                    if(window.allowDocking == false)
+                    {
+                        flags |= ImGuiWindowFlags.NoDocking;
+                    }
+
+                    if(window.allowResize == false)
+                    {
+                        flags |= ImGuiWindowFlags.NoResize;
+
+                        ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
+
+                        if(window.centerWindow)
+                        {
+                            ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
+                        }
+                    }
+
+                    switch(window.windowType)
+                    {
+                        case EditorWindowType.Modal:
+                        case EditorWindowType.Popup:
+
+                            if (window.opened == false)
+                            {
+                                window.opened = true;
+
+                                ImGui.OpenPopup($"{window.title}##Popup{window.GetType().Name}");
+                            }
+
+                            ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
+                            ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
+
+                            if(window.windowType == EditorWindowType.Popup)
+                            {
+                                shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}");
+                            }
+                            else
+                            {
+                                shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}");
+                            }
+
+                            if (shouldShow == false)
+                            {
+                                ImGui.CloseCurrentPopup();
+
+                                editorWindows.Remove(window);
+                            }
+
+                            break;
+
+                        default:
+
+                            shouldShow = ImGui.Begin($"{window.title}##{i}{window.title}", flags);
+
+                            break;
+                    }
+
+                    if (shouldShow)
+                    {
+                        try
+                        {
+                            window.OnGUI();
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        switch(window.windowType)
+                        {
+                            case EditorWindowType.Popup:
+                            case EditorWindowType.Modal:
+
+                                ImGui.EndPopup();
+
+                                break;
+
+                            default:
+
+                                ImGui.End();
+
+                                break;
+                        }
+
+                        var size = ImGui.GetWindowSize();
+
+                        window.size = new Vector2Int((int)size.X, (int)size.Y);
+                    }
+                }
+
                 ProgressPopup(io);
-                SpritePicker(io);
 
                 if (Scene.current?.world != null)
                 {
@@ -468,6 +594,9 @@ namespace Staple.Editor
 
                 bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+                
+                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
             };
 
             window.OnMove = (position) =>
@@ -503,6 +632,82 @@ namespace Staple.Editor
             };
 
             window.Run();
+        }
+
+        private void AddMenuItem(string path, Action onClick)
+        {
+            MenuItemInfo item = null;
+            var pieces = path.Split("/".ToCharArray()).ToList();
+
+            while (pieces.Count > 0)
+            {
+                if (item == null)
+                {
+                    item = menuItems.Find(x => x.name == pieces[0]);
+
+                    if (item == null)
+                    {
+                        item = new MenuItemInfo()
+                        {
+                            name = pieces[0],
+                            onClick = pieces.Count == 1 ? onClick : null,
+                        };
+
+                        menuItems.Add(item);
+                    }
+                }
+                else
+                {
+                    var child = item.children.Find(x => x.name == pieces[0]);
+
+                    if (child == null)
+                    {
+                        child = new MenuItemInfo()
+                        {
+                            name = pieces[0],
+                            onClick = pieces.Count == 1 ? onClick : null,
+                        };
+
+                        item.children.Add(child);
+                    }
+
+                    item = child;
+                }
+
+                pieces.RemoveAt(0);
+            }
+        }
+
+        private MenuItemInfo FindMenuItem(string path)
+        {
+            MenuItemInfo item = null;
+            var pieces = path.Split("/".ToCharArray()).ToList();
+
+            while(pieces.Count > 0)
+            {
+                if(item == null)
+                {
+                    item = menuItems.Find(x => x.name == pieces[0]);
+
+                    if(item == null)
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    item = item.children.Find(x => x.name == pieces[0]);
+
+                    if (item == null)
+                    {
+                        return null;
+                    }
+                }
+
+                pieces.RemoveAt(0);
+            }
+
+            return item;
         }
 
         private LastSessionInfo GetLastSession()
@@ -565,6 +770,63 @@ namespace Staple.Editor
             }
 
             return path;
+        }
+
+        public void ShowAssetPicker(Type type, string key)
+        {
+            var window = EditorWindow.GetWindow<AssetPickerWindow>();
+
+            window.assetPickerKey = key;
+            window.assetPickerSearch = "";
+            window.assetPickerType = type;
+            window.currentPlatform = currentPlatform;
+            window.basePath = basePath;
+            window.projectBrowser = projectBrowser;
+        }
+
+        public void ShowSpritePicker(Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)
+        {
+            var window = EditorWindow.GetWindow<SpritePicker>();
+
+            window.texture = texture;
+            window.sprites = sprites;
+            window.onFinish = onFinish;
+        }
+
+        private void SetSelectedEntity(Entity entity)
+        {
+            selectedEntity = entity;
+            selectedProjectNode = null;
+            selectedProjectNodeData = null;
+
+            cachedEditors.Clear();
+            EditorGUI.pendingObjectPickers.Clear();
+
+            EditorWindow.GetWindow<AssetPickerWindow>().Close();
+
+            if(selectedEntity == Entity.Empty)
+            {
+                return;
+            }
+
+            var counter = 0;
+
+            Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+            {
+                counter++;
+
+                if (component is Transform transform)
+                {
+                    return;
+                }
+
+                var editor = Editor.CreateEditor(component);
+
+                if (editor != null)
+                {
+                    cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
+                }
+            });
         }
     }
 }
