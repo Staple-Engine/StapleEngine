@@ -80,5 +80,14 @@ namespace Staple.Editor
 
             return false;
         }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var renderer = (SpriteRenderer)target;
+
+            EditorGUI.Label($"Bounds: Center: {renderer.bounds.center} Size: {renderer.bounds.Size}");
+        }
     }
 }

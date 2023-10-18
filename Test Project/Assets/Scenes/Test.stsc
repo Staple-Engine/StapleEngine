@@ -101,8 +101,8 @@
         "type": "Staple.BoxCollider3D",
         "data": {
           "size": {
-            "x": 1.0,
-            "y": 1.0,
+            "x": 2.25,
+            "y": 1.75,
             "z": 1.0
           },
           "gravityFactor": 0.0,

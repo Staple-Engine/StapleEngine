@@ -109,6 +109,9 @@ namespace Staple
             {
                 parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
             }
+
+            path = sourceMaterial.path;
+            shader = sourceMaterial.shader;
         }
 
         ~Material()

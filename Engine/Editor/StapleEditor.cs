@@ -119,11 +119,13 @@ namespace Staple.Editor
 
         private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
 
-        private Material wireframeMaterial;
+        internal Material wireframeMaterial;
 
-        private Mesh wireframeMesh;
+        internal Mesh wireframeMesh;
 
         private readonly Dictionary<string, Editor> cachedEditors = new();
+
+        private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = new();
 
         private readonly Editor defaultEditor = new();
 
@@ -800,6 +802,7 @@ namespace Staple.Editor
             selectedProjectNodeData = null;
 
             cachedEditors.Clear();
+            cachedGizmoEditors.Clear();
             EditorGUI.pendingObjectPickers.Clear();
 
             EditorWindow.GetWindow<AssetPickerWindow>().Close();
@@ -825,6 +828,13 @@ namespace Staple.Editor
                 if (editor != null)
                 {
                     cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
+                }
+
+                var gizmoEditor = GizmoEditor.CreateGizmoEditor(component);
+
+                if(gizmoEditor != null)
+                {
+                    cachedGizmoEditors.Add(counter - 1, gizmoEditor);
                 }
             });
         }

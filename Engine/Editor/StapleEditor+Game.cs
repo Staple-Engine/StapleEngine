@@ -35,6 +35,11 @@ namespace Staple.Editor
                         {
                             TypeCache.RegisterType(type);
 
+                            if(type.IsInterface)
+                            {
+                                continue;
+                            }
+
                             if(typeof(IStapleAsset).IsAssignableFrom(type))
                             {
                                 registeredAssetTypes.AddOrSetKey(type.FullName, type);
@@ -79,6 +84,7 @@ namespace Staple.Editor
             }
 
             Editor.UpdateEditorTypes();
+            GizmoEditor.UpdateEditorTypes();
 
             registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
         }
@@ -140,6 +146,11 @@ namespace Staple.Editor
             foreach (var v in t)
             {
                 TypeCache.RegisterType(v);
+
+                if(v.IsInterface)
+                {
+                    continue;
+                }
 
                 if(typeof(IStapleAsset).IsAssignableFrom(v))
                 {

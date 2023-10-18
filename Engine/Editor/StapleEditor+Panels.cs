@@ -568,6 +568,7 @@ namespace Staple.Editor
                 selectedProjectNodeData = null;
 
                 cachedEditors.Clear();
+                cachedGizmoEditors.Clear();
                 EditorGUI.pendingObjectPickers.Clear();
 
                 EditorWindow.GetWindow<AssetPickerWindow>().Close();

@@ -64,6 +64,7 @@
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="CSProjManager.cs" />
+    <Compile Include="Editors\Default\BoxCollider3DGizmoEditor.cs" />
     <Compile Include="Editors\Default\CameraEditor.cs" />
     <Compile Include="Editors\Default\FolderAssetEditor.cs" />
     <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />
@@ -75,6 +76,8 @@
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="Editors\EditorWindow.cs" />
     <Compile Include="Editors\EditorWindowType.cs" />
+    <Compile Include="Editors\Gizmo.cs" />
+    <Compile Include="Editors\GizmoEditor.cs" />
     <Compile Include="EditorUtils.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />

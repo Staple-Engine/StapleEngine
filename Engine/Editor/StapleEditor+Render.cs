@@ -50,13 +50,23 @@ namespace Staple.Editor
                                 system.Process(Scene.current.world, entity, transform, related, SceneView);
 
                                 ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
-
-                                MeshRenderSystem.DrawMesh(wireframeMesh, transform.Position, transform.Rotation, renderable.localBounds.extents * 2, wireframeMaterial,
-                                    WireframeView);
                             }
                         }
                     }
                 });
+
+                if(cachedGizmoEditors.Count > 0)
+                {
+                    var counter = 0;
+
+                    Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                    {
+                        if(cachedGizmoEditors.TryGetValue(counter++, out var editor))
+                        {
+                            editor.OnGizmo(selectedEntity, Scene.current.world.GetComponent<Transform>(selectedEntity), component);
+                        }
+                    });
+                }
             }
 
             foreach (var system in renderSystem.renderSystems)
