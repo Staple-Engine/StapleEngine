@@ -6,20 +6,20 @@
 		{
 			"name": "v_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0",
 			"defaultValue": "vec2(0.0, 0.0)"
 		},
 		{
 			"name": "a_position",
 			"semantic": "Varying",
-			"type": "vec3",
+			"type": "Vector3",
 			"attribute": "POSITION"
 		},
 		{
 			"name": "a_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0"
 		},
 		{
@@ -58,10 +58,6 @@
 			"v_texcoord0"
 		],
 		"code": [
-			"uniform vec4 mainColor;",
-			"",
-			"SAMPLER2D(mainTexture, 0);",
-			"",
 			"void main()",
 			"{",
 			"	gl_FragColor = texture2D(mainTexture, v_texcoord0) * mainColor;",

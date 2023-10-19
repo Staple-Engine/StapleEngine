@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using static Staple.Internal.ResourcePak;
 
@@ -58,6 +59,7 @@ namespace Baker
         {
             var lastFromWrite = DateTime.MinValue;
             var lastToWrite = DateTime.MinValue;
+            var assemblyLastWrite = File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location);
 
             try
             {
@@ -75,7 +77,7 @@ namespace Baker
             {
             }
 
-            return lastFromWrite > lastToWrite;
+            return lastFromWrite > lastToWrite || assemblyLastWrite > lastToWrite;
         }
 
         public static void Main(string[] args)

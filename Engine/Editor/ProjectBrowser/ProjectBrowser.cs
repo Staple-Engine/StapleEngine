@@ -497,7 +497,7 @@ namespace Staple.Editor
             Recursive(projectBrowserNodes);
         }
 
-        public void Draw(ImGuiIOPtr io, Action<ProjectBrowserNode> onClick, Action<ProjectBrowserNode> onDoubleClick)
+        public bool Draw(ImGuiIOPtr io, Action<ProjectBrowserNode> onClick, Action<ProjectBrowserNode> onDoubleClick)
         {
             ImGui.Columns(2, "ProjectBrowserContent");
 
@@ -621,9 +621,13 @@ namespace Staple.Editor
                     }
                 });
 
+            var result = ImGui.IsWindowHovered();
+
             ImGui.EndChild();
 
             ImGui.Columns();
+
+            return result;
         }
     }
 }

@@ -6,13 +6,13 @@
 		{
 			"name": "a_position",
 			"semantic": "Varying",
-			"type": "vec3",
+			"type": "Vector3",
 			"attribute": "POSITION"
 		},
 		{
 			"name": "v_view",
 			"semantic": "Varying",
-			"type": "vec3",
+			"type": "Vector3",
 			"attribute": "TEXCOORD0"
 		},
 		{
@@ -23,17 +23,17 @@
 		{
 			"name": "cameraPosition",
 			"semantic": "Uniform",
-			"type": "vec4"
+			"type": "Vector4"
 		},
 		{
 			"name": "opacity",
 			"semantic": "Uniform",
-			"type": "vec4"
+			"type": "Vector4"
 		},
 		{
 			"name": "thickness",
 			"semantic": "Uniform",
-			"type": "vec4"
+			"type": "Vector4"
 		}
 	],
 	"vertex": {
@@ -44,8 +44,6 @@
 			"v_view"
 		],
 		"code": [
-			"uniform vec4 cameraPosition;",
-			"",
 			"void main()",
 			"{",
 			"   mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);",
@@ -63,10 +61,6 @@
 			"v_view"
 		],
 		"code": [
-			"uniform vec4 mainColor;",
-			"uniform vec4 opacity;",
-			"uniform vec4 thickness;",
-			"",
 			"void main()",
 			"{",
 			"   float o = opacity.r;",

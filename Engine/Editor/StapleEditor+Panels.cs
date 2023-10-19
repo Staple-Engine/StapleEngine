@@ -2,10 +2,8 @@
 using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using NfdSharp;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -170,6 +168,8 @@ namespace Staple.Editor
                 ImGui.EndMainMenuBar();
             }
 
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
             ImGui.End();
         }
 
@@ -310,7 +310,11 @@ namespace Staple.Editor
                 ImGui.EndPopup();
             }
 
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
             ImGui.EndChildFrame();
+
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
             ImGui.End();
         }
@@ -358,6 +362,8 @@ namespace Staple.Editor
                 {
                     ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(width, height));
                 }
+
+                mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
                 ImGui.End();
             }
@@ -495,8 +501,12 @@ namespace Staple.Editor
                             }
                         }
 
+                        mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
                         ImGui.End();
                     }
+
+                    mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
                     ImGui.EndPopup();
                 }
@@ -513,7 +523,11 @@ namespace Staple.Editor
                 }
             }
 
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
             ImGui.EndChildFrame();
+
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
             ImGui.End();
         }
@@ -539,6 +553,8 @@ namespace Staple.Editor
                 ImGui.EndTabBar();
             }
 
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
             ImGui.EndChildFrame();
 
             switch (activeBottomTab)
@@ -556,12 +572,14 @@ namespace Staple.Editor
                     break;
             }
 
+            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
             ImGui.End();
         }
 
         private void ProjectBrowser(ImGuiIOPtr io)
         {
-            projectBrowser.Draw(io, (item) =>
+            mouseIsHoveringImGui |= projectBrowser.Draw(io, (item) =>
             {
                 selectedEntity = Entity.Empty;
                 selectedProjectNode = item;
@@ -741,12 +759,7 @@ namespace Staple.Editor
 
                             ResetScenePhysics();
 
-                            UpdateLastSession(new LastSessionInfo()
-                            {
-                                currentPlatform = currentPlatform,
-                                lastOpenScene = lastOpenScene,
-                                lastPickedBuildDirectories = lastPickedBuildDirectories,
-                            });
+                            UpdateLastSession();
                         }
 
                         break;

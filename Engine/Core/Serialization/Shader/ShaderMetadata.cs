@@ -12,6 +12,9 @@ namespace Staple.Internal
 
     public enum ShaderUniformType
     {
+        Float,
+        Vector2,
+        Vector3,
         Vector4,
         Color,
         Texture,

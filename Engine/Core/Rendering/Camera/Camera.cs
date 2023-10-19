@@ -5,6 +5,7 @@ namespace Staple
     /// <summary>
     /// Camera component
     /// </summary>
+    [ComponentIcon("Camera.png")]
     public class Camera : IComponent
     {
         /// <summary>
@@ -124,6 +125,8 @@ namespace Staple
 
             var viewSpace = Vector4.Transform(clipSpace, invP);
 
+            viewSpace.W = 1;
+
             //We don't need to invert the world space matrix since it is already being inverted in the render system
             return Vector4.Transform(viewSpace, transform.Matrix).ToVector3();
         }
@@ -151,6 +154,8 @@ namespace Staple
             }
 
             var viewSpace = Vector4.Transform(clipSpace, invP);
+
+            viewSpace.W = 1;
 
             //We don't need to invert the world space matrix since it is already being inverted in the render system
             var worldSpace = Vector4.Transform(viewSpace, transform.Matrix);

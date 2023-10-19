@@ -163,7 +163,13 @@ namespace Staple.Editor
 
         private List<MenuItemInfo> menuItems = new();
 
+        private Dictionary<Entity, Texture> componentIcons = new();
+
+        private Material componentIconMaterial;
+
         private static WeakReference<StapleEditor> privInstance;
+
+        public bool mouseIsHoveringImGui = false;
 
         public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
 
@@ -365,7 +371,7 @@ namespace Staple.Editor
                     4, 5
                 };
 
-                wireframeMesh.MeshTopology = MeshTopology.Lines;
+                wireframeMesh.MeshTopology = MeshTopology.LineStrip;
 
                 LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 
@@ -440,6 +446,8 @@ namespace Staple.Editor
 
                 ThumbnailCache.OnFrameStart();
                 imgui.BeginFrame();
+
+                mouseIsHoveringImGui = false;
 
                 var viewport = ImGui.GetMainViewport();
 
@@ -529,7 +537,9 @@ namespace Staple.Editor
                         {
                         }
 
-                        switch(window.windowType)
+                        mouseIsHoveringImGui |= ImGui.IsWindowHovered();
+
+                        switch (window.windowType)
                         {
                             case EditorWindowType.Popup:
                             case EditorWindowType.Modal:
@@ -726,6 +736,16 @@ namespace Staple.Editor
             {
                 return null;
             }
+        }
+
+        internal void UpdateLastSession()
+        {
+            UpdateLastSession(new LastSessionInfo()
+            {
+                currentPlatform = currentPlatform,
+                lastOpenScene = lastOpenScene,
+                lastPickedBuildDirectories = lastPickedBuildDirectories,
+            });
         }
 
         private void UpdateLastSession(LastSessionInfo info)

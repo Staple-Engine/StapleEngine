@@ -271,28 +271,33 @@ namespace Baker
                         }
                     };
 
-                    //TODO: Add missing types
-                    ShaderUniformType TranslateShaderParameter(ShaderParameterType type)
-                    {
-                        return type switch
-                        {
-                            ShaderParameterType.Color => ShaderUniformType.Color,
-                            ShaderParameterType.vec4 => ShaderUniformType.Vector4,
-                            ShaderParameterType.Texture => ShaderUniformType.Texture,
-                            _ => ShaderUniformType.Vector4,
-                        };
-                    }
-
                     if (shader.parameters != null)
                     {
                         generatedShader.metadata.uniforms = shader.parameters
-                            .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform && Enum.TryParse<ShaderParameterType>(x.type, out var uniformType))
+                            .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform)
                             .Select(x => new ShaderUniform()
                             {
                                 name = x.name,
                                 //Should be fine, since it passed the Where clause
-                                type = Enum.TryParse<ShaderParameterType>(x.type, out var uniformType) ? TranslateShaderParameter(uniformType) : ShaderUniformType.Vector4,
+                                type = x.type,
                             }).ToList();
+                    }
+
+                    string GetNativeShaderType(ShaderUniformType type, string name, int index, bool uniform)
+                    {
+                        var uniformString = uniform ? "uniform " : "";
+
+                        return type switch
+                        {
+                            ShaderUniformType.Float => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.x\n" : $"float {name}",
+                            ShaderUniformType.Vector2 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xy\n" : $"vec2 {name}",
+                            ShaderUniformType.Vector3 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xyz\n" : $"vec3 {name}",
+                            ShaderUniformType.Color or ShaderUniformType.Vector4 => $"{uniformString}vec4 {name}",
+                            ShaderUniformType.Texture => $"SAMPLER2D({name}, {index})",
+                            ShaderUniformType.Matrix3x3 => $"{uniformString}mat3 {name}",
+                            ShaderUniformType.Matrix4x4 => $"{uniformString}mat4 {name}",
+                            _ => $"{uniformString}vec4 {name}",
+                        };
                     }
 
                     string code;
@@ -344,11 +349,14 @@ namespace Baker
                                 continue;
                             }
 
+                            var varying = "";
+
                             if (shader.parameters != null)
                             {
-                                var varying = "";
 
                                 bool error = false;
+
+                                var counters = new Dictionary<ShaderUniformType, int>();
 
                                 foreach (var parameter in shader.parameters)
                                 {
@@ -361,7 +369,16 @@ namespace Baker
 
                                     if (parameter.semantic == ShaderParameterSemantic.Varying)
                                     {
-                                        varying += $"\n{parameter.type}  {parameter.name} : {parameter.attribute}";
+                                        var counter = 0;
+
+                                        if(counters.ContainsKey(parameter.type))
+                                        {
+                                            counter = counters[parameter.type];
+                                        }
+
+                                        counters.AddOrSetKey(parameter.type, counter + 1);
+
+                                        varying += $"\n{GetNativeShaderType(parameter.type, parameter.name, counter, false)} : {parameter.attribute}";
 
                                         if ((parameter.defaultValue?.Length ?? 0) > 0)
                                         {
@@ -391,7 +408,7 @@ namespace Baker
                                 }
                             }
 
-                            byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer)
+                            byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code)
                             {
                                 code = "";
 
@@ -405,7 +422,28 @@ namespace Baker
                                     code += $"$output  {string.Join(", ", piece.outputs)}\n";
                                 }
 
-                                code += "#include <bgfx_shader.sh>\n" + string.Join("\n", piece.code);
+                                code += "#include <bgfx_shader.sh>\n";
+
+                                var counters = new Dictionary<ShaderUniformType, int>();
+
+                                foreach(var parameter in shader.parameters)
+                                {
+                                    if(parameter.semantic == ShaderParameterSemantic.Uniform)
+                                    {
+                                        var counter = 0;
+
+                                        if (counters.ContainsKey(parameter.type))
+                                        {
+                                            counter = counters[parameter.type];
+                                        }
+
+                                        counters.AddOrSetKey(parameter.type, counter + 1);
+
+                                        code += $"{GetNativeShaderType(parameter.type, parameter.name, counter, true)};\n";
+                                    }
+                                }
+                                
+                                code += string.Join("\n", piece.code);
 
                                 try
                                 {
@@ -429,8 +467,11 @@ namespace Baker
                                 return data;
                             }
 
-                            generatedShader.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer);
-                            generatedShader.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer);
+                            string vertexCode = "";
+                            string fragmentCode = "";
+
+                            generatedShader.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode);
+                            generatedShader.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode);
 
                             try
                             {
@@ -442,7 +483,7 @@ namespace Baker
 
                             if (generatedShader.vertexShader == null || generatedShader.fragmentShader == null)
                             {
-                                Console.WriteLine("Failed to build shader");
+                                Console.WriteLine($"Failed to build shader.\nGenerated code:\nVarying:\n{varying}\nVertex:\n{vertexCode}\nFragment:\n{fragmentCode}\n");
 
                                 continue;
                             }

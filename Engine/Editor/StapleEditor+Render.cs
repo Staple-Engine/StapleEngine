@@ -1,4 +1,6 @@
 ﻿using Bgfx;
+using ImGuiNET;
+using Staple.Internal;
 using System.Numerics;
 
 namespace Staple.Editor
@@ -55,7 +57,21 @@ namespace Staple.Editor
                     }
                 });
 
-                if(cachedGizmoEditors.Count > 0)
+                if(Input.GetMouseButtonDown(MouseButton.Left) && mouseIsHoveringImGui == false)
+                {
+                    var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+
+                    if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
+                    {
+                        SetSelectedEntity(body.Entity);
+                    }
+                    else
+                    {
+                        SetSelectedEntity(Entity.Empty);
+                    }
+                }
+
+                if (cachedGizmoEditors.Count > 0)
                 {
                     var counter = 0;
 
@@ -67,6 +83,27 @@ namespace Staple.Editor
                         }
                     });
                 }
+
+                Scene.current.world.Iterate((entity) =>
+                {
+                    var transform = Scene.current.world.GetComponent<Transform>(entity);
+
+                    if(transform == null)
+                    {
+                        return;
+                    }
+
+                    if(componentIcons.TryGetValue(entity, out var icon) == false)
+                    {
+                        return;
+                    }
+
+                    componentIconMaterial ??= new Material(ResourceManager.instance.LoadMaterial("Materials/Sprite.mat"));
+
+                    componentIconMaterial.MainTexture = icon;
+
+                    MeshRenderSystem.DrawMesh(Mesh.Quad, transform.Position, Quaternion.Identity, Vector3.One, componentIconMaterial, WireframeView);
+                });
             }
 
             foreach (var system in renderSystem.renderSystems)

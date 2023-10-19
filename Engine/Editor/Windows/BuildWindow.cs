@@ -47,6 +47,8 @@ namespace Staple.Editor
                 {
                     StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
 
+                    StapleEditor.instance.UpdateLastSession();
+
                     StapleEditor.instance.showingProgress = true;
                     StapleEditor.instance.progressFraction = 0;
 

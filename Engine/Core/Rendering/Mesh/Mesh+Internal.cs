@@ -68,10 +68,10 @@ namespace Staple
 
                         uv = new Vector2[]
                         {
-                            Vector2.Zero,
                             new Vector2(0, 1),
-                            Vector2.One,
+                            Vector2.Zero,
                             new Vector2(1, 0),
+                            Vector2.One,
                         },
 
                         indices = new int[]

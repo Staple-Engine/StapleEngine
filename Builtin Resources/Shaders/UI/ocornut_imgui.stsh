@@ -6,33 +6,33 @@
 		{
 			"name": "v_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0",
 			"defaultValue": "vec2(0.0, 0.0)"
 		},
 		{
 			"name": "v_color0",
 			"semantic": "Varying",
-			"type": "vec4",
+			"type": "Vector4",
 			"attribute": "COLOR0",
 			"defaultValue": "vec4(0.0, 0.0, 0.0, 0.0)"
 		},
 		{
 			"name": "a_position",
 			"semantic": "Varying",
-			"type": "vec3",
+			"type": "Vector3",
 			"attribute": "POSITION"
 		},
 		{
 			"name": "a_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0"
 		},
 		{
 			"name": "a_color0",
 			"semantic": "Varying",
-			"type": "vec4",
+			"type": "Vector4",
 			"attribute": "COLOR0"
 		},
 		{
@@ -63,8 +63,6 @@
 			"v_color0", "v_texcoord0"
 		],
 		"code": [
-			"SAMPLER2D(s_tex, 0);",
-			"",
 			"void main()",
 			"{",
 			"	vec4 texel = texture2D(s_tex, v_texcoord0);",

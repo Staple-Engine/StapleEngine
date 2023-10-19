@@ -1,4 +1,7 @@
-﻿namespace Staple.Editor
+﻿using System.IO;
+using System.Reflection;
+
+namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
@@ -10,6 +13,40 @@
             }
 
             pickEntityBodies.Clear();
+
+            componentIcons.Clear();
+
+            if(Scene.current?.world != null)
+            {
+                Scene.current.world.Iterate((entity) =>
+                {
+                    var gotIcon = false;
+
+                    Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                    {
+                        if(gotIcon)
+                        {
+                            return;
+                        }
+
+                        var attribute = component.GetType().GetCustomAttribute<ComponentIconAttribute>();
+
+                        if(attribute == null)
+                        {
+                            return;
+                        }
+
+                        var icon = ThumbnailCache.GetTexture(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Component Icons", attribute.path));
+
+                        if(icon != null)
+                        {
+                            gotIcon = true;
+
+                            componentIcons.AddOrSetKey(entity, icon);
+                        }
+                    });
+                });
+            }
         }
 
         public void ReplaceEntityBody(Entity entity, Transform transform, AABB bounds)

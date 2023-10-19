@@ -6,20 +6,20 @@
 		{
 			"name": "v_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0",
 			"defaultValue": "vec2(0.0, 0.0)"
 		},
 		{
 			"name": "a_position",
 			"semantic": "Varying",
-			"type": "vec3",
+			"type": "Vector3",
 			"attribute": "POSITION"
 		},
 		{
 			"name": "a_texcoord0",
 			"semantic": "Varying",
-			"type": "vec2",
+			"type": "Vector2",
 			"attribute": "TEXCOORD0"
 		},
 		{
@@ -62,8 +62,6 @@
 			" * Copyright 2014 Dario Manesku. All rights reserved.",
 			" * License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE",
 			" */",
-			"",
-			"SAMPLER2D(s_tex, 0);",
 			"",
 			"void main()",
 			"{",

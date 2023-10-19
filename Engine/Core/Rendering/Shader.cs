@@ -23,6 +23,9 @@ namespace Staple.Internal
 
                 switch (uniform.type)
                 {
+                    case ShaderUniformType.Float:
+                    case ShaderUniformType.Vector2:
+                    case ShaderUniformType.Vector3:
                     case ShaderUniformType.Vector4:
 
                         type = bgfx.UniformType.Vec4;
@@ -191,6 +194,24 @@ namespace Staple.Internal
                             Apply<Color>(pair.Value, (uniform) => SetColor(uniform.uniform.name, uniform.value));
 
                             break;
+
+                        case ShaderUniformType.Vector3:
+
+                            Apply<Vector3>(pair.Value, (uniform) => SetVector3(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Vector2:
+
+                            Apply<Vector2>(pair.Value, (uniform) => SetVector2(uniform.uniform.name, uniform.value));
+
+                            break;
+
+                        case ShaderUniformType.Float:
+
+                            Apply<float>(pair.Value, (uniform) => SetFloat(uniform.uniform.name, uniform.value));
+
+                            break;
                     }
                 }
             }
@@ -252,6 +273,24 @@ namespace Staple.Internal
                             Add<Color>();
 
                             break;
+
+                        case ShaderUniformType.Vector3:
+
+                            Add<Vector3>();
+
+                            break;
+
+                        case ShaderUniformType.Vector2:
+
+                            Add<Vector2>();
+
+                            break;
+
+                        case ShaderUniformType.Float:
+
+                            Add<float>();
+
+                            break;
                     }
                 }
             }
@@ -293,6 +332,93 @@ namespace Staple.Internal
             return uniforms.TryGetValue(type, out var container) &&
                 container is Dictionary<int, UniformInfo<T>> c &&
                 c.TryGetValue(hashCode, out var outValue) ? outValue : null;
+        }
+
+        /// <summary>
+        /// Sets a Vector3 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
+        public void SetFloat(string name, float value)
+        {
+            if (Disposed)
+            {
+                return;
+            }
+
+            var uniform = GetUniform<float>(ShaderUniformType.Float, name);
+
+            if (uniform == null)
+            {
+                return;
+            }
+
+            uniform.value = value;
+
+            unsafe
+            {
+                var temp = new Vector4(value, 0, 0, 0);
+
+                bgfx.set_uniform(uniform.handle, &temp, 1);
+            }
+        }
+
+        /// <summary>
+        /// Sets a Vector3 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
+        public void SetVector2(string name, Vector2 value)
+        {
+            if (Disposed)
+            {
+                return;
+            }
+
+            var uniform = GetUniform<Vector2>(ShaderUniformType.Vector2, name);
+
+            if (uniform == null)
+            {
+                return;
+            }
+
+            uniform.value = value;
+
+            unsafe
+            {
+                var temp = new Vector4(value, 0, 0);
+
+                bgfx.set_uniform(uniform.handle, &temp, 1);
+            }
+        }
+
+        /// <summary>
+        /// Sets a Vector3 uniform's value
+        /// </summary>
+        /// <param name="name">The uniform's name</param>
+        /// <param name="value">The value</param>
+        public void SetVector3(string name, Vector3 value)
+        {
+            if (Disposed)
+            {
+                return;
+            }
+
+            var uniform = GetUniform<Vector3>(ShaderUniformType.Vector3, name);
+
+            if (uniform == null)
+            {
+                return;
+            }
+
+            uniform.value = value;
+
+            unsafe
+            {
+                var temp = new Vector4(value, 0);
+
+                bgfx.set_uniform(uniform.handle, &temp, 1);
+            }
         }
 
         /// <summary>
