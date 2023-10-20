@@ -505,7 +505,7 @@ namespace Baker
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = texturecPath,
-                        Arguments = $"-f \"{inputFile}\" -o \"{outputFileTemp}\" {parameters} --validate",
+                        Arguments = $"-f \"{inputFile}\" -o \"{outputFileTemp}\" {parameters}",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true,
@@ -526,6 +526,8 @@ namespace Baker
                 if (process.ExitCode != 0)
                 {
                     Console.WriteLine($"\t\tError:\n\t{result}\n");
+
+                    Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
                     try
                     {

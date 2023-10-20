@@ -125,19 +125,19 @@ namespace Baker
                                 {
                                     case ShaderCompilerType.vertex:
 
-                                        shaderPlatform += "-p vs_5_0";
+                                        shaderPlatform += "-p s_5_0";
 
                                         break;
 
                                     case ShaderCompilerType.fragment:
 
-                                        shaderPlatform += "-p ps_5_0";
+                                        shaderPlatform += "-p s_5_0";
 
                                         break;
 
                                     case ShaderCompilerType.compute:
 
-                                        shaderPlatform += "-p cs_5_0";
+                                        shaderPlatform += "-p s_5_0";
 
                                         break;
                                 }
@@ -146,7 +146,7 @@ namespace Baker
 
                             case Renderer.opengles:
 
-                                shaderPlatform = "--platform android";
+                                shaderPlatform = "--platform android -p 300_es";
 
                                 break;
 
@@ -158,7 +158,7 @@ namespace Baker
 
                             case Renderer.opengl:
 
-                                shaderPlatform = "--platform linux";
+                                shaderPlatform = "--platform linux ";
 
                                 switch (shaderType)
                                 {
@@ -234,6 +234,8 @@ namespace Baker
 
                         if (process.ExitCode != 0)
                         {
+                            Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
                             try
                             {
                                 File.Delete("shader_temp");

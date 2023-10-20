@@ -4,6 +4,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <TargetFramework>net7.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,6 +50,5 @@
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)\Packer\bin\Debug\net7.0\*.exe $(SolutionDir)\bin
 $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 </Project>
