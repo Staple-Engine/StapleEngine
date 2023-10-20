@@ -2,6 +2,7 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Staple.Editor
@@ -30,6 +31,17 @@ namespace Staple.Editor
 
         public string basePath;
         public string stapleBasePath;
+
+        public void OpenGameSolution()
+        {
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+
+            var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Game.sln"));
+
+            startInfo.UseShellExecute = true;
+
+            Process.Start(startInfo);
+        }
 
         public void GenerateGameCSProj(AppPlatform platform)
         {
@@ -130,6 +142,67 @@ namespace Staple.Editor
             }
 
             p.Save(Path.Combine(projectDirectory, "Game.csproj"));
+
+            try
+            {
+                File.Delete(Path.Combine(projectDirectory, "Game.sln"));
+            }
+            catch(Exception)
+            {
+            }
+
+            var startInfo = new ProcessStartInfo("dotnet", "new sln")
+            {
+                WorkingDirectory = projectDirectory
+            };
+
+            var process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false) ;
+
+                if(process.ExitCode != 0)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            if(process.ExitCode != 0)
+            {
+                return;
+            }
+
+            startInfo = new ProcessStartInfo("dotnet", "sln add Game.csproj")
+            {
+                WorkingDirectory = projectDirectory
+            };
+
+            process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false) ;
+
+                if (process.ExitCode != 0)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
         }
 
         public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT)

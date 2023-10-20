@@ -40,6 +40,11 @@ namespace Staple.Editor
                         window.basePath = basePath;
                     }
 
+                    if(ImGui.MenuItem("Open Solution"))
+                    {
+                        csProjManager.OpenGameSolution();
+                    }
+
                     if (ImGui.MenuItem("Save"))
                     {
                         if (Scene.current != null && lastOpenScene != null)
