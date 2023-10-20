@@ -533,8 +533,9 @@ namespace Staple.Editor
                         {
                             window.OnGUI();
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
+                            Log.Error($"Window {window.GetType().FullName} Error: {e}");
                         }
 
                         mouseIsHoveringImGui |= ImGui.IsWindowHovered();

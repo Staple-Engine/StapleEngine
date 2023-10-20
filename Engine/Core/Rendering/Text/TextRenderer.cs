@@ -22,6 +22,12 @@ namespace Staple.Internal
 
         public void LoadDefaultFont()
         {
+            //TODO: enable when we update libfreetype
+            if(Platform.IsLinux)
+            {
+                return;
+            }
+
             var data = Convert.FromBase64String(FontData.IntelOneMonoRegular);
 
             defaultFont = TextFont.FromData(data);
