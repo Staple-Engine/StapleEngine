@@ -250,7 +250,8 @@ namespace Staple
                                     {
                                         if (call.relatedComponent.GetType() == system.RelatedComponent())
                                         {
-                                            system.Process(Scene.current.world, call.entity, stagingTransform, call.relatedComponent, viewID);
+                                            system.Process(Scene.current.world, call.entity, stagingTransform, call.relatedComponent,
+                                                camera, cameraTransform, viewID);
                                         }
                                     }
                                 }
@@ -311,7 +312,7 @@ namespace Staple
 
                             if (related != null)
                             {
-                                system.Preprocess(Scene.current.world, entity, t, related);
+                                system.Preprocess(Scene.current.world, entity, t, related, camera, cameraTransform);
 
                                 if (related is Renderable renderable &&
                                     renderable.enabled)

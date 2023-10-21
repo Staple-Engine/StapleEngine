@@ -293,7 +293,7 @@ namespace Staple.Internal
             return outValue;
         }
 
-        public void DrawText(string text, TextParameters parameters, Material material, ushort viewID)
+        public void DrawText(string text, TextParameters parameters, Material material, float scale, ushort viewID)
         {
             if(text == null)
             {
@@ -329,7 +329,7 @@ namespace Staple.Internal
             var lineSpace = font.LineSpacing(actualParams);
             var spaceSize = font.LoadGlyph(' ', actualParams).advance;
 
-            var position = new Vector2(actualParams.position.X, actualParams.position.Y + actualParams.fontSize);
+            var position = new Vector2(actualParams.position.X, actualParams.position.Y + actualParams.fontSize * scale);
 
             var initialPosition = position;
 
@@ -345,7 +345,7 @@ namespace Staple.Internal
                     {
                         case ' ':
 
-                            position.X += spaceSize;
+                            position.X += spaceSize * scale;
 
                             break;
 
@@ -353,12 +353,12 @@ namespace Staple.Internal
 
                             if(j > 0)
                             {
-                                position.X += font.Kerning(line[j - 1], line[j], actualParams);
+                                position.X += font.Kerning(line[j - 1], line[j], actualParams) * scale;
                             }
 
                             if(textResources.TryGetValue(actualParams.GetHashCode() ^ line[j].GetHashCode(), out var resource))
                             {
-                                var p = position + new Vector2(resource.info.bounds.left + resource.info.bounds.Width / 2, -resource.info.bounds.top + resource.info.bounds.Height / 2);
+                                var p = position + new Vector2(resource.info.bounds.left, -resource.info.bounds.top) * scale;
 
                                 if(resource.sourceTexture != null)
                                 {
@@ -366,13 +366,13 @@ namespace Staple.Internal
                                 }
 
                                 MeshRenderSystem.DrawMesh(mesh, new Vector3(p, 0), Quaternion.Identity,
-                                    new Vector3(resource.info.bounds.Width, resource.info.bounds.Height, 1), material, viewID);
+                                    new Vector3(resource.info.bounds.Width * scale, resource.info.bounds.Height * scale, 1), material, viewID);
 
-                                position.X += resource.info.advance;
+                                position.X += resource.info.advance * scale;
                             }
                             else
                             {
-                                position.X += spaceSize;
+                                position.X += spaceSize * scale;
                             }
 
                             break;
@@ -380,7 +380,7 @@ namespace Staple.Internal
                 }
 
                 position.X = initialPosition.X;
-                position.Y += lineSpace;
+                position.Y += lineSpace * scale;
             }
         }
     }

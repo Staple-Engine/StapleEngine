@@ -77,9 +77,10 @@ namespace Staple
             sprites.Clear();
         }
 
-        public void Preprocess(World world, Entity entity, Transform transform, IComponent renderer)
+        public void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+            Camera activeCamera, Transform activeCameraTransform)
         {
-            var r = renderer as SpriteRenderer;
+            var r = relatedComponent as SpriteRenderer;
 
             var hasValidAnimation = r.animation != null &&
                 r.animation.texture != null &&
@@ -156,9 +157,10 @@ namespace Staple
             r.bounds = new AABB(transform.Position, size);
         }
 
-        public void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId)
+        public void Process(World world, Entity entity, Transform transform, IComponent relatedComponent,
+            Camera activeCamera, Transform activeCameraTransform, ushort viewId)
         {
-            var r = renderer as SpriteRenderer;
+            var r = relatedComponent as SpriteRenderer;
 
             var hasValidAnimation = r.animation != null &&
                 r.animation.texture != null &&

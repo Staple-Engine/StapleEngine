@@ -29,8 +29,8 @@
           "cameraType": "Orthographic",
           "orthographicSize": 5.0,
           "fov": 90.0,
-          "nearPlane": 0.001,
-          "farPlane": 1000.0,
+          "nearPlane": -1.0,
+          "farPlane": 1.0,
           "viewport": {
             "x": 0.0,
             "y": 0.0,
@@ -112,7 +112,7 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": false
   },
   {
     "kind": "Entity",
@@ -145,7 +145,7 @@
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
-          "renderingLayerMask": 2,
+          "renderingLayerMask": 0,
           "sortingLayer": 0,
           "sortingOrder": 0
         }

@@ -45,11 +45,11 @@ namespace Staple.Editor
 
                         if (related != null)
                         {
-                            system.Preprocess(Scene.current.world, entity, transform, related);
+                            system.Preprocess(Scene.current.world, entity, transform, related, camera, cameraTransform);
 
                             if (related is Renderable renderable)
                             {
-                                system.Process(Scene.current.world, entity, transform, related, SceneView);
+                                system.Process(Scene.current.world, entity, transform, related, camera, cameraTransform, SceneView);
 
                                 ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                             }

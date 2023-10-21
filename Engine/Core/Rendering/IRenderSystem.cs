@@ -26,8 +26,11 @@ namespace Staple
         /// <param name="world">The world the entity belongs to</param>
         /// <param name="entity">The entity</param>
         /// <param name="transform">The entity's transform</param>
-        /// <param name="renderer">The related component</param>
-        void Preprocess(World world, Entity entity, Transform transform, IComponent renderer);
+        /// <param name="relatedComponent">The related component</param>
+        /// <param name="activeCamera">The current active camera</param>
+        /// <param name="activeCameraTransform">The current active camera's transform</param>
+        void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+            Camera activeCamera, Transform activeCameraTransform);
 
         /// <summary>
         /// Processes the entity.
@@ -36,9 +39,12 @@ namespace Staple
         /// <param name="world">The world the entity belongs to</param>
         /// <param name="entity">The entity</param>
         /// <param name="transform">The entity's transform</param>
-        /// <param name="renderer">The related component</param>
+        /// <param name="relatedComponent">The related component</param>
+        /// <param name="activeCamera">The current active camera</param>
+        /// <param name="activeCameraTransform">The current active camera's transform</param>
         /// <param name="viewId">The current view ID</param>
-        void Process(World world, Entity entity, Transform transform, IComponent renderer, ushort viewId);
+        void Process(World world, Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera,
+            Transform activeCameraTransform, ushort viewId);
 
         /// <summary>
         /// Submits all rendering commands to the renderer.
