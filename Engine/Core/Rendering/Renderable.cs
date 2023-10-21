@@ -22,11 +22,6 @@
         public bool receiveShadows = true;
 
         /// <summary>
-        /// The rendering layer mask
-        /// </summary>
-        public LayerMask renderingLayerMask;
-
-        /// <summary>
         /// The sorting layer for this renderer
         /// </summary>
         [SortingLayer]
