@@ -121,7 +121,7 @@
     "parent": -1,
     "transform": {
       "position": {
-        "x": 0.0,
+        "x": -6.0,
         "y": 0.0,
         "z": 0.0
       },
@@ -140,8 +140,8 @@
       {
         "type": "Staple.TextComponent",
         "data": {
-          "text": "asdf",
-          "fontSize": 14,
+          "text": "The quick brown fox jumps over the lazy dog",
+          "fontSize": 30,
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,

@@ -116,6 +116,9 @@ namespace Staple
         public static float Log(float f) => (float)System.Math.Log(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Log(float f, float newBase) => (float)System.Math.Log(f, newBase);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Log10(float f) => (float)System.Math.Log10(f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
