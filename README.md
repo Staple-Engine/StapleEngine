@@ -11,7 +11,7 @@ Status: Extremely early state, unusable for games at this point
 * Entities inspired by both modern ECS and Unity
 * Scenes
 * Input (Keyboard and Mouse for now)
-* Math classes (with some of them based on `System.Numerics`(.NET))
+* Math classes
 * Materials
 * Sprites
 * Textures
@@ -27,7 +27,7 @@ Status: Extremely early state, unusable for games at this point
 
 # Building
 
-You require [premake 5](https://premake.github.io/) to generate some files, as well as [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
+You need [premake 5](https://premake.github.io/) to generate some files, as well as [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
 
 For Windows, you also need visual studio 2022.
 
