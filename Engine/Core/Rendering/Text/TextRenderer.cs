@@ -358,7 +358,8 @@ namespace Staple.Internal
 
                             if(textResources.TryGetValue(actualParams.GetHashCode() ^ line[j].GetHashCode(), out var resource))
                             {
-                                var p = position + new Vector2(resource.info.bounds.left, -resource.info.bounds.top) * scale;
+                                var p = position + new Vector2(resource.info.bounds.left + resource.info.bounds.Width / 2,
+                                    resource.info.bounds.top - resource.info.bounds.Height / 2) * scale;
 
                                 if(resource.sourceTexture != null)
                                 {

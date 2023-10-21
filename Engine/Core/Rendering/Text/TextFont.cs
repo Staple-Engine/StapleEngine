@@ -109,7 +109,7 @@ namespace Staple.Internal
 
             FontSize = parameters.fontSize;
 
-            face.LoadChar(character, SharpFont.LoadFlags.Default, SharpFont.LoadTarget.Normal);
+            face.LoadChar(character, SharpFont.LoadFlags.ForceAutohint, SharpFont.LoadTarget.Normal);
 
             glyph.advance = face.Glyph.Metrics.HorizontalAdvance.ToInt32();
 
@@ -126,8 +126,8 @@ namespace Staple.Internal
             var glyphWidth = face.Glyph.Metrics.Width.ToInt32();
             var glyphHeight = face.Glyph.Metrics.Height.ToInt32();
 
-            var xOffset = (glyph.advance - glyphWidth) / 2;
-            var yOffset = (face.BBox.Top >> 6) - (face.Glyph.Metrics.HorizontalBearingY.ToInt32());
+            var xOffset = bitmapGlyph.Left;
+            var yOffset = bitmapGlyph.Top;
 
             glyph.bounds = new Rect(new Vector2Int(xOffset, yOffset), new Vector2Int(glyphWidth, glyphHeight));
 

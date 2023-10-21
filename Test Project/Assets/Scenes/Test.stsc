@@ -88,7 +88,6 @@
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
-          "renderingLayerMask": 0,
           "sortingLayer": 0,
           "sortingOrder": 0
         }
@@ -145,7 +144,6 @@
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
-          "renderingLayerMask": 0,
           "sortingLayer": 0,
           "sortingOrder": 0
         }
