@@ -6,9 +6,9 @@ Status: Extremely early state, unusable for games at this point
 
 # Features
 
-* [GLFW](https://www.glfw.org/) windowing with windowed, fullscreen, and borderless modes
-* Basic renderer using [bgfx](https://github.com/bkaradzic/bgfx)
-* Entities inspired by both modern ECS and Unity-style
+* GLFW windowing with windowed, fullscreen, and borderless modes
+* Basic renderer using bgfx
+* Entities inspired by both modern ECS and Unity
 * Scenes
 * Input (Keyboard and Mouse for now)
 * Math classes (with some of them based on `System.Numerics`(.NET))
@@ -17,6 +17,13 @@ Status: Extremely early state, unusable for games at this point
 * Textures
 * Shader format based on BGFX's, in a single file
 * Baking pipeline (Baker) that processes game resources to fast usage in engine
+* Resource Packer that packs multiple files in its own format
+* Editor app that can edit game data and make builds
+* Custom asset system
+* Unity-Style custom editor and editor window support
+* Text rendering using FreeType [EXPERIMENTAL]
+* Windows, Linux, and Android support
+* Physics support (3D: Jolt Physics) [EXPERIMENTAL]
 
 # Building
 
@@ -28,11 +35,13 @@ For Windows, you also need visual studio 2022.
 
 To compile dependencies, go to `Dependencies` and run `premake5 vs2022` as well as `build_windows_dotnet.cmd`, then go to `Dependencies/build/vs2022/` and build the `Dependencies.sln` solution for both debug and release configurations. (Keep in mind you don't need to build `Dependencies_Dotnet.sln` here since you already did by running the cmd file)
 
-After that, you will need to compile the tools, so go to `Tools` and run `build_windows.cmd`.
+After that, you will need to compile the engine, so go to `Engine` and run `build_windows.cmd`.
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.cmd` to prepare the default assets, and `buildtestresources.cmd` if you'd like to run the test project.
+After building the engine, you must build the tools, so go to `Tools` and run `build_windows.cmd`.
 
-Finally, go to `Engine` and build the `Engine` solution and run the `Player` project in the repo main folder. It should also be usable inside the `Staging` folder, as `Player.exe`.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.cmd` to prepare the default assets.
+
+Finally, go to the `Redist` folder in `Dependencies` and copy the windows DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
 
 ## Linux
 
@@ -46,8 +55,10 @@ Finally, go to `Engine` and build the `Engine` solution and run the `Player` pro
 
 To compile dependencies, go to `Dependencies` and run `build_linux.sh`.
 
+After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh`.
+
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts, and `buildtestresources.sh` if you'd like to run the test game.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL and Vulkan there.
 
-Finally, go to `Engine` and run `build_linux.sh` and go to `Staging` and run `./Player`.
+Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
