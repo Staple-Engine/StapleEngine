@@ -1,0 +1,10 @@
+This version of SharpFont was modified to work with Staple
+
+Changes
+=======
+- Commented out some assembly properties to allow compilation with premake
+
+List of commits with changes
+============================
+
+9dbb3bb8cb63ecf3c84b484870d7e7068b8c3f67
