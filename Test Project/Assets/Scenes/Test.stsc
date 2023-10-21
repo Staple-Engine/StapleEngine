@@ -61,7 +61,7 @@
       "position": {
         "x": 0.0,
         "y": 0.0,
-        "z": -3.0
+        "z": 0.0
       },
       "rotation": {
         "x": 0.0,
@@ -111,7 +111,7 @@
       }
     ],
     "layer": "Default",
-    "enabled": false
+    "enabled": true
   },
   {
     "kind": "Entity",
