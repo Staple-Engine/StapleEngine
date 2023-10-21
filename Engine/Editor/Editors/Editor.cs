@@ -197,11 +197,20 @@ namespace Staple.Editor
                         {
                             var value = (int)(uint)field.GetValue(target);
 
-                            var newValue = EditorGUI.IntField(fieldName, value);
+                            var newValue = (uint)value;
+
+                            if(field.GetCustomAttribute<SortingLayerAttribute>() != null)
+                            {
+                                newValue = (uint)EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), LayerMask.AllSortingLayers.ToArray(), value);
+                            }
+                            else
+                            {
+                                newValue = (uint)EditorGUI.IntField(fieldName, value);
+                            }
 
                             if (newValue != value)
                             {
-                                field.SetValue(target, (uint)newValue);
+                                field.SetValue(target, newValue);
                             }
                         }
 

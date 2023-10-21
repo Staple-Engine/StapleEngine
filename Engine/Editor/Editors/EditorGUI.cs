@@ -32,6 +32,10 @@ namespace Staple.Editor
                 {
                     counter = 0;
                 }
+                else
+                {
+                    StapleEditor.instance.mouseIsHoveringImGui = true;
+                }
             }
         }
 
@@ -158,6 +162,8 @@ namespace Staple.Editor
 
         public static int Dropdown(string label, string[] options, int current)
         {
+            var previous = current;
+
             Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");
 
             if(current < 0)
@@ -179,6 +185,8 @@ namespace Staple.Editor
 
         public static string TextFieldMultiline(string label, string text, Vector2 size, int maxLength = 1000)
         {
+            text ??= "";
+
             Changed |= ImGui.InputTextMultiline(label, ref text, (uint)maxLength, size);
 
             return text;

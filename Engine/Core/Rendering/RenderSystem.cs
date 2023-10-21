@@ -53,8 +53,6 @@ namespace Staple
 
         internal static byte Priority = 1;
 
-        private readonly TextRenderer textRenderer = new();
-
         /// <summary>
         /// Calculates the blending function for blending flags
         /// </summary>
@@ -141,13 +139,12 @@ namespace Staple
         {
             renderSystems.Add(new SpriteRenderSystem());
             renderSystems.Add(new MeshRenderSystem());
+            renderSystems.Add(new TextRenderSystem());
 
             Time.OnAccumulatorFinished += () =>
             {
                 needsDrawCalls = true;
             };
-
-            textRenderer.LoadDefaultFont();
         }
 
         public void Shutdown()
@@ -371,11 +368,6 @@ namespace Staple
                     relatedComponent = relatedComponent,
                 });
             }
-        }
-
-        public void RenderText(string text, TextParameters parameters, Material material, ushort viewID)
-        {
-            textRenderer.DrawText(text, parameters, material, viewID);
         }
     }
 }

@@ -295,6 +295,21 @@ namespace Staple.Internal
 
         public void DrawText(string text, TextParameters parameters, Material material, ushort viewID)
         {
+            if(text == null)
+            {
+                throw new ArgumentNullException("text");
+            }
+
+            if(parameters == null)
+            {
+                throw new ArgumentNullException("parameters");
+            }
+
+            if(material == null)
+            {
+                throw new ArgumentNullException("material");
+            }
+
             var mesh = Mesh.Quad;
 
             if(mesh.changed)

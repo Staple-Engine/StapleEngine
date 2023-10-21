@@ -113,5 +113,45 @@
     ],
     "layer": "Default",
     "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Text",
+    "ID": 2,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.TextComponent",
+        "data": {
+          "text": "asdf",
+          "fontSize": 14,
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "renderingLayerMask": 2,
+          "sortingLayer": 0,
+          "sortingOrder": 0
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
   }
 ]

@@ -57,6 +57,8 @@ namespace Staple.Editor
                     }
                 });
 
+                //Temporarily disabled due to ImGui issues when clicking dropdowns
+                /*
                 if(Input.GetMouseButtonDown(MouseButton.Left) && mouseIsHoveringImGui == false)
                 {
                     var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
@@ -70,6 +72,7 @@ namespace Staple.Editor
                         SetSelectedEntity(Entity.Empty);
                     }
                 }
+                */
 
                 if (cachedGizmoEditors.Count > 0)
                 {

@@ -14,18 +14,6 @@ namespace Staple.Editor
 
             switch(field.Name)
             {
-                case nameof(SpriteRenderer.sortingLayer):
-
-                    {
-                        var value = (uint)field.GetValue(target);
-
-                        value = (uint)EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), LayerMask.AllSortingLayers.ToArray(), (int)value);
-
-                        field.SetValue(target, value);
-
-                        return true;
-                    }
-
                 case nameof(SpriteRenderer.texture):
 
                     {

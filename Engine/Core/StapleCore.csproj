@@ -220,6 +220,8 @@
     <Compile Include="Rendering\Sprites\SpriteRenderSystem.cs" />
     <Compile Include="Rendering\Texture\Texture.cs" />
     <Compile Include="Rendering\Texture\TextureFlags.cs" />
+    <Compile Include="Rendering\Text\TextComponent.cs" />
+    <Compile Include="Rendering\Text\TextRenderSystem.cs" />
     <Compile Include="Rendering\VertexBuffer.cs" />
     <Compile Include="Rendering\VertexLayout.cs" />
     <Compile Include="Rendering\VertexLayoutBuilder.cs" />

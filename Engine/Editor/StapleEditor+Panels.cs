@@ -498,6 +498,8 @@ namespace Staple.Editor
 
                             if (ImGui.IsItemClicked())
                             {
+                                mouseIsHoveringImGui = true;
+
                                 Scene.current.world.AddComponent(selectedEntity, component);
 
                                 ImGui.CloseCurrentPopup();

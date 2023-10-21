@@ -29,6 +29,7 @@
         /// <summary>
         /// The sorting layer for this renderer
         /// </summary>
+        [SortingLayer]
         public uint sortingLayer;
 
         /// <summary>
