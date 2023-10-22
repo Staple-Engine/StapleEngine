@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Staple.Internal;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 namespace Staple.Editor
 {
@@ -14,8 +16,6 @@ namespace Staple.Editor
             {
                 return;
             }
-
-            UnloadGame();
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
             var outPath = Path.Combine(projectDirectory, "bin");
@@ -94,6 +94,28 @@ namespace Staple.Editor
             GizmoEditor.UpdateEditorTypes();
 
             registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
+
+            var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
+
+            try
+            {
+                if(File.Exists(scenePath))
+                {
+                    var scene = ResourceManager.instance.LoadRawSceneFromPath(scenePath);
+
+                    if(scene != null)
+                    {
+                        Scene.SetActiveScene(scene);
+                    }
+                }
+            }
+            catch(Exception)
+            {
+            }
+            finally
+            {
+                File.Delete(scenePath);
+            }
         }
 
         public void UnloadGame()
@@ -107,6 +129,16 @@ namespace Staple.Editor
             {
                 WeakReference<GameAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
+                var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
+
+                try
+                {
+                    File.Delete(scenePath);
+                }
+                catch (Exception)
+                {
+                }
+
                 if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
                 {
                     var renderSystems = renderSystem.renderSystems
@@ -116,6 +148,27 @@ namespace Staple.Editor
                     foreach(var r in renderSystems)
                     {
                         renderSystem.renderSystems.Remove(r);
+                    }
+
+                    if (Scene.current != null)
+                    {
+                        try
+                        {
+                            var scene = Scene.current.Serialize();
+
+                            var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, new JsonSerializerSettings()
+                            {
+                                Converters =
+                                {
+                                    new StringEnumConverter(),
+                                }
+                            });
+
+                            File.WriteAllText(scenePath, json);
+                        }
+                        catch (Exception)
+                        {
+                        }
                     }
 
                     Scene.current?.world.UnloadComponentsFromAssembly(assembly);
