@@ -522,7 +522,22 @@ namespace Staple
 
         protected virtual string[] AdditionalLibraries()
         {
-            return Array.Empty<string>();
+            var outValue = new HashSet<string>();
+
+            foreach(var type in TypeCache.AllTypes())
+            {
+                var attributes = type.GetCustomAttributes(true);
+
+                foreach(var attribute in attributes)
+                {
+                    if(attribute is AdditionalLibraryAttribute library && library.platform == AppPlatform.Android)
+                    {
+                        outValue.Add(library.path);
+                    }
+                }
+            }
+
+            return outValue.ToArray();
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)

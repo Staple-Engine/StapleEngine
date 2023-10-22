@@ -33,10 +33,8 @@ using System.Runtime.InteropServices;
 
 namespace OpenAL
 {
-	public static class AL10
+	public static partial class AL10
 	{
-		private const string nativeLibName = "soft_oal.dll";
-
 		/* typedef int ALenum; */
 		public const int AL_NONE =			0x0000;
 		public const int AL_FALSE =			0x0000;

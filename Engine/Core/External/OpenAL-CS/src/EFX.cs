@@ -33,10 +33,8 @@ using System.Runtime.InteropServices;
 
 namespace OpenAL
 {
-	public static class EFX
+	public static partial class EFX
 	{
-		private const string nativeLibName = "soft_oal.dll";
-
 		/* typedef int ALenum; */
 		public const int AL_METERS_PER_UNIT =				0x20004;
 

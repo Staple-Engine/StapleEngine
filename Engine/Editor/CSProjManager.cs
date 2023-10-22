@@ -113,9 +113,10 @@ namespace Staple.Editor
         {
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
-            var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"));
-
-            startInfo.UseShellExecute = true;
+            var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
+            {
+                UseShellExecute = true
+            };
 
             Process.Start(startInfo);
         }

@@ -36,15 +36,6 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
-project "OpenAL-CS"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	
-	files {
-		"OpenAL-CS/**.cs"
-	}
-
 project "SharpFont"
 	kind "SharedLib"
 	language "C#"

@@ -61,15 +61,13 @@
 	<Reference Include="JoltPhysicsSharp">
 	    <HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
 	</Reference>
-	<Reference Include="OpenAL-CS">
-		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\OpenAL-CS.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="MessagePack\**" />
     <None Remove="MessagePack\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
     <Compile Include="Attributes\ComponentIconAttribute.cs" />
     <Compile Include="Audio\AudioListener.cs" />
     <Compile Include="Audio\AudioSource.cs" />
@@ -80,6 +78,7 @@
     <Compile Include="Audio\OpenAL\OpenALAudioDevice.cs" />
     <Compile Include="Audio\OpenAL\OpenALAudioListener.cs" />
     <Compile Include="Audio\OpenAL\OpenALAudioSource.cs" />
+    <Compile Include="External\OpenAL-CS\src\DllName.cs" />
     <Compile Include="Serialization\Asset\AssetSerialization.cs" />
     <Compile Include="Serialization\Asset\IPathAsset.cs" />
     <Compile Include="Serialization\Asset\IStapleAsset.cs" />
@@ -88,8 +87,8 @@
     <Compile Include="Attributes\ComponentCategoryAttribute.cs" />
     <Compile Include="Attributes\HideInInspectorAttribute.cs" />
     <Compile Include="Attributes\SortingLayerAttribute.cs" />
-    <Compile Include="Bindings\bgfx.cs" />
-    <Compile Include="Bindings\bgfx_dllname.cs" />
+    <Compile Include="External\BGFX\bgfx.cs" />
+    <Compile Include="External\BGFX\bgfx_dllname.cs" />
     <Compile Include="Rendering\Camera\Camera.cs" />
     <Compile Include="Rendering\Camera\CameraClearMode.cs" />
     <Compile Include="Rendering\Camera\CameraType.cs" />
@@ -100,6 +99,12 @@
     <Compile Include="Rendering\Mesh\MeshRenderer.cs" />
     <Compile Include="Rendering\Renderable.cs" />
     <Compile Include="Export\Export.cs" />
+	<Compile Include="External\OpenAL-CS\src\AL10.cs" />
+	<Compile Include="External\OpenAL-CS\src\AL11.cs" />
+	<Compile Include="External\OpenAL-CS\src\ALC10.cs" />
+	<Compile Include="External\OpenAL-CS\src\ALC11.cs" />
+	<Compile Include="External\OpenAL-CS\src\ALEXT.cs" />
+	<Compile Include="External\OpenAL-CS\src\EFX.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
 	<Compile Include="External\StbImageResizeSharp\src\StbImageResize.cs" />

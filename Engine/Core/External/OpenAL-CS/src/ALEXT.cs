@@ -33,23 +33,39 @@ using System.Runtime.InteropServices;
 
 namespace OpenAL
 {
-	public static class AL11
+	public static partial class ALEXT
 	{
-		private const string nativeLibName = "soft_oal.dll";
+		/* TODO: All OpenAL Soft extensions! Complete as needed. */
 
-		/* typedef int ALenum; */
-		public const int AL_SEC_OFFSET =		0x1024;
-		public const int AL_SAMPLE_OFFSET =		0x1025;
-		public const int AL_BYTE_OFFSET =		0x1026;
+		/* typedef int ALenum */
+		public const int AL_FORMAT_MONO_FLOAT32 =		0x10010;
+		public const int AL_FORMAT_STEREO_FLOAT32 =		0x10011;
 
-		public const int AL_SPEED_OF_SOUND =		0xC003;
+		public const int AL_LOOP_POINTS_SOFT =			0x2015;
 
-		public const int AL_LINEAR_DISTANCE =		0xD003;
-		public const int AL_LINEAR_DISTANCE_CLAMPED =	0xD004;
-		public const int AL_EXPONENT_DISTANCE =		0xD005;
-		public const int AL_EXPONENT_DISTANCE_CLAMED =	0xD006;
+		public const int AL_UNPACK_BLOCK_ALIGNMENT_SOFT =	0x200C;
+		public const int AL_PACK_BLOCK_ALIGNMENT_SOFT =		0x200D;
+
+		public const int AL_FORMAT_MONO_MSADPCM_SOFT =		0x1302;
+		public const int AL_FORMAT_STEREO_MSADPCM_SOFT =	0x1303;
+
+		public const int AL_BYTE_SOFT =				0x1400;
+		public const int AL_SHORT_SOFT =			0x1402;
+		public const int AL_FLOAT_SOFT =			0x1406;
+
+		public const int AL_MONO_SOFT =				0x1500;
+		public const int AL_STEREO_SOFT =			0x1501;
+
+		public const int AL_GAIN_LIMIT_SOFT =			0x200E;
 
 		[DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void alSpeedOfSound(float value);
+		public static extern void alGetBufferSamplesSOFT(
+			uint buffer,
+			int offset,
+			int samples,
+			int channels,
+			int type,
+			IntPtr data
+		);
 	}
 }
