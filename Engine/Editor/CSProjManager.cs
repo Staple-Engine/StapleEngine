@@ -32,6 +32,83 @@ namespace Staple.Editor
         public string basePath;
         public string stapleBasePath;
 
+        public void CollectGameScriptModifyStates()
+        {
+            var assetsDirectory = Path.Combine(basePath, "Assets");
+
+            fileModifyStates.Clear();
+
+            void Recursive(string path)
+            {
+                try
+                {
+                    var files = Directory.GetFiles(path, "*.cs");
+
+                    foreach (var file in files)
+                    {
+                        var filePath = Path.GetFullPath(file);
+
+                        fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                    }
+
+                    var directories = Directory.GetDirectories(path);
+
+                    foreach (var directory in directories)
+                    {
+                        Recursive(directory);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            Recursive(assetsDirectory);
+        }
+
+        public bool NeedsGameRecompile()
+        {
+            var assetsDirectory = Path.Combine(basePath, "Assets");
+
+            bool Recursive(string path)
+            {
+                try
+                {
+                    var files = Directory.GetFiles(path, "*.cs");
+
+                    foreach (var file in files)
+                    {
+                        var filePath = Path.GetFullPath(file);
+
+                        if(fileModifyStates.ContainsKey(filePath) == false ||
+                            fileModifyStates[filePath] < File.GetLastWriteTime(filePath))
+                        {
+                            CollectGameScriptModifyStates();
+
+                            return true;
+                        }
+                    }
+
+                    var directories = Directory.GetDirectories(path);
+
+                    foreach (var directory in directories)
+                    {
+                        if(Recursive(directory))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                return false;
+            }
+
+            return Recursive(assetsDirectory);
+        }
+
         public void OpenGameSolution()
         {
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");

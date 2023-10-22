@@ -8,6 +8,10 @@ namespace TestGame
     {
         public SubsystemType UpdateType => SubsystemType.Update;
 
+        public void Startup()
+        {
+        }
+
         public void Process(World world, float deltaTime)
         {
             var sortedCameras = world.SortedCameras;
@@ -58,6 +62,10 @@ namespace TestGame
                     renderer.color = new Color(0.5f, 0.5f, 0, 1);
                 }
             }
+        }
+
+        public void Shutdown()
+        {
         }
     }
 }

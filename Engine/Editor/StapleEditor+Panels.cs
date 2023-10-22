@@ -759,10 +759,11 @@ namespace Staple.Editor
 
                         var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
 
+                        Scene.SetActiveScene(scene);
+
                         if (scene != null)
                         {
                             lastOpenScene = item.path;
-                            Scene.current = scene;
 
                             ResetScenePhysics();
 

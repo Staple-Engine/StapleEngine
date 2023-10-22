@@ -8,6 +8,10 @@ namespace TestGame
     {
         public SubsystemType UpdateType => SubsystemType.FixedUpdate;
 
+        public void Startup()
+        {
+        }
+
         public void Process(World world, float deltaTime)
         {
             world.ForEach((Entity entity, bool enabled, ref CircularMovementComponent movement, ref Transform transform) =>
@@ -30,6 +34,10 @@ namespace TestGame
                         0);
                 }
             });
+        }
+
+        public void Shutdown()
+        {
         }
     }
 }

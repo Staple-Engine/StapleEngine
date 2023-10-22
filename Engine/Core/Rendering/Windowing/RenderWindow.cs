@@ -158,7 +158,7 @@ namespace Staple.Internal
 
                 CheckContextLost();
 
-                if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
+                if (window.IsFocused != hasFocus)
                 {
                     hasFocus = window.IsFocused;
 
@@ -322,7 +322,7 @@ namespace Staple.Internal
 
                 CheckContextLost();
 
-                if (appSettings.runInBackground == false && window.IsFocused != hasFocus)
+                if (window.IsFocused != hasFocus)
                 {
                     hasFocus = window.IsFocused;
 

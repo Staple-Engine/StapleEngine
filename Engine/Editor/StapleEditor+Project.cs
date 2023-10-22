@@ -90,14 +90,14 @@ namespace Staple.Editor
 
             RefreshStaging(currentPlatform);
 
-            if((lastOpenScene?.Length ?? 0) > 0)
+            if ((lastOpenScene?.Length ?? 0) > 0)
             {
                 var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
 
+                Scene.SetActiveScene(scene);
+
                 if (scene != null)
                 {
-                    Scene.current = scene;
-
                     ResetScenePhysics();
                 }
             }
@@ -137,6 +137,11 @@ namespace Staple.Editor
 
         public void RefreshStaging(AppPlatform platform, bool updateProject = true)
         {
+            if(gameLoadDisabled)
+            {
+                return;
+            }
+
             var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
 
             if(updateProject)

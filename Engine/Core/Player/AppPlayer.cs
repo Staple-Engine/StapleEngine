@@ -150,9 +150,9 @@ namespace Staple
                     }
                 }
 
-                Scene.current = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+                var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
-                if (Scene.current == null)
+                if (scene == null)
                 {
                     Log.Error($"Failed to load main scene");
 
@@ -160,6 +160,8 @@ namespace Staple
 
                     throw new Exception("Failed to load main scene");
                 }
+
+                Scene.SetActiveScene(scene);
 
                 Log.Info("Loaded first scene");
 

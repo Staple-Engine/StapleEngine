@@ -16,6 +16,10 @@ namespace Staple
     {
         SubsystemType UpdateType { get; }
 
+        void Startup();
+
         void Process(World world, float deltaTime);
+
+        void Shutdown();
     }
 }

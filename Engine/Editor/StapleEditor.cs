@@ -167,9 +167,15 @@ namespace Staple.Editor
 
         private Material componentIconMaterial;
 
-        private static WeakReference<StapleEditor> privInstance;
-
         public bool mouseIsHoveringImGui = false;
+
+        private bool hadFocus = true;
+
+        private bool needsGameRecompile = false;
+
+        private bool gameLoadDisabled = false;
+
+        private static WeakReference<StapleEditor> privInstance;
 
         public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
 
@@ -562,6 +568,25 @@ namespace Staple.Editor
                     }
                 }
 
+                if(needsGameRecompile)
+                {
+                    needsGameRecompile = false;
+
+                    UnloadGame();
+
+                    ImGui.OpenPopup("ShowingProgress");
+
+                    showingProgress = true;
+                    progressFraction = 0;
+
+                    StartBackgroundTask((ref float progress) =>
+                    {
+                        RefreshStaging(currentPlatform);
+
+                        return true;
+                    });
+                }
+
                 ProgressPopup(io);
 
                 if (Scene.current?.world != null)
@@ -610,6 +635,16 @@ namespace Staple.Editor
                 
                 bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+
+                if(hadFocus != hasFocus && hasFocus)
+                {
+                    if (csProjManager.NeedsGameRecompile())
+                    {
+                        needsGameRecompile = true;
+                    }
+                }
+
+                hadFocus = hasFocus;
             };
 
             window.OnMove = (position) =>

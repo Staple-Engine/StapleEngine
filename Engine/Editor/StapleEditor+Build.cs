@@ -208,6 +208,11 @@ namespace Staple.Editor
 
         public void BuildGame()
         {
+            if (gameLoadDisabled)
+            {
+                return;
+            }
+
             using var collection = new ProjectCollection();
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");

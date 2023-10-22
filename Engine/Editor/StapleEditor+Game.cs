@@ -1,8 +1,8 @@
-﻿using Staple.Internal;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Staple.Editor
 {
@@ -10,6 +10,11 @@ namespace Staple.Editor
     {
         public void LoadGame()
         {
+            if (gameLoadDisabled)
+            {
+                return;
+            }
+
             UnloadGame();
 
             var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
@@ -91,9 +96,14 @@ namespace Staple.Editor
 
         public void UnloadGame()
         {
+            if(gameLoadDisabled)
+            {
+                return;
+            }
+
             if(gameAssemblyLoadContext != null)
             {
-                WeakReference weak = new(gameAssemblyLoadContext);
+                WeakReference<GameAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
                 if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
                 {
@@ -106,21 +116,48 @@ namespace Staple.Editor
                         renderSystem.renderSystems.Remove(r);
                     }
 
-                    Scene.current?.world.UnloadComponentsFromAssembly(assembly);
+                    Scene.current.world.UnloadComponentsFromAssembly(assembly);
+
+                    EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
+                    EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
+
+                    for (var i = editorWindows.Count - 1; i >= 0; i--)
+                    {
+                        if (editorWindows[i].GetType().Assembly == assembly)
+                        {
+                            editorWindows.RemoveAt(i);
+                        }
+                    }
+
+                    SetSelectedEntity(Entity.Empty);
                 }
+
+                Scene.SetActiveScene(null);
 
                 gameAssembly = null;
 
                 ReloadTypeCache();
 
+                Editor.UpdateEditorTypes();
+                GizmoEditor.UpdateEditorTypes();
+
                 gameAssemblyLoadContext.Unload();
 
                 gameAssemblyLoadContext = null;
 
-                while(weak.IsAlive)
+                var time = DateTime.Now;
+
+                while((DateTime.Now - time).TotalSeconds < 1)
                 {
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
+                }
+
+                if(game.TryGetTarget(out _))
+                {
+                    Log.Error($"Failed to unload game assembly, ensure your code is cleaning itself up correctly and restart the editor.");
+
+                    gameLoadDisabled = true;
                 }
             }
         }
@@ -130,6 +167,9 @@ namespace Staple.Editor
             TypeCache.Clear();
             registeredAssetTypes.Clear();
             registeredComponents.Clear();
+            menuItems.Clear();
+            cachedEditors.Clear();
+            cachedGizmoEditors.Clear();
 
             var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
 

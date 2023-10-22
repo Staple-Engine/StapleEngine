@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 
 namespace Staple
 {
@@ -36,6 +37,26 @@ namespace Staple
             return entitySubsystems.TryGetValue(type, out var manager) ? manager : null;
         }
 
+        internal void UnloadSystemsFromAssembly(Assembly assembly)
+        {
+            var unloaded = new List<IEntitySystem>();
+
+            foreach(var system in systems)
+            {
+                if(system.GetType().Assembly == assembly)
+                {
+                    unloaded.Add(system);
+                }
+            }
+
+            foreach(var system in unloaded)
+            {
+                system.Shutdown();
+
+                systems.Remove(system);
+            }
+        }
+
         /// <summary>
         /// Registers an entity system.
         /// </summary>
@@ -43,10 +64,17 @@ namespace Staple
         public void RegisterSystem(IEntitySystem system)
         {
             systems.Add(system);
+
+            system.Startup();
         }
 
         public void Shutdown()
         {
+            foreach(var system in systems)
+            {
+                system.Shutdown();
+            }
+
             systems.Clear();
         }
 

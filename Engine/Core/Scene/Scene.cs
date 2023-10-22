@@ -23,6 +23,11 @@ namespace Staple
         /// </summary>
         internal static List<string> sceneList = new();
 
+        internal static void SetActiveScene(Scene scene)
+        {
+            current = scene;
+        }
+
         /// <summary>
         /// Creates an empty entity
         /// </summary>

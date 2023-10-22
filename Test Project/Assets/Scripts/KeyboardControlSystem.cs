@@ -7,6 +7,10 @@ namespace TestGame
     {
         public SubsystemType UpdateType => SubsystemType.Update;
 
+        public void Startup()
+        {
+        }
+
         public void Process(World world, float deltaTime)
         {
             world.ForEach((Entity entity, bool enabled, ref KeyboardControlComponent component, ref Transform transform) =>
@@ -64,6 +68,10 @@ namespace TestGame
 
                 transform.LocalPosition += direction * component.speed * deltaTime;
             });
+        }
+
+        public void Shutdown()
+        {
         }
     }
 }
