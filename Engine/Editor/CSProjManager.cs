@@ -111,20 +111,20 @@ namespace Staple.Editor
 
         public void OpenGameSolution()
         {
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
-            var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Game.sln"));
+            var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"));
 
             startInfo.UseShellExecute = true;
 
             Process.Start(startInfo);
         }
 
-        public void GenerateGameCSProj(AppPlatform platform)
+        public void GenerateGameCSProj(AppPlatform platform, bool sandbox)
         {
             using var collection = new ProjectCollection();
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", (sandbox ? "Sandbox" : "Game"));
             var assetsDirectory = Path.Combine(basePath, "Assets");
 
             var projectProperties = new Dictionary<string, string>()
@@ -154,7 +154,7 @@ namespace Staple.Editor
 
             debugProperty.Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ";
             debugProperty.AddProperty("PlatformTarget", "AnyCPU");
-            debugProperty.AddProperty("DebugType", "pdbonly");
+            debugProperty.AddProperty("DebugType", "embedded");
             debugProperty.AddProperty("DebugSymbols", "true");
             debugProperty.AddProperty("Optimize", "false");
             debugProperty.AddProperty("DefineConstants", $"_DEBUG;STAPLE_EDITOR{platformDefinesString}");
@@ -165,7 +165,7 @@ namespace Staple.Editor
 
             releaseProperty.Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
             releaseProperty.AddProperty("PlatformTarget", "AnyCPU");
-            releaseProperty.AddProperty("DebugType", "portable");
+            releaseProperty.AddProperty("DebugType", "embedded");
             releaseProperty.AddProperty("DebugSymbols", "true");
             releaseProperty.AddProperty("Optimize", "true");
             releaseProperty.AddProperty("DefineConstants", $"NDEBUG;STAPLE_EDITOR{platformDefinesString}");
@@ -222,7 +222,7 @@ namespace Staple.Editor
 
             try
             {
-                File.Delete(Path.Combine(projectDirectory, "Game.sln"));
+                File.Delete(Path.Combine(projectDirectory, sandbox ? "Sandbox.sln" : "Game.sln"));
             }
             catch(Exception)
             {

@@ -28,11 +28,9 @@ namespace Staple.Editor
                 {
                     gameAssemblyLoadContext = new(AppContext.BaseDirectory);
 
-                    var file = File.OpenRead(assemblyPath);
+                    using var stream = new MemoryStream(File.ReadAllBytes(assemblyPath));
 
-                    var assembly = gameAssemblyLoadContext.LoadFromStream(file);
-
-                    file.Close();
+                    var assembly = gameAssemblyLoadContext.LoadFromStream(stream);
 
                     if(assembly != null)
                     {

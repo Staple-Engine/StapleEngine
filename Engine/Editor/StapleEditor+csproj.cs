@@ -4,7 +4,7 @@
     {
         internal void UpdateCSProj(AppPlatform platform)
         {
-            csProjManager.GenerateGameCSProj(platform);
+            csProjManager.GenerateGameCSProj(platform, false);
 
             BuildGame();
             LoadGame();

@@ -42,6 +42,7 @@ namespace Staple.Editor
 
                     if(ImGui.MenuItem("Open Solution"))
                     {
+                        csProjManager.GenerateGameCSProj(currentPlatform, true);
                         csProjManager.OpenGameSolution();
                     }
 
