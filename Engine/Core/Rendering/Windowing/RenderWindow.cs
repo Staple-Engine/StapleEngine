@@ -80,7 +80,7 @@ namespace Staple.Internal
             {
                 window.ContextLost = false;
 
-                ResourceManager.instance.Destroy();
+                ResourceManager.instance.Destroy(false);
 
                 bgfx.shutdown();
 

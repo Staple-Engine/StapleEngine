@@ -2,6 +2,8 @@
 using Staple.Internal;
 using StbImageSharp;
 using StbRectPackSharp;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Staple
@@ -75,6 +77,21 @@ namespace Staple
         ~Texture()
         {
             Destroy();
+
+            var removed = new List<WeakReference<Texture>>();
+
+            foreach(var reference in ResourceManager.instance.userCreatedTextures)
+            {
+                if(reference.TryGetTarget(out var texture) && texture == this)
+                {
+                    removed.Add(reference);
+                }
+            }
+
+            foreach(var reference in removed)
+            {
+                ResourceManager.instance.userCreatedTextures.Remove(reference);
+            }
         }
 
         internal bool Create()
@@ -141,7 +158,14 @@ namespace Staple
         {
             var texture = new Texture(new EmptyTextureCreateMethod(width, height, hasMips, layers, format, flags));
 
-            return texture.Create() ? texture : null;
+            if (texture.Create())
+            {
+                ResourceManager.instance.userCreatedTextures.Add(new WeakReference<Texture>(texture));
+
+                return texture;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -297,7 +321,14 @@ namespace Staple
         {
             var texture = new Texture(new PixelTextureCreateMethod(path, data, width, height, metadata, format, flags));
 
-            return texture.Create() ? texture : null;
+            if(texture.Create())
+            {
+                ResourceManager.instance.userCreatedTextures.Add(new WeakReference<Texture>(texture));
+
+                return texture;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -419,8 +450,21 @@ namespace Staple
             }
         }
 
-        public static bool PackTextures(RawTextureData[] textureData, int width, int height, int maxSize, int padding, out Rect[] outRects, out RawTextureData outTextureData,
-            bool expandWidth = true, bool expandHeight = false)
+        /// <summary>
+        /// Packs multiple textures into a single atlas one
+        /// </summary>
+        /// <param name="textureData">The data of each texture</param>
+        /// <param name="width">The width of the atlas</param>
+        /// <param name="height">The height of the atlas</param>
+        /// <param name="maxSize">The maximum size on both width and height</param>
+        /// <param name="padding">Amount of transparent pixels between textures</param>
+        /// <param name="outRects">The rectangles representing the areas of each texture in the atlas</param>
+        /// <param name="outTextureData">The texture data with the full atlas</param>
+        /// <param name="expandWidth">Whether to expand width (will be toggled with each attempt to pack, used internally)</param>
+        /// <param name="expandHeight">Whether to expand height (will be toggled with each attempt to pack, used internally)</param>
+        /// <returns>Whether the textures were packed</returns>
+        public static bool PackTextures(RawTextureData[] textureData, int width, int height, int maxSize, int padding,
+            out Rect[] outRects, out RawTextureData outTextureData, bool expandWidth = true, bool expandHeight = false)
         {
             outRects = default;
             outTextureData = default;

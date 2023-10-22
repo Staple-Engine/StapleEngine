@@ -678,7 +678,7 @@ namespace Staple.Editor
 
                 renderSystem.Shutdown();
 
-                ResourceManager.instance.Destroy();
+                ResourceManager.instance.Destroy(true);
             };
 
             window.Run();

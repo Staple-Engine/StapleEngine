@@ -28,6 +28,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
         private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         private readonly Dictionary<string, ResourcePak> resourcePaks = new();
+        internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
 
         /// <summary>
         /// The default instance of the resource manager
@@ -88,7 +89,7 @@ namespace Staple.Internal
         /// <summary>
         /// Destroys all resources
         /// </summary>
-        internal void Destroy()
+        internal void Destroy(bool final)
         {
             Material.WhiteTexture?.Destroy();
 
@@ -117,9 +118,12 @@ namespace Staple.Internal
                 pair.Value?.Destroy();
             }
 
-            foreach(var pair in resourcePaks)
+            if(final)
             {
-                pair.Value.Dispose();
+                foreach (var pair in resourcePaks)
+                {
+                    pair.Value.Dispose();
+                }
             }
         }
 
@@ -154,6 +158,19 @@ namespace Staple.Internal
                 catch (Exception e)
                 {
                     Log.Debug($"Failed to recreate texture: {e}");
+                }
+            }
+
+            Log.Debug($"Recreating {userCreatedTextures.Count} user-created textures");
+
+            foreach (var reference in userCreatedTextures)
+            {
+                if (reference.TryGetTarget(out var texture))
+                {
+                    if (texture.Create() == false)
+                    {
+                        Log.Debug($"Failed to recreate a user texture");
+                    }
                 }
             }
 

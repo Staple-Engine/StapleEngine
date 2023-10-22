@@ -202,7 +202,7 @@ namespace Staple
 
                 SubsystemManager.instance.Destroy();
 
-                ResourceManager.instance.Destroy();
+                ResourceManager.instance.Destroy(true);
 
                 Log.Info("Done");
 
