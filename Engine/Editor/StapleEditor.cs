@@ -221,6 +221,8 @@ namespace Staple.Editor
                 return;
             }
 
+            SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
+
             playerSettings = PlayerSettings.Load(editorSettings);
 
             if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)

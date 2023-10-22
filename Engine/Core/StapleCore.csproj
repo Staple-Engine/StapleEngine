@@ -61,6 +61,9 @@
 	<Reference Include="JoltPhysicsSharp">
 	    <HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
 	</Reference>
+	<Reference Include="OpenAL-CS">
+		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\OpenAL-CS.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="MessagePack\**" />
@@ -68,6 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\ComponentIconAttribute.cs" />
+    <Compile Include="Audio\AudioSystem.cs" />
+    <Compile Include="Audio\IAudioDevice.cs" />
+    <Compile Include="Audio\OpenAL\OpenALAudioDevice.cs" />
     <Compile Include="Serialization\Asset\AssetSerialization.cs" />
     <Compile Include="Serialization\Asset\IPathAsset.cs" />
     <Compile Include="Serialization\Asset\IStapleAsset.cs" />

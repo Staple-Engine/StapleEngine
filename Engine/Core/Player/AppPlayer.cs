@@ -120,6 +120,7 @@ namespace Staple
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
                 SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
+                SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
                 var types = TypeCache.AllTypes()
                     .Where(x => typeof(IEntitySystem).IsAssignableFrom(x) && x != typeof(IEntitySystem))
