@@ -1,6 +1,6 @@
 ﻿namespace Staple
 {
-    public interface IAudioDevice
+    internal interface IAudioDevice
     {
         bool Init();
 

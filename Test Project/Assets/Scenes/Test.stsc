@@ -47,6 +47,10 @@
           "speed": 50.0,
           "is3D": false
         }
+      },
+      {
+        "type": "Staple.AudioListener",
+        "data": {}
       }
     ],
     "layer": "Default",

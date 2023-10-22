@@ -7,7 +7,7 @@ namespace TestGame
 		[MenuItem("Game/Window")]
 		public static void Create()
 		{
-			var window = EditorWindow.GetWindow<TestWindow>();
+			var window = GetWindow<TestWindow>();
 			
 			window.title = "Test Window from game!";
 		}

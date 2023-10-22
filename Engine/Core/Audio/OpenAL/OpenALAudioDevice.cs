@@ -1,6 +1,6 @@
 ﻿using OpenAL;
 
-namespace Staple.Internal
+namespace Staple
 {
     internal class OpenALAudioDevice : IAudioDevice
     {

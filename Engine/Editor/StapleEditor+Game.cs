@@ -28,7 +28,11 @@ namespace Staple.Editor
                 {
                     gameAssemblyLoadContext = new(AppContext.BaseDirectory);
 
-                    var assembly = gameAssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+                    var file = File.OpenRead(assemblyPath);
+
+                    var assembly = gameAssemblyLoadContext.LoadFromStream(file);
+
+                    file.Close();
 
                     if(assembly != null)
                     {
@@ -116,7 +120,7 @@ namespace Staple.Editor
                         renderSystem.renderSystems.Remove(r);
                     }
 
-                    Scene.current.world.UnloadComponentsFromAssembly(assembly);
+                    Scene.current?.world.UnloadComponentsFromAssembly(assembly);
 
                     EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
                     EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
@@ -151,13 +155,6 @@ namespace Staple.Editor
                 {
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                }
-
-                if(game.TryGetTarget(out _))
-                {
-                    Log.Error($"Failed to unload game assembly, ensure your code is cleaning itself up correctly and restart the editor.");
-
-                    gameLoadDisabled = true;
                 }
             }
         }
