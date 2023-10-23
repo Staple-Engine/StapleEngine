@@ -36,6 +36,15 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "NVorbis"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"NVorbis/**.cs"
+	}
+
 project "SharpFont"
 	kind "SharedLib"
 	language "C#"

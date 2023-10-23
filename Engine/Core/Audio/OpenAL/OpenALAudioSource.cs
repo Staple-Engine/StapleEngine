@@ -7,6 +7,36 @@ namespace Staple
     {
         internal uint source;
 
+        public bool Playing
+        {
+            get
+            {
+                if (source == 0)
+                {
+                    return false;
+                }
+
+                AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE, out var value);
+
+                return value == AL10.AL_PLAYING;
+            }
+        }
+
+        public bool Paused
+        {
+            get
+            {
+                if (source == 0)
+                {
+                    return false;
+                }
+
+                AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE, out var value);
+
+                return value == AL10.AL_PAUSED;
+            }
+        }
+
         public float Pitch
         {
             get
@@ -153,6 +183,62 @@ namespace Staple
             AL10.alDeleteSources(1, ref source);
 
             source = 0;
+        }
+
+        public bool Bind(IAudioClip clip)
+        {
+            if(clip is not OpenALAudioClip audioClip ||
+                audioClip.buffer == 0 ||
+                source == 0)
+            {
+                return false;
+            }
+
+            AL10.alSourcei(source, AL10.AL_BUFFER, (int)audioClip.buffer);
+
+            if(OpenALAudioDevice.CheckALError())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void Play()
+        {
+            if(source == 0)
+            {
+                return;
+            }
+
+            if(Paused == false)
+            {
+                AL10.alSourceRewind(source);
+            }
+
+            AL10.alSourcePlay(source);
+
+            OpenALAudioDevice.CheckALError();
+        }
+
+        public void Pause()
+        {
+            if(source == 0)
+            {
+                return;
+            }
+
+            AL10.alSourcePause(source);
+        }
+
+        public void Stop()
+        {
+            if (source == 0)
+            {
+                return;
+            }
+
+            AL10.alSourceStop(source);
         }
     }
 }

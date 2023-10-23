@@ -4,6 +4,10 @@ namespace Staple
 {
     internal interface IAudioSource
     {
+        bool Playing { get; }
+
+        bool Paused { get; }
+
         float Pitch { get; set; }
 
         float Volume { get; set; }
@@ -17,5 +21,13 @@ namespace Staple
         bool Init();
 
         void Destroy();
+
+        bool Bind(IAudioClip clip);
+
+        void Play();
+
+        void Pause();
+
+        void Stop();
     }
 }

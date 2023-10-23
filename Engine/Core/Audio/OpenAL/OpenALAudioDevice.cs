@@ -69,6 +69,8 @@ namespace Staple
 
         public void Shutdown()
         {
+            ALC10.alcMakeContextCurrent(nint.Zero);
+
             if(Context != nint.Zero)
             {
                 ALC10.alcDestroyContext(Context);
