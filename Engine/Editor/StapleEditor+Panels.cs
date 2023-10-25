@@ -673,7 +673,28 @@ namespace Staple.Editor
                         {
                         }
                     }
-                    else if(item.typeName == typeof(FolderAsset).FullName)
+                    else if (item.typeName == typeof(AudioClip).FullName)
+                    {
+                        try
+                        {
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<AudioClipMetadata>(data);
+
+                            var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                            if (editor != null)
+                            {
+                                editor.original = original;
+                                editor.path = $"{item.path}.meta";
+                                editor.cachePath = cachePath;
+
+                                cachedEditors.Add("", editor);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if (item.typeName == typeof(FolderAsset).FullName)
                     {
                         try
                         {

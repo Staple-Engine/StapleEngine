@@ -23,7 +23,9 @@ namespace Staple.Editor
 
             try
             {
-                files = Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories);
+                files = Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories)
+                    .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
+                    .ToArray();
             }
             catch(Exception)
             {
@@ -60,9 +62,9 @@ namespace Staple.Editor
                         assetsByType.AddOrSetKey(holder.typeName, holder);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping...");
+                    Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping... (Exception: {e})");
 
                     continue;
                 }

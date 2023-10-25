@@ -848,8 +848,8 @@ namespace Staple.Internal
             }
 #endif
 
-            AppPlayer.ScreenWidth = width;
-            AppPlayer.ScreenHeight = height;
+            Screen.Width = width;
+            Screen.Height = height;
 
             return renderWindow;
         }

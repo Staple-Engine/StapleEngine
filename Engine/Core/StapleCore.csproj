@@ -79,8 +79,10 @@
 	<ItemGroup>
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
+		<Compile Include="Audio\AudioClip.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
 		<Compile Include="Audio\AudioSource.cs" />
+		<Compile Include="Audio\IAudioStream.cs" />
 		<Compile Include="Audio\AudioSystem.cs" />
 		<Compile Include="Audio\IAudioClip.cs" />
 		<Compile Include="Audio\IAudioDevice.cs" />
@@ -90,8 +92,9 @@
 		<Compile Include="Audio\OpenAL\OpenALAudioDevice.cs" />
 		<Compile Include="Audio\OpenAL\OpenALAudioListener.cs" />
 		<Compile Include="Audio\OpenAL\OpenALAudioSource.cs" />
-		<Compile Include="Audio\Readers\NVorbisAudioReader.cs" />
+		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
+		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
 		<Compile Include="Serialization\Asset\IPathAsset.cs" />
 		<Compile Include="Serialization\Asset\IStapleAsset.cs" />
@@ -208,6 +211,8 @@
 		<Compile Include="Serialization\Asset\AssetHolder.cs" />
 		<Compile Include="Serialization\Asset\FolderAsset.cs" />
 		<Compile Include="Serialization\Asset\SerializableStapleAsset.cs" />
+		<Compile Include="Serialization\Audio\AudioClipMetadata.cs" />
+		<Compile Include="Serialization\Audio\SerializableAudioClip.cs" />
 		<Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />

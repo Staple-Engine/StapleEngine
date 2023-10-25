@@ -194,14 +194,19 @@ namespace Staple
                 return false;
             }
 
-            AL10.alSourcei(source, AL10.AL_BUFFER, (int)audioClip.buffer);
-
-            if(OpenALAudioDevice.CheckALError())
+            if(audioClip.buffer != 0)
             {
-                return false;
+                AL10.alSourcei(source, AL10.AL_BUFFER, (int)audioClip.buffer);
+
+                if (OpenALAudioDevice.CheckALError("AudioSource Bind"))
+                {
+                    return false;
+                }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public void Play()
@@ -218,7 +223,7 @@ namespace Staple
 
             AL10.alSourcePlay(source);
 
-            OpenALAudioDevice.CheckALError();
+            OpenALAudioDevice.CheckALError("AudioSource Play");
         }
 
         public void Pause()
@@ -229,6 +234,8 @@ namespace Staple
             }
 
             AL10.alSourcePause(source);
+
+            OpenALAudioDevice.CheckALError("AudioSource Pause");
         }
 
         public void Stop()
@@ -239,6 +246,8 @@ namespace Staple
             }
 
             AL10.alSourceStop(source);
+
+            OpenALAudioDevice.CheckALError("AudioSource Stop");
         }
     }
 }

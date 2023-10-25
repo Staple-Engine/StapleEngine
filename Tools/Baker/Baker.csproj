@@ -45,6 +45,7 @@
 	<ItemGroup>
 		<Compile Include="Baker+AppSettings.cs" />
 		<Compile Include="Baker+Assets.cs" />
+		<Compile Include="Baker+Audio.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />

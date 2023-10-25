@@ -50,7 +50,9 @@
       },
       {
         "type": "Staple.AudioListener",
-        "data": {}
+        "data": {
+          "spatial": false
+        }
       }
     ],
     "layer": "Default",
@@ -58,12 +60,12 @@
   },
   {
     "kind": "Entity",
-    "name": "Sprite",
+    "name": "Opossum",
     "ID": 1,
     "parent": -1,
     "transform": {
       "position": {
-        "x": 0.0,
+        "x": -1.0,
         "y": 0.0,
         "z": 0.0
       },
@@ -112,6 +114,16 @@
           "isTrigger": false,
           "motionType": "Dynamic"
         }
+      },
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "Audio/341695__projectsu012__coins-1.ogg",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false,
+          "spatial": false
+        }
       }
     ],
     "layer": "Default",
@@ -150,6 +162,77 @@
           "receiveShadows": true,
           "sortingLayer": 0,
           "sortingOrder": 0
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Cherry",
+    "ID": 3,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.SpriteRenderer",
+        "data": {
+          "material": "Materials/Sprite.mat",
+          "texture": "Modules/Sunny-land-files/Graphical Assets/spritesheets/cherry.png",
+          "spriteIndex": 0,
+          "color": "#FFFFFFFF",
+          "flipX": false,
+          "flipY": false,
+          "animation": "Animations/Gem.asset",
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "sortingLayer": 0,
+          "sortingOrder": 0
+        }
+      },
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "Audio/341695__projectsu012__coins-1.ogg",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false,
+          "spatial": false
+        }
+      },
+      {
+        "type": "TestGame.HighlightableComponent",
+        "data": {}
+      },
+      {
+        "type": "Staple.BoxCollider3D",
+        "data": {
+          "size": {
+            "x": 1.3125,
+            "y": 1.3125,
+            "z": 1.0
+          },
+          "gravityFactor": 0.0,
+          "isTrigger": false,
+          "motionType": "Dynamic"
         }
       }
     ],

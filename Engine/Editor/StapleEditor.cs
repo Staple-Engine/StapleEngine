@@ -443,13 +443,13 @@ namespace Staple.Editor
                 {
                     RenderTarget.SetActive(1, gameRenderTarget);
 
-                    AppPlayer.ScreenWidth = gameRenderTarget.width;
-                    AppPlayer.ScreenHeight = gameRenderTarget.height;
+                    Screen.Width = gameRenderTarget.width;
+                    Screen.Height = gameRenderTarget.height;
 
                     renderSystem.Update();
 
-                    AppPlayer.ScreenWidth = window.width;
-                    AppPlayer.ScreenHeight = window.height;
+                    Screen.Width = window.width;
+                    Screen.Height = window.height;
                 }
 
                 ThumbnailCache.OnFrameStart();
@@ -619,8 +619,8 @@ namespace Staple.Editor
             {
                 var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
 
-                AppPlayer.ScreenWidth = playerSettings.screenWidth = window.width;
-                AppPlayer.ScreenHeight = playerSettings.screenHeight = window.height;
+                Screen.Width = playerSettings.screenWidth = window.width;
+                Screen.Height = playerSettings.screenHeight = window.height;
 
                 playerSettings.monitorIndex = window.MonitorIndex;
                 playerSettings.maximized = window.Maximized;

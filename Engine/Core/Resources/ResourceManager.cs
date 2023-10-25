@@ -26,6 +26,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, Material> cachedMaterials = new();
         private readonly Dictionary<string, Shader> cachedShaders = new();
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
+        private readonly Dictionary<string, AudioClip> cachedAudioClips = new();
         private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         private readonly Dictionary<string, ResourcePak> resourcePaks = new();
         internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
@@ -848,6 +849,69 @@ namespace Staple.Internal
             catch (Exception e)
             {
                 Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to load an audio clip from a path
+        /// </summary>
+        /// <param name="path">The path to load</param>
+        /// <returns>The audio clip, or null</returns>
+        public AudioClip LoadAudioClip(string path)
+        {
+            if (cachedAudioClips.TryGetValue(path, out var audioClip) && audioClip != null)
+            {
+                return audioClip;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load audio clip at path {path}");
+
+                return null;
+            }
+
+            using var stream = new MemoryStream(data);
+
+            try
+            {
+                var header = MessagePackSerializer.Deserialize<SerializableAudioClipHeader>(stream);
+
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) == false ||
+                    header.version != SerializableAudioClipHeader.ValidVersion)
+                {
+                    Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid header");
+
+                    return null;
+                }
+
+                var audioData = MessagePackSerializer.Deserialize<SerializableAudioClip>(stream);
+
+                if (audioData == null)
+                {
+                    Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid audio data");
+
+                    return null;
+                }
+
+                audioClip = new AudioClip()
+                {
+                    metadata = audioData.metadata,
+                    Path = path,
+                };
+
+                cachedAudioClips.AddOrSetKey(path, audioClip);
+
+                return audioClip;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: {e}");
 
                 return null;
             }

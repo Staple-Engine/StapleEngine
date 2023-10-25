@@ -79,6 +79,10 @@ namespace Staple.Editor
 
                     return ProjectBrowserResourceType.Texture;
 
+                case ".ogg":
+
+                    return ProjectBrowserResourceType.Audio;
+
                 default:
 
                     return ProjectBrowserResourceType.Other;
@@ -194,6 +198,12 @@ namespace Staple.Editor
                             case ProjectBrowserResourceType.Texture:
 
                                 node.typeName = typeof(Texture).FullName;
+
+                                break;
+
+                            case ProjectBrowserResourceType.Audio:
+
+                                node.typeName = typeof(AudioClip).FullName;
 
                                 break;
 
@@ -406,6 +416,34 @@ namespace Staple.Editor
                                         {
                                             guid = Hash(),
                                             typeName = typeof(Scene).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
+                                            {
+                                                new StringEnumConverter(),
+                                            }
+                                        });
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ".ogg":
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = typeof(AudioClip).FullName,
                                         },
                                         Formatting.Indented, new JsonSerializerSettings()
                                         {

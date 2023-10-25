@@ -166,9 +166,9 @@ namespace Staple
 
                     var inputState = (e.Action & MotionEventActions.Mask) switch
                     {
-                        MotionEventActions.Down or MotionEventActions.Move => InputState.Press,
+                        MotionEventActions.Down => InputState.Press,
                         MotionEventActions.Up => InputState.Release,
-                        _ => InputState.Repeat //Special case to skip
+                        _ => InputState.Repeat
                     };
 
                     if(inputState == InputState.Repeat)

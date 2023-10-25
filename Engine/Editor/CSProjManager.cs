@@ -493,16 +493,20 @@ namespace Staple.Editor
                 new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "JoltPhysicsSharp.dll"))
             });
 
+            p.AddItem("Reference", "SharpFont", new KeyValuePair<string, string>[] {
+                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "SharpFont.dll"))
+            });
+
+            p.AddItem("Reference", "NVorbis", new KeyValuePair<string, string>[] {
+                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NVorbis.dll"))
+            });
+
             if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
             {
                 p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] {
                     new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "glfwnet.dll"))
                 });
             }
-
-            p.AddItem("Reference", "SharpFont", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "SharpFont.dll"))
-            });
 
             p.AddItem("ProjectReference", typeRegistrationPath,
                 new KeyValuePair<string, string>[] {

@@ -209,8 +209,8 @@ namespace Staple
                     break;
             }
 
-            var width = (byte)(AppPlayer.ScreenWidth * factor);
-            var height = (byte)(AppPlayer.ScreenHeight * factor);
+            var width = (byte)(Screen.Width * factor);
+            var height = (byte)(Screen.Height * factor);
 
             var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack));
 

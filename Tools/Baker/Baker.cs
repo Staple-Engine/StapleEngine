@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static Staple.Internal.ResourcePak;
 
 namespace Baker
 {
@@ -27,6 +26,11 @@ namespace Baker
             "psd",
             "pvr",
             "tga"
+        };
+
+        private static string[] audioExtensions = new string[]
+        {
+            "ogg",
         };
 
         private static string shadercBinName
@@ -307,6 +311,7 @@ namespace Baker
             ProcessTextures(platform, texturecPath, inputPath, outputPath);
             ProcessMaterials(platform, inputPath, outputPath);
             ProcessScenes(platform, inputPath, outputPath, editorMode);
+            ProcessAudio(platform, inputPath, outputPath);
             ProcessAssets(platform, inputPath, outputPath);
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }

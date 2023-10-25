@@ -1,10 +1,20 @@
 ﻿using OpenAL;
+using System;
 
 namespace Staple
 {
     internal class OpenALAudioClip : IAudioClip
     {
         public uint buffer;
+
+        public bool Init(short[] data, int channels, int bitsPerSample, int sampleRate)
+        {
+            var buffer = new byte[data.Length * sizeof(short)];
+
+            Buffer.BlockCopy(data, 0, buffer, 0, buffer.Length);
+
+            return Init(buffer, channels, bitsPerSample, sampleRate);
+        }
 
         public bool Init(byte[] data, int channels, int bitsPerSample, int sampleRate)
         {
@@ -24,7 +34,7 @@ namespace Staple
 
             AL10.alGenBuffers(1, out buffer);
 
-            if(OpenALAudioDevice.CheckALError())
+            if(OpenALAudioDevice.CheckALError("AudioClip GenBuffers"))
             {
                 buffer = 0;
 
@@ -33,7 +43,7 @@ namespace Staple
 
             AL10.alBufferData(buffer, format, data, data.Length, sampleRate);
 
-            if(OpenALAudioDevice.CheckALError())
+            if(OpenALAudioDevice.CheckALError("AudioClip BufferData"))
             {
                 AL10.alDeleteBuffers(1, ref buffer);
 

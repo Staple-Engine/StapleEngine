@@ -59,9 +59,9 @@ namespace Staple
         /// </summary>
         public LayerMask cullingLayers = LayerMask.Everything;
 
-        internal float Width => viewport.Z * AppPlayer.ScreenWidth;
+        internal float Width => viewport.Z * Screen.Width;
 
-        internal float Height => viewport.W * AppPlayer.ScreenHeight;
+        internal float Height => viewport.W * Screen.Height;
 
         internal static Matrix4x4 Projection(World world, Entity entity, Camera camera)
         {
@@ -88,7 +88,7 @@ namespace Staple
                         return Matrix4x4.Identity;
                     }
 
-                    var scale = AppPlayer.ScreenHeight / (camera.orthographicSize * 2);
+                    var scale = Screen.Height / (camera.orthographicSize * 2);
 
                     var width = camera.Width / scale;
                     var height = camera.Height / scale;
@@ -112,8 +112,8 @@ namespace Staple
         /// <returns>A world-space point</returns>
         public static Vector3 ScreenPointToWorld(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
-            var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,
-                (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
+            var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
+                (1.0f - (point.Y * 2.0f) / Screen.Height),
                 0.0f, 1.0f);
 
             var p = Projection(world, entity, camera);
@@ -142,8 +142,8 @@ namespace Staple
         /// <returns>The ray</returns>
         public static Ray ScreenPointToRay(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
         {
-            var clipSpace = new Vector4(((point.X * 2.0f) / AppPlayer.ScreenWidth) - 1,
-                (1.0f - (point.Y * 2.0f) / AppPlayer.ScreenHeight),
+            var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
+                (1.0f - (point.Y * 2.0f) / Screen.Height),
                 0.0f, 1.0f);
 
             var p = Projection(world, entity, camera);

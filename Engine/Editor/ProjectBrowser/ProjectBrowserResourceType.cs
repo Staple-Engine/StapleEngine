@@ -7,6 +7,7 @@
         Shader,
         Scene,
         Asset,
+        Audio,
         Other
     }
 }

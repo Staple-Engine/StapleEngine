@@ -47,7 +47,7 @@
       "premultiplyAlpha": false
     },
     "Android": {
-      "shouldOverride": true,
+      "shouldOverride": false,
       "format": "ASTC4x4",
       "quality": "Default",
       "maxSize": 2048,

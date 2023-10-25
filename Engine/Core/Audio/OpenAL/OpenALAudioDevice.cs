@@ -9,13 +9,13 @@ namespace Staple
 
         public nint Context { get; private set; }
 
-        public static bool CheckALError()
+        public static bool CheckALError(string message)
         {
             var error = AL10.alGetError();
 
             if(error != AL10.AL_NO_ERROR)
             {
-                Log.Debug($"[AudioSystem] AL Error: {error.ToString("X")}");
+                Log.Debug($"[AudioSystem] AL Error: {error.ToString("X")}. {message}");
 
                 return true;
             }

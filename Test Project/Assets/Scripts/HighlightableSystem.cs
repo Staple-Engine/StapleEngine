@@ -61,6 +61,13 @@ namespace TestGame
                 {
                     renderer.color = new Color(0.5f, 0.5f, 0, 1);
                 }
+
+                if(Input.GetMouseButtonDown(MouseButton.Left) || Input.GetTouchDown(0))
+                {
+                    var audioSource = world.GetComponent<AudioSource>(entity);
+
+                    audioSource?.Play();
+                }
             }
         }
 

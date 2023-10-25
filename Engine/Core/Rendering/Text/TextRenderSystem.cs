@@ -81,7 +81,7 @@ namespace Staple
                 fontSize = text.fontSize,
                 position = transform.Position,
                 viewID = viewId,
-                scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (AppPlayer.ScreenHeight / (float)(activeCamera.orthographicSize * 2)) : 1,
+                scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
             });
         }
 

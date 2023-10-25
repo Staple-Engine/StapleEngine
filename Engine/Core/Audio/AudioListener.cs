@@ -1,7 +1,9 @@
 ﻿namespace Staple
 {
-    public class AudioListener : IComponent
+    public sealed class AudioListener : IComponent
     {
+        public bool spatial = false;
+
         internal IAudioListener audioListener;
     }
 }

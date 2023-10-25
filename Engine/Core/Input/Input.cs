@@ -109,6 +109,11 @@ namespace Staple
                 touchPositions.Add(appEvent.touchEvent.touchID, appEvent.touchEvent.position);
             }
 
+            if (appEvent.touchEvent.state == Internal.InputState.Repeat)
+            {
+                return;
+            }
+
             bool pressed = appEvent.touchEvent.state == Internal.InputState.Press;
 
             InputState touchState = pressed ? InputState.FirstPress : InputState.FirstRelease;

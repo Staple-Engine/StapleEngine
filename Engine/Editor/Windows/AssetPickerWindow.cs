@@ -128,7 +128,7 @@ namespace Staple.Editor
                         cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "Assets\\".Length));
                     }
 
-                    var type = Staple.Editor.ProjectBrowser.ResourceTypeForExtension(i.extension);
+                    var type = ProjectBrowser.ResourceTypeForExtension(i.extension);
 
                     switch (type)
                     {
@@ -203,6 +203,26 @@ namespace Staple.Editor
                                     if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
                                     {
                                         EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
+                                    }
+                                }
+                            }
+                            catch (System.Exception)
+                            {
+                            }
+
+                            break;
+
+                        case ProjectBrowserResourceType.Audio:
+
+                            try
+                            {
+                                var audioClip = ResourceManager.instance.LoadAudioClip(cachePath.Replace(".meta", ""));
+
+                                if (audioClip != null)
+                                {
+                                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                    {
+                                        EditorGUI.pendingObjectPickers[assetPickerKey] = audioClip;
                                     }
                                 }
                             }

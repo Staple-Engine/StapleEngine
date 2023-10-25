@@ -12,12 +12,6 @@ namespace Staple
 
         private PlayerSettings playerSettings;
 
-        public static int ScreenWidth { get; internal set; }
-
-        public static int ScreenHeight { get; internal set; }
-
-        public static bgfx.RendererType ActiveRendererType { get; internal set; }
-
         public static AppPlayer instance;
 
         internal RenderWindow renderWindow;
@@ -188,8 +182,8 @@ namespace Staple
 
             renderWindow.OnScreenSizeChange = (focus) =>
             {
-                ScreenWidth = playerSettings.screenWidth = renderWindow.width;
-                ScreenHeight = playerSettings.screenHeight = renderWindow.height;
+                Screen.Width = playerSettings.screenWidth = renderWindow.width;
+                Screen.Height = playerSettings.screenHeight = renderWindow.height;
 
                 ResetRendering(focus);
 
