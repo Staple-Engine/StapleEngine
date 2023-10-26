@@ -18,12 +18,13 @@ Status: Extremely early state, unusable for games at this point
 * Shader format based on BGFX's, in a single file
 * Baking pipeline (Baker) that processes game resources to fast usage in engine
 * Resource Packer that packs multiple files in its own format
-* Editor app that can edit game data and make builds
+* Editor app that can edit game data and make builds for windows, linux, and android
 * Custom asset system
 * Unity-Style custom editor and editor window support
-* Text rendering using FreeType [EXPERIMENTAL]
+* Text rendering using FreeType
 * Windows, Linux, and Android support
-* Physics support (3D: Jolt Physics) [EXPERIMENTAL]
+* Physics support (3D: Jolt Physics)
+* Sound support through OpenAL
 
 # Building
 
