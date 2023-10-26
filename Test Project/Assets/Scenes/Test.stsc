@@ -42,13 +42,6 @@
         }
       },
       {
-        "type": "TestGame.KeyboardControlComponent",
-        "data": {
-          "speed": 50.0,
-          "is3D": false
-        }
-      },
-      {
         "type": "Staple.AudioListener",
         "data": {
           "spatial": false
@@ -56,7 +49,7 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": false
   },
   {
     "kind": "Entity",
@@ -112,7 +105,11 @@
           },
           "gravityFactor": 0.0,
           "isTrigger": false,
-          "motionType": "Dynamic"
+          "motionType": "Dynamic",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": true,
+          "is2DPlane": true
         }
       },
       {
@@ -123,6 +120,13 @@
           "pitch": 1.0,
           "loop": false,
           "spatial": false
+        }
+      },
+      {
+        "type": "TestGame.KeyboardControlComponent",
+        "data": {
+          "speed": 5.0,
+          "is3D": false
         }
       }
     ],
@@ -232,7 +236,57 @@
           },
           "gravityFactor": 0.0,
           "isTrigger": false,
-          "motionType": "Dynamic"
+          "motionType": "Static",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": true,
+          "is2DPlane": true
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 4,
+    "parent": 1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "clearMode": "SolidColor",
+          "cameraType": "Orthographic",
+          "orthographicSize": 5.0,
+          "fov": 90.0,
+          "nearPlane": -1.0,
+          "farPlane": 1.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "clearColor": "#82A1FFFF",
+          "cullingLayers": 4294967295
         }
       }
     ],

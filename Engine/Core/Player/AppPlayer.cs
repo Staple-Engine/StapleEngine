@@ -73,7 +73,7 @@ namespace Staple
 
             renderWindow.OnInit = () =>
             {
-                Time.fixedDeltaTime = 1000.0f / appSettings.fixedTimeFrameRate / 1000.0f;
+                Time.fixedDeltaTime = 1 / (float)appSettings.fixedTimeFrameRate;
 
                 bool hasFocus = renderWindow.window.IsFocused;
 

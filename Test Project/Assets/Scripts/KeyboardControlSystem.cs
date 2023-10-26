@@ -20,6 +20,9 @@ namespace TestGame
                     return;
                 }
 
+                var targetRotation = Quaternion.Identity;
+                var targetDirection = Vector3.Zero;
+
                 var direction = Vector3.Zero;
 
                 if (Input.GetKey(KeyCode.A))
@@ -40,7 +43,7 @@ namespace TestGame
                     }
                     else
                     {
-                        direction.Y = -1;
+                        direction.Y = 1;
                     }
                 }
 
@@ -52,7 +55,7 @@ namespace TestGame
                     }
                     else
                     {
-                        direction.Y = 1;
+                        direction.Y = -1;
                     }
                 }
 
@@ -63,10 +66,23 @@ namespace TestGame
                     rotation.X -= Input.MouseRelativePosition.Y;
                     rotation.Y -= Input.MouseRelativePosition.X;
 
-                    transform.LocalRotation = Math.FromEulerAngles(rotation);
+                    targetRotation = Math.FromEulerAngles(rotation);
                 }
 
-                transform.LocalPosition += direction * component.speed * deltaTime;
+                targetDirection = direction * component.speed;
+
+                var body = Physics.GetBody3D(entity);
+
+                if(body != null)
+                {
+                    body.Velocity = targetDirection;
+                    body.Rotation = targetRotation;
+                }
+                else
+                {
+                    transform.LocalPosition += targetDirection * deltaTime;
+                    transform.LocalRotation = targetRotation;
+                }
             });
         }
 

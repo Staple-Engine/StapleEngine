@@ -200,6 +200,25 @@ namespace Staple.Editor
                 return;
             }
 
+            try
+            {
+                var projectExtension = backend.platform switch
+                {
+                    AppPlatform.Windows => ".exe",
+                    _ => "",
+                };
+
+                File.Move(Path.Combine(outPath, $"Player{projectExtension}"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}{projectExtension}"), true);
+
+                if(debug)
+                {
+                    File.Move(Path.Combine(outPath, $"Player.pdb"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}.pdb"), true);
+                }
+            }
+            catch (Exception)
+            {
+            }
+
             lock (backgroundLock)
             {
                 progressFraction = 1;

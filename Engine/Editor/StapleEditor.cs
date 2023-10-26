@@ -384,6 +384,8 @@ namespace Staple.Editor
                 LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
 
                 renderSystem.Startup();
+
+                cameraTransform.Position = new Vector3(0, 0, 5);
             };
 
             window.OnUpdate = () =>

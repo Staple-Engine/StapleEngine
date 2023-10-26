@@ -57,7 +57,7 @@ namespace Staple.Editor
             {
                 Log.Error($"Failed to load project app settings: {e}");
 
-                projectAppSettings = Staple.AppSettings.Default;
+                projectAppSettings = AppSettings.Default;
             }
 
             if(projectAppSettings != null)

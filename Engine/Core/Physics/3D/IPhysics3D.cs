@@ -39,10 +39,14 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body);
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body);
 
         /// <summary>
         /// Create a sphere body
@@ -55,10 +59,14 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body);
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body);
 
         /// <summary>
         /// Create a capsule body
@@ -72,10 +80,14 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body);
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body);
 
         /// <summary>
         /// Create a cylinder body
@@ -89,10 +101,14 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body);
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body);
 
         /// <summary>
         /// Create a mesh body
@@ -105,10 +121,14 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body);
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body);
 
         /// <summary>
         /// Destroys a body
@@ -174,5 +194,12 @@ namespace Staple
         /// <param name="body">The body to set</param>
         /// <param name="value">Whether it should be a trigger</param>
         void SetBodyTrigger(IBody3D body, bool value);
+
+        /// <summary>
+        /// Gets the body that belongs to an entity
+        /// </summary>
+        /// <param name="entity">The entity to query</param>
+        /// <returns>The body if available, or null</returns>
+        IBody3D GetBody(Entity entity);
     }
 }

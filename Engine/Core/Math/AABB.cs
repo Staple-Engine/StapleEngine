@@ -29,13 +29,13 @@ namespace Staple
         /// The minimum position of the box
         /// </summary>
         [IgnoreMember]
-        public readonly Vector3 Min => new(center.X - extents.X / 2, center.Y - extents.Y / 2, center.Z - extents.Z / 2);
+        public readonly Vector3 Min => new(center.X - extents.X, center.Y - extents.Y, center.Z - extents.Z);
 
         /// <summary>
         /// The maximum position of the box
         /// </summary>
         [IgnoreMember]
-        public readonly Vector3 Max => new(center.X + extents.X / 2, center.Y + extents.Y / 2, center.Z + extents.Z / 2);
+        public readonly Vector3 Max => new(center.X + extents.X, center.Y + extents.Y, center.Z + extents.Z);
 
         /// <summary>
         /// The size of the box
@@ -53,6 +53,11 @@ namespace Staple
             this.center = center;
 
             extents = size / 2;
+        }
+
+        public override string ToString()
+        {
+            return $"({center}, {extents})";
         }
 
         /// <summary>

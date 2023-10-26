@@ -34,6 +34,8 @@ namespace Staple
 
         public SubsystemType type { get; } = SubsystemType.Update;
 
+        public static bool useDrawcallInterpolator = false;
+
         /// <summary>
         /// Keep the current and previous draw buckets to interpolate around
         /// </summary>
@@ -157,18 +159,160 @@ namespace Staple
 
         public void Update()
         {
-            ushort viewID = 1;
-
             if(Scene.current?.world == null)
             {
                 return;
             }
 
+            if(useDrawcallInterpolator)
+            {
+                UpdateAccumulator();
+            }
+            else
+            {
+                UpdateStandard();
+            }
+        }
+
+        private void UpdateStandard()
+        {
+            ushort viewID = 1;
+
             var cameras = Scene.current.world.SortedCameras;
 
-            if(cameras.Length > 0)
+            if (cameras.Length > 0)
             {
-                foreach(var c in cameras)
+                foreach (var c in cameras)
+                {
+                    var camera = c.camera;
+                    var cameraTransform = c.transform;
+
+                    foreach (var system in renderSystems)
+                    {
+                        system.Prepare();
+                    }
+
+                    unsafe
+                    {
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                        var view = cameraTransform.Matrix;
+
+                        Matrix4x4.Invert(view, out view);
+
+                        bgfx.set_view_transform(viewID, &view, &projection);
+
+                        frustumCuller.Update(view, projection);
+                    }
+
+                    switch (camera.clearMode)
+                    {
+                        case CameraClearMode.Depth:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
+
+                            break;
+
+                        case CameraClearMode.None:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
+
+                            break;
+
+                        case CameraClearMode.SolidColor:
+                            bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
+
+                            break;
+                    }
+
+                    bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
+                        (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+
+                    bgfx.touch(viewID);
+
+                    Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform t) =>
+                    {
+                        if (enabled == false)
+                        {
+                            return;
+                        }
+
+                        var layer = Scene.current.world.GetEntityLayer(entity);
+
+                        if (camera.cullingLayers.HasLayer(layer) == false)
+                        {
+                            return;
+                        }
+
+                        foreach (var system in renderSystems)
+                        {
+                            var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+
+                            if (related != null)
+                            {
+                                system.Preprocess(Scene.current.world, entity, t, related, camera, cameraTransform);
+
+                                if (related is Renderable renderable &&
+                                    renderable.enabled)
+                                {
+                                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+
+                                    if (renderable.isVisible && renderable.forceRenderingOff == false)
+                                    {
+                                        system.Process(Scene.current.world, entity, t, related, camera, cameraTransform, viewID);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    foreach (var system in renderSystems)
+                    {
+                        system.Submit();
+                    }
+
+                    viewID++;
+                }
+            }
+
+            if (needsDrawCalls)
+            {
+                viewID = 1;
+
+                lock (lockObject)
+                {
+                    (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
+
+                    currentDrawBucket.drawCalls.Clear();
+                }
+
+                foreach (var c in cameras)
+                {
+                    var camera = c.camera;
+                    var cameraTransform = c.transform;
+
+                    unsafe
+                    {
+                        var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                        var view = cameraTransform.Matrix;
+
+                        Matrix4x4.Invert(view, out view);
+
+                        frustumCuller.Update(view, projection);
+                    }
+
+
+                    viewID++;
+                }
+            }
+        }
+
+        private void UpdateAccumulator()
+        {
+            ushort viewID = 1;
+
+            var cameras = Scene.current.world.SortedCameras;
+
+            if (cameras.Length > 0)
+            {
+                foreach (var c in cameras)
                 {
                     var camera = c.camera;
                     var cameraTransform = c.transform;
@@ -259,7 +403,7 @@ namespace Staple
                         }
                     }
 
-                    foreach(var system in renderSystems)
+                    foreach (var system in renderSystems)
                     {
                         system.Submit();
                     }
@@ -279,7 +423,7 @@ namespace Staple
                     currentDrawBucket.drawCalls.Clear();
                 }
 
-                foreach(var c in cameras)
+                foreach (var c in cameras)
                 {
                     var camera = c.camera;
                     var cameraTransform = c.transform;
@@ -289,19 +433,21 @@ namespace Staple
                         var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
                         var view = cameraTransform.Matrix;
 
+                        Matrix4x4.Invert(view, out view);
+
                         frustumCuller.Update(view, projection);
                     }
 
                     Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform t) =>
                     {
-                        if(enabled == false)
+                        if (enabled == false)
                         {
                             return;
                         }
 
                         var layer = Scene.current.world.GetEntityLayer(entity);
 
-                        if(camera.cullingLayers.HasLayer(layer) == false)
+                        if (camera.cullingLayers.HasLayer(layer) == false)
                         {
                             return;
                         }
@@ -319,7 +465,7 @@ namespace Staple
                                 {
                                     renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
 
-                                    if(renderable.isVisible && renderable.forceRenderingOff == false)
+                                    if (renderable.isVisible && renderable.forceRenderingOff == false)
                                     {
                                         AddDrawCall(entity, t, related, renderable, viewID);
                                     }

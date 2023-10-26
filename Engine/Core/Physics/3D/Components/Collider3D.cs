@@ -22,5 +22,25 @@
         /// The motion type of the collider's rigid body
         /// </summary>
         public BodyMotionType motionType = BodyMotionType.Dynamic;
+
+        /// <summary>
+        /// Whether to freeze rotation in the X axis
+        /// </summary>
+        public bool freezeRotationX = false;
+
+        /// <summary>
+        /// Whether to freeze rotation in the Y axis
+        /// </summary>
+        public bool freezeRotationY = false;
+
+        /// <summary>
+        /// Whether to freeze rotation in the Z axis
+        /// </summary>
+        public bool freezeRotationZ = false;
+
+        /// <summary>
+        /// Whether this body is acting as a 2D body
+        /// </summary>
+        public bool is2DPlane = false;
     }
 }

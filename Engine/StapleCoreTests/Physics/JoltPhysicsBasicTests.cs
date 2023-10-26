@@ -12,7 +12,8 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Static, 0, false, 1, out var body), Is.True);
+            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Static, 0, false, 1,
+                false, false, false, false, out var body), Is.True);
 
             Assert.That(body.MotionType, Is.EqualTo(BodyMotionType.Static));
 
@@ -45,7 +46,8 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Static, 0, false, 1, out var body), Is.True);
+            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Static, 0, false, 1,
+                false, false, false, false, out var body), Is.True);
 
             Assert.That(body.MotionType, Is.EqualTo(BodyMotionType.Static));
 
@@ -67,7 +69,8 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Kinematic, 0, false, 1, out var body), Is.True);
+            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Kinematic, 0, false, 1,
+                false, false, false, false, out var body), Is.True);
 
             Assert.That(body.MotionType, Is.EqualTo(BodyMotionType.Kinematic));
 
@@ -89,7 +92,8 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false, 1, out var body), Is.True);
+            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false, 1,
+                false, false, false, false, out var body), Is.True);
 
             Assert.That(body.MotionType, Is.EqualTo(BodyMotionType.Dynamic));
 
@@ -112,7 +116,8 @@ namespace CoreTests
 
             Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false, 1, out var body), Is.True);
+            Assert.That(Physics3D.Instance.CreateBox(Entity.Empty, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false, 1,
+                false, false, false, false, out var body), Is.True);
 
             Assert.IsFalse(body.IsTrigger);
 

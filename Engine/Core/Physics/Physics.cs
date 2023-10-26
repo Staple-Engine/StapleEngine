@@ -1,10 +1,28 @@
-﻿namespace Staple
+﻿using System.Numerics;
+
+namespace Staple
 {
     /// <summary>
     /// General Physics interface
     /// </summary>
     public static class Physics
     {
+        /// <summary>
+        /// The gravity of the 3D physics system
+        /// </summary>
+        public static Vector3 Gravity3D
+        {
+            get => Physics3D.Instance?.Gravity ?? Vector3.Zero;
+
+            set
+            {
+                if(Physics3D.Instance != null)
+                {
+                    Physics3D.Instance.Gravity = value;
+                }
+            }
+        }
+
         /// <summary>
         /// Casts a ray and checks for a hit
         /// </summary>
@@ -16,7 +34,20 @@
         /// <returns>Whether the body has been hit</returns>
         public static bool RayCast3D(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery = PhysicsTriggerQuery.Ignore, float maxDistance = 1.0f)
         {
-            return Physics3D.Instance.RayCast(ray, out body, out fraction, triggerQuery, maxDistance);
+            body = default;
+            fraction = default;
+
+            return Physics3D.Instance?.RayCast(ray, out body, out fraction, triggerQuery, maxDistance) ?? false;
+        }
+
+        /// <summary>
+        /// Gets the 3D body that belongs to an entity, if any
+        /// </summary>
+        /// <param name="entity">The entity to check</param>
+        /// <returns>The body, or null</returns>
+        public static IBody3D GetBody3D(Entity entity)
+        {
+            return Physics3D.Instance?.GetBody(entity);
         }
     }
 }

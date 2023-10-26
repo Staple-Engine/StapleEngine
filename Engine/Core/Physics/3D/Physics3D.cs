@@ -37,6 +37,8 @@ namespace Staple
 
         private IPhysics3D impl;
 
+        private static readonly Vector3 DefaultGravity = new(0, -9.8f, 0);
+
         public static event OnBodyActivated onBodyActivated;
         public static event OnBodyDeactivated onBodyDeactivated;
         public static event OnContactAdded onContactAdded;
@@ -62,6 +64,8 @@ namespace Staple
         public Physics3D(IPhysics3D impl)
         {
             this.impl = impl;
+
+            Gravity = DefaultGravity;
         }
 
         #region API
@@ -76,12 +80,17 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body)
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            return impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor, out body);
+            return impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
+                freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -95,12 +104,17 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body)
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            return impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor, out body);
+            return impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+                freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -115,12 +129,17 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body)
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            return impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor, out body);
+            return impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+                freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -135,12 +154,17 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body)
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            return impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor, out body);
+            return impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+                freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -154,12 +178,17 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="freezeX">Whether to freeze X rotation</param>
+        /// <param name="freezeY">Whether to freeze Y rotation</param>
+        /// <param name="freezeZ">Whether to freeze Z rotation</param>
+        /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, out IBody3D body)
+            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            return impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor, out body);
+            return impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
+                freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -258,6 +287,17 @@ namespace Staple
         {
             impl.SetBodyTrigger(body, value);
         }
+
+        /// <summary>
+        /// Gets the body that belongs to an entity
+        /// </summary>
+        /// <param name="entity">The entity to query</param>
+        /// <returns>The body if available, or null</returns>
+        public IBody3D GetBody(Entity entity)
+        {
+            return impl.GetBody(entity);
+        }
+
         #endregion
 
         #region Internal
@@ -265,30 +305,55 @@ namespace Staple
         {
             World.AddComponentAddedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if(Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var box = (BoxCollider3D)component;
 
-                CreateBox(entity, box.size, transform.Position, transform.Rotation, box.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), box.isTrigger, box.gravityFactor, out box.body);
+                CreateBox(entity, box.size * transform.Scale, transform.Position, transform.Rotation, box.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), box.isTrigger, box.gravityFactor,
+                    box.freezeRotationX, box.freezeRotationY, box.freezeRotationZ, box.is2DPlane, out box.body);
             });
 
             World.AddComponentAddedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var capsule = (CapsuleCollider3D)component;
 
-                CreateCapsule(entity, capsule.height, capsule.radius, transform.Position, transform.Rotation, capsule.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), capsule.isTrigger, capsule.gravityFactor, out capsule.body);
+                CreateCapsule(entity, capsule.height * transform.Scale.Y, capsule.radius * transform.Scale.X, transform.Position,
+                    transform.Rotation, capsule.motionType, (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), capsule.isTrigger,
+                    capsule.gravityFactor, capsule.freezeRotationX, capsule.freezeRotationY, capsule.freezeRotationZ, capsule.is2DPlane,
+                    out capsule.body);
             });
 
             World.AddComponentAddedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var cylinder = (CylinderCollider3D)component;
 
-                CreateCylinder(entity, cylinder.height, cylinder.radius, transform.Position, transform.Rotation, cylinder.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), cylinder.isTrigger, cylinder.gravityFactor, out cylinder.body);
+                CreateCylinder(entity, cylinder.height * transform.Scale.Y, cylinder.radius * transform.Scale.X, transform.Position,
+                    transform.Rotation, cylinder.motionType, (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), cylinder.isTrigger,
+                    cylinder.gravityFactor, cylinder.freezeRotationX, cylinder.freezeRotationY, cylinder.freezeRotationZ, cylinder.is2DPlane,
+                    out cylinder.body);
             });
 
             World.AddComponentAddedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var mesh = (MeshCollider3D)component;
 
                 if (mesh.mesh == null)
@@ -297,50 +362,92 @@ namespace Staple
                 }
 
                 CreateMesh(entity, mesh.mesh, transform.Position, transform.Rotation, mesh.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), mesh.isTrigger, mesh.gravityFactor, out mesh.body);
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), mesh.isTrigger, mesh.gravityFactor,
+                    mesh.freezeRotationX, mesh.freezeRotationY, mesh.freezeRotationZ, mesh.is2DPlane, out mesh.body);
             });
 
             World.AddComponentAddedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var sphere = (SphereCollider3D)component;
 
-                CreateSphere(entity, sphere.radius, transform.Position, transform.Rotation, sphere.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), sphere.isTrigger, sphere.gravityFactor, out sphere.body);
+                CreateSphere(entity, sphere.radius * transform.Scale.X, transform.Position, transform.Rotation, sphere.motionType,
+                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), sphere.isTrigger, sphere.gravityFactor,
+                    sphere.freezeRotationX, sphere.freezeRotationY, sphere.freezeRotationZ, sphere.is2DPlane, out sphere.body);
             });
 
             World.AddComponentRemovedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var box = (BoxCollider3D)component;
 
                 DestroyBody(box.body);
+
+                box.body = null;
             });
 
             World.AddComponentRemovedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var capsule = (CapsuleCollider3D)component;
 
                 DestroyBody(capsule.body);
+
+                capsule.body = null;
             });
 
             World.AddComponentRemovedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var cylinder = (CylinderCollider3D)component;
 
                 DestroyBody(cylinder.body);
+
+                cylinder.body = null;
             });
 
             World.AddComponentRemovedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var mesh = (MeshCollider3D)component;
 
                 DestroyBody(mesh.body);
+
+                mesh.body = null;
             });
 
             World.AddComponentRemovedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
             {
+                if (Platform.IsPlaying == false)
+                {
+                    return;
+                }
+
                 var sphere = (SphereCollider3D)component;
 
                 DestroyBody(sphere.body);
+
+                sphere.body = null;
             });
         }
 
