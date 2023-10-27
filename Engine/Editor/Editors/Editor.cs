@@ -463,6 +463,10 @@ namespace Staple.Editor
             }
         }
 
+        public virtual void Destroy()
+        {
+        }
+
         internal static void UpdateEditorTypes()
         {
             editorTypes = Assembly.GetCallingAssembly().GetTypes()

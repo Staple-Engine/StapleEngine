@@ -1,5 +1,10 @@
-﻿using Staple.Internal;
+﻿using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using Staple.Internal;
 using System;
+using System.Reflection;
+using System.IO;
+using System.Threading;
 
 namespace Staple.Editor
 {
@@ -7,141 +12,210 @@ namespace Staple.Editor
     internal class AudioClipEditor : Editor
     {
         private AudioClip clip;
-        private IAudioStream stream;
         private bool triedLoad = false;
         private IAudioSource audioSource;
         private IAudioClip audioClip;
+        private CancellationTokenSource cancellation;
+        private object lockObject = new();
 
-        ~AudioClipEditor()
+        public override void Destroy()
         {
-            clip = null;
-            audioClip = null;
+            base.Destroy();
 
-            stream?.Close();
-            audioSource?.Destroy();
+            lock(lockObject)
+            {
+                cancellation.Cancel();
+                audioSource?.Destroy();
+                audioClip?.Destroy();
+
+                clip = null;
+                cancellation = null;
+                audioSource = null;
+                audioClip = null;
+            }
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            if(triedLoad == false && clip == null)
+            var metadata = (AudioClipMetadata)target;
+            var originalMetadata = (AudioClipMetadata)original;
+
+            lock (lockObject)
             {
-                triedLoad = true;
-
-                clip = ResourceManager.instance.LoadAudioClip(cachePath);
-
-                if(clip != null)
+                if (triedLoad == false && clip == null)
                 {
-                    stream = clip.GetAudioStream();
-                }
+                    triedLoad = true;
 
-                if(stream != null)
-                {
-                    audioSource = (IAudioSource)Activator.CreateInstance(AudioSystem.AudioSourceType);
-
-                    if(audioSource.Init())
+                    clip = ResourceManager.instance.LoadAudioClip(cachePath);
+                    cancellation = AudioSystem.Instance.LoadAudioClip(clip, (samples, channels, bits, sampleRate) =>
                     {
-                        audioClip = (IAudioClip)Activator.CreateInstance(AudioSystem.AudioClipType);
-
-                        if(audioClip.Init(stream.ReadAll(), stream.Channels, stream.BitsPerSample, stream.SampleRate))
+                        if (samples == default)
                         {
-                            if(audioSource.Bind(audioClip) == false)
+                            return;
+                        }
+
+                        lock (lockObject)
+                        {
+                            audioSource = (IAudioSource)Activator.CreateInstance(AudioSystem.AudioSourceType);
+
+                            if (audioSource.Init())
                             {
-                                audioClip.Destroy();
+                                audioClip = (IAudioClip)Activator.CreateInstance(AudioSystem.AudioClipType);
 
-                                audioSource.Destroy();
+                                if (audioClip.Init(samples, channels, bits, sampleRate))
+                                {
+                                    if (audioSource.Bind(audioClip) == false)
+                                    {
+                                        audioClip.Destroy();
 
-                                audioClip = null;
+                                        audioSource.Destroy();
+
+                                        audioClip = null;
+                                        audioSource = null;
+                                    }
+                                }
+                                else
+                                {
+                                    audioClip.Destroy();
+
+                                    audioSource.Destroy();
+
+                                    audioClip = null;
+                                    audioSource = null;
+                                }
+                            }
+                            else
+                            {
                                 audioSource = null;
                             }
                         }
-                        else
+                    });
+                }
+
+                if (clip == null && triedLoad)
+                {
+                    EditorGUI.Label("Audio data is corrupted");
+
+                    return;
+                }
+
+                var hours = 0;
+                var minutes = 0;
+                var seconds = clip.duration;
+
+                while (seconds > 60)
+                {
+                    seconds -= 60;
+
+                    minutes++;
+                }
+
+                while (minutes > 60)
+                {
+                    minutes -= 60;
+
+                    hours++;
+                }
+
+                EditorGUI.Label($"Channels: {clip.channels} ({clip.bitsPerSample} bits, {clip.sampleRate}Hz)");
+                EditorGUI.Label($"Duration: {hours}:{minutes}:{seconds.ToString("0.00")}");
+
+                if (audioSource != null)
+                {
+                    if (EditorGUI.Button("Play"))
+                    {
+                        audioSource.Play();
+                    }
+
+                    EditorGUI.SameLine();
+
+                    if (audioSource.Playing)
+                    {
+                        if (EditorGUI.Button("Pause"))
                         {
-                            audioClip.Destroy();
-
-                            audioSource.Destroy();
-
-                            audioClip = null;
-                            audioSource = null;
+                            audioSource.Pause();
+                        }
+                    }
+                    else if (audioSource.Paused)
+                    {
+                        if (EditorGUI.Button("Resume"))
+                        {
+                            audioSource.Play();
                         }
                     }
                     else
                     {
-                        audioSource = null;
+                        EditorGUI.ButtonDisabled("Pause");
+                    }
+
+                    EditorGUI.SameLine();
+
+                    if (audioSource.Playing)
+                    {
+                        if (EditorGUI.Button("Stop"))
+                        {
+                            audioSource.Stop();
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.ButtonDisabled("Stop");
                     }
                 }
-            }
-            
-            if(stream == null && triedLoad)
-            {
-                EditorGUI.Label("Audio data is corrupted");
 
-                return;
-            }
+                var hasChanges = metadata != originalMetadata;
 
-            var hours = 0;
-            var minutes = 0;
-            var seconds = stream.TotalTime.TotalSeconds;
-
-            while(seconds > 60)
-            {
-                seconds -= 60;
-
-                minutes++;
-            }
-
-            while(minutes > 60)
-            {
-                minutes -= 60;
-
-                hours++;
-            }
-
-            EditorGUI.Label($"Channels: {stream.Channels} ({stream.BitsPerSample} bits)");
-            EditorGUI.Label($"Sample Rate: {stream.SampleRate}");
-            EditorGUI.Label($"Duration: {hours}:{minutes}:{seconds.ToString("0.00")}");
-
-            if(audioSource != null)
-            {
-                if(EditorGUI.Button("Play"))
+                if (hasChanges)
                 {
-                    audioSource.Play();
-                }
-
-                EditorGUI.SameLine();
-                
-                if(audioSource.Playing)
-                {
-                    if(EditorGUI.Button("Pause"))
+                    if (EditorGUI.Button("Apply"))
                     {
-                        audioSource.Pause();
+                        try
+                        {
+                            var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
+                            {
+                                Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                            });
+
+                            File.WriteAllText(path, text);
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                        foreach (var field in fields)
+                        {
+                            field.SetValue(original, field.GetValue(metadata));
+                        }
+
+                        EditorUtils.RefreshAssets(false, null);
                     }
-                }
-                else if(audioSource.Paused)
-                {
-                    if(EditorGUI.Button("Resume"))
+
+                    EditorGUI.SameLine();
+
+                    if (EditorGUI.Button("Revert"))
                     {
-                        audioSource.Play();
+                        var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                        foreach (var field in fields)
+                        {
+                            field.SetValue(metadata, field.GetValue(original));
+                        }
                     }
                 }
                 else
                 {
-                    EditorGUI.ButtonDisabled("Pause");
-                }
+                    EditorGUI.ButtonDisabled("Apply");
 
-                EditorGUI.SameLine();
+                    EditorGUI.SameLine();
 
-                if (audioSource.Playing)
-                {
-                    if(EditorGUI.Button("Stop"))
-                    {
-                        audioSource.Stop();
-                    }
-                }
-                else
-                {
-                    EditorGUI.ButtonDisabled("Stop");
+                    EditorGUI.ButtonDisabled("Revert");
                 }
             }
         }

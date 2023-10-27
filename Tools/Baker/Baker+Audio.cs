@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
 using System;
@@ -85,29 +86,46 @@ namespace Baker
                 try
                 {
                     File.Delete(outputFile);
-                    File.Delete($"{outputFile}.sbin");
                 }
                 catch (Exception)
                 {
                 }
 
+                bool shouldCopy = true;
+
                 try
                 {
-                    File.Copy(audioFiles[i].Replace(".meta", ""), $"{outputFile}.sbin", true);
+                    shouldCopy = File.GetLastWriteTime(audioFiles[i].Replace(".meta", "")) > File.GetLastWriteTime($"{outputFile}.sbin");
                 }
-                catch (Exception e)
+                catch(Exception)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save asset: {e}");
+                }
+
+                if(shouldCopy)
+                {
+                    Console.WriteLine($"\t\t\tCopying file as it is newer...");
+
+                    try
+                    {
+                        File.Copy(audioFiles[i].Replace(".meta", ""), $"{outputFile}.sbin", true);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"\t\tError: Failed to save asset: {e}");
+                    }
                 }
 
                 try
                 {
+                    var json = File.ReadAllText(audioFiles[i]);
+
+                    var metadata = JsonConvert.DeserializeObject<AudioClipMetadata>(json);
+
+                    metadata.guid = guid;
+
                     var audioClip = new SerializableAudioClip()
                     {
-                        metadata = new AudioClipMetadata()
-                        {
-                            guid = guid,
-                        }
+                        metadata = metadata,
                     };
 
                     var header = new SerializableAudioClipHeader();

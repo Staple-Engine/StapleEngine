@@ -593,6 +593,11 @@ namespace Staple.Editor
                 selectedProjectNode = item;
                 selectedProjectNodeData = null;
 
+                foreach (var editor in cachedEditors)
+                {
+                    editor.Value?.Destroy();
+                }
+
                 cachedEditors.Clear();
                 cachedGizmoEditors.Clear();
                 EditorGUI.pendingObjectPickers.Clear();
@@ -657,6 +662,7 @@ namespace Staple.Editor
                     {
                         try
                         {
+                            original = JsonConvert.DeserializeObject<MaterialMetadata>(data);
                             selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
                         }
                         catch (Exception)
@@ -667,6 +673,7 @@ namespace Staple.Editor
                     {
                         try
                         {
+                            original = JsonConvert.DeserializeObject<ShaderMetadata>(data);
                             selectedProjectNodeData = JsonConvert.DeserializeObject<ShaderMetadata>(data);
                         }
                         catch (Exception)
@@ -677,6 +684,7 @@ namespace Staple.Editor
                     {
                         try
                         {
+                            original = JsonConvert.DeserializeObject<AudioClipMetadata>(data);
                             selectedProjectNodeData = JsonConvert.DeserializeObject<AudioClipMetadata>(data);
 
                             var editor = Editor.CreateEditor(selectedProjectNodeData);

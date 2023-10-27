@@ -12,7 +12,7 @@
                 return;
             }
 
-            Gizmo.Box(transform.Position, transform.Rotation, box.size, new Color(0, 1, 0, 0.25f));
+            Gizmo.WireframeBox(transform.Position, transform.Rotation, box.size, new Color(0, 1, 0, 0.25f));
         }
     }
 }

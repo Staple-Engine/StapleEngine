@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using ImGuiNET;
 using Staple.Internal;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Editor
@@ -32,6 +33,8 @@ namespace Staple.Editor
 
             if (Scene.current?.world != null)
             {
+                var renderCamera = Scene.current.world.SortedCameras.FirstOrDefault()?.camera ?? camera;
+
                 Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform transform) =>
                 {
                     if(enabled == false)
@@ -45,11 +48,11 @@ namespace Staple.Editor
 
                         if (related != null)
                         {
-                            system.Preprocess(Scene.current.world, entity, transform, related, camera, cameraTransform);
+                            system.Preprocess(Scene.current.world, entity, transform, related, renderCamera, cameraTransform);
 
                             if (related is Renderable renderable)
                             {
-                                system.Process(Scene.current.world, entity, transform, related, camera, cameraTransform, SceneView);
+                                system.Process(Scene.current.world, entity, transform, related, renderCamera, cameraTransform, SceneView);
 
                                 ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                             }

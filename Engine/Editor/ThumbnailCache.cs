@@ -17,6 +17,7 @@ namespace Staple.Editor
         private static readonly Dictionary<string, Texture> cachedTextures = new();
         private static readonly List<Texture> pendingDestructionTextures = new();
         private static readonly Dictionary<string, RawTextureData> cachedTextureData = new();
+        private static readonly Dictionary<string, Texture> persistentTextures = new();
 
         internal static string basePath;
 
@@ -30,7 +31,7 @@ namespace Staple.Editor
             return cachedTextures.TryGetValue(path, out texture);
         }
 
-        public static Texture GetTexture(string path)
+        public static Texture GetTexture(string path, bool persistentCache = false)
         {
             if(Path.IsPathRooted(path) == false)
             {
@@ -42,9 +43,21 @@ namespace Staple.Editor
                 }
             }
 
-            if(cachedTextures.TryGetValue(path, out var texture))
+            Texture texture;
+
+            if(persistentCache)
             {
-                return texture;
+                if(persistentTextures.TryGetValue(path, out texture))
+                {
+                    return texture;
+                }
+            }
+            else
+            {
+                if (cachedTextures.TryGetValue(path, out texture))
+                {
+                    return texture;
+                }
             }
 
             RawTextureData rawTextureData;
@@ -78,13 +91,20 @@ namespace Staple.Editor
                 return null;
             }
 
-            if (cachedTextures.ContainsKey(path))
+            if(persistentCache)
             {
-                cachedTextures[path]?.Destroy();
+                persistentTextures.AddOrSetKey(path, texture);
             }
+            else
+            {
+                if (cachedTextures.ContainsKey(path))
+                {
+                    cachedTextures[path]?.Destroy();
+                }
 
-            cachedTextureData.AddOrSetKey(path, rawTextureData);
-            cachedTextures.AddOrSetKey(path, texture);
+                cachedTextureData.AddOrSetKey(path, rawTextureData);
+                cachedTextures.AddOrSetKey(path, texture);
+            }
 
             return texture;
         }

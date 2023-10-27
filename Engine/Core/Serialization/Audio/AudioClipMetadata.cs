@@ -14,6 +14,9 @@ namespace Staple.Internal
         [Key(1)]
         public string typeName = typeof(AudioClip).FullName;
 
+        [Key(2)]
+        public bool loadInBackground = false;
+
         public AudioClipMetadata Clone()
         {
             return new AudioClipMetadata()
@@ -26,13 +29,15 @@ namespace Staple.Internal
         public static bool operator ==(AudioClipMetadata lhs, AudioClipMetadata rhs)
         {
             return lhs.guid == rhs.guid &&
-                lhs.typeName == rhs.typeName;
+                lhs.typeName == rhs.typeName &&
+                lhs.loadInBackground == rhs.loadInBackground;
         }
 
         public static bool operator !=(AudioClipMetadata lhs, AudioClipMetadata rhs)
         {
             return lhs.guid != rhs.guid ||
-                lhs.typeName != rhs.typeName;
+                lhs.typeName != rhs.typeName ||
+                lhs.loadInBackground != rhs.loadInBackground;
         }
 
         public override bool Equals(object obj)

@@ -119,7 +119,8 @@
           "volume": 1.0,
           "pitch": 1.0,
           "loop": false,
-          "spatial": false
+          "spatial": false,
+          "autoplay": false
         }
       },
       {
@@ -127,45 +128,6 @@
         "data": {
           "speed": 5.0,
           "is3D": false
-        }
-      }
-    ],
-    "layer": "Default",
-    "enabled": true
-  },
-  {
-    "kind": "Entity",
-    "name": "Text",
-    "ID": 2,
-    "parent": -1,
-    "transform": {
-      "position": {
-        "x": -6.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "rotation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "scale": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0
-      }
-    },
-    "components": [
-      {
-        "type": "Staple.TextComponent",
-        "data": {
-          "text": "The quick brown fox jumps over the lazy dog",
-          "fontSize": 30,
-          "enabled": true,
-          "forceRenderingOff": false,
-          "receiveShadows": true,
-          "sortingLayer": 0,
-          "sortingOrder": 0
         }
       }
     ],
@@ -219,7 +181,8 @@
           "volume": 1.0,
           "pitch": 1.0,
           "loop": false,
-          "spatial": false
+          "spatial": false,
+          "autoplay": false
         }
       },
       {
@@ -287,6 +250,44 @@
           },
           "clearColor": "#82A1FFFF",
           "cullingLayers": 4294967295
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Music",
+    "ID": 5,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "Audio/Adventures in Adventureland.mp3",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": true,
+          "spatial": false,
+          "autoplay": true
         }
       }
     ],

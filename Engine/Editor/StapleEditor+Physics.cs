@@ -36,7 +36,7 @@ namespace Staple.Editor
                             return;
                         }
 
-                        var icon = ThumbnailCache.GetTexture(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Component Icons", attribute.path));
+                        var icon = ThumbnailCache.GetTexture(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Component Icons", attribute.path), true);
 
                         if(icon != null)
                         {

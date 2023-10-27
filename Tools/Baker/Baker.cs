@@ -30,7 +30,9 @@ namespace Baker
 
         private static string[] audioExtensions = new string[]
         {
+            "mp3",
             "ogg",
+            "wav",
         };
 
         private static string shadercBinName

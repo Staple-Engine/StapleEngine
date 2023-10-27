@@ -36,6 +36,24 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "NAudio"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"NAudio/**.cs"
+	}
+
+project "NLayer"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"NLayer/**.cs"
+	}
+
 project "NVorbis"
 	kind "SharedLib"
 	language "C#"

@@ -680,6 +680,8 @@ namespace Staple.Editor
 
                 renderSystem.Shutdown();
 
+                SubsystemManager.instance.Destroy();
+
                 ResourceManager.instance.Destroy(true);
             };
 
@@ -860,6 +862,11 @@ namespace Staple.Editor
             selectedEntity = entity;
             selectedProjectNode = null;
             selectedProjectNodeData = null;
+
+            foreach(var editor in cachedEditors)
+            {
+                editor.Value?.Destroy();
+            }
 
             cachedEditors.Clear();
             cachedGizmoEditors.Clear();

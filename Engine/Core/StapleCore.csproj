@@ -66,6 +66,12 @@
 		<Reference Include="NVorbis">
 			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\NVorbis.dll</HintPath>
 		</Reference>
+		<Reference Include="NAudio">
+			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\NAudio.dll</HintPath>
+		</Reference>
+		<Reference Include="NLayer">
+			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\NLayer.dll</HintPath>
+		</Reference>
 		<Reference Include="JoltPhysicsSharp">
 			<HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
 		</Reference>
@@ -92,7 +98,9 @@
 		<Compile Include="Audio\OpenAL\OpenALAudioDevice.cs" />
 		<Compile Include="Audio\OpenAL\OpenALAudioListener.cs" />
 		<Compile Include="Audio\OpenAL\OpenALAudioSource.cs" />
+		<Compile Include="Audio\Readers\MP3AudioStream.cs" />
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
+		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />

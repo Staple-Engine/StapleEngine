@@ -10,10 +10,22 @@
 			"attribute": "POSITION"
 		},
 		{
+			"name": "a_color1",
+			"semantic": "Varying",
+			"type": "Vector3",
+			"attribute": "COLOR1"
+		},
+		{
 			"name": "v_view",
 			"semantic": "Varying",
 			"type": "Vector3",
 			"attribute": "TEXCOORD0"
+		},
+		{
+			"name": "v_bc",
+			"semantic": "Varying",
+			"type": "Vector3",
+			"attribute": "TEXCOORD1"
 		},
 		{
 			"name": "mainColor",
@@ -38,10 +50,11 @@
 	],
 	"vertex": {
 		"inputs": [
-			"a_position"
+			"a_position", "a_color1"
 		],
 		"outputs": [
-			"v_view"
+			"v_view",
+			"v_bc"
 		],
 		"code": [
 			"void main()",
@@ -52,13 +65,16 @@
 			"",
 			"   v_view = cameraPosition.xyz - mul(u_model[0], vec4(a_position, 1.0)).xyz;",
 			"",
+			"   v_bc = a_color1;",
+			"",
 			"   gl_Position = v_pos;",
 			"}"
 		]
 	},
 	"fragment": {
 		"inputs": [
-			"v_view"
+			"v_view",
+			"v_bc"
 		],
 		"code": [
 			"void main()",
@@ -67,7 +83,7 @@
 			"",
 			"   if(gl_FrontFacing) { o *= 0.5; }",
 			"",
-			"   vec3 fw = abs(dFdx(mainColor.rgb)) + abs(dFdy(mainColor.rgb));",
+			"   vec3 fw = abs(dFdx(v_bc)) + abs(dFdy(v_bc));",
 			"",
 			"   vec3 val = smoothstep(vec3_splat(0.0), fw * thickness.r, mainColor.rgb);",
 			"",

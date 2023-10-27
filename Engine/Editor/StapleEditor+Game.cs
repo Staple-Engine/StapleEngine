@@ -212,6 +212,11 @@ namespace Staple.Editor
 
         public void ReloadTypeCache()
         {
+            foreach (var editor in cachedEditors)
+            {
+                editor.Value?.Destroy();
+            }
+
             TypeCache.Clear();
             registeredAssetTypes.Clear();
             registeredComponents.Clear();

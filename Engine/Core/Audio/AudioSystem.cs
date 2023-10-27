@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 
 namespace Staple
 {
@@ -18,9 +19,12 @@ namespace Staple
             public AudioClip clip;
             public float volume;
             public float pitch;
-            public bool loop = false;
+            public bool loop;
+            public bool autoplay;
             public IAudioClip activeClip;
         }
+
+        public delegate void AudioClipLoadHandler(short[] samples, int channels, int bitsPerSample, int sampleRate);
 
         public SubsystemType type => SubsystemType.Update;
 
@@ -32,6 +36,11 @@ namespace Staple
         internal IAudioDevice device;
 
         internal static readonly byte Priority = 3;
+
+        private Thread backgroundLoadThread;
+        private bool shuttingDown = false;
+        private object backgroundLock = new();
+        private Queue<Action> backgroundActions = new();
 
         public static readonly AudioSystem Instance = new();
 
@@ -111,6 +120,44 @@ namespace Staple
 
                 source.audioSource = null;
             });
+
+            backgroundLoadThread = new(() =>
+            {
+                for(; ; )
+                {
+                    Action next = null;
+
+                    lock(backgroundLock)
+                    {
+                        if(shuttingDown)
+                        {
+                            return;
+                        }
+
+                        if(backgroundActions.Count > 0)
+                        {
+                            next = backgroundActions.Dequeue();
+                        }
+                    }
+
+                    if(next != null)
+                    {
+                        try
+                        {
+                            next?.Invoke();
+                        }
+                        catch(Exception e)
+                        {
+                            Log.Debug($"[AudioSystem] Background thread exception: {e}");
+                        }
+                    }
+
+                    Thread.Sleep(25);
+                }
+            });
+
+            backgroundLoadThread.Priority = ThreadPriority.BelowNormal;
+            backgroundLoadThread.Start();
         }
 
         public void Update()
@@ -165,13 +212,11 @@ namespace Staple
                 {
                     item.clip = source.audioClip;
 
-                    var stream = source.audioClip.GetAudioStream();
-
-                    if (stream != null)
+                    LoadAudioClip(source.audioClip, (samples, channels, bits, sampleRate) =>
                     {
                         var clip = new AudioClipImpl();
 
-                        if (clip.Init(stream.ReadAll(), stream.Channels, stream.BitsPerSample, stream.SampleRate))
+                        if (clip.Init(samples, channels, bits, sampleRate))
                         {
                             if (source.audioSource.Bind(clip) == false)
                             {
@@ -183,13 +228,18 @@ namespace Staple
                             else
                             {
                                 item.activeClip = clip;
+
+                                if (source.autoplay)
+                                {
+                                    source.audioSource?.Play();
+                                }
                             }
                         }
                         else
                         {
                             clip.Destroy();
                         }
-                    }
+                    });
                 }
 
                 if (source.audioSource != null)
@@ -234,7 +284,86 @@ namespace Staple
 
         public void Shutdown()
         {
+            lock(backgroundLock)
+            {
+                shuttingDown = true;
+            }
+
+            for(; ; )
+            {
+                if(backgroundLoadThread == null || backgroundLoadThread.IsAlive == false)
+                {
+                    break;
+                }
+            }
+
             device?.Shutdown();
+        }
+
+        public CancellationTokenSource LoadAudioClip(AudioClip clip, AudioClipLoadHandler onFinish)
+        {
+            var cts = new CancellationTokenSource();
+
+            if (clip.samples != default)
+            {
+                onFinish?.Invoke(clip.samples, clip.channels, clip.bitsPerSample, clip.sampleRate);
+
+                return cts;
+            }
+
+            var token = cts.Token;
+
+            try
+            {
+                var stream = clip.GetAudioStream();
+
+                if(stream == null)
+                {
+                    onFinish?.Invoke(default, 0, 0, 0);
+
+                    return cts;
+                }
+
+                clip.duration = (float)stream.TotalTime.TotalSeconds;
+                clip.channels = stream.Channels;
+                clip.bitsPerSample = stream.BitsPerSample;
+                clip.sampleRate = stream.SampleRate;
+
+                void Finish()
+                {
+                    if(token.IsCancellationRequested)
+                    {
+                        onFinish?.Invoke(default, 0, 0, 0);
+
+                        return;
+                    }
+
+                    var samples = stream.ReadAll();
+
+                    clip.sizeInBytes = samples.Length * sizeof(short);
+                    clip.samples = samples;
+
+                    onFinish?.Invoke(samples, stream.Channels, stream.BitsPerSample, stream.SampleRate);
+                }
+
+                if(clip.metadata.loadInBackground)
+                {
+                    lock (backgroundLock)
+                    {
+                        backgroundActions.Enqueue(Finish);
+                    }
+                }
+                else
+                {
+                    Finish();
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[AudioClip] Failed to load audio clip {clip.Path}: {e}");
+            }
+
+            return cts;
         }
     }
 }

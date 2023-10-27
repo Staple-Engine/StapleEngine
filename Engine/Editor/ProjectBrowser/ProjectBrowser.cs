@@ -6,14 +6,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
-using System.Xml.Linq;
 
 namespace Staple.Editor
 {
     internal class ProjectBrowser
     {
+        public static Dictionary<string, ProjectBrowserResourceType> resourceTypes = new()
+        {
+            { ".asset", ProjectBrowserResourceType.Asset },
+            { ".mat", ProjectBrowserResourceType.Material },
+            { ".stsh", ProjectBrowserResourceType.Shader },
+            { ".stsc", ProjectBrowserResourceType.Scene },
+            { ".png", ProjectBrowserResourceType.Texture },
+            { ".jpg", ProjectBrowserResourceType.Texture },
+            { ".jpeg", ProjectBrowserResourceType.Texture },
+            { ".gif", ProjectBrowserResourceType.Texture },
+            { ".bmp", ProjectBrowserResourceType.Texture },
+            { ".mp3", ProjectBrowserResourceType.Audio },
+            { ".ogg", ProjectBrowserResourceType.Audio },
+            { ".wav", ProjectBrowserResourceType.Audio },
+        };
+
         public const float contentPanelThumbnailSize = 64;
 
         public const float contentPanelPadding = 16;
@@ -53,40 +67,12 @@ namespace Staple.Editor
 
         internal static ProjectBrowserResourceType ResourceTypeForExtension(string extension)
         {
-            switch (extension)
+            if(resourceTypes.TryGetValue(extension, out var type))
             {
-                case ".asset":
-
-                    return ProjectBrowserResourceType.Asset;
-
-                case ".mat":
-
-                    return ProjectBrowserResourceType.Material;
-
-                case ".stsh":
-
-                    return ProjectBrowserResourceType.Shader;
-
-                case ".stsc":
-
-                    return ProjectBrowserResourceType.Scene;
-
-                case ".png":
-                case ".jpg":
-                case ".jpeg":
-                case ".gif":
-                case ".bmp":
-
-                    return ProjectBrowserResourceType.Texture;
-
-                case ".ogg":
-
-                    return ProjectBrowserResourceType.Audio;
-
-                default:
-
-                    return ProjectBrowserResourceType.Other;
+                return type;
             }
+
+            return ProjectBrowserResourceType.Other;
         }
 
         public void UpdateProjectBrowserNodes()
@@ -317,216 +303,213 @@ namespace Staple.Editor
                     }
                     else
                     {
-                        switch(node.extension)
+                        if(resourceTypes.TryGetValue(node.extension, out var type))
                         {
-                            case ".png":
-                            case ".jpg":
-                            case ".jpeg":
-                            case ".gif":
-                            case ".bmp":
+                            switch(type)
+                            {
+                                case ProjectBrowserResourceType.Texture:
 
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
+                                    try
                                     {
-                                        var jsonData = JsonConvert.SerializeObject(new TextureMetadata()
+                                        if (File.Exists($"{node.path}.meta") == false)
                                         {
-                                            guid = Hash(),
-                                        },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
-
-                                        File.WriteAllText($"{node.path}.meta", jsonData);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ".mat":
-
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
-                                    {
-                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
-                                        {
-                                            guid = Hash(),
-                                            typeName = typeof(Material).FullName,
-                                        },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
-
-                                        File.WriteAllText($"{node.path}.meta", jsonData);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ".stsh":
-
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
-                                    {
-                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
-                                        {
-                                            guid = Hash(),
-                                            typeName = typeof(Shader).FullName,
-                                        },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
-
-                                        File.WriteAllText($"{node.path}.meta", jsonData);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ".stsc":
-
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
-                                    {
-                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
-                                        {
-                                            guid = Hash(),
-                                            typeName = typeof(Scene).FullName,
-                                        },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
-
-                                        File.WriteAllText($"{node.path}.meta", jsonData);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ".ogg":
-
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
-                                    {
-                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
-                                        {
-                                            guid = Hash(),
-                                            typeName = typeof(AudioClip).FullName,
-                                        },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
-
-                                        File.WriteAllText($"{node.path}.meta", jsonData);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
-                                break;
-
-                            case ".asset":
-
-                                try
-                                {
-                                    if (File.Exists($"{node.path}.meta") == false)
-                                    {
-                                        var text = File.ReadAllText(node.path);
-                                        var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
-
-                                        if (holder != null)
-                                        {
-                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
-
-                                            File.WriteAllText($"{node.path}.meta", json);
-                                        }
-                                        else
-                                        {
-                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            var jsonData = JsonConvert.SerializeObject(new TextureMetadata()
                                             {
                                                 guid = Hash(),
-                                                typeName = "Unknown",
                                             },
                                             Formatting.Indented, new JsonSerializerSettings()
                                             {
                                                 Converters =
                                                 {
-                                                new StringEnumConverter(),
+                                                    new StringEnumConverter(),
                                                 }
                                             });
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
                                     }
-                                }
-                                catch (Exception)
-                                {
-                                }
+                                    catch (Exception)
+                                    {
+                                    }
 
-                                break;
+                                    break;
 
-                            default:
+                                case ProjectBrowserResourceType.Material:
 
-                                if (node.path.EndsWith(".meta") == false)
-                                {
                                     try
                                     {
                                         if (File.Exists($"{node.path}.meta") == false)
                                         {
-                                            var holder = new AssetHolder()
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                             {
                                                 guid = Hash(),
-                                                typeName = "Unknown",
-                                            };
+                                                typeName = typeof(Material).FullName,
+                                            },
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
 
-                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
-
-                                            File.WriteAllText($"{node.path}.meta", json);
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
                                     }
                                     catch (Exception)
                                     {
                                     }
-                                }
 
-                                break;
+                                    break;
+
+                                case ProjectBrowserResourceType.Shader:
+
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(Shader).FullName,
+                                            },
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    break;
+
+                                case ProjectBrowserResourceType.Scene:
+
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(Scene).FullName,
+                                            },
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    break;
+
+                                case ProjectBrowserResourceType.Audio:
+
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                            {
+                                                guid = Hash(),
+                                                typeName = typeof(AudioClip).FullName,
+                                            },
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    break;
+
+                                case ProjectBrowserResourceType.Asset:
+
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var text = File.ReadAllText(node.path);
+                                            var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
+
+                                            if (holder != null)
+                                            {
+                                                var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                                                File.WriteAllText($"{node.path}.meta", json);
+                                            }
+                                            else
+                                            {
+                                                var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                                {
+                                                    guid = Hash(),
+                                                    typeName = "Unknown",
+                                                },
+                                                Formatting.Indented, new JsonSerializerSettings()
+                                                {
+                                                    Converters =
+                                                    {
+                                                        new StringEnumConverter(),
+                                                    }
+                                                });
+
+                                                File.WriteAllText($"{node.path}.meta", jsonData);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            if (node.path.EndsWith(".meta") == false)
+                            {
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var holder = new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = "Unknown",
+                                        };
+
+                                        var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+
+                                        File.WriteAllText($"{node.path}.meta", json);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
                         }
                     }
                 }

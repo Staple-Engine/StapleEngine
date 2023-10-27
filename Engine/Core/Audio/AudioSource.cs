@@ -7,6 +7,7 @@
         public float pitch = 1;
         public bool loop = false;
         public bool spatial = false;
+        public bool autoplay = false;
 
         internal IAudioSource audioSource;
 
