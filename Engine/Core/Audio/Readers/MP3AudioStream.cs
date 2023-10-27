@@ -95,24 +95,32 @@ namespace Staple.Internal
                     return default;
                 }
 
-                var samples = new byte[reader.Length];
+                var samples = new float[reader.Length / sizeof(float)];
 
-                var read = reader.ReadSamples(samples, 0, samples.Length);
-
-                while(read != samples.Length)
+                if(reader.ReadSamples(samples, 0, samples.Length) != samples.Length)
                 {
-                    var diff = samples.Length - read;
+                    reader.Dispose();
+                    reader = null;
 
-                    var count = reader.ReadSamples(samples, read, diff);
-
-                    read += count;
+                    return default;
                 }
 
-                var outData = new short[samples.Length / sizeof(short)];
+                return samples.Select(x =>
+                    {
+                        var temp = (int)(32767f * x);
 
-                Buffer.BlockCopy(samples, 0, outData, 0, samples.Length);
+                        if (temp > short.MaxValue)
+                        {
+                            temp = short.MaxValue;
+                        }
+                        else if (temp < short.MinValue)
+                        {
+                            temp = short.MinValue;
+                        }
 
-                return outData;
+                        return (short)temp;
+                    })
+                    .ToArray();
             }
         }
 
