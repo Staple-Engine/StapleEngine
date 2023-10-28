@@ -1,26 +1,24 @@
-﻿using NLayer;
+﻿using DrLibs;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal
 {
     internal class MP3AudioStream : IAudioStream, IDisposable
     {
-        private MpegFile reader = null;
-
         private Stream stream;
+        private short[] samples;
 
-        public int Channels => reader?.Channels ?? 0;
+        public int Channels { get; private set; }
 
-        public int SampleRate => reader?.SampleRate ?? 0;
+        public int SampleRate { get; private set; }
 
-        public int BitsPerSample => 16;
+        public int BitsPerSample { get; private set; }
 
-        public TimeSpan TotalTime => reader?.Duration ?? default;
+        public TimeSpan TotalTime { get; private set; }
 
-        public TimeSpan CurrentTime => reader?.Time ?? default;
+        public TimeSpan CurrentTime { get; private set; }
 
         private object lockObject = new();
 
@@ -38,12 +36,6 @@ namespace Staple.Internal
 
         public void Open()
         {
-            lock (lockObject)
-            {
-                reader?.Dispose();
-
-                reader = new MpegFile(stream);
-            }
         }
 
         public void Close()
@@ -51,10 +43,56 @@ namespace Staple.Internal
             lock(lockObject)
             {
                 stream?.Dispose();
-                reader?.Dispose();
-
-                reader = null;
                 stream = null;
+            }
+        }
+
+        private void Load()
+        {
+            if(stream is MemoryStream memory)
+            {
+                var data = memory.ToArray();
+
+                stream.Dispose();
+
+                stream = null;
+
+                int channels;
+                int bitsPerChannel;
+                int sampleRate;
+                float duration;
+                int requiredSize;
+
+                unsafe
+                {
+                    fixed(byte *b = data)
+                    {
+                        var ptr = DrMp3.LoadMP3(b, data.Length, &channels, &bitsPerChannel, &sampleRate, &duration, &requiredSize);
+
+                        if(ptr == nint.Zero)
+                        {
+                            return;
+                        }
+
+                        var buffer = DrMp3.GetMP3Buffer(ptr);
+
+                        if(buffer == nint.Zero)
+                        {
+                            return;
+                        }
+
+                        samples = new short[requiredSize / sizeof(ushort)];
+
+                        Marshal.Copy(buffer, samples, 0, samples.Length);
+
+                        DrMp3.FreeMP3(ptr);
+
+                        Channels = channels;
+                        BitsPerSample = bitsPerChannel;
+                        SampleRate = sampleRate;
+                        TotalTime = TimeSpan.FromSeconds(duration);
+                    }
+                }
             }
         }
 
@@ -62,25 +100,12 @@ namespace Staple.Internal
         {
             lock (lockObject)
             {
-                var samples = new float[count];
-
-                count = reader.ReadSamples(samples, 0, count);
-
-                for (var i = 0; i < count; i++)
+                if(samples == default)
                 {
-                    var temp = (int)(32767f * samples[i]);
-
-                    if (temp > short.MaxValue)
-                    {
-                        temp = short.MaxValue;
-                    }
-                    else if (temp < short.MinValue)
-                    {
-                        temp = short.MinValue;
-                    }
-
-                    buffer[i] = (short)temp;
+                    Load();
                 }
+
+                Buffer.BlockCopy(samples, 0, buffer, 0, count);
 
                 return count;
             }
@@ -90,37 +115,12 @@ namespace Staple.Internal
         {
             lock (lockObject)
             {
-                if (reader == null)
+                if (samples == default)
                 {
-                    return default;
+                    Load();
                 }
 
-                var samples = new float[reader.Length / sizeof(float)];
-
-                if(reader.ReadSamples(samples, 0, samples.Length) != samples.Length)
-                {
-                    reader.Dispose();
-                    reader = null;
-
-                    return default;
-                }
-
-                return samples.Select(x =>
-                    {
-                        var temp = (int)(32767f * x);
-
-                        if (temp > short.MaxValue)
-                        {
-                            temp = short.MaxValue;
-                        }
-                        else if (temp < short.MinValue)
-                        {
-                            temp = short.MinValue;
-                        }
-
-                        return (short)temp;
-                    })
-                    .ToArray();
+                return samples;
             }
         }
 

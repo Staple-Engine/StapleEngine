@@ -324,11 +324,6 @@ namespace Staple
                     return cts;
                 }
 
-                clip.duration = (float)stream.TotalTime.TotalSeconds;
-                clip.channels = stream.Channels;
-                clip.bitsPerSample = stream.BitsPerSample;
-                clip.sampleRate = stream.SampleRate;
-
                 void Finish()
                 {
                     if(token.IsCancellationRequested)
@@ -342,6 +337,11 @@ namespace Staple
 
                     clip.sizeInBytes = samples.Length * sizeof(short);
                     clip.samples = samples;
+
+                    clip.duration = (float)stream.TotalTime.TotalSeconds;
+                    clip.channels = stream.Channels;
+                    clip.bitsPerSample = stream.BitsPerSample;
+                    clip.sampleRate = stream.SampleRate;
 
                     onFinish?.Invoke(samples, stream.Channels, stream.BitsPerSample, stream.SampleRate);
                 }

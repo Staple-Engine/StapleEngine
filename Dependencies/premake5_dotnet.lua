@@ -45,15 +45,6 @@ project "NAudio"
 		"NAudio/**.cs"
 	}
 
-project "NLayer"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	
-	files {
-		"NLayer/**.cs"
-	}
-
 project "NVorbis"
 	kind "SharedLib"
 	language "C#"
