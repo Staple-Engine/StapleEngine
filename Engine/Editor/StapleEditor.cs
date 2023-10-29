@@ -175,6 +175,10 @@ namespace Staple.Editor
 
         private bool gameLoadDisabled = false;
 
+        private bool draggingEntity = false;
+
+        private Entity draggedEntity = Entity.Empty;
+
         private static WeakReference<StapleEditor> privInstance;
 
         public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;

@@ -207,6 +207,40 @@ namespace Staple.Editor
 
                     if (ImGui.TreeNodeEx($"{entityName}##0", flags))
                     {
+                        if(ImGui.BeginDragDropTarget())
+                        {
+                            var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+                            unsafe
+                            {
+                                if (payload.NativePtr != null)
+                                {
+                                    var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
+
+                                    if (t != null)
+                                    {
+                                        t.SetParent(transform);
+                                    }
+
+                                    draggedEntity = Entity.Empty;
+                                }
+                            }
+
+                            ImGui.EndDragDropTarget();
+
+                            return;
+                        }
+                        else if(ImGui.BeginDragDropSource())
+                        {
+                            draggedEntity = transform.entity;
+
+                            ImGui.SetDragDropPayload("ENTITY", nint.Zero, 0);
+
+                            ImGui.EndDragDropSource();
+
+                            return;
+                        }
+
                         if (ImGui.IsItemHovered())
                         {
                             if(ImGui.IsMouseClicked(ImGuiMouseButton.Right))
@@ -295,7 +329,7 @@ namespace Staple.Editor
                 });
             }
 
-            if(ImGui.IsWindowHovered() && ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            if (ImGui.IsWindowHovered() && ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
             {
                 ImGui.OpenPopup("EntityPanelContext");
             }
@@ -319,6 +353,26 @@ namespace Staple.Editor
             mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
             ImGui.EndChildFrame();
+
+            if (ImGui.BeginDragDropTarget())
+            {
+                var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+                unsafe
+                {
+                    if (payload.NativePtr != null)
+                    {
+                        var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
+
+                        if (t != null)
+                        {
+                            t.SetParent(null);
+                        }
+                    }
+                }
+
+                ImGui.EndDragDropTarget();
+            }
 
             mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
