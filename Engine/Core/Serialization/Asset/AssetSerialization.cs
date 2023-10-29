@@ -117,11 +117,6 @@ namespace Staple.Internal
                 return true;
             }
 
-            if(type.GetInterface(typeof(IPathAsset).FullName) != null)
-            {
-                return true;
-            }
-
             if (type.IsGenericType)
             {
                 if (type.GetGenericTypeDefinition() == typeof(List<>))
@@ -192,6 +187,40 @@ namespace Staple.Internal
                         }
 
                         continue;
+                    }
+
+                    if(value.GetType().IsGenericType)
+                    {
+                        if (value.GetType().GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            var listType = value.GetType().GetGenericArguments()[0];
+
+                            if (listType != null)
+                            {
+                                if(listType.GetInterface(typeof(IPathAsset).FullName) != null)
+                                {
+                                    var newList = new List<string>();
+
+                                    var inList = (IList)value;
+
+                                    foreach(var item in inList)
+                                    {
+                                        if(item is IPathAsset p)
+                                        {
+                                            newList.Add(p.Path);
+                                        }
+                                    }
+
+                                    outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
+                                    {
+                                        typeName = value.GetType().FullName,
+                                        value = newList,
+                                    });
+
+                                    continue;
+                                }
+                            }
+                        }
                     }
 
                     outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
@@ -297,17 +326,34 @@ namespace Staple.Internal
                             {
                                 foreach(var item in array)
                                 {
-                                    try
-                                    {
-                                        var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
+                                    var fieldType = field.FieldType.GenericTypeArguments[0];
 
-                                        list.Add(value);
+                                    if(fieldType.GetInterface(typeof(IPathAsset).FullName) != null)
+                                    {
+                                        if(item is string path)
+                                        {
+                                            var v = GetPathAsset(fieldType, path);
+
+                                            if(v != null)
+                                            {
+                                                list.Add(v);
+                                            }
+                                        }
                                     }
-                                    catch(Exception)
+                                    else
                                     {
-                                        fail = true;
+                                        try
+                                        {
+                                            var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
 
-                                        break;
+                                            list.Add(value);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            fail = true;
+
+                                            break;
+                                        }
                                     }
                                 }
 

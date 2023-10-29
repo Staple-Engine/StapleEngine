@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -519,6 +520,8 @@ namespace Staple.Internal
         /// <returns>The shader, or null</returns>
         public Shader LoadShader(string path)
         {
+            var original = path;
+
             switch(RenderWindow.CurrentRenderer)
             {
                 case RendererType.Direct3D11:
@@ -620,6 +623,8 @@ namespace Staple.Internal
 
                 if (shader != null)
                 {
+                    shader.Path = original;
+
                     cachedShaders.AddOrSetKey(path, shader);
                 }
 

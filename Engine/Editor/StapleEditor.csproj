@@ -64,6 +64,7 @@
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="CSProjManager.cs" />
+    <Compile Include="Editors\Assets\TileMapAssetEditor.cs" />
     <Compile Include="Editors\Default\AudioClipEditor.cs" />
     <Compile Include="Editors\Default\BoxCollider3DGizmoEditor.cs" />
     <Compile Include="Editors\Default\CameraEditor.cs" />

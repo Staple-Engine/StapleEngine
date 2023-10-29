@@ -101,6 +101,7 @@
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Rendering\Screen.cs" />
+		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
 		<Compile Include="Serialization\Asset\IPathAsset.cs" />
 		<Compile Include="Serialization\Asset\IStapleAsset.cs" />

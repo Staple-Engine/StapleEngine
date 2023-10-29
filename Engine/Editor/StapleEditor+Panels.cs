@@ -217,10 +217,7 @@ namespace Staple.Editor
                                 {
                                     var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
 
-                                    if (t != null)
-                                    {
-                                        t.SetParent(transform);
-                                    }
+                                    t?.SetParent(transform);
 
                                     draggedEntity = Entity.Empty;
                                 }
@@ -364,10 +361,7 @@ namespace Staple.Editor
                     {
                         var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
 
-                        if (t != null)
-                        {
-                            t.SetParent(null);
-                        }
+                        t?.SetParent(null);
                     }
                 }
 

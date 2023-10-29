@@ -270,6 +270,16 @@ namespace Staple.Editor
 
         public static bool SaveAsset(string assetPath, IStapleAsset assetInstance)
         {
+            var existed = false;
+
+            try
+            {
+                existed = File.Exists(assetPath);
+            }
+            catch(Exception)
+            {
+            }
+
             try
             {
                 var guidField = assetInstance.GetType().GetField("guid");
@@ -310,8 +320,21 @@ namespace Staple.Editor
                     File.WriteAllText($"{assetPath}.meta", json);
                 }
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Log.Debug($"Failed to save asset: {e}");
+
+                if(existed == false)
+                {
+                    try
+                    {
+                        File.Delete(assetPath);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
                 return false;
             }
 

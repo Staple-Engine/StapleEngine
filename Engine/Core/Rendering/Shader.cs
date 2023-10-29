@@ -1,7 +1,6 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal
@@ -9,7 +8,7 @@ namespace Staple.Internal
     /// <summary>
     /// Shader resource
     /// </summary>
-    internal class Shader
+    internal class Shader : IPathAsset
     {
         internal class UniformInfo<T>
         {
@@ -78,10 +77,17 @@ namespace Staple.Internal
 
         internal Dictionary<ShaderUniformType, object> uniforms = new();
 
+        public string Path { get; set; }
+
         /// <summary>
         /// Whether this shader has been disposed
         /// </summary>
         public bool Disposed { get; internal set; } = false;
+
+        public static object Create(string path)
+        {
+            return ResourceManager.instance.LoadShader(path);
+        }
 
         internal Shader(ShaderMetadata metadata, byte[] vertexShaderSource, byte[] fragmentShaderSource)
         {

@@ -411,22 +411,22 @@ namespace Staple.Editor
 
                     if(Input.GetKey(KeyCode.A))
                     {
-                        axis = cameraTransform.Left;
+                        axis += cameraTransform.Left;
                     }
 
                     if(Input.GetKey(KeyCode.D))
                     {
-                        axis = cameraTransform.Right;
+                        axis += cameraTransform.Right;
                     }
 
                     if(Input.GetKey(KeyCode.W))
                     {
-                        axis = cameraTransform.Forward;
+                        axis += cameraTransform.Forward;
                     }
 
                     if(Input.GetKey(KeyCode.S))
                     {
-                        axis = cameraTransform.Back;
+                        axis += cameraTransform.Back;
                     }
 
                     cameraTransform.LocalPosition += axis * 10 * Time.deltaTime;

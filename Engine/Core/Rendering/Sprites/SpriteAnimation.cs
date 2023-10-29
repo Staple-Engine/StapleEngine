@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 using System.Collections.Generic;
 
 namespace Staple
@@ -30,14 +29,7 @@ namespace Staple
         /// </summary>
         public List<int> frames = new();
 
-        internal string path;
-
-        public string Path
-        {
-            get => path;
-
-            set => path = value;
-        }
+        public string Path { get; set; }
 
         /// <summary>
         /// IPathAsset implementation. Loads a Sprite Animation from path.
