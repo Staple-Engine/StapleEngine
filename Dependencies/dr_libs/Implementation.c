@@ -7,10 +7,25 @@
 #define EXPORT
 #endif
 
+void Free(void *ptr, void *userdata)
+{
+	free(ptr);
+}
+
+void *Malloc(size_t size, void *userdata)
+{
+	return malloc(size);
+}
+
+void *Realloc(void *ptr, size_t size, void *userdata)
+{
+	return realloc(ptr, size);
+}
+
 drmp3_allocation_callbacks callbacks = {
-	.onFree = free,
-	.onMalloc = malloc,
-	.onRealloc = realloc,
+	.onFree = Free,
+	.onMalloc = Malloc,
+	.onRealloc = Realloc,
 	.pUserData = NULL,
 };
 
