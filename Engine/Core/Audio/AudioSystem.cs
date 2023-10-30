@@ -22,6 +22,7 @@ namespace Staple
             public bool loop;
             public bool autoplay;
             public IAudioClip activeClip;
+            public bool pausedBackground;
         }
 
         public delegate void AudioClipLoadHandler(short[] samples, int channels, int bitsPerSample, int sampleRate);
@@ -298,6 +299,32 @@ namespace Staple
             }
 
             device?.Shutdown();
+        }
+
+        public void EnterBackground()
+        {
+            foreach(var source in audioSources)
+            {
+                if(source.source.TryGetTarget(out var audioSource) && audioSource.audioSource.Playing)
+                {
+                    source.pausedBackground = true;
+
+                    audioSource.audioSource.Pause();
+                }
+            }
+        }
+
+        public void EnterForeground()
+        {
+            foreach (var source in audioSources)
+            {
+                if (source.source.TryGetTarget(out var audioSource) && source.pausedBackground)
+                {
+                    source.pausedBackground = false;
+
+                    audioSource.audioSource.Play();
+                }
+            }
         }
 
         public CancellationTokenSource LoadAudioClip(AudioClip clip, AudioClipLoadHandler onFinish)

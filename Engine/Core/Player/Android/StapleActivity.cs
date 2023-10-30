@@ -556,6 +556,29 @@ namespace Staple
                 Java.Lang.JavaSystem.LoadLibrary(library);
             }
 
+            if(Build.VERSION.SdkInt >= BuildVersionCodes.R)
+            {
+                WindowManagerLayoutParams p = Window.Attributes;
+
+                var modes = Display.GetSupportedModes();
+
+                var maxMode = 0;
+                var maxHZ = 60.0f;
+
+                foreach(var mode in modes)
+                {
+                    if(maxHZ < mode.RefreshRate)
+                    {
+                        maxHZ = mode.RefreshRate;
+                        maxMode = mode.ModeId;
+                    }
+                }
+
+                p.PreferredDisplayModeId = maxMode;
+
+                Window.Attributes = p;
+            }
+
             Threading.Initialize();
 
             surfaceView = new SurfaceView(this);

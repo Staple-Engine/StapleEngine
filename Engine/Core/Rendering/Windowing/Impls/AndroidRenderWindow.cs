@@ -100,6 +100,8 @@ namespace Staple.Internal
             {
                 isInBackground = true;
             }
+
+            AudioSystem.Instance.EnterBackground();
         }
 
         public void EnterForeground()
@@ -108,6 +110,8 @@ namespace Staple.Internal
             {
                 isInBackground = false;
             }
+
+            AudioSystem.Instance.EnterForeground();
         }
 
         public void GetWindowSize(out int width, out int height)

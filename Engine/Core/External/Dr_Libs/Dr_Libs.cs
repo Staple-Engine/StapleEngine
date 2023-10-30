@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace DrLibs
 {
-    [AdditionalLibrary(AppPlatform.Android, "libdr_libs.so")]
+    [AdditionalLibrary(AppPlatform.Android, "dr_libs")]
     public static partial class DrMp3
     {
 #if ANDROID

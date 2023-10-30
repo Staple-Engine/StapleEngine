@@ -501,10 +501,6 @@ namespace Staple.Editor
                 new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NAudio.dll"))
             });
 
-            p.AddItem("Reference", "NLayer", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NLayer.dll"))
-            });
-
             p.AddItem("Reference", "NVorbis", new KeyValuePair<string, string>[] {
                 new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NVorbis.dll"))
             });

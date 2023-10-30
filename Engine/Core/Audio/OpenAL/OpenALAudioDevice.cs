@@ -2,7 +2,7 @@
 
 namespace Staple
 {
-    [AdditionalLibrary(AppPlatform.Android, "libopenal32.so")]
+    [AdditionalLibrary(AppPlatform.Android, "openal32")]
     internal class OpenALAudioDevice : IAudioDevice
     {
         public nint Device { get; private set; }
