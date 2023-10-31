@@ -40,5 +40,7 @@
         void ShowCursor();
 
         void HideCursor();
+
+        void SetIcon(RawTextureData icon);
     }
 }

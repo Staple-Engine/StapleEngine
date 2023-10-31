@@ -163,6 +163,10 @@ namespace Staple.Internal
                 return window;
             }
         }
+
+        public void SetIcon(RawTextureData icon)
+        {
+        }
     }
 }
 #endif

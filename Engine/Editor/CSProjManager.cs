@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Staple.Editor
 {
@@ -430,6 +431,135 @@ namespace Staple.Editor
             foreach (var pair in projectProperties)
             {
                 p.SetProperty(pair.Key, pair.Value);
+            }
+
+            if(platform == AppPlatform.Windows)
+            {
+                try
+                {
+                    var iconData = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon.png"));
+
+                    var textureData = Texture.LoadStandard(iconData, StandardTextureColorComponents.RGBA);
+
+                    if(textureData != null)
+                    {
+                        var width = 256;
+                        var height = (int)(textureData.height / (float)textureData.width * 256);
+
+                        if(textureData.Resize(width, height))
+                        {
+                            var pngData = textureData.EncodePNG();
+
+                            var stream = new MemoryStream();
+
+                            //reserved
+                            stream.WriteByte(0);
+                            stream.WriteByte(0);
+
+                            //image type (1 = icon, 2 = cursor)
+                            var bytes = BitConverter.GetBytes((short)1);
+
+                            stream.Write(bytes);
+
+                            //number of images, same as type since we only got one
+                            stream.Write(bytes);
+
+                            //image width
+                            stream.WriteByte((byte)(width % 256));
+
+                            //image height
+                            stream.WriteByte((byte)(height % 256));
+
+                            //number of colors
+                            stream.WriteByte(0);
+
+                            //reserved
+                            stream.WriteByte(0);
+
+                            //4-5 color planes
+                            stream.WriteByte(0);
+                            stream.WriteByte(0);
+
+                            //bits per pixel
+                            bytes = BitConverter.GetBytes((short)32);
+
+                            stream.Write(bytes);
+
+                            //size of image data
+                            bytes = BitConverter.GetBytes(pngData.Length);
+
+                            stream.Write(bytes);
+
+                            //offset of image data
+                            bytes = BitConverter.GetBytes(22);
+
+                            stream.Write(bytes);
+
+                            stream.Write(pngData);
+
+                            var final = stream.ToArray();
+
+                            File.WriteAllBytes(Path.Combine(projectDirectory, "Icon.ico"), final);
+
+                            p.SetProperty("ApplicationIcon", $"Icon.ico");
+
+                            p.Xml.AddItemGroup().AddItem("Content", $"Icon.ico");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            else if(platform == AppPlatform.Android)
+            {
+                try
+                {
+                    var iconData = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon.png"));
+                    var backgroundData = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon Background.png"));
+                    var foregroundData = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon Foreground.png"));
+
+                    var sizes = new Dictionary<string, List<int>>
+                    {
+                        { "mipmap-mdpi", new() { 48, 108 } },
+                        { "mipmap-hdpi", new() { 72, 162 } },
+                        { "mipmap-xhdpi", new() { 96, 216 } },
+                        { "mipmap-xxhdpi", new() { 144, 324 } },
+                        { "mipmap-xxxhdpi", new() { 192, 432 } },
+                    };
+
+                    foreach(var pair in sizes)
+                    {
+                        var iconTexture = Texture.LoadStandard(iconData, StandardTextureColorComponents.RGBA);
+                        var backgroundTexture = Texture.LoadStandard(backgroundData, StandardTextureColorComponents.RGBA);
+                        var foregroundTexture = Texture.LoadStandard(foregroundData, StandardTextureColorComponents.RGBA);
+
+                        if (iconTexture == null || backgroundTexture == null || foregroundTexture == null)
+                        {
+                            break;
+                        }
+
+                        if(iconTexture.Resize(pair.Value.FirstOrDefault(), pair.Value.FirstOrDefault()) == false ||
+                            backgroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()) == false ||
+                            foregroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()) == false)
+                        {
+                            break;
+                        }
+
+                        try
+                        {
+                            File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon.png"), iconTexture.EncodePNG());
+                            File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_background.png"), backgroundTexture.EncodePNG());
+                            File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_foreground.png"), foregroundTexture.EncodePNG());
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
             }
 
             switch (platform)

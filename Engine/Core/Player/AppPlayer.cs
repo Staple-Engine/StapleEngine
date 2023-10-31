@@ -73,6 +73,30 @@ namespace Staple
 
             renderWindow.OnInit = () =>
             {
+                try
+                {
+                    var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");
+
+                    if(data != null)
+                    {
+                        var rawInfo = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+
+                        if(rawInfo != null)
+                        {
+                            var width = 256;
+                            var height = (int)(rawInfo.height / (float)rawInfo.width * 256);
+
+                            if(rawInfo.Resize(width, height))
+                            {
+                                renderWindow.window.SetIcon(rawInfo);
+                            }
+                        }
+                    }
+                }
+                catch(Exception)
+                {
+                }
+
                 Time.fixedDeltaTime = 1 / (float)appSettings.fixedTimeFrameRate;
 
                 bool hasFocus = renderWindow.window.IsFocused;

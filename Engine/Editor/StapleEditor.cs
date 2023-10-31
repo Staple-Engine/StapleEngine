@@ -175,8 +175,6 @@ namespace Staple.Editor
 
         private bool gameLoadDisabled = false;
 
-        private bool draggingEntity = false;
-
         private Entity draggedEntity = Entity.Empty;
 
         private static WeakReference<StapleEditor> privInstance;
@@ -252,6 +250,15 @@ namespace Staple.Editor
 
                 projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
                 projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
+
+                var iconPath = Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Icon.png");
+
+                ThumbnailCache.GetTexture(iconPath);
+
+                if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
+                {
+                    window.window.SetIcon(icon);
+                }
 
                 imgui = new ImGuiProxy();
 
@@ -461,7 +468,7 @@ namespace Staple.Editor
                 ThumbnailCache.OnFrameStart();
                 imgui.BeginFrame();
 
-                mouseIsHoveringImGui = false;
+                mouseIsHoveringImGui = true;
 
                 var viewport = ImGui.GetMainViewport();
 
@@ -552,8 +559,6 @@ namespace Staple.Editor
                             Log.Error($"Window {window.GetType().FullName} Error: {e}");
                         }
 
-                        mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
                         switch (window.windowType)
                         {
                             case EditorWindowType.Popup:
@@ -619,6 +624,20 @@ namespace Staple.Editor
                 }
 
                 imgui.EndFrame();
+
+                if (Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
+                {
+                    var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+
+                    if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
+                    {
+                        SetSelectedEntity(body.Entity);
+                    }
+                    else
+                    {
+                        SetSelectedEntity(Entity.Empty);
+                    }
+                }
             };
 
             window.OnScreenSizeChange = (hasFocus) =>

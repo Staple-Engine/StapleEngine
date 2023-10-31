@@ -32,6 +32,9 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Editor\StapleEditor.csproj" />
 	<ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
@@ -45,5 +48,6 @@
     $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net7.0/*.[DLL] $(SolutionDir)../Staging
     $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/x86_64/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
     </PostBuildEvent>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

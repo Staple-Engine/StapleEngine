@@ -174,8 +174,6 @@ namespace Staple.Editor
                 ImGui.EndMainMenuBar();
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.End();
         }
 
@@ -347,8 +345,6 @@ namespace Staple.Editor
                 ImGui.EndPopup();
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.EndChildFrame();
 
             if (ImGui.BeginDragDropTarget())
@@ -368,14 +364,14 @@ namespace Staple.Editor
                 ImGui.EndDragDropTarget();
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.End();
         }
 
         private void Viewport(ImGuiIOPtr io)
         {
             ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
+
+            mouseIsHoveringImGui = (viewportType == ViewportType.Scene && ImGui.IsItemActive()) == false;
 
             if (ImGui.BeginTabBar("Viewport Tab"))
             {
@@ -416,8 +412,6 @@ namespace Staple.Editor
                 {
                     ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(width, height));
                 }
-
-                mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
                 ImGui.End();
             }
@@ -547,8 +541,6 @@ namespace Staple.Editor
 
                             if (ImGui.IsItemClicked())
                             {
-                                mouseIsHoveringImGui = true;
-
                                 Scene.current.world.AddComponent(selectedEntity, component);
 
                                 ImGui.CloseCurrentPopup();
@@ -557,12 +549,8 @@ namespace Staple.Editor
                             }
                         }
 
-                        mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
                         ImGui.End();
                     }
-
-                    mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
                     ImGui.EndPopup();
                 }
@@ -579,11 +567,7 @@ namespace Staple.Editor
                 }
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.EndChildFrame();
-
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
 
             ImGui.End();
         }
@@ -609,8 +593,6 @@ namespace Staple.Editor
                 ImGui.EndTabBar();
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.EndChildFrame();
 
             switch (activeBottomTab)
@@ -628,14 +610,12 @@ namespace Staple.Editor
                     break;
             }
 
-            mouseIsHoveringImGui |= ImGui.IsWindowHovered();
-
             ImGui.End();
         }
 
         private void ProjectBrowser(ImGuiIOPtr io)
         {
-            mouseIsHoveringImGui |= projectBrowser.Draw(io, (item) =>
+            projectBrowser.Draw(io, (item) =>
             {
                 selectedEntity = Entity.Empty;
                 selectedProjectNode = item;

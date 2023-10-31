@@ -65,6 +65,14 @@ namespace Staple.Editor
 
             RefreshStaging(backend.platform, false);
 
+            try
+            {
+                File.Copy(Path.Combine(basePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
+            }
+            catch (Exception)
+            {
+            }
+
             lock (backgroundLock)
             {
                 progressFraction = 0.1f;

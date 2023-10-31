@@ -272,6 +272,20 @@ namespace Staple.Internal
         {
             Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Normal);
         }
+
+        public void SetIcon(RawTextureData icon)
+        {
+            unsafe
+            {
+                fixed(byte *d = icon.data)
+                {
+                    Glfw.SetWindowIcon(window, 1, new Image[]
+                    {
+                        new Image(icon.width, icon.height, (nint)d),
+                    });
+                }
+            }
+        }
     }
 }
 #endif
