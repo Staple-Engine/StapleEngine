@@ -63,7 +63,7 @@ namespace Staple
                 return;
             }
 
-            World.AddComponentAddedCallback(typeof(AudioListener), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 if(Platform.IsPlaying == false)
                 {
@@ -79,7 +79,7 @@ namespace Staple
                 };
             });
 
-            World.AddComponentAddedCallback(typeof(AudioSource), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 if (Platform.IsPlaying == false)
                 {
@@ -106,14 +106,14 @@ namespace Staple
                 });
             });
 
-            World.AddComponentRemovedCallback(typeof(AudioListener), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentRemovedCallback(typeof(AudioListener), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 var listener = component as AudioListener;
 
                 listener.audioListener = null;
             });
 
-            World.AddComponentRemovedCallback(typeof(AudioSource), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentRemovedCallback(typeof(AudioSource), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 var source = component as AudioSource;
 

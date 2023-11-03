@@ -103,13 +103,17 @@
             "y": 1.75,
             "z": 1.0
           },
-          "gravityFactor": 0.0,
-          "isTrigger": false,
-          "motionType": "Dynamic",
-          "freezeRotationX": false,
-          "freezeRotationY": false,
-          "freezeRotationZ": true,
-          "is2DPlane": true
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 0.0
+          }
         }
       },
       {
@@ -129,6 +133,18 @@
           "speed": 5.0,
           "is3D": false
         }
+      },
+      {
+        "type": "Staple.RigidBody3D",
+        "data": {
+          "motionType": "Dynamic",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": true,
+          "is2DPlane": true,
+          "gravityFactor": 0.0,
+          "isTrigger": false
+        }
       }
     ],
     "layer": "Default",
@@ -137,7 +153,7 @@
   {
     "kind": "Entity",
     "name": "Cherry",
-    "ID": 3,
+    "ID": 2,
     "parent": -1,
     "transform": {
       "position": {
@@ -197,13 +213,29 @@
             "y": 1.3125,
             "z": 1.0
           },
-          "gravityFactor": 0.0,
-          "isTrigger": false,
-          "motionType": "Static",
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 0.0
+          }
+        }
+      },
+      {
+        "type": "Staple.RigidBody3D",
+        "data": {
+          "motionType": "Dynamic",
           "freezeRotationX": false,
           "freezeRotationY": false,
           "freezeRotationZ": true,
-          "is2DPlane": true
+          "is2DPlane": true,
+          "gravityFactor": 0.0,
+          "isTrigger": false
         }
       }
     ],
@@ -213,7 +245,7 @@
   {
     "kind": "Entity",
     "name": "Camera",
-    "ID": 4,
+    "ID": 3,
     "parent": 1,
     "transform": {
       "position": {
@@ -259,7 +291,7 @@
   {
     "kind": "Entity",
     "name": "Music",
-    "ID": 5,
+    "ID": 4,
     "parent": -1,
     "transform": {
       "position": {

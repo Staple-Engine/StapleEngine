@@ -282,6 +282,71 @@ namespace Staple
         }
 
         /// <summary>
+        /// Attempts to get a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to get from</param>
+        /// <param name="component">The component instance</param>
+        /// <param name="t">The component type</param>
+        /// <returns>Whether the component was found</returns>
+        public bool TryGetComponent(Entity entity, out IComponent component, Type t)
+        {
+            if (typeof(IComponent).IsAssignableFrom(t) == false)
+            {
+                component = default;
+
+                return false;
+            }
+
+            lock (lockObject)
+            {
+                if (entity.ID < 0 ||
+                    entity.ID >= entities.Count ||
+                    entities[entity.ID].alive == false ||
+                    entities[entity.ID].generation != entity.generation)
+                {
+                    component = default;
+
+                    return false;
+                }
+
+                var componentIndex = ComponentIndex(t);
+
+                if (entities[entity.ID].components.Contains(componentIndex) == false ||
+                    componentsRepository.TryGetValue(componentIndex, out var info) == false)
+                {
+                    component = default;
+
+                    return false;
+                }
+
+                component = info.components[entity.ID];
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to get a component from an entity
+        /// </summary>
+        /// <param name="entity">The entity to get from</param>
+        /// <param name="component">The component instance</param>
+        /// <typeparam name="T">The component type</typeparam>
+        /// <returns>Whether the component was found</returns>
+        public bool TryGetComponent<T>(Entity entity, out T component) where T: IComponent
+        {
+            if(TryGetComponent(entity, out IComponent c, typeof(T)))
+            {
+                component = (T)c;
+
+                return true;
+            }
+
+            component = default;
+
+            return false;
+        }
+
+        /// <summary>
         /// Updates an entity's component.
         /// This is required if the component type is a struct.
         /// </summary>
@@ -386,7 +451,7 @@ namespace Staple
 
                         try
                         {
-                            callback?.Invoke(entity, transform, ref component);
+                            callback?.Invoke(this, entity, transform, ref component);
                         }
                         catch (Exception ex)
                         {
@@ -432,7 +497,7 @@ namespace Staple
 
                         try
                         {
-                            callback?.Invoke(entity, transform, ref component);
+                            callback?.Invoke(this, entity, transform, ref component);
                         }
                         catch (Exception e)
                         {

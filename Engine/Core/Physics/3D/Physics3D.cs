@@ -70,6 +70,16 @@ namespace Staple
 
         #region API
         /// <summary>
+        /// Creates the body for an entity based on the components it has
+        /// </summary>
+        /// <param name="entity">The entity</param>
+        /// <returns>The body, or null</returns>
+        public IBody3D CreateBody(Entity entity, World world)
+        {
+            return impl.CreateBody(entity, world);
+        }
+
+        /// <summary>
         /// Create a box body
         /// </summary>
         /// <param name="entity">The entity this belongs to</param>
@@ -303,171 +313,39 @@ namespace Staple
         #region Internal
         public void Startup()
         {
-            World.AddComponentAddedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentAddedCallback(typeof(RigidBody3D), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 if(Platform.IsPlaying == false)
                 {
                     return;
                 }
 
-                var box = (BoxCollider3D)component;
+                var rigidBody = (RigidBody3D)component;
 
-                CreateBox(entity, box.size * transform.Scale, transform.Position, transform.Rotation, box.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), box.isTrigger, box.gravityFactor,
-                    box.freezeRotationX, box.freezeRotationY, box.freezeRotationZ, box.is2DPlane, out box.body);
+                rigidBody.body = CreateBody(entity, world);
             });
 
-            World.AddComponentAddedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
+            World.AddComponentRemovedCallback(typeof(RigidBody3D), (World world, Entity entity, Transform transform, ref IComponent component) =>
             {
                 if (Platform.IsPlaying == false)
                 {
                     return;
                 }
 
-                var capsule = (CapsuleCollider3D)component;
+                var rigidBody = (RigidBody3D)component;
 
-                CreateCapsule(entity, capsule.height * transform.Scale.Y, capsule.radius * transform.Scale.X, transform.Position,
-                    transform.Rotation, capsule.motionType, (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), capsule.isTrigger,
-                    capsule.gravityFactor, capsule.freezeRotationX, capsule.freezeRotationY, capsule.freezeRotationZ, capsule.is2DPlane,
-                    out capsule.body);
-            });
+                DestroyBody(rigidBody.body);
 
-            World.AddComponentAddedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var cylinder = (CylinderCollider3D)component;
-
-                CreateCylinder(entity, cylinder.height * transform.Scale.Y, cylinder.radius * transform.Scale.X, transform.Position,
-                    transform.Rotation, cylinder.motionType, (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), cylinder.isTrigger,
-                    cylinder.gravityFactor, cylinder.freezeRotationX, cylinder.freezeRotationY, cylinder.freezeRotationZ, cylinder.is2DPlane,
-                    out cylinder.body);
-            });
-
-            World.AddComponentAddedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var mesh = (MeshCollider3D)component;
-
-                if (mesh.mesh == null)
-                {
-                    return;
-                }
-
-                CreateMesh(entity, mesh.mesh, transform.Position, transform.Rotation, mesh.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), mesh.isTrigger, mesh.gravityFactor,
-                    mesh.freezeRotationX, mesh.freezeRotationY, mesh.freezeRotationZ, mesh.is2DPlane, out mesh.body);
-            });
-
-            World.AddComponentAddedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var sphere = (SphereCollider3D)component;
-
-                CreateSphere(entity, sphere.radius * transform.Scale.X, transform.Position, transform.Rotation, sphere.motionType,
-                    (ushort)(Scene.current?.world.GetEntityLayer(entity) ?? 0), sphere.isTrigger, sphere.gravityFactor,
-                    sphere.freezeRotationX, sphere.freezeRotationY, sphere.freezeRotationZ, sphere.is2DPlane, out sphere.body);
-            });
-
-            World.AddComponentRemovedCallback(typeof(BoxCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var box = (BoxCollider3D)component;
-
-                DestroyBody(box.body);
-
-                box.body = null;
-            });
-
-            World.AddComponentRemovedCallback(typeof(CapsuleCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var capsule = (CapsuleCollider3D)component;
-
-                DestroyBody(capsule.body);
-
-                capsule.body = null;
-            });
-
-            World.AddComponentRemovedCallback(typeof(CylinderCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var cylinder = (CylinderCollider3D)component;
-
-                DestroyBody(cylinder.body);
-
-                cylinder.body = null;
-            });
-
-            World.AddComponentRemovedCallback(typeof(MeshCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var mesh = (MeshCollider3D)component;
-
-                DestroyBody(mesh.body);
-
-                mesh.body = null;
-            });
-
-            World.AddComponentRemovedCallback(typeof(SphereCollider3D), (Entity entity, Transform transform, ref IComponent component) =>
-            {
-                if (Platform.IsPlaying == false)
-                {
-                    return;
-                }
-
-                var sphere = (SphereCollider3D)component;
-
-                DestroyBody(sphere.body);
-
-                sphere.body = null;
+                rigidBody.body = null;
             });
         }
 
         public void Shutdown()
         {
-            if(Scene.current?.world != null)
+            Scene.current?.world.ForEach((Entity entity, bool enabled, ref RigidBody3D rigidBody) =>
             {
-                Scene.current.world.Iterate((entity) =>
-                {
-                    Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
-                    {
-                        if (component.GetType().IsSubclassOf(typeof(Collider3D)))
-                        {
-                            var collider = (Collider3D)component;
-
-                            DestroyBody(collider.body);
-                        }
-                    });
-                });
-            }
+                DestroyBody(rigidBody.body);
+            });
 
             impl.Destroy();
 

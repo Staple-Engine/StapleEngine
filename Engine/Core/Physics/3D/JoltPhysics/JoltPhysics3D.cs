@@ -307,7 +307,7 @@ namespace Staple
         public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
             bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            if (radius <= 0)
+            if(radius <= 0)
             {
                 throw new ArgumentException("Radius must be bigger than 0");
             }
@@ -319,12 +319,12 @@ namespace Staple
         public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
             ushort layer, bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            if (radius <= 0)
+            if(radius <= 0)
             {
                 throw new ArgumentException("Radius must be bigger than 0");
             }
 
-            if (height <= 0)
+            if(height <= 0)
             {
                 throw new ArgumentException("Height must be bigger than 0");
             }
@@ -336,12 +336,12 @@ namespace Staple
         public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
             ushort layer, bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            if (radius <= 0)
+            if(radius <= 0)
             {
                 throw new ArgumentException("Radius must be bigger than 0");
             }
 
-            if (height <= 0)
+            if(height <= 0)
             {
                 throw new ArgumentException("Height must be bigger than 0");
             }
@@ -363,7 +363,7 @@ namespace Staple
                 throw new ArgumentException("Mesh is not readable", nameof(mesh));
             }
 
-            if (mesh.IndexCount % 3 != 0)
+            if(mesh.IndexCount % 3 != 0)
             {
                 throw new ArgumentException("Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
             }
@@ -373,7 +373,7 @@ namespace Staple
                 throw new ArgumentException("Mesh doesn't have vertices", nameof(mesh));
             }
 
-            if ((mesh.indices?.Length ?? 0) == 0)
+            if((mesh.indices?.Length ?? 0) == 0)
             {
                 throw new ArgumentException("Mesh doesn't have indices", nameof(mesh));
             }
@@ -404,6 +404,179 @@ namespace Staple
         {
             return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
                 freezeX, freezeY, freezeZ, is2DPlane, out body);
+        }
+
+        public IBody3D CreateBody(Entity entity, World world)
+        {
+            var rigidBody = world.GetComponent<RigidBody3D>(entity);
+
+            if(rigidBody == null)
+            {
+                Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D component found");
+
+                return null;
+            }
+
+            var compound = new MutableCompoundShapeSettings();
+
+            var any = false;
+
+            if(world.TryGetComponent<BoxCollider3D>(entity, out var boxCollider))
+            {
+                any = true;
+
+                var extents = boxCollider.size;
+
+                if(extents.X <= 0)
+                {
+                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents X must be bigger than 0");
+                }
+
+                if (extents.Y <= 0)
+                {
+                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Y must be bigger than 0");
+                }
+
+                if (extents.Z <= 0)
+                {
+                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Z must be bigger than 0");
+                }
+
+                compound.AddShape(boxCollider.position, boxCollider.rotation, new BoxShapeSettings(extents / 2));
+            }
+
+            if(world.TryGetComponent<SphereCollider3D>(entity, out var sphereCollider))
+            {
+                any = true;
+
+                var radius = sphereCollider.radius;
+
+                if(radius <= 0)
+                {
+                    throw new ArgumentException($"SphereCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
+                }
+
+                compound.AddShape(sphereCollider.position, sphereCollider.rotation, new SphereShapeSettings(radius));
+            }
+
+            if(world.TryGetComponent<CapsuleCollider3D>(entity, out var capsuleCollider))
+            {
+                any = true;
+
+                var radius = capsuleCollider.radius;
+                var height = capsuleCollider.height;
+
+                if(radius <= 0)
+                {
+                    throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)}  Radius must be bigger than 0");
+                }
+
+                if (height <= 0)
+                {
+                    throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
+                }
+
+                compound.AddShape(capsuleCollider.position, capsuleCollider.rotation, new CapsuleShapeSettings(height / 2, radius));
+            }
+
+            if(world.TryGetComponent<CylinderCollider3D>(entity, out var cylinderCollider))
+            {
+                any = true;
+
+                var radius = cylinderCollider.radius;
+                var height = cylinderCollider.height;
+
+                if (radius <= 0)
+                {
+                    throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
+                }
+
+                if (height <= 0)
+                {
+                    throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
+                }
+
+                compound.AddShape(cylinderCollider.position, cylinderCollider.rotation, new CylinderShapeSettings(height / 2, radius));
+            }
+
+            if(world.TryGetComponent<MeshCollider3D>(entity, out var meshCollider))
+            {
+                any = true;
+
+                var mesh = meshCollider.mesh;
+
+                if (mesh is null)
+                {
+                    throw new NullReferenceException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is null");
+                }
+
+                if (mesh.isReadable == false)
+                {
+                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is not readable", nameof(mesh));
+                }
+
+                if (mesh.IndexCount % 3 != 0)
+                {
+                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
+                }
+
+                if ((mesh.vertices?.Length ?? 0) == 0)
+                {
+                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have vertices", nameof(mesh));
+                }
+
+                if ((mesh.indices?.Length ?? 0) == 0)
+                {
+                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have indices", nameof(mesh));
+                }
+
+                MeshShapeSettings settings;
+
+                unsafe
+                {
+                    var triangles = new List<IndexedTriangle>();
+                    var indices = mesh.indices;
+
+                    for (var i = 0; i < mesh.IndexCount; i += 3)
+                    {
+                        triangles.Add(new IndexedTriangle(indices[i],
+                            indices[i + 1],
+                            indices[i + 2]));
+                    }
+
+                    settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
+                }
+
+                compound.AddShape(meshCollider.position, meshCollider.rotation, settings);
+            }
+
+            if(any == false)
+            {
+                Log.Error($"[Physics3D] Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...");
+
+                return null;
+            }
+
+            if(world.TryGetComponent<Transform>(entity, out var transform))
+            {
+                if(CreateBody(entity, compound, transform.Position, transform.Rotation, GetMotionType(rigidBody.motionType),
+                    (ushort)world.GetEntityLayer(entity), rigidBody.isTrigger, rigidBody.gravityFactor,
+                    rigidBody.freezeRotationX, rigidBody.freezeRotationY, rigidBody.freezeRotationZ,
+                    rigidBody.is2DPlane, out var body))
+                {
+                    return body;
+                }
+                else
+                {
+                    Log.Error($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}");
+                }
+            }
+            else
+            {
+                Log.Error($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: Missing Transform component");
+            }
+
+            return null;
         }
 
         public void DestroyBody(IBody3D body)

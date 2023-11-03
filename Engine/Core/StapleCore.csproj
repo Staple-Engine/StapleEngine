@@ -100,6 +100,7 @@
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
+		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />

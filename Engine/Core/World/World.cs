@@ -35,7 +35,7 @@ namespace Staple
 
         public delegate void IterateComponentCallback(ref IComponent component);
 
-        public delegate void OnComponentChangedCallback(Entity entity, Transform transform, ref IComponent component);
+        public delegate void OnComponentChangedCallback(World world, Entity entity, Transform transform, ref IComponent component);
 
         /// <summary>
         /// Contains data on an entity

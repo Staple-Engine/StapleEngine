@@ -29,6 +29,14 @@ namespace Staple
         void Update(float deltaTime);
 
         /// <summary>
+        /// Creates a body for an entity
+        /// </summary>
+        /// <param name="entity">The entity to create the body for</param>
+        /// <param name="world">The world to query components of</param>
+        /// <returns>The body, or null</returns>
+        IBody3D CreateBody(Entity entity, World world);
+
+        /// <summary>
         /// Create a box body
         /// </summary>
         /// <param name="entity">The entity this belongs to</param>
