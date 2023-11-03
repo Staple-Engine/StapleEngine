@@ -18,7 +18,19 @@
 	<PropertyGroup Condition="'$(OS)' == 'OSX'">
 		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
 	</PropertyGroup>
-	
+
+	<PropertyGroup Condition="'$(STAPLE_WINDOWS)'=='true'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_LINUX)'=='true'">
+		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_OSX)'=='true'">
+		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
+	</PropertyGroup>
+
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DebugType>pdbonly</DebugType>

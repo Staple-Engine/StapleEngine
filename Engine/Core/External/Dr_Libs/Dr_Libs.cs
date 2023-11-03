@@ -6,7 +6,13 @@ namespace DrLibs
     [AdditionalLibrary(AppPlatform.Android, "dr_libs")]
     public static partial class DrMp3
     {
-#if ANDROID
+#if STAPLE_WINDOWS
+        const string DllName = "dr_libs.dll";
+#elif STAPLE_LINUX
+        const string DllName = "libdr_libs.so";
+#elif STAPLE_OSX
+        const string DllName = "libdr_libs.dylib";
+#elif ANDROID
         const string DllName = "libdr_libs.so";
 #elif WINDOWS
         const string DllName = "dr_libs.dll";
