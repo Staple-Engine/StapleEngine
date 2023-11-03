@@ -610,7 +610,7 @@ namespace Staple.Editor
 
             p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[]
             {
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", "StapleCore.dll"))
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
             });
 
             p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[]
