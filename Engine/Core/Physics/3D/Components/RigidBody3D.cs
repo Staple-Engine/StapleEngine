@@ -41,5 +41,15 @@
         /// Whether this body is a trigger (doesn't collide, detects events)
         /// </summary>
         public bool isTrigger = false;
+
+        /// <summary>
+        /// The friction factor of this body
+        /// </summary>
+        public float friction = 1;
+
+        /// <summary>
+        /// The restitution factor of this body
+        /// </summary>
+        public float restitution = 1;
     }
 }

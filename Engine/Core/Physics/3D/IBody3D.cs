@@ -46,5 +46,15 @@ namespace Staple
         /// The gravity factor (multiplier) of this body
         /// </summary>
         float GravityFactor { get; set; }
+
+        /// <summary>
+        /// The body's friction
+        /// </summary>
+        float Friction { get; set; }
+
+        /// <summary>
+        /// The body's restitution
+        /// </summary>
+        float Restitution { get; set; }
     }
 }

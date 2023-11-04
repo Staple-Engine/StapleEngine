@@ -80,8 +80,8 @@ namespace Staple.Editor
                 }
             }
 
-            if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false, 0,
-                true, true, true, false, out var body))
+            if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false,
+                0, 0, 0, true, true, true, false, out var body))
             {
                 pickEntityBodies.Add(entity, new EntityBody()
                 {

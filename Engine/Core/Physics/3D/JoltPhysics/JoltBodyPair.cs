@@ -49,54 +49,42 @@ namespace Staple
             set => body.SetAngularVelocity(value);
         }
 
+        public float Friction
+        {
+            get => body.Friction;
+
+            set => body.Friction = value;
+        }
+
+        public float Restitution
+        {
+            get => body.Restitution;
+
+            set => body.Restitution = value;
+        }
+
         public BodyMotionType MotionType
         {
             get
             {
-                switch (body.MotionType)
+                return body.MotionType switch
                 {
-                    case JoltPhysicsSharp.MotionType.Static:
-
-                        return BodyMotionType.Static;
-
-                    case JoltPhysicsSharp.MotionType.Dynamic:
-
-                        return BodyMotionType.Dynamic;
-
-                    case JoltPhysicsSharp.MotionType.Kinematic:
-
-                        return BodyMotionType.Kinematic;
-                }
-
-                throw new InvalidOperationException("Invalid Body Motion Type");
+                    JoltPhysicsSharp.MotionType.Static => BodyMotionType.Static,
+                    JoltPhysicsSharp.MotionType.Dynamic => BodyMotionType.Dynamic,
+                    JoltPhysicsSharp.MotionType.Kinematic => BodyMotionType.Kinematic,
+                    _ => throw new InvalidOperationException("Invalid Body Motion Type"),
+                };
             }
 
             set
             {
-                switch (value)
+                body.MotionType = value switch
                 {
-                    case BodyMotionType.Static:
-
-                        body.MotionType = JoltPhysicsSharp.MotionType.Static;
-
-                        break;
-
-                    case BodyMotionType.Dynamic:
-
-                        body.MotionType = JoltPhysicsSharp.MotionType.Dynamic;
-
-                        break;
-
-                    case BodyMotionType.Kinematic:
-
-                        body.MotionType = JoltPhysicsSharp.MotionType.Kinematic;
-
-                        break;
-
-                    default:
-
-                        throw new InvalidOperationException("Invalid Body Motion Type");
-                }
+                    BodyMotionType.Static => JoltPhysicsSharp.MotionType.Static,
+                    BodyMotionType.Dynamic => JoltPhysicsSharp.MotionType.Dynamic,
+                    BodyMotionType.Kinematic => JoltPhysicsSharp.MotionType.Kinematic,
+                    _ => throw new InvalidOperationException("Invalid Body Motion Type"),
+                };
             }
         }
 

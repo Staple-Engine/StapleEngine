@@ -90,6 +90,8 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="friction">The friction factor of the rigid body</param>
+        /// <param name="restitution">The restitution factor of the rigid body</param>
         /// <param name="freezeX">Whether to freeze X rotation</param>
         /// <param name="freezeY">Whether to freeze Y rotation</param>
         /// <param name="freezeZ">Whether to freeze Z rotation</param>
@@ -97,10 +99,11 @@ namespace Staple
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+            out IBody3D body)
         {
             return impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -114,6 +117,8 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="friction">The friction factor of the rigid body</param>
+        /// <param name="restitution">The restitution factor of the rigid body</param>
         /// <param name="freezeX">Whether to freeze X rotation</param>
         /// <param name="freezeY">Whether to freeze Y rotation</param>
         /// <param name="freezeZ">Whether to freeze Z rotation</param>
@@ -121,10 +126,11 @@ namespace Staple
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+            out IBody3D body)
         {
             return impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -139,17 +145,20 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="friction">The friction factor of the rigid body</param>
+        /// <param name="restitution">The restitution factor of the rigid body</param>
         /// <param name="freezeX">Whether to freeze X rotation</param>
         /// <param name="freezeY">Whether to freeze Y rotation</param>
         /// <param name="freezeZ">Whether to freeze Z rotation</param>
         /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
-        public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+            ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
+            bool is2DPlane, out IBody3D body)
         {
             return impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -164,17 +173,20 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="friction">The friction factor of the rigid body</param>
+        /// <param name="restitution">The restitution factor of the rigid body</param>
         /// <param name="freezeX">Whether to freeze X rotation</param>
         /// <param name="freezeY">Whether to freeze Y rotation</param>
         /// <param name="freezeZ">Whether to freeze Z rotation</param>
         /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
-        public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+            ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
+            bool is2DPlane, out IBody3D body)
         {
             return impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>
@@ -188,6 +200,8 @@ namespace Staple
         /// <param name="layer">The layer this body belongs to</param>
         /// <param name="isTrigger">Whether this is a trigger collider</param>
         /// <param name="gravityFactor">The gravity multiplier for the rigid body</param>
+        /// <param name="friction">The friction factor of the rigid body</param>
+        /// <param name="restitution">The restitution factor of the rigid body</param>
         /// <param name="freezeX">Whether to freeze X rotation</param>
         /// <param name="freezeY">Whether to freeze Y rotation</param>
         /// <param name="freezeZ">Whether to freeze Z rotation</param>
@@ -195,10 +209,11 @@ namespace Staple
         /// <param name="body">The body, if valid</param>
         /// <returns>Whether the body was created</returns>
         public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+            out IBody3D body)
         {
             return impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
         }
 
         /// <summary>

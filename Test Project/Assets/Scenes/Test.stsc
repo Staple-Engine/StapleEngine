@@ -143,7 +143,9 @@
           "freezeRotationZ": true,
           "is2DPlane": true,
           "gravityFactor": 0.0,
-          "isTrigger": false
+          "isTrigger": false,
+          "friction": 0.0,
+          "restitution": 0.0
         }
       }
     ],
@@ -235,7 +237,9 @@
           "freezeRotationZ": true,
           "is2DPlane": true,
           "gravityFactor": 0.0,
-          "isTrigger": false
+          "isTrigger": false,
+          "friction": 0.0,
+          "restitution": 0.0
         }
       }
     ],
