@@ -175,6 +175,8 @@ namespace Staple.Editor
 
         private bool gameLoadDisabled = false;
 
+        private bool resetSelection = false;
+
         private Entity draggedEntity = Entity.Empty;
 
         private static WeakReference<StapleEditor> privInstance;
@@ -463,6 +465,13 @@ namespace Staple.Editor
 
                     Screen.Width = window.width;
                     Screen.Height = window.height;
+                }
+
+                if(resetSelection)
+                {
+                    resetSelection = false;
+
+                    SetSelectedEntity(selectedEntity);
                 }
 
                 ThumbnailCache.OnFrameStart();

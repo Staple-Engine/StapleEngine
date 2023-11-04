@@ -231,7 +231,7 @@
       {
         "type": "Staple.RigidBody3D",
         "data": {
-          "motionType": "Dynamic",
+          "motionType": "Static",
           "freezeRotationX": false,
           "freezeRotationY": false,
           "freezeRotationZ": true,

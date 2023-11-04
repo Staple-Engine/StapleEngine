@@ -490,6 +490,8 @@ namespace Staple.Editor
                             {
                                 Scene.current.world.RemoveComponent(selectedEntity, component.GetType());
 
+                                resetSelection = true;
+
                                 ImGui.TreePop();
 
                                 return;
@@ -542,6 +544,8 @@ namespace Staple.Editor
                             if (ImGui.IsItemClicked())
                             {
                                 Scene.current.world.AddComponent(selectedEntity, component);
+
+                                resetSelection = true;
 
                                 ImGui.CloseCurrentPopup();
 

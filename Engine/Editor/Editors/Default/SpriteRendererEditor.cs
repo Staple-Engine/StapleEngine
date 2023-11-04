@@ -64,6 +64,15 @@ namespace Staple.Editor
                 case nameof(SpriteRenderer.spriteIndex):
 
                     return true;
+
+                case nameof(SpriteRenderer.material):
+
+                    if(renderer.material == null)
+                    {
+                        renderer.material = ResourceManager.instance.LoadMaterial("Materials/Sprite.mat");
+                    }
+
+                    return false;
             }
 
             return false;
