@@ -36,6 +36,15 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "TiledCS"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"TiledCS/**.cs"
+	}
+
 project "NAudio"
 	kind "SharedLib"
 	language "C#"
