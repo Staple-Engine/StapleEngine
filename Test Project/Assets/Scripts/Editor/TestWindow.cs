@@ -14,6 +14,11 @@ namespace TestGame
 		
 		public override void OnGUI()
 		{
+			if(EditorGUI.Button("X"))
+			{
+				Close();
+			}
+
 			EditorGUI.Label("Test Window from game!");
 		}
 	}
