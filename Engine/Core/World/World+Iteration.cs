@@ -388,7 +388,7 @@ namespace Staple
         /// Gets an entity by ID
         /// </summary>
         /// <param name="ID">The entity's ID</param>
-        /// <returns>An Entity of the entity if valid, or Entity.Empty</returns>
+        /// <returns>The entity if valid, or Entity.Empty</returns>
         public Entity FindEntity(int ID)
         {
             lock (lockObject)
@@ -411,6 +411,81 @@ namespace Staple
                     generation = e.generation,
                 };
             }
+        }
+
+        /// <summary>
+        /// Attempts to find an entity by name
+        /// </summary>
+        /// <param name="name">The entity's name</param>
+        /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
+        /// <returns>The entity if valid, or Entity.Empty</returns>
+        public Entity FindEntity(string name, bool allowDisabled = false)
+        {
+            lock(lockObject)
+            {
+                foreach(var pair in entities)
+                {
+                    if(pair.alive == false || (pair.enabled == false && allowDisabled == false))
+                    {
+                        continue;
+                    }
+
+                    if(pair.name == name)
+                    {
+                        return new Entity()
+                        {
+                            ID = pair.ID,
+                            generation = pair.generation,
+                        };
+                    }
+                }
+            }
+
+            return Entity.Empty;
+        }
+
+        /// <summary>
+        /// Attempts to find an entity and get a specific component
+        /// </summary>
+        /// <param name="name">The entity's name</param>
+        /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
+        /// <param name="componentType">The component's type</param>
+        /// <param name="component">The returned component if successful</param>
+        /// <returns>Whether the entity and component were found</returns>
+        public bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out IComponent component)
+        {
+            var e = FindEntity(name, allowDisabled);
+
+            if(e == Entity.Empty)
+            {
+                component = default;
+
+                return false;
+            }
+
+            return TryGetComponent(e, out component, componentType);
+        }
+
+        /// <summary>
+        /// Attempts to find an entity and get a specific component
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The entity's name</param>
+        /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
+        /// <param name="component">The returned component if successful</param>
+        /// <returns>Whether the entity and component were found</returns>
+        public bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T: IComponent
+        {
+            var e = FindEntity(name, allowDisabled);
+
+            if (e == Entity.Empty)
+            {
+                component = default;
+
+                return false;
+            }
+
+            return TryGetComponent(e, out component);
         }
 
         /// <summary>

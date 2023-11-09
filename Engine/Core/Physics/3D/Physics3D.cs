@@ -30,19 +30,21 @@ namespace Staple
 
         public static readonly byte Priority = 2;
 
-        public delegate void OnBodyActivated(IBody3D body);
-        public delegate void OnBodyDeactivated(IBody3D body);
-        public delegate void OnContactAdded(IBody3D self, IBody3D other);
-        public delegate void OnContactPersisted(IBody3D self, IBody3D other);
+        public delegate void OnBodyActivated3D(IBody3D body);
+        public delegate void OnBodyDeactivated3D(IBody3D body);
+        public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
+        public delegate void OnContactPersisted3D(IBody3D self, IBody3D other);
+        public delegate bool OnContactValidate3D(IBody3D self, IBody3D other);
 
         private IPhysics3D impl;
 
         private static readonly Vector3 DefaultGravity = new(0, -9.8f, 0);
 
-        public static event OnBodyActivated onBodyActivated;
-        public static event OnBodyDeactivated onBodyDeactivated;
-        public static event OnContactAdded onContactAdded;
-        public static event OnContactPersisted onContactPersisted;
+        public static event OnBodyActivated3D onBodyActivated;
+        public static event OnBodyDeactivated3D onBodyDeactivated;
+        public static event OnContactAdded3D onContactAdded;
+        public static event OnContactPersisted3D onContactPersisted;
+        public static event OnContactValidate3D onContactValidate;
 
         /// <summary>
         /// Whether this has been destroyed
@@ -390,6 +392,11 @@ namespace Staple
         internal static void ContactPersisted(IBody3D A, IBody3D B)
         {
             onContactPersisted?.Invoke(A, B);
+        }
+
+        internal static bool ContactValidate(IBody3D A, IBody3D B)
+        {
+            return onContactValidate?.Invoke(A, B) ?? true;
         }
         #endregion
     }

@@ -88,6 +88,7 @@ namespace Staple
             physicsSystem.OnContactAdded += OnContactAdded;
             physicsSystem.OnContactRemoved += OnContactRemoved;
             physicsSystem.OnContactPersisted += OnContactPersisted;
+            physicsSystem.OnContactValidate += OnContactValidate;
         }
 
         public void Destroy()
@@ -155,6 +156,19 @@ namespace Staple
 
         private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
         {
+        }
+
+        private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
+        {
+            if(TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
+            {
+                if(Physics3D.ContactValidate(b1, b2) == false)
+                {
+                    return ValidateResult.RejectContact;
+                }
+            }
+
+            return ValidateResult.AcceptContact;
         }
 
         private void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
