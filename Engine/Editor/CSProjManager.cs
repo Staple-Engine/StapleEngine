@@ -23,11 +23,11 @@ namespace Staple.Editor
 
         private readonly Dictionary<AppPlatform, string> platformFramework = new()
         {
-            { AppPlatform.Windows, "net7.0" },
-            { AppPlatform.Linux, "net7.0" },
-            { AppPlatform.MacOSX, "net7.0" },
-            { AppPlatform.Android, "net7.0-android" },
-            { AppPlatform.iOS, "net7.0-ios" },
+            { AppPlatform.Windows, "net8.0" },
+            { AppPlatform.Linux, "net8.0" },
+            { AppPlatform.MacOSX, "net8.0" },
+            { AppPlatform.Android, "net8.0-android" },
+            { AppPlatform.iOS, "net8.0-ios" },
         };
 
         public string basePath;
@@ -132,7 +132,7 @@ namespace Staple.Editor
             var projectProperties = new Dictionary<string, string>()
             {
                 { "OutputType", "Library" },
-                { "TargetFramework", "net7.0" },
+                { "TargetFramework", "net8.0" },
                 { "StripSymbols", "true" },
                 { "PublishAOT", "true" },
                 { "IsAOTCompatible", "true" },

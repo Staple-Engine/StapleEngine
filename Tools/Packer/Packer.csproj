@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -26,10 +26,10 @@
   </PropertyGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Reference Include="MessagePack">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
     </Reference>
 	<Reference Include="StapleCore">
-	  <HintPath>..\..\Engine\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+	  <HintPath>..\..\Engine\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -37,10 +37,10 @@
       <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="MessagePack">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net7.0\MessagePack.dll</HintPath>
+      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
     </Reference>
 	<Reference Include="StapleCore">
-	  <HintPath>..\..\Engine\Core\bin\Release\net7.0\StapleCore.dll</HintPath>
+	  <HintPath>..\..\Engine\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -48,7 +48,7 @@
     <Compile Include="Packer.cs" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy  $(SolutionDir)\Packer\bin\Debug\net7.0\*.exe $(SolutionDir)\bin
-$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy  $(SolutionDir)\Packer\bin\Debug\net8.0\*.exe $(SolutionDir)\bin
+$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin</PostBuildEvent>
   </PropertyGroup>
 </Project>

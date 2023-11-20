@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -44,15 +44,15 @@
   </ItemGroup>
   <ItemGroup>
 	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net7.0\StapleCore.dll</HintPath>
+		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)Player/bin/$(Configuration)/net7.0/Player* $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)Core/bin/$(Configuration)/net7.0/StapleCore.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/$(Configuration)/net7.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net7.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/x86_64/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)Player/bin/$(Configuration)/net8.0/Player* $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)Core/bin/$(Configuration)/net8.0/StapleCore.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/x86_64/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

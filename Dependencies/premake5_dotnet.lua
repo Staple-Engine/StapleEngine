@@ -11,7 +11,7 @@ local GLFWNET_DIR = "glfw-net"
 solution "Dependencies_Dotnet"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	dotnetframework "net7.0"
+	dotnetframework "net8.0"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"
