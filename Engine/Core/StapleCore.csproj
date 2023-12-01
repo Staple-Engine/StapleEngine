@@ -237,6 +237,8 @@
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
+		<Compile Include="Utilities\ObservableBox.cs" />
+		<Compile Include="Utilities\ObservableManager.cs" />
 		<Compile Include="Utilities\Threading.cs" />
 		<Compile Include="Utilities\TypeCache.cs" />
 		<Compile Include="World\World+Components.cs" />
