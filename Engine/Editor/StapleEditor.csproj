@@ -71,6 +71,7 @@
     <Compile Include="Editors\Default\FolderAssetEditor.cs" />
     <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />
     <Compile Include="Editors\Assets\StapleAssetEditor.cs" />
+    <Compile Include="Editors\Default\MaterialEditor.cs" />
     <Compile Include="Editors\Default\MeshAssetEditor.cs" />
     <Compile Include="Editors\Default\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />

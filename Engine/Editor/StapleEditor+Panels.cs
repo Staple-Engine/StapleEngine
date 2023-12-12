@@ -718,8 +718,23 @@ namespace Staple.Editor
                     {
                         try
                         {
-                            original = JsonConvert.DeserializeObject<MaterialMetadata>(data);
-                            selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(data);
+                            var d = File.ReadAllText(item.path);
+
+                            original = JsonConvert.DeserializeObject<MaterialMetadata>(d);
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(d);
+
+                            if (original != null && selectedProjectNodeData != null)
+                            {
+                                var editor = new MaterialEditor()
+                                {
+                                    original = original as MaterialMetadata,
+                                    path = item.path,
+                                    cachePath = cachePath,
+                                    target = selectedProjectNodeData,
+                                };
+
+                                cachedEditors.Add("", editor);
+                            }
                         }
                         catch (Exception)
                         {

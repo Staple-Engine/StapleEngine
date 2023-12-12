@@ -260,6 +260,18 @@ namespace Staple.Editor
 
                 pendingObjectPickers.Remove(key);
 
+                if(current is string)
+                {
+                    if(current is IPathAsset p)
+                    {
+                        return p.Path;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
                 return newValue;
             }
 
