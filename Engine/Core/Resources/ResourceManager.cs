@@ -943,14 +943,39 @@ namespace Staple.Internal
 
             var asset = LoadMeshAsset(path);
 
-            if(asset == null)
+            if(asset == null || asset.meshes.Count == 0)
             {
                 return null;
             }
 
-            //TODO
+            mesh = new Mesh(true, false)
+            {
+                Path = path
+            };
 
-            return null;
+            if (asset.meshes.Count == 1)
+            {
+                var m = asset.meshes.FirstOrDefault();
+
+                mesh.vertices = m.vertices.ToArray();
+                mesh.normals = m.normals.ToArray();
+                mesh.tangents = m.tangents.ToArray();
+                mesh.bitangents = m.bitangents.ToArray();
+                mesh.indices = m.indices.ToArray();
+                mesh.meshTopology = m.topology;
+                mesh.indexFormat = MeshIndexFormat.UInt32;
+
+                if(m.colors.Count > 0)
+                {
+                    mesh.colors = m.colors.ToArray();
+                }
+
+                mesh.changed = true;
+            }
+
+            cachedMeshes.AddOrSetKey(path, mesh);
+
+            return mesh;
         }
 
         /// <summary>
@@ -998,11 +1023,12 @@ namespace Staple.Internal
                     return null;
                 }
 
-                var asset = new MeshAsset();
+                var asset = new MeshAsset
+                {
+                    materialCount = meshAssetData.materialCount
+                };
 
-                asset.materialCount = meshAssetData.materialCount;
-
-                foreach(var m in meshAssetData.meshes)
+                foreach (var m in meshAssetData.meshes)
                 {
                     var newMesh = new MeshAsset.MeshInfo()
                     {
@@ -1020,6 +1046,7 @@ namespace Staple.Internal
                         tangents = m.tangents.Select(x => x.ToVector3()).ToList(),
                         bitangents = m.bitangents.Select(x => x.ToVector3()).ToList(),
                         bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
+                        indices = m.indices,
                     };
 
                     asset.meshes.Add(newMesh);

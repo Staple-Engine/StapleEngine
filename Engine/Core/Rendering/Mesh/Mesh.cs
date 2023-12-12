@@ -154,16 +154,16 @@ namespace Staple
         /// Getting depends on isReadable.
         /// Note: When setting, must have the same size as the current vertices.
         /// </summary>
-        public Vector4[] Tangents
+        public Vector3[] Tangents
         {
             get
             {
                 if (isReadable == false)
                 {
-                    return new Vector4[0];
+                    return new Vector3[0];
                 }
 
-                return tangents ?? new Vector4[0];
+                return tangents ?? new Vector3[0];
             }
 
             set
@@ -179,6 +179,40 @@ namespace Staple
                 }
 
                 tangents = value;
+                changed = true;
+            }
+        }
+
+        /// <summary>
+        /// Sets or gets the current bitangents.
+        /// Getting depends on isReadable.
+        /// Note: When setting, must have the same size as the current vertices.
+        /// </summary>
+        public Vector3[] Bitangents
+        {
+            get
+            {
+                if (isReadable == false)
+                {
+                    return new Vector3[0];
+                }
+
+                return bitangents ?? new Vector3[0];
+            }
+
+            set
+            {
+                if (isWritable == false)
+                {
+                    return;
+                }
+
+                if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+                {
+                    throw new ArgumentException("Array length should match vertices length");
+                }
+
+                bitangents = value;
                 changed = true;
             }
         }

@@ -119,6 +119,25 @@ namespace Staple.Internal
         [Key(3)]
         public float w;
 
+        public Vector4Holder()
+        {
+        }
+
+        public Vector4Holder(Vector3 v)
+        {
+            x = v.X;
+            y = v.Y;
+            z = v.Z;
+        }
+
+        public Vector4Holder(Vector4 v)
+        {
+            x = v.X;
+            y = v.Y;
+            z = v.Z;
+            w = v.W;
+        }
+
         public Vector4 ToVector4()
         {
             return new Vector4(x, y, z, w);

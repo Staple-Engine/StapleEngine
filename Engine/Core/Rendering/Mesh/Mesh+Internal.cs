@@ -12,8 +12,8 @@ namespace Staple
         internal bool changed;
         internal Vector3[] vertices;
         internal Vector3[] normals;
-        internal Vector4[] tangents;
-        internal Vector4[] bitangents;
+        internal Vector3[] tangents;
+        internal Vector3[] bitangents;
         internal Color[] colors;
         internal Color32[] colors32;
         internal Vector2[] uv;
@@ -349,7 +349,6 @@ namespace Staple
                     Copy(BitConverter.GetBytes(tangents[i].X), ref index);
                     Copy(BitConverter.GetBytes(tangents[i].Y), ref index);
                     Copy(BitConverter.GetBytes(tangents[i].Z), ref index);
-                    Copy(BitConverter.GetBytes(tangents[i].W), ref index);
                 }
 
                 if (HasBitangents)
@@ -357,7 +356,6 @@ namespace Staple
                     Copy(BitConverter.GetBytes(bitangents[i].X), ref index);
                     Copy(BitConverter.GetBytes(bitangents[i].Y), ref index);
                     Copy(BitConverter.GetBytes(bitangents[i].Z), ref index);
-                    Copy(BitConverter.GetBytes(bitangents[i].W), ref index);
                 }
 
                 if(HasColors)

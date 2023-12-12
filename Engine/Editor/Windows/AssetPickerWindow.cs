@@ -152,6 +152,26 @@ namespace Staple.Editor
 
                             break;
 
+                        case ProjectBrowserResourceType.Mesh:
+
+                            try
+                            {
+                                var mesh = ResourceManager.instance.LoadMesh(cachePath);
+
+                                if (mesh != null)
+                                {
+                                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                    {
+                                        EditorGUI.pendingObjectPickers[assetPickerKey] = mesh;
+                                    }
+                                }
+                            }
+                            catch (System.Exception)
+                            {
+                            }
+
+                            break;
+
                         case ProjectBrowserResourceType.Asset:
 
                             try

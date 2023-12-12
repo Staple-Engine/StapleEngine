@@ -130,9 +130,12 @@ namespace Staple.Internal
         public List<Vector3Holder> bitangents = new();
 
         [Key(8)]
-        public Vector3Holder boundsCenter;
+        public List<int> indices = new();
 
         [Key(9)]
+        public Vector3Holder boundsCenter;
+
+        [Key(10)]
         public Vector3Holder boundsExtents;
     }
 

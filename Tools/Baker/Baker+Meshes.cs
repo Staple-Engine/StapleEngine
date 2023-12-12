@@ -59,7 +59,7 @@ namespace Baker
                 var guid = FindGuid<MeshAsset>(meshFiles[i]);
 
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(meshFiles[i]));
-                var file = Path.GetFileName(meshFiles[i]);
+                var file = Path.GetFileName(meshFiles[i]).Replace(".meta", "");
                 var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
                 var index = outputFile.IndexOf(inputPath);
@@ -67,6 +67,12 @@ namespace Baker
                 if (index >= 0 && index < outputFile.Length)
                 {
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+                }
+
+                if (ShouldProcessFile(meshFiles[i], outputFile) == false &&
+                    ShouldProcessFile(meshFiles[i].Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
+                {
+                    continue;
                 }
 
                 Console.WriteLine($"\t\t -> {outputFile}");
@@ -214,6 +220,7 @@ namespace Baker
                     m.normals = mesh.Normals.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
                     m.tangents = mesh.Tangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
                     m.bitangents = mesh.BiTangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
+                    m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
 
                     meshData.meshes.Add(m);
                 }
