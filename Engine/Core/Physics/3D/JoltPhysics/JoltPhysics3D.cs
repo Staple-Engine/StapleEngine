@@ -10,6 +10,8 @@ namespace Staple
     /// </summary>
     internal class JoltPhysics3D : IPhysics3D
     {
+        public const float MinExtents = 0.2f;
+
         private const int AllocatorSize = 10 * 1024 * 1024;
 
         private const uint MaxBodies = 1024;
@@ -311,9 +313,9 @@ namespace Staple
         public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
             bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
         {
-            if(extents.X <= 0 || extents.Y <= 0 || extents.Z <= 0)
+            if(extents.X < MinExtents || extents.Y < MinExtents || extents.Z < MinExtents)
             {
-                throw new ArgumentException("Extents must be bigger than 0");
+                throw new ArgumentException($"Extents must be bigger or equal to {MinExtents}");
             }
 
             return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,

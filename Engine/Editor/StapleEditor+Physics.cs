@@ -60,23 +60,25 @@ namespace Staple.Editor
 
             var extents = bounds.extents;
 
-            var needsBoundsFix = extents.X <= 0 || extents.Y <= 0 || extents.Z <= 0;
+            var needsBoundsFix = extents.X < JoltPhysics3D.MinExtents ||
+                extents.Y < JoltPhysics3D.MinExtents ||
+                extents.Z < JoltPhysics3D.MinExtents;
 
             if(needsBoundsFix)
             {
-                if(extents.X <= 0)
+                if(extents.X < JoltPhysics3D.MinExtents)
                 {
-                    extents.X = 1.0f;
+                    extents.X = JoltPhysics3D.MinExtents;
                 }
 
-                if (extents.Y <= 0)
+                if (extents.Y < JoltPhysics3D.MinExtents)
                 {
-                    extents.Y = 1.0f;
+                    extents.Y = JoltPhysics3D.MinExtents;
                 }
 
-                if (extents.Z <= 0)
+                if (extents.Z < JoltPhysics3D.MinExtents)
                 {
-                    extents.Z = 1.0f;
+                    extents.Z = JoltPhysics3D.MinExtents;
                 }
             }
 
