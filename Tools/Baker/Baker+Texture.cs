@@ -158,6 +158,13 @@ namespace Baker
                     continue;
                 }
 
+                if(textureData == null)
+                {
+                    Console.WriteLine($"\t\tFailed to load image data");
+
+                    continue;
+                }
+
                 var scale = 1.0f;
 
                 if (textureData.width > maxSize || textureData.height > maxSize)

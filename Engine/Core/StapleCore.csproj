@@ -113,6 +113,7 @@
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
+		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
@@ -234,9 +235,11 @@
 		<Compile Include="Serialization\Audio\AudioClipMetadata.cs" />
 		<Compile Include="Serialization\Audio\SerializableAudioClip.cs" />
 		<Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
+		<Compile Include="Serialization\MeshAsset\SerializableMeshAsset.cs" />
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
+		<Compile Include="Utilities\GuidGenerator.cs" />
 		<Compile Include="Utilities\ObservableBox.cs" />
 		<Compile Include="Utilities\ObservableManager.cs" />
 		<Compile Include="Utilities\Threading.cs" />

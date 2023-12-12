@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using SharpFont.Fnt;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -28,6 +29,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, Shader> cachedShaders = new();
         private readonly Dictionary<string, Mesh> cachedMeshes = new();
         private readonly Dictionary<string, AudioClip> cachedAudioClips = new();
+        private readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
         private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         private readonly Dictionary<string, ResourcePak> resourcePaks = new();
         internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
@@ -934,7 +936,105 @@ namespace Staple.Internal
                 return Mesh.GetDefaultMesh(path);
             }
 
+            if (cachedMeshes.TryGetValue(path, out var mesh) && mesh != null)
+            {
+                return mesh;
+            }
+
+            var asset = LoadMeshAsset(path);
+
+            if(asset == null)
+            {
+                return null;
+            }
+
+            //TODO
+
             return null;
+        }
+
+        /// <summary>
+        /// Attempts to load a mesh asset from a path
+        /// </summary>
+        /// <param name="path">The path to the mesh asset file</param>
+        /// <returns>The mesh asset, or null</returns>
+        public MeshAsset LoadMeshAsset(string path)
+        {
+            if (cachedMeshAssets.TryGetValue(path, out var mesh) && mesh != null)
+            {
+                return mesh;
+            }
+
+            var data = LoadFile(path);
+
+            if (data == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}");
+
+                return null;
+            }
+
+            using var stream = new MemoryStream(data);
+
+            try
+            {
+                var header = MessagePackSerializer.Deserialize<SerializableMeshAssetHeader>(stream);
+
+                if (header == null ||
+                    header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) == false ||
+                    header.version != SerializableMeshAssetHeader.ValidVersion)
+                {
+                    Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid header");
+
+                    return null;
+                }
+
+                var meshAssetData = MessagePackSerializer.Deserialize<SerializableMeshAsset>(stream);
+
+                if (meshAssetData == null)
+                {
+                    Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid mesh asset data");
+
+                    return null;
+                }
+
+                var asset = new MeshAsset();
+
+                asset.materialCount = meshAssetData.materialCount;
+
+                foreach(var m in meshAssetData.meshes)
+                {
+                    var newMesh = new MeshAsset.MeshInfo()
+                    {
+                        name = m.name,
+                        materialIndex = m.materialIndex,
+                        topology = m.topology,
+                        vertices = m.vertices.Select(x => x.ToVector3()).ToList(),
+                        normals = m.normals.Select(x => x.ToVector3()).ToList(),
+                        colors = m.colors.Select(x =>
+                        {
+                            var v = x.ToVector4();
+
+                            return new Color(v.X, v.Y, v.Z, v.W);
+                        }).ToList(),
+                        tangents = m.tangents.Select(x => x.ToVector3()).ToList(),
+                        bitangents = m.bitangents.Select(x => x.ToVector3()).ToList(),
+                        bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
+                    };
+
+                    asset.meshes.Add(newMesh);
+                }
+
+                cachedMeshAssets.AddOrSetKey(path, asset);
+
+                return asset;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: {e}");
+
+                return null;
+            }
         }
 
         /// <summary>

@@ -8,6 +8,7 @@
         Scene,
         Asset,
         Audio,
+        Mesh,
         Other
     }
 }

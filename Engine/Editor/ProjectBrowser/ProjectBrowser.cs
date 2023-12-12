@@ -26,6 +26,7 @@ namespace Staple.Editor
             { ".mp3", ProjectBrowserResourceType.Audio },
             { ".ogg", ProjectBrowserResourceType.Audio },
             { ".wav", ProjectBrowserResourceType.Audio },
+            { ".fbx", ProjectBrowserResourceType.Mesh },
         };
 
         public const float contentPanelThumbnailSize = 64;
@@ -190,6 +191,12 @@ namespace Staple.Editor
                             case ProjectBrowserResourceType.Audio:
 
                                 node.typeName = typeof(AudioClip).FullName;
+
+                                break;
+
+                            case ProjectBrowserResourceType.Mesh:
+
+                                node.typeName = typeof(Mesh).FullName;
 
                                 break;
 
@@ -400,6 +407,33 @@ namespace Staple.Editor
                                             {
                                                 guid = Hash(),
                                                 typeName = typeof(Scene).FullName,
+                                            },
+                                            Formatting.Indented, new JsonSerializerSettings()
+                                            {
+                                                Converters =
+                                                {
+                                                    new StringEnumConverter(),
+                                                }
+                                            });
+
+                                            File.WriteAllText($"{node.path}.meta", jsonData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    break;
+
+                                case ProjectBrowserResourceType.Mesh:
+
+                                    try
+                                    {
+                                        if (File.Exists($"{node.path}.meta") == false)
+                                        {
+                                            var jsonData = JsonConvert.SerializeObject(new MeshAssetMetadata()
+                                            {
+                                                guid = Hash(),
                                             },
                                             Formatting.Indented, new JsonSerializerSettings()
                                             {

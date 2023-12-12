@@ -12,6 +12,11 @@ namespace Baker
 {
     static partial class Program
     {
+        private static string[] meshExtensions = new string[]
+        {
+            "fbx",
+        };
+
         private static string[] textureExtensions = new string[]
         {
             "bmp",
@@ -314,6 +319,7 @@ namespace Baker
             ProcessMaterials(platform, inputPath, outputPath);
             ProcessScenes(platform, inputPath, outputPath, editorMode);
             ProcessAudio(platform, inputPath, outputPath);
+            ProcessMeshes(platform, inputPath, outputPath);
             ProcessAssets(platform, inputPath, outputPath);
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }

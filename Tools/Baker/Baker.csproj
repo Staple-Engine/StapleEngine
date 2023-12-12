@@ -39,6 +39,7 @@
 		<Compile Include="Baker+Assets.cs" />
 		<Compile Include="Baker+Audio.cs" />
 		<Compile Include="Baker+Material.cs" />
+		<Compile Include="Baker+Meshes.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />
 		<Compile Include="Baker+Texture.cs" />
@@ -49,6 +50,9 @@
 		<Compile Include="ShaderParameterSemantic.cs" />
 		<Compile Include="ShaderPiece.cs" />
 		<Compile Include="UnprocessedShader.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="StirlingLabs.Assimp.Net" Version="23.4.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Newtonsoft.Json">

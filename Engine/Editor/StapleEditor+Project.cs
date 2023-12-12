@@ -206,6 +206,7 @@ namespace Staple.Editor
                 {
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Environment.CurrentDirectory
                 };
@@ -239,6 +240,19 @@ namespace Staple.Editor
                         {
                             break;
                         }
+                    }
+
+                    var all = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+
+                    if(all != null && all.Length > 0)
+                    {
+                        Log.Info(all);
+                    }
+
+                    if(error != null && error.Length > 0)
+                    {
+                        Log.Error(error);
                     }
                 }
 

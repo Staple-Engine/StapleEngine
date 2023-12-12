@@ -690,6 +690,30 @@ namespace Staple.Editor
                             editor.UpdatePreview();
                         }
                     }
+                    else if (item.typeName == typeof(Mesh).FullName)
+                    {
+                        try
+                        {
+                            original = JsonConvert.DeserializeObject<MeshAssetMetadata>(data);
+                            selectedProjectNodeData = JsonConvert.DeserializeObject<MeshAssetMetadata>(data);
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        if (original != null && selectedProjectNodeData != null)
+                        {
+                            var editor = new MeshAssetEditor()
+                            {
+                                original = original as MeshAssetMetadata,
+                                path = $"{item.path}.meta",
+                                cachePath = cachePath,
+                                target = selectedProjectNodeData,
+                            };
+
+                            cachedEditors.Add("", editor);
+                        }
+                    }
                     else if (item.typeName == typeof(Material).FullName)
                     {
                         try
