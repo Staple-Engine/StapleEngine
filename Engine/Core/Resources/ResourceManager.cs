@@ -269,7 +269,7 @@ namespace Staple.Internal
 
                 if(localPath != null)
                 {
-                    pakPath = localPath;
+                    pakPath = path = localPath;
                 }
             }
 

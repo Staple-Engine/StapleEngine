@@ -21,8 +21,8 @@ namespace Staple.Editor
                 projectBrowser.basePath =
                 Path.GetFullPath(path);
 
-            AssetDatabase.assetPaths.Clear();
-            AssetDatabase.assetPaths.Add(basePath);
+            AssetDatabase.assetDirectories.Clear();
+            AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
 
             csProjManager.stapleBasePath = StapleBasePath;
 

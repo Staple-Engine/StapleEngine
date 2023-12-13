@@ -7,6 +7,9 @@ using Staple.Internal;
 
 namespace Staple
 {
+    /// <summary>
+    /// Asset Database containing data on each asset in a project
+    /// </summary>
     public static class AssetDatabase
     {
         public class AssetInfo
@@ -24,21 +27,29 @@ namespace Staple
 
         internal static readonly List<AssetInfo> assets = new();
 
-        internal static List<string> assetPaths = new();
+        internal static List<string> assetDirectories = new();
 
+        /// <summary>
+        /// Callback to resolve asset paths, if needed.
+        /// </summary>
+        public static Func<string, string> assetPathResolver;
+
+        /// <summary>
+        /// Reloads the asset database. This will scan all files in resource paks and any additional directories in `assetDirectories`.
+        /// </summary>
         public static void Reload()
         {
             assets.Clear();
 
-            var files = Array.Empty<string>();
+            var files = new Dictionary<string, string[]>();
 
-            foreach(var path in assetPaths)
+            foreach(var path in assetDirectories)
             {
                 try
                 {
-                    files = Directory.GetFiles(path, "*.meta", SearchOption.AllDirectories)
+                    files.Add(path, Directory.GetFiles(path, "*.meta", SearchOption.AllDirectories)
                         .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
-                        .ToArray();
+                        .ToArray());
                 }
                 catch (Exception)
                 {
@@ -96,58 +107,96 @@ namespace Staple
                 }
             }
 
-            foreach (var file in files)
+            foreach (var pair in files)
             {
-                try
+                foreach(var file in pair.Value)
                 {
-                    var text = File.ReadAllText(file);
-
-                    var holder = JsonSerializer.Deserialize(text, AssetHolderSerializationContext.Default.AssetHolder);
-
-                    if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
+                    try
                     {
-                        if (assets.Any(x => x.guid == holder.guid))
-                        {
-                            Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
+                        var text = File.ReadAllText(file);
 
-                            continue;
+                        var holder = JsonSerializer.Deserialize(text, AssetHolderSerializationContext.Default.AssetHolder);
+
+                        if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
+                        {
+                            if (assets.Any(x => x.guid == holder.guid))
+                            {
+                                Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
+
+                                continue;
+                            }
+
+                            assets.Add(new AssetInfo()
+                            {
+                                guid = holder.guid,
+                                name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
+                                path = file.Replace($"{pair.Key}{Path.DirectorySeparatorChar}", "").Replace("\\", "/").Replace(".meta", ""),
+                                typeName = holder.typeName,
+                            });
                         }
-
-                        assets.Add(new AssetInfo()
-                        {
-                            guid = holder.guid,
-                            name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
-                            path = file.Replace(".meta", ""),
-                            typeName = holder.typeName,
-                        });
                     }
-                }
-                catch (Exception e)
-                {
-                    Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping... (Exception: {e})");
+                    catch (Exception e)
+                    {
+                        Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping... (Exception: {e})");
 
-                    continue;
+                        continue;
+                    }
                 }
             }
 
             Log.Info($"[AssetDatabase] Reloaded Asset Database with {assets.Count} assets");
         }
 
+        /// <summary>
+        /// Gets the path to an asset by guid
+        /// </summary>
+        /// <param name="guid">The asset guid</param>
+        /// <returns>The path or null</returns>
         public static string GetAssetPath(string guid)
         {
-            return assets.FirstOrDefault(x => x.guid == guid)?.path;
+            var path = assets.FirstOrDefault(x => x.guid == guid)?.path;
+
+            if(path == null)
+            {
+                return null;
+            }
+
+            return assetPathResolver?.Invoke(path) ?? path;
         }
 
+        /// <summary>
+        /// Gets the path to an asset by guid and filtering for a specific prefix. This is important for shaders.
+        /// </summary>
+        /// <param name="guid">The asset guid</param>
+        /// <param name="prefix">The prefix to search for</param>
+        /// <returns>The path or null</returns>
         public static string GetAssetPath(string guid, string prefix)
         {
-            return assets.FirstOrDefault(x => x.guid == guid && x.path.StartsWith(prefix))?.path;
+            var path = assets.FirstOrDefault(x => x.guid == guid && x.path.StartsWith(prefix))?.path;
+
+            if (path == null)
+            {
+                return null;
+            }
+
+            return assetPathResolver?.Invoke(path) ?? path;
         }
 
+        /// <summary>
+        /// Gets the name for an asset for a guid
+        /// </summary>
+        /// <param name="guid">The asset guid</param>
+        /// <returns>The name or null</returns>
         public static string GetAssetName(string guid)
         {
             return assets.FirstOrDefault(x => x.guid == guid)?.name;
         }
 
+        /// <summary>
+        /// Gets an asset guid for a path
+        /// </summary>
+        /// <param name="path">The path for the asset</param>
+        /// <returns>The guid or null</returns>
         public static string GetAssetGuid(string path)
         {
             return assets.FirstOrDefault(x => x.path == path)?.guid;
