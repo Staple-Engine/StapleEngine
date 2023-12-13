@@ -47,11 +47,21 @@ namespace Staple.Editor
                             case MaterialParameterType.Texture:
 
                                 {
-                                    var key = $"{parameter.Key}|{parameter.Value.textureValue}";
+                                    var key = parameter.Key;
+
+                                    if(cachedTextures.ContainsKey(key) == false)
+                                    {
+                                        var t = ResourceManager.instance.LoadTexture(parameter.Value.textureValue);
+
+                                        if(t != null)
+                                        {
+                                            cachedTextures.AddOrSetKey(key, t);
+                                        }
+                                    }
 
                                     cachedTextures.TryGetValue(key, out var texture);
 
-                                    var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture);
+                                    var newValue = EditorGUI.ObjectPicker(typeof(Texture), "Value: ", texture);
 
                                     if(newValue != texture)
                                     {
@@ -59,7 +69,9 @@ namespace Staple.Editor
                                         {
                                             cachedTextures.AddOrSetKey(key, t);
 
-                                            parameter.Value.textureValue = t.Path;
+                                            var localPath = AssetSerialization.GetAssetPathFromCache(t.Path);
+
+                                            parameter.Value.textureValue = localPath;
                                         }
                                         else
                                         {
@@ -80,7 +92,7 @@ namespace Staple.Editor
 
                                     var current = parameter.Value.vec2Value.ToVector2();
 
-                                    var newValue = EditorGUI.Vector2Field($"Value: ##{parameter.Key}", current);
+                                    var newValue = EditorGUI.Vector2Field(label, current);
 
                                     if (newValue != current)
                                     {
@@ -101,7 +113,7 @@ namespace Staple.Editor
 
                                     var current = parameter.Value.vec3Value.ToVector3();
 
-                                    var newValue = EditorGUI.Vector3Field($"Default Value: ##{parameter.Key}", current);
+                                    var newValue = EditorGUI.Vector3Field(label, current);
 
                                     if (newValue != current)
                                     {
@@ -123,7 +135,7 @@ namespace Staple.Editor
 
                                     var current = parameter.Value.vec4Value.ToVector4();
 
-                                    var newValue = EditorGUI.Vector4Field($"Default Value: ##{parameter.Key}", current);
+                                    var newValue = EditorGUI.Vector4Field(label, current);
 
                                     if (newValue != current)
                                     {
@@ -138,13 +150,13 @@ namespace Staple.Editor
 
                             case MaterialParameterType.Color:
 
-                                parameter.Value.colorValue = EditorGUI.ColorField($"Default Value: ##{parameter.Key}", parameter.Value.colorValue);
+                                parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Value.colorValue);
 
                                 break;
 
                             case MaterialParameterType.Float:
 
-                                parameter.Value.floatValue = EditorGUI.FloatField($"Default Value: ##{parameter.Key}", parameter.Value.floatValue);
+                                parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Value.floatValue);
 
                                 break;
                         }
@@ -154,6 +166,44 @@ namespace Staple.Editor
 
                 case nameof(MaterialMetadata.shaderPath):
 
+                    {
+                        var key = material.shaderPath;
+                        Shader shader = null;
+
+                        if(key != null)
+                        {
+                            if (cachedShaders.TryGetValue(key, out shader) == false)
+                            {
+                                if(key.Length > 0)
+                                {
+                                    shader = ResourceManager.instance.LoadShader(key);
+
+                                    if (shader != null)
+                                    {
+                                        cachedShaders.AddOrSetKey(key, shader);
+                                    }
+                                }
+                            }
+                        }
+
+                        var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader);
+
+                        if (newValue != shader)
+                        {
+                            if (newValue is Shader s)
+                            {
+                                cachedShaders.AddOrSetKey(key, s);
+
+                                var localPath = AssetSerialization.GetAssetPathFromCache(s.Path);
+
+                                material.shaderPath = localPath;
+                            }
+                            else
+                            {
+                                material.shaderPath = "";
+                            }
+                        }
+                    }
 
 
                     return true;

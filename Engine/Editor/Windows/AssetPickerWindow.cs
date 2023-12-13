@@ -36,56 +36,23 @@ namespace Staple.Editor
                 null
             };
 
-            void Handle(ProjectBrowserNode child)
+            foreach(var asset in AssetDatabase.assets)
             {
-                switch (child.type)
+                if ((assetPickerSearch?.Length ?? 0) > 0 &&
+                    asset.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
                 {
-                    case ProjectBrowserNodeType.Folder:
-
-                        Recursive(child);
-
-                        break;
-
-                    case ProjectBrowserNodeType.File:
-
-                        if ((assetPickerSearch?.Length ?? 0) > 0 &&
-                            child.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
-                        {
-                            return;
-                        }
-
-                        if (assetPickerType.FullName == child.typeName)
-                        {
-                            validItems.Add(child);
-                        }
-
-                        break;
+                    return;
                 }
-            }
 
-            void Recursive(ProjectBrowserNode source)
-            {
-                foreach (var child in source.subnodes)
+                if (assetPickerType.FullName == asset.typeName)
                 {
-                    Handle(child);
-                }
-            }
-
-            foreach (var node in projectBrowser.projectBrowserNodes)
-            {
-                switch (node.type)
-                {
-                    case ProjectBrowserNodeType.Folder:
-
-                        Recursive(node);
-
-                        break;
-
-                    case ProjectBrowserNodeType.File:
-
-                        Handle(node);
-
-                        break;
+                    validItems.Add(new ProjectBrowserNode()
+                    {
+                        path = asset.path,
+                        name = asset.name,
+                        typeName = asset.typeName,
+                        extension = Path.GetExtension(asset.path.Replace(".meta", "")),
+                    });
                 }
             }
 

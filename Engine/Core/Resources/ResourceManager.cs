@@ -31,7 +31,7 @@ namespace Staple.Internal
         private readonly Dictionary<string, AudioClip> cachedAudioClips = new();
         private readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
         private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
-        private readonly Dictionary<string, ResourcePak> resourcePaks = new();
+        internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
         internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
 
         /// <summary>

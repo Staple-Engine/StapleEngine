@@ -9,15 +9,21 @@ namespace Staple.Editor
 {
     internal static class AssetDatabase
     {
-        private static readonly Dictionary<string, AssetHolder> assetsByGuid = new();
-        private static readonly Dictionary<string, AssetHolder> assetsByType = new();
+        public class AssetInfo
+        {
+            public string guid;
+            public string name;
+            public string typeName;
+            public string path;
+        }
+
+        internal static readonly List<AssetInfo> assets = new();
 
         internal static string basePath;
 
         public static void Reload()
         {
-            assetsByGuid.Clear();
-            assetsByType.Clear();
+            assets.Clear();
 
             var files = Array.Empty<string>();
 
@@ -31,14 +37,65 @@ namespace Staple.Editor
             {
             }
 
-            try
+            foreach(var pak in ResourceManager.instance.resourcePaks)
             {
-                files = files
-                    .Concat(Directory.GetFiles(Path.Combine(StapleEditor.StapleBasePath, "Builtin Resources"), "*.meta", SearchOption.AllDirectories))
-                    .ToArray();
-            }
-            catch(Exception)
-            {
+                foreach(var file in pak.Value.Files)
+                {
+                    if(assets.Any(x => x.guid == file.guid))
+                    {
+                        continue;
+                    }
+
+                    var asset = new AssetInfo()
+                    {
+                        guid = file.guid,
+                        path = file.path,
+                        name = Path.GetFileNameWithoutExtension(file.path.Replace(".meta", "")),
+                    };
+
+                    switch(Path.GetExtension(file.path))
+                    {
+                        case ".stsh":
+
+                            asset.typeName = typeof(Shader).FullName;
+
+                            var pieces = file.path.Split("/").ToList();
+
+                            pieces.RemoveAt(0);
+
+                            asset.path = string.Join("/", pieces);
+
+                            break;
+
+                        case ".mat":
+
+                            asset.typeName = typeof(Material).FullName;
+
+                            break;
+
+                        case ".stsc":
+
+                            asset.typeName = typeof(Scene).FullName;
+
+                            break;
+
+                        case ".wav":
+                        case ".mp3":
+                        case ".ogg":
+
+                            asset.typeName = typeof(AudioClip).FullName;
+
+                            break;
+
+                        case ".png": //TODO
+
+                            asset.typeName = typeof(Texture).FullName;
+
+                            break;
+                    }
+
+                    assets.Add(asset);
+                }
             }
 
             foreach(var file in files)
@@ -51,15 +108,20 @@ namespace Staple.Editor
 
                     if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
                     {
-                        if(assetsByGuid.ContainsKey(holder.guid))
+                        if(assets.Any(x => x.guid == holder.guid))
                         {
                             Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
 
                             continue;
                         }
 
-                        assetsByGuid.AddOrSetKey(holder.guid, holder);
-                        assetsByType.AddOrSetKey(holder.typeName, holder);
+                        assets.Add(new AssetInfo()
+                        {
+                            guid = holder.guid,
+                            name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
+                            path = file.Replace(".meta", ""),
+                            typeName = holder.typeName,
+                        });
                     }
                 }
                 catch (Exception e)
@@ -70,7 +132,22 @@ namespace Staple.Editor
                 }
             }
 
-            Log.Info($"[AssetDatabase] Reloaded Asset Database with {assetsByGuid.Count} assets");
+            Log.Info($"[AssetDatabase] Reloaded Asset Database with {assets.Count} assets");
+        }
+
+        public static string GetAssetPath(string guid)
+        {
+            return assets.FirstOrDefault(x => x.guid == guid)?.path;
+        }
+
+        public static string GetAssetName(string guid)
+        {
+            return assets.FirstOrDefault(x => x.guid == guid)?.name;
+        }
+
+        public static string GetAssetGuid(string path)
+        {
+            return assets.FirstOrDefault(x => x.path == path)?.guid;
         }
     }
 }

@@ -29,8 +29,6 @@ namespace Staple.Editor
 
             projectBrowser.CreateMissingMetaFiles();
 
-            AssetDatabase.Reload();
-
             try
             {
                 Directory.CreateDirectory(Path.Combine(basePath, "Cache"));
@@ -279,6 +277,8 @@ namespace Staple.Editor
                         });
                     });
                 }
+
+                AssetDatabase.Reload();
             }
         }
 
