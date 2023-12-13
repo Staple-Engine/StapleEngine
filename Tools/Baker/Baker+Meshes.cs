@@ -56,7 +56,7 @@ namespace Baker
                     continue;
                 }
 
-                var guid = FindGuid<Mesh>(meshFiles[i]);
+                var guid = FindGuid<Staple.Mesh>(meshFiles[i]);
 
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(meshFiles[i]));
                 var file = Path.GetFileName(meshFiles[i]).Replace(".meta", "");
