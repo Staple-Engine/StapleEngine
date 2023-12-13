@@ -20,7 +20,7 @@ namespace Baker
 
             var meshFiles = new List<string>();
 
-            foreach (var extension in meshExtensions)
+            foreach (var extension in AssetSerialization.MeshExtensions)
             {
                 try
                 {
@@ -173,6 +173,7 @@ namespace Baker
 
                 var meshData = new SerializableMeshAsset
                 {
+                    metadata = metadata,
                     materialCount = scene.MaterialCount
                 };
 

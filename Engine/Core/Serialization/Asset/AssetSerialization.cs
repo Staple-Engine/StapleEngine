@@ -17,6 +17,45 @@ namespace Staple.Internal
         private static Regex cachePathRegex = CachePathRegex();
         private static Regex assetPathRegex = AssetPathRegex();
 
+        public static readonly string[] TextureExtensions =
+        [
+            "bmp",
+            "dds",
+            "exr",
+            "gif",
+            "jpg",
+            "jpeg",
+            "hdr",
+            "ktx",
+            "png",
+            "psd",
+            "pvr",
+            "tga"
+        ];
+
+        public static readonly string[] ResizableTextureExtensions =
+        [
+            "jpg",
+            "jpeg",
+            "png",
+            "tga",
+            "bmp",
+            "gif",
+            "hdr",
+        ];
+
+        public static readonly string[] MeshExtensions =
+        [
+            "fbx",
+        ];
+
+        public static readonly string[] AudioExtensions =
+        [
+            "mp3",
+            "ogg",
+            "wav",
+        ];
+
         public static string GetAssetPathFromCache(string path)
         {
             var matches = cachePathRegex.Matches(path);

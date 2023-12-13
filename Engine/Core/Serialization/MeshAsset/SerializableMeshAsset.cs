@@ -143,9 +143,12 @@ namespace Staple.Internal
     public class SerializableMeshAsset
     {
         [Key(0)]
-        public List<MeshAssetMeshInfo> meshes = new();
+        public MeshAssetMetadata metadata;
 
         [Key(1)]
+        public List<MeshAssetMeshInfo> meshes = new();
+
+        [Key(2)]
         public int materialCount;
     }
 }

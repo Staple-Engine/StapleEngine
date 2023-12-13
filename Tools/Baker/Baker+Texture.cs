@@ -31,7 +31,7 @@ namespace Baker
         {
             var textureFiles = new List<string>();
 
-            foreach (var extension in textureExtensions)
+            foreach (var extension in AssetSerialization.TextureExtensions)
             {
                 try
                 {

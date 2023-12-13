@@ -16,7 +16,7 @@ namespace Baker
         {
             var audioFiles = new List<string>();
 
-            foreach (var extension in audioExtensions)
+            foreach (var extension in AssetSerialization.AudioExtensions)
             {
                 try
                 {

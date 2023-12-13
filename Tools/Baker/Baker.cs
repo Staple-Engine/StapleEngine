@@ -12,34 +12,6 @@ namespace Baker
 {
     static partial class Program
     {
-        private static string[] meshExtensions = new string[]
-        {
-            "fbx",
-        };
-
-        private static string[] textureExtensions = new string[]
-        {
-            "bmp",
-            "dds",
-            "exr",
-            "gif",
-            "jpg",
-            "jpeg",
-            "hdr",
-            "ktx",
-            "png",
-            "psd",
-            "pvr",
-            "tga"
-        };
-
-        private static string[] audioExtensions = new string[]
-        {
-            "mp3",
-            "ogg",
-            "wav",
-        };
-
         private static string shadercBinName
         {
             get

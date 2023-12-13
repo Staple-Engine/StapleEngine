@@ -2221,7 +2221,8 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(2);
+            writer.WriteArrayHeader(3);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Serialize(ref writer, value.metadata, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Serialize(ref writer, value.meshes, options);
             writer.Write(value.materialCount);
         }
@@ -2243,9 +2244,12 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.meshes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
+                        ____result.meshes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Deserialize(ref reader, options);
+                        break;
+                    case 2:
                         ____result.materialCount = reader.ReadInt32();
                         break;
                     default:

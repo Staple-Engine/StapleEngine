@@ -8,29 +8,6 @@ namespace Packer
 {
     static class PackerUtils
     {
-        private static string[] textureExtensions = new string[]
-        {
-            "bmp",
-            "dds",
-            "exr",
-            "gif",
-            "jpg",
-            "jpeg",
-            "hdr",
-            "ktx",
-            "png",
-            "psd",
-            "pvr",
-            "tga"
-        };
-
-        private static string[] audioExtensions = new string[]
-        {
-            "mp3",
-            "ogg",
-            "wav",
-        };
-
         public static string ExtractGuid(string path)
         {
             if(path.EndsWith(".mat"))
@@ -114,7 +91,7 @@ namespace Packer
                     return null;
                 }
             }
-            else if(textureExtensions.Any(x => path.EndsWith($".{x}")))
+            else if(AssetSerialization.TextureExtensions.Any(x => path.EndsWith($".{x}")))
             {
                 try
                 {
@@ -141,7 +118,7 @@ namespace Packer
                     return null;
                 }
             }
-            else if (audioExtensions.Any(x => path.EndsWith($".{x}")))
+            else if (AssetSerialization.AudioExtensions.Any(x => path.EndsWith($".{x}")))
             {
                 try
                 {
@@ -158,6 +135,33 @@ namespace Packer
                     }
 
                     var value = MessagePackSerializer.Deserialize<SerializableAudioClip>(stream);
+
+                    return value.metadata.guid;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                    return null;
+                }
+            }
+            else if (AssetSerialization.MeshExtensions.Any(x => path.EndsWith($".{x}")))
+            {
+                try
+                {
+                    var data = File.ReadAllBytes(path);
+
+                    using var stream = new MemoryStream(data);
+
+                    var header = MessagePackSerializer.Deserialize<SerializableMeshAssetHeader>(stream);
+
+                    if (header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) == false ||
+                        header.version != SerializableMeshAssetHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var value = MessagePackSerializer.Deserialize<SerializableMeshAsset>(stream);
 
                     return value.metadata.guid;
                 }
