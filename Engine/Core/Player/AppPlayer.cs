@@ -73,6 +73,8 @@ namespace Staple
 
             renderWindow.OnInit = () =>
             {
+                AssetDatabase.Reload();
+
                 try
                 {
                     var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");

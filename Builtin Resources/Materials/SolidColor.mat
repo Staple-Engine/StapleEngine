@@ -1,5 +1,5 @@
 {
-	"shaderPath": "Shaders/Default/SolidColor.stsh",
+	"shader": "5f967016-cde4-45b4-b639-a469f2940aec",
 	"parameters": {
 		"mainColor":  {
 			"type": "Color",

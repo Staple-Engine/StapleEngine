@@ -19,7 +19,10 @@ namespace Staple.Editor
                 ThumbnailCache.basePath =
                 csProjManager.basePath =
                 projectBrowser.basePath =
-                AssetDatabase.basePath = Path.GetFullPath(path);
+                Path.GetFullPath(path);
+
+            AssetDatabase.assetPaths.Clear();
+            AssetDatabase.assetPaths.Add(basePath);
 
             csProjManager.stapleBasePath = StapleBasePath;
 

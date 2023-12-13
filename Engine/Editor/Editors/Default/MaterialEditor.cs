@@ -1,6 +1,10 @@
-﻿using Staple.Internal;
+﻿using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.IO;
 
 namespace Staple.Editor
 {
@@ -25,53 +29,46 @@ namespace Staple.Editor
 
                     foreach (var parameter in material.parameters)
                     {
-                        var name = parameter.Key;
-
-                        name = EditorGUI.TextField($"Name: ##{parameter.Key}", name);
-
-                        if (name != parameter.Key && material.parameters.ContainsKey(name) == false)
-                        {
-                            material.parameters.Remove(parameter.Key);
-
-                            material.parameters.Add(name, parameter.Value);
-
-                            break;
-                        }
-
-                        parameter.Value.type = EditorGUI.EnumDropdown($"Type: ##{parameter.Key}", parameter.Value.type);
-
-                        var label = $"Value: ##{parameter.Key}";
+                        var label = parameter.Key.ExpandCamelCaseName();
 
                         switch (parameter.Value.type)
                         {
                             case MaterialParameterType.Texture:
 
                                 {
-                                    var key = parameter.Key;
+                                    var key = parameter.Value.textureValue ?? "";
 
                                     if(cachedTextures.ContainsKey(key) == false)
                                     {
-                                        var t = ResourceManager.instance.LoadTexture(parameter.Value.textureValue);
+                                        var path = AssetDatabase.GetAssetPath(key);
 
-                                        if(t != null)
+                                        if(path != null)
                                         {
-                                            cachedTextures.AddOrSetKey(key, t);
+                                            var t = ResourceManager.instance.LoadTexture(path);
+
+                                            if (t != null)
+                                            {
+                                                cachedTextures.AddOrSetKey(key, t);
+                                            }
                                         }
                                     }
 
                                     cachedTextures.TryGetValue(key, out var texture);
 
-                                    var newValue = EditorGUI.ObjectPicker(typeof(Texture), "Value: ", texture);
+                                    var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture);
 
                                     if(newValue != texture)
                                     {
                                         if(newValue is Texture t)
                                         {
-                                            cachedTextures.AddOrSetKey(key, t);
+                                            var guid = t.metadata?.guid;
 
-                                            var localPath = AssetSerialization.GetAssetPathFromCache(t.Path);
+                                            if(guid != null)
+                                            {
+                                                parameter.Value.textureValue = guid;
 
-                                            parameter.Value.textureValue = localPath;
+                                                cachedTextures.AddOrSetKey(guid, t);
+                                            }
                                         }
                                         else
                                         {
@@ -164,10 +161,10 @@ namespace Staple.Editor
 
                     return true;
 
-                case nameof(MaterialMetadata.shaderPath):
+                case nameof(MaterialMetadata.shader):
 
                     {
-                        var key = material.shaderPath;
+                        var key = material.shader;
                         Shader shader = null;
 
                         if(key != null)
@@ -176,11 +173,16 @@ namespace Staple.Editor
                             {
                                 if(key.Length > 0)
                                 {
-                                    shader = ResourceManager.instance.LoadShader(key);
+                                    var path = AssetDatabase.GetAssetPath(key);
 
-                                    if (shader != null)
+                                    if(path != null)
                                     {
-                                        cachedShaders.AddOrSetKey(key, shader);
+                                        shader = ResourceManager.instance.LoadShader(path);
+
+                                        if (shader != null)
+                                        {
+                                            cachedShaders.AddOrSetKey(key, shader);
+                                        }
                                     }
                                 }
                             }
@@ -192,25 +194,85 @@ namespace Staple.Editor
                         {
                             if (newValue is Shader s)
                             {
-                                cachedShaders.AddOrSetKey(key, s);
+                                cachedShaders.AddOrSetKey(s.metadata.guid, s);
 
-                                var localPath = AssetSerialization.GetAssetPathFromCache(s.Path);
-
-                                material.shaderPath = localPath;
+                                material.shader = s.metadata.guid;
                             }
                             else
                             {
-                                material.shaderPath = "";
+                                material.shader = "";
                             }
                         }
                     }
 
-
                     return true;
             }
 
-
             return base.RenderField(field);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var metadata = (MaterialMetadata)target;
+            var originalMetadata = (MaterialMetadata)original;
+
+            var hasChanges = metadata != originalMetadata;
+
+            if (hasChanges)
+            {
+                if (EditorGUI.Button("Apply"))
+                {
+                    try
+                    {
+                        var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
+                        {
+                            Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                        });
+
+                        File.WriteAllText(path, text);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                    foreach (var field in fields)
+                    {
+                        field.SetValue(original, field.GetValue(metadata));
+                    }
+
+                    EditorUtils.RefreshAssets(false, null);
+                }
+
+                EditorGUI.SameLine();
+
+                if (EditorGUI.Button("Revert"))
+                {
+                    metadata.shader = originalMetadata.shader;
+                    metadata.parameters.Clear();
+
+                    foreach(var parameter in originalMetadata.parameters)
+                    {
+                        metadata.parameters.Add(parameter.Key, parameter.Value.Clone());
+                    }
+
+                    EditorGUI.pendingObjectPickers.Clear();
+                }
+            }
+            else
+            {
+                EditorGUI.ButtonDisabled("Apply");
+
+                EditorGUI.SameLine();
+
+                EditorGUI.ButtonDisabled("Revert");
+            }
         }
     }
 }

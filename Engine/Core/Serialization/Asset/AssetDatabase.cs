@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Staple.Internal;
 
-namespace Staple.Editor
+namespace Staple
 {
-    internal static class AssetDatabase
+    public static class AssetDatabase
     {
         public class AssetInfo
         {
@@ -19,7 +19,7 @@ namespace Staple.Editor
 
         internal static readonly List<AssetInfo> assets = new();
 
-        internal static string basePath;
+        internal static List<string> assetPaths = new();
 
         public static void Reload()
         {
@@ -27,25 +27,23 @@ namespace Staple.Editor
 
             var files = Array.Empty<string>();
 
-            try
+            foreach(var path in assetPaths)
             {
-                files = Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories)
-                    .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
-                    .ToArray();
-            }
-            catch(Exception)
-            {
-            }
-
-            foreach(var pak in ResourceManager.instance.resourcePaks)
-            {
-                foreach(var file in pak.Value.Files)
+                try
                 {
-                    if(assets.Any(x => x.guid == file.guid))
-                    {
-                        continue;
-                    }
+                    files = Directory.GetFiles(path, "*.meta", SearchOption.AllDirectories)
+                        .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
+                        .ToArray();
+                }
+                catch (Exception)
+                {
+                }
+            }
 
+            foreach (var pak in ResourceManager.instance.resourcePaks)
+            {
+                foreach (var file in pak.Value.Files)
+                {
                     var asset = new AssetInfo()
                     {
                         guid = file.guid,
@@ -53,17 +51,12 @@ namespace Staple.Editor
                         name = Path.GetFileNameWithoutExtension(file.path.Replace(".meta", "")),
                     };
 
-                    switch(Path.GetExtension(file.path))
+                    //TODO: Do this better
+                    switch (Path.GetExtension(file.path))
                     {
                         case ".stsh":
 
                             asset.typeName = typeof(Shader).FullName;
-
-                            var pieces = file.path.Split("/").ToList();
-
-                            pieces.RemoveAt(0);
-
-                            asset.path = string.Join("/", pieces);
 
                             break;
 
@@ -98,17 +91,17 @@ namespace Staple.Editor
                 }
             }
 
-            foreach(var file in files)
+            foreach (var file in files)
             {
                 try
                 {
                     var text = File.ReadAllText(file);
 
-                    var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
+                    var holder = JsonSerializer.Deserialize(text, AssetHolderSerializationContext.Default.AssetHolder);
 
                     if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
                     {
-                        if(assets.Any(x => x.guid == holder.guid))
+                        if (assets.Any(x => x.guid == holder.guid))
                         {
                             Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
 
@@ -138,6 +131,11 @@ namespace Staple.Editor
         public static string GetAssetPath(string guid)
         {
             return assets.FirstOrDefault(x => x.guid == guid)?.path;
+        }
+
+        public static string GetAssetPath(string guid, string prefix)
+        {
+            return assets.FirstOrDefault(x => x.guid == guid && x.path.StartsWith(prefix))?.path;
         }
 
         public static string GetAssetName(string guid)

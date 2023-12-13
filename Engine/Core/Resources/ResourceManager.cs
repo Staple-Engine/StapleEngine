@@ -1,8 +1,6 @@
 ﻿using MessagePack;
-using SharpFont.Fnt;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,6 +31,23 @@ namespace Staple.Internal
         private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
         internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
+
+        public static string ShaderPrefix
+        {
+            get
+            {
+                return RenderWindow.CurrentRenderer switch
+                {
+                    RendererType.Direct3D11 => "d3d11/",
+                    RendererType.Direct3D12 => "d3d12/",
+                    RendererType.Metal => "metal/",
+                    RendererType.OpenGL => "opengl/",
+                    RendererType.OpenGLES => "opengles/",
+                    RendererType.Vulkan => "spirv/",
+                    _ => "",
+                };
+            }
+        }
 
         /// <summary>
         /// The default instance of the resource manager
@@ -237,9 +252,26 @@ namespace Staple.Internal
         /// </summary>
         /// <param name="path">The path to load</param>
         /// <returns>The byte array, or null</returns>
-        public byte[] LoadFile(string path)
+        public byte[] LoadFile(string path, string prefix = null)
         {
             var pakPath = path.Replace(Path.DirectorySeparatorChar, '/');
+
+            var guid = AssetDatabase.GetAssetGuid(pakPath);
+
+            if (AssetDatabase.GetAssetPath(path) != null)
+            {
+                guid = path;
+            }
+
+            if(guid != null)
+            {
+                var localPath = prefix != null ? AssetDatabase.GetAssetPath(guid, prefix) : AssetDatabase.GetAssetPath(guid);
+
+                if(localPath != null)
+                {
+                    pakPath = localPath;
+                }
+            }
 
             foreach(var pair in resourcePaks)
             {
@@ -523,44 +555,12 @@ namespace Staple.Internal
         public Shader LoadShader(string path)
         {
             var original = path;
+            var prefix = ShaderPrefix;
+            var guid = path;
 
-            switch(RenderWindow.CurrentRenderer)
+            if (path.StartsWith(prefix) == false)
             {
-                case RendererType.Direct3D11:
-
-                    path = "d3d11/" + path;
-
-                    break;
-
-                case RendererType.Direct3D12:
-
-                    path = "d3d12/" + path;
-
-                    break;
-
-                case RendererType.Metal:
-
-                    path = "metal/" + path;
-
-                    break;
-
-                case RendererType.OpenGL:
-
-                    path = "opengl/" + path;
-
-                    break;
-
-                case RendererType.OpenGLES:
-
-                    path = "opengles/" + path;
-
-                    break;
-
-                case RendererType.Vulkan:
-
-                    path = "spirv/" + path;
-
-                    break;
+                path = prefix + path;
             }
 
             if (cachedShaders.TryGetValue(path, out var shader) && shader != null && shader.Disposed == false)
@@ -568,7 +568,12 @@ namespace Staple.Internal
                 return shader;
             }
 
-            var data = LoadFile(path);
+            byte[] data = LoadFile(guid, ShaderPrefix);
+
+            if(data == null)
+            {
+                data = LoadFile(path);
+            }
 
             if (data == null)
             {
@@ -685,14 +690,14 @@ namespace Staple.Internal
                     return null;
                 }
 
-                if ((materialData.metadata.shaderPath?.Length ?? 0) == 0)
+                if ((materialData.metadata.shader?.Length ?? 0) == 0)
                 {
                     Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid shader path");
 
                     return null;
                 }
 
-                var shader = LoadShader(materialData.metadata.shaderPath);
+                var shader = LoadShader(materialData.metadata.shader);
 
                 if (shader == null)
                 {

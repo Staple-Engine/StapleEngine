@@ -248,6 +248,8 @@ namespace Staple.Editor
 
             window.OnInit = () =>
             {
+                AssetDatabase.Reload();
+
                 Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
                 projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");

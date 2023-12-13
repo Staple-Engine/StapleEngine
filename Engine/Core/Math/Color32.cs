@@ -71,6 +71,8 @@ namespace Staple
             a = (byte)(value & 0x000000FF);
         }
 
+        public bool ShouldSerializeUIntValue() => false;
+
         public static implicit operator Color(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
         public static Color32 operator +(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),

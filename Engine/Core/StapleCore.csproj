@@ -116,6 +116,7 @@
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
+		<Compile Include="Serialization\Asset\AssetDatabase.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
 		<Compile Include="Serialization\Asset\IPathAsset.cs" />
 		<Compile Include="Serialization\Asset\IStapleAsset.cs" />

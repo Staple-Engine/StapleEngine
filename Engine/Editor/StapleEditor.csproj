@@ -59,7 +59,6 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssetDatabase.cs" />
     <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />

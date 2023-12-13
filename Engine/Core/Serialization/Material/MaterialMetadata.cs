@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text.Json.Serialization;
 
@@ -42,6 +43,53 @@ namespace Staple.Internal
         public Vector4 ToVector4()
         {
             return new Vector4(x, y, 0, 0);
+        }
+
+        public static bool operator==(Vector2Holder lhs, Vector2Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
+            return lhs.x == rhs.x &&
+                lhs.y == rhs.y;
+        }
+
+        public static bool operator !=(Vector2Holder lhs, Vector2Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
+            return lhs.x != rhs.x ||
+                lhs.y != rhs.y;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is Vector2Holder rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
         }
     }
 
@@ -94,6 +142,55 @@ namespace Staple.Internal
         {
             return Math.FromEulerAngles(ToVector3());
         }
+
+        public static bool operator ==(Vector3Holder lhs, Vector3Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
+            return lhs.x == rhs.x &&
+                lhs.y == rhs.y &&
+                lhs.z == rhs.z;
+        }
+
+        public static bool operator !=(Vector3Holder lhs, Vector3Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
+            return lhs.x != rhs.x ||
+                lhs.y != rhs.y ||
+                lhs.z != rhs.z;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is Vector3Holder rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -142,6 +239,57 @@ namespace Staple.Internal
         {
             return new Vector4(x, y, z, w);
         }
+
+        public static bool operator ==(Vector4Holder lhs, Vector4Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
+            return lhs.x == rhs.x &&
+                lhs.y == rhs.y &&
+                lhs.z == rhs.z &&
+                lhs.w == rhs.w;
+        }
+
+        public static bool operator !=(Vector4Holder lhs, Vector4Holder rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
+            return lhs.x != rhs.x ||
+                lhs.y != rhs.y ||
+                lhs.z != rhs.z |
+                lhs.w == rhs.w;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is Vector4Holder rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -175,6 +323,118 @@ namespace Staple.Internal
 
         [Key(6)]
         public float floatValue;
+
+        public bool ShouldSerializevec2Value() => vec2Value != null && type == MaterialParameterType.Vector2;
+
+        public bool ShouldSerializevec3Value() => vec3Value != null && type == MaterialParameterType.Vector3;
+
+        public bool ShouldSerializevec4Value() => vec4Value != null && type == MaterialParameterType.Vector4;
+
+        public bool ShouldSerializefloatValue() => type == MaterialParameterType.Float;
+
+        public bool ShouldSerializetextureValue() => type == MaterialParameterType.Texture;
+
+        public bool ShouldSerializecolorValue() => type == MaterialParameterType.Color;
+
+        public MaterialParameter Clone()
+        {
+            var outValue = new MaterialParameter()
+            {
+                type = type,
+                textureValue = textureValue,
+                colorValue = colorValue,
+                floatValue = floatValue,
+            };
+
+            if(vec2Value != null)
+            {
+                outValue.vec2Value = new()
+                {
+                    x = vec2Value.x,
+                    y = vec2Value.y,
+                };
+            }
+
+            if(vec3Value != null)
+            {
+                outValue.vec3Value = new()
+                {
+                    x = vec3Value.x,
+                    y = vec3Value.y,
+                    z = vec3Value.z,
+                };
+            }
+
+            if(vec4Value != null)
+            {
+                outValue.vec4Value = new()
+                {
+                    x = vec4Value.x,
+                    y = vec4Value.y,
+                    z = vec4Value.z,
+                    w = vec4Value.w,
+                };
+            }
+
+            return outValue;
+        }
+
+        public static bool operator ==(MaterialParameter lhs, MaterialParameter rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
+            return lhs.type == rhs.type &&
+                lhs.vec2Value == rhs.vec2Value &&
+                lhs.vec3Value == rhs.vec3Value &&
+                lhs.vec4Value == rhs.vec4Value &&
+                lhs.textureValue == rhs.textureValue &&
+                lhs.colorValue == rhs.colorValue &&
+                lhs.floatValue == rhs.floatValue;
+        }
+
+        public static bool operator !=(MaterialParameter lhs, MaterialParameter rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
+            return lhs.type != rhs.type ||
+                lhs.vec2Value != rhs.vec2Value ||
+                lhs.vec3Value != rhs.vec3Value ||
+                lhs.vec4Value != rhs.vec4Value ||
+                lhs.textureValue != rhs.textureValue ||
+                lhs.colorValue != rhs.colorValue ||
+                lhs.floatValue != rhs.floatValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is MaterialParameter rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -198,13 +458,70 @@ namespace Staple.Internal
         public string guid = Guid.NewGuid().ToString();
 
         [Key(1)]
-        public string shaderPath;
+        public string shader;
 
         [Key(2)]
         public Dictionary<string, MaterialParameter> parameters = new();
 
         [Key(3)]
         public string typeName = typeof(Material).FullName;
+
+        public bool ShouldSerializeguid() => false;
+
+        public bool ShouldSerializetypeName() => false;
+
+        public static bool operator ==(MaterialMetadata lhs, MaterialMetadata rhs)
+        {
+            if(lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if(lhs is null || rhs is null)
+            {
+                return false;
+            }
+
+            return lhs.guid == rhs.guid &&
+                lhs.shader == rhs.shader &&
+                lhs.parameters.Count == rhs.parameters.Count &&
+                lhs.parameters.Keys.All(x => rhs.parameters.ContainsKey(x) && lhs.parameters[x] == rhs.parameters[x]) &&
+                lhs.typeName == rhs.typeName;
+        }
+
+        public static bool operator !=(MaterialMetadata lhs, MaterialMetadata rhs)
+        {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
+            return lhs.guid != rhs.guid ||
+                lhs.shader != rhs.shader ||
+                lhs.parameters.Count != rhs.parameters.Count ||
+                lhs.parameters.Keys.Any(x => rhs.parameters.ContainsKey(x) == false || lhs.parameters[x] != rhs.parameters[x]) ||
+                lhs.typeName != rhs.typeName;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is MaterialMetadata rhs)
+            {
+                return this == rhs;
+            }
+
+            return false;
+        }
     }
 
     [JsonSourceGenerationOptions(IncludeFields = true)]

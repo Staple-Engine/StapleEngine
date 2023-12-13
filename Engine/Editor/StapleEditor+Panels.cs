@@ -725,6 +725,13 @@ namespace Staple.Editor
 
                             if (original != null && selectedProjectNodeData != null)
                             {
+                                var guid = AssetDatabase.GetAssetGuid(item.path);
+
+                                var o = original as MaterialMetadata;
+                                var t = selectedProjectNodeData as MaterialMetadata;
+
+                                o.guid = t.guid = guid;
+
                                 var editor = new MaterialEditor()
                                 {
                                     original = original as MaterialMetadata,

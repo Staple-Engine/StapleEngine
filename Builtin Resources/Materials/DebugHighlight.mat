@@ -1,5 +1,5 @@
 {
-	"shaderPath": "Shaders/Debug/Highlight.stsh",
+	"shader": "a9144309-d692-4492-9361-4578a637c756",
 	"parameters": {
 		"mainColor":  {
 			"type": "Color",

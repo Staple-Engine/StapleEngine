@@ -1,5 +1,5 @@
 {
-	"shaderPath": "Shaders/Sprite/Sprite.stsh",
+	"shader": "2773f708-3dc3-40da-a025-2c04862fd46a",
 	"parameters": {
 		"mainColor":  {
 			"type": "Color",
@@ -12,7 +12,7 @@
 		},
 		"mainTexture": {
 			"type": "Texture",
-			"textureValue": "Textures/Sprites/DefaultSprite.png"
+			"textureValue": "fe19196d-0c54-413a-a0fd-6ef91124007a"
 		}
 	}
 }

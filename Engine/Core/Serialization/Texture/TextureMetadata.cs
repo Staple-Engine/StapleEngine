@@ -154,6 +154,16 @@ namespace Staple.Internal
 
         public static bool operator==(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
         {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
             return lhs.shouldOverride == rhs.shouldOverride &&
                 lhs.format == rhs.format &&
                 lhs.quality == rhs.quality &&
@@ -163,6 +173,16 @@ namespace Staple.Internal
 
         public static bool operator !=(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
         {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
             return lhs.shouldOverride != rhs.shouldOverride ||
                 lhs.format != rhs.format ||
                 lhs.quality != rhs.quality ||
@@ -351,6 +371,16 @@ namespace Staple.Internal
 
         public static bool operator==(TextureMetadata lhs, TextureMetadata rhs)
         {
+            if (lhs is null && rhs is null)
+            {
+                return true;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return false;
+            }
+
             return lhs.guid == rhs.guid &&
                 lhs.type == rhs.type &&
                 lhs.format == rhs.format &&
@@ -379,6 +409,16 @@ namespace Staple.Internal
 
         public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
         {
+            if (lhs is null && rhs is null)
+            {
+                return false;
+            }
+
+            if (lhs is null || rhs is null)
+            {
+                return true;
+            }
+
             return lhs.guid != rhs.guid ||
                 lhs.type != rhs.type ||
                 lhs.format != rhs.format ||

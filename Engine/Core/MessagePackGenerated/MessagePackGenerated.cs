@@ -1279,7 +1279,7 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
-            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.shaderPath, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.shader, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Serialize(ref writer, value.parameters, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
@@ -1304,7 +1304,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.shaderPath = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        ____result.shader = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Deserialize(ref reader, options);

@@ -1,4 +1,6 @@
 ﻿using MessagePack;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal
 {
@@ -10,5 +12,12 @@ namespace Staple.Internal
 
         [Key(1)]
         public string typeName;
+    }
+
+    [JsonSourceGenerationOptions(IncludeFields = true)]
+    [JsonSerializable(typeof(string))]
+    [JsonSerializable(typeof(AssetHolder))]
+    internal partial class AssetHolderSerializationContext : JsonSerializerContext
+    {
     }
 }
