@@ -225,9 +225,9 @@ namespace Staple.Editor
 
             string selectedName = null;
 
-            if (current is IPathAsset pathAsset)
+            if (current is IGuidAsset guidAsset)
             {
-                selectedName = Path.GetFileNameWithoutExtension(pathAsset.Path);
+                selectedName = AssetDatabase.GetAssetName(guidAsset.Guid);
             }
 
             selectedName ??= current?.ToString() ?? "(None)";
@@ -262,9 +262,9 @@ namespace Staple.Editor
 
                 if(current is string)
                 {
-                    if(current is IPathAsset p)
+                    if(current is IGuidAsset g)
                     {
-                        return p.Path;
+                        return g.Guid;
                     }
                     else
                     {

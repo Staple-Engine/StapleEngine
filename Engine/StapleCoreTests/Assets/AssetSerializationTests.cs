@@ -11,22 +11,22 @@ namespace CoreTests
             B
         }
 
-        internal class SimplePathAsset : IPathAsset
+        internal class SimplePathAsset : IGuidAsset
         {
-            internal string path = "a/b/c";
+            internal string guid = "a/b/c";
 
-            public string Path
+            public string Guid
             {
-                get => path;
+                get => guid;
 
-                set => path = value;
+                set => guid = value;
             }
 
-            public static object Create(string path)
+            public static object Create(string guid)
             {
                 return new SimplePathAsset()
                 {
-                    path = path,
+                    guid = guid,
                 };
             }
         }
@@ -36,7 +36,7 @@ namespace CoreTests
             public int intValue = 1;
             public string stringValue = "test";
             public List<int> numbers = new(new int[] { 1, 2, 3 });
-            public IPathAsset pathAsset = new SimplePathAsset();
+            public IGuidAsset pathAsset = new SimplePathAsset();
             public NewEnum enumValue = NewEnum.A;
 
             internal int notSerialized = 0;
@@ -87,7 +87,7 @@ namespace CoreTests
                 Assert.That(result.parameters[nameof(SimpleAsset.intValue)].value, Is.EqualTo(asset.intValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].value, Is.EqualTo(asset.stringValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.numbers)].value, Is.EqualTo(asset.numbers));
-                Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Path));
+                Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Guid));
                 Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].value, Is.EqualTo(asset.enumValue));
             });
 
@@ -133,7 +133,7 @@ namespace CoreTests
             Assert.That(newAsset.stringValue, Is.EqualTo(asset.stringValue));
             Assert.That(newAsset.numbers, Is.EqualTo(asset.numbers));
             Assert.That(newAsset.pathAsset != null);
-            Assert.That(newAsset.pathAsset.Path, Is.EqualTo("valid path"));
+            Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
         }
     }

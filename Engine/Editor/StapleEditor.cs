@@ -199,8 +199,6 @@ namespace Staple.Editor
             LayerMask.AllLayers = editorSettings.layers;
             LayerMask.AllSortingLayers = editorSettings.sortingLayers;
 
-            AssetSerialization.pathAssetResolver = CachePathResolver;
-
             Storage.Update(editorSettings.appName, editorSettings.companyName);
 
             Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
@@ -837,37 +835,6 @@ namespace Staple.Editor
             catch(Exception)
             {
             }
-        }
-
-        private string CachePathResolver(string path)
-        {
-            var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
-
-            try
-            {
-                if (File.Exists(p))
-                {
-                    return p;
-                }
-            }
-            catch(Exception)
-            {
-            }
-
-            p = Path.Combine(basePath, "Assets", path);
-
-            try
-            {
-                if (File.Exists(p))
-                {
-                    return p;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return path;
         }
 
         public void ShowAssetPicker(Type type, string key)

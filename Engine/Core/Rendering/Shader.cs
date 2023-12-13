@@ -8,7 +8,7 @@ namespace Staple.Internal
     /// <summary>
     /// Shader resource
     /// </summary>
-    internal class Shader : IPathAsset
+    internal class Shader : IGuidAsset
     {
         internal class UniformInfo<T>
         {
@@ -77,7 +77,7 @@ namespace Staple.Internal
 
         internal Dictionary<ShaderUniformType, object> uniforms = new();
 
-        public string Path { get; set; }
+        public string Guid { get; set; }
 
         /// <summary>
         /// Whether this shader has been disposed

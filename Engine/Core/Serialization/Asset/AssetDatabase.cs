@@ -15,6 +15,11 @@ namespace Staple
             public string name;
             public string typeName;
             public string path;
+
+            public override string ToString()
+            {
+                return $"{guid} {name} {typeName}";
+            }
         }
 
         internal static readonly List<AssetInfo> assets = new();

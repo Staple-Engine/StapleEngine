@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Staple
 {
-    public sealed class AudioClip : IPathAsset
+    public sealed class AudioClip : IGuidAsset
     {
         public AudioClipMetadata metadata;
 
@@ -25,17 +25,17 @@ namespace Staple
 
         internal short[] samples;
 
-        private string path;
+        private string guid;
 
-        public string Path { get => path; set => path = value; }
+        public string Guid { get => guid; set => guid = value; }
 
         internal IAudioStream GetAudioStream()
         {
-            if (path.EndsWith(".mp3"))
+            if (guid.EndsWith(".mp3"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{path}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
 
                     if ((fileData?.Length ?? 0) == 0)
                     {
@@ -59,11 +59,11 @@ namespace Staple
 
                 return null;
             }
-            if (path.EndsWith(".ogg"))
+            if (guid.EndsWith(".ogg"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{path}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
 
                     if((fileData?.Length ?? 0) == 0)
                     {
@@ -87,11 +87,11 @@ namespace Staple
 
                 return null;
             }
-            else if(path.EndsWith(".wav"))
+            else if(guid.EndsWith(".wav"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{path}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
 
                     if ((fileData?.Length ?? 0) == 0)
                     {

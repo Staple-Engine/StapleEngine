@@ -7,7 +7,7 @@ namespace Staple
     /// <summary>
     /// Mesh Resource
     /// </summary>
-    public partial class Mesh : IPathAsset
+    public partial class Mesh : IGuidAsset
     {
         /// <summary>
         /// Whether this mesh is readable by the CPU
@@ -595,13 +595,13 @@ namespace Staple
         /// </summary>
         public int IndexCount => indices?.Length ?? 0;
 
-        internal string path;
+        internal string guid;
 
-        public string Path
+        public string Guid
         {
-            get => path;
+            get => guid;
 
-            set => path = value;
+            set => guid = value;
         }
 
         public static object Create(string path)

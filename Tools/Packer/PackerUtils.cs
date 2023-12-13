@@ -42,11 +42,11 @@ namespace Packer
                         return null;
                     }
 
-                    var value = MessagePackSerializer.Deserialize<MaterialMetadata>(stream);
+                    var value = MessagePackSerializer.Deserialize<SerializableMaterial>(stream);
 
-                    return value.guid;
+                    return value.metadata.guid;
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
                     return null;
                 }

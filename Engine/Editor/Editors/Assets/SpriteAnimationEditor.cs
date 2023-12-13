@@ -57,9 +57,9 @@ namespace Staple.Editor
                         if (EditorGUI.Button($"O##SpritePicker{i}"))
                         {
                             var editor = StapleEditor.instance;
-                            var assetPath = AssetSerialization.GetAssetPathFromCache(asset.texture.path);
+                            var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));
 
-                            if (assetPath != asset.texture.path && Path.IsPathRooted(assetPath) == false)
+                            if (assetPath != asset.texture.guid && Path.IsPathRooted(assetPath) == false)
                             {
                                 assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                             }

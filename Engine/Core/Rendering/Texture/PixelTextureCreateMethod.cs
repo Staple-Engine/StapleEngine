@@ -40,7 +40,7 @@ namespace Staple.Internal
                         return false;
                     }
 
-                    texture.path = path;
+                    texture.guid = path;
                     texture.metadata = metadata;
                     texture.info = new bgfx.TextureInfo()
                     {

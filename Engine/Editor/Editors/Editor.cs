@@ -379,10 +379,10 @@ namespace Staple.Editor
 
                         break;
 
-                    case Type t when typeof(IPathAsset).IsAssignableFrom(t):
+                    case Type t when typeof(IGuidAsset).IsAssignableFrom(t):
 
                         {
-                            var value = (IPathAsset)field.GetValue(target);
+                            var value = (IGuidAsset)field.GetValue(target);
 
                             var newValue = EditorGUI.ObjectPicker(t, fieldName, value);
 

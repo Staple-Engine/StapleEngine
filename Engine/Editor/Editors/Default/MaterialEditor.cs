@@ -61,7 +61,7 @@ namespace Staple.Editor
                                     {
                                         if(newValue is Texture t)
                                         {
-                                            var guid = t.metadata?.guid;
+                                            var guid = t.Guid;
 
                                             if(guid != null)
                                             {

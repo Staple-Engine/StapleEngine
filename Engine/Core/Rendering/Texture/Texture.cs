@@ -11,21 +11,21 @@ namespace Staple
     /// <summary>
     /// Texture resource
     /// </summary>
-    public class Texture : IPathAsset
+    public class Texture : IGuidAsset
     {
         internal bgfx.TextureHandle handle;
         internal bgfx.TextureInfo info;
         internal TextureMetadata metadata;
-        internal string path;
+        internal string guid;
         internal bool renderTarget = false;
 
         private readonly ITextureCreateMethod createMethod;
 
-        public string Path
+        public string Guid
         {
-            get => path;
+            get => guid;
 
-            set => path = value;
+            set => guid = value;
         }
 
         public bool Disposed { get; private set; } = false;

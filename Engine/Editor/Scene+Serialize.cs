@@ -66,15 +66,13 @@ namespace Staple.Internal
                         {
                             sceneComponent.data.Add(field.Name, ((Enum)field.GetValue(component)).ToString());
                         }
-                        else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null)
+                        else if(field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                         {
-                            var pathAsset = (IPathAsset)field.GetValue(component);
+                            var guidAsset = (IGuidAsset)field.GetValue(component);
 
-                            if(pathAsset != null && (pathAsset.Path?.Length ?? 0) > 0)
+                            if(guidAsset != null && (guidAsset.Guid?.Length ?? 0) > 0)
                             {
-                                var path = AssetSerialization.GetAssetPathFromCache(pathAsset.Path);
-
-                                sceneComponent.data.Add(field.Name, path);
+                                sceneComponent.data.Add(field.Name, guidAsset.Guid);
                             }
                         }
                         else if(field.FieldType == typeof(Vector2))

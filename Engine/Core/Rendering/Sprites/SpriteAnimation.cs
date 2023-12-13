@@ -7,7 +7,7 @@ namespace Staple
     /// Represents a sprite animation
     /// </summary>
     [AssetCategory("2D")]
-    public class SpriteAnimation : IStapleAsset, IPathAsset
+    public class SpriteAnimation : IStapleAsset, IGuidAsset
     {
         /// <summary>
         /// The sprite's texture
@@ -29,7 +29,7 @@ namespace Staple
         /// </summary>
         public List<int> frames = new();
 
-        public string Path { get; set; }
+        public string Guid { get; set; }
 
         /// <summary>
         /// IPathAsset implementation. Loads a Sprite Animation from path.

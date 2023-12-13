@@ -387,7 +387,7 @@ namespace Staple
             }
             catch (Exception e)
             {
-                Log.Debug($"[AudioClip] Failed to load audio clip {clip.Path}: {e}");
+                Log.Debug($"[AudioClip] Failed to load audio clip {clip.Guid}: {e}");
             }
 
             return cts;

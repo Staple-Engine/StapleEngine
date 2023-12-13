@@ -198,9 +198,9 @@ namespace Staple.Editor
                             {
                                 var value = (Texture)field.GetValue(component);
 
-                                if (value != null && value.Disposed && (value.path?.Length ?? 0) > 0)
+                                if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
                                 {
-                                    field.SetValue(component, ResourceManager.instance.LoadTexture(value.path));
+                                    field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
                                 }
                             }
                         }

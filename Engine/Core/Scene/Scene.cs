@@ -215,11 +215,11 @@ namespace Staple
                                     field.SetValue(componentInstance, value);
                                 }
                             }
-                            else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null && element.ValueKind == JsonValueKind.String)
+                            else if(field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null && element.ValueKind == JsonValueKind.String)
                             {
                                 var path = element.GetString();
 
-                                var value = AssetSerialization.GetPathAsset(field.FieldType, path);
+                                var value = AssetSerialization.GetGuidAsset(field.FieldType, path);
 
                                 if(value != null)
                                 {
@@ -448,11 +448,11 @@ namespace Staple
                                                 field.SetValue(componentInstance, (Color)color);
                                             }
                                         }
-                                        else if(field.FieldType.GetInterface(typeof(IPathAsset).FullName) != null)
+                                        else if(field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                                         {
                                             var path = parameter.stringValue;
 
-                                            var value = AssetSerialization.GetPathAsset(field.FieldType, path);
+                                            var value = AssetSerialization.GetGuidAsset(field.FieldType, path);
 
                                             if (value != null)
                                             {

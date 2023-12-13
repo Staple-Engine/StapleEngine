@@ -77,13 +77,13 @@
       {
         "type": "Staple.SpriteRenderer",
         "data": {
-          "material": "Materials/Sprite.mat",
-          "texture": "Textures/Sprites/DefaultSprite.png",
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "texture": "fe19196d-0c54-413a-a0fd-6ef91124007a",
           "spriteIndex": 0,
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
-          "animation": "Animations/OpossumWalk.asset",
+          "animation": "b9585ff8-f4f2-4214-9701-065f32127def",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -119,7 +119,7 @@
       {
         "type": "Staple.AudioSource",
         "data": {
-          "audioClip": "Audio/341695__projectsu012__coins-1.ogg",
+          "audioClip": "ecbb5503-f4eb-492a-82eb-8fd187d6b648",
           "volume": 1.0,
           "pitch": 1.0,
           "loop": false,
@@ -178,13 +178,13 @@
       {
         "type": "Staple.SpriteRenderer",
         "data": {
-          "material": "Materials/Sprite.mat",
-          "texture": "Modules/Sunny-land-files/Graphical Assets/spritesheets/cherry.png",
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "texture": "9b7be2ee-9523-4aee-8008-274c86673226",
           "spriteIndex": 0,
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
-          "animation": "Animations/Gem.asset",
+          "animation": "a20c9e5c-a5c9-4802-b185-69d9f6a50477",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -195,7 +195,7 @@
       {
         "type": "Staple.AudioSource",
         "data": {
-          "audioClip": "Audio/341695__projectsu012__coins-1.ogg",
+          "audioClip": "ecbb5503-f4eb-492a-82eb-8fd187d6b648",
           "volume": 1.0,
           "pitch": 1.0,
           "loop": false,
@@ -318,12 +318,51 @@
       {
         "type": "Staple.AudioSource",
         "data": {
-          "audioClip": "Audio/Adventures in Adventureland.mp3",
+          "audioClip": "8c5b5b75-b435-4352-be92-2d3c82f76239",
           "volume": 1.0,
           "pitch": 1.0,
           "loop": true,
           "spatial": false,
           "autoplay": true
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
+  },
+  {
+    "kind": "Entity",
+    "name": "Entity",
+    "ID": 5,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.MeshRenderer",
+        "data": {
+          "mesh": "3be47127-20fa-4c4d-b743-1ba03765ee89",
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "sortingLayer": 0,
+          "sortingOrder": 0
         }
       }
     ],

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Staple
 {
     [AssetCategory("2D")]
-    public class TileMapAsset : IStapleAsset, IPathAsset
+    public class TileMapAsset : IStapleAsset, IGuidAsset
     {
         [Serializable]
         public class Layer
@@ -21,7 +21,7 @@ namespace Staple
 
         public List<Layer> layers = new();
 
-        public string Path { get; set; }
+        public string Guid { get; set; }
 
         public static object Create(string path)
         {

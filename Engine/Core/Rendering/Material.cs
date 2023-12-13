@@ -8,7 +8,7 @@ namespace Staple
     /// <summary>
     /// Material resource
     /// </summary>
-    public sealed class Material : IPathAsset
+    public sealed class Material : IGuidAsset
     {
         private class ParameterInfo
         {
@@ -31,7 +31,7 @@ namespace Staple
         internal static Texture WhiteTexture;
 
         internal Shader shader;
-        internal string path;
+        internal string guid;
 
         private Dictionary<string, ParameterInfo> parameters = new();
 
@@ -84,13 +84,13 @@ namespace Staple
         }
 
         /// <summary>
-        /// The asset's path (if any)
+        /// The asset's guid (if any)
         /// </summary>
-        public string Path
+        public string Guid
         {
-            get => path;
+            get => guid;
 
-            set => path = value;
+            set => guid = value;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Staple
                 parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
             }
 
-            path = sourceMaterial.path;
+            guid = sourceMaterial.guid;
             shader = sourceMaterial.shader;
         }
 

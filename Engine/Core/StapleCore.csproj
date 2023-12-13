@@ -118,7 +118,7 @@
 		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Serialization\Asset\AssetDatabase.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
-		<Compile Include="Serialization\Asset\IPathAsset.cs" />
+		<Compile Include="Serialization\Asset\IGuidAsset.cs" />
 		<Compile Include="Serialization\Asset\IStapleAsset.cs" />
 		<Compile Include="Attributes\AbstractComponentAttribute.cs" />
 		<Compile Include="Attributes\AssetCategoryAttribute.cs" />

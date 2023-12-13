@@ -630,7 +630,7 @@ namespace Staple.Internal
 
                 if (shader != null)
                 {
-                    shader.Path = original;
+                    shader.Guid = guid;
 
                     cachedShaders.AddOrSetKey(path, shader);
                 }
@@ -709,7 +709,7 @@ namespace Staple.Internal
                 material = new Material
                 {
                     shader = shader,
-                    path = path
+                    guid = path
                 };
 
                 foreach(var parameter in materialData.metadata.parameters)
@@ -914,7 +914,7 @@ namespace Staple.Internal
                 audioClip = new AudioClip()
                 {
                     metadata = audioData.metadata,
-                    Path = path,
+                    Guid = path,
                 };
 
                 cachedAudioClips.AddOrSetKey(path, audioClip);
@@ -955,7 +955,7 @@ namespace Staple.Internal
 
             mesh = new Mesh(true, false)
             {
-                Path = path
+                Guid = path
             };
 
             if (asset.meshes.Count == 1)
@@ -1142,11 +1142,6 @@ namespace Staple.Internal
                 if (asset != null)
                 {
                     cachedAssets.AddOrSetKey(path, asset);
-                }
-
-                if(asset is IPathAsset pathAsset)
-                {
-                    pathAsset.Path = path;
                 }
 
                 return asset;

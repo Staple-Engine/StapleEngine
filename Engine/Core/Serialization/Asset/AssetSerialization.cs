@@ -17,11 +17,6 @@ namespace Staple.Internal
         private static Regex cachePathRegex = CachePathRegex();
         private static Regex assetPathRegex = AssetPathRegex();
 
-        /// <summary>
-        /// Callback to resolve path assets' paths, if needed.
-        /// </summary>
-        public static Func<string, string> pathAssetResolver;
-
         public static string GetAssetPathFromCache(string path)
         {
             var matches = cachePathRegex.Matches(path);
@@ -41,15 +36,10 @@ namespace Staple.Internal
             return path;
         }
 
-        public static object GetPathAsset(
+        public static object GetGuidAsset(
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.Interfaces)]
-            Type type, string path)
+            Type type, string guid)
         {
-            if(pathAssetResolver != null)
-            {
-                path = pathAssetResolver(path);
-            }
-
             var methods = type.GetMethods();
 
             foreach (var method in methods)
@@ -65,7 +55,7 @@ namespace Staple.Internal
 
                     try
                     {
-                        var result = method.Invoke(null, new object[] { path });
+                        var result = method.Invoke(null, new object[] { guid });
 
                         if (result == null || (result.GetType() != type && result.GetType().GetInterface(type.FullName) == null))
                         {
@@ -107,7 +97,7 @@ namespace Staple.Internal
                 return true;
             }
 
-            if(type.GetInterface(typeof(IPathAsset).FullName) != null || type == typeof(IPathAsset))
+            if(type.GetInterface(typeof(IGuidAsset).FullName) != null || type == typeof(IGuidAsset))
             {
                 return true;
             }
@@ -173,18 +163,13 @@ namespace Staple.Internal
                         continue;
                     }
 
-                    if(value is IPathAsset pathAsset)
+                    if(value is IGuidAsset guidAsset)
                     {
-                        var path = GetAssetPathFromCache(pathAsset.Path);
-
-                        if ((path?.Length ?? 0) > 0)
+                        outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
                         {
-                            outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
-                            {
-                                typeName = value.GetType().FullName,
-                                value = path,
-                            });
-                        }
+                            typeName = value.GetType().FullName,
+                            value = guidAsset.Guid,
+                        });
 
                         continue;
                     }
@@ -197,7 +182,7 @@ namespace Staple.Internal
 
                             if (listType != null)
                             {
-                                if(listType.GetInterface(typeof(IPathAsset).FullName) != null)
+                                if(listType.GetInterface(typeof(IGuidAsset).FullName) != null)
                                 {
                                     var newList = new List<string>();
 
@@ -205,9 +190,9 @@ namespace Staple.Internal
 
                                     foreach(var item in inList)
                                     {
-                                        if(item is IPathAsset p)
+                                        if(item is IGuidAsset g)
                                         {
-                                            newList.Add(p.Path);
+                                            newList.Add(g.Guid);
                                         }
                                     }
 
@@ -273,16 +258,11 @@ namespace Staple.Internal
                         continue;
                     }
 
-                    if(valueType.GetInterface(typeof(IPathAsset).FullName) != null)
+                    if(valueType.GetInterface(typeof(IGuidAsset).FullName) != null)
                     {
-                        if(pair.Value.value is string path)
+                        if(pair.Value.value is string guid)
                         {
-                            if(pathAssetResolver != null)
-                            {
-                                path = pathAssetResolver(path);
-                            }
-
-                            var result = GetPathAsset(valueType, path);
+                            var result = GetGuidAsset(valueType, guid);
 
                             if(result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
                             {
@@ -328,11 +308,11 @@ namespace Staple.Internal
                                 {
                                     var fieldType = field.FieldType.GenericTypeArguments[0];
 
-                                    if(fieldType.GetInterface(typeof(IPathAsset).FullName) != null)
+                                    if(fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                                     {
-                                        if(item is string path)
+                                        if(item is string guid)
                                         {
-                                            var v = GetPathAsset(fieldType, path);
+                                            var v = GetGuidAsset(fieldType, guid);
 
                                             if(v != null)
                                             {
