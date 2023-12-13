@@ -40,8 +40,6 @@ namespace Staple
 
             path += ".sbin";
 
-            Log.Debug($"Path: {path}");
-
             if (path.EndsWith(".mp3.sbin"))
             {
                 try
