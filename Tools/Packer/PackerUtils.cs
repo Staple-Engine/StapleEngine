@@ -24,6 +24,13 @@ namespace Packer
             "tga"
         };
 
+        private static string[] audioExtensions = new string[]
+        {
+            "mp3",
+            "ogg",
+            "wav",
+        };
+
         public static string ExtractGuid(string path)
         {
             if(path.EndsWith(".mat"))
@@ -48,6 +55,8 @@ namespace Packer
                 }
                 catch(Exception e)
                 {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
                     return null;
                 }
             }
@@ -71,8 +80,10 @@ namespace Packer
 
                     return value.metadata.guid;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
                     return null;
                 }
             }
@@ -96,8 +107,10 @@ namespace Packer
 
                     return value.guid;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
                     return null;
                 }
             }
@@ -121,8 +134,37 @@ namespace Packer
 
                     return value.metadata.guid;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                    return null;
+                }
+            }
+            else if (audioExtensions.Any(x => path.EndsWith($".{x}")))
+            {
+                try
+                {
+                    var data = File.ReadAllBytes(path);
+
+                    using var stream = new MemoryStream(data);
+
+                    var header = MessagePackSerializer.Deserialize<SerializableAudioClipHeader>(stream);
+
+                    if (header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) == false ||
+                        header.version != SerializableAudioClipHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var value = MessagePackSerializer.Deserialize<SerializableAudioClip>(stream);
+
+                    return value.metadata.guid;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
                     return null;
                 }
             }

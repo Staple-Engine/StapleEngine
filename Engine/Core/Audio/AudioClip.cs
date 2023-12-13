@@ -31,14 +31,27 @@ namespace Staple
 
         internal IAudioStream GetAudioStream()
         {
-            if (guid.EndsWith(".mp3"))
+            var path = AssetDatabase.GetAssetPath(guid);
+
+            if(path == null)
+            {
+                return null;
+            }
+
+            path += ".sbin";
+
+            Log.Debug($"Path: {path}");
+
+            if (path.EndsWith(".mp3.sbin"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile(path);
 
                     if ((fileData?.Length ?? 0) == 0)
                     {
+                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
+
                         return null;
                     }
 
@@ -48,25 +61,30 @@ namespace Staple
                     {
                         return new MP3AudioStream(stream);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         stream.Dispose();
+
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
 
                 return null;
             }
-            if (guid.EndsWith(".ogg"))
+            else if (path.EndsWith(".ogg.sbin"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile(path);
 
                     if((fileData?.Length ?? 0) == 0)
                     {
+                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
+
                         return null;
                     }
 
@@ -76,25 +94,30 @@ namespace Staple
                     {
                         return new OggAudioStream(stream);
                     }
-                    catch(Exception)
+                    catch(Exception e)
                     {
                         stream.Dispose();
+
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                     }
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
+                    Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
 
                 return null;
             }
-            else if(guid.EndsWith(".wav"))
+            else if(path.EndsWith(".wav.sbin"))
             {
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile($"{guid}.sbin");
+                    var fileData = ResourceManager.instance.LoadFile(path);
 
                     if ((fileData?.Length ?? 0) == 0)
                     {
+                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
+
                         return null;
                     }
 
@@ -104,13 +127,16 @@ namespace Staple
                     {
                         return new WaveAudioStream(stream);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         stream.Dispose();
+
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
 
                 return null;

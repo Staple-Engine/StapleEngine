@@ -215,6 +215,13 @@ namespace Staple
 
                     LoadAudioClip(source.audioClip, (samples, channels, bits, sampleRate) =>
                     {
+                        if(samples == null || channels == 0 || bits == 0 || sampleRate == 0)
+                        {
+                            Log.Debug($"[AudioSystem] Failed to load audio clip for {source.audioClip.Guid}");
+
+                            return;
+                        }
+
                         var clip = new AudioClipImpl();
 
                         if (clip.Init(samples, channels, bits, sampleRate))
@@ -346,6 +353,8 @@ namespace Staple
 
                 if(stream == null)
                 {
+                    Log.Debug($"[AudioSystem] Failed to get audio stream for {clip.Guid}");
+
                     onFinish?.Invoke(default, 0, 0, 0);
 
                     return cts;
