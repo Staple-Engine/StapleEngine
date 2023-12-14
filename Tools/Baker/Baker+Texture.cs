@@ -145,251 +145,216 @@ namespace Baker
                     premultiplyAlpha = overrides.premultiplyAlpha;
                 }
 
-                RawTextureData textureData;
+                var extension = Path.GetExtension(inputFile).Substring(1);
 
-                try
+                if(AssetSerialization.ResizableTextureExtensions.Contains(extension))
                 {
-                    textureData = Texture.LoadStandard(File.ReadAllBytes(inputFile), StandardTextureColorComponents.RGBA);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"\t\tFailed to load image data");
+                    RawTextureData textureData;
 
-                    continue;
-                }
-
-                if(textureData == null)
-                {
-                    Console.WriteLine($"\t\tFailed to load image data");
-
-                    continue;
-                }
-
-                var scale = 1.0f;
-
-                if (textureData.width > maxSize || textureData.height > maxSize)
-                {
-                    if (textureData.width > textureData.height)
+                    try
                     {
-                        scale = maxSize / (float)textureData.width;
+                        textureData = Texture.LoadStandard(File.ReadAllBytes(inputFile), StandardTextureColorComponents.RGBA);
                     }
-                    else
+                    catch (Exception e)
                     {
-                        scale = maxSize / (float)textureData.height;
+                        Console.WriteLine($"\t\tFailed to load image data");
+
+                        continue;
                     }
 
-                    textureData.Resize((int)(textureData.width * scale), (int)(textureData.height * scale));
-                }
-
-                inputFile = "__temp";
-
-                var png = textureData.EncodePNG();
-
-                try
-                {
-                    File.WriteAllBytes(inputFile, png);
-                }
-                catch(Exception)
-                {
-                    Console.WriteLine("\t\tFailed to process: I/O Error");
-
-                    continue;
-                }
-
-                if (metadata.type == TextureType.Sprite)
-                {
-                    var spriteTextures = new List<RawTextureInfo>();
-
-                    switch (metadata.spriteTextureMethod)
+                    if (textureData == null)
                     {
-                        case SpriteTextureMethod.Single:
+                        Console.WriteLine($"\t\tFailed to load image data");
 
-                            metadata.sprites.Clear();
-
-                            if (textureData != null)
-                            {
-                                metadata.sprites.Add(new TextureSpriteInfo()
-                                {
-                                    rect = new Rect(Vector2Int.Zero, new Vector2Int(textureData.width, textureData.height))
-                                });
-                            }
-
-                            break;
-
-                        case SpriteTextureMethod.Grid:
-
-                            metadata.sprites.Clear();
-
-                            var gridSize = metadata.spriteTextureGridSize;
-
-                            if(scale != 1)
-                            {
-                                gridSize.X = Staple.Math.RoundToInt(gridSize.X * scale);
-                                gridSize.Y = Staple.Math.RoundToInt(gridSize.Y * scale);
-                            }
-
-                            if (gridSize.X > 0 &&
-                                gridSize.Y > 0)
-                            {
-                                bool ValidRegion(int x, int y)
-                                {
-                                    var rawData = new RawTextureData()
-                                    {
-                                        colorComponents = textureData.colorComponents,
-                                        width = gridSize.X,
-                                        height = gridSize.Y,
-                                        data = new byte[gridSize.X * gridSize.Y * 4],
-                                    };
-
-                                    var pitch = rawData.width * 4;
-
-                                    for (int regionY = 0, yPos = (y * textureData.width) * 4, destYPos = 0; regionY < gridSize.Y;
-                                        regionY++, yPos += textureData.width * 4, destYPos += rawData.width * 4)
-                                    {
-                                        Buffer.BlockCopy(textureData.data, yPos + x * 4, rawData.data, destYPos, pitch);
-                                    }
-
-                                    for (int regionY = 0, yPos = 0; regionY < rawData.height; regionY++, yPos += pitch)
-                                    {
-                                        for (int regionX = 0, xPos = 0; regionX < rawData.width; regionX++, xPos += 4)
-                                        {
-                                            if (rawData.data[xPos + yPos + 3] != 0)
-                                            {
-                                                if (metadata.shouldPack)
-                                                {
-                                                    spriteTextures.Add(new RawTextureInfo()
-                                                    {
-                                                        textureData = rawData,
-                                                        location = new Rect(new Vector2Int(x, y), gridSize)
-                                                    });
-                                                }
-
-                                                return true;
-                                            }
-                                        }
-                                    }
-
-                                    return false;
-                                }
-
-                                var size = new Vector2Int(textureData.width / gridSize.X,
-                                    textureData.height / gridSize.Y);
-
-                                for (int y = 0, yPos = 0; y < size.Y; y++, yPos += gridSize.Y)
-                                {
-                                    for (int x = 0, xPos = 0; x < size.X; x++, xPos += gridSize.X)
-                                    {
-                                        if (ValidRegion(xPos, yPos) == false)
-                                        {
-                                            continue;
-                                        }
-
-                                        metadata.sprites.Add(new TextureSpriteInfo()
-                                        {
-                                            rect = new Rect(new Vector2Int(xPos, yPos), gridSize)
-                                        });
-                                    }
-                                }
-                            }
-
-                            break;
+                        continue;
                     }
 
-                    if (metadata.shouldPack)
+                    var scale = 1.0f;
+
+                    if (textureData.width > maxSize || textureData.height > maxSize)
                     {
-                        if (spriteTextures.Count > 1)
+                        if (textureData.width > textureData.height)
                         {
-                            metadata.sprites.Clear();
+                            scale = maxSize / (float)textureData.width;
+                        }
+                        else
+                        {
+                            scale = maxSize / (float)textureData.height;
+                        }
 
-                            if(metadata.trimDuplicates)
-                            {
-                                Console.WriteLine($"\t\tRemoving duplicates in {spriteTextures.Count} sprites");
+                        textureData.Resize((int)(textureData.width * scale), (int)(textureData.height * scale));
+                    }
 
-                                for (var j = 0; j < spriteTextures.Count; j++)
+                    inputFile = "__temp";
+
+                    var png = textureData.EncodePNG();
+
+                    try
+                    {
+                        File.WriteAllBytes(inputFile, png);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("\t\tFailed to process: I/O Error");
+
+                        continue;
+                    }
+
+                    if (metadata.type == TextureType.Sprite)
+                    {
+                        var spriteTextures = new List<RawTextureInfo>();
+
+                        switch (metadata.spriteTextureMethod)
+                        {
+                            case SpriteTextureMethod.Single:
+
+                                metadata.sprites.Clear();
+
+                                if (textureData != null)
                                 {
-                                    var first = spriteTextures[j];
-
-                                    Console.WriteLine($"Validating {j + 1}/{spriteTextures.Count} " + 
-                                        $"({first.location.left}, {first.location.top}, {first.location.Width}, {first.location.Height})");
-
-                                    var stride = first.textureData.width * 4;
-
-                                    for (var k = spriteTextures.Count - 1; k > j; k--)
+                                    metadata.sprites.Add(new TextureSpriteInfo()
                                     {
-                                        var second = spriteTextures[k];
+                                        rect = new Rect(Vector2Int.Zero, new Vector2Int(textureData.width, textureData.height))
+                                    });
+                                }
 
-                                        if (first.textureData.width != second.textureData.width ||
-                                            first.textureData.height != second.textureData.height)
+                                break;
+
+                            case SpriteTextureMethod.Grid:
+
+                                metadata.sprites.Clear();
+
+                                var gridSize = metadata.spriteTextureGridSize;
+
+                                if (scale != 1)
+                                {
+                                    gridSize.X = Staple.Math.RoundToInt(gridSize.X * scale);
+                                    gridSize.Y = Staple.Math.RoundToInt(gridSize.Y * scale);
+                                }
+
+                                if (gridSize.X > 0 &&
+                                    gridSize.Y > 0)
+                                {
+                                    bool ValidRegion(int x, int y)
+                                    {
+                                        var rawData = new RawTextureData()
                                         {
-                                            continue;
+                                            colorComponents = textureData.colorComponents,
+                                            width = gridSize.X,
+                                            height = gridSize.Y,
+                                            data = new byte[gridSize.X * gridSize.Y * 4],
+                                        };
+
+                                        var pitch = rawData.width * 4;
+
+                                        for (int regionY = 0, yPos = (y * textureData.width) * 4, destYPos = 0; regionY < gridSize.Y;
+                                            regionY++, yPos += textureData.width * 4, destYPos += rawData.width * 4)
+                                        {
+                                            Buffer.BlockCopy(textureData.data, yPos + x * 4, rawData.data, destYPos, pitch);
                                         }
 
-                                        //Remove duplicates
-                                        if (first.textureData.data.SequenceEqual(second.textureData.data))
+                                        for (int regionY = 0, yPos = 0; regionY < rawData.height; regionY++, yPos += pitch)
                                         {
-                                            Console.WriteLine($"\t\tRemoved 1:1 duplicate at index {k} " + 
-                                                $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
-
-                                            first.duplicates.Add(new DuplicateSpriteInfo()
+                                            for (int regionX = 0, xPos = 0; regionX < rawData.width; regionX++, xPos += 4)
                                             {
-                                                rotation = TextureSpriteRotation.Duplicate,
-                                                original = second.location,
-                                            });
-
-                                            spriteTextures.RemoveAt(k);
-
-                                            continue;
-                                        }
-
-                                        var valid = true;
-
-                                        //Test flip Y
-                                        for (int y = 0, yPos = 0, destYPos = ((first.textureData.height - 1) * first.textureData.width) * 4;
-                                            y < first.textureData.height;
-                                            y++, yPos += stride, destYPos -= stride)
-                                        {
-                                            for(var l = 0; l < stride; l++)
-                                            {
-                                                if (first.textureData.data[yPos + l] != second.textureData.data[destYPos + l])
+                                                if (rawData.data[xPos + yPos + 3] != 0)
                                                 {
-                                                    valid = false;
+                                                    if (metadata.shouldPack)
+                                                    {
+                                                        spriteTextures.Add(new RawTextureInfo()
+                                                        {
+                                                            textureData = rawData,
+                                                            location = new Rect(new Vector2Int(x, y), gridSize)
+                                                        });
+                                                    }
 
-                                                    break;
+                                                    return true;
                                                 }
                                             }
+                                        }
 
-                                            if(valid == false)
+                                        return false;
+                                    }
+
+                                    var size = new Vector2Int(textureData.width / gridSize.X,
+                                        textureData.height / gridSize.Y);
+
+                                    for (int y = 0, yPos = 0; y < size.Y; y++, yPos += gridSize.Y)
+                                    {
+                                        for (int x = 0, xPos = 0; x < size.X; x++, xPos += gridSize.X)
+                                        {
+                                            if (ValidRegion(xPos, yPos) == false)
                                             {
-                                                break;
+                                                continue;
                                             }
-                                        }
 
-                                        if (valid)
-                                        {
-                                            Console.WriteLine($"\t\tRemoved Flipped Y duplicate at index {k} " +
-                                                $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
-
-                                            first.duplicates.Add(new DuplicateSpriteInfo()
+                                            metadata.sprites.Add(new TextureSpriteInfo()
                                             {
-                                                rotation = TextureSpriteRotation.FlipY,
-                                                original = second.location,
+                                                rect = new Rect(new Vector2Int(xPos, yPos), gridSize)
                                             });
-
-                                            spriteTextures.RemoveAt(k);
-
-                                            continue;
                                         }
+                                    }
+                                }
 
-                                        valid = true;
+                                break;
+                        }
 
-                                        //Test flip X
-                                        for(int y = 0, yPos = 0; y < first.textureData.height; y++, yPos += stride)
+                        if (metadata.shouldPack)
+                        {
+                            if (spriteTextures.Count > 1)
+                            {
+                                metadata.sprites.Clear();
+
+                                if (metadata.trimDuplicates)
+                                {
+                                    Console.WriteLine($"\t\tRemoving duplicates in {spriteTextures.Count} sprites");
+
+                                    for (var j = 0; j < spriteTextures.Count; j++)
+                                    {
+                                        var first = spriteTextures[j];
+
+                                        Console.WriteLine($"Validating {j + 1}/{spriteTextures.Count} " +
+                                            $"({first.location.left}, {first.location.top}, {first.location.Width}, {first.location.Height})");
+
+                                        var stride = first.textureData.width * 4;
+
+                                        for (var k = spriteTextures.Count - 1; k > j; k--)
                                         {
-                                            for(int x = 0, xPos = 0, destXPos = stride - 4; x < first.textureData.width; x++, xPos += 4, destXPos -= 4)
+                                            var second = spriteTextures[k];
+
+                                            if (first.textureData.width != second.textureData.width ||
+                                                first.textureData.height != second.textureData.height)
                                             {
-                                                for(var l = 0; l < 4; l++)
+                                                continue;
+                                            }
+
+                                            //Remove duplicates
+                                            if (first.textureData.data.SequenceEqual(second.textureData.data))
+                                            {
+                                                Console.WriteLine($"\t\tRemoved 1:1 duplicate at index {k} " +
+                                                    $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+
+                                                first.duplicates.Add(new DuplicateSpriteInfo()
                                                 {
-                                                    if (first.textureData.data[yPos + xPos + l] != second.textureData.data[yPos + destXPos + l])
+                                                    rotation = TextureSpriteRotation.Duplicate,
+                                                    original = second.location,
+                                                });
+
+                                                spriteTextures.RemoveAt(k);
+
+                                                continue;
+                                            }
+
+                                            var valid = true;
+
+                                            //Test flip Y
+                                            for (int y = 0, yPos = 0, destYPos = ((first.textureData.height - 1) * first.textureData.width) * 4;
+                                                y < first.textureData.height;
+                                                y++, yPos += stride, destYPos -= stride)
+                                            {
+                                                for (var l = 0; l < stride; l++)
+                                                {
+                                                    if (first.textureData.data[yPos + l] != second.textureData.data[destYPos + l])
                                                     {
                                                         valid = false;
 
@@ -397,70 +362,110 @@ namespace Baker
                                                     }
                                                 }
 
-                                                if(valid == false)
+                                                if (valid == false)
                                                 {
                                                     break;
                                                 }
                                             }
 
-                                            if(valid == false)
+                                            if (valid)
                                             {
-                                                break;
+                                                Console.WriteLine($"\t\tRemoved Flipped Y duplicate at index {k} " +
+                                                    $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+
+                                                first.duplicates.Add(new DuplicateSpriteInfo()
+                                                {
+                                                    rotation = TextureSpriteRotation.FlipY,
+                                                    original = second.location,
+                                                });
+
+                                                spriteTextures.RemoveAt(k);
+
+                                                continue;
                                             }
-                                        }
 
-                                        if(valid)
-                                        {
-                                            Console.WriteLine($"\t\tRemoved Flipped X duplicate at index {k} " +
-                                                $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+                                            valid = true;
 
-                                            first.duplicates.Add(new DuplicateSpriteInfo()
+                                            //Test flip X
+                                            for (int y = 0, yPos = 0; y < first.textureData.height; y++, yPos += stride)
                                             {
-                                                rotation = TextureSpriteRotation.FlipX,
-                                                original = second.location,
-                                            });
+                                                for (int x = 0, xPos = 0, destXPos = stride - 4; x < first.textureData.width; x++, xPos += 4, destXPos -= 4)
+                                                {
+                                                    for (var l = 0; l < 4; l++)
+                                                    {
+                                                        if (first.textureData.data[yPos + xPos + l] != second.textureData.data[yPos + destXPos + l])
+                                                        {
+                                                            valid = false;
 
-                                            spriteTextures.RemoveAt(k);
+                                                            break;
+                                                        }
+                                                    }
 
-                                            continue;
+                                                    if (valid == false)
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (valid == false)
+                                                {
+                                                    break;
+                                                }
+                                            }
+
+                                            if (valid)
+                                            {
+                                                Console.WriteLine($"\t\tRemoved Flipped X duplicate at index {k} " +
+                                                    $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+
+                                                first.duplicates.Add(new DuplicateSpriteInfo()
+                                                {
+                                                    rotation = TextureSpriteRotation.FlipX,
+                                                    original = second.location,
+                                                });
+
+                                                spriteTextures.RemoveAt(k);
+
+                                                continue;
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            var packed = Texture.PackTextures(spriteTextures.Select(x => x.textureData).ToArray(), 32, 32, maxSize,
-                                metadata.padding, out var rects, out textureData);
+                                var packed = Texture.PackTextures(spriteTextures.Select(x => x.textureData).ToArray(), 32, 32, maxSize,
+                                    metadata.padding, out var rects, out textureData);
 
-                            if (packed)
-                            {
-                                for(var j = 0; j < spriteTextures.Count; j++)
+                                if (packed)
                                 {
-                                    var sprite = spriteTextures[j];
-                                    var rect = rects[j];
-
-                                    metadata.sprites.Add(new TextureSpriteInfo()
+                                    for (var j = 0; j < spriteTextures.Count; j++)
                                     {
-                                        rect = rect,
-                                        originalRect = sprite.location,
-                                        rotation = TextureSpriteRotation.None,
-                                    });
+                                        var sprite = spriteTextures[j];
+                                        var rect = rects[j];
 
-                                    foreach(var duplicate in sprite.duplicates)
-                                    {
                                         metadata.sprites.Add(new TextureSpriteInfo()
                                         {
                                             rect = rect,
-                                            originalRect = duplicate.original,
-                                            rotation = duplicate.rotation,
+                                            originalRect = sprite.location,
+                                            rotation = TextureSpriteRotation.None,
                                         });
+
+                                        foreach (var duplicate in sprite.duplicates)
+                                        {
+                                            metadata.sprites.Add(new TextureSpriteInfo()
+                                            {
+                                                rect = rect,
+                                                originalRect = duplicate.original,
+                                                rotation = duplicate.rotation,
+                                            });
+                                        }
                                     }
-                                }
 
-                                var outData = textureData.EncodePNG();
+                                    var outData = textureData.EncodePNG();
 
-                                if (outData != null)
-                                {
-                                    File.WriteAllBytes(inputFile, outData);
+                                    if (outData != null)
+                                    {
+                                        File.WriteAllBytes(inputFile, outData);
+                                    }
                                 }
                             }
                         }

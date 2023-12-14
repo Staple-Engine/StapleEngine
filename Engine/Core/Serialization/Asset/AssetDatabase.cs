@@ -67,8 +67,10 @@ namespace Staple
                         name = Path.GetFileNameWithoutExtension(file.path.Replace(".meta", "")),
                     };
 
+                    var extension = Path.GetExtension(file.path);
+
                     //TODO: Do this better
-                    switch (Path.GetExtension(file.path))
+                    switch (extension)
                     {
                         case ".stsh":
 
@@ -88,17 +90,22 @@ namespace Staple
 
                             break;
 
-                        case ".wav":
-                        case ".mp3":
-                        case ".ogg":
+                        default:
 
-                            asset.typeName = typeof(AudioClip).FullName;
+                            var shortExtension = extension.Substring(1);
 
-                            break;
-
-                        case ".png": //TODO
-
-                            asset.typeName = typeof(Texture).FullName;
+                            if(AssetSerialization.TextureExtensions.Contains(shortExtension))
+                            {
+                                asset.typeName = typeof(Texture).FullName;
+                            }
+                            else if(AssetSerialization.AudioExtensions.Contains(shortExtension))
+                            {
+                                asset.typeName = typeof(AudioClip).FullName;
+                            }
+                            else if(AssetSerialization.MeshExtensions.Contains(shortExtension))
+                            {
+                                asset.typeName = typeof(Mesh).FullName;
+                            }
 
                             break;
                     }
