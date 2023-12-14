@@ -22,13 +22,13 @@ namespace Staple.Internal
         internal Android.Content.Res.AssetManager assetManager;
 #endif
 
-        private readonly Dictionary<string, Texture> cachedTextures = new();
-        private readonly Dictionary<string, Material> cachedMaterials = new();
-        private readonly Dictionary<string, Shader> cachedShaders = new();
-        private readonly Dictionary<string, Mesh> cachedMeshes = new();
-        private readonly Dictionary<string, AudioClip> cachedAudioClips = new();
-        private readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
-        private readonly Dictionary<string, IStapleAsset> cachedAssets = new();
+        internal readonly Dictionary<string, Texture> cachedTextures = new();
+        internal readonly Dictionary<string, Material> cachedMaterials = new();
+        internal readonly Dictionary<string, Shader> cachedShaders = new();
+        internal readonly Dictionary<string, Mesh> cachedMeshes = new();
+        internal readonly Dictionary<string, AudioClip> cachedAudioClips = new();
+        internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
+        internal readonly Dictionary<string, IStapleAsset> cachedAssets = new();
         internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
         internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
 

@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
-using System.Text.RegularExpressions;
 using System.Reflection;
 using MessagePack;
 using System.Linq;
@@ -257,7 +256,15 @@ namespace Staple.Editor
                     }
                 }
 
-                if(Scene.current?.world != null)
+                foreach(var pair in ResourceManager.instance.cachedMeshes)
+                {
+                    pair.Value.Destroy();
+                }
+
+                ResourceManager.instance.cachedMeshAssets.Clear();
+                ResourceManager.instance.cachedMeshes.Clear();
+
+                if (Scene.current?.world != null)
                 {
                     Scene.current.world.Iterate((entity) =>
                     {
@@ -274,6 +281,15 @@ namespace Staple.Editor
                                     if(value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
                                     {
                                         field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
+                                    }
+                                }
+                                else if(field.FieldType == typeof(Mesh))
+                                {
+                                    var value = (Mesh)field.GetValue(component);
+
+                                    if(value != null && (value.Guid?.Length ?? 0) > 0)
+                                    {
+                                        field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
                                     }
                                 }
                             }
