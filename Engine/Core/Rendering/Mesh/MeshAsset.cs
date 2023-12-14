@@ -16,6 +16,14 @@ namespace Staple
             public List<Color> colors = new();
             public List<Vector3> tangents = new();
             public List<Vector3> bitangents = new();
+            public List<Vector2> UV1 = new();
+            public List<Vector2> UV2 = new();
+            public List<Vector2> UV3 = new();
+            public List<Vector2> UV4 = new();
+            public List<Vector2> UV5 = new();
+            public List<Vector2> UV6 = new();
+            public List<Vector2> UV7 = new();
+            public List<Vector2> UV8 = new();
             public List<int> indices = new();
             public AABB bounds;
         }

@@ -164,9 +164,9 @@ namespace Baker
                 {
                     scene = context.ImportFile(meshFiles[i].Replace(".meta", ""), flags);
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to import file");
+                    Console.WriteLine($"\t\tError: Failed to import file: {e}");
 
                     continue;
                 }
@@ -222,6 +222,29 @@ namespace Baker
                     m.tangents = mesh.Tangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
                     m.bitangents = mesh.BiTangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
                     m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
+
+                    var uvs = new List<Vector2Holder>[8]
+                    {
+                        m.UV1,
+                        m.UV2,
+                        m.UV3,
+                        m.UV4,
+                        m.UV5,
+                        m.UV6,
+                        m.UV7,
+                        m.UV8,
+                    };
+
+                    var uvCount = mesh.TextureCoordinateChannelCount > uvs.Length ? uvs.Length : mesh.TextureCoordinateChannelCount;
+
+                    for (var j = 0; j < uvCount; j++)
+                    {
+                        uvs[j].AddRange(mesh.TextureCoordinateChannels[j].Select(x => new Vector2Holder()
+                        {
+                            x = x.X,
+                            y = x.Y,
+                        }).ToList());
+                    }
 
                     meshData.meshes.Add(m);
                 }

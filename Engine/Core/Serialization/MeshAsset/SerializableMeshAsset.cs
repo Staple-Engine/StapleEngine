@@ -137,6 +137,30 @@ namespace Staple.Internal
 
         [Key(10)]
         public Vector3Holder boundsExtents;
+
+        [Key(11)]
+        public List<Vector2Holder> UV1 = new();
+
+        [Key(12)]
+        public List<Vector2Holder> UV2 = new();
+
+        [Key(13)]
+        public List<Vector2Holder> UV3 = new();
+
+        [Key(14)]
+        public List<Vector2Holder> UV4 = new();
+
+        [Key(15)]
+        public List<Vector2Holder> UV5 = new();
+
+        [Key(16)]
+        public List<Vector2Holder> UV6 = new();
+
+        [Key(17)]
+        public List<Vector2Holder> UV7 = new();
+
+        [Key(18)]
+        public List<Vector2Holder> UV8 = new();
     }
 
     [MessagePackObject]

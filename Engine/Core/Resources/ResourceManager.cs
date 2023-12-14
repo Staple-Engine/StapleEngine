@@ -979,6 +979,16 @@ namespace Staple.Internal
                 mesh.normals = m.normals.ToArray();
                 mesh.tangents = m.tangents.ToArray();
                 mesh.bitangents = m.bitangents.ToArray();
+
+                mesh.uv = m.UV1.ToArray();
+                mesh.uv2 = m.UV2.ToArray();
+                mesh.uv3 = m.UV3.ToArray();
+                mesh.uv4 = m.UV4.ToArray();
+                mesh.uv5 = m.UV5.ToArray();
+                mesh.uv6 = m.UV6.ToArray();
+                mesh.uv7 = m.UV7.ToArray();
+                mesh.uv8 = m.UV8.ToArray();
+
                 mesh.indices = m.indices.ToArray();
                 mesh.meshTopology = m.topology;
                 mesh.indexFormat = MeshIndexFormat.UInt32;
@@ -1067,6 +1077,14 @@ namespace Staple.Internal
                         }).ToList(),
                         tangents = m.tangents.Select(x => x.ToVector3()).ToList(),
                         bitangents = m.bitangents.Select(x => x.ToVector3()).ToList(),
+                        UV1 = m.UV1.Select(x => x.ToVector2()).ToList(),
+                        UV2 = m.UV2.Select(x => x.ToVector2()).ToList(),
+                        UV3 = m.UV3.Select(x => x.ToVector2()).ToList(),
+                        UV4 = m.UV4.Select(x => x.ToVector2()).ToList(),
+                        UV5 = m.UV5.Select(x => x.ToVector2()).ToList(),
+                        UV6 = m.UV6.Select(x => x.ToVector2()).ToList(),
+                        UV7 = m.UV7.Select(x => x.ToVector2()).ToList(),
+                        UV8 = m.UV8.Select(x => x.ToVector2()).ToList(),
                         bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
                         indices = m.indices,
                     };
