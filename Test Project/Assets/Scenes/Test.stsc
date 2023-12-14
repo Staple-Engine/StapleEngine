@@ -337,19 +337,19 @@
     "parent": -1,
     "transform": {
       "position": {
-        "x": 0.0,
+        "x": -3.0,
         "y": 0.0,
         "z": 0.0
       },
       "rotation": {
-        "x": 0.0,
-        "y": 0.0,
+        "x": -90.0,
+        "y": 359.99997,
         "z": 0.0
       },
       "scale": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0
+        "x": 10.0,
+        "y": 10.0,
+        "z": 10.0
       }
     },
     "components": [
@@ -357,7 +357,7 @@
         "type": "Staple.MeshRenderer",
         "data": {
           "mesh": "3be47127-20fa-4c4d-b743-1ba03765ee89",
-          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "material": "8abdfbb1-7b42-4181-b125-8c9fcb4131e8",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,

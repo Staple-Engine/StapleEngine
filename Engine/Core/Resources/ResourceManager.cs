@@ -554,7 +554,6 @@ namespace Staple.Internal
         /// <returns>The shader, or null</returns>
         public Shader LoadShader(string path)
         {
-            var original = path;
             var prefix = ShaderPrefix;
             var guid = path;
 
@@ -706,10 +705,12 @@ namespace Staple.Internal
                     return null;
                 }
 
+                var guid = AssetDatabase.GetAssetGuid(path);
+
                 material = new Material
                 {
                     shader = shader,
-                    guid = path
+                    guid = guid ?? path
                 };
 
                 foreach(var parameter in materialData.metadata.parameters)
@@ -812,6 +813,10 @@ namespace Staple.Internal
                 return texture;
             }
 
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             var data = LoadFile(path);
 
             if(data == null)
@@ -878,6 +883,10 @@ namespace Staple.Internal
                 return audioClip;
             }
 
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             var data = LoadFile(path);
 
             if (data == null)
@@ -941,6 +950,10 @@ namespace Staple.Internal
                 return Mesh.GetDefaultMesh(path);
             }
 
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             if (cachedMeshes.TryGetValue(path, out var mesh) && mesh != null)
             {
                 return mesh;
@@ -990,6 +1003,10 @@ namespace Staple.Internal
         /// <returns>The mesh asset, or null</returns>
         public MeshAsset LoadMeshAsset(string path)
         {
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             if (cachedMeshAssets.TryGetValue(path, out var mesh) && mesh != null)
             {
                 return mesh;
@@ -1077,6 +1094,10 @@ namespace Staple.Internal
         /// <returns>The asset, or null</returns>
         public T LoadAsset<T>(string path) where T: IStapleAsset
         {
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             object value = LoadAsset(path);
 
             if(value == null)
@@ -1101,6 +1122,10 @@ namespace Staple.Internal
         /// <returns>The asset, or null</returns>
         public IStapleAsset LoadAsset(string path)
         {
+            var guid = AssetDatabase.GetAssetGuid(path);
+
+            path = guid ?? path;
+
             if (cachedAssets.TryGetValue(path, out var asset) && asset != null)
             {
                 return asset;
@@ -1141,6 +1166,11 @@ namespace Staple.Internal
 
                 if (asset != null)
                 {
+                    if(asset is IGuidAsset guidAsset)
+                    {
+                        guidAsset.Guid = guid;
+                    }
+
                     cachedAssets.AddOrSetKey(path, asset);
                 }
 
