@@ -116,7 +116,9 @@ namespace Baker
                     Assimp.PostProcessSteps.JoinIdenticalVertices |
                     Assimp.PostProcessSteps.RemoveRedundantMaterials |
                     Assimp.PostProcessSteps.OptimizeMeshes |
-                    Assimp.PostProcessSteps.OptimizeGraph;
+                    Assimp.PostProcessSteps.OptimizeGraph |
+                    Assimp.PostProcessSteps.CalculateTangentSpace |
+                    Assimp.PostProcessSteps.GenerateBoundingBoxes;
 
                 if(metadata.makeLeftHanded)
                 {

@@ -242,12 +242,12 @@ namespace Staple
 
             if (mesh.HasTangents)
             {
-                builder.Add(bgfx.Attrib.Tangent, 4, bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Tangent, 3, bgfx.AttribType.Float);
             }
 
             if (mesh.HasBitangents)
             {
-                builder.Add(bgfx.Attrib.Bitangent, 4, bgfx.AttribType.Float);
+                builder.Add(bgfx.Attrib.Bitangent, 3, bgfx.AttribType.Float);
             }
 
             if (mesh.HasColors || mesh.HasColors32)
@@ -328,7 +328,7 @@ namespace Staple
             {
                 if(index % layout.layout.stride != 0)
                 {
-                    throw new InvalidOperationException("$[Mesh] Exceeded expected byte count while generating vertex data blob");
+                    throw new InvalidOperationException("[Mesh] Exceeded expected byte count while generating vertex data blob");
                 }
 
                 //Copy position
