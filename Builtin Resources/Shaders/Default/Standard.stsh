@@ -21,12 +21,12 @@
 			"attribute": "TEXCOORD0"
 		},
 		{
-			"name": "mainColor",
+			"name": "diffuseColor",
 			"semantic": "Uniform",
 			"type": "Color"
 		},
 		{
-			"name": "mainTexture",
+			"name": "diffuseTexture",
 			"semantic": "Uniform",
 			"type": "Texture"
 		}
@@ -60,7 +60,7 @@
 		"code": [
 			"void main()",
 			"{",
-			"	gl_FragColor = texture2D(mainTexture, v_texcoord0) * mainColor;",
+			"	gl_FragColor = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;",
 			"}"
 		]
 	}

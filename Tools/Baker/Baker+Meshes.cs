@@ -210,30 +210,55 @@ namespace Baker
 
                     var basePath = Path.GetDirectoryName(meshFiles[i]).Replace(inputPath, "").Substring(1);
 
-                    if (material.HasTextureDiffuse)
+                    void AddColor(string name, bool has, Assimp.Color4D color)
                     {
-                        materialMetadata.parameters.Add("mainTexture", new MaterialParameter()
+                        var c = Color.White;
+
+                        if(has)
                         {
-                            type = MaterialParameterType.Texture,
-                            textureValue = Path.Combine(basePath, material.TextureDiffuse.FilePath).Replace("\\", "/"),
+                            c.r = color.R;
+                            c.g = color.G;
+                            c.b = color.B;
+                            c.a = color.A;
+                        }
+
+                        materialMetadata.parameters.Add(name, new MaterialParameter()
+                        {
+                            type = MaterialParameterType.Color,
+                            colorValue = c,
                         });
                     }
 
-                    var mainColor = Color.White;
+                    AddColor("ambientColor", material.HasColorAmbient, material.ColorAmbient);
+                    AddColor("diffuseColor", material.HasColorDiffuse, material.ColorDiffuse);
+                    AddColor("emissiveColor", material.HasColorEmissive, material.ColorEmissive);
+                    AddColor("reflectiveColor", material.HasColorReflective, material.ColorReflective);
+                    AddColor("specularColor", material.HasColorSpecular, material.ColorSpecular);
+                    AddColor("transparentColor", material.HasColorTransparent, material.ColorTransparent);
 
-                    if(material.HasColorDiffuse)
+                    void AddTexture(string name, bool has, Assimp.TextureSlot slot)
                     {
-                        mainColor.r = material.ColorDiffuse.R;
-                        mainColor.g = material.ColorDiffuse.G;
-                        mainColor.b = material.ColorDiffuse.B;
-                        mainColor.a = material.ColorDiffuse.A;
+                        if (has)
+                        {
+                            materialMetadata.parameters.Add(name, new MaterialParameter()
+                            {
+                                type = MaterialParameterType.Texture,
+                                textureValue = Path.Combine(basePath, slot.FilePath).Replace("\\", "/"),
+                            });
+                        }
                     }
 
-                    materialMetadata.parameters.Add("mainColor", new MaterialParameter()
-                    {
-                        type = MaterialParameterType.Color,
-                        colorValue = mainColor,
-                    });
+                    AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);
+                    AddTexture("ambientOcclusionTexture", material.HasTextureAmbientOcclusion, material.TextureAmbientOcclusion);
+                    AddTexture("diffuseTexture", material.HasTextureDiffuse, material.TextureDiffuse);
+                    AddTexture("displacementTexture", material.HasTextureDisplacement, material.TextureDisplacement);
+                    AddTexture("emissiveTexture", material.HasTextureEmissive, material.TextureEmissive);
+                    AddTexture("heightTexture", material.HasTextureHeight, material.TextureHeight);
+                    AddTexture("lightmapTexture", material.HasTextureLightMap, material.TextureLightMap);
+                    AddTexture("normalTexture", material.HasTextureNormal, material.TextureNormal);
+                    AddTexture("opacityTexture", material.HasTextureOpacity, material.TextureOpacity);
+                    AddTexture("reflectionTexture", material.HasTextureReflection, material.TextureReflection);
+                    AddTexture("specularTexture", material.HasTextureSpecular, material.TextureSpecular);
 
                     try
                     {
