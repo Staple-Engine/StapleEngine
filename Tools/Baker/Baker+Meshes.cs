@@ -1,6 +1,6 @@
-﻿using Assimp;
-using MessagePack;
+﻿using MessagePack;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Staple;
 using Staple.Internal;
 using System;
@@ -16,7 +16,7 @@ namespace Baker
     {
         private static void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
         {
-            using var context = new AssimpContext();
+            using var context = new Assimp.AssimpContext();
 
             var meshFiles = new List<string>();
 
@@ -56,7 +56,7 @@ namespace Baker
                     continue;
                 }
 
-                var guid = FindGuid<Staple.Mesh>(meshFiles[i]);
+                var guid = FindGuid<Mesh>(meshFiles[i]);
 
                 var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(meshFiles[i]));
                 var file = Path.GetFileName(meshFiles[i]).Replace(".meta", "");
@@ -104,58 +104,58 @@ namespace Baker
                     continue;
                 }
 
-                var flags = PostProcessSteps.TransformUVCoords |
-                    PostProcessSteps.GenerateNormals |
-                    PostProcessSteps.GenerateUVCoords |
-                    PostProcessSteps.FindDegenerates |
-                    PostProcessSteps.FindInvalidData |
-                    PostProcessSteps.FindInstances |
-                    PostProcessSteps.FixInFacingNormals |
-                    PostProcessSteps.Triangulate |
-                    PostProcessSteps.SortByPrimitiveType |
-                    PostProcessSteps.JoinIdenticalVertices |
-                    PostProcessSteps.RemoveRedundantMaterials |
-                    PostProcessSteps.OptimizeMeshes |
-                    PostProcessSteps.OptimizeGraph;
+                var flags = Assimp.PostProcessSteps.TransformUVCoords |
+                    Assimp.PostProcessSteps.GenerateNormals |
+                    Assimp.PostProcessSteps.GenerateUVCoords |
+                    Assimp.PostProcessSteps.FindDegenerates |
+                    Assimp.PostProcessSteps.FindInvalidData |
+                    Assimp.PostProcessSteps.FindInstances |
+                    Assimp.PostProcessSteps.FixInFacingNormals |
+                    Assimp.PostProcessSteps.Triangulate |
+                    Assimp.PostProcessSteps.SortByPrimitiveType |
+                    Assimp.PostProcessSteps.JoinIdenticalVertices |
+                    Assimp.PostProcessSteps.RemoveRedundantMaterials |
+                    Assimp.PostProcessSteps.OptimizeMeshes |
+                    Assimp.PostProcessSteps.OptimizeGraph;
 
                 if(metadata.makeLeftHanded)
                 {
-                    flags |= PostProcessSteps.MakeLeftHanded;
+                    flags |= Assimp.PostProcessSteps.MakeLeftHanded;
                 }
 
                 if(metadata.flipUVs)
                 {
-                    flags |= PostProcessSteps.FlipUVs;
+                    flags |= Assimp.PostProcessSteps.FlipUVs;
                 }
 
                 if (metadata.flipWindingOrder)
                 {
-                    flags |= PostProcessSteps.FlipWindingOrder;
+                    flags |= Assimp.PostProcessSteps.FlipWindingOrder;
                 }
 
                 if (metadata.splitLargeMeshes)
                 {
-                    flags |= PostProcessSteps.SplitLargeMeshes;
+                    flags |= Assimp.PostProcessSteps.SplitLargeMeshes;
                 }
 
                 if(metadata.preTransformVertices)
                 {
-                    flags |= PostProcessSteps.PreTransformVertices;
+                    flags |= Assimp.PostProcessSteps.PreTransformVertices;
                 }
 
                 if(metadata.debone)
                 {
-                    flags |= PostProcessSteps.Debone;
+                    flags |= Assimp.PostProcessSteps.Debone;
                 }
 
                 if(metadata.limitBoneWeights)
                 {
-                    flags |= PostProcessSteps.LimitBoneWeights;
+                    flags |= Assimp.PostProcessSteps.LimitBoneWeights;
                 }
 
                 if(metadata.splitByBoneCount)
                 {
-                    flags |= PostProcessSteps.SplitByBoneCount;
+                    flags |= Assimp.PostProcessSteps.SplitByBoneCount;
                 }
 
                 Assimp.Scene scene = null;
@@ -177,6 +177,99 @@ namespace Baker
                     materialCount = scene.MaterialCount
                 };
 
+                var counter = 0;
+
+                foreach(var material in scene.Materials)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
+
+                    fileName += $" {++counter}.mat";
+
+                    var target = Path.Combine(Path.GetDirectoryName(meshFiles[i]), fileName);
+
+                    try
+                    {
+                        if (File.Exists(target))
+                        {
+                            continue;
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    //Guid collision fix
+                    Thread.Sleep(25);
+
+                    var materialMetadata = new MaterialMetadata()
+                    {
+                        shader = "Shaders/Default/Standard.stsh",
+                    };
+
+                    var basePath = Path.GetDirectoryName(meshFiles[i]).Replace(inputPath, "").Substring(1);
+
+                    if (material.HasTextureDiffuse)
+                    {
+                        materialMetadata.parameters.Add("mainTexture", new MaterialParameter()
+                        {
+                            type = MaterialParameterType.Texture,
+                            textureValue = Path.Combine(basePath, material.TextureDiffuse.FilePath).Replace("\\", "/"),
+                        });
+                    }
+
+                    var mainColor = Color.White;
+
+                    if(material.HasColorDiffuse)
+                    {
+                        mainColor.r = material.ColorDiffuse.R;
+                        mainColor.g = material.ColorDiffuse.G;
+                        mainColor.b = material.ColorDiffuse.B;
+                        mainColor.a = material.ColorDiffuse.A;
+                    }
+
+                    materialMetadata.parameters.Add("mainColor", new MaterialParameter()
+                    {
+                        type = MaterialParameterType.Color,
+                        colorValue = mainColor,
+                    });
+
+                    try
+                    {
+                        var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()
+                        {
+                            Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                        });
+
+                        File.WriteAllText(target, json);
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    try
+                    {
+                        var g = FindGuid<Material>($"{target}.meta");
+
+                        var assetHolder = new AssetHolder()
+                        {
+                            guid = g,
+                            typeName = typeof(Material).FullName,
+                        };
+
+                        var json = JsonConvert.SerializeObject(assetHolder, Formatting.Indented);
+
+                        File.WriteAllText($"{target}.meta", json);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    Console.WriteLine($"\t\tGenerated material {target}");
+                }
+
                 foreach (var mesh in scene.Meshes)
                 {
                     var m = new MeshAssetMeshInfo
@@ -194,19 +287,19 @@ namespace Baker
 
                     switch(mesh.PrimitiveType)
                     {
-                        case PrimitiveType.Triangle:
+                        case Assimp.PrimitiveType.Triangle:
 
                             m.topology = MeshTopology.Triangles;
 
                             break;
 
-                        case PrimitiveType.Line:
+                        case Assimp.PrimitiveType.Line:
 
                             m.topology = MeshTopology.Lines;
 
                             break;
 
-                        case PrimitiveType.Point:
+                        case Assimp.PrimitiveType.Point:
 
                             m.topology = MeshTopology.Points;
 

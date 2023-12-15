@@ -562,6 +562,8 @@ namespace Staple.Internal
                 path = prefix + path;
             }
 
+            guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+
             if (cachedShaders.TryGetValue(path, out var shader) && shader != null && shader.Disposed == false)
             {
                 return shader;

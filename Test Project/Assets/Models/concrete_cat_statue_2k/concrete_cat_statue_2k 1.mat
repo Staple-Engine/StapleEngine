@@ -1,0 +1,18 @@
+{
+  "shader": "1ca9a72c-161e-44db-ad76-bf0ae432f78b",
+  "parameters": {
+    "mainTexture": {
+      "type": "Texture",
+      "textureValue": "319edd54-7e25-4a34-9ceb-9f5a733bcd31"
+    },
+    "mainColor": {
+      "type": "Color",
+      "colorValue": {
+        "r": 204,
+        "g": 204,
+        "b": 204,
+        "a": 255
+      }
+    }
+  }
+}

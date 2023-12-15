@@ -173,16 +173,13 @@ namespace Staple.Editor
                             {
                                 if(key.Length > 0)
                                 {
-                                    var path = AssetDatabase.GetAssetPath(key);
+                                    shader = ResourceManager.instance.LoadShader(material.shader);
 
-                                    if(path != null)
+                                    cachedShaders.AddOrSetKey(key, shader);
+
+                                    if(shader != null)
                                     {
-                                        shader = ResourceManager.instance.LoadShader(path);
-
-                                        if (shader != null)
-                                        {
-                                            cachedShaders.AddOrSetKey(key, shader);
-                                        }
+                                        material.shader = shader.Guid;
                                     }
                                 }
                             }
@@ -196,7 +193,7 @@ namespace Staple.Editor
                             {
                                 cachedShaders.AddOrSetKey(s.metadata.guid, s);
 
-                                material.shader = s.metadata.guid;
+                                material.shader = s.Guid;
                             }
                             else
                             {

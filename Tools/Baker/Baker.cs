@@ -288,11 +288,11 @@ namespace Baker
 
             ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
             ProcessTextures(platform, texturecPath, inputPath, outputPath);
-            ProcessMaterials(platform, inputPath, outputPath);
-            ProcessScenes(platform, inputPath, outputPath, editorMode);
             ProcessAudio(platform, inputPath, outputPath);
             ProcessMeshes(platform, inputPath, outputPath);
+            ProcessMaterials(platform, inputPath, outputPath);
             ProcessAssets(platform, inputPath, outputPath);
+            ProcessScenes(platform, inputPath, outputPath, editorMode);
             ProcessAppSettings(platform, inputPath, outputPath, editorMode);
         }
 

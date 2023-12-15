@@ -208,5 +208,18 @@ namespace Staple
         {
             return assets.FirstOrDefault(x => x.path == path)?.guid;
         }
+
+        /// <summary>
+        /// Gets an asset guid for a path with a prefix
+        /// </summary>
+        /// <param name="path">The path for the asset</param>
+        /// <param name="prefix">The prefix to search for</param>
+        /// <returns>The guid or null</returns>
+        public static string GetAssetGuid(string path, string prefix)
+        {
+            var t = prefix + path;
+
+            return assets.FirstOrDefault(x => x.path == t)?.guid;
+        }
     }
 }

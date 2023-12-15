@@ -357,7 +357,7 @@
         "type": "Staple.MeshRenderer",
         "data": {
           "mesh": "3be47127-20fa-4c4d-b743-1ba03765ee89",
-          "material": "8abdfbb1-7b42-4181-b125-8c9fcb4131e8",
+          "material": "20f18b69-3013-4ae1-a3c9-afac0b387c77",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
