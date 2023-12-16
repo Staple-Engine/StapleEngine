@@ -8,49 +8,49 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
-        public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT)
+        private static void CopyDirectory(string sourceDir, string destinationDir)
         {
-            static void CopyDirectory(string sourceDir, string destinationDir)
+            var dir = new DirectoryInfo(sourceDir);
+
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            try
             {
-                var dir = new DirectoryInfo(sourceDir);
+                Directory.CreateDirectory(destinationDir);
+            }
+            catch (Exception)
+            {
+            }
 
-                if (!dir.Exists)
-                    throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
-
-                DirectoryInfo[] dirs = dir.GetDirectories();
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
 
                 try
                 {
-                    Directory.CreateDirectory(destinationDir);
+                    file.CopyTo(targetFilePath, true);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                }
+                    Log.Error($"Failed to build player: {e}");
 
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    string targetFilePath = Path.Combine(destinationDir, file.Name);
-
-                    try
-                    {
-                        file.CopyTo(targetFilePath, true);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"Failed to build player: {e}");
-
-                        return;
-                    }
-                }
-
-                foreach (DirectoryInfo subDir in dirs)
-                {
-                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
-
-                    CopyDirectory(subDir.FullName, newDestinationDir);
+                    return;
                 }
             }
 
+            foreach (DirectoryInfo subDir in dirs)
+            {
+                string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+
+                CopyDirectory(subDir.FullName, newDestinationDir);
+            }
+        }
+
+        public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT)
+        {
             lock (backgroundLock)
             {
                 progressFraction = 0;

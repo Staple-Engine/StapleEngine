@@ -1,6 +1,7 @@
 using Bgfx;
 using ImGuiNET;
 using Newtonsoft.Json;
+using NfdSharp;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,18 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
+        public const int StapleVersion = 0x010000;
+
         enum ViewportType
         {
             Scene,
             Game
+        }
+
+        [Serializable]
+        class ProjectInfo
+        {
+            public int stapleVersion;
         }
 
         [Serializable]
@@ -31,6 +40,21 @@ namespace Staple.Editor
             public AppPlatform currentPlatform;
 
             public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
+        }
+
+        [Serializable]
+        class LastProjectItem
+        {
+            public string name;
+            public string path;
+            public DateTime date;
+        }
+
+        [Serializable]
+        class LastProjectInfo
+        {
+            public string lastOpenProject = "";
+            public List<LastProjectItem> items = new();
         }
 
         class EntityBody
@@ -178,6 +202,8 @@ namespace Staple.Editor
         private bool resetSelection = false;
 
         private Entity draggedEntity = Entity.Empty;
+
+        private LastProjectInfo lastProjects = new();
 
         private static WeakReference<StapleEditor> privInstance;
 
@@ -396,11 +422,26 @@ namespace Staple.Editor
 
                 wireframeMesh.MeshTopology = MeshTopology.LineStrip;
 
-                LoadProject(Path.Combine(Environment.CurrentDirectory, "..", "Test Project"));
-
                 renderSystem.Startup();
 
                 cameraTransform.Position = new Vector3(0, 0, 5);
+
+                try
+                {
+                    var json = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"));
+
+                    lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
+                }
+                catch(Exception)
+                {
+                }
+
+                lastProjects ??= new();
+
+                if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
+                {
+                    LoadProject(lastProjects.lastOpenProject);
+                }
             };
 
             window.OnUpdate = () =>
@@ -487,11 +528,115 @@ namespace Staple.Editor
                 ImGui.SetNextWindowSize(viewport.Size);
                 ImGui.SetNextWindowViewport(viewport.ID);
 
-                Dockspace();
-                Viewport(io);
-                Entities(io);
-                Inspector(io);
-                BottomPanel(io);
+                if(projectAppSettings == null)
+                {
+                    ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
+
+                    ImGui.LabelText("Project List", "");
+
+                    if (ImGui.Button("New Project"))
+                    {
+                        var result = Nfd.PickFolder("", out var projectPath);
+
+                        if (result == Nfd.NfdResult.NFD_OKAY)
+                        {
+                            CreateProject(projectPath);
+
+                            LoadProject(projectPath);
+
+                            if (projectAppSettings != null)
+                            {
+                                lastProjects.lastOpenProject = projectPath;
+
+                                var target = lastProjects.items.FirstOrDefault(x => x.path == projectPath);
+
+                                if (target != null)
+                                {
+                                    target.date = DateTime.Now;
+                                }
+                                else
+                                {
+                                    lastProjects.items.Add(new LastProjectItem()
+                                    {
+                                        name = Path.GetFileName(projectPath),
+                                        path = projectPath,
+                                        date = DateTime.Now,
+                                    });
+                                }
+
+                                SaveLastProjects();
+                            }
+                        }
+                    }
+
+                    if (ImGui.Button("Open Project"))
+                    {
+                        var result = Nfd.PickFolder("", out var projectPath);
+
+                        if(result == Nfd.NfdResult.NFD_OKAY)
+                        {
+                            var ok = false;
+
+                            try
+                            {
+                                var json = File.ReadAllText(Path.Combine(projectPath, "ProjectInfo.json"));
+
+                                var projectInfo = JsonConvert.DeserializeObject<ProjectInfo>(json);
+
+                                if(projectInfo.stapleVersion == StapleVersion)
+                                {
+                                    ok = true;
+                                }
+                            }
+                            catch(Exception)
+                            {
+                            }
+
+                            if(ok)
+                            {
+                                LoadProject(projectPath);
+
+                                if(projectAppSettings != null)
+                                {
+                                    lastProjects.lastOpenProject = projectPath;
+
+                                    var target = lastProjects.items.FirstOrDefault(x => x.path == projectPath);
+
+                                    if (target != null)
+                                    {
+                                        target.date = DateTime.Now;
+                                    }
+                                    else
+                                    {
+                                        lastProjects.items.Add(new LastProjectItem()
+                                        {
+                                            name = Path.GetFileName(projectPath),
+                                            path = projectPath,
+                                            date = DateTime.Now,
+                                        });
+                                    }
+
+                                    SaveLastProjects();
+                                }
+                            }
+                        }
+                    }
+
+                    if(ImGui.BeginListBox("ProjectList"))
+                    {
+                        ImGui.EndListBox();
+                    }
+
+                    ImGui.End();
+                }
+                else
+                {
+                    Dockspace();
+                    Viewport(io);
+                    Entities(io);
+                    Inspector(io);
+                    BottomPanel(io);
+                }
 
                 var currentWindows = new List<EditorWindow>(editorWindows);
 
@@ -636,7 +781,7 @@ namespace Staple.Editor
 
                 imgui.EndFrame();
 
-                if (Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
+                if (Scene.current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
                 {
                     var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
 
@@ -720,6 +865,51 @@ namespace Staple.Editor
             };
 
             window.Run();
+        }
+
+        private void SaveLastProjects()
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(lastProjects);
+
+                File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"), json);
+            }
+            catch(Exception)
+            {
+            }
+        }
+
+        private void CreateProject(string path)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(new ProjectInfo()
+                {
+                    stapleVersion = StapleVersion,
+                });
+
+                File.WriteAllText(Path.Combine(path, "ProjectInfo.json"), json);
+            }
+            catch(Exception)
+            {
+            }
+
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(path, "Assets"));
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                CopyDirectory(Path.Combine(StapleBasePath, "Test Project", "Settings"), Path.Combine(path, "Settings"));
+            }
+            catch(Exception)
+            {
+            }
         }
 
         private void AddMenuItem(string path, Action onClick)
