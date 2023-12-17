@@ -32,6 +32,16 @@ namespace Staple.Editor
             {
                 if (ImGui.BeginMenu("File"))
                 {
+                    if(ImGui.MenuItem("New Project"))
+                    {
+                        ImGuiNewProject();
+                    }
+
+                    if(ImGui.MenuItem("Open Project"))
+                    {
+                        ImGuiOpenProject();
+                    }
+
                     if (ImGui.MenuItem("Project Settings"))
                     {
                         var window = EditorWindow.GetWindow<AppSettingsWindow>();

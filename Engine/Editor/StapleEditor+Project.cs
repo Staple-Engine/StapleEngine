@@ -7,13 +7,51 @@ using Staple.Internal;
 using System.Reflection;
 using MessagePack;
 using System.Linq;
+using NfdSharp;
 
 namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
+        private void ImGuiNewProject()
+        {
+            var result = Nfd.PickFolder("", out var projectPath);
+
+            if (result == Nfd.NfdResult.NFD_OKAY)
+            {
+                CreateProject(projectPath);
+                LoadProject(projectPath);
+            }
+        }
+
+        private void ImGuiOpenProject()
+        {
+            var result = Nfd.PickFolder("", out var projectPath);
+
+            if (result == Nfd.NfdResult.NFD_OKAY)
+            {
+                LoadProject(projectPath);
+            }
+        }
+
         public void LoadProject(string path)
         {
+            try
+            {
+                var json = File.ReadAllText(Path.Combine(path, "ProjectInfo.json"));
+
+                var projectInfo = JsonConvert.DeserializeObject<ProjectInfo>(json);
+
+                if (projectInfo.stapleVersion != StapleVersion)
+                {
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
             basePath =
                 ThumbnailCache.basePath =
                 csProjManager.basePath =
@@ -60,22 +98,19 @@ namespace Staple.Editor
                 projectAppSettings = AppSettings.Default;
             }
 
-            if(projectAppSettings != null)
+            LayerMask.AllLayers = projectAppSettings.layers;
+            LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
+
+            window.appSettings.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
+
+            foreach(var pair in projectAppSettings.renderers)
             {
-                LayerMask.AllLayers = projectAppSettings.layers;
-                LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
-
-                window.appSettings.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
-
-                foreach(var pair in projectAppSettings.renderers)
+                try
                 {
-                    try
-                    {
-                        Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging", pair.Key.ToString()));
-                    }
-                    catch(Exception)
-                    {
-                    }
+                    Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging", pair.Key.ToString()));
+                }
+                catch(Exception)
+                {
                 }
             }
 
@@ -101,6 +136,28 @@ namespace Staple.Editor
                     ResetScenePhysics();
                 }
             }
+
+            lastProjects.lastOpenProject = path;
+
+            var target = lastProjects.items.FirstOrDefault(x => x.path == path);
+
+            if (target != null)
+            {
+                target.date = DateTime.Now;
+            }
+            else
+            {
+                lastProjects.items.Add(new LastProjectItem()
+                {
+                    name = Path.GetFileName(path),
+                    path = path,
+                    date = DateTime.Now,
+                });
+            }
+
+            SaveLastProjects();
+
+            window.Title = $"Staple Editor - {Path.GetFileName(path)}";
         }
 
         public void RefreshAssets(bool updateProject)

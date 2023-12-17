@@ -23,6 +23,13 @@ namespace Staple.Internal
 
         public bool Maximized => window?.Maximized ?? false;
 
+        public string Title
+        {
+            get => window?.Title;
+
+            set => window.Title = value;
+        }
+
         public Vector2Int Position
         {
             get => new(window.Position.X, window.Position.Y);

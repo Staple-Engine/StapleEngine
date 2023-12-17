@@ -536,94 +536,17 @@ namespace Staple.Editor
 
                     if (ImGui.Button("New Project"))
                     {
-                        var result = Nfd.PickFolder("", out var projectPath);
-
-                        if (result == Nfd.NfdResult.NFD_OKAY)
-                        {
-                            CreateProject(projectPath);
-
-                            LoadProject(projectPath);
-
-                            if (projectAppSettings != null)
-                            {
-                                lastProjects.lastOpenProject = projectPath;
-
-                                var target = lastProjects.items.FirstOrDefault(x => x.path == projectPath);
-
-                                if (target != null)
-                                {
-                                    target.date = DateTime.Now;
-                                }
-                                else
-                                {
-                                    lastProjects.items.Add(new LastProjectItem()
-                                    {
-                                        name = Path.GetFileName(projectPath),
-                                        path = projectPath,
-                                        date = DateTime.Now,
-                                    });
-                                }
-
-                                SaveLastProjects();
-                            }
-                        }
+                        ImGuiNewProject();
                     }
 
                     if (ImGui.Button("Open Project"))
                     {
-                        var result = Nfd.PickFolder("", out var projectPath);
-
-                        if(result == Nfd.NfdResult.NFD_OKAY)
-                        {
-                            var ok = false;
-
-                            try
-                            {
-                                var json = File.ReadAllText(Path.Combine(projectPath, "ProjectInfo.json"));
-
-                                var projectInfo = JsonConvert.DeserializeObject<ProjectInfo>(json);
-
-                                if(projectInfo.stapleVersion == StapleVersion)
-                                {
-                                    ok = true;
-                                }
-                            }
-                            catch(Exception)
-                            {
-                            }
-
-                            if(ok)
-                            {
-                                LoadProject(projectPath);
-
-                                if(projectAppSettings != null)
-                                {
-                                    lastProjects.lastOpenProject = projectPath;
-
-                                    var target = lastProjects.items.FirstOrDefault(x => x.path == projectPath);
-
-                                    if (target != null)
-                                    {
-                                        target.date = DateTime.Now;
-                                    }
-                                    else
-                                    {
-                                        lastProjects.items.Add(new LastProjectItem()
-                                        {
-                                            name = Path.GetFileName(projectPath),
-                                            path = projectPath,
-                                            date = DateTime.Now,
-                                        });
-                                    }
-
-                                    SaveLastProjects();
-                                }
-                            }
-                        }
+                        ImGuiOpenProject();
                     }
 
                     if(ImGui.BeginListBox("ProjectList"))
                     {
+                        //TODO
                         ImGui.EndListBox();
                     }
 
@@ -882,6 +805,24 @@ namespace Staple.Editor
 
         private void CreateProject(string path)
         {
+            try
+            {
+                var directory = new DirectoryInfo(path);
+
+                if(directory.GetDirectories().Length != 0 || directory.GetFiles().Length != 0)
+                {
+                    Log.Error($"Failed to create project: Directory not empty");
+
+                    return;
+                }
+            }
+            catch(Exception)
+            {
+                Log.Error($"Failed to create project: Directory not valid");
+
+                return;
+            }
+
             try
             {
                 var json = JsonConvert.SerializeObject(new ProjectInfo()

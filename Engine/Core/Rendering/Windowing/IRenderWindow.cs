@@ -16,6 +16,8 @@
 
         Vector2Int Position { get; set; }
 
+        string Title { get; set; }
+
         bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position,
             bool maximized, int monitorIndex);
 

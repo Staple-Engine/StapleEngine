@@ -48,6 +48,13 @@ namespace Staple.Internal
 
         public int MonitorIndex => window?.MonitorIndex ?? 0;
 
+        public string Title
+        {
+            get => window.Title;
+
+            set => window.Title = value;
+        }
+
         private bool renderThreadReady = false;
         private Thread renderThread;
         private bgfx.Init init = new bgfx.Init();

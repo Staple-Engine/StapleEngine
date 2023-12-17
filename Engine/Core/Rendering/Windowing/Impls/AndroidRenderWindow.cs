@@ -25,6 +25,8 @@ namespace Staple.Internal
 
         public Vector2Int Position { get; set; }
 
+        public string Title { get; set; }
+
         public void Mutate(Action<AndroidRenderWindow> callback)
         {
             lock(lockObject)
