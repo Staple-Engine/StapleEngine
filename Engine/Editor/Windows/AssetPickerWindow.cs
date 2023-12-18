@@ -67,6 +67,7 @@ namespace Staple.Editor
                 }).ToList();
 
             ImGuiUtils.ContentGrid(gridItems, ProjectBrowser.contentPanelPadding, ProjectBrowser.contentPanelThumbnailSize,
+                null,
                 (index, item) =>
                 {
                 },
@@ -221,7 +222,7 @@ namespace Staple.Editor
                     }
 
                     Close();
-                });
+                }, null);
 
             ImGui.EndChildFrame();
         }

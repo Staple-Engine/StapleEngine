@@ -30,6 +30,9 @@ namespace Staple
         [IgnoreMember]
         public readonly uint UIntValue => ((Color32)this).UIntValue;
 
+        [IgnoreMember]
+        public readonly string HexValue => ((Color32)this).HexValue;
+
         public static readonly Color White = new(1, 1, 1, 1);
         public static readonly Color Black = new(0, 0, 0, 1);
         public static readonly Color Clear = new(0, 0, 0, 0);

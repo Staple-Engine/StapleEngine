@@ -14,8 +14,8 @@ namespace Staple.Editor
             public Func<Texture, Texture> ensureValidTexture;
         }
 
-        public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize,
-            Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick)
+        public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload,
+            Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped)
         {
             var cellSize = padding + thumbnailSize;
             var width = ImGui.GetContentRegionAvail().X;
@@ -26,6 +26,7 @@ namespace Staple.Editor
 
             for(var i = 0; i < items.Count; i++)
             {
+                var index = i;
                 var item = items[i];
 
                 ImGui.PushID($"{item.name}##0");
@@ -43,6 +44,19 @@ namespace Staple.Editor
                     else if(ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                     {
                         onClick?.Invoke(i, item);
+                    }
+                    else if(dragPayload != null && ImGui.BeginDragDropSource())
+                    {
+                        ImGui.SetDragDropPayload(dragPayload, nint.Zero, 0);
+
+                        StapleEditor.instance.dragDropPayloads.AddOrSetKey(dragPayload, new StapleEditor.DragDropPayload()
+                        {
+                            index = index,
+                            item = item,
+                            action = onDragDropped,
+                        });
+
+                        ImGui.EndDragDropSource();
                     }
                 }
 

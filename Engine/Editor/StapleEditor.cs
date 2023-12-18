@@ -1,7 +1,6 @@
 using Bgfx;
 using ImGuiNET;
 using Newtonsoft.Json;
-using NfdSharp;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -25,6 +24,13 @@ namespace Staple.Editor
         {
             Scene,
             Game
+        }
+
+        internal class DragDropPayload
+        {
+            public int index;
+            public ImGuiUtils.ContentGridItem item;
+            public Action<int, ImGuiUtils.ContentGridItem> action;
         }
 
         [Serializable]
@@ -203,7 +209,11 @@ namespace Staple.Editor
 
         private Entity draggedEntity = Entity.Empty;
 
+        internal Entity dropTargetEntity = Entity.Empty;
+
         private LastProjectInfo lastProjects = new();
+
+        internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
 
         private static WeakReference<StapleEditor> privInstance;
 
@@ -968,6 +978,20 @@ namespace Staple.Editor
             catch(Exception)
             {
             }
+        }
+
+        internal string ProjectNodeCachePath(string path)
+        {
+            var cachePath = path;
+
+            var pathIndex = path.IndexOf("Assets");
+
+            if (pathIndex >= 0)
+            {
+                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "Assets\\".Length));
+            }
+
+            return cachePath;
         }
 
         private string CachePathResolver(string path)

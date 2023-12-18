@@ -30,6 +30,9 @@ namespace Staple
         [IgnoreMember]
         public readonly uint UIntValue => (uint)(r << 24) + (uint)(g << 16) + (uint)(b << 8) + a;
 
+        [IgnoreMember]
+        public readonly string HexValue => $"{r.ToString("X2")}{g.ToString("X2")}{b.ToString("X2")}{a.ToString("X2")}";
+
         public static readonly Color32 White = new(255, 255, 255, 255);
         public static readonly Color32 Black = new(0, 0, 0, 255);
         public static readonly Color32 Clear = new(0, 0, 0, 0);

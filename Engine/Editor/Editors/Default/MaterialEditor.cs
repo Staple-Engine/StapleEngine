@@ -40,16 +40,11 @@ namespace Staple.Editor
 
                                     if(cachedTextures.ContainsKey(key) == false)
                                     {
-                                        var path = AssetDatabase.GetAssetPath(key);
+                                        var t = ResourceManager.instance.LoadTexture(key);
 
-                                        if(path != null)
+                                        if (t != null)
                                         {
-                                            var t = ResourceManager.instance.LoadTexture(path);
-
-                                            if (t != null)
-                                            {
-                                                cachedTextures.AddOrSetKey(key, t);
-                                            }
+                                            cachedTextures.AddOrSetKey(key, t);
                                         }
                                     }
 

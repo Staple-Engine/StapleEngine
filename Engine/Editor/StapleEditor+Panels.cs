@@ -217,6 +217,8 @@ namespace Staple.Editor
                     {
                         if(ImGui.BeginDragDropTarget())
                         {
+                            dropTargetEntity = transform.entity;
+
                             var payload = ImGui.AcceptDragDropPayload("ENTITY");
 
                             unsafe
@@ -228,6 +230,19 @@ namespace Staple.Editor
                                     t?.SetParent(transform);
 
                                     draggedEntity = Entity.Empty;
+                                }
+                            }
+
+                            payload = ImGui.AcceptDragDropPayload("ASSET");
+
+                            unsafe
+                            {
+                                if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
+                                {
+                                    p.action(p.index, p.item);
+
+                                    dragDropPayloads.Clear();
+                                    dropTargetEntity = Entity.Empty;
                                 }
                             }
 
@@ -334,7 +349,10 @@ namespace Staple.Editor
                 });
             }
 
-            if (ImGui.IsWindowHovered() && ImGui.IsAnyItemHovered() == false && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            if (Scene.current != null &&
+                ImGui.IsWindowHovered() &&
+                ImGui.IsAnyItemHovered() == false &&
+                ImGui.IsMouseClicked(ImGuiMouseButton.Right))
             {
                 ImGui.OpenPopup("EntityPanelContext");
             }
@@ -368,6 +386,19 @@ namespace Staple.Editor
                         var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
 
                         t?.SetParent(null);
+                    }
+                }
+
+                payload = ImGui.AcceptDragDropPayload("ASSET");
+
+                unsafe
+                {
+                    if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
+                    {
+                        p.action(p.index, p.item);
+
+                        dragDropPayloads.Clear();
+                        dropTargetEntity = Entity.Empty;
                     }
                 }
 
@@ -665,14 +696,7 @@ namespace Staple.Editor
                 {
                     object original = null;
 
-                    var cachePath = item.path;
-
-                    var pathIndex = item.path.IndexOf("Assets");
-
-                    if (pathIndex >= 0)
-                    {
-                        cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), item.path.Substring(pathIndex + "Assets\\".Length));
-                    }
+                    var cachePath = ProjectNodeCachePath(item.path);
 
                     if (item.typeName == typeof(Texture).FullName)
                     {

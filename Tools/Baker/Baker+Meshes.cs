@@ -260,6 +260,15 @@ namespace Baker
                     AddTexture("reflectionTexture", material.HasTextureReflection, material.TextureReflection);
                     AddTexture("specularTexture", material.HasTextureSpecular, material.TextureSpecular);
 
+                    if(material.IsPBRMaterial)
+                    {
+                        AddTexture("baseColorTexture", material.PBR.HasTextureBaseColor, material.PBR.TextureBaseColor);
+                        AddTexture("roughnessTexture", material.PBR.HasTextureRoughness, material.PBR.TextureRoughness);
+                        AddTexture("metalnessTexture", material.PBR.HasTextureMetalness, material.PBR.TextureMetalness);
+                        AddTexture("normalCameraTexture", material.PBR.HasTextureNormalCamera, material.PBR.TextureNormalCamera);
+                        AddTexture("emissionColorTexture", material.PBR.HasTextureEmissionColor, material.PBR.TextureEmissionColor);
+                    }
+
                     try
                     {
                         var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()

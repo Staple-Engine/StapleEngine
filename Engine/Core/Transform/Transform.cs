@@ -24,7 +24,7 @@ namespace Staple
         /// <summary>
         /// The entity related to this transform
         /// </summary>
-        public Entity entity { get; internal set; }
+        public Entity entity { get; internal set; } = Entity.Empty;
 
         /// <summary>
         /// Gets the transform's Transformation Matrix
