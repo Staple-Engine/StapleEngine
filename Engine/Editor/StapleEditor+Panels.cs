@@ -12,6 +12,163 @@ namespace Staple.Editor
 {
     internal partial class StapleEditor
     {
+        private void CreateAssetMenu()
+        {
+            string GetProperFileName(string current, string fileName, string path, string extension)
+            {
+                try
+                {
+                    if (File.Exists(path))
+                    {
+                        var counter = 1;
+
+                        for (; ; )
+                        {
+                            path = Path.Combine(current, $"{fileName}{counter++}.{extension}");
+
+                            if (File.Exists(path) == false)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    return path;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+
+            void CreateJSONAsset(string name, string extension, string content)
+            {
+                var fileName = name;
+                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
+
+                try
+                {
+                    File.WriteAllText(assetPath, content);
+
+                    RefreshAssets(false);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to create asset at {assetPath}: {e}");
+                }
+            }
+
+            if (ImGui.MenuItem("Scene"))
+            {
+                CreateJSONAsset("New Scene", "stsc", "[]");
+
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.MenuItem("Shader"))
+            {
+                CreateJSONAsset("New Shader", "stsh", @"
+{
+	""type"": ""VertexFragment"",
+	""parameters"": [
+		{
+			""name"": ""a_position"",
+			""semantic"": ""Varying"",
+			""type"": ""Vector3"",
+			""attribute"": ""POSITION""
+		},
+		{
+			""name"": ""mainColor"",
+			""semantic"": ""Uniform"",
+			""type"": ""Color""
+		}
+	],
+	""vertex"": {
+		""inputs"": [
+			""a_position""
+		],
+		""outputs"": [
+		],
+		""code"": [
+			""void main()"",
+			""{"",
+			""	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);"",
+			"""",
+			""	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));"",
+			"""",
+			""	gl_Position = v_pos;"",
+			""}""
+		]
+	},
+	""fragment"": {
+		""inputs"": [
+		],
+		""code"": [
+			""void main()"",
+			""{"",
+			""	gl_FragColor = mainColor;"",
+			""}""
+		]
+	}
+}");
+
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.MenuItem("Material"))
+            {
+                    CreateJSONAsset("New Material", "mat", @"{
+	""shader"": ""2773f708-3dc3-40da-a025-2c04862fd46a"",
+	""parameters"": {
+		""mainColor"":  {
+			""type"": ""Color"",
+			""colorValue"": {
+				""r"": 255,
+				""g"": 255,
+				""b"": 255,
+				""a"": 255
+			}
+		},
+		""mainTexture"": {
+			""type"": ""Texture"",
+			""textureValue"": ""fe19196d-0c54-413a-a0fd-6ef91124007a""
+		}
+	}
+}");
+
+                ImGui.EndMenu();
+            }
+
+            foreach (var pair in registeredAssetTypes)
+            {
+                var name = pair.Value.Name;
+
+                if (ImGui.MenuItem($"{name}##{pair.Key}"))
+                {
+                    var fileName = name;
+                    var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                    var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.asset"), "asset");
+
+                    try
+                    {
+                        var assetInstance = (IStapleAsset)Activator.CreateInstance(pair.Value);
+
+                        if (assetInstance != null && SaveAsset(assetPath, assetInstance))
+                        {
+                            RefreshAssets(false);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Failed to create asset at {assetPath}: {e}");
+                    }
+
+                    ImGui.EndMenu();
+                }
+            }
+        }
+
         private void Dockspace()
         {
             var windowFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
@@ -103,46 +260,7 @@ namespace Staple.Editor
                 {
                     if (ImGui.BeginMenu("Create"))
                     {
-                        foreach (var pair in registeredAssetTypes)
-                        {
-                            var name = pair.Value.Name;
-
-                            if (ImGui.MenuItem($"{name}##{pair.Key}"))
-                            {
-                                var fileName = name;
-                                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
-                                var assetPath = Path.Combine(currentPath, $"{fileName}.asset");
-
-                                try
-                                {
-                                    if (File.Exists(assetPath))
-                                    {
-                                        var counter = 1;
-
-                                        for (; ; )
-                                        {
-                                            assetPath = Path.Combine(currentPath, $"{fileName}{counter++}.asset");
-
-                                            if (File.Exists(assetPath) == false)
-                                            {
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    var assetInstance = (IStapleAsset)Activator.CreateInstance(pair.Value);
-
-                                    if (assetInstance != null && SaveAsset(assetPath, assetInstance))
-                                    {
-                                        RefreshAssets(false);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.Error($"Failed to create asset at {assetPath}: {e}");
-                                }
-                            }
-                        }
+                        CreateAssetMenu();
 
                         ImGui.EndMenu();
                     }
@@ -915,6 +1033,28 @@ namespace Staple.Editor
                         break;
                 }
             });
+
+            //TODO: Not working, figure out the condition
+            /*
+            if (ImGui.IsWindowHovered() &&
+                ImGui.IsAnyItemHovered() == false &&
+                ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            {
+                ImGui.OpenPopup("ProjectBrowserContext");
+            }
+
+            if (ImGui.BeginPopup("ProjectBrowserContext"))
+            {
+                if(ImGui.MenuItem("Create"))
+                {
+                    CreateAssetMenu();
+    
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndPopup();
+            }
+            */
         }
 
         private void Console(ImGuiIOPtr io)

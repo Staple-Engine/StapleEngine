@@ -691,6 +691,7 @@ namespace Staple.Editor
 
                 ProgressPopup(io);
 
+                /*
                 if (Scene.current?.world != null)
                 {
                     var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
@@ -711,6 +712,7 @@ namespace Staple.Editor
 
                     ImGui.End();
                 }
+                */
 
                 imgui.EndFrame();
 
