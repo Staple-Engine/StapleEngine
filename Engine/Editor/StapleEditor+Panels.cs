@@ -41,103 +41,30 @@ namespace Staple.Editor
                 }
             }
 
-            void CreateJSONAsset(string name, string extension, string content)
+            foreach (var pair in registeredAssetTemplates)
             {
-                var fileName = name;
-                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
-                var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
+                var name = pair.Key;
+                var fileName = Path.GetFileNameWithoutExtension(name);
+                var extension = Path.GetExtension(name).Substring(1);
 
-                try
+                if (ImGui.MenuItem($"{fileName}##r{pair.Key}"))
                 {
-                    File.WriteAllText(assetPath, content);
+                    var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                    var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
 
-                    RefreshAssets(false);
+                    try
+                    {
+                        File.WriteAllBytes(assetPath, pair.Value);
+
+                        RefreshAssets(false);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Failed to create asset at {assetPath}: {e}");
+                    }
+
+                    ImGui.EndMenu();
                 }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to create asset at {assetPath}: {e}");
-                }
-            }
-
-            if (ImGui.MenuItem("Scene"))
-            {
-                CreateJSONAsset("New Scene", "stsc", "[]");
-
-                ImGui.EndMenu();
-            }
-
-            if (ImGui.MenuItem("Shader"))
-            {
-                CreateJSONAsset("New Shader", "stsh", @"
-{
-	""type"": ""VertexFragment"",
-	""parameters"": [
-		{
-			""name"": ""a_position"",
-			""semantic"": ""Varying"",
-			""type"": ""Vector3"",
-			""attribute"": ""POSITION""
-		},
-		{
-			""name"": ""mainColor"",
-			""semantic"": ""Uniform"",
-			""type"": ""Color""
-		}
-	],
-	""vertex"": {
-		""inputs"": [
-			""a_position""
-		],
-		""outputs"": [
-		],
-		""code"": [
-			""void main()"",
-			""{"",
-			""	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);"",
-			"""",
-			""	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));"",
-			"""",
-			""	gl_Position = v_pos;"",
-			""}""
-		]
-	},
-	""fragment"": {
-		""inputs"": [
-		],
-		""code"": [
-			""void main()"",
-			""{"",
-			""	gl_FragColor = mainColor;"",
-			""}""
-		]
-	}
-}");
-
-                ImGui.EndMenu();
-            }
-
-            if (ImGui.MenuItem("Material"))
-            {
-                    CreateJSONAsset("New Material", "mat", @"{
-	""shader"": ""2773f708-3dc3-40da-a025-2c04862fd46a"",
-	""parameters"": {
-		""mainColor"":  {
-			""type"": ""Color"",
-			""colorValue"": {
-				""r"": 255,
-				""g"": 255,
-				""b"": 255,
-				""a"": 255
-			}
-		},
-		""mainTexture"": {
-			""type"": ""Texture"",
-			""textureValue"": ""fe19196d-0c54-413a-a0fd-6ef91124007a""
-		}
-	}
-}");
-
-                ImGui.EndMenu();
             }
 
             foreach (var pair in registeredAssetTypes)
@@ -773,7 +700,29 @@ namespace Staple.Editor
                     break;
             }
 
+            var pos = ImGui.GetWindowPos();
+            var size = ImGui.GetWindowSize();
+
             ImGui.End();
+
+            if (ImGui.IsMouseHoveringRect(pos, pos + size, false) &&
+                ImGui.IsAnyItemHovered() == false &&
+                ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            {
+                ImGui.OpenPopup("ProjectBrowserContext");
+            }
+
+            if (ImGui.BeginPopup("ProjectBrowserContext"))
+            {
+                if (ImGui.BeginMenu("Create"))
+                {
+                    CreateAssetMenu();
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndPopup();
+            }
         }
 
         private void ProjectBrowser(ImGuiIOPtr io)
@@ -1033,28 +982,6 @@ namespace Staple.Editor
                         break;
                 }
             });
-
-            //TODO: Not working, figure out the condition
-            /*
-            if (ImGui.IsWindowHovered() &&
-                ImGui.IsAnyItemHovered() == false &&
-                ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-            {
-                ImGui.OpenPopup("ProjectBrowserContext");
-            }
-
-            if (ImGui.BeginPopup("ProjectBrowserContext"))
-            {
-                if(ImGui.MenuItem("Create"))
-                {
-                    CreateAssetMenu();
-    
-                    ImGui.EndMenu();
-                }
-
-                ImGui.EndPopup();
-            }
-            */
         }
 
         private void Console(ImGuiIOPtr io)

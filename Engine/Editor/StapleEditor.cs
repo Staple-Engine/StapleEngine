@@ -185,6 +185,8 @@ namespace Staple.Editor
 
         private readonly ProjectBrowser projectBrowser = new();
 
+        private readonly Dictionary<string, byte[]> registeredAssetTemplates = new();
+
         private readonly Dictionary<string, Type> registeredAssetTypes = new();
 
         private List<Type> registeredComponents = new();
@@ -262,6 +264,8 @@ namespace Staple.Editor
             }
 
             SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
+
+            ReloadAssetTemplates();
 
             playerSettings = PlayerSettings.Load(editorSettings);
 
@@ -531,39 +535,56 @@ namespace Staple.Editor
                 imgui.BeginFrame();
 
                 mouseIsHoveringImGui = true;
-
                 var viewport = ImGui.GetMainViewport();
 
                 ImGui.SetNextWindowPos(viewport.Pos);
                 ImGui.SetNextWindowSize(viewport.Size);
-                ImGui.SetNextWindowViewport(viewport.ID);
 
-                if(projectAppSettings == null)
+                if (projectAppSettings == null)
                 {
                     ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
 
-                    ImGui.LabelText("Project List", "");
+                    ImGui.SetNextWindowSize(new Vector2(800, 400));
+                    ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Always, Vector2.One * 0.5f);
 
-                    if (ImGui.Button("New Project"))
+                    ImGui.Begin("ProjectListContent", ImGuiWindowFlags.NoBackground |
+                        ImGuiWindowFlags.NoMove |
+                        ImGuiWindowFlags.NoResize |
+                        ImGuiWindowFlags.NoDocking |
+                        ImGuiWindowFlags.NoDecoration);
+
+                    ImGui.Text("Project List");
+
+                    ImGui.Spacing();
+
+                    if (ImGui.Button("New"))
                     {
                         ImGuiNewProject();
                     }
 
-                    if (ImGui.Button("Open Project"))
+                    ImGui.SameLine();
+
+                    if (ImGui.Button("Open"))
                     {
                         ImGuiOpenProject();
                     }
 
-                    if(ImGui.BeginListBox("ProjectList"))
+                    ImGui.Spacing();
+
+                    if(ImGui.BeginListBox("##ProjectList"))
                     {
                         //TODO
                         ImGui.EndListBox();
                     }
 
                     ImGui.End();
+
+                    ImGui.End();
                 }
                 else
                 {
+                    ImGui.SetNextWindowViewport(viewport.ID);
+
                     Dockspace();
                     Viewport(io);
                     Entities(io);
@@ -691,14 +712,13 @@ namespace Staple.Editor
 
                 ProgressPopup(io);
 
-                /*
+                ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
+
                 if (Scene.current?.world != null)
                 {
                     var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
 
                     var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
-
-                    ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
 
                     ImGui.Text($"Mouse Ray:");
 
@@ -709,10 +729,9 @@ namespace Staple.Editor
                     ImGui.Checkbox("Hit", ref hit);
 
                     ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
-
-                    ImGui.End();
                 }
-                */
+
+                ImGui.End();
 
                 imgui.EndFrame();
 
@@ -858,7 +877,7 @@ namespace Staple.Editor
 
             try
             {
-                CopyDirectory(Path.Combine(StapleBasePath, "Test Project", "Settings"), Path.Combine(path, "Settings"));
+                CopyDirectory(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings"));
             }
             catch(Exception)
             {
@@ -1100,6 +1119,33 @@ namespace Staple.Editor
                     cachedGizmoEditors.Add(counter - 1, gizmoEditor);
                 }
             });
+        }
+
+        private void ReloadAssetTemplates()
+        {
+            registeredAssetTemplates.Clear();
+
+            string[] files = Array.Empty<string>();
+
+            try
+            {
+                files = Directory.GetFiles(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "AssetTemplates"));
+            }
+            catch(Exception)
+            {
+                return;
+            }
+
+            foreach(var file in files)
+            {
+                try
+                {
+                    registeredAssetTemplates.Add(Path.GetFileName(file), File.ReadAllBytes(file));
+                }
+                catch(Exception)
+                {
+                }
+            }
         }
     }
 }
