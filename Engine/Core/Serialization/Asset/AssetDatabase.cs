@@ -221,5 +221,15 @@ namespace Staple
 
             return assets.FirstOrDefault(x => x.path == t)?.guid;
         }
+
+        /// <summary>
+        /// Gets the type name of an asset
+        /// </summary>
+        /// <param name="guid">The asset guid</param>
+        /// <returns>The asset type, or null</returns>
+        public static string GetAssetType(string guid)
+        {
+            return assets.FirstOrDefault(x => x.guid == guid)?.typeName;
+        }
     }
 }
