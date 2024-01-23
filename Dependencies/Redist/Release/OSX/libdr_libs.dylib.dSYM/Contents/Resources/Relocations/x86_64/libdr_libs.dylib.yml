@@ -1,0 +1,53 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/nunosilva/Git/StapleEngine/Dependencies/build/vs2022/bin/arm64/Release/libdr_libs.dylib'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _drmp3_version, symObjAddr: 0x0, symBinAddr: 0x3A10, symSize: 0x30 }
+  - { offsetInCU: 0x60, offset: 0x60, size: 0x8, addend: 0x0, symName: _callbacks, symObjAddr: 0xA4C0, symBinAddr: 0x100A0, symSize: 0x0 }
+  - { offsetInCU: 0x150, offset: 0x150, size: 0x8, addend: 0x0, symName: _g_drmp3_pow43, symObjAddr: 0xBAB0, symBinAddr: 0xF550, symSize: 0x0 }
+  - { offsetInCU: 0x165, offset: 0x165, size: 0x8, addend: 0x0, symName: _drmp3_L3_imdct36, symObjAddr: 0x95D0, symBinAddr: 0xCFE0, symSize: 0x540 }
+  - { offsetInCU: 0x919, offset: 0x919, size: 0x8, addend: 0x0, symName: _drmp3_version, symObjAddr: 0x0, symBinAddr: 0x3A10, symSize: 0x30 }
+  - { offsetInCU: 0x95A, offset: 0x95A, size: 0x8, addend: 0x0, symName: _drmp3_version_string, symObjAddr: 0x30, symBinAddr: 0x3A40, symSize: 0x10 }
+  - { offsetInCU: 0x974, offset: 0x974, size: 0x8, addend: 0x0, symName: _drmp3dec_init, symObjAddr: 0x40, symBinAddr: 0x3A50, symSize: 0x10 }
+  - { offsetInCU: 0x1A5C, offset: 0x1A5C, size: 0x8, addend: 0x0, symName: _drmp3dec_decode_frame, symObjAddr: 0x50, symBinAddr: 0x3A60, symSize: 0x5180 }
+  - { offsetInCU: 0x32CD, offset: 0x32CD, size: 0x8, addend: 0x0, symName: _drmp3d_synth_granule, symObjAddr: 0x51D0, symBinAddr: 0x8BE0, symSize: 0x1700 }
+  - { offsetInCU: 0x3A43, offset: 0x3A43, size: 0x8, addend: 0x0, symName: _drmp3d_synth_pair, symObjAddr: 0x9B10, symBinAddr: 0xD520, symSize: 0x1A0 }
+  - { offsetInCU: 0x3AE8, offset: 0x3AE8, size: 0x8, addend: 0x0, symName: _drmp3dec_f32_to_s16, symObjAddr: 0x68D0, symBinAddr: 0xA2E0, symSize: 0x220 }
+  - { offsetInCU: 0x3C95, offset: 0x3C95, size: 0x8, addend: 0x0, symName: _drmp3_init, symObjAddr: 0x6AF0, symBinAddr: 0xA500, symSize: 0x140 }
+  - { offsetInCU: 0x3DB5, offset: 0x3DB5, size: 0x8, addend: 0x0, symName: _drmp3_decode_next_frame_ex, symObjAddr: 0x7D30, symBinAddr: 0xB740, symSize: 0x450 }
+  - { offsetInCU: 0x40FE, offset: 0x40FE, size: 0x8, addend: 0x0, symName: _drmp3_init_memory, symObjAddr: 0x6C30, symBinAddr: 0xA640, symSize: 0x170 }
+  - { offsetInCU: 0x4219, offset: 0x4219, size: 0x8, addend: 0x0, symName: _drmp3__on_read_memory, symObjAddr: 0x6DA0, symBinAddr: 0xA7B0, symSize: 0x50 }
+  - { offsetInCU: 0x4284, offset: 0x4284, size: 0x8, addend: 0x0, symName: _drmp3__on_seek_memory, symObjAddr: 0x6DF0, symBinAddr: 0xA800, symSize: 0x70 }
+  - { offsetInCU: 0x4375, offset: 0x4375, size: 0x8, addend: 0x0, symName: _drmp3_init_file, symObjAddr: 0x6E60, symBinAddr: 0xA870, symSize: 0x170 }
+  - { offsetInCU: 0x4524, offset: 0x4524, size: 0x8, addend: 0x0, symName: _drmp3__on_read_stdio, symObjAddr: 0x6FD0, symBinAddr: 0xA9E0, symSize: 0x20 }
+  - { offsetInCU: 0x456D, offset: 0x456D, size: 0x8, addend: 0x0, symName: _drmp3__on_seek_stdio, symObjAddr: 0x6FF0, symBinAddr: 0xAA00, symSize: 0x30 }
+  - { offsetInCU: 0x4724, offset: 0x4724, size: 0x8, addend: 0x0, symName: _drmp3_init_file_w, symObjAddr: 0x7020, symBinAddr: 0xAA30, symSize: 0x310 }
+  - { offsetInCU: 0x4A39, offset: 0x4A39, size: 0x8, addend: 0x0, symName: _drmp3_uninit, symObjAddr: 0x7330, symBinAddr: 0xAD40, symSize: 0x70 }
+  - { offsetInCU: 0x4B59, offset: 0x4B59, size: 0x8, addend: 0x0, symName: _drmp3_read_pcm_frames_f32, symObjAddr: 0x73A0, symBinAddr: 0xADB0, symSize: 0x360 }
+  - { offsetInCU: 0x4D02, offset: 0x4D02, size: 0x8, addend: 0x0, symName: _drmp3_read_pcm_frames_s16, symObjAddr: 0x7700, symBinAddr: 0xB110, symSize: 0x130 }
+  - { offsetInCU: 0x4FAE, offset: 0x4FAE, size: 0x8, addend: 0x0, symName: _drmp3_seek_to_pcm_frame, symObjAddr: 0x7830, symBinAddr: 0xB240, symSize: 0x3C0 }
+  - { offsetInCU: 0x54CE, offset: 0x54CE, size: 0x8, addend: 0x0, symName: _drmp3_get_mp3_and_pcm_frame_count, symObjAddr: 0x7BF0, symBinAddr: 0xB600, symSize: 0x140 }
+  - { offsetInCU: 0x586B, offset: 0x586B, size: 0x8, addend: 0x0, symName: _drmp3_get_pcm_frame_count, symObjAddr: 0x8180, symBinAddr: 0xBB90, symSize: 0x30 }
+  - { offsetInCU: 0x58C5, offset: 0x58C5, size: 0x8, addend: 0x0, symName: _drmp3_get_mp3_frame_count, symObjAddr: 0x81B0, symBinAddr: 0xBBC0, symSize: 0x30 }
+  - { offsetInCU: 0x5982, offset: 0x5982, size: 0x8, addend: 0x0, symName: _drmp3_calculate_seek_points, symObjAddr: 0x81E0, symBinAddr: 0xBBF0, symSize: 0x490 }
+  - { offsetInCU: 0x5CDF, offset: 0x5CDF, size: 0x8, addend: 0x0, symName: _drmp3_bind_seek_table, symObjAddr: 0x8670, symBinAddr: 0xC080, symSize: 0x40 }
+  - { offsetInCU: 0x5D26, offset: 0x5D26, size: 0x8, addend: 0x0, symName: _drmp3_open_and_read_pcm_frames_f32, symObjAddr: 0x86B0, symBinAddr: 0xC0C0, symSize: 0x160 }
+  - { offsetInCU: 0x5EE2, offset: 0x5EE2, size: 0x8, addend: 0x0, symName: _drmp3__full_read_and_close_f32, symObjAddr: 0x8810, symBinAddr: 0xC220, symSize: 0x2E0 }
+  - { offsetInCU: 0x613D, offset: 0x613D, size: 0x8, addend: 0x0, symName: _drmp3_open_and_read_pcm_frames_s16, symObjAddr: 0x8AF0, symBinAddr: 0xC500, symSize: 0x160 }
+  - { offsetInCU: 0x62F9, offset: 0x62F9, size: 0x8, addend: 0x0, symName: _drmp3__full_read_and_close_s16, symObjAddr: 0x8C50, symBinAddr: 0xC660, symSize: 0x450 }
+  - { offsetInCU: 0x65E7, offset: 0x65E7, size: 0x8, addend: 0x0, symName: _drmp3_open_memory_and_read_pcm_frames_f32, symObjAddr: 0x90A0, symBinAddr: 0xCAB0, symSize: 0x80 }
+  - { offsetInCU: 0x66B0, offset: 0x66B0, size: 0x8, addend: 0x0, symName: _drmp3_open_memory_and_read_pcm_frames_s16, symObjAddr: 0x9120, symBinAddr: 0xCB30, symSize: 0x80 }
+  - { offsetInCU: 0x6748, offset: 0x6748, size: 0x8, addend: 0x0, symName: _drmp3_open_file_and_read_pcm_frames_f32, symObjAddr: 0x91A0, symBinAddr: 0xCBB0, symSize: 0x80 }
+  - { offsetInCU: 0x67FA, offset: 0x67FA, size: 0x8, addend: 0x0, symName: _drmp3_open_file_and_read_pcm_frames_s16, symObjAddr: 0x9220, symBinAddr: 0xCC30, symSize: 0x80 }
+  - { offsetInCU: 0x68D2, offset: 0x68D2, size: 0x8, addend: 0x0, symName: _drmp3_malloc, symObjAddr: 0x92A0, symBinAddr: 0xCCB0, symSize: 0x40 }
+  - { offsetInCU: 0x696E, offset: 0x696E, size: 0x8, addend: 0x0, symName: _drmp3__malloc_default, symObjAddr: 0x92E0, symBinAddr: 0xCCF0, symSize: 0x10 }
+  - { offsetInCU: 0x69B0, offset: 0x69B0, size: 0x8, addend: 0x0, symName: _drmp3_free, symObjAddr: 0x92F0, symBinAddr: 0xCD00, symSize: 0x30 }
+  - { offsetInCU: 0x6A28, offset: 0x6A28, size: 0x8, addend: 0x0, symName: _drmp3__free_default, symObjAddr: 0x9320, symBinAddr: 0xCD30, symSize: 0x10 }
+  - { offsetInCU: 0x6A48, offset: 0x6A48, size: 0x8, addend: 0x0, symName: _Free, symObjAddr: 0x9330, symBinAddr: 0xCD40, symSize: 0x10 }
+  - { offsetInCU: 0x6A76, offset: 0x6A76, size: 0x8, addend: 0x0, symName: _Malloc, symObjAddr: 0x9340, symBinAddr: 0xCD50, symSize: 0x10 }
+  - { offsetInCU: 0x6AA8, offset: 0x6AA8, size: 0x8, addend: 0x0, symName: _Realloc, symObjAddr: 0x9350, symBinAddr: 0xCD60, symSize: 0x10 }
+  - { offsetInCU: 0x6BD4, offset: 0x6BD4, size: 0x8, addend: 0x0, symName: _LoadMP3, symObjAddr: 0x9360, symBinAddr: 0xCD70, symSize: 0x220 }
+  - { offsetInCU: 0x6E21, offset: 0x6E21, size: 0x8, addend: 0x0, symName: _GetMP3Buffer, symObjAddr: 0x9580, symBinAddr: 0xCF90, symSize: 0x10 }
+  - { offsetInCU: 0x6E55, offset: 0x6E55, size: 0x8, addend: 0x0, symName: _FreeMP3, symObjAddr: 0x9590, symBinAddr: 0xCFA0, symSize: 0x40 }
+  - { offsetInCU: 0x6F99, offset: 0x6F99, size: 0x8, addend: 0x0, symName: _drmp3__realloc_default, symObjAddr: 0x9CB0, symBinAddr: 0xD6C0, symSize: 0xA }
+...

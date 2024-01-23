@@ -8,7 +8,6 @@ local GLFWNET_DIR = "glfw-net"
 solution "Dependencies"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	platforms "x86_64"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"
@@ -20,11 +19,15 @@ solution "Dependencies"
 		symbols "On"
 
 	filter "platforms:x86_64"
+		platforms "x86_64"
 		architecture "x86_64"
 
 	filter "system:macosx"
+		platforms "arm64"
+		architecture "arm64"
+		
 		xcodebuildsettings {
-			["MACOSX_DEPLOYMENT_TARGET"] = "10.9",
+			["MACOSX_DEPLOYMENT_TARGET"] = "10.13",
 			["ALWAYS_SEARCH_USER_PATHS"] = "YES", -- This is the minimum version of macos we'll be able to run on
 		};
 

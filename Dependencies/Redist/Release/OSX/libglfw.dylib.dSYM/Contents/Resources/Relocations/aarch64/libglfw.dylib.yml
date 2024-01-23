@@ -1,0 +1,493 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/nunosilva/Git/StapleEngine/Dependencies/build/vs2022/bin/arm64/Release/libglfw.dylib'
+relocations:
+  - { offsetInCU: 0x27, offset: 0x27, size: 0x8, addend: 0x0, symName: '-[GLFWHelper selectedKeyboardInputSourceChanged:]', symObjAddr: 0x0, symBinAddr: 0x2C54, symSize: 0x90 }
+  - { offsetInCU: 0xF04, offset: 0xF04, size: 0x8, addend: 0x0, symName: '-[GLFWHelper selectedKeyboardInputSourceChanged:]', symObjAddr: 0x0, symBinAddr: 0x2C54, symSize: 0x90 }
+  - { offsetInCU: 0xF8D, offset: 0xF8D, size: 0x8, addend: 0x0, symName: '-[GLFWHelper doNothing:]', symObjAddr: 0x90, symBinAddr: 0x2CE4, symSize: 0x4 }
+  - { offsetInCU: 0xFC6, offset: 0xFC6, size: 0x8, addend: 0x0, symName: '-[GLFWApplicationDelegate applicationShouldTerminate:]', symObjAddr: 0x94, symBinAddr: 0x2CE8, symSize: 0x3C }
+  - { offsetInCU: 0x1021, offset: 0x1021, size: 0x8, addend: 0x0, symName: '-[GLFWApplicationDelegate applicationDidChangeScreenParameters:]', symObjAddr: 0xD0, symBinAddr: 0x2D24, symSize: 0x44 }
+  - { offsetInCU: 0x4313, offset: 0x4313, size: 0x8, addend: 0x0, symName: '-[GLFWApplicationDelegate applicationWillFinishLaunching:]', symObjAddr: 0x114, symBinAddr: 0x2D68, symSize: 0x4A0 }
+  - { offsetInCU: 0x4417, offset: 0x4417, size: 0x8, addend: 0x0, symName: '-[GLFWApplicationDelegate applicationDidFinishLaunching:]', symObjAddr: 0x5B4, symBinAddr: 0x3208, symSize: 0x24 }
+  - { offsetInCU: 0x4450, offset: 0x4450, size: 0x8, addend: 0x0, symName: '-[GLFWApplicationDelegate applicationDidHide:]', symObjAddr: 0x5D8, symBinAddr: 0x322C, symSize: 0x4C }
+  - { offsetInCU: 0x44A7, offset: 0x44A7, size: 0x8, addend: 0x0, symName: __glfwLoadLocalVulkanLoaderCocoa, symObjAddr: 0x624, symBinAddr: 0x3278, symSize: 0xE4 }
+  - { offsetInCU: 0x4653, offset: 0x4653, size: 0x8, addend: 0x0, symName: __glfwConnectCocoa, symObjAddr: 0x708, symBinAddr: 0x335C, symSize: 0x28 }
+  - { offsetInCU: 0x4712, offset: 0x4712, size: 0x8, addend: 0x0, symName: __glfwInitCocoa, symObjAddr: 0x730, symBinAddr: 0x3384, symSize: 0x5E0 }
+  - { offsetInCU: 0x4A1D, offset: 0x4A1D, size: 0x8, addend: 0x0, symName: __glfwTerminateCocoa, symObjAddr: 0xD10, symBinAddr: 0x3964, symSize: 0xF0 }
+  - { offsetInCU: 0x4A4E, offset: 0x4A4E, size: 0x8, addend: 0x0, symName: ____glfwInitCocoa_block_invoke, symObjAddr: 0xE00, symBinAddr: 0x3A54, symSize: 0x44 }
+  - { offsetInCU: 0x27, offset: 0x6AD5, size: 0x8, addend: 0x0, symName: __glfwInitJoysticksCocoa, symObjAddr: 0x0, symBinAddr: 0x3A98, symSize: 0x3A0 }
+  - { offsetInCU: 0x22B, offset: 0x6CD9, size: 0x8, addend: 0x0, symName: __glfwInitJoysticksCocoa, symObjAddr: 0x0, symBinAddr: 0x3A98, symSize: 0x3A0 }
+  - { offsetInCU: 0xA99, offset: 0x7547, size: 0x8, addend: 0x0, symName: _matchCallback, symObjAddr: 0x3A0, symBinAddr: 0x3E38, symSize: 0x4F8 }
+  - { offsetInCU: 0x10FE, offset: 0x7BAC, size: 0x8, addend: 0x0, symName: _removeCallback, symObjAddr: 0x898, symBinAddr: 0x4330, symSize: 0x28C }
+  - { offsetInCU: 0x1146, offset: 0x7BF4, size: 0x8, addend: 0x0, symName: _removeCallback, symObjAddr: 0x898, symBinAddr: 0x4330, symSize: 0x28C }
+  - { offsetInCU: 0x1235, offset: 0x7CE3, size: 0x8, addend: 0x0, symName: _closeJoystick, symObjAddr: 0xC74, symBinAddr: 0x470C, symSize: 0xEC }
+  - { offsetInCU: 0x1362, offset: 0x7E10, size: 0x8, addend: 0x0, symName: __glfwTerminateJoysticksCocoa, symObjAddr: 0xB24, symBinAddr: 0x45BC, symSize: 0x150 }
+  - { offsetInCU: 0x16F3, offset: 0x81A1, size: 0x8, addend: 0x0, symName: __glfwPollJoystickCocoa, symObjAddr: 0xD60, symBinAddr: 0x47F8, symSize: 0x24C }
+  - { offsetInCU: 0x19DA, offset: 0x8488, size: 0x8, addend: 0x0, symName: __glfwGetMappingNameCocoa, symObjAddr: 0xFAC, symBinAddr: 0x4A44, symSize: 0xC }
+  - { offsetInCU: 0x19F4, offset: 0x84A2, size: 0x8, addend: 0x0, symName: __glfwUpdateGamepadGUIDCocoa, symObjAddr: 0xFB8, symBinAddr: 0x4A50, symSize: 0xAC }
+  - { offsetInCU: 0x1A38, offset: 0x84E6, size: 0x8, addend: 0x0, symName: _compareElements, symObjAddr: 0x1064, symBinAddr: 0x4AFC, symSize: 0x40 }
+  - { offsetInCU: 0x27, offset: 0x85C7, size: 0x8, addend: 0x0, symName: __glfwPollMonitorsCocoa, symObjAddr: 0x0, symBinAddr: 0x4B3C, symSize: 0x6AC }
+  - { offsetInCU: 0x137A, offset: 0x991A, size: 0x8, addend: 0x0, symName: __glfwPollMonitorsCocoa, symObjAddr: 0x0, symBinAddr: 0x4B3C, symSize: 0x6AC }
+  - { offsetInCU: 0x1C7C, offset: 0xA21C, size: 0x8, addend: 0x0, symName: __glfwSetVideoModeCocoa, symObjAddr: 0x6AC, symBinAddr: 0x51E8, symSize: 0x250 }
+  - { offsetInCU: 0x2104, offset: 0xA6A4, size: 0x8, addend: 0x0, symName: __glfwGetVideoModeCocoa, symObjAddr: 0x8FC, symBinAddr: 0x5438, symSize: 0x9C }
+  - { offsetInCU: 0x21BC, offset: 0xA75C, size: 0x8, addend: 0x0, symName: __glfwRestoreVideoModeCocoa, symObjAddr: 0x998, symBinAddr: 0x54D4, symSize: 0xD8 }
+  - { offsetInCU: 0x22AE, offset: 0xA84E, size: 0x8, addend: 0x0, symName: __glfwFreeMonitorCocoa, symObjAddr: 0xA70, symBinAddr: 0x55AC, symSize: 0x4 }
+  - { offsetInCU: 0x22D3, offset: 0xA873, size: 0x8, addend: 0x0, symName: __glfwGetMonitorPosCocoa, symObjAddr: 0xA74, symBinAddr: 0x55B0, symSize: 0x58 }
+  - { offsetInCU: 0x2356, offset: 0xA8F6, size: 0x8, addend: 0x0, symName: __glfwGetMonitorContentScaleCocoa, symObjAddr: 0xACC, symBinAddr: 0x5608, symSize: 0xB0 }
+  - { offsetInCU: 0x23CB, offset: 0xA96B, size: 0x8, addend: 0x0, symName: __glfwGetMonitorWorkareaCocoa, symObjAddr: 0xB7C, symBinAddr: 0x56B8, symSize: 0xD4 }
+  - { offsetInCU: 0x2450, offset: 0xA9F0, size: 0x8, addend: 0x0, symName: __glfwGetVideoModesCocoa, symObjAddr: 0xC50, symBinAddr: 0x578C, symSize: 0x1A8 }
+  - { offsetInCU: 0x2605, offset: 0xABA5, size: 0x8, addend: 0x0, symName: __glfwGetGammaRampCocoa, symObjAddr: 0xDF8, symBinAddr: 0x5934, symSize: 0x224 }
+  - { offsetInCU: 0x2706, offset: 0xACA6, size: 0x8, addend: 0x0, symName: __glfwSetGammaRampCocoa, symObjAddr: 0x101C, symBinAddr: 0x5B58, symSize: 0x1FC }
+  - { offsetInCU: 0x27BD, offset: 0xAD5D, size: 0x8, addend: 0x0, symName: _glfwGetCocoaMonitor, symObjAddr: 0x1218, symBinAddr: 0x5D54, symSize: 0x3C }
+  - { offsetInCU: 0x26, offset: 0xAF27, size: 0x8, addend: 0x0, symName: __glfwPlatformInitTimer, symObjAddr: 0x0, symBinAddr: 0x5D90, symSize: 0x50 }
+  - { offsetInCU: 0x33, offset: 0xAF34, size: 0x8, addend: 0x0, symName: __glfwPlatformInitTimer, symObjAddr: 0x0, symBinAddr: 0x5D90, symSize: 0x50 }
+  - { offsetInCU: 0xD1, offset: 0xAFD2, size: 0x8, addend: 0x0, symName: __glfwPlatformGetTimerValue, symObjAddr: 0x50, symBinAddr: 0x5DE0, symSize: 0x4 }
+  - { offsetInCU: 0xEE, offset: 0xAFEF, size: 0x8, addend: 0x0, symName: __glfwPlatformGetTimerValue, symObjAddr: 0x50, symBinAddr: 0x5DE0, symSize: 0x4 }
+  - { offsetInCU: 0x115, offset: 0xB016, size: 0x8, addend: 0x0, symName: __glfwPlatformGetTimerFrequency, symObjAddr: 0x54, symBinAddr: 0x5DE4, symSize: 0x10 }
+  - { offsetInCU: 0x27, offset: 0xB061, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate initWithGlfwWindow:]', symObjAddr: 0x0, symBinAddr: 0x5DF4, symSize: 0x48 }
+  - { offsetInCU: 0x34, offset: 0xB06E, size: 0x8, addend: 0x0, symName: '-[GLFWContentView updateTrackingAreas]', symObjAddr: 0xDD8, symBinAddr: 0x6BCC, symSize: 0xA4 }
+  - { offsetInCU: 0x4F04, offset: 0xFF3E, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate initWithGlfwWindow:]', symObjAddr: 0x0, symBinAddr: 0x5DF4, symSize: 0x48 }
+  - { offsetInCU: 0x4F47, offset: 0xFF81, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowShouldClose:]', symObjAddr: 0x48, symBinAddr: 0x5E3C, symSize: 0x1C }
+  - { offsetInCU: 0x4F86, offset: 0xFFC0, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidResize:]', symObjAddr: 0x64, symBinAddr: 0x5E58, symSize: 0x130 }
+  - { offsetInCU: 0x504E, offset: 0x10088, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidMove:]', symObjAddr: 0x194, symBinAddr: 0x5F88, symSize: 0xCC }
+  - { offsetInCU: 0x5135, offset: 0x1016F, size: 0x8, addend: 0x0, symName: __glfwGetWindowPosCocoa, symObjAddr: 0x260, symBinAddr: 0x6054, symSize: 0x94 }
+  - { offsetInCU: 0x51C7, offset: 0x10201, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidMiniaturize:]', symObjAddr: 0x2F4, symBinAddr: 0x60E8, symSize: 0x64 }
+  - { offsetInCU: 0x524A, offset: 0x10284, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidDeminiaturize:]', symObjAddr: 0x358, symBinAddr: 0x614C, symSize: 0xBC }
+  - { offsetInCU: 0x52FA, offset: 0x10334, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidBecomeKey:]', symObjAddr: 0x414, symBinAddr: 0x6208, symSize: 0x64 }
+  - { offsetInCU: 0x5351, offset: 0x1038B, size: 0x8, addend: 0x0, symName: _updateCursorMode, symObjAddr: 0x478, symBinAddr: 0x626C, symSize: 0x1A4 }
+  - { offsetInCU: 0x5515, offset: 0x1054F, size: 0x8, addend: 0x0, symName: __glfwSetCursorPosCocoa, symObjAddr: 0x3004, symBinAddr: 0x8DF8, symSize: 0x180 }
+  - { offsetInCU: 0x5688, offset: 0x106C2, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidResignKey:]', symObjAddr: 0x61C, symBinAddr: 0x6410, symSize: 0x60 }
+  - { offsetInCU: 0x56E2, offset: 0x1071C, size: 0x8, addend: 0x0, symName: __glfwIconifyWindowCocoa, symObjAddr: 0x67C, symBinAddr: 0x6470, symSize: 0x34 }
+  - { offsetInCU: 0x56FF, offset: 0x10739, size: 0x8, addend: 0x0, symName: '-[GLFWWindowDelegate windowDidChangeOcclusionState:]', symObjAddr: 0x6B0, symBinAddr: 0x64A4, symSize: 0x38 }
+  - { offsetInCU: 0x573C, offset: 0x10776, size: 0x8, addend: 0x0, symName: '-[GLFWContentView initWithGlfwWindow:]', symObjAddr: 0x6E8, symBinAddr: 0x64DC, symSize: 0xE4 }
+  - { offsetInCU: 0x5781, offset: 0x107BB, size: 0x8, addend: 0x0, symName: '-[GLFWContentView dealloc]', symObjAddr: 0x7CC, symBinAddr: 0x65C0, symSize: 0x60 }
+  - { offsetInCU: 0x57B2, offset: 0x107EC, size: 0x8, addend: 0x0, symName: '-[GLFWContentView isOpaque]', symObjAddr: 0x82C, symBinAddr: 0x6620, symSize: 0x14 }
+  - { offsetInCU: 0x57E7, offset: 0x10821, size: 0x8, addend: 0x0, symName: '-[GLFWContentView canBecomeKeyView]', symObjAddr: 0x840, symBinAddr: 0x6634, symSize: 0x8 }
+  - { offsetInCU: 0x5818, offset: 0x10852, size: 0x8, addend: 0x0, symName: '-[GLFWContentView acceptsFirstResponder]', symObjAddr: 0x848, symBinAddr: 0x663C, symSize: 0x8 }
+  - { offsetInCU: 0x5849, offset: 0x10883, size: 0x8, addend: 0x0, symName: '-[GLFWContentView wantsUpdateLayer]', symObjAddr: 0x850, symBinAddr: 0x6644, symSize: 0x8 }
+  - { offsetInCU: 0x587A, offset: 0x108B4, size: 0x8, addend: 0x0, symName: '-[GLFWContentView updateLayer]', symObjAddr: 0x858, symBinAddr: 0x664C, symSize: 0x44 }
+  - { offsetInCU: 0x58AB, offset: 0x108E5, size: 0x8, addend: 0x0, symName: '-[GLFWContentView cursorUpdate:]', symObjAddr: 0x89C, symBinAddr: 0x6690, symSize: 0xA8 }
+  - { offsetInCU: 0x591F, offset: 0x10959, size: 0x8, addend: 0x0, symName: '-[GLFWContentView acceptsFirstMouse:]', symObjAddr: 0x944, symBinAddr: 0x6738, symSize: 0x8 }
+  - { offsetInCU: 0x597F, offset: 0x109B9, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseDown:]', symObjAddr: 0x94C, symBinAddr: 0x6740, symSize: 0x44 }
+  - { offsetInCU: 0x59E6, offset: 0x10A20, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseDragged:]', symObjAddr: 0x990, symBinAddr: 0x6784, symSize: 0x4 }
+  - { offsetInCU: 0x5A23, offset: 0x10A5D, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseUp:]', symObjAddr: 0x994, symBinAddr: 0x6788, symSize: 0x44 }
+  - { offsetInCU: 0x5A8A, offset: 0x10AC4, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseMoved:]', symObjAddr: 0x9D8, symBinAddr: 0x67CC, symSize: 0xB0 }
+  - { offsetInCU: 0x5B27, offset: 0x10B61, size: 0x8, addend: 0x0, symName: '-[GLFWContentView rightMouseDown:]', symObjAddr: 0xA88, symBinAddr: 0x687C, symSize: 0x44 }
+  - { offsetInCU: 0x5B8E, offset: 0x10BC8, size: 0x8, addend: 0x0, symName: '-[GLFWContentView rightMouseDragged:]', symObjAddr: 0xACC, symBinAddr: 0x68C0, symSize: 0x4 }
+  - { offsetInCU: 0x5BCB, offset: 0x10C05, size: 0x8, addend: 0x0, symName: '-[GLFWContentView rightMouseUp:]', symObjAddr: 0xAD0, symBinAddr: 0x68C4, symSize: 0x44 }
+  - { offsetInCU: 0x5C32, offset: 0x10C6C, size: 0x8, addend: 0x0, symName: '-[GLFWContentView otherMouseDown:]', symObjAddr: 0xB14, symBinAddr: 0x6908, symSize: 0x5C }
+  - { offsetInCU: 0x5C99, offset: 0x10CD3, size: 0x8, addend: 0x0, symName: '-[GLFWContentView otherMouseDragged:]', symObjAddr: 0xB70, symBinAddr: 0x6964, symSize: 0x4 }
+  - { offsetInCU: 0x5CD6, offset: 0x10D10, size: 0x8, addend: 0x0, symName: '-[GLFWContentView otherMouseUp:]', symObjAddr: 0xB74, symBinAddr: 0x6968, symSize: 0x5C }
+  - { offsetInCU: 0x5D3D, offset: 0x10D77, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseExited:]', symObjAddr: 0xBD0, symBinAddr: 0x69C4, symSize: 0x6C }
+  - { offsetInCU: 0x5D8F, offset: 0x10DC9, size: 0x8, addend: 0x0, symName: '-[GLFWContentView mouseEntered:]', symObjAddr: 0xC3C, symBinAddr: 0x6A30, symSize: 0x70 }
+  - { offsetInCU: 0x5DE1, offset: 0x10E1B, size: 0x8, addend: 0x0, symName: '-[GLFWContentView viewDidChangeBackingProperties]', symObjAddr: 0xCAC, symBinAddr: 0x6AA0, symSize: 0x11C }
+  - { offsetInCU: 0x5E52, offset: 0x10E8C, size: 0x8, addend: 0x0, symName: '-[GLFWContentView drawRect:]', symObjAddr: 0xDC8, symBinAddr: 0x6BBC, symSize: 0x10 }
+  - { offsetInCU: 0x5EA7, offset: 0x10EE1, size: 0x8, addend: 0x0, symName: '-[GLFWContentView keyDown:]', symObjAddr: 0xE7C, symBinAddr: 0x6C70, symSize: 0xF4 }
+  - { offsetInCU: 0x5F65, offset: 0x10F9F, size: 0x8, addend: 0x0, symName: '-[GLFWContentView flagsChanged:]', symObjAddr: 0xF70, symBinAddr: 0x6D64, symSize: 0x114 }
+  - { offsetInCU: 0x604A, offset: 0x11084, size: 0x8, addend: 0x0, symName: '-[GLFWContentView keyUp:]', symObjAddr: 0x1084, symBinAddr: 0x6E78, symSize: 0x90 }
+  - { offsetInCU: 0x60F0, offset: 0x1112A, size: 0x8, addend: 0x0, symName: '-[GLFWContentView scrollWheel:]', symObjAddr: 0x1114, symBinAddr: 0x6F08, symSize: 0x98 }
+  - { offsetInCU: 0x6151, offset: 0x1118B, size: 0x8, addend: 0x0, symName: '-[GLFWContentView draggingEntered:]', symObjAddr: 0x11AC, symBinAddr: 0x6FA0, symSize: 0x8 }
+  - { offsetInCU: 0x618E, offset: 0x111C8, size: 0x8, addend: 0x0, symName: '-[GLFWContentView performDragOperation:]', symObjAddr: 0x11B4, symBinAddr: 0x6FA8, symSize: 0x198 }
+  - { offsetInCU: 0x628B, offset: 0x112C5, size: 0x8, addend: 0x0, symName: '-[GLFWContentView hasMarkedText]', symObjAddr: 0x134C, symBinAddr: 0x7140, symSize: 0x28 }
+  - { offsetInCU: 0x62C0, offset: 0x112FA, size: 0x8, addend: 0x0, symName: '-[GLFWContentView markedRange]', symObjAddr: 0x1374, symBinAddr: 0x7168, symSize: 0x58 }
+  - { offsetInCU: 0x62F5, offset: 0x1132F, size: 0x8, addend: 0x0, symName: '-[GLFWContentView selectedRange]', symObjAddr: 0x13CC, symBinAddr: 0x71C0, symSize: 0xC }
+  - { offsetInCU: 0x6326, offset: 0x11360, size: 0x8, addend: 0x0, symName: '-[GLFWContentView setMarkedText:selectedRange:replacementRange:]', symObjAddr: 0x13D8, symBinAddr: 0x71CC, symSize: 0x88 }
+  - { offsetInCU: 0x637F, offset: 0x113B9, size: 0x8, addend: 0x0, symName: '-[GLFWContentView unmarkText]', symObjAddr: 0x1460, symBinAddr: 0x7254, symSize: 0x28 }
+  - { offsetInCU: 0x63B0, offset: 0x113EA, size: 0x8, addend: 0x0, symName: '-[GLFWContentView validAttributesForMarkedText]', symObjAddr: 0x1488, symBinAddr: 0x727C, symSize: 0xC }
+  - { offsetInCU: 0x63E1, offset: 0x1141B, size: 0x8, addend: 0x0, symName: '-[GLFWContentView attributedSubstringForProposedRange:actualRange:]', symObjAddr: 0x1494, symBinAddr: 0x7288, symSize: 0x8 }
+  - { offsetInCU: 0x642A, offset: 0x11464, size: 0x8, addend: 0x0, symName: '-[GLFWContentView characterIndexForPoint:]', symObjAddr: 0x149C, symBinAddr: 0x7290, symSize: 0x8 }
+  - { offsetInCU: 0x6467, offset: 0x114A1, size: 0x8, addend: 0x0, symName: '-[GLFWContentView firstRectForCharacterRange:actualRange:]', symObjAddr: 0x14A4, symBinAddr: 0x7298, symSize: 0x2C }
+  - { offsetInCU: 0x64C0, offset: 0x114FA, size: 0x8, addend: 0x0, symName: '-[GLFWContentView insertText:replacementRange:]', symObjAddr: 0x14D0, symBinAddr: 0x72C4, symSize: 0x10C }
+  - { offsetInCU: 0x6576, offset: 0x115B0, size: 0x8, addend: 0x0, symName: '-[GLFWContentView doCommandBySelector:]', symObjAddr: 0x15DC, symBinAddr: 0x73D0, symSize: 0x4 }
+  - { offsetInCU: 0x65AF, offset: 0x115E9, size: 0x8, addend: 0x0, symName: '-[GLFWWindow canBecomeKeyWindow]', symObjAddr: 0x15E0, symBinAddr: 0x73D4, symSize: 0x8 }
+  - { offsetInCU: 0x65E0, offset: 0x1161A, size: 0x8, addend: 0x0, symName: '-[GLFWWindow canBecomeMainWindow]', symObjAddr: 0x15E8, symBinAddr: 0x73DC, symSize: 0x8 }
+  - { offsetInCU: 0x6611, offset: 0x1164B, size: 0x8, addend: 0x0, symName: __glfwTransformYCocoa, symObjAddr: 0x15F0, symBinAddr: 0x73E4, symSize: 0x38 }
+  - { offsetInCU: 0x6A6F, offset: 0x11AA9, size: 0x8, addend: 0x0, symName: __glfwCreateWindowCocoa, symObjAddr: 0x1628, symBinAddr: 0x741C, symSize: 0x608 }
+  - { offsetInCU: 0x6D14, offset: 0x11D4E, size: 0x8, addend: 0x0, symName: __glfwSetWindowMousePassthroughCocoa, symObjAddr: 0x1C30, symBinAddr: 0x7A24, symSize: 0x44 }
+  - { offsetInCU: 0x6D3A, offset: 0x11D74, size: 0x8, addend: 0x0, symName: __glfwShowWindowCocoa, symObjAddr: 0x1C74, symBinAddr: 0x7A68, symSize: 0x34 }
+  - { offsetInCU: 0x6D57, offset: 0x11D91, size: 0x8, addend: 0x0, symName: __glfwFocusWindowCocoa, symObjAddr: 0x1CA8, symBinAddr: 0x7A9C, symSize: 0x48 }
+  - { offsetInCU: 0x720C, offset: 0x12246, size: 0x8, addend: 0x0, symName: __glfwDestroyWindowCocoa, symObjAddr: 0x1CF0, symBinAddr: 0x7AE4, symSize: 0x16C }
+  - { offsetInCU: 0x7289, offset: 0x122C3, size: 0x8, addend: 0x0, symName: __glfwPollEventsCocoa, symObjAddr: 0x1E5C, symBinAddr: 0x7C50, symSize: 0xAC }
+  - { offsetInCU: 0x72B4, offset: 0x122EE, size: 0x8, addend: 0x0, symName: __glfwSetWindowTitleCocoa, symObjAddr: 0x1F08, symBinAddr: 0x7CFC, symSize: 0x60 }
+  - { offsetInCU: 0x7309, offset: 0x12343, size: 0x8, addend: 0x0, symName: __glfwSetWindowIconCocoa, symObjAddr: 0x1F68, symBinAddr: 0x7D5C, symSize: 0x14 }
+  - { offsetInCU: 0x734E, offset: 0x12388, size: 0x8, addend: 0x0, symName: __glfwSetWindowPosCocoa, symObjAddr: 0x1F7C, symBinAddr: 0x7D70, symSize: 0xA0 }
+  - { offsetInCU: 0x740B, offset: 0x12445, size: 0x8, addend: 0x0, symName: __glfwGetWindowSizeCocoa, symObjAddr: 0x201C, symBinAddr: 0x7E10, symSize: 0x58 }
+  - { offsetInCU: 0x7451, offset: 0x1248B, size: 0x8, addend: 0x0, symName: __glfwSetWindowSizeCocoa, symObjAddr: 0x2074, symBinAddr: 0x7E68, symSize: 0x120 }
+  - { offsetInCU: 0x7529, offset: 0x12563, size: 0x8, addend: 0x0, symName: __glfwSetWindowSizeLimitsCocoa, symObjAddr: 0x2194, symBinAddr: 0x7F88, symSize: 0xA0 }
+  - { offsetInCU: 0x7590, offset: 0x125CA, size: 0x8, addend: 0x0, symName: __glfwSetWindowAspectRatioCocoa, symObjAddr: 0x2234, symBinAddr: 0x8028, symSize: 0x78 }
+  - { offsetInCU: 0x75D7, offset: 0x12611, size: 0x8, addend: 0x0, symName: __glfwGetFramebufferSizeCocoa, symObjAddr: 0x22AC, symBinAddr: 0x80A0, symSize: 0x60 }
+  - { offsetInCU: 0x7626, offset: 0x12660, size: 0x8, addend: 0x0, symName: __glfwGetWindowFrameSizeCocoa, symObjAddr: 0x230C, symBinAddr: 0x8100, symSize: 0xC8 }
+  - { offsetInCU: 0x76BB, offset: 0x126F5, size: 0x8, addend: 0x0, symName: __glfwGetWindowContentScaleCocoa, symObjAddr: 0x23D4, symBinAddr: 0x81C8, symSize: 0x78 }
+  - { offsetInCU: 0x7730, offset: 0x1276A, size: 0x8, addend: 0x0, symName: __glfwRestoreWindowCocoa, symObjAddr: 0x244C, symBinAddr: 0x8240, symSize: 0x68 }
+  - { offsetInCU: 0x7757, offset: 0x12791, size: 0x8, addend: 0x0, symName: __glfwMaximizeWindowCocoa, symObjAddr: 0x24B4, symBinAddr: 0x82A8, symSize: 0x40 }
+  - { offsetInCU: 0x777E, offset: 0x127B8, size: 0x8, addend: 0x0, symName: __glfwHideWindowCocoa, symObjAddr: 0x24F4, symBinAddr: 0x82E8, symSize: 0x34 }
+  - { offsetInCU: 0x77A5, offset: 0x127DF, size: 0x8, addend: 0x0, symName: __glfwRequestWindowAttentionCocoa, symObjAddr: 0x2528, symBinAddr: 0x831C, symSize: 0x38 }
+  - { offsetInCU: 0x77CC, offset: 0x12806, size: 0x8, addend: 0x0, symName: __glfwSetWindowMonitorCocoa, symObjAddr: 0x2560, symBinAddr: 0x8354, symSize: 0x3E4 }
+  - { offsetInCU: 0x79F8, offset: 0x12A32, size: 0x8, addend: 0x0, symName: __glfwWindowFocusedCocoa, symObjAddr: 0x2944, symBinAddr: 0x8738, symSize: 0x3C }
+  - { offsetInCU: 0x7A15, offset: 0x12A4F, size: 0x8, addend: 0x0, symName: __glfwWindowIconifiedCocoa, symObjAddr: 0x2980, symBinAddr: 0x8774, symSize: 0x3C }
+  - { offsetInCU: 0x7A40, offset: 0x12A7A, size: 0x8, addend: 0x0, symName: __glfwWindowVisibleCocoa, symObjAddr: 0x29BC, symBinAddr: 0x87B0, symSize: 0x3C }
+  - { offsetInCU: 0x7A6B, offset: 0x12AA5, size: 0x8, addend: 0x0, symName: __glfwWindowMaximizedCocoa, symObjAddr: 0x29F8, symBinAddr: 0x87EC, symSize: 0x60 }
+  - { offsetInCU: 0x7A96, offset: 0x12AD0, size: 0x8, addend: 0x0, symName: __glfwWindowHoveredCocoa, symObjAddr: 0x2A58, symBinAddr: 0x884C, symSize: 0xC8 }
+  - { offsetInCU: 0x7B0D, offset: 0x12B47, size: 0x8, addend: 0x0, symName: __glfwFramebufferTransparentCocoa, symObjAddr: 0x2B20, symBinAddr: 0x8914, symSize: 0x64 }
+  - { offsetInCU: 0x7B38, offset: 0x12B72, size: 0x8, addend: 0x0, symName: __glfwSetWindowResizableCocoa, symObjAddr: 0x2B84, symBinAddr: 0x8978, symSize: 0x6C }
+  - { offsetInCU: 0x7B8D, offset: 0x12BC7, size: 0x8, addend: 0x0, symName: __glfwSetWindowDecoratedCocoa, symObjAddr: 0x2BF0, symBinAddr: 0x89E4, symSize: 0x64 }
+  - { offsetInCU: 0x7BE2, offset: 0x12C1C, size: 0x8, addend: 0x0, symName: __glfwSetWindowFloatingCocoa, symObjAddr: 0x2C54, symBinAddr: 0x8A48, symSize: 0x48 }
+  - { offsetInCU: 0x7C19, offset: 0x12C53, size: 0x8, addend: 0x0, symName: __glfwGetWindowOpacityCocoa, symObjAddr: 0x2C9C, symBinAddr: 0x8A90, symSize: 0x44 }
+  - { offsetInCU: 0x7C44, offset: 0x12C7E, size: 0x8, addend: 0x0, symName: __glfwSetWindowOpacityCocoa, symObjAddr: 0x2CE0, symBinAddr: 0x8AD4, symSize: 0x40 }
+  - { offsetInCU: 0x7C7B, offset: 0x12CB5, size: 0x8, addend: 0x0, symName: __glfwSetRawMouseMotionCocoa, symObjAddr: 0x2D20, symBinAddr: 0x8B14, symSize: 0x14 }
+  - { offsetInCU: 0x7CB2, offset: 0x12CEC, size: 0x8, addend: 0x0, symName: __glfwRawMouseMotionSupportedCocoa, symObjAddr: 0x2D34, symBinAddr: 0x8B28, symSize: 0x8 }
+  - { offsetInCU: 0x7CCC, offset: 0x12D06, size: 0x8, addend: 0x0, symName: __glfwWaitEventsCocoa, symObjAddr: 0x2D3C, symBinAddr: 0x8B30, symSize: 0xEC }
+  - { offsetInCU: 0x7D2E, offset: 0x12D68, size: 0x8, addend: 0x0, symName: __glfwWaitEventsTimeoutCocoa, symObjAddr: 0x2E28, symBinAddr: 0x8C1C, symSize: 0xFC }
+  - { offsetInCU: 0x7DB0, offset: 0x12DEA, size: 0x8, addend: 0x0, symName: __glfwPostEmptyEventCocoa, symObjAddr: 0x2F24, symBinAddr: 0x8D18, symSize: 0x78 }
+  - { offsetInCU: 0x7DE5, offset: 0x12E1F, size: 0x8, addend: 0x0, symName: __glfwGetCursorPosCocoa, symObjAddr: 0x2F9C, symBinAddr: 0x8D90, symSize: 0x68 }
+  - { offsetInCU: 0x7E76, offset: 0x12EB0, size: 0x8, addend: 0x0, symName: __glfwSetCursorModeCocoa, symObjAddr: 0x3184, symBinAddr: 0x8F78, symSize: 0x7C }
+  - { offsetInCU: 0x7EDE, offset: 0x12F18, size: 0x8, addend: 0x0, symName: __glfwGetScancodeNameCocoa, symObjAddr: 0x3200, symBinAddr: 0x8FF4, symSize: 0x164 }
+  - { offsetInCU: 0x81F2, offset: 0x1322C, size: 0x8, addend: 0x0, symName: __glfwGetKeyScancodeCocoa, symObjAddr: 0x3364, symBinAddr: 0x9158, symSize: 0x18 }
+  - { offsetInCU: 0x821D, offset: 0x13257, size: 0x8, addend: 0x0, symName: __glfwCreateCursorCocoa, symObjAddr: 0x337C, symBinAddr: 0x9170, symSize: 0x134 }
+  - { offsetInCU: 0x82A6, offset: 0x132E0, size: 0x8, addend: 0x0, symName: __glfwCreateStandardCursorCocoa, symObjAddr: 0x34B0, symBinAddr: 0x92A4, symSize: 0x1B8 }
+  - { offsetInCU: 0x8334, offset: 0x1336E, size: 0x8, addend: 0x0, symName: __glfwDestroyCursorCocoa, symObjAddr: 0x3668, symBinAddr: 0x945C, symSize: 0x34 }
+  - { offsetInCU: 0x835B, offset: 0x13395, size: 0x8, addend: 0x0, symName: __glfwSetCursorCocoa, symObjAddr: 0x369C, symBinAddr: 0x9490, symSize: 0x120 }
+  - { offsetInCU: 0x83F7, offset: 0x13431, size: 0x8, addend: 0x0, symName: __glfwSetClipboardStringCocoa, symObjAddr: 0x37BC, symBinAddr: 0x95B0, symSize: 0xCC }
+  - { offsetInCU: 0x843C, offset: 0x13476, size: 0x8, addend: 0x0, symName: __glfwGetClipboardStringCocoa, symObjAddr: 0x3888, symBinAddr: 0x967C, symSize: 0xD0 }
+  - { offsetInCU: 0x8485, offset: 0x134BF, size: 0x8, addend: 0x0, symName: __glfwGetEGLPlatformCocoa, symObjAddr: 0x3958, symBinAddr: 0x974C, symSize: 0x9C }
+  - { offsetInCU: 0x84CE, offset: 0x13508, size: 0x8, addend: 0x0, symName: __glfwGetEGLNativeDisplayCocoa, symObjAddr: 0x39F4, symBinAddr: 0x97E8, symSize: 0x8 }
+  - { offsetInCU: 0x84E8, offset: 0x13522, size: 0x8, addend: 0x0, symName: __glfwGetEGLNativeWindowCocoa, symObjAddr: 0x39FC, symBinAddr: 0x97F0, symSize: 0x8 }
+  - { offsetInCU: 0x8513, offset: 0x1354D, size: 0x8, addend: 0x0, symName: __glfwGetRequiredInstanceExtensionsCocoa, symObjAddr: 0x3A04, symBinAddr: 0x97F8, symSize: 0x50 }
+  - { offsetInCU: 0x8538, offset: 0x13572, size: 0x8, addend: 0x0, symName: __glfwGetPhysicalDevicePresentationSupportCocoa, symObjAddr: 0x3A54, symBinAddr: 0x9848, symSize: 0x8 }
+  - { offsetInCU: 0x857F, offset: 0x135B9, size: 0x8, addend: 0x0, symName: __glfwCreateWindowSurfaceCocoa, symObjAddr: 0x3A5C, symBinAddr: 0x9850, symSize: 0x1C8 }
+  - { offsetInCU: 0x8692, offset: 0x136CC, size: 0x8, addend: 0x0, symName: _glfwGetCocoaWindow, symObjAddr: 0x3C24, symBinAddr: 0x9A18, symSize: 0x6C }
+  - { offsetInCU: 0x26, offset: 0x13B21, size: 0x8, addend: 0x0, symName: __glfwIsValidContextConfig, symObjAddr: 0x0, symBinAddr: 0x9A84, symSize: 0x254 }
+  - { offsetInCU: 0xC00, offset: 0x146FB, size: 0x8, addend: 0x0, symName: __glfwIsValidContextConfig, symObjAddr: 0x0, symBinAddr: 0x9A84, symSize: 0x254 }
+  - { offsetInCU: 0xC29, offset: 0x14724, size: 0x8, addend: 0x0, symName: __glfwChooseFBConfig, symObjAddr: 0x254, symBinAddr: 0x9CD8, symSize: 0x264 }
+  - { offsetInCU: 0xD21, offset: 0x1481C, size: 0x8, addend: 0x0, symName: __glfwRefreshContextAttribs, symObjAddr: 0x4B8, symBinAddr: 0x9F3C, symSize: 0x57C }
+  - { offsetInCU: 0x108D, offset: 0x14B88, size: 0x8, addend: 0x0, symName: _glfwExtensionSupported, symObjAddr: 0xAF4, symBinAddr: 0xA578, symSize: 0x1D4 }
+  - { offsetInCU: 0x11D1, offset: 0x14CCC, size: 0x8, addend: 0x0, symName: _glfwMakeContextCurrent, symObjAddr: 0xA34, symBinAddr: 0xA4B8, symSize: 0xC0 }
+  - { offsetInCU: 0x1280, offset: 0x14D7B, size: 0x8, addend: 0x0, symName: __glfwStringInExtensionString, symObjAddr: 0xCC8, symBinAddr: 0xA74C, symSize: 0x94 }
+  - { offsetInCU: 0x12C7, offset: 0x14DC2, size: 0x8, addend: 0x0, symName: _glfwGetCurrentContext, symObjAddr: 0xD5C, symBinAddr: 0xA7E0, symSize: 0x40 }
+  - { offsetInCU: 0x12E1, offset: 0x14DDC, size: 0x8, addend: 0x0, symName: _glfwSwapBuffers, symObjAddr: 0xD9C, symBinAddr: 0xA820, symSize: 0x40 }
+  - { offsetInCU: 0x1323, offset: 0x14E1E, size: 0x8, addend: 0x0, symName: _glfwSwapInterval, symObjAddr: 0xDDC, symBinAddr: 0xA860, symSize: 0x74 }
+  - { offsetInCU: 0x136C, offset: 0x14E67, size: 0x8, addend: 0x0, symName: _glfwGetProcAddress, symObjAddr: 0xE50, symBinAddr: 0xA8D4, symSize: 0x84 }
+  - { offsetInCU: 0x26, offset: 0x150D2, size: 0x8, addend: 0x0, symName: __glfwInitEGL, symObjAddr: 0x0, symBinAddr: 0xA958, symSize: 0x63C }
+  - { offsetInCU: 0xC59, offset: 0x15D05, size: 0x8, addend: 0x0, symName: __glfwInitEGL, symObjAddr: 0x0, symBinAddr: 0xA958, symSize: 0x63C }
+  - { offsetInCU: 0xEC0, offset: 0x15F6C, size: 0x8, addend: 0x0, symName: __glfwTerminateEGL, symObjAddr: 0x63C, symBinAddr: 0xAF94, symSize: 0x44 }
+  - { offsetInCU: 0xEE2, offset: 0x15F8E, size: 0x8, addend: 0x0, symName: _extensionSupportedEGL, symObjAddr: 0x680, symBinAddr: 0xAFD8, symSize: 0x5C }
+  - { offsetInCU: 0x11BB, offset: 0x16267, size: 0x8, addend: 0x0, symName: __glfwCreateContextEGL, symObjAddr: 0x6DC, symBinAddr: 0xB034, symSize: 0x934 }
+  - { offsetInCU: 0x1798, offset: 0x16844, size: 0x8, addend: 0x0, symName: _makeContextCurrentEGL, symObjAddr: 0x1010, symBinAddr: 0xB968, symSize: 0xFC }
+  - { offsetInCU: 0x1832, offset: 0x168DE, size: 0x8, addend: 0x0, symName: _swapBuffersEGL, symObjAddr: 0x110C, symBinAddr: 0xBA64, symSize: 0x60 }
+  - { offsetInCU: 0x1864, offset: 0x16910, size: 0x8, addend: 0x0, symName: _swapIntervalEGL, symObjAddr: 0x116C, symBinAddr: 0xBAC4, symSize: 0x18 }
+  - { offsetInCU: 0x189E, offset: 0x1694A, size: 0x8, addend: 0x0, symName: _getProcAddressEGL, symObjAddr: 0x1184, symBinAddr: 0xBADC, symSize: 0x58 }
+  - { offsetInCU: 0x1909, offset: 0x169B5, size: 0x8, addend: 0x0, symName: _destroyContextEGL, symObjAddr: 0x11DC, symBinAddr: 0xBB34, symSize: 0x84 }
+  - { offsetInCU: 0x1946, offset: 0x169F2, size: 0x8, addend: 0x0, symName: _glfwGetEGLDisplay, symObjAddr: 0x1260, symBinAddr: 0xBBB8, symSize: 0x3C }
+  - { offsetInCU: 0x1960, offset: 0x16A0C, size: 0x8, addend: 0x0, symName: _glfwGetEGLContext, symObjAddr: 0x129C, symBinAddr: 0xBBF4, symSize: 0x68 }
+  - { offsetInCU: 0x199B, offset: 0x16A47, size: 0x8, addend: 0x0, symName: _glfwGetEGLSurface, symObjAddr: 0x1304, symBinAddr: 0xBC5C, symSize: 0x68 }
+  - { offsetInCU: 0x26, offset: 0x16ACC, size: 0x8, addend: 0x0, symName: __glfwEncodeUTF8, symObjAddr: 0x0, symBinAddr: 0xBCC4, symSize: 0xB8 }
+  - { offsetInCU: 0x3F, offset: 0x16AE5, size: 0x8, addend: 0x0, symName: __glfw, symObjAddr: 0xA990, symBinAddr: 0x2E468, symSize: 0x0 }
+  - { offsetInCU: 0x293A, offset: 0x193E0, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0xE328, symBinAddr: 0x31E00, symSize: 0x0 }
+  - { offsetInCU: 0x2952, offset: 0x193F8, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0xE328, symBinAddr: 0x31E00, symSize: 0x0 }
+  - { offsetInCU: 0x2985, offset: 0x1942B, size: 0x8, addend: 0x0, symName: __MergedGlobals, symObjAddr: 0xE328, symBinAddr: 0x31E00, symSize: 0x0 }
+  - { offsetInCU: 0x299D, offset: 0x19443, size: 0x8, addend: 0x0, symName: __glfwInitHints, symObjAddr: 0x1058, symBinAddr: 0x2DEF8, symSize: 0x0 }
+  - { offsetInCU: 0x29BD, offset: 0x19463, size: 0x8, addend: 0x0, symName: __glfwEncodeUTF8, symObjAddr: 0x0, symBinAddr: 0xBCC4, symSize: 0xB8 }
+  - { offsetInCU: 0x2A80, offset: 0x19526, size: 0x8, addend: 0x0, symName: __glfwParseUriList, symObjAddr: 0xB8, symBinAddr: 0xBD7C, symSize: 0x210 }
+  - { offsetInCU: 0x2C25, offset: 0x196CB, size: 0x8, addend: 0x0, symName: __glfw_calloc, symObjAddr: 0x2C8, symBinAddr: 0xBF8C, symSize: 0xAC }
+  - { offsetInCU: 0x2C2F, offset: 0x196D5, size: 0x8, addend: 0x0, symName: __glfwInputError, symObjAddr: 0x4E0, symBinAddr: 0xC1A4, symSize: 0x308 }
+  - { offsetInCU: 0x2D11, offset: 0x197B7, size: 0x8, addend: 0x0, symName: __glfwParseUriList.cold.1, symObjAddr: 0xD5C, symBinAddr: 0x1549C, symSize: 0x10 }
+  - { offsetInCU: 0x2D3E, offset: 0x197E4, size: 0x8, addend: 0x0, symName: __glfwParseUriList.cold.2, symObjAddr: 0xD6C, symBinAddr: 0x154AC, symSize: 0x1C }
+  - { offsetInCU: 0x2D81, offset: 0x19827, size: 0x8, addend: 0x0, symName: __glfwParseUriList.cold.3, symObjAddr: 0xD88, symBinAddr: 0x154C8, symSize: 0x10 }
+  - { offsetInCU: 0x2DC4, offset: 0x1986A, size: 0x8, addend: 0x0, symName: __glfw_calloc, symObjAddr: 0x2C8, symBinAddr: 0xBF8C, symSize: 0xAC }
+  - { offsetInCU: 0x2E2B, offset: 0x198D1, size: 0x8, addend: 0x0, symName: __glfw_realloc, symObjAddr: 0x374, symBinAddr: 0xC038, symSize: 0xE4 }
+  - { offsetInCU: 0x2F04, offset: 0x199AA, size: 0x8, addend: 0x0, symName: __glfw_strdup, symObjAddr: 0x458, symBinAddr: 0xC11C, symSize: 0x60 }
+  - { offsetInCU: 0x2F8C, offset: 0x19A32, size: 0x8, addend: 0x0, symName: __glfw_min, symObjAddr: 0x4B8, symBinAddr: 0xC17C, symSize: 0xC }
+  - { offsetInCU: 0x2F96, offset: 0x19A3C, size: 0x8, addend: 0x0, symName: __glfw_strdup.cold.1, symObjAddr: 0xD98, symBinAddr: 0x154D8, symSize: 0x10 }
+  - { offsetInCU: 0x2FC3, offset: 0x19A69, size: 0x8, addend: 0x0, symName: __glfw_min, symObjAddr: 0x4B8, symBinAddr: 0xC17C, symSize: 0xC }
+  - { offsetInCU: 0x2FF9, offset: 0x19A9F, size: 0x8, addend: 0x0, symName: __glfw_max, symObjAddr: 0x4C4, symBinAddr: 0xC188, symSize: 0xC }
+  - { offsetInCU: 0x302F, offset: 0x19AD5, size: 0x8, addend: 0x0, symName: __glfw_fminf, symObjAddr: 0x4D0, symBinAddr: 0xC194, symSize: 0x8 }
+  - { offsetInCU: 0x3066, offset: 0x19B0C, size: 0x8, addend: 0x0, symName: __glfw_fmaxf, symObjAddr: 0x4D8, symBinAddr: 0xC19C, symSize: 0x8 }
+  - { offsetInCU: 0x30A0, offset: 0x19B46, size: 0x8, addend: 0x0, symName: __glfw_free, symObjAddr: 0x7E8, symBinAddr: 0xC4AC, symSize: 0x18 }
+  - { offsetInCU: 0x30C7, offset: 0x19B6D, size: 0x8, addend: 0x0, symName: _glfwInit, symObjAddr: 0x800, symBinAddr: 0xC4C4, symSize: 0x174 }
+  - { offsetInCU: 0x3110, offset: 0x19BB6, size: 0x8, addend: 0x0, symName: _terminate, symObjAddr: 0x980, symBinAddr: 0xC644, symSize: 0x174 }
+  - { offsetInCU: 0x3223, offset: 0x19CC9, size: 0x8, addend: 0x0, symName: _defaultAllocate, symObjAddr: 0x974, symBinAddr: 0xC638, symSize: 0x4 }
+  - { offsetInCU: 0x3255, offset: 0x19CFB, size: 0x8, addend: 0x0, symName: _defaultReallocate, symObjAddr: 0x978, symBinAddr: 0xC63C, symSize: 0x4 }
+  - { offsetInCU: 0x3294, offset: 0x19D3A, size: 0x8, addend: 0x0, symName: _defaultDeallocate, symObjAddr: 0x97C, symBinAddr: 0xC640, symSize: 0x4 }
+  - { offsetInCU: 0x32DF, offset: 0x19D85, size: 0x8, addend: 0x0, symName: _glfwTerminate, symObjAddr: 0xAF4, symBinAddr: 0xC7B8, symSize: 0x14 }
+  - { offsetInCU: 0x3303, offset: 0x19DA9, size: 0x8, addend: 0x0, symName: _glfwInitHint, symObjAddr: 0xB08, symBinAddr: 0xC7CC, symSize: 0x13C }
+  - { offsetInCU: 0x3347, offset: 0x19DED, size: 0x8, addend: 0x0, symName: _glfwInitAllocator, symObjAddr: 0xC44, symBinAddr: 0xC908, symSize: 0x58 }
+  - { offsetInCU: 0x337B, offset: 0x19E21, size: 0x8, addend: 0x0, symName: _glfwInitVulkanLoader, symObjAddr: 0xC9C, symBinAddr: 0xC960, symSize: 0xC }
+  - { offsetInCU: 0x33A0, offset: 0x19E46, size: 0x8, addend: 0x0, symName: _glfwGetVersion, symObjAddr: 0xCA8, symBinAddr: 0xC96C, symSize: 0x24 }
+  - { offsetInCU: 0x33E1, offset: 0x19E87, size: 0x8, addend: 0x0, symName: _glfwGetError, symObjAddr: 0xCCC, symBinAddr: 0xC990, symSize: 0x7C }
+  - { offsetInCU: 0x342C, offset: 0x19ED2, size: 0x8, addend: 0x0, symName: _glfwSetErrorCallback, symObjAddr: 0xD48, symBinAddr: 0xCA0C, symSize: 0x14 }
+  - { offsetInCU: 0x3456, offset: 0x19EFC, size: 0x8, addend: 0x0, symName: _glfwSetErrorCallback, symObjAddr: 0xD48, symBinAddr: 0xCA0C, symSize: 0x14 }
+  - { offsetInCU: 0x3475, offset: 0x19F1B, size: 0x8, addend: 0x0, symName: _OUTLINED_FUNCTION_0, symObjAddr: 0xDA8, symBinAddr: 0xCA20, symSize: 0x10 }
+  - { offsetInCU: 0x26, offset: 0x19F93, size: 0x8, addend: 0x0, symName: __glfwInputKey, symObjAddr: 0x0, symBinAddr: 0xCA30, symSize: 0x90 }
+  - { offsetInCU: 0x4D, offset: 0x19FBA, size: 0x8, addend: 0x0, symName: __glfwDefaultMappings, symObjAddr: 0xEF38, symBinAddr: 0x2DF20, symSize: 0x0 }
+  - { offsetInCU: 0xC44, offset: 0x1ABB1, size: 0x8, addend: 0x0, symName: __glfwInputKey, symObjAddr: 0x0, symBinAddr: 0xCA30, symSize: 0x90 }
+  - { offsetInCU: 0xCC4, offset: 0x1AC31, size: 0x8, addend: 0x0, symName: __glfwInputChar, symObjAddr: 0x90, symBinAddr: 0xCAC0, symSize: 0x88 }
+  - { offsetInCU: 0xD4B, offset: 0x1ACB8, size: 0x8, addend: 0x0, symName: __glfwInputScroll, symObjAddr: 0x118, symBinAddr: 0xCB48, symSize: 0x10 }
+  - { offsetInCU: 0xD99, offset: 0x1AD06, size: 0x8, addend: 0x0, symName: __glfwInputMouseClick, symObjAddr: 0x128, symBinAddr: 0xCB58, symSize: 0x54 }
+  - { offsetInCU: 0xDF3, offset: 0x1AD60, size: 0x8, addend: 0x0, symName: __glfwInputCursorPos, symObjAddr: 0x17C, symBinAddr: 0xCBAC, symSize: 0x2C }
+  - { offsetInCU: 0xE41, offset: 0x1ADAE, size: 0x8, addend: 0x0, symName: __glfwInputCursorEnter, symObjAddr: 0x1A8, symBinAddr: 0xCBD8, symSize: 0x10 }
+  - { offsetInCU: 0xE7F, offset: 0x1ADEC, size: 0x8, addend: 0x0, symName: __glfwInputDrop, symObjAddr: 0x1B8, symBinAddr: 0xCBE8, symSize: 0x10 }
+  - { offsetInCU: 0xECB, offset: 0x1AE38, size: 0x8, addend: 0x0, symName: __glfwInputJoystick, symObjAddr: 0x1C8, symBinAddr: 0xCBF8, symSize: 0x54 }
+  - { offsetInCU: 0xF0B, offset: 0x1AE78, size: 0x8, addend: 0x0, symName: __glfwInputJoystickAxis, symObjAddr: 0x21C, symBinAddr: 0xCC4C, symSize: 0xC }
+  - { offsetInCU: 0xF4D, offset: 0x1AEBA, size: 0x8, addend: 0x0, symName: __glfwInputJoystickButton, symObjAddr: 0x228, symBinAddr: 0xCC58, symSize: 0xC }
+  - { offsetInCU: 0xF8E, offset: 0x1AEFB, size: 0x8, addend: 0x0, symName: __glfwInputJoystickHat, symObjAddr: 0x234, symBinAddr: 0xCC64, symSize: 0x54 }
+  - { offsetInCU: 0xFDF, offset: 0x1AF4C, size: 0x8, addend: 0x0, symName: __glfwInitGamepadMappings, symObjAddr: 0x288, symBinAddr: 0xCCB8, symSize: 0x80 }
+  - { offsetInCU: 0x1022, offset: 0x1AF8F, size: 0x8, addend: 0x0, symName: _parseMapping, symObjAddr: 0x308, symBinAddr: 0xCD38, symSize: 0xDF4 }
+  - { offsetInCU: 0x1152, offset: 0x1B0BF, size: 0x8, addend: 0x0, symName: __glfwAllocJoystick, symObjAddr: 0x10FC, symBinAddr: 0xDB2C, symSize: 0x1D8 }
+  - { offsetInCU: 0x11F1, offset: 0x1B15E, size: 0x8, addend: 0x0, symName: _findValidMapping, symObjAddr: 0x12D4, symBinAddr: 0xDD04, symSize: 0x2C8 }
+  - { offsetInCU: 0x150D, offset: 0x1B47A, size: 0x8, addend: 0x0, symName: __glfwFreeJoystick, symObjAddr: 0x159C, symBinAddr: 0xDFCC, symSize: 0x5C }
+  - { offsetInCU: 0x1534, offset: 0x1B4A1, size: 0x8, addend: 0x0, symName: __glfwCenterCursorInContentArea, symObjAddr: 0x15F8, symBinAddr: 0xE028, symSize: 0x68 }
+  - { offsetInCU: 0x15AC, offset: 0x1B519, size: 0x8, addend: 0x0, symName: _glfwGetInputMode, symObjAddr: 0x1660, symBinAddr: 0xE090, symSize: 0xD8 }
+  - { offsetInCU: 0x15F7, offset: 0x1B564, size: 0x8, addend: 0x0, symName: _glfwSetInputMode, symObjAddr: 0x1738, symBinAddr: 0xE168, symSize: 0x5CC }
+  - { offsetInCU: 0x16CF, offset: 0x1B63C, size: 0x8, addend: 0x0, symName: _glfwRawMouseMotionSupported, symObjAddr: 0x1D04, symBinAddr: 0xE734, symSize: 0x3C }
+  - { offsetInCU: 0x16F5, offset: 0x1B662, size: 0x8, addend: 0x0, symName: _glfwGetKeyName, symObjAddr: 0x1D40, symBinAddr: 0xE770, symSize: 0x84 }
+  - { offsetInCU: 0x1746, offset: 0x1B6B3, size: 0x8, addend: 0x0, symName: _glfwGetKeyScancode, symObjAddr: 0x1DC4, symBinAddr: 0xE7F4, symSize: 0x80 }
+  - { offsetInCU: 0x177C, offset: 0x1B6E9, size: 0x8, addend: 0x0, symName: _glfwGetKey, symObjAddr: 0x1E44, symBinAddr: 0xE874, symSize: 0x80 }
+  - { offsetInCU: 0x17C7, offset: 0x1B734, size: 0x8, addend: 0x0, symName: _glfwGetMouseButton, symObjAddr: 0x1EC4, symBinAddr: 0xE8F4, symSize: 0x7C }
+  - { offsetInCU: 0x1812, offset: 0x1B77F, size: 0x8, addend: 0x0, symName: _glfwGetCursorPos, symObjAddr: 0x1F40, symBinAddr: 0xE970, symSize: 0x60 }
+  - { offsetInCU: 0x1872, offset: 0x1B7DF, size: 0x8, addend: 0x0, symName: _glfwSetCursorPos, symObjAddr: 0x1FA0, symBinAddr: 0xE9D0, symSize: 0x104 }
+  - { offsetInCU: 0x1963, offset: 0x1B8D0, size: 0x8, addend: 0x0, symName: _glfwCreateCursor, symObjAddr: 0x20A4, symBinAddr: 0xEAD4, symSize: 0x154 }
+  - { offsetInCU: 0x1A7D, offset: 0x1B9EA, size: 0x8, addend: 0x0, symName: _glfwDestroyCursor, symObjAddr: 0x21F8, symBinAddr: 0xEC28, symSize: 0xD4 }
+  - { offsetInCU: 0x1B24, offset: 0x1BA91, size: 0x8, addend: 0x0, symName: _glfwCreateStandardCursor, symObjAddr: 0x22CC, symBinAddr: 0xECFC, symSize: 0x140 }
+  - { offsetInCU: 0x1C12, offset: 0x1BB7F, size: 0x8, addend: 0x0, symName: _glfwSetCursor, symObjAddr: 0x240C, symBinAddr: 0xEE3C, symSize: 0x28 }
+  - { offsetInCU: 0x1C56, offset: 0x1BBC3, size: 0x8, addend: 0x0, symName: _glfwSetKeyCallback, symObjAddr: 0x2434, symBinAddr: 0xEE64, symSize: 0x48 }
+  - { offsetInCU: 0x1CBF, offset: 0x1BC2C, size: 0x8, addend: 0x0, symName: _glfwSetCharCallback, symObjAddr: 0x247C, symBinAddr: 0xEEAC, symSize: 0x48 }
+  - { offsetInCU: 0x1D28, offset: 0x1BC95, size: 0x8, addend: 0x0, symName: _glfwSetCharModsCallback, symObjAddr: 0x24C4, symBinAddr: 0xEEF4, symSize: 0x48 }
+  - { offsetInCU: 0x1D91, offset: 0x1BCFE, size: 0x8, addend: 0x0, symName: _glfwSetMouseButtonCallback, symObjAddr: 0x250C, symBinAddr: 0xEF3C, symSize: 0x48 }
+  - { offsetInCU: 0x1DFA, offset: 0x1BD67, size: 0x8, addend: 0x0, symName: _glfwSetCursorPosCallback, symObjAddr: 0x2554, symBinAddr: 0xEF84, symSize: 0x48 }
+  - { offsetInCU: 0x1E63, offset: 0x1BDD0, size: 0x8, addend: 0x0, symName: _glfwSetCursorEnterCallback, symObjAddr: 0x259C, symBinAddr: 0xEFCC, symSize: 0x48 }
+  - { offsetInCU: 0x1ECC, offset: 0x1BE39, size: 0x8, addend: 0x0, symName: _glfwSetScrollCallback, symObjAddr: 0x25E4, symBinAddr: 0xF014, symSize: 0x48 }
+  - { offsetInCU: 0x1F35, offset: 0x1BEA2, size: 0x8, addend: 0x0, symName: _glfwSetDropCallback, symObjAddr: 0x262C, symBinAddr: 0xF05C, symSize: 0x48 }
+  - { offsetInCU: 0x1FAB, offset: 0x1BF18, size: 0x8, addend: 0x0, symName: _glfwJoystickPresent, symObjAddr: 0x2674, symBinAddr: 0xF0A4, symSize: 0xE8 }
+  - { offsetInCU: 0x201A, offset: 0x1BF87, size: 0x8, addend: 0x0, symName: _glfwGetJoystickAxes, symObjAddr: 0x275C, symBinAddr: 0xF18C, symSize: 0x11C }
+  - { offsetInCU: 0x2099, offset: 0x1C006, size: 0x8, addend: 0x0, symName: _glfwGetJoystickButtons, symObjAddr: 0x2878, symBinAddr: 0xF2A8, symSize: 0x12C }
+  - { offsetInCU: 0x2118, offset: 0x1C085, size: 0x8, addend: 0x0, symName: _glfwGetJoystickHats, symObjAddr: 0x29A4, symBinAddr: 0xF3D4, symSize: 0x11C }
+  - { offsetInCU: 0x2197, offset: 0x1C104, size: 0x8, addend: 0x0, symName: _glfwGetJoystickName, symObjAddr: 0x2AC0, symBinAddr: 0xF4F0, symSize: 0x110 }
+  - { offsetInCU: 0x2206, offset: 0x1C173, size: 0x8, addend: 0x0, symName: _glfwGetJoystickGUID, symObjAddr: 0x2BD0, symBinAddr: 0xF600, symSize: 0x110 }
+  - { offsetInCU: 0x2275, offset: 0x1C1E2, size: 0x8, addend: 0x0, symName: _glfwSetJoystickUserPointer, symObjAddr: 0x2CE0, symBinAddr: 0xF710, symSize: 0x40 }
+  - { offsetInCU: 0x22BC, offset: 0x1C229, size: 0x8, addend: 0x0, symName: _glfwGetJoystickUserPointer, symObjAddr: 0x2D20, symBinAddr: 0xF750, symSize: 0x58 }
+  - { offsetInCU: 0x22F7, offset: 0x1C264, size: 0x8, addend: 0x0, symName: _glfwSetJoystickCallback, symObjAddr: 0x2D78, symBinAddr: 0xF7A8, symSize: 0x84 }
+  - { offsetInCU: 0x2363, offset: 0x1C2D0, size: 0x8, addend: 0x0, symName: _glfwUpdateGamepadMappings, symObjAddr: 0x2DFC, symBinAddr: 0xF82C, symSize: 0x3CC }
+  - { offsetInCU: 0x2580, offset: 0x1C4ED, size: 0x8, addend: 0x0, symName: _glfwJoystickIsGamepad, symObjAddr: 0x31C8, symBinAddr: 0xFBF8, symSize: 0x114 }
+  - { offsetInCU: 0x25EF, offset: 0x1C55C, size: 0x8, addend: 0x0, symName: _glfwGetGamepadName, symObjAddr: 0x32DC, symBinAddr: 0xFD0C, symSize: 0x10C }
+  - { offsetInCU: 0x265E, offset: 0x1C5CB, size: 0x8, addend: 0x0, symName: _glfwGetGamepadState, symObjAddr: 0x33E8, symBinAddr: 0xFE18, symSize: 0x6BC }
+  - { offsetInCU: 0x278D, offset: 0x1C6FA, size: 0x8, addend: 0x0, symName: _glfwSetClipboardString, symObjAddr: 0x3AA4, symBinAddr: 0x104D4, symSize: 0x28 }
+  - { offsetInCU: 0x27CF, offset: 0x1C73C, size: 0x8, addend: 0x0, symName: _glfwGetClipboardString, symObjAddr: 0x3ACC, symBinAddr: 0x104FC, symSize: 0x3C }
+  - { offsetInCU: 0x2805, offset: 0x1C772, size: 0x8, addend: 0x0, symName: _glfwGetTime, symObjAddr: 0x3B08, symBinAddr: 0x10538, symSize: 0x6C }
+  - { offsetInCU: 0x281F, offset: 0x1C78C, size: 0x8, addend: 0x0, symName: _glfwSetTime, symObjAddr: 0x3B74, symBinAddr: 0x105A4, symSize: 0xC0 }
+  - { offsetInCU: 0x2846, offset: 0x1C7B3, size: 0x8, addend: 0x0, symName: _glfwGetTimerValue, symObjAddr: 0x3C34, symBinAddr: 0x10664, symSize: 0x38 }
+  - { offsetInCU: 0x2860, offset: 0x1C7CD, size: 0x8, addend: 0x0, symName: _glfwGetTimerFrequency, symObjAddr: 0x3C6C, symBinAddr: 0x1069C, symSize: 0x38 }
+  - { offsetInCU: 0x26, offset: 0x1C90E, size: 0x8, addend: 0x0, symName: __glfwInputMonitor, symObjAddr: 0x0, symBinAddr: 0x106D4, symSize: 0x1BC }
+  - { offsetInCU: 0xC0B, offset: 0x1D4F3, size: 0x8, addend: 0x0, symName: __glfwInputMonitor, symObjAddr: 0x0, symBinAddr: 0x106D4, symSize: 0x1BC }
+  - { offsetInCU: 0xD66, offset: 0x1D64E, size: 0x8, addend: 0x0, symName: __glfwFreeMonitor, symObjAddr: 0x1BC, symBinAddr: 0x10890, symSize: 0x80 }
+  - { offsetInCU: 0xDDE, offset: 0x1D6C6, size: 0x8, addend: 0x0, symName: __glfwInputMonitorWindow, symObjAddr: 0x23C, symBinAddr: 0x10910, symSize: 0x8 }
+  - { offsetInCU: 0xE0F, offset: 0x1D6F7, size: 0x8, addend: 0x0, symName: __glfwAllocMonitor, symObjAddr: 0x244, symBinAddr: 0x10918, symSize: 0x44 }
+  - { offsetInCU: 0xE65, offset: 0x1D74D, size: 0x8, addend: 0x0, symName: __glfwFreeGammaArrays, symObjAddr: 0x288, symBinAddr: 0x1095C, symSize: 0x3C }
+  - { offsetInCU: 0xE82, offset: 0x1D76A, size: 0x8, addend: 0x0, symName: __glfwAllocGammaArrays, symObjAddr: 0x2C4, symBinAddr: 0x10998, symSize: 0x60 }
+  - { offsetInCU: 0xEE4, offset: 0x1D7CC, size: 0x8, addend: 0x0, symName: __glfwChooseVideoMode, symObjAddr: 0x324, symBinAddr: 0x109F8, symSize: 0x184 }
+  - { offsetInCU: 0x109D, offset: 0x1D985, size: 0x8, addend: 0x0, symName: __glfwCompareVideoModes, symObjAddr: 0x4A8, symBinAddr: 0x10B7C, symSize: 0x5C }
+  - { offsetInCU: 0x10D9, offset: 0x1D9C1, size: 0x8, addend: 0x0, symName: __glfwCompareVideoModes, symObjAddr: 0x4A8, symBinAddr: 0x10B7C, symSize: 0x5C }
+  - { offsetInCU: 0x112C, offset: 0x1DA14, size: 0x8, addend: 0x0, symName: _compareVideoModes, symObjAddr: 0x504, symBinAddr: 0x10BD8, symSize: 0x5C }
+  - { offsetInCU: 0x1185, offset: 0x1DA6D, size: 0x8, addend: 0x0, symName: __glfwSplitBPP, symObjAddr: 0x560, symBinAddr: 0x10C34, symSize: 0x64 }
+  - { offsetInCU: 0x11E6, offset: 0x1DACE, size: 0x8, addend: 0x0, symName: _glfwGetMonitors, symObjAddr: 0x5C4, symBinAddr: 0x10C98, symSize: 0x48 }
+  - { offsetInCU: 0x1211, offset: 0x1DAF9, size: 0x8, addend: 0x0, symName: _glfwGetPrimaryMonitor, symObjAddr: 0x60C, symBinAddr: 0x10CE0, symSize: 0x48 }
+  - { offsetInCU: 0x122B, offset: 0x1DB13, size: 0x8, addend: 0x0, symName: _glfwGetMonitorPos, symObjAddr: 0x654, symBinAddr: 0x10D28, symSize: 0x34 }
+  - { offsetInCU: 0x128B, offset: 0x1DB73, size: 0x8, addend: 0x0, symName: _glfwGetMonitorWorkarea, symObjAddr: 0x688, symBinAddr: 0x10D5C, symSize: 0x44 }
+  - { offsetInCU: 0x1307, offset: 0x1DBEF, size: 0x8, addend: 0x0, symName: _glfwGetMonitorPhysicalSize, symObjAddr: 0x6CC, symBinAddr: 0x10DA0, symSize: 0x48 }
+  - { offsetInCU: 0x135C, offset: 0x1DC44, size: 0x8, addend: 0x0, symName: _glfwGetMonitorContentScale, symObjAddr: 0x714, symBinAddr: 0x10DE8, symSize: 0x34 }
+  - { offsetInCU: 0x13BC, offset: 0x1DCA4, size: 0x8, addend: 0x0, symName: _glfwGetMonitorName, symObjAddr: 0x748, symBinAddr: 0x10E1C, symSize: 0x38 }
+  - { offsetInCU: 0x13F7, offset: 0x1DCDF, size: 0x8, addend: 0x0, symName: _glfwSetMonitorUserPointer, symObjAddr: 0x780, symBinAddr: 0x10E54, symSize: 0x24 }
+  - { offsetInCU: 0x143E, offset: 0x1DD26, size: 0x8, addend: 0x0, symName: _glfwGetMonitorUserPointer, symObjAddr: 0x7A4, symBinAddr: 0x10E78, symSize: 0x3C }
+  - { offsetInCU: 0x1479, offset: 0x1DD61, size: 0x8, addend: 0x0, symName: _glfwSetMonitorCallback, symObjAddr: 0x7E0, symBinAddr: 0x10EB4, symSize: 0x48 }
+  - { offsetInCU: 0x14C2, offset: 0x1DDAA, size: 0x8, addend: 0x0, symName: _glfwGetVideoModes, symObjAddr: 0x828, symBinAddr: 0x10EFC, symSize: 0xC8 }
+  - { offsetInCU: 0x1563, offset: 0x1DE4B, size: 0x8, addend: 0x0, symName: _glfwGetVideoMode, symObjAddr: 0x8F0, symBinAddr: 0x10FC4, symSize: 0x5C }
+  - { offsetInCU: 0x160E, offset: 0x1DEF6, size: 0x8, addend: 0x0, symName: _glfwSetGamma, symObjAddr: 0x94C, symBinAddr: 0x11020, symSize: 0x1C4 }
+  - { offsetInCU: 0x175B, offset: 0x1E043, size: 0x8, addend: 0x0, symName: _glfwGetGammaRamp, symObjAddr: 0xB10, symBinAddr: 0x111E4, symSize: 0x94 }
+  - { offsetInCU: 0x17B8, offset: 0x1E0A0, size: 0x8, addend: 0x0, symName: _glfwSetGammaRamp, symObjAddr: 0xBA4, symBinAddr: 0x11278, symSize: 0xB8 }
+  - { offsetInCU: 0x27, offset: 0x1E14E, size: 0x8, addend: 0x0, symName: __glfwInitNSGL, symObjAddr: 0x0, symBinAddr: 0x11330, symSize: 0x74 }
+  - { offsetInCU: 0x14F6, offset: 0x1F61D, size: 0x8, addend: 0x0, symName: __glfwInitNSGL, symObjAddr: 0x0, symBinAddr: 0x11330, symSize: 0x74 }
+  - { offsetInCU: 0x1543, offset: 0x1F66A, size: 0x8, addend: 0x0, symName: __glfwTerminateNSGL, symObjAddr: 0x74, symBinAddr: 0x113A4, symSize: 0x4 }
+  - { offsetInCU: 0x1559, offset: 0x1F680, size: 0x8, addend: 0x0, symName: __glfwCreateContextNSGL, symObjAddr: 0x78, symBinAddr: 0x113A8, symSize: 0x3D8 }
+  - { offsetInCU: 0x1625, offset: 0x1F74C, size: 0x8, addend: 0x0, symName: _makeContextCurrentNSGL, symObjAddr: 0x450, symBinAddr: 0x11780, symSize: 0x5C }
+  - { offsetInCU: 0x164A, offset: 0x1F771, size: 0x8, addend: 0x0, symName: _swapBuffersNSGL, symObjAddr: 0x4AC, symBinAddr: 0x117DC, symSize: 0xC0 }
+  - { offsetInCU: 0x173B, offset: 0x1F862, size: 0x8, addend: 0x0, symName: _swapIntervalNSGL, symObjAddr: 0x56C, symBinAddr: 0x1189C, symSize: 0x5C }
+  - { offsetInCU: 0x177D, offset: 0x1F8A4, size: 0x8, addend: 0x0, symName: _extensionSupportedNSGL, symObjAddr: 0x5C8, symBinAddr: 0x118F8, symSize: 0x8 }
+  - { offsetInCU: 0x17A2, offset: 0x1F8C9, size: 0x8, addend: 0x0, symName: _getProcAddressNSGL, symObjAddr: 0x5D0, symBinAddr: 0x11900, symSize: 0x58 }
+  - { offsetInCU: 0x189B, offset: 0x1F9C2, size: 0x8, addend: 0x0, symName: _destroyContextNSGL, symObjAddr: 0x628, symBinAddr: 0x11958, symSize: 0x40 }
+  - { offsetInCU: 0x18C0, offset: 0x1F9E7, size: 0x8, addend: 0x0, symName: _glfwGetNSGLContext, symObjAddr: 0x668, symBinAddr: 0x11998, symSize: 0x90 }
+  - { offsetInCU: 0x26, offset: 0x22EDC, size: 0x8, addend: 0x0, symName: __glfwConnectNull, symObjAddr: 0x0, symBinAddr: 0x11A28, symSize: 0x28 }
+  - { offsetInCU: 0xF4, offset: 0x22FAA, size: 0x8, addend: 0x0, symName: __glfwConnectNull, symObjAddr: 0x0, symBinAddr: 0x11A28, symSize: 0x28 }
+  - { offsetInCU: 0x137, offset: 0x22FED, size: 0x8, addend: 0x0, symName: __glfwInitNull, symObjAddr: 0x28, symBinAddr: 0x11A50, symSize: 0x154 }
+  - { offsetInCU: 0x160, offset: 0x23016, size: 0x8, addend: 0x0, symName: __glfwTerminateNull, symObjAddr: 0x17C, symBinAddr: 0x11BA4, symSize: 0x24 }
+  - { offsetInCU: 0x26, offset: 0x249B4, size: 0x8, addend: 0x0, symName: __glfwInitJoysticksNull, symObjAddr: 0x0, symBinAddr: 0x11BC8, symSize: 0x8 }
+  - { offsetInCU: 0x41, offset: 0x249CF, size: 0x8, addend: 0x0, symName: __glfwInitJoysticksNull, symObjAddr: 0x0, symBinAddr: 0x11BC8, symSize: 0x8 }
+  - { offsetInCU: 0x5A, offset: 0x249E8, size: 0x8, addend: 0x0, symName: __glfwTerminateJoysticksNull, symObjAddr: 0x8, symBinAddr: 0x11BD0, symSize: 0x4 }
+  - { offsetInCU: 0x70, offset: 0x249FE, size: 0x8, addend: 0x0, symName: __glfwPollJoystickNull, symObjAddr: 0xC, symBinAddr: 0x11BD4, symSize: 0x8 }
+  - { offsetInCU: 0xA6, offset: 0x24A34, size: 0x8, addend: 0x0, symName: __glfwGetMappingNameNull, symObjAddr: 0x14, symBinAddr: 0x11BDC, symSize: 0xC }
+  - { offsetInCU: 0xBF, offset: 0x24A4D, size: 0x8, addend: 0x0, symName: __glfwUpdateGamepadGUIDNull, symObjAddr: 0x20, symBinAddr: 0x11BE8, symSize: 0x4 }
+  - { offsetInCU: 0x26, offset: 0x24CE7, size: 0x8, addend: 0x0, symName: __glfwPollMonitorsNull, symObjAddr: 0x0, symBinAddr: 0x11BEC, symSize: 0x30 }
+  - { offsetInCU: 0x56, offset: 0x24D17, size: 0x8, addend: 0x0, symName: __glfwPollMonitorsNull, symObjAddr: 0x0, symBinAddr: 0x11BEC, symSize: 0x30 }
+  - { offsetInCU: 0x9B, offset: 0x24D5C, size: 0x8, addend: 0x0, symName: __glfwFreeMonitorNull, symObjAddr: 0x30, symBinAddr: 0x11C1C, symSize: 0x8 }
+  - { offsetInCU: 0xC1, offset: 0x24D82, size: 0x8, addend: 0x0, symName: __glfwGetMonitorPosNull, symObjAddr: 0x38, symBinAddr: 0x11C24, symSize: 0x14 }
+  - { offsetInCU: 0xFF, offset: 0x24DC0, size: 0x8, addend: 0x0, symName: __glfwGetMonitorContentScaleNull, symObjAddr: 0x4C, symBinAddr: 0x11C38, symSize: 0x1C }
+  - { offsetInCU: 0x13D, offset: 0x24DFE, size: 0x8, addend: 0x0, symName: __glfwGetMonitorWorkareaNull, symObjAddr: 0x68, symBinAddr: 0x11C54, symSize: 0x30 }
+  - { offsetInCU: 0x1A4, offset: 0x24E65, size: 0x8, addend: 0x0, symName: __glfwGetVideoModesNull, symObjAddr: 0x98, symBinAddr: 0x11C84, symSize: 0x48 }
+  - { offsetInCU: 0x1EB, offset: 0x24EAC, size: 0x8, addend: 0x0, symName: __glfwGetVideoModeNull, symObjAddr: 0xE0, symBinAddr: 0x11CCC, symSize: 0x1C }
+  - { offsetInCU: 0x21C, offset: 0x24EDD, size: 0x8, addend: 0x0, symName: __glfwGetGammaRampNull, symObjAddr: 0xFC, symBinAddr: 0x11CE8, symSize: 0x104 }
+  - { offsetInCU: 0x29F, offset: 0x24F60, size: 0x8, addend: 0x0, symName: __glfwSetGammaRampNull, symObjAddr: 0x200, symBinAddr: 0x11DEC, symSize: 0x80 }
+  - { offsetInCU: 0x26, offset: 0x25B65, size: 0x8, addend: 0x0, symName: __glfwCreateWindowNull, symObjAddr: 0x0, symBinAddr: 0x11E6C, symSize: 0x1E4 }
+  - { offsetInCU: 0xFBB, offset: 0x26AFA, size: 0x8, addend: 0x0, symName: __glfwCreateWindowNull, symObjAddr: 0x0, symBinAddr: 0x11E6C, symSize: 0x1E4 }
+  - { offsetInCU: 0x10CD, offset: 0x26C0C, size: 0x8, addend: 0x0, symName: __glfwFocusWindowNull, symObjAddr: 0x1F4, symBinAddr: 0x12060, symSize: 0xE8 }
+  - { offsetInCU: 0x1130, offset: 0x26C6F, size: 0x8, addend: 0x0, symName: __glfwSetWindowMousePassthroughNull, symObjAddr: 0x1E4, symBinAddr: 0x12050, symSize: 0x4 }
+  - { offsetInCU: 0x1163, offset: 0x26CA2, size: 0x8, addend: 0x0, symName: __glfwShowWindowNull, symObjAddr: 0x1E8, symBinAddr: 0x12054, symSize: 0xC }
+  - { offsetInCU: 0x11A9, offset: 0x26CE8, size: 0x8, addend: 0x0, symName: __glfwDestroyWindowNull, symObjAddr: 0x2DC, symBinAddr: 0x12148, symSize: 0x84 }
+  - { offsetInCU: 0x11F6, offset: 0x26D35, size: 0x8, addend: 0x0, symName: __glfwSetWindowTitleNull, symObjAddr: 0x360, symBinAddr: 0x121CC, symSize: 0x4 }
+  - { offsetInCU: 0x1227, offset: 0x26D66, size: 0x8, addend: 0x0, symName: __glfwSetWindowIconNull, symObjAddr: 0x364, symBinAddr: 0x121D0, symSize: 0x4 }
+  - { offsetInCU: 0x1265, offset: 0x26DA4, size: 0x8, addend: 0x0, symName: __glfwSetWindowMonitorNull, symObjAddr: 0x368, symBinAddr: 0x121D4, symSize: 0x164 }
+  - { offsetInCU: 0x133A, offset: 0x26E79, size: 0x8, addend: 0x0, symName: __glfwSetWindowPosNull, symObjAddr: 0x4CC, symBinAddr: 0x12338, symSize: 0x30 }
+  - { offsetInCU: 0x1378, offset: 0x26EB7, size: 0x8, addend: 0x0, symName: __glfwSetWindowSizeNull, symObjAddr: 0x4FC, symBinAddr: 0x12368, symSize: 0x80 }
+  - { offsetInCU: 0x13A7, offset: 0x26EE6, size: 0x8, addend: 0x0, symName: __glfwGetWindowPosNull, symObjAddr: 0x57C, symBinAddr: 0x123E8, symSize: 0x1C }
+  - { offsetInCU: 0x13E5, offset: 0x26F24, size: 0x8, addend: 0x0, symName: __glfwGetWindowSizeNull, symObjAddr: 0x598, symBinAddr: 0x12404, symSize: 0x1C }
+  - { offsetInCU: 0x148F, offset: 0x26FCE, size: 0x8, addend: 0x0, symName: __glfwSetWindowSizeLimitsNull, symObjAddr: 0x5B4, symBinAddr: 0x12420, symSize: 0x110 }
+  - { offsetInCU: 0x155C, offset: 0x2709B, size: 0x8, addend: 0x0, symName: __glfwSetWindowAspectRatioNull, symObjAddr: 0x6C4, symBinAddr: 0x12530, symSize: 0x110 }
+  - { offsetInCU: 0x1609, offset: 0x27148, size: 0x8, addend: 0x0, symName: __glfwGetFramebufferSizeNull, symObjAddr: 0x7D4, symBinAddr: 0x12640, symSize: 0x1C }
+  - { offsetInCU: 0x164A, offset: 0x27189, size: 0x8, addend: 0x0, symName: __glfwGetWindowFrameSizeNull, symObjAddr: 0x7F0, symBinAddr: 0x1265C, symSize: 0x68 }
+  - { offsetInCU: 0x16A7, offset: 0x271E6, size: 0x8, addend: 0x0, symName: __glfwGetWindowContentScaleNull, symObjAddr: 0x858, symBinAddr: 0x126C4, symSize: 0x1C }
+  - { offsetInCU: 0x16E8, offset: 0x27227, size: 0x8, addend: 0x0, symName: __glfwIconifyWindowNull, symObjAddr: 0x874, symBinAddr: 0x126E0, symSize: 0x8C }
+  - { offsetInCU: 0x171C, offset: 0x2725B, size: 0x8, addend: 0x0, symName: __glfwRestoreWindowNull, symObjAddr: 0x900, symBinAddr: 0x1276C, symSize: 0x6C }
+  - { offsetInCU: 0x1762, offset: 0x272A1, size: 0x8, addend: 0x0, symName: __glfwMaximizeWindowNull, symObjAddr: 0x96C, symBinAddr: 0x127D8, symSize: 0x1C }
+  - { offsetInCU: 0x1787, offset: 0x272C6, size: 0x8, addend: 0x0, symName: __glfwWindowMaximizedNull, symObjAddr: 0x988, symBinAddr: 0x127F4, symSize: 0x8 }
+  - { offsetInCU: 0x17B2, offset: 0x272F1, size: 0x8, addend: 0x0, symName: __glfwWindowHoveredNull, symObjAddr: 0x990, symBinAddr: 0x127FC, symSize: 0x54 }
+  - { offsetInCU: 0x17DD, offset: 0x2731C, size: 0x8, addend: 0x0, symName: __glfwFramebufferTransparentNull, symObjAddr: 0x9E4, symBinAddr: 0x12850, symSize: 0x8 }
+  - { offsetInCU: 0x1808, offset: 0x27347, size: 0x8, addend: 0x0, symName: __glfwSetWindowResizableNull, symObjAddr: 0x9EC, symBinAddr: 0x12858, symSize: 0x8 }
+  - { offsetInCU: 0x183B, offset: 0x2737A, size: 0x8, addend: 0x0, symName: __glfwSetWindowDecoratedNull, symObjAddr: 0x9F4, symBinAddr: 0x12860, symSize: 0x8 }
+  - { offsetInCU: 0x186E, offset: 0x273AD, size: 0x8, addend: 0x0, symName: __glfwSetWindowFloatingNull, symObjAddr: 0x9FC, symBinAddr: 0x12868, symSize: 0x8 }
+  - { offsetInCU: 0x18A1, offset: 0x273E0, size: 0x8, addend: 0x0, symName: __glfwGetWindowOpacityNull, symObjAddr: 0xA04, symBinAddr: 0x12870, symSize: 0x8 }
+  - { offsetInCU: 0x18CA, offset: 0x27409, size: 0x8, addend: 0x0, symName: __glfwSetWindowOpacityNull, symObjAddr: 0xA0C, symBinAddr: 0x12878, symSize: 0x8 }
+  - { offsetInCU: 0x18FE, offset: 0x2743D, size: 0x8, addend: 0x0, symName: __glfwSetRawMouseMotionNull, symObjAddr: 0xA14, symBinAddr: 0x12880, symSize: 0x4 }
+  - { offsetInCU: 0x1931, offset: 0x27470, size: 0x8, addend: 0x0, symName: __glfwRawMouseMotionSupportedNull, symObjAddr: 0xA18, symBinAddr: 0x12884, symSize: 0x8 }
+  - { offsetInCU: 0x194B, offset: 0x2748A, size: 0x8, addend: 0x0, symName: __glfwRequestWindowAttentionNull, symObjAddr: 0xA20, symBinAddr: 0x1288C, symSize: 0x4 }
+  - { offsetInCU: 0x1970, offset: 0x274AF, size: 0x8, addend: 0x0, symName: __glfwHideWindowNull, symObjAddr: 0xA24, symBinAddr: 0x12890, symSize: 0x54 }
+  - { offsetInCU: 0x1997, offset: 0x274D6, size: 0x8, addend: 0x0, symName: __glfwWindowFocusedNull, symObjAddr: 0xA78, symBinAddr: 0x128E4, symSize: 0x18 }
+  - { offsetInCU: 0x19C2, offset: 0x27501, size: 0x8, addend: 0x0, symName: __glfwWindowIconifiedNull, symObjAddr: 0xA90, symBinAddr: 0x128FC, symSize: 0x8 }
+  - { offsetInCU: 0x19ED, offset: 0x2752C, size: 0x8, addend: 0x0, symName: __glfwWindowVisibleNull, symObjAddr: 0xA98, symBinAddr: 0x12904, symSize: 0x8 }
+  - { offsetInCU: 0x1A18, offset: 0x27557, size: 0x8, addend: 0x0, symName: __glfwPollEventsNull, symObjAddr: 0xAA0, symBinAddr: 0x1290C, symSize: 0x4 }
+  - { offsetInCU: 0x1A2F, offset: 0x2756E, size: 0x8, addend: 0x0, symName: __glfwWaitEventsNull, symObjAddr: 0xAA4, symBinAddr: 0x12910, symSize: 0x4 }
+  - { offsetInCU: 0x1A46, offset: 0x27585, size: 0x8, addend: 0x0, symName: __glfwWaitEventsTimeoutNull, symObjAddr: 0xAA8, symBinAddr: 0x12914, symSize: 0x4 }
+  - { offsetInCU: 0x1A6C, offset: 0x275AB, size: 0x8, addend: 0x0, symName: __glfwPostEmptyEventNull, symObjAddr: 0xAAC, symBinAddr: 0x12918, symSize: 0x4 }
+  - { offsetInCU: 0x1A83, offset: 0x275C2, size: 0x8, addend: 0x0, symName: __glfwGetCursorPosNull, symObjAddr: 0xAB0, symBinAddr: 0x1291C, symSize: 0x3C }
+  - { offsetInCU: 0x1AC4, offset: 0x27603, size: 0x8, addend: 0x0, symName: __glfwSetCursorPosNull, symObjAddr: 0xAEC, symBinAddr: 0x12958, symSize: 0x2C }
+  - { offsetInCU: 0x1B07, offset: 0x27646, size: 0x8, addend: 0x0, symName: __glfwSetCursorModeNull, symObjAddr: 0xB18, symBinAddr: 0x12984, symSize: 0x4 }
+  - { offsetInCU: 0x1B3A, offset: 0x27679, size: 0x8, addend: 0x0, symName: __glfwCreateCursorNull, symObjAddr: 0xB1C, symBinAddr: 0x12988, symSize: 0x8 }
+  - { offsetInCU: 0x1B8F, offset: 0x276CE, size: 0x8, addend: 0x0, symName: __glfwCreateStandardCursorNull, symObjAddr: 0xB24, symBinAddr: 0x12990, symSize: 0x8 }
+  - { offsetInCU: 0x1BC8, offset: 0x27707, size: 0x8, addend: 0x0, symName: __glfwDestroyCursorNull, symObjAddr: 0xB2C, symBinAddr: 0x12998, symSize: 0x4 }
+  - { offsetInCU: 0x1BED, offset: 0x2772C, size: 0x8, addend: 0x0, symName: __glfwSetCursorNull, symObjAddr: 0xB30, symBinAddr: 0x1299C, symSize: 0x4 }
+  - { offsetInCU: 0x1C20, offset: 0x2775F, size: 0x8, addend: 0x0, symName: __glfwSetClipboardStringNull, symObjAddr: 0xB34, symBinAddr: 0x129A0, symSize: 0x34 }
+  - { offsetInCU: 0x1C57, offset: 0x27796, size: 0x8, addend: 0x0, symName: __glfwGetClipboardStringNull, symObjAddr: 0xB68, symBinAddr: 0x129D4, symSize: 0x10 }
+  - { offsetInCU: 0x1C71, offset: 0x277B0, size: 0x8, addend: 0x0, symName: __glfwGetEGLPlatformNull, symObjAddr: 0xB78, symBinAddr: 0x129E4, symSize: 0x8 }
+  - { offsetInCU: 0x1C9C, offset: 0x277DB, size: 0x8, addend: 0x0, symName: __glfwGetEGLNativeDisplayNull, symObjAddr: 0xB80, symBinAddr: 0x129EC, symSize: 0x8 }
+  - { offsetInCU: 0x1CB6, offset: 0x277F5, size: 0x8, addend: 0x0, symName: __glfwGetEGLNativeWindowNull, symObjAddr: 0xB88, symBinAddr: 0x129F4, symSize: 0x8 }
+  - { offsetInCU: 0x1CE1, offset: 0x27820, size: 0x8, addend: 0x0, symName: __glfwGetScancodeNameNull, symObjAddr: 0xB90, symBinAddr: 0x129FC, symSize: 0x74 }
+  - { offsetInCU: 0x1D0C, offset: 0x2784B, size: 0x8, addend: 0x0, symName: __glfwGetKeyScancodeNull, symObjAddr: 0xC04, symBinAddr: 0x12A70, symSize: 0x18 }
+  - { offsetInCU: 0x1D37, offset: 0x27876, size: 0x8, addend: 0x0, symName: __glfwGetRequiredInstanceExtensionsNull, symObjAddr: 0xC1C, symBinAddr: 0x12A88, symSize: 0x4 }
+  - { offsetInCU: 0x1D5C, offset: 0x2789B, size: 0x8, addend: 0x0, symName: __glfwGetPhysicalDevicePresentationSupportNull, symObjAddr: 0xC20, symBinAddr: 0x12A8C, symSize: 0x8 }
+  - { offsetInCU: 0x1DA3, offset: 0x278E2, size: 0x8, addend: 0x0, symName: __glfwCreateWindowSurfaceNull, symObjAddr: 0xC28, symBinAddr: 0x12A94, symSize: 0x8 }
+  - { offsetInCU: 0x26, offset: 0x27B1E, size: 0x8, addend: 0x0, symName: __glfwInitOSMesa, symObjAddr: 0x0, symBinAddr: 0x12A9C, symSize: 0x160 }
+  - { offsetInCU: 0xBFD, offset: 0x286F5, size: 0x8, addend: 0x0, symName: __glfwInitOSMesa, symObjAddr: 0x0, symBinAddr: 0x12A9C, symSize: 0x160 }
+  - { offsetInCU: 0xC45, offset: 0x2873D, size: 0x8, addend: 0x0, symName: __glfwTerminateOSMesa, symObjAddr: 0x160, symBinAddr: 0x12BFC, symSize: 0x30 }
+  - { offsetInCU: 0xC59, offset: 0x28751, size: 0x8, addend: 0x0, symName: __glfwCreateContextOSMesa, symObjAddr: 0x190, symBinAddr: 0x12C2C, symSize: 0x230 }
+  - { offsetInCU: 0xD06, offset: 0x287FE, size: 0x8, addend: 0x0, symName: _makeContextCurrentOSMesa, symObjAddr: 0x3C0, symBinAddr: 0x12E5C, symSize: 0xE0 }
+  - { offsetInCU: 0xD80, offset: 0x28878, size: 0x8, addend: 0x0, symName: _swapBuffersOSMesa, symObjAddr: 0x4A0, symBinAddr: 0x12F3C, symSize: 0x4 }
+  - { offsetInCU: 0xDA2, offset: 0x2889A, size: 0x8, addend: 0x0, symName: _swapIntervalOSMesa, symObjAddr: 0x4A4, symBinAddr: 0x12F40, symSize: 0x4 }
+  - { offsetInCU: 0xDC4, offset: 0x288BC, size: 0x8, addend: 0x0, symName: _extensionSupportedOSMesa, symObjAddr: 0x4A8, symBinAddr: 0x12F44, symSize: 0x8 }
+  - { offsetInCU: 0xDE9, offset: 0x288E1, size: 0x8, addend: 0x0, symName: _getProcAddressOSMesa, symObjAddr: 0x4B0, symBinAddr: 0x12F4C, symSize: 0x10 }
+  - { offsetInCU: 0xE23, offset: 0x2891B, size: 0x8, addend: 0x0, symName: _destroyContextOSMesa, symObjAddr: 0x4C0, symBinAddr: 0x12F5C, symSize: 0x48 }
+  - { offsetInCU: 0xE53, offset: 0x2894B, size: 0x8, addend: 0x0, symName: _glfwGetOSMesaColorBuffer, symObjAddr: 0x508, symBinAddr: 0x12FA4, symSize: 0xF0 }
+  - { offsetInCU: 0xF2E, offset: 0x28A26, size: 0x8, addend: 0x0, symName: _glfwGetOSMesaDepthBuffer, symObjAddr: 0x5F8, symBinAddr: 0x13094, symSize: 0xF0 }
+  - { offsetInCU: 0x1009, offset: 0x28B01, size: 0x8, addend: 0x0, symName: _glfwGetOSMesaContext, symObjAddr: 0x6E8, symBinAddr: 0x13184, symSize: 0x68 }
+  - { offsetInCU: 0x26, offset: 0x28D4F, size: 0x8, addend: 0x0, symName: __glfwSelectPlatform, symObjAddr: 0x0, symBinAddr: 0x131EC, symSize: 0xC4 }
+  - { offsetInCU: 0x1A50, offset: 0x2A779, size: 0x8, addend: 0x0, symName: __glfwSelectPlatform, symObjAddr: 0x0, symBinAddr: 0x131EC, symSize: 0xC4 }
+  - { offsetInCU: 0x1AA0, offset: 0x2A7C9, size: 0x8, addend: 0x0, symName: _glfwGetPlatform, symObjAddr: 0xC4, symBinAddr: 0x132B0, symSize: 0x3C }
+  - { offsetInCU: 0x1ABA, offset: 0x2A7E3, size: 0x8, addend: 0x0, symName: _glfwPlatformSupported, symObjAddr: 0x100, symBinAddr: 0x132EC, symSize: 0x64 }
+  - { offsetInCU: 0x1AFB, offset: 0x2A824, size: 0x8, addend: 0x0, symName: _glfwGetVersionString, symObjAddr: 0x164, symBinAddr: 0x13350, symSize: 0xC }
+  - { offsetInCU: 0x26, offset: 0x2A873, size: 0x8, addend: 0x0, symName: __glfwPlatformLoadModule, symObjAddr: 0x0, symBinAddr: 0x1335C, symSize: 0x8 }
+  - { offsetInCU: 0x33, offset: 0x2A880, size: 0x8, addend: 0x0, symName: __glfwPlatformLoadModule, symObjAddr: 0x0, symBinAddr: 0x1335C, symSize: 0x8 }
+  - { offsetInCU: 0xA4, offset: 0x2A8F1, size: 0x8, addend: 0x0, symName: __glfwPlatformFreeModule, symObjAddr: 0x8, symBinAddr: 0x13364, symSize: 0x4 }
+  - { offsetInCU: 0xCB, offset: 0x2A918, size: 0x8, addend: 0x0, symName: __glfwPlatformFreeModule, symObjAddr: 0x8, symBinAddr: 0x13364, symSize: 0x4 }
+  - { offsetInCU: 0xEF, offset: 0x2A93C, size: 0x8, addend: 0x0, symName: __glfwPlatformGetModuleSymbol, symObjAddr: 0xC, symBinAddr: 0x13368, symSize: 0x4 }
+  - { offsetInCU: 0x126, offset: 0x2A973, size: 0x8, addend: 0x0, symName: __glfwPlatformGetModuleSymbol, symObjAddr: 0xC, symBinAddr: 0x13368, symSize: 0x4 }
+  - { offsetInCU: 0x26, offset: 0x2A9DA, size: 0x8, addend: 0x0, symName: __glfwPlatformCreateTls, symObjAddr: 0x0, symBinAddr: 0x1336C, symSize: 0x58 }
+  - { offsetInCU: 0x41, offset: 0x2A9F5, size: 0x8, addend: 0x0, symName: __glfwPlatformCreateTls, symObjAddr: 0x0, symBinAddr: 0x1336C, symSize: 0x58 }
+  - { offsetInCU: 0xCA, offset: 0x2AA7E, size: 0x8, addend: 0x0, symName: __glfwPlatformDestroyTls, symObjAddr: 0x58, symBinAddr: 0x133C4, symSize: 0x30 }
+  - { offsetInCU: 0x10E, offset: 0x2AAC2, size: 0x8, addend: 0x0, symName: __glfwPlatformGetTls, symObjAddr: 0x88, symBinAddr: 0x133F4, symSize: 0x8 }
+  - { offsetInCU: 0x156, offset: 0x2AB0A, size: 0x8, addend: 0x0, symName: __glfwPlatformSetTls, symObjAddr: 0x90, symBinAddr: 0x133FC, symSize: 0x8 }
+  - { offsetInCU: 0x1BC, offset: 0x2AB70, size: 0x8, addend: 0x0, symName: __glfwPlatformCreateMutex, symObjAddr: 0x98, symBinAddr: 0x13404, symSize: 0x58 }
+  - { offsetInCU: 0x2B7, offset: 0x2AC6B, size: 0x8, addend: 0x0, symName: __glfwPlatformDestroyMutex, symObjAddr: 0xF0, symBinAddr: 0x1345C, symSize: 0x3C }
+  - { offsetInCU: 0x302, offset: 0x2ACB6, size: 0x8, addend: 0x0, symName: __glfwPlatformLockMutex, symObjAddr: 0x12C, symBinAddr: 0x13498, symSize: 0x8 }
+  - { offsetInCU: 0x347, offset: 0x2ACFB, size: 0x8, addend: 0x0, symName: __glfwPlatformUnlockMutex, symObjAddr: 0x134, symBinAddr: 0x134A0, symSize: 0x8 }
+  - { offsetInCU: 0x26, offset: 0x2AE17, size: 0x8, addend: 0x0, symName: __glfwInitVulkan, symObjAddr: 0x0, symBinAddr: 0x134A8, symSize: 0x2D4 }
+  - { offsetInCU: 0xD34, offset: 0x2BB25, size: 0x8, addend: 0x0, symName: __glfwInitVulkan, symObjAddr: 0x0, symBinAddr: 0x134A8, symSize: 0x2D4 }
+  - { offsetInCU: 0xE67, offset: 0x2BC58, size: 0x8, addend: 0x0, symName: __glfwGetVulkanResultString, symObjAddr: 0x2EC, symBinAddr: 0x13794, symSize: 0x1C0 }
+  - { offsetInCU: 0xE90, offset: 0x2BC81, size: 0x8, addend: 0x0, symName: __glfwTerminateVulkan, symObjAddr: 0x2D4, symBinAddr: 0x1377C, symSize: 0x18 }
+  - { offsetInCU: 0xEA4, offset: 0x2BC95, size: 0x8, addend: 0x0, symName: _glfwVulkanSupported, symObjAddr: 0x4AC, symBinAddr: 0x13954, symSize: 0x3C }
+  - { offsetInCU: 0xED2, offset: 0x2BCC3, size: 0x8, addend: 0x0, symName: _glfwGetRequiredInstanceExtensions, symObjAddr: 0x4E8, symBinAddr: 0x13990, symSize: 0x78 }
+  - { offsetInCU: 0xF0E, offset: 0x2BCFF, size: 0x8, addend: 0x0, symName: _glfwGetInstanceProcAddress, symObjAddr: 0x560, symBinAddr: 0x13A08, symSize: 0xBC }
+  - { offsetInCU: 0xF80, offset: 0x2BD71, size: 0x8, addend: 0x0, symName: _glfwGetPhysicalDevicePresentationSupport, symObjAddr: 0x61C, symBinAddr: 0x13AC4, symSize: 0x94 }
+  - { offsetInCU: 0xFFC, offset: 0x2BDED, size: 0x8, addend: 0x0, symName: _glfwCreateWindowSurface, symObjAddr: 0x6B0, symBinAddr: 0x13B58, symSize: 0xFC }
+  - { offsetInCU: 0x26, offset: 0x2BEFF, size: 0x8, addend: 0x0, symName: __glfwInputWindowFocus, symObjAddr: 0x0, symBinAddr: 0x13C54, symSize: 0x1F4 }
+  - { offsetInCU: 0xBF4, offset: 0x2CACD, size: 0x8, addend: 0x0, symName: __glfwInputWindowFocus, symObjAddr: 0x0, symBinAddr: 0x13C54, symSize: 0x1F4 }
+  - { offsetInCU: 0xC9B, offset: 0x2CB74, size: 0x8, addend: 0x0, symName: __glfwInputWindowPos, symObjAddr: 0x1F4, symBinAddr: 0x13E48, symSize: 0x10 }
+  - { offsetInCU: 0xCE4, offset: 0x2CBBD, size: 0x8, addend: 0x0, symName: __glfwInputWindowSize, symObjAddr: 0x204, symBinAddr: 0x13E58, symSize: 0x10 }
+  - { offsetInCU: 0xD2D, offset: 0x2CC06, size: 0x8, addend: 0x0, symName: __glfwInputWindowIconify, symObjAddr: 0x214, symBinAddr: 0x13E68, symSize: 0x10 }
+  - { offsetInCU: 0xD69, offset: 0x2CC42, size: 0x8, addend: 0x0, symName: __glfwInputWindowMaximize, symObjAddr: 0x224, symBinAddr: 0x13E78, symSize: 0x10 }
+  - { offsetInCU: 0xDA5, offset: 0x2CC7E, size: 0x8, addend: 0x0, symName: __glfwInputFramebufferSize, symObjAddr: 0x234, symBinAddr: 0x13E88, symSize: 0x10 }
+  - { offsetInCU: 0xDEE, offset: 0x2CCC7, size: 0x8, addend: 0x0, symName: __glfwInputWindowContentScale, symObjAddr: 0x244, symBinAddr: 0x13E98, symSize: 0x10 }
+  - { offsetInCU: 0xE39, offset: 0x2CD12, size: 0x8, addend: 0x0, symName: __glfwInputWindowDamage, symObjAddr: 0x254, symBinAddr: 0x13EA8, symSize: 0x10 }
+  - { offsetInCU: 0xE68, offset: 0x2CD41, size: 0x8, addend: 0x0, symName: __glfwInputWindowCloseRequest, symObjAddr: 0x264, symBinAddr: 0x13EB8, symSize: 0x18 }
+  - { offsetInCU: 0xE97, offset: 0x2CD70, size: 0x8, addend: 0x0, symName: __glfwInputWindowMonitor, symObjAddr: 0x27C, symBinAddr: 0x13ED0, symSize: 0x8 }
+  - { offsetInCU: 0xEFD, offset: 0x2CDD6, size: 0x8, addend: 0x0, symName: _glfwCreateWindow, symObjAddr: 0x284, symBinAddr: 0x13ED8, symSize: 0x234 }
+  - { offsetInCU: 0x102A, offset: 0x2CF03, size: 0x8, addend: 0x0, symName: _glfwDestroyWindow, symObjAddr: 0x4B8, symBinAddr: 0x1410C, symSize: 0xB4 }
+  - { offsetInCU: 0x108C, offset: 0x2CF65, size: 0x8, addend: 0x0, symName: _glfwDefaultWindowHints, symObjAddr: 0x56C, symBinAddr: 0x141C0, symSize: 0xB8 }
+  - { offsetInCU: 0x10A3, offset: 0x2CF7C, size: 0x8, addend: 0x0, symName: _glfwWindowHint, symObjAddr: 0x624, symBinAddr: 0x14278, symSize: 0x310 }
+  - { offsetInCU: 0x10DA, offset: 0x2CFB3, size: 0x8, addend: 0x0, symName: _glfwWindowHintString, symObjAddr: 0x934, symBinAddr: 0x14588, symSize: 0xF8 }
+  - { offsetInCU: 0x1111, offset: 0x2CFEA, size: 0x8, addend: 0x0, symName: _glfwWindowShouldClose, symObjAddr: 0xA2C, symBinAddr: 0x14680, symSize: 0x3C }
+  - { offsetInCU: 0x114C, offset: 0x2D025, size: 0x8, addend: 0x0, symName: _glfwSetWindowShouldClose, symObjAddr: 0xA68, symBinAddr: 0x146BC, symSize: 0x24 }
+  - { offsetInCU: 0x1193, offset: 0x2D06C, size: 0x8, addend: 0x0, symName: _glfwSetWindowTitle, symObjAddr: 0xA8C, symBinAddr: 0x146E0, symSize: 0x24 }
+  - { offsetInCU: 0x11E5, offset: 0x2D0BE, size: 0x8, addend: 0x0, symName: _glfwSetWindowIcon, symObjAddr: 0xAB0, symBinAddr: 0x14704, symSize: 0x88 }
+  - { offsetInCU: 0x1255, offset: 0x2D12E, size: 0x8, addend: 0x0, symName: _glfwGetWindowPos, symObjAddr: 0xB38, symBinAddr: 0x1478C, symSize: 0x34 }
+  - { offsetInCU: 0x12B5, offset: 0x2D18E, size: 0x8, addend: 0x0, symName: _glfwSetWindowPos, symObjAddr: 0xB6C, symBinAddr: 0x147C0, symSize: 0x30 }
+  - { offsetInCU: 0x1315, offset: 0x2D1EE, size: 0x8, addend: 0x0, symName: _glfwGetWindowSize, symObjAddr: 0xB9C, symBinAddr: 0x147F0, symSize: 0x34 }
+  - { offsetInCU: 0x1375, offset: 0x2D24E, size: 0x8, addend: 0x0, symName: _glfwSetWindowSize, symObjAddr: 0xBD0, symBinAddr: 0x14824, symSize: 0x28 }
+  - { offsetInCU: 0x13D5, offset: 0x2D2AE, size: 0x8, addend: 0x0, symName: _glfwSetWindowSizeLimits, symObjAddr: 0xBF8, symBinAddr: 0x1484C, symSize: 0xD8 }
+  - { offsetInCU: 0x1457, offset: 0x2D330, size: 0x8, addend: 0x0, symName: _glfwSetWindowAspectRatio, symObjAddr: 0xCD0, symBinAddr: 0x14924, symSize: 0xA4 }
+  - { offsetInCU: 0x14B9, offset: 0x2D392, size: 0x8, addend: 0x0, symName: _glfwGetFramebufferSize, symObjAddr: 0xD74, symBinAddr: 0x149C8, symSize: 0x34 }
+  - { offsetInCU: 0x1519, offset: 0x2D3F2, size: 0x8, addend: 0x0, symName: _glfwGetWindowFrameSize, symObjAddr: 0xDA8, symBinAddr: 0x149FC, symSize: 0x44 }
+  - { offsetInCU: 0x1595, offset: 0x2D46E, size: 0x8, addend: 0x0, symName: _glfwGetWindowContentScale, symObjAddr: 0xDEC, symBinAddr: 0x14A40, symSize: 0x34 }
+  - { offsetInCU: 0x15F5, offset: 0x2D4CE, size: 0x8, addend: 0x0, symName: _glfwGetWindowOpacity, symObjAddr: 0xE20, symBinAddr: 0x14A74, symSize: 0x3C }
+  - { offsetInCU: 0x163B, offset: 0x2D514, size: 0x8, addend: 0x0, symName: _glfwSetWindowOpacity, symObjAddr: 0xE5C, symBinAddr: 0x14AB0, symSize: 0x78 }
+  - { offsetInCU: 0x168D, offset: 0x2D566, size: 0x8, addend: 0x0, symName: _glfwIconifyWindow, symObjAddr: 0xED4, symBinAddr: 0x14B28, symSize: 0x24 }
+  - { offsetInCU: 0x16CF, offset: 0x2D5A8, size: 0x8, addend: 0x0, symName: _glfwRestoreWindow, symObjAddr: 0xEF8, symBinAddr: 0x14B4C, symSize: 0x24 }
+  - { offsetInCU: 0x1711, offset: 0x2D5EA, size: 0x8, addend: 0x0, symName: _glfwMaximizeWindow, symObjAddr: 0xF1C, symBinAddr: 0x14B70, symSize: 0x30 }
+  - { offsetInCU: 0x1753, offset: 0x2D62C, size: 0x8, addend: 0x0, symName: _glfwShowWindow, symObjAddr: 0xF4C, symBinAddr: 0x14BA0, symSize: 0x70 }
+  - { offsetInCU: 0x17AE, offset: 0x2D687, size: 0x8, addend: 0x0, symName: _glfwRequestWindowAttention, symObjAddr: 0xFBC, symBinAddr: 0x14C10, symSize: 0x24 }
+  - { offsetInCU: 0x17F0, offset: 0x2D6C9, size: 0x8, addend: 0x0, symName: _glfwHideWindow, symObjAddr: 0xFE0, symBinAddr: 0x14C34, symSize: 0x30 }
+  - { offsetInCU: 0x1832, offset: 0x2D70B, size: 0x8, addend: 0x0, symName: _glfwFocusWindow, symObjAddr: 0x1010, symBinAddr: 0x14C64, symSize: 0x24 }
+  - { offsetInCU: 0x1874, offset: 0x2D74D, size: 0x8, addend: 0x0, symName: _glfwGetWindowAttrib, symObjAddr: 0x1034, symBinAddr: 0x14C88, symSize: 0x240 }
+  - { offsetInCU: 0x1901, offset: 0x2D7DA, size: 0x8, addend: 0x0, symName: _glfwSetWindowAttrib, symObjAddr: 0x1274, symBinAddr: 0x14EC8, symSize: 0x11C }
+  - { offsetInCU: 0x1984, offset: 0x2D85D, size: 0x8, addend: 0x0, symName: _glfwGetWindowMonitor, symObjAddr: 0x1390, symBinAddr: 0x14FE4, symSize: 0x3C }
+  - { offsetInCU: 0x19BF, offset: 0x2D898, size: 0x8, addend: 0x0, symName: _glfwSetWindowMonitor, symObjAddr: 0x13CC, symBinAddr: 0x15020, symSize: 0xB0 }
+  - { offsetInCU: 0x1A71, offset: 0x2D94A, size: 0x8, addend: 0x0, symName: _glfwSetWindowUserPointer, symObjAddr: 0x147C, symBinAddr: 0x150D0, symSize: 0x24 }
+  - { offsetInCU: 0x1AB8, offset: 0x2D991, size: 0x8, addend: 0x0, symName: _glfwGetWindowUserPointer, symObjAddr: 0x14A0, symBinAddr: 0x150F4, symSize: 0x3C }
+  - { offsetInCU: 0x1AF3, offset: 0x2D9CC, size: 0x8, addend: 0x0, symName: _glfwSetWindowPosCallback, symObjAddr: 0x14DC, symBinAddr: 0x15130, symSize: 0x48 }
+  - { offsetInCU: 0x1B5C, offset: 0x2DA35, size: 0x8, addend: 0x0, symName: _glfwSetWindowSizeCallback, symObjAddr: 0x1524, symBinAddr: 0x15178, symSize: 0x48 }
+  - { offsetInCU: 0x1BC5, offset: 0x2DA9E, size: 0x8, addend: 0x0, symName: _glfwSetWindowCloseCallback, symObjAddr: 0x156C, symBinAddr: 0x151C0, symSize: 0x48 }
+  - { offsetInCU: 0x1C2E, offset: 0x2DB07, size: 0x8, addend: 0x0, symName: _glfwSetWindowRefreshCallback, symObjAddr: 0x15B4, symBinAddr: 0x15208, symSize: 0x48 }
+  - { offsetInCU: 0x1C97, offset: 0x2DB70, size: 0x8, addend: 0x0, symName: _glfwSetWindowFocusCallback, symObjAddr: 0x15FC, symBinAddr: 0x15250, symSize: 0x48 }
+  - { offsetInCU: 0x1D00, offset: 0x2DBD9, size: 0x8, addend: 0x0, symName: _glfwSetWindowIconifyCallback, symObjAddr: 0x1644, symBinAddr: 0x15298, symSize: 0x48 }
+  - { offsetInCU: 0x1D69, offset: 0x2DC42, size: 0x8, addend: 0x0, symName: _glfwSetWindowMaximizeCallback, symObjAddr: 0x168C, symBinAddr: 0x152E0, symSize: 0x48 }
+  - { offsetInCU: 0x1DD2, offset: 0x2DCAB, size: 0x8, addend: 0x0, symName: _glfwSetFramebufferSizeCallback, symObjAddr: 0x16D4, symBinAddr: 0x15328, symSize: 0x48 }
+  - { offsetInCU: 0x1E3B, offset: 0x2DD14, size: 0x8, addend: 0x0, symName: _glfwSetWindowContentScaleCallback, symObjAddr: 0x171C, symBinAddr: 0x15370, symSize: 0x48 }
+  - { offsetInCU: 0x1EA4, offset: 0x2DD7D, size: 0x8, addend: 0x0, symName: _glfwPollEvents, symObjAddr: 0x1764, symBinAddr: 0x153B8, symSize: 0x24 }
+  - { offsetInCU: 0x1EC6, offset: 0x2DD9F, size: 0x8, addend: 0x0, symName: _glfwWaitEvents, symObjAddr: 0x1788, symBinAddr: 0x153DC, symSize: 0x24 }
+  - { offsetInCU: 0x1EE8, offset: 0x2DDC1, size: 0x8, addend: 0x0, symName: _glfwWaitEventsTimeout, symObjAddr: 0x17AC, symBinAddr: 0x15400, symSize: 0x78 }
+  - { offsetInCU: 0x1F1A, offset: 0x2DDF3, size: 0x8, addend: 0x0, symName: _glfwPostEmptyEvent, symObjAddr: 0x1824, symBinAddr: 0x15478, symSize: 0x24 }
+...
