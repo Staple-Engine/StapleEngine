@@ -63,15 +63,6 @@ project "NVorbis"
 		"NVorbis/**.cs"
 	}
 
-project "SharpFont"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	
-	files {
-		"SharpFont/**.cs"
-	}
-
 project "NfdSharp"
 	kind "SharedLib"
 	language "C#"

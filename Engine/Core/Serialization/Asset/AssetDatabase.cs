@@ -92,19 +92,22 @@ namespace Staple
 
                         default:
 
-                            var shortExtension = extension.Substring(1);
+                            if(extension != null && extension.Length > 0)
+                            {
+                                var shortExtension = extension.Substring(1);
 
-                            if(AssetSerialization.TextureExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(Texture).FullName;
-                            }
-                            else if(AssetSerialization.AudioExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(AudioClip).FullName;
-                            }
-                            else if(AssetSerialization.MeshExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(Mesh).FullName;
+                                if (AssetSerialization.TextureExtensions.Contains(shortExtension))
+                                {
+                                    asset.typeName = typeof(Texture).FullName;
+                                }
+                                else if (AssetSerialization.AudioExtensions.Contains(shortExtension))
+                                {
+                                    asset.typeName = typeof(AudioClip).FullName;
+                                }
+                                else if (AssetSerialization.MeshExtensions.Contains(shortExtension))
+                                {
+                                    asset.typeName = typeof(Mesh).FullName;
+                                }
                             }
 
                             break;

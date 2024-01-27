@@ -623,10 +623,6 @@ namespace Staple.Editor
                 new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "JoltPhysicsSharp.dll"))
             });
 
-            p.AddItem("Reference", "SharpFont", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "SharpFont.dll"))
-            });
-
             p.AddItem("Reference", "NAudio", new KeyValuePair<string, string>[] {
                 new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NAudio.dll"))
             });
@@ -652,7 +648,6 @@ namespace Staple.Editor
 
             trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player");
             trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore");
-            trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "SharpFont");
 
             switch (platform)
             {

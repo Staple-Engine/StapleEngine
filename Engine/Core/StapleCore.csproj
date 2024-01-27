@@ -74,9 +74,6 @@
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
-		<Reference Include="SharpFont">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\SharpFont.dll</HintPath>
-		</Reference>
 		<Reference Include="NVorbis">
 			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\NVorbis.dll</HintPath>
 		</Reference>

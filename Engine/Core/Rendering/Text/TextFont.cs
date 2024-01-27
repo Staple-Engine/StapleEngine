@@ -11,8 +11,11 @@ namespace Staple.Internal
         public int fontSize;
         public int lineSpacing;
 
+        //TODO: Reimplement this natively
+        /*
         public SharpFont.Library library;
         public SharpFont.Face face;
+        */
 
         public int FontSize
         {
@@ -20,12 +23,14 @@ namespace Staple.Internal
 
             set
             {
+                /*
                 if(value <= 0 || face == null || library == null)
                 {
                     return;
                 }
+                */
 
-                face.SetPixelSizes(0, (uint)value);
+                //face.SetPixelSizes(0, (uint)value);
 
                 fontSize = value;
             }
@@ -33,6 +38,7 @@ namespace Staple.Internal
 
         public void Clear()
         {
+            /*
             face?.Dispose();
 
             face = null;
@@ -40,10 +46,14 @@ namespace Staple.Internal
             library?.Dispose();
 
             library = null;
+            */
         }
 
         public static TextFont FromData(byte[] data)
         {
+            return null;
+
+            /*
             var font = new TextFont();
 
             try
@@ -67,20 +77,26 @@ namespace Staple.Internal
             font.face.SelectCharmap(SharpFont.Encoding.Unicode);
 
             return font;
+            */
         }
 
         public int LineSpacing(TextParameters parameters)
         {
             FontSize = parameters.fontSize;
 
+            /*
             unsafe
             {
                 return face.Size.Metrics.Height.Value >> 6;
             }
+            */
+
+            return FontSize;
         }
 
         public int Kerning(char from, char to, TextParameters parameters)
         {
+            /*
             if(face.HasKerning == false)
             {
                 return 0;
@@ -94,10 +110,16 @@ namespace Staple.Internal
             var kerning = face.GetKerning(fromIndex, toIndex, SharpFont.KerningMode.Default);
 
             return kerning.X.Value >> 6;
+            */
+
+            return 0;
         }
 
         public Glyph LoadGlyph(char character, TextParameters parameters)
         {
+            return null;
+
+            /*
             var key = parameters.GetHashCode() ^ character.GetHashCode();
 
             if (glyphs.TryGetValue(key, out var glyph))
@@ -223,6 +245,7 @@ namespace Staple.Internal
             glyphs.Add(key, glyph);
 
             return glyph;
+            */
         }
 
         public void Dispose()

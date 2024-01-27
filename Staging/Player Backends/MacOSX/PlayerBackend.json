@@ -3,7 +3,7 @@
 	"platform": "MacOSX",
 	"redistOutput": ".",
 	"dataDir": "Data",
-	"platformRuntime": "osx-x64",
+	"platformRuntime": "osx-arm64",
 	"framework": "net8.0",
 	"publish": true,
 	"dataDirIsOutput": true,
