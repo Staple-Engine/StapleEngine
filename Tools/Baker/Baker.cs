@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Baker
 {
@@ -298,7 +299,6 @@ namespace Baker
 
         internal static string FindGuid<T>(string path, bool ignoreType = false)
         {
-            var guid = Guid.NewGuid().ToString();
             var meta = path.EndsWith(".meta") ? path : $"{path}.meta";
 
             try
@@ -308,30 +308,36 @@ namespace Baker
 
                 if (holder != null && (holder.guid?.Length ?? 0) > 0 && (ignoreType || holder.typeName == typeof(T).FullName))
                 {
-                    guid = holder.guid;
+                    Console.WriteLine($"\t\tReusing guid {holder.guid}");
 
-                    Console.WriteLine($"\t\tReusing guid {guid}");
+                    return holder.guid;
                 }
             }
             catch (Exception)
             {
-                try
+            }
+
+            //Guid collision fix
+            Thread.Sleep(25);
+
+            var guid = Guid.NewGuid().ToString();
+
+            try
+            {
+                var holder = new AssetHolder()
                 {
-                    var holder = new AssetHolder()
-                    {
-                        guid = guid,
-                        typeName = typeof(T).FullName,
-                    };
+                    guid = guid,
+                    typeName = typeof(T).FullName,
+                };
 
-                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
 
-                    File.WriteAllText(meta, json);
+                File.WriteAllText(meta, json);
 
-                    Console.WriteLine($"\t\tRegenerating meta");
-                }
-                catch (Exception)
-                {
-                }
+                Console.WriteLine($"\t\tRegenerating meta");
+            }
+            catch (Exception)
+            {
             }
 
             return guid;

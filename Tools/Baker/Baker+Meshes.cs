@@ -35,9 +35,6 @@ namespace Baker
 
             for (var i = 0; i < meshFiles.Count; i++)
             {
-                //Guid collision fix
-                Thread.Sleep(25);
-
                 Console.WriteLine($"\t{meshFiles[i]}");
 
                 try

@@ -45,9 +45,6 @@ namespace Baker
 
             for (var i = 0; i < shaderFiles.Count; i++)
             {
-                //Guid collision fix
-                Thread.Sleep(25);
-
                 Console.WriteLine($"\t{shaderFiles[i]}");
 
                 var guid = FindGuid<Shader>(shaderFiles[i]);

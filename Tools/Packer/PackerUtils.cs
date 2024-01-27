@@ -37,6 +37,33 @@ namespace Packer
                     return null;
                 }
             }
+            else if(path.EndsWith(".stsc"))
+            {
+                try
+                {
+                    var data = File.ReadAllBytes(path);
+
+                    using var stream = new MemoryStream(data);
+
+                    var header = MessagePackSerializer.Deserialize<SerializableSceneHeader>(stream);
+
+                    if (header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) == false ||
+                        header.version != SerializableSceneHeader.ValidVersion)
+                    {
+                        return null;
+                    }
+
+                    var value = MessagePackSerializer.Deserialize<SerializableScene>(stream);
+
+                    return value.guid;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                    return null;
+                }
+            }
             else if(path.EndsWith(".stsh"))
             {
                 try

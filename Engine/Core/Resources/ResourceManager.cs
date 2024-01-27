@@ -448,13 +448,20 @@ namespace Staple.Internal
         }
 
         /// <summary>
-        /// Attempts to load a compiled scene from a path
+        /// Attempts to load a compiled scene from a guid
         /// </summary>
-        /// <param name="path">The path to load</param>
+        /// <param name="guid">The guid to load</param>
         /// <returns>The scene, or null</returns>
-        public Scene LoadSceneFromPath(string path)
+        public Scene LoadSceneFromGuid(string guid)
         {
-            var data = LoadFile(path);
+            var path = AssetDatabase.GetAssetPath(guid);
+
+            if(path == null)
+            {
+                return null;
+            }
+
+            var data = LoadFile(guid);
 
             if (data == null)
             {
@@ -544,7 +551,27 @@ namespace Staple.Internal
         /// <returns>The scene, or null</returns>
         public Scene LoadScene(string name)
         {
-            return LoadSceneFromPath(Path.Combine("Scenes", $"{name}.stsc"));
+            var guid = AssetDatabase.GetAssetGuid(name) ??
+                AssetDatabase.GetAssetGuid(Path.Combine("Scenes", $"{name}.stsc")) ??
+                name;
+
+            var assetType = AssetDatabase.GetAssetType(guid);
+
+            if(assetType != typeof(Scene).FullName)
+            {
+                if(assetType == null)
+                {
+                    Log.Debug($"[ResourceManager] Failed to load scene {name}: Failed to find asset");
+                }
+                else
+                {
+                    Log.Debug($"[ResourceManager] Failed to load scene {name}: Invalid asset type {assetType}");
+                }
+
+                return null;
+            }
+
+            return LoadSceneFromGuid(guid);
         }
 
         /// <summary>

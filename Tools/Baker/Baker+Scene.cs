@@ -29,9 +29,6 @@ namespace Baker
 
             for (var i = 0; i < sceneFiles.Count; i++)
             {
-                //Guid collision fix
-                Thread.Sleep(25);
-
                 Console.WriteLine($"\t{sceneFiles[i]}");
 
                 try

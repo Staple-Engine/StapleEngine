@@ -1,12 +1,7 @@
-﻿using MessagePack;
-using Newtonsoft.Json;
-using Staple;
-using Staple.Internal;
+﻿using Staple;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 
 namespace Baker
 {
@@ -28,9 +23,6 @@ namespace Baker
 
             for (var i = 0; i < assetFiles.Count; i++)
             {
-                //Guid collision fix
-                Thread.Sleep(25);
-
                 Console.WriteLine($"\t{assetFiles[i]}");
 
                 try
