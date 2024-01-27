@@ -208,7 +208,6 @@
 		<Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
 		<Compile Include="Physics\ColliderMask.cs" />
 		<Compile Include="Physics\Physics.cs" />
-		<Compile Include="Player\Platform.cs" />
 		<Compile Include="Rendering\BlendMode.cs" />
 		<Compile Include="Rendering\Texture\BGFXTextureCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
@@ -261,14 +260,16 @@
 		<Compile Include="Math\Matrix3x3.cs" />
 		<Compile Include="Math\Ray.cs" />
 		<Compile Include="Player\AppEvent.cs" />
-		<Compile Include="Player\AppPlatform.cs" />
 		<Compile Include="Player\AppPlayer.cs" />
 		<Compile Include="Player\AppSettings.cs" />
-		<Compile Include="Player\ISubsystem.cs" />
 		<Compile Include="Player\PlayerSettings.cs" />
 		<Compile Include="Player\StaplePlayer.cs" />
-		<Compile Include="Player\SubsystemManager.cs" />
 		<Compile Include="Player\Time.cs" />
+		<Compile Include="System\AppPlatform.cs" />
+		<Compile Include="System\ISubsystem.cs" />
+		<Compile Include="System\Platform.cs" />
+		<Compile Include="System\SubsystemManager.cs" />
+		<Compile Include="System\StapleSupport.cs" />
 		<Compile Include="Math\AABB.cs" />
 		<Compile Include="Rendering\FrustumCuller.cs" />
 		<Compile Include="Rendering\IRenderSystem.cs" />

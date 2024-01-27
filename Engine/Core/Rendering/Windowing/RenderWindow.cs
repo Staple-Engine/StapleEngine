@@ -847,6 +847,12 @@ namespace Staple.Internal
 
             Input.window = renderWindow.window;
 
+            //Issue with Metal
+            if(Platform.IsMacOS)
+            {
+                appSettings.multiThreadedRenderer = false;
+            }
+
 #if !ANDROID
             bgfxReferences++;
 

@@ -4,6 +4,7 @@ local BIMG_DIR = "bimg"
 local BX_DIR = "bx"
 local GLFW_DIR = "glfw"
 local GLFWNET_DIR = "glfw-net"
+local SUPPORT_DIR = "StapleSupport"
 
 solution "Dependencies"
 	location(BUILD_DIR)
@@ -207,6 +208,23 @@ project "bx"
 		defines { "BX_CONFIG_DEBUG=0" }
 
 	setBxCompat()
+
+project "StapleSupport"
+	kind "SharedLib"
+	language "C"
+
+	files {
+
+		path.join(SUPPORT_DIR, "*.c");
+		path.join(SUPPORT_DIR, "*.cpp");
+		path.join(SUPPORT_DIR, "*.h");
+		path.join(SUPPORT_DIR, "*.hpp");
+	}
+
+	filter "system:macosx"
+		files { path.join(SUPPORT_DIR, "*.m") }
+
+		links { "QuartzCore.framework" }
 
 project "glfw"
 	kind "SharedLib"

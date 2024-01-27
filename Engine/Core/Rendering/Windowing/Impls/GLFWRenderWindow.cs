@@ -258,7 +258,7 @@ namespace Staple.Internal
 
                 case AppPlatform.MacOSX:
 
-                    return Native.GetCocoaWindow(window);
+                    return StapleSupport.MacWindow(Native.GetCocoaWindow(window));
 
                 default:
 
@@ -287,6 +287,11 @@ namespace Staple.Internal
 
         public void SetIcon(RawTextureData icon)
         {
+            if(Platform.IsMacOS)
+            {
+                return;
+            }
+
             unsafe
             {
                 fixed(byte *d = icon.data)

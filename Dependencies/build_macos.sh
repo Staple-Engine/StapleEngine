@@ -21,6 +21,9 @@ xcodebuild -scheme glfw -configuration Release build -workspace Dependencies.xcw
 xcodebuild -scheme dr_libs -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme dr_libs -configuration Release build -workspace Dependencies.xcworkspace
 
+xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
+xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
+
 cd ../../build/vs2022
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net8.0

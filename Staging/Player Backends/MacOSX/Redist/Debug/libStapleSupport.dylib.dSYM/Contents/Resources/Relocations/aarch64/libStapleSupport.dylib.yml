@@ -1,0 +1,7 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/nunosilva/Git/StapleEngine/Dependencies/build/vs2022/bin/arm64/Debug/libStapleSupport.dylib'
+relocations:
+  - { offsetInCU: 0x27, offset: 0x27, size: 0x8, addend: 0x0, symName: _MacWindow, symObjAddr: 0x0, symBinAddr: 0x3EEC, symSize: 0x40 }
+  - { offsetInCU: 0x40FE, offset: 0x40FE, size: 0x8, addend: 0x0, symName: _MacWindow, symObjAddr: 0x0, symBinAddr: 0x3EEC, symSize: 0x40 }
+...
