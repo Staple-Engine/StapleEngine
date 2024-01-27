@@ -56,7 +56,7 @@ namespace Staple.Editor
                     {
                         File.WriteAllBytes(assetPath, pair.Value);
 
-                        RefreshAssets(false);
+                        RefreshAssets(assetPath.EndsWith(".cs"));
                     }
                     catch (Exception e)
                     {
