@@ -1,4 +1,4 @@
-﻿#if !ANDROID
+﻿#if !ANDROID && !IOS
 using GLFW;
 using System;
 using System.Linq;
@@ -189,7 +189,12 @@ namespace Staple.Internal
 
                 case AppPlatform.MacOSX:
 
-                    return (nint)Native.GetCocoaMonitor(window.Monitor);
+                    if(window.Monitor != Monitor.None) {
+
+                        return (nint)Native.GetCocoaMonitor(window.Monitor);
+                    }
+
+                    return nint.Zero;
 
                 default:
 

@@ -44,14 +44,14 @@ namespace Staple
 
         public JoltPhysics3D()
         {
-            if(Foundation.Init() == false)
+            if(JoltPhysicsSharp.Foundation.Init() == false)
             {
                 throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
             }
 
             try
             {
-                Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+                JoltPhysicsSharp.Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
                 {
                     var message = inMessage ?? inExpression;
 
@@ -70,7 +70,7 @@ namespace Staple
             }
 
             allocator = new(AllocatorSize);
-            jobThreadPool = new(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers);
+            jobThreadPool = new(JoltPhysicsSharp.Foundation.MaxPhysicsJobs, JoltPhysicsSharp.Foundation.MaxPhysicsBarriers);
             broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
             objectVsBroadPhaseLayerFilter = new JoltObjectVsBroadPhaseLayerFilter();
             objectLayerPairFilter = new JoltObjectLayerPairFilter();
@@ -102,7 +102,7 @@ namespace Staple
 
             destroyed = true;
 
-            Foundation.Shutdown();
+            JoltPhysicsSharp.Foundation.Shutdown();
         }
 
         #region Internal

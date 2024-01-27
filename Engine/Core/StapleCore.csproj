@@ -5,17 +5,19 @@
 		<TargetFrameworks>net8.0;net8.0-android</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net8.0-ios</TargetFrameworks>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(OS)' == 'Unix'">
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(OS)' == 'OSX'">
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
 		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
 	</PropertyGroup>
 

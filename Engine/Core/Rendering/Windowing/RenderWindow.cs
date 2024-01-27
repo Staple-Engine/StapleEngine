@@ -804,6 +804,7 @@ namespace Staple.Internal
 
 #if ANDROID
             renderWindow.window = AndroidRenderWindow.Instance;
+#elif IOS
 #else
             if(Platform.IsWindows || Platform.IsLinux || Platform.IsMacOS)
             {
