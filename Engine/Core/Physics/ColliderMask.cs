@@ -20,6 +20,16 @@ namespace Staple
 
             [Key(2)]
             public bool value;
+
+            internal Item Clone()
+            {
+                return new()
+                {
+                    A = A,
+                    B = B,
+                    value = value,
+                };
+            }
         }
 
         internal static List<Item> collideMask = new();

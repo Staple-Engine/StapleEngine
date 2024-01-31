@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Staple
@@ -186,6 +187,39 @@ namespace Staple
                     },
                 };
             }
+        }
+
+        internal AppSettings Clone()
+        {
+            var newRenderers = new Dictionary<AppPlatform, List<RendererType>>();
+
+            foreach(var pair in renderers)
+            {
+                newRenderers.Add(pair.Key, pair.Value.Select(x => x).ToList());
+            }
+
+            return new()
+            {
+                androidMinSDK = androidMinSDK,
+                appBundleID = appBundleID,
+                appVersion = appVersion,
+                appDisplayVersion = appDisplayVersion,
+                appName = appName,
+                colliderMask = colliderMask.Select(x => x.Clone()).ToList(),
+                companyName = companyName,
+                defaultWindowHeight = defaultWindowHeight,
+                defaultWindowWidth = defaultWindowWidth,
+                defaultWindowMode = defaultWindowMode,
+                fixedTimeFrameRate = fixedTimeFrameRate,
+                iOSDeploymentTarget = iOSDeploymentTarget,
+                landscapeOrientation = landscapeOrientation,
+                layers = layers.Select(x => x).ToList(),
+                multiThreadedRenderer = multiThreadedRenderer,
+                portraitOrientation = portraitOrientation,
+                renderers = newRenderers,
+                runInBackground = runInBackground,
+                sortingLayers = sortingLayers.Select(x => x).ToList(),
+            };
         }
     }
 

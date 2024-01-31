@@ -14,6 +14,31 @@ namespace Staple
             types.Clear();
         }
 
+        public static Type[] AllTypesSubclassingOrImplementing<
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+            T>()
+        {
+            return AllTypesSubclassingOrImplementing(typeof(T));
+        }
+
+        public static Type[] AllTypesSubclassingOrImplementing(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+            Type type)
+        {
+            var outValue = new List<Type>();
+
+            foreach(var pair in types)
+            {
+                if(pair.Value.IsInterface == false &&
+                    type.IsAssignableFrom(pair.Value))
+                {
+                    outValue.Add(pair.Value);
+                }
+            }
+
+            return outValue.ToArray();
+        }
+
         [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         public static Type GetType(string name)
         {

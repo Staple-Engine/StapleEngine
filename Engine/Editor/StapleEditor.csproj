@@ -60,8 +60,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\MenuItemAttribute.cs" />
+    <Compile Include="Backends\AndroidBuildProcessor.cs" />
+    <Compile Include="Backends\BuildInfo.cs" />
+    <Compile Include="Backends\IBuildPostprocessor.cs" />
+    <Compile Include="Backends\IBuildPreprocessor.cs" />
+    <Compile Include="Backends\MacOSBuildProcessor.cs" />
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />
+    <Compile Include="Backends\WindowsBuildProcessor.cs" />
     <Compile Include="CSProjManager.cs" />
     <Compile Include="Editors\Assets\TileMapAssetEditor.cs" />
     <Compile Include="Editors\Default\AudioClipEditor.cs" />
