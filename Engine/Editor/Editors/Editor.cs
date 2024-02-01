@@ -460,6 +460,13 @@ namespace Staple.Editor
 
                         break;
                 }
+
+                var tooltip = field.GetCustomAttribute<TooltipAttribute>();
+
+                if(tooltip != null && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(tooltip.caption);
+                }
             }
         }
 

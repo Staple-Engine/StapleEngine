@@ -89,6 +89,7 @@
     <Compile Include="Editors\GizmoEditor.cs" />
     <Compile Include="EditorUtils.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
+    <Compile Include="ProjectBrowser\ProjectBrowserDropType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNodeAction.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />

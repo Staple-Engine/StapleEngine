@@ -93,6 +93,7 @@
 	<ItemGroup>
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
+		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
 		<Compile Include="Audio\AudioSource.cs" />

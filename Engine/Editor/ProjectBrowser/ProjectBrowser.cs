@@ -35,6 +35,8 @@ namespace Staple.Editor
 
         public string basePath;
 
+        public static ProjectBrowserDropType dropType = ProjectBrowserDropType.None;
+
         internal List<ProjectBrowserNode> projectBrowserNodes = new();
 
         public ProjectBrowserNode currentContentNode;
@@ -687,7 +689,8 @@ namespace Staple.Editor
                     }
                     else
                     {
-                        item = index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null;
+                        item = currentContentNode.type == ProjectBrowserNodeType.Folder ? (index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null) :
+                            currentContentNode;
                     }
 
                     if (item == null)
@@ -695,67 +698,81 @@ namespace Staple.Editor
                         return;
                     }
 
-                    if(item.typeName == typeof(Mesh).FullName)
+                    var cachePath = item.path;
+
+                    var cacheIndex = cachePath.IndexOf("Assets");
+
+                    cachePath = cachePath.Substring(cacheIndex + "Assets0".Length).Replace("\\", "/");
+
+                    var guid = AssetDatabase.GetAssetGuid(cachePath);
+
+                    if(guid == null)
                     {
-                        var asset = ResourceManager.instance.LoadMeshAsset(StapleEditor.instance.ProjectNodeCachePath(item.path));
-
-                        var targetEntity = StapleEditor.instance.dropTargetEntity;
-
-                        Transform parent = null;
-
-                        if(targetEntity != Entity.Empty)
-                        {
-                            parent = Scene.current.world.GetComponent<Transform>(targetEntity);
-                        }
-
-                        var baseEntity = Scene.current.world.CreateEntity();
-
-                        Scene.current.world.SetEntityName(baseEntity, item.name);
-
-                        var baseTransform = Scene.current.world.AddComponent<Transform>(baseEntity);
-
-                        baseTransform.entity = baseEntity;
-                        baseTransform.SetParent(parent);
-
-                        foreach(var mesh in asset.meshes)
-                        {
-                            var meshEntity = Scene.current.world.CreateEntity();
-
-                            Scene.current.world.SetEntityName(meshEntity, mesh.name);
-
-                            var meshTransform = Scene.current.world.AddComponent<Transform>(meshEntity);
-
-                            meshTransform.entity = meshEntity;
-                            meshTransform.SetParent(baseTransform);
-
-                            var meshRenderer = Scene.current.world.AddComponent<MeshRenderer>(meshEntity);
-
-                            var targetPath = StapleEditor.instance.ProjectNodeCachePath($"{Path.GetDirectoryName(item.path)}/{Path.GetFileNameWithoutExtension(item.path)} {mesh.materialIndex + 1}.mat");
-
-                            meshRenderer.material = ResourceManager.instance.LoadMaterial(targetPath);
-
-                            meshRenderer.mesh = new Mesh(true, false)
-                            {
-                                vertices = mesh.vertices.ToArray(),
-                                normals = mesh.normals.ToArray(),
-                                colors = mesh.colors.ToArray(),
-                                uv = mesh.UV1.ToArray(),
-                                uv2 = mesh.UV2.ToArray(),
-                                uv3 = mesh.UV3.ToArray(),
-                                uv4 = mesh.UV4.ToArray(),
-                                uv5 = mesh.UV5.ToArray(),
-                                uv6 = mesh.UV6.ToArray(),
-                                uv7 = mesh.UV7.ToArray(),
-                                uv8 = mesh.UV8.ToArray(),
-                                tangents = mesh.tangents.ToArray(),
-                                bitangents = mesh.bitangents.ToArray(),
-                                indices = mesh.indices.ToArray(),
-                                meshTopology = mesh.topology,
-                                indexFormat = MeshIndexFormat.UInt32,
-                                changed = true,
-                            };
-                        }
+                        return;
                     }
+
+                    switch(dropType)
+                    {
+                        case ProjectBrowserDropType.Asset:
+
+                            if (item.typeName == typeof(Mesh).FullName)
+                            {
+                                var asset = ResourceManager.instance.LoadMeshAsset(guid);
+
+                                var targetEntity = StapleEditor.instance.dropTargetEntity;
+
+                                Transform parent = null;
+
+                                if (targetEntity != Entity.Empty)
+                                {
+                                    parent = Scene.current.world.GetComponent<Transform>(targetEntity);
+                                }
+
+                                var baseEntity = Scene.current.world.CreateEntity();
+
+                                Scene.current.world.SetEntityName(baseEntity, item.name);
+
+                                var baseTransform = Scene.current.world.AddComponent<Transform>(baseEntity);
+
+                                baseTransform.entity = baseEntity;
+                                baseTransform.SetParent(parent);
+
+                                var meshIndex = 0;
+
+                                foreach (var mesh in asset.meshes)
+                                {
+                                    var meshEntity = Scene.current.world.CreateEntity();
+
+                                    Scene.current.world.SetEntityName(meshEntity, mesh.name);
+
+                                    var meshTransform = Scene.current.world.AddComponent<Transform>(meshEntity);
+
+                                    meshTransform.entity = meshEntity;
+                                    meshTransform.SetParent(baseTransform);
+
+                                    var meshRenderer = Scene.current.world.AddComponent<MeshRenderer>(meshEntity);
+
+                                    var targetPath = StapleEditor.instance.ProjectNodeCachePath($"{Path.GetDirectoryName(item.path)}/{Path.GetFileNameWithoutExtension(item.path)} {mesh.materialIndex + 1}.mat");
+
+                                    meshRenderer.material = ResourceManager.instance.LoadMaterial(targetPath);
+
+                                    meshRenderer.mesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
+                                }
+                            }
+
+                            break;
+
+                        case ProjectBrowserDropType.SceneList:
+
+                            if(BuildWindow.instance.TryGetTarget(out var buildWindow))
+                            {
+                                buildWindow.AddScene(guid);
+                            }
+
+                            break;
+                    }
+
+                    dropType = ProjectBrowserDropType.None;
                 });
 
             var result = ImGui.IsWindowHovered();

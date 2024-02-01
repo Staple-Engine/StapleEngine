@@ -552,7 +552,6 @@ namespace Staple.Internal
         public Scene LoadScene(string name)
         {
             var guid = AssetDatabase.GetAssetGuid(name) ??
-                AssetDatabase.GetAssetGuid(Path.Combine("Scenes", $"{name}.stsc")) ??
                 name;
 
             var assetType = AssetDatabase.GetAssetType(guid);
@@ -578,8 +577,9 @@ namespace Staple.Internal
         /// Attempts to load a shader from a path
         /// </summary>
         /// <param name="path">The path to load</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The shader, or null</returns>
-        public Shader LoadShader(string path)
+        public Shader LoadShader(string path, bool ignoreCache = false)
         {
             var prefix = ShaderPrefix;
             var guid = path;
@@ -591,7 +591,10 @@ namespace Staple.Internal
 
             guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
-            if (cachedShaders.TryGetValue(path, out var shader) && shader != null && shader.Disposed == false)
+            if (ignoreCache == false &&
+                cachedShaders.TryGetValue(path, out var shader) &&
+                shader != null &&
+                shader.Disposed == false)
             {
                 return shader;
             }
@@ -660,7 +663,10 @@ namespace Staple.Internal
                 {
                     shader.Guid = guid;
 
-                    cachedShaders.AddOrSetKey(path, shader);
+                    if(ignoreCache == false)
+                    {
+                        cachedShaders.AddOrSetKey(path, shader);
+                    }
                 }
 
                 return shader;
@@ -677,10 +683,14 @@ namespace Staple.Internal
         /// Attempts to load a material from a path
         /// </summary>
         /// <param name="path">The path to load</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The material, or null</returns>
-        public Material LoadMaterial(string path)
+        public Material LoadMaterial(string path, bool ignoreCache = false)
         {
-            if(cachedMaterials.TryGetValue(path, out var material) && material != null && material.Disposed == false)
+            if(ignoreCache == false &&
+                cachedMaterials.TryGetValue(path, out var material) &&
+                material != null &&
+                material.Disposed == false)
             {
                 return material;
             }
@@ -816,7 +826,10 @@ namespace Staple.Internal
                     }
                 }
 
-                cachedMaterials.AddOrSetKey(path, material);
+                if(ignoreCache == false)
+                {
+                    cachedMaterials.AddOrSetKey(path, material);
+                }
 
                 return material;
             }
@@ -834,10 +847,14 @@ namespace Staple.Internal
         /// <param name="path">The path to load</param>
         /// <param name="flags">Any additional texture flags</param>
         /// <param name="skip">Skip top level mips</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The texture, or null</returns>
-        public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0)
+        public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0, bool ignoreCache = false)
         {
-            if(cachedTextures.TryGetValue(path, out var texture) && texture != null && texture.Disposed == false)
+            if(ignoreCache == false &&
+                cachedTextures.TryGetValue(path, out var texture) &&
+                texture != null &&
+                texture.Disposed == false)
             {
                 return texture;
             }
@@ -888,7 +905,10 @@ namespace Staple.Internal
                     return null;
                 }
 
-                cachedTextures.AddOrSetKey(path, texture);
+                if(ignoreCache == false)
+                {
+                    cachedTextures.AddOrSetKey(path, texture);
+                }
 
                 return texture;
             }
@@ -904,10 +924,13 @@ namespace Staple.Internal
         /// Attempts to load an audio clip from a path
         /// </summary>
         /// <param name="path">The path to load</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The audio clip, or null</returns>
-        public AudioClip LoadAudioClip(string path)
+        public AudioClip LoadAudioClip(string path, bool ignoreCache = false)
         {
-            if (cachedAudioClips.TryGetValue(path, out var audioClip) && audioClip != null)
+            if (ignoreCache == false &&
+                cachedAudioClips.TryGetValue(path, out var audioClip) &&
+                audioClip != null)
             {
                 return audioClip;
             }
@@ -955,7 +978,10 @@ namespace Staple.Internal
                     Guid = path,
                 };
 
-                cachedAudioClips.AddOrSetKey(path, audioClip);
+                if(ignoreCache == false)
+                {
+                    cachedAudioClips.AddOrSetKey(path, audioClip);
+                }
 
                 return audioClip;
             }
@@ -970,67 +996,83 @@ namespace Staple.Internal
         /// <summary>
         /// Attempts to load a mesh from a path
         /// </summary>
-        /// <param name="path">The path to the mesh file</param>
+        /// <param name="guid">The guid to the mesh file. This guid can have a special terminator to indicate the mesh index (guid:index)</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The mesh, or null</returns>
-        public Mesh LoadMesh(string path)
+        public Mesh LoadMesh(string guid, bool ignoreCache = false)
         {
-            if(path.StartsWith("Internal/", StringComparison.InvariantCulture))
+            if(guid.StartsWith("Internal/", StringComparison.InvariantCulture))
             {
-                return Mesh.GetDefaultMesh(path);
+                return Mesh.GetDefaultMesh(guid);
             }
 
-            var guid = AssetDatabase.GetAssetGuid(path);
+            var original = guid;
 
-            path = guid ?? path;
+            var index = 0;
 
-            if (cachedMeshes.TryGetValue(path, out var mesh) && mesh != null)
+            if(guid.Contains(':'))
+            {
+                var split = guid.Split(':');
+
+                if(split.Length != 2 || int.TryParse(split[1], out index) == false || index < 0)
+                {
+                    return null;
+                }
+
+                guid = split[0];
+            }
+
+            if (ignoreCache == false &&
+                cachedMeshes.TryGetValue(original, out var mesh) &&
+                mesh != null)
             {
                 return mesh;
             }
 
-            var asset = LoadMeshAsset(path);
+            var asset = LoadMeshAsset(guid);
 
-            if(asset == null || asset.meshes.Count == 0)
+            if(asset == null ||
+                asset.meshes.Count == 0 ||
+                index >= asset.meshes.Count)
             {
                 return null;
             }
 
+            var m = asset.meshes[index];
+
             mesh = new Mesh(true, false)
             {
-                Guid = path
+                Guid = original,
+                vertices = m.vertices.ToArray(),
+                normals = m.normals.ToArray(),
+                tangents = m.tangents.ToArray(),
+                bitangents = m.bitangents.ToArray(),
+
+                uv = m.UV1.ToArray(),
+                uv2 = m.UV2.ToArray(),
+                uv3 = m.UV3.ToArray(),
+                uv4 = m.UV4.ToArray(),
+                uv5 = m.UV5.ToArray(),
+                uv6 = m.UV6.ToArray(),
+                uv7 = m.UV7.ToArray(),
+                uv8 = m.UV8.ToArray(),
+
+                indices = m.indices.ToArray(),
+                meshTopology = m.topology,
+                indexFormat = MeshIndexFormat.UInt32
             };
 
-            if (asset.meshes.Count == 1)
+            if (m.colors.Count > 0)
             {
-                var m = asset.meshes.FirstOrDefault();
-
-                mesh.vertices = m.vertices.ToArray();
-                mesh.normals = m.normals.ToArray();
-                mesh.tangents = m.tangents.ToArray();
-                mesh.bitangents = m.bitangents.ToArray();
-
-                mesh.uv = m.UV1.ToArray();
-                mesh.uv2 = m.UV2.ToArray();
-                mesh.uv3 = m.UV3.ToArray();
-                mesh.uv4 = m.UV4.ToArray();
-                mesh.uv5 = m.UV5.ToArray();
-                mesh.uv6 = m.UV6.ToArray();
-                mesh.uv7 = m.UV7.ToArray();
-                mesh.uv8 = m.UV8.ToArray();
-
-                mesh.indices = m.indices.ToArray();
-                mesh.meshTopology = m.topology;
-                mesh.indexFormat = MeshIndexFormat.UInt32;
-
-                if(m.colors.Count > 0)
-                {
-                    mesh.colors = m.colors.ToArray();
-                }
-
-                mesh.changed = true;
+                mesh.colors = m.colors.ToArray();
             }
 
-            cachedMeshes.AddOrSetKey(path, mesh);
+            mesh.changed = true;
+
+            if(ignoreCache == false)
+            {
+                cachedMeshes.AddOrSetKey(original, mesh);
+            }
 
             return mesh;
         }
@@ -1039,14 +1081,17 @@ namespace Staple.Internal
         /// Attempts to load a mesh asset from a path
         /// </summary>
         /// <param name="path">The path to the mesh asset file</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The mesh asset, or null</returns>
-        public MeshAsset LoadMeshAsset(string path)
+        public MeshAsset LoadMeshAsset(string path, bool ignoreCache = false)
         {
             var guid = AssetDatabase.GetAssetGuid(path);
 
             path = guid ?? path;
 
-            if (cachedMeshAssets.TryGetValue(path, out var mesh) && mesh != null)
+            if (ignoreCache == false &&
+                cachedMeshAssets.TryGetValue(path, out var mesh) &&
+                mesh != null)
             {
                 return mesh;
             }
@@ -1121,7 +1166,10 @@ namespace Staple.Internal
                     asset.meshes.Add(newMesh);
                 }
 
-                cachedMeshAssets.AddOrSetKey(path, asset);
+                if(ignoreCache == false)
+                {
+                    cachedMeshAssets.AddOrSetKey(path, asset);
+                }
 
                 return asset;
             }
@@ -1138,14 +1186,15 @@ namespace Staple.Internal
         /// </summary>
         /// <typeparam name="T">The asset type, which must implement IStapleAsset</typeparam>
         /// <param name="path">The path to load from</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The asset, or null</returns>
-        public T LoadAsset<T>(string path) where T: IStapleAsset
+        public T LoadAsset<T>(string path, bool ignoreCache = false) where T: IStapleAsset
         {
             var guid = AssetDatabase.GetAssetGuid(path);
 
             path = guid ?? path;
 
-            object value = LoadAsset(path);
+            object value = LoadAsset(path, ignoreCache);
 
             if(value == null)
             {
@@ -1166,14 +1215,17 @@ namespace Staple.Internal
         /// Attempts to load an asset of a specific type from a path
         /// </summary>
         /// <param name="path">The path to load from</param>
+        /// <param name="ignoreCache">Whether to ignore the cache</param>
         /// <returns>The asset, or null</returns>
-        public IStapleAsset LoadAsset(string path)
+        public IStapleAsset LoadAsset(string path, bool ignoreCache = false)
         {
             var guid = AssetDatabase.GetAssetGuid(path);
 
             path = guid ?? path;
 
-            if (cachedAssets.TryGetValue(path, out var asset) && asset != null)
+            if (ignoreCache == false &&
+                cachedAssets.TryGetValue(path, out var asset) &&
+                asset != null)
             {
                 return asset;
             }
@@ -1218,7 +1270,10 @@ namespace Staple.Internal
                         guidAsset.Guid = guid;
                     }
 
-                    cachedAssets.AddOrSetKey(path, asset);
+                    if(ignoreCache == false)
+                    {
+                        cachedAssets.AddOrSetKey(path, asset);
+                    }
                 }
 
                 return asset;

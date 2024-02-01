@@ -217,7 +217,7 @@ namespace Staple.Editor
             return new Color(v.X, v.Y, v.Z, v.W);
         }
 
-        public static object ObjectPicker(System.Type type, string name, object current)
+        public static object ObjectPicker(Type type, string name, object current)
         {
             ImGui.Text(name);
 

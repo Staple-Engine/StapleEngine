@@ -117,9 +117,16 @@ namespace Baker
                     Assimp.PostProcessSteps.CalculateTangentSpace |
                     Assimp.PostProcessSteps.GenerateBoundingBoxes;
 
+                if(metadata.convertUnits)
+                {
+                    flags |= Assimp.PostProcessSteps.GlobalScale;
+                }
+
                 if(metadata.makeLeftHanded)
                 {
-                    flags |= Assimp.PostProcessSteps.MakeLeftHanded;
+                    flags |= Assimp.PostProcessSteps.MakeLeftHanded |
+                        Assimp.PostProcessSteps.FlipUVs |
+                        Assimp.PostProcessSteps.FlipWindingOrder;
                 }
 
                 if(metadata.flipUVs)

@@ -1,7 +1,9 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
 using NfdSharp;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Staple.Editor
@@ -10,14 +12,117 @@ namespace Staple.Editor
     {
         public string basePath;
 
+        public static WeakReference<BuildWindow> instance;
+
+        internal List<string> scenes = new();
+
+        private bool needsLoadScenes = true;
+
         public BuildWindow()
         {
+            instance = new WeakReference<BuildWindow>(this);
+
             allowDocking = false;
+        }
+
+        public void AddScene(string guid)
+        {
+            if (scenes.Contains(guid))
+            {
+                return;
+            }
+
+            scenes.Add(guid);
+
+            UpdateSceneList();
+        }
+
+        public void UpdateSceneList()
+        {
+            for (var i = scenes.Count - 1; i >= 0; i--)
+            {
+                if (AssetDatabase.GetAssetName(scenes[i]) == null)
+                {
+                    scenes.RemoveAt(i);
+                }
+            }
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(scenes);
+
+                File.WriteAllText(Path.Combine(basePath, "Settings", "SceneList.json"), json);
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         public override void OnGUI()
         {
             base.OnGUI();
+
+            if(needsLoadScenes)
+            {
+                needsLoadScenes = false;
+
+                try
+                {
+                    var json = File.ReadAllText(Path.Combine(basePath, "Settings", "SceneList.json"));
+
+                    scenes = JsonConvert.DeserializeObject<List<string>>(json);
+                }
+                catch (Exception)
+                {
+                }
+
+                UpdateSceneList();
+            }
+
+            if (scenes != null)
+            {
+                if(ImGui.BeginListBox("Scenes"))
+                {
+                    foreach(var guid in scenes)
+                    {
+                        var assetName = AssetDatabase.GetAssetName(guid);
+
+                        ImGui.Text(assetName ?? guid);
+
+                        ImGui.SameLine();
+
+                        if(ImGui.SmallButton("-"))
+                        {
+                            scenes.Remove(guid);
+
+                            break;
+                        }
+                    }
+
+                    ImGui.EndListBox();
+
+                    if (ImGui.BeginDragDropTarget())
+                    {
+                        var payload = ImGui.AcceptDragDropPayload("ASSET");
+
+                        unsafe
+                        {
+                            if (payload.NativePtr != null && StapleEditor.instance.dragDropPayloads.TryGetValue("ASSET", out var p))
+                            {
+                                ProjectBrowser.dropType = ProjectBrowserDropType.SceneList;
+
+                                p.action(p.index, p.item);
+
+                                StapleEditor.instance.dragDropPayloads.Clear();
+                                StapleEditor.instance.dropTargetEntity = Entity.Empty;
+                            }
+                        }
+
+                        ImGui.EndDragDropTarget();
+                    }
+                }
+            }
 
             var current = Array.IndexOf(PlayerBackendManager.BackendNames, StapleEditor.instance.buildBackend);
 

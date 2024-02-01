@@ -1525,7 +1525,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(10);
+            writer.WriteArrayHeader(11);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
@@ -1536,6 +1536,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.splitByBoneCount);
             writer.Write(value.debone);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
+            writer.Write(value.convertUnits);
         }
 
         public global::Staple.Internal.MeshAssetMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1583,6 +1584,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 9:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 10:
+                        ____result.convertUnits = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

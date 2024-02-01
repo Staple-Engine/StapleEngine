@@ -284,6 +284,8 @@ namespace Staple.Editor
                             {
                                 if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
                                 {
+                                    Staple.Editor.ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
+
                                     p.action(p.index, p.item);
 
                                     dragDropPayloads.Clear();
@@ -440,6 +442,8 @@ namespace Staple.Editor
                 {
                     if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
                     {
+                        Staple.Editor.ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
+
                         p.action(p.index, p.item);
 
                         dragDropPayloads.Clear();

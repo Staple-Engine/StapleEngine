@@ -58,6 +58,9 @@ namespace Staple.Internal
         [Key(9)]
         public string typeName = typeof(Mesh).FullName;
 
+        [Key(10)]
+        public bool convertUnits = true;
+
         public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
         {
             return lhs.guid == rhs.guid &&
@@ -69,7 +72,8 @@ namespace Staple.Internal
                 lhs.flipWindingOrder == rhs.flipWindingOrder &&
                 lhs.splitByBoneCount == rhs.splitByBoneCount &&
                 lhs.debone == rhs.debone &&
-                lhs.typeName == rhs.typeName;
+                lhs.typeName == rhs.typeName &&
+                lhs.convertUnits == rhs.convertUnits;
         }
 
         public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -83,7 +87,8 @@ namespace Staple.Internal
                 lhs.flipWindingOrder != rhs.flipWindingOrder ||
                 lhs.splitByBoneCount != rhs.splitByBoneCount ||
                 lhs.debone != rhs.debone ||
-                lhs.typeName != rhs.typeName;
+                lhs.typeName != rhs.typeName ||
+                lhs.convertUnits != rhs.convertUnits;
         }
 
         public override bool Equals(object obj)
