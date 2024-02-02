@@ -155,6 +155,7 @@
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
 		<Compile Include="Player\Android\StapleActivity.cs" />
+		<Compile Include="Player\iOS\StapleViewController.cs" />
 		<Compile Include="Rendering\Sprites\SpriteAnimation.cs" />
 		<Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
@@ -218,7 +219,9 @@
 		<Compile Include="Rendering\Text\TextFont.cs" />
 		<Compile Include="Rendering\Text\TextParameters.cs" />
 		<Compile Include="Rendering\Windowing\Impls\AndroidRenderWindow.cs" />
+		<Compile Include="Rendering\Windowing\Impls\iOSRenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\Impls\GLFWRenderWindow.cs" />
+		<Compile Include="Rendering\Windowing\Impls\MetalView.cs" />
 		<Compile Include="Rendering\Windowing\IRenderWindow.cs" />
 		<Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
 		<Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
@@ -288,12 +291,12 @@
 		<Compile Include="Rendering\VertexBuffer.cs" />
 		<Compile Include="Rendering\VertexLayout.cs" />
 		<Compile Include="Rendering\VertexLayoutBuilder.cs" />
-		<Compile Include="Serialization\Material\MaterialMetadata.cs" />
 		<Compile Include="Resources\ResourceManager.cs" />
+		<Compile Include="Serialization\Material\MaterialMetadata.cs" />
 		<Compile Include="Serialization\Material\SerializableMaterial.cs" />
 		<Compile Include="Serialization\Shader\SerializableShader.cs" />
-		<Compile Include="Serialization\Texture\SerializableTexture.cs" />
 		<Compile Include="Serialization\Shader\ShaderMetadata.cs" />
+		<Compile Include="Serialization\Texture\SerializableTexture.cs" />
 		<Compile Include="Serialization\Texture\TextureMetadata.cs" />
 		<Compile Include="Scene\Scene.cs" />
 		<Compile Include="Scene\SceneList.cs" />

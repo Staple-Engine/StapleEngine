@@ -26,6 +26,8 @@ namespace Staple
 
 #if ANDROID
                 basePath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+#elif IOS
+                basePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 #else
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {

@@ -64,6 +64,7 @@
     <Compile Include="Backends\BuildInfo.cs" />
     <Compile Include="Backends\IBuildPostprocessor.cs" />
     <Compile Include="Backends\IBuildPreprocessor.cs" />
+    <Compile Include="Backends\iOSBuildProcessor.cs" />
     <Compile Include="Backends\MacOSBuildProcessor.cs" />
     <Compile Include="Backends\PlayerBackend.cs" />
     <Compile Include="Backends\PlayerBackendManager.cs" />

@@ -476,10 +476,11 @@ namespace Staple.Editor
 
                 case AppPlatform.iOS:
 
-                    p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.iOSDeploymentTarget.ToString());
+                    p.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
                     p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
                     p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                    p.SetProperty("RuntimeIdentifiers", "ios-arm64");
 
                     break;
             }
@@ -535,6 +536,49 @@ namespace Staple.Editor
                         var activityPath = Path.Combine(projectDirectory, "PlayerActivity.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(activityPath));
+                    }
+
+                    break;
+
+                case AppPlatform.iOS:
+
+                    {
+                        var itemGroup = p.Xml.AddItemGroup();
+
+                        itemGroup.AddItem("BundleResource", "DefaultResources.pak");
+                        itemGroup.AddItem("BundleResource", "Resources.pak");
+
+                        try
+                        {
+                            var redistFiles = Directory.EnumerateFileSystemEntries(Path.Combine(backend.basePath, "Redist", debug ? "Debug" : "Release"));
+
+                            foreach(var file in redistFiles)
+                            {
+                                if(File.GetAttributes(file).HasFlag(FileAttributes.Directory))
+                                {
+                                    var item = itemGroup.AddItem("NativeReference", file);
+
+                                    item.AddMetadata("Kind", "Framework");
+                                }
+                                else
+                                {
+                                    itemGroup.AddItem("BundleResource", Path.GetFileName(file));
+
+                                    File.Copy(file, Path.Combine(projectDirectory, Path.GetFileName(file)), true);
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        var appDelegatePath = Path.Combine(projectDirectory, "AppDelegate.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(appDelegatePath));
+
+                        var mainPath = Path.Combine(projectDirectory, "Main.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(mainPath));
                     }
 
                     break;
