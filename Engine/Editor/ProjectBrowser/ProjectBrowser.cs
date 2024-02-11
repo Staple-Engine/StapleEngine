@@ -680,6 +680,11 @@ namespace Staple.Editor
                 },
                 (index, _) =>
                 {
+                    if(Scene.current == null)
+                    {
+                        return;
+                    }
+
                     ProjectBrowserNode item = null;
 
                     if (currentContentNode == null)

@@ -134,7 +134,7 @@ namespace Baker
                     flags |= Assimp.PostProcessSteps.FlipUVs;
                 }
 
-                if (metadata.flipWindingOrder || metadata.rotate90Degrees)
+                if (metadata.flipWindingOrder || metadata.rotation != MeshAssetRotation.None)
                 {
                     flags |= Assimp.PostProcessSteps.FlipWindingOrder;
                 }
@@ -361,11 +361,17 @@ namespace Baker
                     Console.WriteLine($"\t\tGenerated material {target}");
                 }
 
-                var transformMatrix = metadata.rotate90Degrees ? Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)) : Matrix4x4.Identity;
-
-                Vector3Holder TransformByMatrix(Vector3Holder value)
+                var transformMatrix = metadata.rotation switch
                 {
-                    return new Vector3Holder(Vector3.Transform(new Vector3(value.x, value.y, value.z), transformMatrix));
+                    MeshAssetRotation.None => Matrix4x4.Identity,
+                    MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)),
+                    MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(-90)),
+                    _ => Matrix4x4.Identity
+                };
+
+                Vector3Holder ApplyTransform(Vector3Holder value)
+                {
+                    return new Vector3Holder(Vector3.Transform(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale), transformMatrix));
                 }
 
                 foreach (var mesh in scene.Meshes)
@@ -380,14 +386,8 @@ namespace Baker
 
                     var size = (mesh.BoundingBox.Max - mesh.BoundingBox.Min);
 
-                    m.boundsCenter = new Vector3Holder(new Vector3(center.X, center.Y, center.Z));
-                    m.boundsExtents = new Vector3Holder(new Vector3(size.X, size.Y, size.Z));
-
-                    if(metadata.rotate90Degrees)
-                    {
-                        m.boundsCenter = TransformByMatrix(m.boundsCenter);
-                        m.boundsExtents = TransformByMatrix(m.boundsExtents);
-                    }
+                    m.boundsCenter = ApplyTransform(new Vector3Holder(new Vector3(center.X, center.Y, center.Z)));
+                    m.boundsExtents = ApplyTransform(new Vector3Holder(new Vector3(size.X, size.Y, size.Z)));
 
                     switch (mesh.PrimitiveType)
                     {
@@ -414,10 +414,10 @@ namespace Baker
                             continue;
                     }
 
-                    m.vertices = mesh.Vertices.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.normals = mesh.Normals.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.tangents = mesh.Tangents.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.bitangents = mesh.BiTangents.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.vertices = mesh.Vertices.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.normals = mesh.Normals.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.tangents = mesh.Tangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.bitangents = mesh.BiTangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
                     m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
 
                     var uvs = new List<Vector2Holder>[8]

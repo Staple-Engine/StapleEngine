@@ -5,6 +5,13 @@ using System.Linq;
 
 namespace Staple.Internal
 {
+    public enum MeshAssetRotation
+    {
+        None,
+        NinetyPositive,
+        NinetyNegative,
+    }
+
     [MessagePackObject]
     public class SerializableMeshAssetHeader
     {
@@ -62,7 +69,10 @@ namespace Staple.Internal
         public bool convertUnits = true;
 
         [Key(11)]
-        public bool rotate90Degrees = true;
+        public MeshAssetRotation rotation = MeshAssetRotation.None;
+
+        [Key(12)]
+        public float scale = 1.0f;
 
         public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
         {
@@ -77,7 +87,8 @@ namespace Staple.Internal
                 lhs.debone == rhs.debone &&
                 lhs.typeName == rhs.typeName &&
                 lhs.convertUnits == rhs.convertUnits &&
-                lhs.rotate90Degrees == rhs.rotate90Degrees;
+                lhs.rotation == rhs.rotation &&
+                lhs.scale == rhs.scale;
         }
 
         public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -93,7 +104,8 @@ namespace Staple.Internal
                 lhs.debone != rhs.debone ||
                 lhs.typeName != rhs.typeName ||
                 lhs.convertUnits != rhs.convertUnits ||
-                lhs.rotate90Degrees != rhs.rotate90Degrees;
+                lhs.rotation != rhs.rotation ||
+                lhs.scale != rhs.scale;
         }
 
         public override bool Equals(object obj)

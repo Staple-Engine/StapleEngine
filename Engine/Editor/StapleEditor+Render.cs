@@ -73,6 +73,7 @@ namespace Staple.Editor
                     });
                 }
 
+                /*
                 Scene.current.world.Iterate((entity) =>
                 {
                     var transform = Scene.current.world.GetComponent<Transform>(entity);
@@ -93,6 +94,7 @@ namespace Staple.Editor
 
                     MeshRenderSystem.DrawMesh(Mesh.Quad, transform.Position, Quaternion.Identity, Vector3.One, componentIconMaterial, WireframeView);
                 });
+                */
             }
 
             foreach (var system in renderSystem.renderSystems)
