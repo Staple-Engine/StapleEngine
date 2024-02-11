@@ -215,6 +215,8 @@ namespace Staple.Editor
 
         private LastProjectInfo lastProjects = new();
 
+        private FileSystemWatcher fileSystemWatcher;
+
         internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
 
         private static WeakReference<StapleEditor> privInstance;
@@ -691,7 +693,7 @@ namespace Staple.Editor
                     }
                 }
 
-                if(needsGameRecompile)
+                if(needsGameRecompile && window.HasFocus)
                 {
                     needsGameRecompile = false;
 

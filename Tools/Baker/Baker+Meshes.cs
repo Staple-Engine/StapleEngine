@@ -16,8 +16,6 @@ namespace Baker
     {
         private static void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
         {
-            using var context = new Assimp.AssimpContext();
-
             var meshFiles = new List<string>();
 
             foreach (var extension in AssetSerialization.MeshExtensions)
@@ -101,6 +99,8 @@ namespace Baker
                     continue;
                 }
 
+                using var context = new Assimp.AssimpContext();
+
                 var flags = Assimp.PostProcessSteps.TransformUVCoords |
                     Assimp.PostProcessSteps.GenerateNormals |
                     Assimp.PostProcessSteps.GenerateUVCoords |
@@ -134,7 +134,7 @@ namespace Baker
                     flags |= Assimp.PostProcessSteps.FlipUVs;
                 }
 
-                if (metadata.flipWindingOrder)
+                if (metadata.flipWindingOrder || metadata.rotate90Degrees)
                 {
                     flags |= Assimp.PostProcessSteps.FlipWindingOrder;
                 }
@@ -187,9 +187,17 @@ namespace Baker
 
                 foreach(var material in scene.Materials)
                 {
-                    var fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
+                    string fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
 
-                    fileName += $" {++counter}.mat";
+                    //TODO: handle refs in-project
+                    if(material.HasName && false)
+                    {
+                        fileName = $"{material.Name}.mat";
+                    }
+                    else
+                    {
+                        fileName += $" {++counter}.mat";
+                    }
 
                     var target = Path.Combine(Path.GetDirectoryName(meshFiles[i]), fileName);
 
@@ -244,10 +252,53 @@ namespace Baker
                     {
                         if (has)
                         {
+                            var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
+                            var texturePath = slot.FilePath;
+
+                            while(pieces.Count > 0)
+                            {
+                                try
+                                {
+                                    var p = Path.Combine(Path.GetDirectoryName(meshFiles[i]), string.Join("/", pieces)).Replace("\\", "/");
+
+                                    if (File.Exists(p))
+                                    {
+                                        texturePath = string.Join("/", pieces);
+
+                                        if(processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                        {
+                                            texturePath = guid;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+
+                                            texturePath = "";
+                                        }
+
+                                        break;
+                                    }
+                                }
+                                catch(Exception)
+                                {
+                                }
+
+                                pieces.RemoveAt(0);
+                            }
+
+                            if(pieces.Count == 0)
+                            {
+                                Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
+
+                                texturePath = "";
+                            }
+
+                            //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
+
                             materialMetadata.parameters.Add(name, new MaterialParameter()
                             {
                                 type = MaterialParameterType.Texture,
-                                textureValue = Path.Combine(basePath, slot.FilePath).Replace("\\", "/"),
+                                textureValue = texturePath,
                             });
                         }
                     }
@@ -310,6 +361,13 @@ namespace Baker
                     Console.WriteLine($"\t\tGenerated material {target}");
                 }
 
+                var transformMatrix = metadata.rotate90Degrees ? Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)) : Matrix4x4.Identity;
+
+                Vector3Holder TransformByMatrix(Vector3Holder value)
+                {
+                    return new Vector3Holder(Vector3.Transform(new Vector3(value.x, value.y, value.z), transformMatrix));
+                }
+
                 foreach (var mesh in scene.Meshes)
                 {
                     var m = new MeshAssetMeshInfo
@@ -325,7 +383,13 @@ namespace Baker
                     m.boundsCenter = new Vector3Holder(new Vector3(center.X, center.Y, center.Z));
                     m.boundsExtents = new Vector3Holder(new Vector3(size.X, size.Y, size.Z));
 
-                    switch(mesh.PrimitiveType)
+                    if(metadata.rotate90Degrees)
+                    {
+                        m.boundsCenter = TransformByMatrix(m.boundsCenter);
+                        m.boundsExtents = TransformByMatrix(m.boundsExtents);
+                    }
+
+                    switch (mesh.PrimitiveType)
                     {
                         case Assimp.PrimitiveType.Triangle:
 
@@ -350,10 +414,10 @@ namespace Baker
                             continue;
                     }
 
-                    m.vertices = mesh.Vertices.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
-                    m.normals = mesh.Normals.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
-                    m.tangents = mesh.Tangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
-                    m.bitangents = mesh.BiTangents.Select(x => new Vector3Holder(new Vector3(x.X, x.Y, x.Z))).ToList();
+                    m.vertices = mesh.Vertices.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.normals = mesh.Normals.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.tangents = mesh.Tangents.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.bitangents = mesh.BiTangents.Select(x => TransformByMatrix(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
                     m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
 
                     var uvs = new List<Vector2Holder>[8]
@@ -373,10 +437,11 @@ namespace Baker
                     for (var j = 0; j < uvCount; j++)
                     {
                         uvs[j].AddRange(mesh.TextureCoordinateChannels[j].Select(x => new Vector2Holder()
-                        {
-                            x = x.X,
-                            y = x.Y,
-                        }).ToList());
+                            {
+                                x = x.X,
+                                y = x.Y,
+                            })
+                            .ToList());
                     }
 
                     meshData.meshes.Add(m);

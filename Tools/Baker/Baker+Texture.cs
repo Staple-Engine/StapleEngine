@@ -77,6 +77,8 @@ namespace Baker
                     outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
 
+                processedTextures.Add(textureFiles[i].Replace("\\", "/"), guid);
+
                 if (ShouldProcessFile(textureFiles[i], outputFile) == false &&
                     ShouldProcessFile(textureFiles[i].Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
                 {

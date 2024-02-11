@@ -123,6 +123,22 @@ namespace Staple.Editor
                 lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
             }
 
+            if(fileSystemWatcher != null)
+            {
+                fileSystemWatcher.Dispose();
+
+                fileSystemWatcher = null;
+            }
+
+            fileSystemWatcher = new FileSystemWatcher(Path.Combine(basePath, "Assets"));
+
+            fileSystemWatcher.Changed += (_, _) =>
+            {
+                needsGameRecompile = true;
+            };
+
+            fileSystemWatcher.EnableRaisingEvents = true;
+
             RefreshStaging(currentPlatform);
 
             if ((lastOpenScene?.Length ?? 0) > 0)
@@ -355,6 +371,7 @@ namespace Staple.Editor
                 }
 
                 AssetDatabase.Reload();
+                projectBrowser.UpdateProjectBrowserNodes();
             }
         }
 

@@ -64,6 +64,8 @@ namespace Baker
             return lastFromWrite > lastToWrite || assemblyLastWrite > lastToWrite;
         }
 
+        private static Dictionary<string, string> processedTextures = new();
+
         public static void Main(string[] args)
         {
             if (args.Length == 0)

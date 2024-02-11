@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System;
-using ImGuiNET;
 
 namespace Staple.Editor
 {

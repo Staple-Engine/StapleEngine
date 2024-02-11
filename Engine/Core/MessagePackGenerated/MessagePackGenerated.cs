@@ -1525,7 +1525,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(11);
+            writer.WriteArrayHeader(12);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
@@ -1537,6 +1537,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.debone);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
             writer.Write(value.convertUnits);
+            writer.Write(value.rotate90Degrees);
         }
 
         public global::Staple.Internal.MeshAssetMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1587,6 +1588,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 10:
                         ____result.convertUnits = reader.ReadBoolean();
+                        break;
+                    case 11:
+                        ____result.rotate90Degrees = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

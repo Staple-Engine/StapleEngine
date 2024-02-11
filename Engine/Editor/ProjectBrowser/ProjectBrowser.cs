@@ -677,7 +677,8 @@ namespace Staple.Editor
 
                         UpdateCurrentContentNodes(item.subnodes);
                     }
-                }, (index, _) =>
+                },
+                (index, _) =>
                 {
                     ProjectBrowserNode item = null;
 

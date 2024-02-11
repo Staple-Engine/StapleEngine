@@ -61,6 +61,9 @@ namespace Staple.Internal
         [Key(10)]
         public bool convertUnits = true;
 
+        [Key(11)]
+        public bool rotate90Degrees = true;
+
         public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
         {
             return lhs.guid == rhs.guid &&
@@ -73,7 +76,8 @@ namespace Staple.Internal
                 lhs.splitByBoneCount == rhs.splitByBoneCount &&
                 lhs.debone == rhs.debone &&
                 lhs.typeName == rhs.typeName &&
-                lhs.convertUnits == rhs.convertUnits;
+                lhs.convertUnits == rhs.convertUnits &&
+                lhs.rotate90Degrees == rhs.rotate90Degrees;
         }
 
         public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -88,7 +92,8 @@ namespace Staple.Internal
                 lhs.splitByBoneCount != rhs.splitByBoneCount ||
                 lhs.debone != rhs.debone ||
                 lhs.typeName != rhs.typeName ||
-                lhs.convertUnits != rhs.convertUnits;
+                lhs.convertUnits != rhs.convertUnits ||
+                lhs.rotate90Degrees != rhs.rotate90Degrees;
         }
 
         public override bool Equals(object obj)
