@@ -27,12 +27,16 @@ namespace Staple.Editor
             public bool persistentCache;
         }
 
+        private const float TimeBetweenRenders = 0.25f;
+
         private static readonly Dictionary<string, TextureInfo> cachedThumbnails = new();
         private static readonly Dictionary<string, Texture> cachedTextures = new();
         private static readonly List<Texture> pendingDestructionTextures = new();
         private static readonly Dictionary<string, RawTextureData> cachedTextureData = new();
         private static readonly Dictionary<string, Texture> persistentTextures = new();
         private static readonly Dictionary<string, RenderRequest> pendingRenderRequests = new();
+
+        private static float renderTimer = 0.0f;
 
         internal static string basePath;
 
@@ -197,8 +201,12 @@ namespace Staple.Editor
                 });
             }
 
-            if(pendingRenderRequests.Count > 0)
+            renderTimer += Time.deltaTime;
+
+            if(renderTimer >= TimeBetweenRenders && pendingRenderRequests.Count > 0)
             {
+                renderTimer = 0;
+
                 var first = pendingRenderRequests.FirstOrDefault();
 
                 pendingRenderRequests.Remove(first.Key);

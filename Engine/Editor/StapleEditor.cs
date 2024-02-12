@@ -135,7 +135,7 @@ namespace Staple.Editor
 
         private const int TargetFramerate = 30;
 
-        private Color32 clearColor = new Color(0, 0, 0, 0);
+        private Color32 clearColor = new Color32("#7393B3");
 
         private ViewportType viewportType = ViewportType.Scene;
 
