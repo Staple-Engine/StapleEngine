@@ -758,9 +758,12 @@ namespace Staple.Internal
                     {
                         case MaterialParameterType.Texture:
 
-                            var texture = LoadTexture(parameter.Value.textureValue);
+                            if((parameter.Value.textureValue?.Length ?? 0) > 0)
+                            {
+                                var texture = LoadTexture(parameter.Value.textureValue);
 
-                            material.SetTexture(parameter.Key, texture);
+                                material.SetTexture(parameter.Key, texture);
+                            }
 
                             break;
 

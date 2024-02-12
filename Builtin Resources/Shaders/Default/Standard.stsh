@@ -185,9 +185,9 @@
 		"code": [
 			"void main()",
 			"{",
-			"   if(diffuseTextureSet > 0.0)",
+			"   if(diffuseTextureSet != 0.0)",
 			"   {",
-			"	   gl_FragColor = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;",
+			"      gl_FragColor = texture2D(diffuseTexture, v_texcoord0);",
 			"   }",
 			"   else",
 			"   {",

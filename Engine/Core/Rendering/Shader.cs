@@ -15,6 +15,7 @@ namespace Staple.Internal
             public ShaderUniform uniform;
             public bgfx.UniformHandle handle;
             public T value;
+            public byte stage;
 
             public bool Create()
             {
@@ -256,6 +257,11 @@ namespace Staple.Internal
 
                             if (u.Create())
                             {
+                                if(uniform.type == ShaderUniformType.Texture)
+                                {
+                                    u.stage = (byte)c.Count;
+                                }
+
                                 c.Add(u.uniform.name.GetHashCode(), u);
                             }
                         }
@@ -522,7 +528,7 @@ namespace Staple.Internal
 
             unsafe
             {
-                value.SetActive(0, uniform.handle);
+                value.SetActive(uniform.stage, uniform.handle);
             }
         }
 
