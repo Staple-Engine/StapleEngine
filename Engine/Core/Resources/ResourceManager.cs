@@ -1059,7 +1059,8 @@ namespace Staple.Internal
 
                 indices = m.indices.ToArray(),
                 meshTopology = m.topology,
-                indexFormat = MeshIndexFormat.UInt32
+                indexFormat = MeshIndexFormat.UInt32,
+                bounds = m.bounds,
             };
 
             if (m.colors.Count > 0)

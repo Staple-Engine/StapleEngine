@@ -244,7 +244,7 @@ namespace Staple.Editor
 
                         item.ensureValidTexture = (texture) =>
                         {
-                            if (texture?.Disposed ?? true)
+                            if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(node.path))
                             {
                                 return ThumbnailCache.GetThumbnail(node.path) ?? GetEditorResource("FileIcon");
                             }

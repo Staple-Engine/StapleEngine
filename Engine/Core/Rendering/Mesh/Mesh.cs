@@ -764,7 +764,10 @@ namespace Staple
                 vertexBuffer?.Destroy();
                 vertexBuffer = null;
             }
+        }
 
+        public void UpdateBounds()
+        {
             bounds = AABB.FromPoints(vertices);
         }
 

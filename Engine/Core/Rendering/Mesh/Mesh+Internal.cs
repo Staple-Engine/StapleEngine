@@ -81,6 +81,7 @@ namespace Staple
                     };
 
                     _quad.UploadMeshData();
+                    _quad.UpdateBounds();
 
                     _quad.guid = "Internal/Quad";
 
@@ -125,6 +126,7 @@ namespace Staple
                     _cube.UploadMeshData();
 
                     _cube.guid = "Internal/Cube";
+                    _cube.UpdateBounds();
 
                     defaultMeshes.Add(_cube.guid, _cube);
                 }
