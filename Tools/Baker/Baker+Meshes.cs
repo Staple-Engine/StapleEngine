@@ -250,10 +250,12 @@ namespace Baker
 
                     void AddTexture(string name, bool has, Assimp.TextureSlot slot)
                     {
+                        var texturePath = "";
+
                         if (has)
                         {
                             var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
-                            var texturePath = slot.FilePath;
+                            texturePath = slot.FilePath;
 
                             while(pieces.Count > 0)
                             {
@@ -294,13 +296,13 @@ namespace Baker
                             }
 
                             //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
-
-                            materialMetadata.parameters.Add(name, new MaterialParameter()
-                            {
-                                type = MaterialParameterType.Texture,
-                                textureValue = texturePath,
-                            });
                         }
+
+                        materialMetadata.parameters.Add(name, new MaterialParameter()
+                        {
+                            type = MaterialParameterType.Texture,
+                            textureValue = texturePath,
+                        });
                     }
 
                     AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);

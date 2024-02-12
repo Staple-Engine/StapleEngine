@@ -299,6 +299,15 @@ namespace Baker
                         };
                     }
 
+                    bool ShaderTypeHasEndTerminator(ShaderUniformType type)
+                    {
+                        return type switch
+                        {
+                            ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => false,
+                            _ => true,
+                        };
+                    }
+
                     string code;
 
                     switch (shader.type)
@@ -438,7 +447,14 @@ namespace Baker
 
                                         counters.AddOrSetKey(parameter.type, counter + 1);
 
-                                        code += $"{GetNativeShaderType(parameter.type, parameter.name, counter, true)};\n";
+                                        code += $"{GetNativeShaderType(parameter.type, parameter.name, counter, true)}";
+
+                                        if(ShaderTypeHasEndTerminator(parameter.type))
+                                        {
+                                            code += ";";
+                                        }
+
+                                        code += "\n";
                                     }
                                 }
                                 

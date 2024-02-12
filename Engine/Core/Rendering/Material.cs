@@ -364,6 +364,7 @@ namespace Staple
                 {
                     case MaterialParameterType.Texture:
 
+                        shader?.SetFloat($"{parameter.Key}Set", parameter.Value.value == null ? 0 : 1);
                         shader?.SetTexture(parameter.Key, (Texture)parameter.Value.value);
 
                         break;

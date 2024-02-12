@@ -104,6 +104,15 @@ namespace Staple.Internal
             Destroy();
         }
 
+        private string NormalizeUniformName(string name, ShaderUniformType type)
+        {
+            return type switch
+            {
+                ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
+                _ => name
+            };
+        }
+
         internal unsafe bool Create()
         {
             bgfx.Memory* vs, fs;
@@ -238,7 +247,11 @@ namespace Staple.Internal
                         {
                             var u = new UniformInfo<T>()
                             {
-                                uniform = uniform,
+                                uniform = new()
+                                {
+                                    name = NormalizeUniformName(uniform.name, uniform.type),
+                                    type = uniform.type,
+                                },
                             };
 
                             if (u.Create())
@@ -322,6 +335,8 @@ namespace Staple.Internal
             {
                 return null;
             }
+
+            name = NormalizeUniformName(name, type);
 
             return uniforms.TryGetValue(type, out var container) &&
                 container is Dictionary<int, UniformInfo<T>> c &&
