@@ -7,11 +7,11 @@ namespace Staple.Editor;
 
 internal class AndroidBuildProcessor : IBuildPreprocessor
 {
-    public void OnPreprocessBuild(BuildInfo buildInfo)
+    public BuildProcessorResult OnPreprocessBuild(BuildInfo buildInfo)
     {
         if(buildInfo.platform != AppPlatform.Android)
         {
-            return;
+            return BuildProcessorResult.Continue;
         }
 
         var basePath = buildInfo.basePath;
@@ -57,13 +57,19 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
                     File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_background.png"), backgroundTexture.EncodePNG());
                     File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_foreground.png"), foregroundTexture.EncodePNG());
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"{GetType().Name}: Failed to process app icon: {e}");
+
+                    return BuildProcessorResult.Failed;
                 }
             }
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Log.Debug($"{GetType().Name}: Failed to process app icon: {e}");
+
+            return BuildProcessorResult.Failed;
         }
 
         bool SaveResource(string path, string data)
@@ -80,9 +86,9 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
             {
                 File.WriteAllText(path, data);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Log.Error($"Failed generating csproj: Failed to save a resource");
+                Log.Error($"{GetType().Name}: Failed to save a resource at {path}: {e}");
 
                 return false;
             }
@@ -98,7 +104,7 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
 
         if (SaveResource(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var orientationType = "Unspecified";
@@ -141,7 +147,9 @@ public class PlayerActivity : StapleActivity
 
         if (SaveResource(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
+
+        return BuildProcessorResult.Success;
     }
 }

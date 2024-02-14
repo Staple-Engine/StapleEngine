@@ -75,11 +75,16 @@ namespace Staple.Editor
                 {
                     var instance = (IBuildPreprocessor)Activator.CreateInstance(processor);
 
-                    instance.OnPreprocessBuild(buildInfo);
+                    if(instance.OnPreprocessBuild(buildInfo) == BuildProcessorResult.Failed)
+                    {
+                        throw new Exception("Build Preprocessor failed. Please check your logs for details.");
+                    }
                 }
                 catch(Exception e)
                 {
-                    Log.Warning($"Failed to execute Build Preprocessor {processor.FullName}: {e}");
+                    Log.Error($"Failed to execute Build Preprocessor {processor.FullName}: {e}");
+
+                    return;
                 }
             }
 
@@ -253,11 +258,14 @@ namespace Staple.Editor
                 {
                     var instance = (IBuildPostprocessor)Activator.CreateInstance(processor);
 
-                    instance.OnPostprocessBuild(buildInfo);
+                    if(instance.OnPostprocessBuild(buildInfo) == BuildProcessorResult.Failed)
+                    {
+                        throw new Exception($"Build Postprocessor failed. Please check your logs for details");
+                    }
                 }
                 catch (Exception e)
                 {
-                    Log.Warning($"Failed to execute Build Postprocessor {processor.FullName}: {e}");
+                    Log.Error($"Failed to execute Build Postprocessor {processor.FullName}: {e}");
                 }
             }
 

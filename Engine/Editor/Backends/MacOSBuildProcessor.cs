@@ -6,11 +6,11 @@ namespace Staple.Editor;
 
 internal class MacOSBuildProcessor : IBuildPostprocessor
 {
-    public void OnPostprocessBuild(BuildInfo buildInfo)
+    public BuildProcessorResult OnPostprocessBuild(BuildInfo buildInfo)
     {
         if (buildInfo.platform != AppPlatform.MacOSX)
         {
-            return;
+            return BuildProcessorResult.Continue;
         }
 
         var outPath = buildInfo.outPath;
@@ -49,6 +49,30 @@ internal class MacOSBuildProcessor : IBuildPostprocessor
         }
         catch (Exception)
         {
+        }
+
+        bool SaveResource(string path, string data)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                File.WriteAllText(path, data);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"{GetType().Name}: Failed to save a resource at {path}");
+
+                return false;
+            }
+
+            return true;
         }
 
         var info = $$"""
@@ -95,13 +119,9 @@ internal class MacOSBuildProcessor : IBuildPostprocessor
 </plist>
 """;
 
-        try
+        if(SaveResource(Path.Combine(appPath, "Contents", "Info.plist"), info) == false)
         {
-            File.WriteAllText(Path.Combine(appPath, "Contents", "Info.plist"), info);
-        }
-        catch (Exception e)
-        {
-            Log.Debug(e.ToString());
+            return BuildProcessorResult.Failed;
         }
 
         var runScript = $$"""
@@ -111,10 +131,10 @@ cd $(dirname $BASH_SOURCE)
 ./{{appName}}
 """;
 
+        var p = Path.Combine(appPath, "Contents", "MacOS", "Run");
+
         try
         {
-            var p = Path.Combine(appPath, "Contents", "MacOS", "Run");
-
             File.WriteAllText(p, runScript);
 
             if (OperatingSystem.IsLinux() ||
@@ -133,7 +153,9 @@ cd $(dirname $BASH_SOURCE)
         }
         catch (Exception e)
         {
-            Log.Debug(e.ToString());
+            Log.Error($"{GetType().Name}: Failed to save a resource at {p}: {e}");
+
+            return BuildProcessorResult.Failed;
         }
 
         try
@@ -147,7 +169,9 @@ cd $(dirname $BASH_SOURCE)
         }
         catch (Exception e)
         {
-            Log.Debug(e.ToString());
+            Log.Error($"{GetType().Name}: Failed to move data files: {e}");
+
+            return BuildProcessorResult.Failed;
         }
 
         try
@@ -165,7 +189,11 @@ cd $(dirname $BASH_SOURCE)
         }
         catch (Exception e)
         {
-            Log.Debug(e.ToString());
+            Log.Error($"{GetType().Name}: Failed to move frameworks: {e}");
+
+            return BuildProcessorResult.Failed;
         }
+
+        return BuildProcessorResult.Success;
     }
 }

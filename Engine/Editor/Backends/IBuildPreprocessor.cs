@@ -2,5 +2,5 @@
 
 public interface IBuildPreprocessor
 {
-    void OnPreprocessBuild(BuildInfo buildInfo);
+    BuildProcessorResult OnPreprocessBuild(BuildInfo buildInfo);
 }

@@ -2,5 +2,5 @@
 
 public interface IBuildPostprocessor
 {
-    void OnPostprocessBuild(BuildInfo buildInfo);
+    BuildProcessorResult OnPostprocessBuild(BuildInfo buildInfo);
 }

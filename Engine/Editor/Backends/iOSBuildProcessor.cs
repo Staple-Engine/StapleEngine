@@ -1,20 +1,17 @@
-using System.Collections.Generic;
 using System.IO;
 using System;
-using System.Linq;
 
 namespace Staple.Editor;
 
 internal class iOSBuildProcessor : IBuildPreprocessor
 {
-    public void OnPreprocessBuild(BuildInfo buildInfo)
+    public BuildProcessorResult OnPreprocessBuild(BuildInfo buildInfo)
     {
         if (buildInfo.platform != AppPlatform.iOS)
         {
-            return;
+            return BuildProcessorResult.Continue;
         }
 
-        var basePath = buildInfo.basePath;
         var projectDirectory = buildInfo.assemblyProjectPath;
         var projectAppSettings = buildInfo.projectAppSettings;
 
@@ -32,9 +29,9 @@ internal class iOSBuildProcessor : IBuildPreprocessor
             {
                 File.WriteAllText(path, data);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Log.Error($"Failed generating csproj: Failed to save a resource");
+                Log.Error($"{GetType().Name}: Failed to save a resource at {path}");
 
                 return false;
             }
@@ -64,7 +61,7 @@ public class AppDelegate : UIApplicationDelegate
 
         if (SaveResource(Path.Combine(projectDirectory, "AppDelegate.cs"), appDelegate) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var main = $$"""
@@ -75,7 +72,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 
         if (SaveResource(Path.Combine(projectDirectory, "Main.cs"), main) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var orientationTypeiPhone = $$"""
@@ -164,7 +161,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 
         if (SaveResource(Path.Combine(projectDirectory, "Info.plist"), infoPlist) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var launchScreen = $$"""
@@ -198,7 +195,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 
         if (SaveResource(Path.Combine(projectDirectory, "LaunchScreen.storyboard"), launchScreen) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var storyboardiPad = $$"""
@@ -231,7 +228,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 
         if (SaveResource(Path.Combine(projectDirectory, "MainStoryboard_iPad.storyboard"), storyboardiPad) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
 
         var storyboardiPhone = $$"""
@@ -264,7 +261,9 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 
         if (SaveResource(Path.Combine(projectDirectory, "MainStoryboard_iPhone.storyboard"), storyboardiPhone) == false)
         {
-            return;
+            return BuildProcessorResult.Failed;
         }
+
+        return BuildProcessorResult.Success;
     }
 }

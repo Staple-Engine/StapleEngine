@@ -5,11 +5,11 @@ namespace Staple.Editor;
 
 internal class WindowsBuildProcessor : IBuildPreprocessor
 {
-    public void OnPreprocessBuild(BuildInfo buildInfo)
+    public BuildProcessorResult OnPreprocessBuild(BuildInfo buildInfo)
     {
         if(buildInfo.platform != AppPlatform.Windows)
         {
-            return;
+            return BuildProcessorResult.Continue;
         }
 
         var basePath = buildInfo.basePath;
@@ -83,8 +83,13 @@ internal class WindowsBuildProcessor : IBuildPreprocessor
                 }
             }
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Log.Error($"{GetType().Name}: Failed to prepare icon file: {e}");
+
+            return BuildProcessorResult.Failed;
         }
+
+        return BuildProcessorResult.Success;
     }
 }
