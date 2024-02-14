@@ -49,6 +49,8 @@ namespace Staple.Editor
 
         private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
 
+        private List<ProjectBrowserNode> allNodes = new();
+
         internal Dictionary<string, Texture> editorResources = new();
 
         public Texture GetEditorResource(string name)
@@ -86,15 +88,17 @@ namespace Staple.Editor
 
         public void UpdateProjectBrowserNodes()
         {
+            allNodes.Clear();
+
             if (basePath == null)
             {
-                projectBrowserNodes = new List<ProjectBrowserNode>();
+                projectBrowserNodes.Clear();
             }
             else
             {
-                projectBrowserNodes = new List<ProjectBrowserNode>();
+                projectBrowserNodes.Clear();
 
-                static void Recursive(string p, List<ProjectBrowserNode> nodes)
+                void Recursive(string p, List<ProjectBrowserNode> nodes)
                 {
                     string[] directories = Array.Empty<string>();
                     string[] files = Array.Empty<string>();
@@ -121,7 +125,7 @@ namespace Staple.Editor
 
                         Recursive(directory, subnodes);
 
-                        nodes.Add(new ProjectBrowserNode()
+                        var node = new ProjectBrowserNode()
                         {
                             name = Path.GetFileName(directory),
                             extension = "",
@@ -129,7 +133,11 @@ namespace Staple.Editor
                             type = ProjectBrowserNodeType.Folder,
                             subnodes = subnodes,
                             typeName = typeof(FolderAsset).FullName,
-                        });
+                        };
+
+                        nodes.Add(node);
+
+                        allNodes.Add(node);
                     }
 
                     foreach (var file in files)
@@ -149,6 +157,8 @@ namespace Staple.Editor
                         };
 
                         nodes.Add(node);
+
+                        allNodes.Add(node);
 
                         switch (ResourceTypeForExtension(node.extension))
                         {
@@ -219,7 +229,11 @@ namespace Staple.Editor
 
                 Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes);
 
-                UpdateCurrentContentNodes(projectBrowserNodes);
+                var currentPath = currentContentNode?.path;
+
+                var targetNode = allNodes.FirstOrDefault(x => x.path == currentPath);
+
+                UpdateCurrentContentNodes(targetNode?.subnodes ?? projectBrowserNodes);
             }
         }
 

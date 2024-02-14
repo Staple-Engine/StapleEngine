@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace Baker
 {
@@ -22,7 +21,7 @@ namespace Baker
                 pieces.RemoveAt(pieces.Count - 1);
             }
 
-            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Dependencies", "bgfx", "src"))}\"";
+            var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Tools", "ShaderIncludes"))}\"";
 
             var shaderFiles = new List<string>();
 

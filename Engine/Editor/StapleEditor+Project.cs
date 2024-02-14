@@ -180,32 +180,7 @@ namespace Staple.Editor
         {
             RefreshStaging(currentPlatform, updateProject);
 
-            var path = projectBrowser.currentContentNode?.path;
-
             projectBrowser.UpdateProjectBrowserNodes();
-
-            if(path != null)
-            {
-                void Recursive(List<ProjectBrowserNode> nodes)
-                {
-                    foreach(var node in nodes)
-                    {
-                        if(node.type == ProjectBrowserNodeType.File)
-                        {
-                            continue;
-                        }
-
-                        if(node.path == path)
-                        {
-                            projectBrowser.currentContentNode = node;
-
-                            return;
-                        }
-
-                        Recursive(node.subnodes);
-                    }
-                }
-            }
         }
 
         public void RefreshStaging(AppPlatform platform, bool updateProject = true)
