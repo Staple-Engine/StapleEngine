@@ -854,6 +854,11 @@ namespace Staple.Internal
         /// <returns>The texture, or null</returns>
         public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0, bool ignoreCache = false)
         {
+            if((path?.Length ?? 0) == 0)
+            {
+                return null;
+            }
+
             if(ignoreCache == false &&
                 cachedTextures.TryGetValue(path, out var texture) &&
                 texture != null &&

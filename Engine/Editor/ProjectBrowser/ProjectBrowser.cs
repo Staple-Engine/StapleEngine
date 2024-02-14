@@ -18,16 +18,22 @@ namespace Staple.Editor
             { ".mat", ProjectBrowserResourceType.Material },
             { ".stsh", ProjectBrowserResourceType.Shader },
             { ".stsc", ProjectBrowserResourceType.Scene },
-            { ".png", ProjectBrowserResourceType.Texture },
-            { ".jpg", ProjectBrowserResourceType.Texture },
-            { ".jpeg", ProjectBrowserResourceType.Texture },
-            { ".gif", ProjectBrowserResourceType.Texture },
-            { ".bmp", ProjectBrowserResourceType.Texture },
-            { ".mp3", ProjectBrowserResourceType.Audio },
-            { ".ogg", ProjectBrowserResourceType.Audio },
-            { ".wav", ProjectBrowserResourceType.Audio },
-            { ".fbx", ProjectBrowserResourceType.Mesh },
         };
+
+        static ProjectBrowser()
+        {
+            void AddAll(string[] extensions, ProjectBrowserResourceType type)
+            {
+                foreach (var ext in extensions)
+                {
+                    resourceTypes.Add($".{ext}", type);
+                }
+            }
+
+            AddAll(AssetSerialization.TextureExtensions, ProjectBrowserResourceType.Texture);
+            AddAll(AssetSerialization.AudioExtensions, ProjectBrowserResourceType.Audio);
+            AddAll(AssetSerialization.MeshExtensions, ProjectBrowserResourceType.Mesh);
+        }
 
         public const float contentPanelThumbnailSize = 64;
 
