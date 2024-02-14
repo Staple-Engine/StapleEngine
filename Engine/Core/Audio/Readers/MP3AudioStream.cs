@@ -3,132 +3,131 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+internal class MP3AudioStream : IAudioStream, IDisposable
 {
-    internal class MP3AudioStream : IAudioStream, IDisposable
+    private Stream stream;
+    private short[] samples;
+
+    public int Channels { get; private set; }
+
+    public int SampleRate { get; private set; }
+
+    public int BitsPerSample { get; private set; }
+
+    public TimeSpan TotalTime { get; private set; }
+
+    public TimeSpan CurrentTime { get; private set; }
+
+    private object lockObject = new();
+
+    public MP3AudioStream(Stream stream)
     {
-        private Stream stream;
-        private short[] samples;
+        this.stream = stream;
 
-        public int Channels { get; private set; }
+        Open();
+    }
 
-        public int SampleRate { get; private set; }
+    ~MP3AudioStream()
+    {
+        Close();
+    }
 
-        public int BitsPerSample { get; private set; }
+    public void Open()
+    {
+    }
 
-        public TimeSpan TotalTime { get; private set; }
-
-        public TimeSpan CurrentTime { get; private set; }
-
-        private object lockObject = new();
-
-        public MP3AudioStream(Stream stream)
+    public void Close()
+    {
+        lock(lockObject)
         {
-            this.stream = stream;
-
-            Open();
+            stream?.Dispose();
+            stream = null;
         }
+    }
 
-        ~MP3AudioStream()
+    private void Load()
+    {
+        if(stream is MemoryStream memory)
         {
-            Close();
-        }
+            var data = memory.ToArray();
 
-        public void Open()
-        {
-        }
+            stream.Dispose();
 
-        public void Close()
-        {
-            lock(lockObject)
+            stream = null;
+
+            int channels;
+            int bitsPerChannel;
+            int sampleRate;
+            float duration;
+            int requiredSize;
+
+            unsafe
             {
-                stream?.Dispose();
-                stream = null;
-            }
-        }
-
-        private void Load()
-        {
-            if(stream is MemoryStream memory)
-            {
-                var data = memory.ToArray();
-
-                stream.Dispose();
-
-                stream = null;
-
-                int channels;
-                int bitsPerChannel;
-                int sampleRate;
-                float duration;
-                int requiredSize;
-
-                unsafe
+                fixed(byte *b = data)
                 {
-                    fixed(byte *b = data)
+                    var ptr = DrMp3.LoadMP3(b, data.Length, &channels, &bitsPerChannel, &sampleRate, &duration, &requiredSize);
+
+                    if(ptr == nint.Zero)
                     {
-                        var ptr = DrMp3.LoadMP3(b, data.Length, &channels, &bitsPerChannel, &sampleRate, &duration, &requiredSize);
-
-                        if(ptr == nint.Zero)
-                        {
-                            return;
-                        }
-
-                        var buffer = DrMp3.GetMP3Buffer(ptr);
-
-                        if(buffer == nint.Zero)
-                        {
-                            return;
-                        }
-
-                        samples = new short[requiredSize / sizeof(ushort)];
-
-                        Marshal.Copy(buffer, samples, 0, samples.Length);
-
-                        DrMp3.FreeMP3(ptr);
-
-                        Channels = channels;
-                        BitsPerSample = bitsPerChannel;
-                        SampleRate = sampleRate;
-                        TotalTime = TimeSpan.FromSeconds(duration);
+                        return;
                     }
+
+                    var buffer = DrMp3.GetMP3Buffer(ptr);
+
+                    if(buffer == nint.Zero)
+                    {
+                        return;
+                    }
+
+                    samples = new short[requiredSize / sizeof(ushort)];
+
+                    Marshal.Copy(buffer, samples, 0, samples.Length);
+
+                    DrMp3.FreeMP3(ptr);
+
+                    Channels = channels;
+                    BitsPerSample = bitsPerChannel;
+                    SampleRate = sampleRate;
+                    TotalTime = TimeSpan.FromSeconds(duration);
                 }
             }
         }
+    }
 
-        public int Read(short[] buffer, int count)
+    public int Read(short[] buffer, int count)
+    {
+        lock (lockObject)
         {
-            lock (lockObject)
+            if(samples == default)
             {
-                if(samples == default)
-                {
-                    Load();
-                }
-
-                Buffer.BlockCopy(samples, 0, buffer, 0, count);
-
-                return count;
+                Load();
             }
-        }
 
-        public short[] ReadAll()
+            Buffer.BlockCopy(samples, 0, buffer, 0, count);
+
+            return count;
+        }
+    }
+
+    public short[] ReadAll()
+    {
+        lock (lockObject)
         {
-            lock (lockObject)
+            if (samples == default)
             {
-                if (samples == default)
-                {
-                    Load();
-                }
-
-                return samples;
+                Load();
             }
-        }
 
-        public void Dispose()
-        {
-            Close();
-
-            GC.SuppressFinalize(this);
+            return samples;
         }
+    }
+
+    public void Dispose()
+    {
+        Close();
+
+        GC.SuppressFinalize(this);
     }
 }

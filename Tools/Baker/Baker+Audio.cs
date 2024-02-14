@@ -6,153 +6,151 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
-namespace Baker
+namespace Baker;
+
+static partial class Program
 {
-    static partial class Program
+    private static void ProcessAudio(AppPlatform platform, string inputPath, string outputPath)
     {
-        private static void ProcessAudio(AppPlatform platform, string inputPath, string outputPath)
+        var audioFiles = new List<string>();
+
+        foreach (var extension in AssetSerialization.AudioExtensions)
         {
-            var audioFiles = new List<string>();
-
-            foreach (var extension in AssetSerialization.AudioExtensions)
+            try
             {
-                try
-                {
-                    audioFiles.AddRange(Directory.GetFiles(inputPath, $"*.{extension}.meta", SearchOption.AllDirectories));
-                }
-                catch (Exception)
-                {
-                }
+                audioFiles.AddRange(Directory.GetFiles(inputPath, $"*.{extension}.meta", SearchOption.AllDirectories));
             }
-
-            Console.WriteLine($"Processing {audioFiles.Count} audio files...");
-
-            for (var i = 0; i < audioFiles.Count; i++)
+            catch (Exception)
             {
-                Console.WriteLine($"\t{audioFiles[i]}");
+            }
+        }
 
-                try
-                {
-                    if (File.Exists(audioFiles[i]) == false)
-                    {
-                        Console.WriteLine($"\t\tError: {audioFiles[i]} doesn't exist");
+        Console.WriteLine($"Processing {audioFiles.Count} audio files...");
 
-                        continue;
-                    }
-                }
-                catch (Exception)
+        for (var i = 0; i < audioFiles.Count; i++)
+        {
+            Console.WriteLine($"\t{audioFiles[i]}");
+
+            try
+            {
+                if (File.Exists(audioFiles[i]) == false)
                 {
                     Console.WriteLine($"\t\tError: {audioFiles[i]} doesn't exist");
 
                     continue;
                 }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine($"\t\tError: {audioFiles[i]} doesn't exist");
 
-                var guid = FindGuid<AudioClip>(audioFiles[i]);
+                continue;
+            }
 
-                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(audioFiles[i]));
-                var file = Path.GetFileName(audioFiles[i]).Replace(".meta", "");
-                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
+            var guid = FindGuid<AudioClip>(audioFiles[i]);
 
-                var index = outputFile.IndexOf(inputPath);
+            var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(audioFiles[i]));
+            var file = Path.GetFileName(audioFiles[i]).Replace(".meta", "");
+            var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
-                if (index >= 0 && index < outputFile.Length)
-                {
-                    outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-                }
+            var index = outputFile.IndexOf(inputPath);
 
-                Console.WriteLine($"\t\t -> {outputFile}");
+            if (index >= 0 && index < outputFile.Length)
+            {
+                outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            Console.WriteLine($"\t\t -> {outputFile}");
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                Directory.CreateDirectory(outputPath);
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                File.Delete(outputFile);
+            }
+            catch (Exception)
+            {
+            }
+
+            bool shouldCopy = true;
+
+            try
+            {
+                shouldCopy = File.GetLastWriteTime(audioFiles[i].Replace(".meta", "")) > File.GetLastWriteTime($"{outputFile}.sbin");
+            }
+            catch(Exception)
+            {
+            }
+
+            if(shouldCopy)
+            {
+                Console.WriteLine($"\t\t\tCopying file as it is newer...");
 
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                    File.Copy(audioFiles[i].Replace(".meta", ""), $"{outputFile}.sbin", true);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Console.WriteLine($"\t\tError: Failed to save asset: {e}");
                 }
+            }
 
-                try
+            try
+            {
+                var json = File.ReadAllText(audioFiles[i]);
+
+                var metadata = JsonConvert.DeserializeObject<AudioClipMetadata>(json);
+
+                metadata.guid = guid;
+
+                var audioClip = new SerializableAudioClip()
                 {
-                    Directory.CreateDirectory(outputPath);
-                }
-                catch (Exception)
+                    metadata = metadata,
+                };
+
+                var header = new SerializableAudioClipHeader();
+
+                using (var stream = File.OpenWrite(outputFile))
                 {
+                    using (var writer = new BinaryWriter(stream))
+                    {
+                        var encoded = MessagePackSerializer.Serialize(header)
+                            .Concat(MessagePackSerializer.Serialize(audioClip));
+
+                        writer.Write(encoded.ToArray());
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"\t\tError: Failed to save audio: {e}");
 
                 try
                 {
                     File.Delete(outputFile);
+                    File.Delete($"{outputFile}.sbin");
                 }
                 catch (Exception)
                 {
                 }
 
-                bool shouldCopy = true;
-
-                try
-                {
-                    shouldCopy = File.GetLastWriteTime(audioFiles[i].Replace(".meta", "")) > File.GetLastWriteTime($"{outputFile}.sbin");
-                }
-                catch(Exception)
-                {
-                }
-
-                if(shouldCopy)
-                {
-                    Console.WriteLine($"\t\t\tCopying file as it is newer...");
-
-                    try
-                    {
-                        File.Copy(audioFiles[i].Replace(".meta", ""), $"{outputFile}.sbin", true);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"\t\tError: Failed to save asset: {e}");
-                    }
-                }
-
-                try
-                {
-                    var json = File.ReadAllText(audioFiles[i]);
-
-                    var metadata = JsonConvert.DeserializeObject<AudioClipMetadata>(json);
-
-                    metadata.guid = guid;
-
-                    var audioClip = new SerializableAudioClip()
-                    {
-                        metadata = metadata,
-                    };
-
-                    var header = new SerializableAudioClipHeader();
-
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(audioClip));
-
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"\t\tError: Failed to save audio: {e}");
-
-                    try
-                    {
-                        File.Delete(outputFile);
-                        File.Delete($"{outputFile}.sbin");
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    continue;
-                }
+                continue;
             }
         }
     }

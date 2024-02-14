@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Staple
+namespace Staple;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class SortingLayerAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class SortingLayerAttribute : Attribute
-    {
-    }
 }

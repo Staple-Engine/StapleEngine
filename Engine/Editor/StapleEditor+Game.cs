@@ -6,279 +6,278 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+internal partial class StapleEditor
 {
-    internal partial class StapleEditor
+    public void LoadGame()
     {
-        public void LoadGame()
+        if (gameLoadDisabled)
         {
-            if (gameLoadDisabled)
+            return;
+        }
+
+        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+        var outPath = Path.Combine(projectDirectory, "bin");
+
+        var assemblyPath = Path.Combine(outPath, "Game.dll");
+
+        try
+        {
+            if(File.Exists(assemblyPath))
             {
-                return;
-            }
+                gameAssemblyLoadContext = new(AppContext.BaseDirectory);
 
-            var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
-            var outPath = Path.Combine(projectDirectory, "bin");
+                using var stream = new MemoryStream(File.ReadAllBytes(assemblyPath));
 
-            var assemblyPath = Path.Combine(outPath, "Game.dll");
+                var assembly = gameAssemblyLoadContext.LoadFromStream(stream);
 
-            try
-            {
-                if(File.Exists(assemblyPath))
+                if(assembly != null)
                 {
-                    gameAssemblyLoadContext = new(AppContext.BaseDirectory);
+                    gameAssembly = new(assembly);
 
-                    using var stream = new MemoryStream(File.ReadAllBytes(assemblyPath));
+                    var types = assembly.GetTypes();
 
-                    var assembly = gameAssemblyLoadContext.LoadFromStream(stream);
-
-                    if(assembly != null)
+                    foreach(var type in types)
                     {
-                        gameAssembly = new(assembly);
+                        TypeCache.RegisterType(type);
 
-                        var types = assembly.GetTypes();
-
-                        foreach(var type in types)
+                        if(type.IsInterface)
                         {
-                            TypeCache.RegisterType(type);
+                            continue;
+                        }
 
-                            if(type.IsInterface)
+                        if(typeof(IStapleAsset).IsAssignableFrom(type))
+                        {
+                            registeredAssetTypes.AddOrSetKey(type.FullName, type);
+                        }
+                        else if(typeof(IComponent).IsAssignableFrom(type) &&
+                            type.IsInterface == false &&
+                            type.GetCustomAttribute<AbstractComponentAttribute>() == null)
+                        {
+                            registeredComponents.Add(type);
+                        }
+                        else if (type.IsSubclassOf(typeof(EditorWindow)))
+                        {
+                            foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
                             {
-                                continue;
-                            }
+                                var menu = method.GetCustomAttribute<MenuItemAttribute>();
 
-                            if(typeof(IStapleAsset).IsAssignableFrom(type))
-                            {
-                                registeredAssetTypes.AddOrSetKey(type.FullName, type);
-                            }
-                            else if(typeof(IComponent).IsAssignableFrom(type) &&
-                                type.IsInterface == false &&
-                                type.GetCustomAttribute<AbstractComponentAttribute>() == null)
-                            {
-                                registeredComponents.Add(type);
-                            }
-                            else if (type.IsSubclassOf(typeof(EditorWindow)))
-                            {
-                                foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                                if (menu == null)
                                 {
-                                    var menu = method.GetCustomAttribute<MenuItemAttribute>();
-
-                                    if (menu == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    var m = method;
-
-                                    AddMenuItem(menu.path, () =>
-                                    {
-                                        try
-                                        {
-                                            m.Invoke(null, null);
-                                        }
-                                        catch (Exception)
-                                        {
-                                        }
-                                    });
+                                    continue;
                                 }
+
+                                var m = method;
+
+                                AddMenuItem(menu.path, () =>
+                                {
+                                    try
+                                    {
+                                        m.Invoke(null, null);
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+                                });
                             }
                         }
                     }
                 }
             }
-            catch(Exception)
+        }
+        catch(Exception)
+        {
+        }
+
+        Editor.UpdateEditorTypes();
+        GizmoEditor.UpdateEditorTypes();
+
+        registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
+
+        var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
+
+        try
+        {
+            if(File.Exists(scenePath))
             {
+                var scene = ResourceManager.instance.LoadRawSceneFromPath(scenePath);
+
+                if(scene != null)
+                {
+                    Scene.SetActiveScene(scene);
+                }
             }
+        }
+        catch(Exception)
+        {
+        }
+        finally
+        {
+            File.Delete(scenePath);
+        }
+    }
 
-            Editor.UpdateEditorTypes();
-            GizmoEditor.UpdateEditorTypes();
+    public void UnloadGame()
+    {
+        if(gameLoadDisabled)
+        {
+            return;
+        }
 
-            registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
+        if(gameAssemblyLoadContext != null)
+        {
+            WeakReference<GameAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
             var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
 
             try
             {
-                if(File.Exists(scenePath))
-                {
-                    var scene = ResourceManager.instance.LoadRawSceneFromPath(scenePath);
-
-                    if(scene != null)
-                    {
-                        Scene.SetActiveScene(scene);
-                    }
-                }
-            }
-            catch(Exception)
-            {
-            }
-            finally
-            {
                 File.Delete(scenePath);
             }
-        }
-
-        public void UnloadGame()
-        {
-            if(gameLoadDisabled)
+            catch (Exception)
             {
-                return;
             }
 
-            if(gameAssemblyLoadContext != null)
+            if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                WeakReference<GameAssemblyLoadContext> game = new(gameAssemblyLoadContext);
+                var renderSystems = renderSystem.renderSystems
+                    .Where(x => x.GetType().Assembly == assembly)
+                    .ToList();
 
-                var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
-
-                try
+                foreach(var r in renderSystems)
                 {
-                    File.Delete(scenePath);
-                }
-                catch (Exception)
-                {
+                    renderSystem.renderSystems.Remove(r);
                 }
 
-                if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
+                if (Scene.current != null)
                 {
-                    var renderSystems = renderSystem.renderSystems
-                        .Where(x => x.GetType().Assembly == assembly)
-                        .ToList();
-
-                    foreach(var r in renderSystems)
+                    try
                     {
-                        renderSystem.renderSystems.Remove(r);
+                        var scene = Scene.current.Serialize();
+
+                        var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, new JsonSerializerSettings()
+                        {
+                            Converters =
+                            {
+                                new StringEnumConverter(),
+                            }
+                        });
+
+                        File.WriteAllText(scenePath, json);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                Scene.current?.world.UnloadComponentsFromAssembly(assembly);
+
+                EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
+                EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
+
+                for (var i = editorWindows.Count - 1; i >= 0; i--)
+                {
+                    if (editorWindows[i].GetType().Assembly == assembly)
+                    {
+                        editorWindows.RemoveAt(i);
+                    }
+                }
+
+                SetSelectedEntity(Entity.Empty);
+            }
+
+            Scene.SetActiveScene(null);
+
+            gameAssembly = null;
+
+            ReloadTypeCache();
+
+            Editor.UpdateEditorTypes();
+            GizmoEditor.UpdateEditorTypes();
+
+            gameAssemblyLoadContext.Unload();
+
+            gameAssemblyLoadContext = null;
+
+            var time = DateTime.Now;
+
+            while((DateTime.Now - time).TotalSeconds < 1)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+    }
+
+    public void ReloadTypeCache()
+    {
+        foreach (var editor in cachedEditors)
+        {
+            editor.Value?.Destroy();
+        }
+
+        TypeCache.Clear();
+        registeredAssetTypes.Clear();
+        registeredComponents.Clear();
+        menuItems.Clear();
+        cachedEditors.Clear();
+        cachedGizmoEditors.Clear();
+
+        var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
+
+        var t = Assembly.GetExecutingAssembly().GetTypes()
+            .Concat(Assembly.GetCallingAssembly().GetTypes())
+            .Concat(core.GetTypes())
+            .ToList();
+
+        if(gameAssembly?.TryGetTarget(out var assembly) ?? false)
+        {
+            t = t.Concat(assembly.GetTypes()).ToList();
+        }
+
+        foreach (var v in t)
+        {
+            TypeCache.RegisterType(v);
+
+            if(v.IsInterface)
+            {
+                continue;
+            }
+
+            if(typeof(IStapleAsset).IsAssignableFrom(v))
+            {
+                registeredAssetTypes.AddOrSetKey(v.FullName, v);
+            }
+            else if(typeof(IComponent).IsAssignableFrom(v) &&
+                v.IsInterface == false &&
+                v.GetCustomAttribute<AbstractComponentAttribute>() == null)
+            {
+                registeredComponents.Add(v);
+            }
+            else if(v.IsSubclassOf(typeof(EditorWindow)))
+            {
+                foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                {
+                    var menu = method.GetCustomAttribute<MenuItemAttribute>();
+
+                    if(menu == null)
+                    {
+                        continue;
                     }
 
-                    if (Scene.current != null)
+                    var m = method;
+
+                    AddMenuItem(menu.path, () =>
                     {
                         try
                         {
-                            var scene = Scene.current.Serialize();
-
-                            var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, new JsonSerializerSettings()
-                            {
-                                Converters =
-                                {
-                                    new StringEnumConverter(),
-                                }
-                            });
-
-                            File.WriteAllText(scenePath, json);
+                            m.Invoke(null, null);
                         }
                         catch (Exception)
                         {
                         }
-                    }
-
-                    Scene.current?.world.UnloadComponentsFromAssembly(assembly);
-
-                    EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
-                    EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
-
-                    for (var i = editorWindows.Count - 1; i >= 0; i--)
-                    {
-                        if (editorWindows[i].GetType().Assembly == assembly)
-                        {
-                            editorWindows.RemoveAt(i);
-                        }
-                    }
-
-                    SetSelectedEntity(Entity.Empty);
-                }
-
-                Scene.SetActiveScene(null);
-
-                gameAssembly = null;
-
-                ReloadTypeCache();
-
-                Editor.UpdateEditorTypes();
-                GizmoEditor.UpdateEditorTypes();
-
-                gameAssemblyLoadContext.Unload();
-
-                gameAssemblyLoadContext = null;
-
-                var time = DateTime.Now;
-
-                while((DateTime.Now - time).TotalSeconds < 1)
-                {
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                }
-            }
-        }
-
-        public void ReloadTypeCache()
-        {
-            foreach (var editor in cachedEditors)
-            {
-                editor.Value?.Destroy();
-            }
-
-            TypeCache.Clear();
-            registeredAssetTypes.Clear();
-            registeredComponents.Clear();
-            menuItems.Clear();
-            cachedEditors.Clear();
-            cachedGizmoEditors.Clear();
-
-            var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
-
-            var t = Assembly.GetExecutingAssembly().GetTypes()
-                .Concat(Assembly.GetCallingAssembly().GetTypes())
-                .Concat(core.GetTypes())
-                .ToList();
-
-            if(gameAssembly?.TryGetTarget(out var assembly) ?? false)
-            {
-                t = t.Concat(assembly.GetTypes()).ToList();
-            }
-
-            foreach (var v in t)
-            {
-                TypeCache.RegisterType(v);
-
-                if(v.IsInterface)
-                {
-                    continue;
-                }
-
-                if(typeof(IStapleAsset).IsAssignableFrom(v))
-                {
-                    registeredAssetTypes.AddOrSetKey(v.FullName, v);
-                }
-                else if(typeof(IComponent).IsAssignableFrom(v) &&
-                    v.IsInterface == false &&
-                    v.GetCustomAttribute<AbstractComponentAttribute>() == null)
-                {
-                    registeredComponents.Add(v);
-                }
-                else if(v.IsSubclassOf(typeof(EditorWindow)))
-                {
-                    foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                    {
-                        var menu = method.GetCustomAttribute<MenuItemAttribute>();
-
-                        if(menu == null)
-                        {
-                            continue;
-                        }
-
-                        var m = method;
-
-                        AddMenuItem(menu.path, () =>
-                        {
-                            try
-                            {
-                                m.Invoke(null, null);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        });
-                    }
+                    });
                 }
             }
         }

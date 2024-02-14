@@ -2,280 +2,279 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Staple
+namespace Staple;
+
+/// <summary>
+/// Render Target resource. Used to render to texture.
+/// </summary>
+public sealed class RenderTarget
 {
-    /// <summary>
-    /// Render Target resource. Used to render to texture.
-    /// </summary>
-    public sealed class RenderTarget
+    private static ulong counter = 0;
+
+    internal bgfx.FrameBufferHandle handle;
+    internal ushort width;
+    internal ushort height;
+    internal bgfx.TextureFormat format;
+    internal TextureFlags flags;
+    internal bgfx.BackbufferRatio ratio;
+    internal List<Texture> textures = new();
+
+    private bool destroyed = false;
+
+    ~RenderTarget()
     {
-        private static ulong counter = 0;
+        Destroy();
+    }
 
-        internal bgfx.FrameBufferHandle handle;
-        internal ushort width;
-        internal ushort height;
-        internal bgfx.TextureFormat format;
-        internal TextureFlags flags;
-        internal bgfx.BackbufferRatio ratio;
-        internal List<Texture> textures = new();
-
-        private bool destroyed = false;
-
-        ~RenderTarget()
+    /// <summary>
+    /// Destroys the render target's resources
+    /// </summary>
+    public void Destroy()
+    {
+        if (destroyed)
         {
-            Destroy();
+            return;
         }
 
-        /// <summary>
-        /// Destroys the render target's resources
-        /// </summary>
-        public void Destroy()
+        destroyed = true;
+
+        if (handle.Valid)
         {
-            if (destroyed)
-            {
-                return;
-            }
-
-            destroyed = true;
-
-            if (handle.Valid)
-            {
-                bgfx.destroy_frame_buffer(handle);
-            }
-
-            foreach(var texture in textures)
-            {
-                texture?.Destroy();
-            }
+            bgfx.destroy_frame_buffer(handle);
         }
 
-        /// <summary>
-        /// Gets a texture from our attachments
-        /// </summary>
-        /// <param name="attachment">The attachment index</param>
-        /// <returns>The texture or null</returns>
-        public Texture GetTexture(byte attachment = 0)
+        foreach(var texture in textures)
         {
-            if(destroyed)
-            {
-                return null;
-            }
+            texture?.Destroy();
+        }
+    }
 
-            return attachment < textures.Count ? textures[attachment] : null;
+    /// <summary>
+    /// Gets a texture from our attachments
+    /// </summary>
+    /// <param name="attachment">The attachment index</param>
+    /// <returns>The texture or null</returns>
+    public Texture GetTexture(byte attachment = 0)
+    {
+        if(destroyed)
+        {
+            return null;
         }
 
-        /// <summary>
-        /// Sets this framebuffer as active for a view
-        /// </summary>
-        /// <param name="viewID">The view ID</param>
-        internal void SetActive(ushort viewID)
-        {
-            if(destroyed)
-            {
-                return;
-            }
+        return attachment < textures.Count ? textures[attachment] : null;
+    }
 
-            bgfx.set_view_frame_buffer(viewID, handle);
+    /// <summary>
+    /// Sets this framebuffer as active for a view
+    /// </summary>
+    /// <param name="viewID">The view ID</param>
+    internal void SetActive(ushort viewID)
+    {
+        if(destroyed)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Sets this framebuffer as active for a view
-        /// </summary>
-        /// <param name="viewID">The view ID</param>
-        /// <param name="target">The render target to set</param>
-        internal static void SetActive(ushort viewID, RenderTarget target)
-        {
-            if(target == null || target.destroyed)
-            {
-                return;
-            }
+        bgfx.set_view_frame_buffer(viewID, handle);
+    }
 
-            target.SetActive(viewID);
+    /// <summary>
+    /// Sets this framebuffer as active for a view
+    /// </summary>
+    /// <param name="viewID">The view ID</param>
+    /// <param name="target">The render target to set</param>
+    internal static void SetActive(ushort viewID, RenderTarget target)
+    {
+        if(target == null || target.destroyed)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Creates a render target
-        /// </summary>
-        /// <param name="width">The width</param>
-        /// <param name="height">The height</param>
-        /// <param name="colorFormat">The color format to use</param>
-        /// <param name="hasMips">Whether to use mipmaps</param>
-        /// <param name="layers">Amount of layers to use on the textures</param>
-        /// <param name="flags">Additional texture flags</param>
-        /// <returns>The render target, or null</returns>
-        public static RenderTarget Create(ushort width, ushort height, bgfx.TextureFormat colorFormat = bgfx.TextureFormat.RGBA8,
-            bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+        target.SetActive(viewID);
+    }
+
+    /// <summary>
+    /// Creates a render target
+    /// </summary>
+    /// <param name="width">The width</param>
+    /// <param name="height">The height</param>
+    /// <param name="colorFormat">The color format to use</param>
+    /// <param name="hasMips">Whether to use mipmaps</param>
+    /// <param name="layers">Amount of layers to use on the textures</param>
+    /// <param name="flags">Additional texture flags</param>
+    /// <returns>The render target, or null</returns>
+    public static RenderTarget Create(ushort width, ushort height, bgfx.TextureFormat colorFormat = bgfx.TextureFormat.RGBA8,
+        bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+    {
+        var depthFormat = bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D16, (ulong)flags) ? bgfx.TextureFormat.D16 :
+            bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D24S8, (ulong)flags) ? bgfx.TextureFormat.D24S8 :
+            bgfx.TextureFormat.D32;
+
+        var colorTexture = Texture.CreateEmpty(width, height, hasMips, layers, colorFormat, flags | TextureFlags.RenderTarget);
+        var depthTexture = Texture.CreateEmpty(width, height, hasMips, layers, depthFormat, flags | TextureFlags.RenderTarget);
+
+        if(colorTexture == null || depthTexture == null)
         {
-            var depthFormat = bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D16, (ulong)flags) ? bgfx.TextureFormat.D16 :
-                bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D24S8, (ulong)flags) ? bgfx.TextureFormat.D24S8 :
-                bgfx.TextureFormat.D32;
+            colorTexture?.Destroy();
+            depthTexture?.Destroy();
 
-            var colorTexture = Texture.CreateEmpty(width, height, hasMips, layers, colorFormat, flags | TextureFlags.RenderTarget);
-            var depthTexture = Texture.CreateEmpty(width, height, hasMips, layers, depthFormat, flags | TextureFlags.RenderTarget);
-
-            if(colorTexture == null || depthTexture == null)
-            {
-                colorTexture?.Destroy();
-                depthTexture?.Destroy();
-
-                return null;
-            }
-
-            var outValue = Create(new Texture[] { colorTexture, depthTexture }.ToList());
-
-            if(outValue == null)
-            {
-                colorTexture?.Destroy();
-                depthTexture?.Destroy();
-
-                return null;
-            }
-
-            return outValue;
+            return null;
         }
 
-        /// <summary>
-        /// Creates a render target based on a backbuffer ratio
-        /// </summary>
-        /// <param name="ratio">The ratio to use</param>
-        /// <param name="format">The texture format</param>
-        /// <param name="flags">Additional texture lags</param>
-        /// <returns>The render target, or null</returns>
-        public static RenderTarget Create(bgfx.BackbufferRatio ratio, bgfx.TextureFormat format,
-            TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+        var outValue = Create(new Texture[] { colorTexture, depthTexture }.ToList());
+
+        if(outValue == null)
         {
-            var handle = bgfx.create_frame_buffer_scaled(ratio, format, (ulong)flags);
+            colorTexture?.Destroy();
+            depthTexture?.Destroy();
 
-            if (handle.Valid == false)
-            {
-                return null;
-            }
-
-            var name = $"RenderTarget {++counter}";
-
-            bgfx.set_frame_buffer_name(handle, name, name.Length);
-
-            var textureHandle = bgfx.get_texture(handle, 0);
-
-            if (textureHandle.Valid == false)
-            {
-                bgfx.destroy_frame_buffer(handle);
-
-                return null;
-            }
-
-            name = $"RenderTarget {counter} Texture 0";
-
-            bgfx.set_texture_name(textureHandle, name, name.Length);
-
-            var factor = 1.0f;
-
-            switch(ratio)
-            {
-                case bgfx.BackbufferRatio.Sixteenth:
-
-                    factor = 1 / 16.0f;
-
-                    break;
-
-                case bgfx.BackbufferRatio.Eighth:
-
-                    factor = 1 / 8.0f;
-
-                    break;
-
-                case bgfx.BackbufferRatio.Quarter:
-
-                    factor = 0.25f;
-
-                    break;
-
-                case bgfx.BackbufferRatio.Double:
-
-                    factor = 2;
-
-                    break;
-
-                case bgfx.BackbufferRatio.Equal:
-
-                    //Default
-
-                    break;
-
-                case bgfx.BackbufferRatio.Half:
-
-                    factor = 0.5f;
-
-                    break;
-            }
-
-            var width = (byte)(Screen.Width * factor);
-            var height = (byte)(Screen.Height * factor);
-
-            var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack));
-
-            return new RenderTarget()
-            {
-                handle = handle,
-                format = format,
-                flags = flags,
-                textures = new List<Texture>(new Texture[] { texture })
-            };
+            return null;
         }
 
-        /// <summary>
-        /// Creates a render target based on a list of textures
-        /// </summary>
-        /// <param name="textures">The list of textures</param>
-        /// <param name="destroyTextures">Whether to destroy the textures after</param>
-        /// <returns>The render target, or null</returns>
-        public static RenderTarget Create(List<Texture> textures, bool destroyTextures = false)
+        return outValue;
+    }
+
+    /// <summary>
+    /// Creates a render target based on a backbuffer ratio
+    /// </summary>
+    /// <param name="ratio">The ratio to use</param>
+    /// <param name="format">The texture format</param>
+    /// <param name="flags">Additional texture lags</param>
+    /// <returns>The render target, or null</returns>
+    public static RenderTarget Create(bgfx.BackbufferRatio ratio, bgfx.TextureFormat format,
+        TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+    {
+        var handle = bgfx.create_frame_buffer_scaled(ratio, format, (ulong)flags);
+
+        if (handle.Valid == false)
         {
-            if(textures.Any(x => x == null || x.handle.Valid == false))
-            {
-                return null;
-            }
+            return null;
+        }
 
-            var handles = textures.Select(x => x.handle).ToArray();
+        var name = $"RenderTarget {++counter}";
 
-            unsafe
+        bgfx.set_frame_buffer_name(handle, name, name.Length);
+
+        var textureHandle = bgfx.get_texture(handle, 0);
+
+        if (textureHandle.Valid == false)
+        {
+            bgfx.destroy_frame_buffer(handle);
+
+            return null;
+        }
+
+        name = $"RenderTarget {counter} Texture 0";
+
+        bgfx.set_texture_name(textureHandle, name, name.Length);
+
+        var factor = 1.0f;
+
+        switch(ratio)
+        {
+            case bgfx.BackbufferRatio.Sixteenth:
+
+                factor = 1 / 16.0f;
+
+                break;
+
+            case bgfx.BackbufferRatio.Eighth:
+
+                factor = 1 / 8.0f;
+
+                break;
+
+            case bgfx.BackbufferRatio.Quarter:
+
+                factor = 0.25f;
+
+                break;
+
+            case bgfx.BackbufferRatio.Double:
+
+                factor = 2;
+
+                break;
+
+            case bgfx.BackbufferRatio.Equal:
+
+                //Default
+
+                break;
+
+            case bgfx.BackbufferRatio.Half:
+
+                factor = 0.5f;
+
+                break;
+        }
+
+        var width = (byte)(Screen.Width * factor);
+        var height = (byte)(Screen.Height * factor);
+
+        var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack));
+
+        return new RenderTarget()
+        {
+            handle = handle,
+            format = format,
+            flags = flags,
+            textures = new List<Texture>(new Texture[] { texture })
+        };
+    }
+
+    /// <summary>
+    /// Creates a render target based on a list of textures
+    /// </summary>
+    /// <param name="textures">The list of textures</param>
+    /// <param name="destroyTextures">Whether to destroy the textures after</param>
+    /// <returns>The render target, or null</returns>
+    public static RenderTarget Create(List<Texture> textures, bool destroyTextures = false)
+    {
+        if(textures.Any(x => x == null || x.handle.Valid == false))
+        {
+            return null;
+        }
+
+        var handles = textures.Select(x => x.handle).ToArray();
+
+        unsafe
+        {
+            fixed (bgfx.TextureHandle* h = handles)
             {
-                fixed (bgfx.TextureHandle* h = handles)
+                var handle = bgfx.create_frame_buffer_from_handles((byte)textures.Count, h, destroyTextures);
+
+                if(handle.Valid == false)
                 {
-                    var handle = bgfx.create_frame_buffer_from_handles((byte)textures.Count, h, destroyTextures);
-
-                    if(handle.Valid == false)
-                    {
-                        return null;
-                    }
-
-                    var name = $"RenderTarget {++counter}";
-
-                    bgfx.set_frame_buffer_name(handle, name, name.Length);
-
-                    for(var i = 0; i < handles.Length; i++)
-                    {
-                        name = $"RenderTarget {counter} Texture {i + 1}";
-
-                        bgfx.set_texture_name(handles[i], name, name.Length);
-                    }
-
-                    if(destroyTextures)
-                    {
-                        foreach(var t in textures)
-                        {
-                            t.Destroy();
-                        }
-                    }
-
-                    return new RenderTarget()
-                    {
-                        handle = handle,
-                        textures = destroyTextures ? new List<Texture>() : textures,
-                        width = (ushort)textures[0].Width,
-                        height = (ushort)textures[0].Height,
-                    };
+                    return null;
                 }
+
+                var name = $"RenderTarget {++counter}";
+
+                bgfx.set_frame_buffer_name(handle, name, name.Length);
+
+                for(var i = 0; i < handles.Length; i++)
+                {
+                    name = $"RenderTarget {counter} Texture {i + 1}";
+
+                    bgfx.set_texture_name(handles[i], name, name.Length);
+                }
+
+                if(destroyTextures)
+                {
+                    foreach(var t in textures)
+                    {
+                        t.Destroy();
+                    }
+                }
+
+                return new RenderTarget()
+                {
+                    handle = handle,
+                    textures = destroyTextures ? new List<Texture>() : textures,
+                    width = (ushort)textures[0].Width,
+                    height = (ushort)textures[0].Height,
+                };
             }
         }
     }

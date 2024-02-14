@@ -1,66 +1,65 @@
 ﻿using System;
 using System.Threading;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+internal partial class StapleEditor
 {
-    internal partial class StapleEditor
+    public void StartBackgroundTask(BackgroundTaskProgressCallback callback)
     {
-        public void StartBackgroundTask(BackgroundTaskProgressCallback callback)
+        Thread thread = null;
+        
+        thread = new Thread(() =>
         {
-            Thread thread = null;
-            
-            thread = new Thread(() =>
+            for (; ; )
             {
-                for (; ; )
+                var shouldQuit = false;
+                float t = 0;
+
+                lock(backgroundLock)
                 {
-                    var shouldQuit = false;
-                    float t = 0;
-
-                    lock(backgroundLock)
+                    if(shouldTerminate)
                     {
-                        if(shouldTerminate)
-                        {
-                            return;
-                        }
-
-                        t = progressFraction;
-                    }
-
-                    try
-                    {
-
-                        shouldQuit = callback(ref t);
-                    }
-                    catch(Exception e)
-                    {
-                        Log.Error($"Background Task Error: {e}");
-
-                        shouldQuit = true;
-                    }
-
-                    if(shouldQuit)
-                    {
-                        lock(backgroundLock)
-                        {
-                            backgroundThreads.Remove(thread);
-                        }
-
                         return;
                     }
 
+                    t = progressFraction;
+                }
+
+                try
+                {
+
+                    shouldQuit = callback(ref t);
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"Background Task Error: {e}");
+
+                    shouldQuit = true;
+                }
+
+                if(shouldQuit)
+                {
                     lock(backgroundLock)
                     {
-                        progressFraction = t;
+                        backgroundThreads.Remove(thread);
                     }
+
+                    return;
                 }
-            });
 
-            lock(backgroundLock)
-            {
-                backgroundThreads.Add(thread);
+                lock(backgroundLock)
+                {
+                    progressFraction = t;
+                }
             }
+        });
 
-            thread.Start();
+        lock(backgroundLock)
+        {
+            backgroundThreads.Add(thread);
         }
+
+        thread.Start();
     }
 }

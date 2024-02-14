@@ -4,56 +4,55 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+internal static class ResourceUtils
 {
-    internal static class ResourceUtils
+    public static Texture LoadTexture(string path)
     {
-        public static Texture LoadTexture(string path)
+        byte[] data;
+
+        try
         {
-            var data = Array.Empty<byte>();
+            data = File.ReadAllBytes(path);
+        }
+        catch(Exception)
+        {
+            return null;
+        }
 
-            try
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
+
+            if (header == null ||
+                header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
+                header.version != SerializableTextureHeader.ValidVersion)
             {
-                data = File.ReadAllBytes(path);
+                return null;
             }
-            catch(Exception)
+
+            var textureData = MessagePackSerializer.Deserialize<SerializableTexture>(stream);
+
+            if (textureData == null)
             {
                 return null;
             }
 
-            using var stream = new MemoryStream(data);
+            var texture = Texture.Create(path, textureData.data, textureData.metadata);
 
-            try
-            {
-                var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
-
-                if (header == null ||
-                    header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
-                    header.version != SerializableTextureHeader.ValidVersion)
-                {
-                    return null;
-                }
-
-                var textureData = MessagePackSerializer.Deserialize<SerializableTexture>(stream);
-
-                if (textureData == null)
-                {
-                    return null;
-                }
-
-                var texture = Texture.Create(path, textureData.data, textureData.metadata);
-
-                if (texture == null)
-                {
-                    return null;
-                }
-
-                return texture;
-            }
-            catch (Exception e)
+            if (texture == null)
             {
                 return null;
             }
+
+            return texture;
+        }
+        catch (Exception e)
+        {
+            return null;
         }
     }
 }

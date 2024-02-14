@@ -1,7 +1,6 @@
-﻿namespace Staple.Internal
+﻿namespace Staple.Internal;
+
+internal interface ITextureCreateMethod
 {
-    internal interface ITextureCreateMethod
-    {
-        bool Create(Texture texture);
-    }
+    bool Create(Texture texture);
 }

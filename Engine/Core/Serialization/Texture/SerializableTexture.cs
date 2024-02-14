@@ -1,33 +1,32 @@
 ﻿using MessagePack;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+[MessagePackObject]
+public class SerializableTextureHeader
 {
-    [MessagePackObject]
-    public class SerializableTextureHeader
+    [IgnoreMember]
+    public readonly static char[] ValidHeader = new char[]
     {
-        [IgnoreMember]
-        public readonly static char[] ValidHeader = new char[]
-        {
-            'S', 'T', 'E', 'X'
-        };
+        'S', 'T', 'E', 'X'
+    };
 
-        [IgnoreMember]
-        public const byte ValidVersion = 1;
+    [IgnoreMember]
+    public const byte ValidVersion = 1;
 
-        [Key(0)]
-        public char[] header = ValidHeader;
+    [Key(0)]
+    public char[] header = ValidHeader;
 
-        [Key(1)]
-        public byte version = ValidVersion;
-    }
+    [Key(1)]
+    public byte version = ValidVersion;
+}
 
-    [MessagePackObject]
-    public class SerializableTexture
-    {
-        [Key(0)]
-        public TextureMetadata metadata;
+[MessagePackObject]
+public class SerializableTexture
+{
+    [Key(0)]
+    public TextureMetadata metadata;
 
-        [Key(1)]
-        public byte[] data;
-    }
+    [Key(1)]
+    public byte[] data;
 }

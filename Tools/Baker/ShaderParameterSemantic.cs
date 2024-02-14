@@ -1,8 +1,7 @@
-﻿namespace Baker
+﻿namespace Baker;
+
+internal enum ShaderParameterSemantic
 {
-    internal enum ShaderParameterSemantic
-    {
-        Varying,
-        Uniform
-    }
+    Varying,
+    Uniform
 }

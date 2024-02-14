@@ -1,18 +1,17 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+/// <summary>
+/// Camera types
+/// </summary>
+public enum CameraType
 {
     /// <summary>
-    /// Camera types
+    /// Perspective camera (3D)
     /// </summary>
-    public enum CameraType
-    {
-        /// <summary>
-        /// Perspective camera (3D)
-        /// </summary>
-        Perspective,
+    Perspective,
 
-        /// <summary>
-        /// Orthographic camera (2D)
-        /// </summary>
-        Orthographic,
-    }
+    /// <summary>
+    /// Orthographic camera (2D)
+    /// </summary>
+    Orthographic,
 }

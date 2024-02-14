@@ -5,81 +5,80 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Staple.Editor
-{
-    [CustomEditor(typeof(MeshAssetMetadata))]
-    internal class MeshAssetEditor : Editor
-    {
-        public override bool RenderField(FieldInfo field)
-        {
-            if(field.Name == nameof(MeshAssetMetadata.typeName) ||
-                field.Name == nameof(MeshAssetMetadata.guid))
-            {
-                return true;
-            }
+namespace Staple.Editor;
 
-            return base.RenderField(field);
+[CustomEditor(typeof(MeshAssetMetadata))]
+internal class MeshAssetEditor : Editor
+{
+    public override bool RenderField(FieldInfo field)
+    {
+        if(field.Name == nameof(MeshAssetMetadata.typeName) ||
+            field.Name == nameof(MeshAssetMetadata.guid))
+        {
+            return true;
         }
 
-        public override void OnInspectorGUI()
+        return base.RenderField(field);
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var metadata = (MeshAssetMetadata)target;
+        var originalMetadata = (MeshAssetMetadata)original;
+
+        var hasChanges = metadata != originalMetadata;
+
+        if (hasChanges)
         {
-            base.OnInspectorGUI();
-
-            var metadata = (MeshAssetMetadata)target;
-            var originalMetadata = (MeshAssetMetadata)original;
-
-            var hasChanges = metadata != originalMetadata;
-
-            if (hasChanges)
+            if (EditorGUI.Button("Apply"))
             {
-                if (EditorGUI.Button("Apply"))
+                try
                 {
-                    try
+                    var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
                     {
-                        var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
+                        Converters =
                         {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                            new StringEnumConverter(),
+                        }
+                    });
 
-                        File.WriteAllText(path, text);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(original, field.GetValue(metadata));
-                    }
-
-                    EditorUtils.RefreshAssets(false, null);
+                    File.WriteAllText(path, text);
                 }
-
-                EditorGUI.SameLine();
-
-                if (EditorGUI.Button("Revert"))
+                catch (Exception)
                 {
-                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+                }
 
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(metadata, field.GetValue(original));
-                    }
+                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                foreach (var field in fields)
+                {
+                    field.SetValue(original, field.GetValue(metadata));
+                }
+
+                EditorUtils.RefreshAssets(false, null);
+            }
+
+            EditorGUI.SameLine();
+
+            if (EditorGUI.Button("Revert"))
+            {
+                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                foreach (var field in fields)
+                {
+                    field.SetValue(metadata, field.GetValue(original));
                 }
             }
-            else
-            {
-                EditorGUI.ButtonDisabled("Apply");
+        }
+        else
+        {
+            EditorGUI.ButtonDisabled("Apply");
 
-                EditorGUI.SameLine();
+            EditorGUI.SameLine();
 
-                EditorGUI.ButtonDisabled("Revert");
-            }
+            EditorGUI.ButtonDisabled("Revert");
         }
     }
 }

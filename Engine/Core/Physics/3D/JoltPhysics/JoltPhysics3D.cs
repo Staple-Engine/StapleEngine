@@ -3,400 +3,557 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Staple
+namespace Staple;
+
+/// <summary>
+/// Implements Jolt Physics
+/// </summary>
+internal class JoltPhysics3D : IPhysics3D
 {
-    /// <summary>
-    /// Implements Jolt Physics
-    /// </summary>
-    internal class JoltPhysics3D : IPhysics3D
+    public const float MinExtents = 0.2f;
+
+    private const int AllocatorSize = 10 * 1024 * 1024;
+
+    private const uint MaxBodies = 1024;
+
+    private const uint NumBodyMutexes = 0;
+    private const uint MaxBodyPairs = 1024;
+    private const uint MaxContactConstraints = 1024;
+
+    //Dependencies
+    private readonly TempAllocator allocator;
+    private readonly JobSystemThreadPool jobThreadPool;
+    private readonly BroadPhaseLayerInterface broadPhaseLayerInterface;
+    private readonly ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
+    private readonly ObjectLayerPairFilter objectLayerPairFilter;
+    private readonly PhysicsSystem physicsSystem;
+
+    //Tracking live bodies
+    private readonly List<JoltBodyPair> bodies = new();
+
+    private bool destroyed = false;
+
+    public bool Destroyed => destroyed;
+
+    public Vector3 Gravity
     {
-        public const float MinExtents = 0.2f;
+        get => physicsSystem.Gravity;
 
-        private const int AllocatorSize = 10 * 1024 * 1024;
+        set => physicsSystem.Gravity = value;
+    }
 
-        private const uint MaxBodies = 1024;
-
-        private const uint NumBodyMutexes = 0;
-        private const uint MaxBodyPairs = 1024;
-        private const uint MaxContactConstraints = 1024;
-
-        //Dependencies
-        private readonly TempAllocator allocator;
-        private readonly JobSystemThreadPool jobThreadPool;
-        private readonly BroadPhaseLayerInterface broadPhaseLayerInterface;
-        private readonly ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
-        private readonly ObjectLayerPairFilter objectLayerPairFilter;
-        private readonly PhysicsSystem physicsSystem;
-
-        //Tracking live bodies
-        private readonly List<JoltBodyPair> bodies = new();
-
-        private bool destroyed = false;
-
-        public bool Destroyed => destroyed;
-
-        public Vector3 Gravity
+    public JoltPhysics3D()
+    {
+        if(JoltPhysicsSharp.Foundation.Init() == false)
         {
-            get => physicsSystem.Gravity;
-
-            set => physicsSystem.Gravity = value;
+            throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
         }
 
-        public JoltPhysics3D()
+        try
         {
-            if(JoltPhysicsSharp.Foundation.Init() == false)
+            JoltPhysicsSharp.Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
             {
-                throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
-            }
+                var message = inMessage ?? inExpression;
 
-            try
-            {
-                JoltPhysicsSharp.Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
-                {
-                    var message = inMessage ?? inExpression;
+                var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
 
-                    var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
+                System.Diagnostics.Debug.WriteLine(outMessage);
 
-                    System.Diagnostics.Debug.WriteLine(outMessage);
+                Log.Info(outMessage);
 
-                    Log.Info(outMessage);
-
-                    return true;
-                });
-            }
-            catch(Exception)
-            {
-                Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
-            }
-
-            allocator = new(AllocatorSize);
-            jobThreadPool = new(JoltPhysicsSharp.Foundation.MaxPhysicsJobs, JoltPhysicsSharp.Foundation.MaxPhysicsBarriers);
-            broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
-            objectVsBroadPhaseLayerFilter = new JoltObjectVsBroadPhaseLayerFilter();
-            objectLayerPairFilter = new JoltObjectLayerPairFilter();
-
-            physicsSystem = new();
-
-            physicsSystem.Init(MaxBodies,
-                NumBodyMutexes,
-                MaxBodyPairs,
-                MaxContactConstraints,
-                broadPhaseLayerInterface,
-                objectVsBroadPhaseLayerFilter,
-                objectLayerPairFilter);
-
-            physicsSystem.OnBodyActivated += OnBodyActivated;
-            physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
-            physicsSystem.OnContactAdded += OnContactAdded;
-            physicsSystem.OnContactRemoved += OnContactRemoved;
-            physicsSystem.OnContactPersisted += OnContactPersisted;
-            physicsSystem.OnContactValidate += OnContactValidate;
+                return true;
+            });
+        }
+        catch(Exception)
+        {
+            Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
         }
 
-        public void Destroy()
+        allocator = new(AllocatorSize);
+        jobThreadPool = new(JoltPhysicsSharp.Foundation.MaxPhysicsJobs, JoltPhysicsSharp.Foundation.MaxPhysicsBarriers);
+        broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
+        objectVsBroadPhaseLayerFilter = new JoltObjectVsBroadPhaseLayerFilter();
+        objectLayerPairFilter = new JoltObjectLayerPairFilter();
+
+        physicsSystem = new();
+
+        physicsSystem.Init(MaxBodies,
+            NumBodyMutexes,
+            MaxBodyPairs,
+            MaxContactConstraints,
+            broadPhaseLayerInterface,
+            objectVsBroadPhaseLayerFilter,
+            objectLayerPairFilter);
+
+        physicsSystem.OnBodyActivated += OnBodyActivated;
+        physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
+        physicsSystem.OnContactAdded += OnContactAdded;
+        physicsSystem.OnContactRemoved += OnContactRemoved;
+        physicsSystem.OnContactPersisted += OnContactPersisted;
+        physicsSystem.OnContactValidate += OnContactValidate;
+    }
+
+    public void Destroy()
+    {
+        if(destroyed)
         {
-            if(destroyed)
-            {
-                return;
-            }
-
-            destroyed = true;
-
-            JoltPhysicsSharp.Foundation.Shutdown();
+            return;
         }
 
-        #region Internal
-        private bool TryFindBody(Body body, out IBody3D outBody)
+        destroyed = true;
+
+        JoltPhysicsSharp.Foundation.Shutdown();
+    }
+
+    #region Internal
+    private bool TryFindBody(Body body, out IBody3D outBody)
+    {
+        foreach (var b in bodies)
         {
-            foreach (var b in bodies)
+            if (b.body == body)
             {
-                if (b.body == body)
-                {
-                    outBody = b;
-
-                    return true;
-                }
-            }
-
-            outBody = default;
-
-            return false;
-        }
-
-        private bool TryFindBody(BodyID body, out IBody3D outBody)
-        {
-            foreach (var b in bodies)
-            {
-                if (b.body.ID == body)
-                {
-                    outBody = b;
-
-                    return true;
-                }
-            }
-
-            outBody = default;
-
-            return false;
-        }
-
-        private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2)
-        {
-            if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
-            {
-                Physics3D.ContactAdded(b1, b2);
-            }
-        }
-
-        private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2)
-        {
-            if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
-            {
-                Physics3D.ContactPersisted(b1, b2);
-            }
-        }
-
-        private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
-        {
-        }
-
-        private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
-        {
-            if(TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
-            {
-                if(Physics3D.ContactValidate(b1, b2) == false)
-                {
-                    return ValidateResult.RejectContact;
-                }
-            }
-
-            return ValidateResult.AcceptContact;
-        }
-
-        private void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
-        {
-            if (TryFindBody(bodyID, out var body))
-            {
-                Physics3D.BodyActivated(body);
-            }
-        }
-
-        private void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
-        {
-            if (TryFindBody(bodyID, out var body))
-            {
-                Physics3D.BodyActivated(body);
-            }
-        }
-        #endregion
-
-        public void Update(float deltaTime)
-        {
-            if(destroyed)
-            {
-                return;
-            }
-
-            var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
-
-            foreach (var pair in bodies)
-            {
-                if(Scene.current.world.IsEntityEnabled(pair.entity) == false)
-                {
-                    if(pair.body.IsActive)
-                    {
-                        physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
-                    }
-                }
-                else if(pair.body.IsActive == false)
-                {
-                    physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
-                }
-            }
-
-            physicsSystem.Update(deltaTime, collisionSteps, allocator, jobThreadPool);
-
-            foreach(var pair in bodies)
-            {
-                var transform = Scene.current.world.GetComponent<Transform>(pair.entity);
-
-                if(transform != null)
-                {
-                    var body = pair.body;
-
-                    transform.Position = body.Position;
-                    transform.LocalRotation = body.Rotation;
-                }
-            }
-        }
-
-        private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
-        {
-            var creationSettings = new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer));
-
-            var dofs = new List<AllowedDOFs>
-            {
-                AllowedDOFs.TranslationX,
-                AllowedDOFs.TranslationY
-            };
-
-            if (freezeX == false)
-            {
-                dofs.Add(AllowedDOFs.RotationX);
-            }
-
-            if(freezeY == false)
-            {
-                dofs.Add(AllowedDOFs.RotationY);
-            }
-
-            if (freezeZ == false)
-            {
-                dofs.Add(AllowedDOFs.RotationZ);
-            }
-
-            if (is2DPlane == false)
-            {
-                dofs.Add(AllowedDOFs.TranslationZ);
-            }
-
-            AllowedDOFs dof = 0;
-
-            foreach(var d in dofs)
-            {
-                dof |= d;
-            }
-
-            creationSettings.AllowedDOFs = dof;
-
-            var b = physicsSystem.BodyInterface.CreateBody(creationSettings);
-
-            if (b != null)
-            {
-                var pair = new JoltBodyPair()
-                {
-                    body = b,
-                    entity = entity,
-                };
-
-                bodies.Add(pair);
-
-                body = pair;
-
-                pair.IsTrigger = isTrigger;
-                pair.GravityFactor = gravityFactor;
-                pair.Friction = friction;
-                pair.Restitution = restitution;
-
-                AddBody(body, true);
+                outBody = b;
 
                 return true;
             }
-
-            body = default;
-
-            return false;
         }
 
-        private static MotionType GetMotionType(BodyMotionType motionType)
+        outBody = default;
+
+        return false;
+    }
+
+    private bool TryFindBody(BodyID body, out IBody3D outBody)
+    {
+        foreach (var b in bodies)
         {
-            return motionType switch
+            if (b.body.ID == body)
             {
-                BodyMotionType.Static => MotionType.Static,
-                BodyMotionType.Kinematic => MotionType.Kinematic,
-                BodyMotionType.Dynamic => MotionType.Dynamic,
-                _ => throw new ArgumentException("Invalid motion type", nameof(motionType)),
+                outBody = b;
+
+                return true;
+            }
+        }
+
+        outBody = default;
+
+        return false;
+    }
+
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2)
+    {
+        if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
+        {
+            Physics3D.ContactAdded(b1, b2);
+        }
+    }
+
+    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2)
+    {
+        if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
+        {
+            Physics3D.ContactPersisted(b1, b2);
+        }
+    }
+
+    private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
+    {
+    }
+
+    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
+    {
+        if(TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
+        {
+            if(Physics3D.ContactValidate(b1, b2) == false)
+            {
+                return ValidateResult.RejectContact;
+            }
+        }
+
+        return ValidateResult.AcceptContact;
+    }
+
+    private void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
+    {
+        if (TryFindBody(bodyID, out var body))
+        {
+            Physics3D.BodyActivated(body);
+        }
+    }
+
+    private void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
+    {
+        if (TryFindBody(bodyID, out var body))
+        {
+            Physics3D.BodyActivated(body);
+        }
+    }
+    #endregion
+
+    public void Update(float deltaTime)
+    {
+        if(destroyed)
+        {
+            return;
+        }
+
+        var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
+
+        foreach (var pair in bodies)
+        {
+            if(Scene.current.world.IsEntityEnabled(pair.entity) == false)
+            {
+                if(pair.body.IsActive)
+                {
+                    physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
+                }
+            }
+            else if(pair.body.IsActive == false)
+            {
+                physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
+            }
+        }
+
+        physicsSystem.Update(deltaTime, collisionSteps, allocator, jobThreadPool);
+
+        foreach(var pair in bodies)
+        {
+            var transform = Scene.current.world.GetComponent<Transform>(pair.entity);
+
+            if(transform != null)
+            {
+                var body = pair.body;
+
+                transform.Position = body.Position;
+                transform.LocalRotation = body.Rotation;
+            }
+        }
+    }
+
+    private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer,
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+    {
+        var creationSettings = new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer));
+
+        var dofs = new List<AllowedDOFs>
+        {
+            AllowedDOFs.TranslationX,
+            AllowedDOFs.TranslationY
+        };
+
+        if (freezeX == false)
+        {
+            dofs.Add(AllowedDOFs.RotationX);
+        }
+
+        if(freezeY == false)
+        {
+            dofs.Add(AllowedDOFs.RotationY);
+        }
+
+        if (freezeZ == false)
+        {
+            dofs.Add(AllowedDOFs.RotationZ);
+        }
+
+        if (is2DPlane == false)
+        {
+            dofs.Add(AllowedDOFs.TranslationZ);
+        }
+
+        AllowedDOFs dof = 0;
+
+        foreach(var d in dofs)
+        {
+            dof |= d;
+        }
+
+        creationSettings.AllowedDOFs = dof;
+
+        var b = physicsSystem.BodyInterface.CreateBody(creationSettings);
+
+        if (b != null)
+        {
+            var pair = new JoltBodyPair()
+            {
+                body = b,
+                entity = entity,
             };
+
+            bodies.Add(pair);
+
+            body = pair;
+
+            pair.IsTrigger = isTrigger;
+            pair.GravityFactor = gravityFactor;
+            pair.Friction = friction;
+            pair.Restitution = restitution;
+
+            AddBody(body, true);
+
+            return true;
         }
 
-        public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        body = default;
+
+        return false;
+    }
+
+    private static MotionType GetMotionType(BodyMotionType motionType)
+    {
+        return motionType switch
         {
-            if(extents.X < MinExtents || extents.Y < MinExtents || extents.Z < MinExtents)
+            BodyMotionType.Static => MotionType.Static,
+            BodyMotionType.Kinematic => MotionType.Kinematic,
+            BodyMotionType.Dynamic => MotionType.Dynamic,
+            _ => throw new ArgumentException("Invalid motion type", nameof(motionType)),
+        };
+    }
+
+    public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+    {
+        if(extents.X < MinExtents || extents.Y < MinExtents || extents.Z < MinExtents)
+        {
+            throw new ArgumentException($"Extents must be bigger or equal to {MinExtents}");
+        }
+
+        return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+    {
+        if(radius <= 0)
+        {
+            throw new ArgumentException("Radius must be bigger than 0");
+        }
+
+        return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+        ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
+        bool is2DPlane, out IBody3D body)
+    {
+        if(radius <= 0)
+        {
+            throw new ArgumentException("Radius must be bigger than 0");
+        }
+
+        if(height <= 0)
+        {
+            throw new ArgumentException("Height must be bigger than 0");
+        }
+
+        return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+        ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
+        bool is2DPlane, out IBody3D body)
+    {
+        if(radius <= 0)
+        {
+            throw new ArgumentException("Radius must be bigger than 0");
+        }
+
+        if(height <= 0)
+        {
+            throw new ArgumentException("Height must be bigger than 0");
+        }
+
+        return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+        out IBody3D body)
+    {
+        if(mesh is null)
+        {
+            throw new NullReferenceException("Mesh is null");
+        }
+
+        if(mesh.isReadable == false)
+        {
+            throw new ArgumentException("Mesh is not readable", nameof(mesh));
+        }
+
+        if(mesh.IndexCount % 3 != 0)
+        {
+            throw new ArgumentException("Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
+        }
+
+        if((mesh.vertices?.Length ?? 0) == 0)
+        {
+            throw new ArgumentException("Mesh doesn't have vertices", nameof(mesh));
+        }
+
+        if((mesh.indices?.Length ?? 0) == 0)
+        {
+            throw new ArgumentException("Mesh doesn't have indices", nameof(mesh));
+        }
+
+        MeshShapeSettings settings;
+
+        unsafe
+        {
+            var triangles = new List<IndexedTriangle>();
+            var indices = mesh.indices;
+
+            for (var i = 0; i < mesh.IndexCount; i += 3)
             {
-                throw new ArgumentException($"Extents must be bigger or equal to {MinExtents}");
+                triangles.Add(new IndexedTriangle(indices[i],
+                    indices[i + 1],
+                    indices[i + 2]));
             }
 
-            return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
         }
 
-        public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, friction, restitution,
+            freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+        ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+    {
+        return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+    }
+
+    public IBody3D CreateBody(Entity entity, World world)
+    {
+        if(world.TryGetComponent<RigidBody3D>(entity, out var rigidBody) == false)
         {
+            Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D component found");
+
+            return null;
+        }
+
+        if (world.TryGetComponent<Transform>(entity, out var transform) == false)
+        {
+            Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found");
+
+            return null;
+        }
+
+        var compound = new MutableCompoundShapeSettings();
+
+        var any = false;
+
+        if(world.TryGetComponent<BoxCollider3D>(entity, out var boxCollider))
+        {
+            any = true;
+
+            var extents = boxCollider.size * transform.Scale;
+
+            if(extents.X <= 0)
+            {
+                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents X must be bigger than 0");
+            }
+
+            if (extents.Y <= 0)
+            {
+                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Y must be bigger than 0");
+            }
+
+            if (extents.Z <= 0)
+            {
+                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Z must be bigger than 0");
+            }
+
+            compound.AddShape(boxCollider.position, boxCollider.rotation, new BoxShapeSettings(extents / 2));
+        }
+
+        if(world.TryGetComponent<SphereCollider3D>(entity, out var sphereCollider))
+        {
+            any = true;
+
+            var radius = sphereCollider.radius * transform.Scale.X;
+
             if(radius <= 0)
             {
-                throw new ArgumentException("Radius must be bigger than 0");
+                throw new ArgumentException($"SphereCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
             }
 
-            return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            compound.AddShape(sphereCollider.position, sphereCollider.rotation, new SphereShapeSettings(radius));
         }
 
-        public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
-            bool is2DPlane, out IBody3D body)
+        if(world.TryGetComponent<CapsuleCollider3D>(entity, out var capsuleCollider))
         {
+            any = true;
+
+            var radius = capsuleCollider.radius * transform.Scale.X;
+            var height = capsuleCollider.height * transform.Scale.Y;
+
             if(radius <= 0)
             {
-                throw new ArgumentException("Radius must be bigger than 0");
+                throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)}  Radius must be bigger than 0");
             }
 
-            if(height <= 0)
+            if (height <= 0)
             {
-                throw new ArgumentException("Height must be bigger than 0");
+                throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
             }
 
-            return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            compound.AddShape(capsuleCollider.position, capsuleCollider.rotation, new CapsuleShapeSettings(height / 2, radius));
         }
 
-        public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
-            bool is2DPlane, out IBody3D body)
+        if(world.TryGetComponent<CylinderCollider3D>(entity, out var cylinderCollider))
         {
-            if(radius <= 0)
+            any = true;
+
+            var radius = cylinderCollider.radius * transform.Scale.X;
+            var height = cylinderCollider.height * transform.Scale.Y;
+
+            if (radius <= 0)
             {
-                throw new ArgumentException("Radius must be bigger than 0");
+                throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
             }
 
-            if(height <= 0)
+            if (height <= 0)
             {
-                throw new ArgumentException("Height must be bigger than 0");
+                throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
             }
 
-            return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            compound.AddShape(cylinderCollider.position, cylinderCollider.rotation, new CylinderShapeSettings(height / 2, radius));
         }
 
-        public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-            bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-            out IBody3D body)
+        if(world.TryGetComponent<MeshCollider3D>(entity, out var meshCollider))
         {
-            if(mesh is null)
+            any = true;
+
+            var mesh = meshCollider.mesh;
+
+            if (mesh is null)
             {
-                throw new NullReferenceException("Mesh is null");
+                throw new NullReferenceException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is null");
             }
 
-            if(mesh.isReadable == false)
+            if (mesh.isReadable == false)
             {
-                throw new ArgumentException("Mesh is not readable", nameof(mesh));
+                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is not readable", nameof(mesh));
             }
 
-            if(mesh.IndexCount % 3 != 0)
+            if (mesh.IndexCount % 3 != 0)
             {
-                throw new ArgumentException("Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
+                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
             }
 
-            if((mesh.vertices?.Length ?? 0) == 0)
+            if ((mesh.vertices?.Length ?? 0) == 0)
             {
-                throw new ArgumentException("Mesh doesn't have vertices", nameof(mesh));
+                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have vertices", nameof(mesh));
             }
 
-            if((mesh.indices?.Length ?? 0) == 0)
+            if ((mesh.indices?.Length ?? 0) == 0)
             {
-                throw new ArgumentException("Mesh doesn't have indices", nameof(mesh));
+                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have indices", nameof(mesh));
             }
 
             MeshShapeSettings settings;
@@ -416,296 +573,138 @@ namespace Staple
                 settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
             }
 
-            return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, friction, restitution,
-                freezeX, freezeY, freezeZ, is2DPlane, out body);
+            compound.AddShape(meshCollider.position, meshCollider.rotation, settings);
         }
 
-        public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-            ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        if(any == false)
         {
-            return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-                friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            Log.Error($"[Physics3D] Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...");
+
+            return null;
         }
 
-        public IBody3D CreateBody(Entity entity, World world)
+        if(CreateBody(entity, compound, transform.Position, transform.Rotation, GetMotionType(rigidBody.motionType),
+            (ushort)world.GetEntityLayer(entity), rigidBody.isTrigger, rigidBody.gravityFactor, rigidBody.friction,
+            rigidBody.restitution, rigidBody.freezeRotationX, rigidBody.freezeRotationY, rigidBody.freezeRotationZ,
+            rigidBody.is2DPlane, out var body))
         {
-            if(world.TryGetComponent<RigidBody3D>(entity, out var rigidBody) == false)
+            return body;
+        }
+        else
+        {
+            Log.Error($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}");
+        }
+
+        return null;
+    }
+
+    public void DestroyBody(IBody3D body)
+    {
+        if(body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
+
+            bodies.Remove(pair);
+        }
+    }
+
+    public void AddBody(IBody3D body, bool activated)
+    {
+        if(body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
+        }
+    }
+
+    public void RemoveBody(IBody3D body)
+    {
+        if (body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
+        }
+    }
+
+    public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance)
+    {
+        var hit = RayCastResult.Default;
+
+        var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
+
+        var objectLayerFilter = new JoltPhysicsObjectLayerFilter();
+
+        var bodyFilter = new JoltPhysicsBodyFilter()
+        {
+            triggerQuery = triggerQuery,
+        };
+
+        if (physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
+        {
+            if(TryFindBody(hit.BodyID, out body))
             {
-                Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D component found");
+                fraction = hit.Fraction;
 
-                return null;
+                return true;
             }
+        }
 
-            if (world.TryGetComponent<Transform>(entity, out var transform) == false)
-            {
-                Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found");
+        body = default;
+        fraction = default;
 
-                return null;
-            }
+        return false;
+    }
 
-            var compound = new MutableCompoundShapeSettings();
+    public float GravityFactor(IBody3D body)
+    {
+        if(body is JoltBodyPair pair)
+        {
+            return physicsSystem.BodyInterface.GetGravityFactor(pair.body.ID);
+        }
 
-            var any = false;
+        return 0;
+    }
 
-            if(world.TryGetComponent<BoxCollider3D>(entity, out var boxCollider))
-            {
-                any = true;
+    public void SetGravityFactor(IBody3D body, float factor)
+    {
+        if(body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
+        }
+    }
 
-                var extents = boxCollider.size * transform.Scale;
+    public void SetBodyPosition(IBody3D body, Vector3 newPosition)
+    {
+        if(body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+        }
+    }
 
-                if(extents.X <= 0)
-                {
-                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents X must be bigger than 0");
-                }
+    public void SetBodyRotation(IBody3D body, Quaternion newRotation)
+    {
+        if (body is JoltBodyPair pair)
+        {
+            physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+        }
+    }
 
-                if (extents.Y <= 0)
-                {
-                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Y must be bigger than 0");
-                }
+    public void SetBodyTrigger(IBody3D body, bool value)
+    {
+        if (body is JoltBodyPair pair)
+        {
+            pair.body.IsSensor = value;
+        }
+    }
 
-                if (extents.Z <= 0)
-                {
-                    throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Z must be bigger than 0");
-                }
-
-                compound.AddShape(boxCollider.position, boxCollider.rotation, new BoxShapeSettings(extents / 2));
-            }
-
-            if(world.TryGetComponent<SphereCollider3D>(entity, out var sphereCollider))
-            {
-                any = true;
-
-                var radius = sphereCollider.radius * transform.Scale.X;
-
-                if(radius <= 0)
-                {
-                    throw new ArgumentException($"SphereCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
-                }
-
-                compound.AddShape(sphereCollider.position, sphereCollider.rotation, new SphereShapeSettings(radius));
-            }
-
-            if(world.TryGetComponent<CapsuleCollider3D>(entity, out var capsuleCollider))
-            {
-                any = true;
-
-                var radius = capsuleCollider.radius * transform.Scale.X;
-                var height = capsuleCollider.height * transform.Scale.Y;
-
-                if(radius <= 0)
-                {
-                    throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)}  Radius must be bigger than 0");
-                }
-
-                if (height <= 0)
-                {
-                    throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
-                }
-
-                compound.AddShape(capsuleCollider.position, capsuleCollider.rotation, new CapsuleShapeSettings(height / 2, radius));
-            }
-
-            if(world.TryGetComponent<CylinderCollider3D>(entity, out var cylinderCollider))
-            {
-                any = true;
-
-                var radius = cylinderCollider.radius * transform.Scale.X;
-                var height = cylinderCollider.height * transform.Scale.Y;
-
-                if (radius <= 0)
-                {
-                    throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
-                }
-
-                if (height <= 0)
-                {
-                    throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
-                }
-
-                compound.AddShape(cylinderCollider.position, cylinderCollider.rotation, new CylinderShapeSettings(height / 2, radius));
-            }
-
-            if(world.TryGetComponent<MeshCollider3D>(entity, out var meshCollider))
-            {
-                any = true;
-
-                var mesh = meshCollider.mesh;
-
-                if (mesh is null)
-                {
-                    throw new NullReferenceException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is null");
-                }
-
-                if (mesh.isReadable == false)
-                {
-                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is not readable", nameof(mesh));
-                }
-
-                if (mesh.IndexCount % 3 != 0)
-                {
-                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
-                }
-
-                if ((mesh.vertices?.Length ?? 0) == 0)
-                {
-                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have vertices", nameof(mesh));
-                }
-
-                if ((mesh.indices?.Length ?? 0) == 0)
-                {
-                    throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have indices", nameof(mesh));
-                }
-
-                MeshShapeSettings settings;
-
-                unsafe
-                {
-                    var triangles = new List<IndexedTriangle>();
-                    var indices = mesh.indices;
-
-                    for (var i = 0; i < mesh.IndexCount; i += 3)
-                    {
-                        triangles.Add(new IndexedTriangle(indices[i],
-                            indices[i + 1],
-                            indices[i + 2]));
-                    }
-
-                    settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
-                }
-
-                compound.AddShape(meshCollider.position, meshCollider.rotation, settings);
-            }
-
-            if(any == false)
-            {
-                Log.Error($"[Physics3D] Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...");
-
-                return null;
-            }
-
-            if(CreateBody(entity, compound, transform.Position, transform.Rotation, GetMotionType(rigidBody.motionType),
-                (ushort)world.GetEntityLayer(entity), rigidBody.isTrigger, rigidBody.gravityFactor, rigidBody.friction,
-                rigidBody.restitution, rigidBody.freezeRotationX, rigidBody.freezeRotationY, rigidBody.freezeRotationZ,
-                rigidBody.is2DPlane, out var body))
+    public IBody3D GetBody(Entity entity)
+    {
+        foreach(var body in bodies)
+        {
+            if(body is JoltBodyPair pair && pair.entity == entity)
             {
                 return body;
             }
-            else
-            {
-                Log.Error($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}");
-            }
-
-            return null;
         }
 
-        public void DestroyBody(IBody3D body)
-        {
-            if(body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
-
-                bodies.Remove(pair);
-            }
-        }
-
-        public void AddBody(IBody3D body, bool activated)
-        {
-            if(body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
-            }
-        }
-
-        public void RemoveBody(IBody3D body)
-        {
-            if (body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
-            }
-        }
-
-        public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance)
-        {
-            var hit = RayCastResult.Default;
-
-            var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
-
-            var objectLayerFilter = new JoltPhysicsObjectLayerFilter();
-
-            var bodyFilter = new JoltPhysicsBodyFilter()
-            {
-                triggerQuery = triggerQuery,
-            };
-
-            if (physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
-            {
-                if(TryFindBody(hit.BodyID, out body))
-                {
-                    fraction = hit.Fraction;
-
-                    return true;
-                }
-            }
-
-            body = default;
-            fraction = default;
-
-            return false;
-        }
-
-        public float GravityFactor(IBody3D body)
-        {
-            if(body is JoltBodyPair pair)
-            {
-                return physicsSystem.BodyInterface.GetGravityFactor(pair.body.ID);
-            }
-
-            return 0;
-        }
-
-        public void SetGravityFactor(IBody3D body, float factor)
-        {
-            if(body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
-            }
-        }
-
-        public void SetBodyPosition(IBody3D body, Vector3 newPosition)
-        {
-            if(body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
-            }
-        }
-
-        public void SetBodyRotation(IBody3D body, Quaternion newRotation)
-        {
-            if (body is JoltBodyPair pair)
-            {
-                physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
-            }
-        }
-
-        public void SetBodyTrigger(IBody3D body, bool value)
-        {
-            if (body is JoltBodyPair pair)
-            {
-                pair.body.IsSensor = value;
-            }
-        }
-
-        public IBody3D GetBody(Entity entity)
-        {
-            foreach(var body in bodies)
-            {
-                if(body is JoltBodyPair pair && pair.entity == entity)
-                {
-                    return body;
-                }
-            }
-
-            return null;
-        }
+        return null;
     }
 }

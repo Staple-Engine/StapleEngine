@@ -1,81 +1,80 @@
 ﻿using Bgfx;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+/// <summary>
+/// Creates a vertex layout
+/// </summary>
+internal class VertexLayoutBuilder
 {
-    /// <summary>
-    /// Creates a vertex layout
-    /// </summary>
-    internal class VertexLayoutBuilder
+    private bgfx.VertexLayout layout;
+    private bool completed = false;
+
+    public VertexLayoutBuilder()
     {
-        private bgfx.VertexLayout layout;
-        private bool completed = false;
-
-        public VertexLayoutBuilder()
+        unsafe
         {
-            unsafe
+            fixed(bgfx.VertexLayout* v = &layout)
             {
-                fixed(bgfx.VertexLayout* v = &layout)
-                {
-                    bgfx.vertex_layout_begin(v, bgfx.RendererType.Noop);
-                }
+                bgfx.vertex_layout_begin(v, bgfx.RendererType.Noop);
             }
         }
+    }
 
-        public VertexLayoutBuilder Add(bgfx.Attrib name, byte amount, bgfx.AttribType type, bool normalized = false, bool asInt = false)
+    public VertexLayoutBuilder Add(bgfx.Attrib name, byte amount, bgfx.AttribType type, bool normalized = false, bool asInt = false)
+    {
+        if(completed)
         {
-            if(completed)
-            {
-                return this;
-            }
-
-            unsafe
-            {
-                fixed (bgfx.VertexLayout* v = &layout)
-                {
-                    bgfx.vertex_layout_add(v, name, amount, type, normalized, asInt);
-                }
-            }
-
             return this;
         }
 
-        public VertexLayoutBuilder Skip(byte num)
+        unsafe
         {
-            if(completed)
+            fixed (bgfx.VertexLayout* v = &layout)
             {
-                return this;
+                bgfx.vertex_layout_add(v, name, amount, type, normalized, asInt);
             }
+        }
 
-            unsafe
-            {
-                fixed (bgfx.VertexLayout* v = &layout)
-                {
-                    bgfx.vertex_layout_skip(v, num);
-                }
-            }
+        return this;
+    }
 
+    public VertexLayoutBuilder Skip(byte num)
+    {
+        if(completed)
+        {
             return this;
         }
 
-        public VertexLayout Build()
+        unsafe
         {
-            if(completed)
+            fixed (bgfx.VertexLayout* v = &layout)
             {
-                return new VertexLayout();
+                bgfx.vertex_layout_skip(v, num);
             }
+        }
 
-            unsafe
+        return this;
+    }
+
+    public VertexLayout Build()
+    {
+        if(completed)
+        {
+            return new VertexLayout();
+        }
+
+        unsafe
+        {
+            fixed (bgfx.VertexLayout* v = &layout)
             {
-                fixed (bgfx.VertexLayout* v = &layout)
-                {
-                    bgfx.vertex_layout_end(v);
-                    completed = true;
+                bgfx.vertex_layout_end(v);
+                completed = true;
 
-                    return new VertexLayout()
-                    {
-                        layout = layout
-                    };
-                }
+                return new VertexLayout()
+                {
+                    layout = layout
+                };
             }
         }
     }

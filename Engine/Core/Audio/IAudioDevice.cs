@@ -1,9 +1,8 @@
-﻿namespace Staple
-{
-    internal interface IAudioDevice
-    {
-        bool Init();
+﻿namespace Staple;
 
-        void Shutdown();
-    }
+internal interface IAudioDevice
+{
+    bool Init();
+
+    void Shutdown();
 }

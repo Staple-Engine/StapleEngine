@@ -2,150 +2,149 @@
 using System;
 using System.IO;
 
-namespace Staple
+namespace Staple;
+
+public sealed class AudioClip : IGuidAsset
 {
-    public sealed class AudioClip : IGuidAsset
+    public AudioClipMetadata metadata;
+
+    [NonSerialized]
+    public int sizeInBytes;
+
+    [NonSerialized]
+    public float duration;
+
+    [NonSerialized]
+    public int channels;
+
+    [NonSerialized]
+    public int bitsPerSample;
+
+    [NonSerialized]
+    public int sampleRate;
+
+    internal short[] samples;
+
+    private string guid;
+
+    public string Guid { get => guid; set => guid = value; }
+
+    internal IAudioStream GetAudioStream()
     {
-        public AudioClipMetadata metadata;
+        var path = AssetDatabase.GetAssetPath(guid);
 
-        [NonSerialized]
-        public int sizeInBytes;
-
-        [NonSerialized]
-        public float duration;
-
-        [NonSerialized]
-        public int channels;
-
-        [NonSerialized]
-        public int bitsPerSample;
-
-        [NonSerialized]
-        public int sampleRate;
-
-        internal short[] samples;
-
-        private string guid;
-
-        public string Guid { get => guid; set => guid = value; }
-
-        internal IAudioStream GetAudioStream()
+        if(path == null)
         {
-            var path = AssetDatabase.GetAssetPath(guid);
+            return null;
+        }
 
-            if(path == null)
+        path += ".sbin";
+
+        if (path.EndsWith(".mp3.sbin"))
+        {
+            try
             {
-                return null;
-            }
+                var fileData = ResourceManager.instance.LoadFile(path);
 
-            path += ".sbin";
+                if ((fileData?.Length ?? 0) == 0)
+                {
+                    Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
 
-            if (path.EndsWith(".mp3.sbin"))
-            {
+                    return null;
+                }
+
+                var stream = new MemoryStream(fileData);
+
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile(path);
-
-                    if ((fileData?.Length ?? 0) == 0)
-                    {
-                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
-
-                        return null;
-                    }
-
-                    var stream = new MemoryStream(fileData);
-
-                    try
-                    {
-                        return new MP3AudioStream(stream);
-                    }
-                    catch (Exception e)
-                    {
-                        stream.Dispose();
-
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
-                    }
+                    return new MP3AudioStream(stream);
                 }
                 catch (Exception e)
                 {
+                    stream.Dispose();
+
                     Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
-
-                return null;
             }
-            else if (path.EndsWith(".ogg.sbin"))
+            catch (Exception e)
             {
+                Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
+            }
+
+            return null;
+        }
+        else if (path.EndsWith(".ogg.sbin"))
+        {
+            try
+            {
+                var fileData = ResourceManager.instance.LoadFile(path);
+
+                if((fileData?.Length ?? 0) == 0)
+                {
+                    Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
+
+                    return null;
+                }
+
+                var stream = new MemoryStream(fileData);
+
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile(path);
-
-                    if((fileData?.Length ?? 0) == 0)
-                    {
-                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
-
-                        return null;
-                    }
-
-                    var stream = new MemoryStream(fileData);
-
-                    try
-                    {
-                        return new OggAudioStream(stream);
-                    }
-                    catch(Exception e)
-                    {
-                        stream.Dispose();
-
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
-                    }
+                    return new OggAudioStream(stream);
                 }
                 catch(Exception e)
                 {
+                    stream.Dispose();
+
                     Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
-
-                return null;
             }
-            else if(path.EndsWith(".wav.sbin"))
+            catch(Exception e)
             {
+                Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
+            }
+
+            return null;
+        }
+        else if(path.EndsWith(".wav.sbin"))
+        {
+            try
+            {
+                var fileData = ResourceManager.instance.LoadFile(path);
+
+                if ((fileData?.Length ?? 0) == 0)
+                {
+                    Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
+
+                    return null;
+                }
+
+                var stream = new MemoryStream(fileData);
+
                 try
                 {
-                    var fileData = ResourceManager.instance.LoadFile(path);
-
-                    if ((fileData?.Length ?? 0) == 0)
-                    {
-                        Log.Debug($"[AudioSystem] Failed to open audio stream at {path}");
-
-                        return null;
-                    }
-
-                    var stream = new MemoryStream(fileData);
-
-                    try
-                    {
-                        return new WaveAudioStream(stream);
-                    }
-                    catch (Exception e)
-                    {
-                        stream.Dispose();
-
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
-                    }
+                    return new WaveAudioStream(stream);
                 }
                 catch (Exception e)
                 {
+                    stream.Dispose();
+
                     Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
                 }
-
-                return null;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
             }
 
             return null;
         }
 
-        public static object Create(string path)
-        {
-            return ResourceManager.instance.LoadAudioClip(path);
-        }
+        return null;
+    }
+
+    public static object Create(string path)
+    {
+        return ResourceManager.instance.LoadAudioClip(path);
     }
 }

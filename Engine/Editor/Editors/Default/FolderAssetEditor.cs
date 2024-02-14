@@ -5,79 +5,78 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Staple.Editor
-{
-    [CustomEditor(typeof(FolderAsset))]
-    internal class FolderAssetEditor : Editor
-    {
-        public override bool RenderField(FieldInfo field)
-        {
-            if (field.Name == nameof(FolderAsset.guid) ||
-                field.Name == nameof(FolderAsset.typeName))
-            {
-                return true;
-            }
+namespace Staple.Editor;
 
-            return base.RenderField(field);
+[CustomEditor(typeof(FolderAsset))]
+internal class FolderAssetEditor : Editor
+{
+    public override bool RenderField(FieldInfo field)
+    {
+        if (field.Name == nameof(FolderAsset.guid) ||
+            field.Name == nameof(FolderAsset.typeName))
+        {
+            return true;
         }
 
-        public override void OnInspectorGUI()
+        return base.RenderField(field);
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var asset = (FolderAsset)target;
+        var originalAsset = (FolderAsset)original;
+
+        var hasChanges = asset != originalAsset;
+
+        if (hasChanges)
         {
-            base.OnInspectorGUI();
-
-            var asset = (FolderAsset)target;
-            var originalAsset = (FolderAsset)original;
-
-            var hasChanges = asset != originalAsset;
-
-            if (hasChanges)
+            if (EditorGUI.Button("Apply"))
             {
-                if (EditorGUI.Button("Apply"))
+                try
                 {
-                    try
+                    var text = JsonConvert.SerializeObject(asset, Formatting.Indented, new JsonSerializerSettings()
                     {
-                        var text = JsonConvert.SerializeObject(asset, Formatting.Indented, new JsonSerializerSettings()
+                        Converters =
                         {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                            new StringEnumConverter(),
+                        }
+                    });
 
-                        File.WriteAllText(path, text);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(originalAsset, field.GetValue(asset));
-                    }
+                    File.WriteAllText(path, text);
                 }
-
-                EditorGUI.SameLine();
-
-                if (EditorGUI.Button("Revert"))
+                catch (Exception)
                 {
-                    var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+                }
 
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(asset, field.GetValue(originalAsset));
-                    }
+                var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                foreach (var field in fields)
+                {
+                    field.SetValue(originalAsset, field.GetValue(asset));
                 }
             }
-            else
+
+            EditorGUI.SameLine();
+
+            if (EditorGUI.Button("Revert"))
             {
-                EditorGUI.ButtonDisabled("Apply");
+                var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
-                EditorGUI.SameLine();
-
-                EditorGUI.ButtonDisabled("Revert");
+                foreach (var field in fields)
+                {
+                    field.SetValue(asset, field.GetValue(originalAsset));
+                }
             }
+        }
+        else
+        {
+            EditorGUI.ButtonDisabled("Apply");
+
+            EditorGUI.SameLine();
+
+            EditorGUI.ButtonDisabled("Revert");
         }
     }
 }

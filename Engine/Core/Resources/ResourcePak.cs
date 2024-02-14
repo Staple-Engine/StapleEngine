@@ -4,279 +4,305 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+public class ResourcePak : IDisposable
 {
-    public class ResourcePak : IDisposable
+    public readonly static char[] ValidHeader = new char[] { 'S', 'T', 'P', 'A', 'K' };
+    public const byte ValidVersion = 1;
+
+    [MessagePackObject]
+    public class Header
     {
-        public readonly static char[] ValidHeader = new char[] { 'S', 'T', 'P', 'A', 'K' };
-        public const byte ValidVersion = 1;
+        [Key(0)]
+        public char[] header = ValidHeader;
 
-        [MessagePackObject]
-        public class Header
+        [Key(1)]
+        public byte version = ValidVersion;
+    }
+
+    [MessagePackObject]
+    public class Entry
+    {
+        [Key(0)]
+        public byte[] guid;
+
+        [Key(1)]
+        public string path;
+
+        [Key(2)]
+        public long size;
+
+        [IgnoreMember]
+        public Stream stream;
+    }
+
+    public class ResourceStream : Stream
+    {
+        internal Stream owner;
+        internal long offset;
+        internal long length;
+        internal long position;
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => true;
+
+        public override bool CanWrite => false;
+
+        public override long Length => length;
+
+        public override long Position
         {
-            [Key(0)]
-            public char[] header = ValidHeader;
-
-            [Key(1)]
-            public byte version = ValidVersion;
-        }
-
-        [MessagePackObject]
-        public class Entry
-        {
-            [Key(0)]
-            public byte[] guid;
-
-            [Key(1)]
-            public string path;
-
-            [Key(2)]
-            public long size;
-
-            [IgnoreMember]
-            public Stream stream;
-        }
-
-        public class ResourceStream : Stream
-        {
-            internal Stream owner;
-            internal long offset;
-            internal long length;
-            internal long position;
-
-            public override bool CanRead => true;
-
-            public override bool CanSeek => true;
-
-            public override bool CanWrite => false;
-
-            public override long Length => length;
-
-            public override long Position
+            get
             {
-                get
+                lock(fileLock)
                 {
-                    lock(fileLock)
+                    return position;
+                }
+            }
+
+            set
+            {
+                lock(fileLock)
+                {
+                    if (value < 0 || value >= length)
                     {
-                        return position;
+                        return;
                     }
+
+                    position = value;
+                }
+            }
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            lock(fileLock)
+            {
+                owner.Position = this.offset + position;
+
+                if (position + count > length)
+                {
+                    count = (int)(length - position);
                 }
 
-                set
+                var result = owner.Read(buffer, offset, count);
+
+                position += result;
+
+                return result;
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            lock(fileLock)
+            {
+                switch (origin)
                 {
-                    lock(fileLock)
-                    {
-                        if (value < 0 || value >= length)
+                    case SeekOrigin.Begin:
+
+                        position = 0;
+
+                        return 0;
+
+                    case SeekOrigin.End:
+
+                        position = length;
+
+                        return length;
+
+                    case SeekOrigin.Current:
+
+                        position += offset;
+
+                        if (position >= length)
                         {
-                            return;
+                            position = length;
                         }
 
-                        position = value;
-                    }
+                        return length;
                 }
             }
 
-            public override void Flush()
-            {
-            }
+            return 0;
+        }
 
-            public override int Read(byte[] buffer, int offset, int count)
+        public override void SetLength(long value)
+        {
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+        }
+    }
+
+    public class FileInfo
+    {
+        public string guid;
+        public string path;
+        public long size;
+    }
+
+    private List<Entry> entries = new();
+    private List<long> offsets = new();
+    private List<FileInfo> files = new();
+    private Stream backend;
+    internal static object fileLock = new();
+
+    public IEnumerable<FileInfo> Files => files;
+
+    public void Clear()
+    {
+        entries.Clear();
+    }
+
+    public void AddEntry(string guid, string path, Stream stream)
+    {
+        if(Guid.TryParse(guid, out var _guid) == false)
+        {
+            _guid = Guid.NewGuid();
+        }
+
+        var entry = new Entry
+        {
+            guid = _guid.ToByteArray(),
+            path = path,
+            size = stream.Length,
+            stream = stream,
+        };
+
+        entries.Add(entry);
+    }
+
+    public Stream Open(string path)
+    {
+        foreach(var entry in entries)
+        {
+            if(entry.path == path)
             {
-                lock(fileLock)
+                return new ResourceStream()
                 {
-                    owner.Position = this.offset + position;
-
-                    if (position + count > length)
-                    {
-                        count = (int)(length - position);
-                    }
-
-                    var result = owner.Read(buffer, offset, count);
-
-                    position += result;
-
-                    return result;
-                }
+                    owner = backend,
+                    position = 0,
+                    offset = offsets[entries.IndexOf(entry)],
+                    length = entry.size,
+                };
             }
+        }
 
-            public override long Seek(long offset, SeekOrigin origin)
+        return null;
+    }
+
+    public Stream OpenGuid(byte[] guid)
+    {
+        foreach (var entry in entries)
+        {
+            if (entry.guid.SequenceEqual(guid))
             {
-                lock(fileLock)
+                return new ResourceStream()
                 {
-                    switch (origin)
-                    {
-                        case SeekOrigin.Begin:
-
-                            position = 0;
-
-                            return 0;
-
-                        case SeekOrigin.End:
-
-                            position = length;
-
-                            return length;
-
-                        case SeekOrigin.Current:
-
-                            position += offset;
-
-                            if (position >= length)
-                            {
-                                position = length;
-                            }
-
-                            return length;
-                    }
-                }
-
-                return 0;
-            }
-
-            public override void SetLength(long value)
-            {
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
+                    owner = backend,
+                    position = 0,
+                    offset = offsets[entries.IndexOf(entry)],
+                    length = entry.size,
+                };
             }
         }
 
-        public class FileInfo
+        return null;
+    }
+
+    public Stream OpenGuid(string guid)
+    {
+        if(Guid.TryParse(guid, out var _guid))
         {
-            public string guid;
-            public string path;
-            public long size;
+            return OpenGuid(_guid.ToByteArray());
         }
 
-        private List<Entry> entries = new();
-        private List<long> offsets = new();
-        private List<FileInfo> files = new();
-        private Stream backend;
-        internal static object fileLock = new();
+        return null;
+    }
 
-        public IEnumerable<FileInfo> Files => files;
-
-        public void Clear()
+    internal bool Serialize(Stream writer)
+    {
+        try
         {
-            entries.Clear();
-        }
+            var headerBuffer = MessagePackSerializer.Serialize(new Header());
 
-        public void AddEntry(string guid, string path, Stream stream)
-        {
-            if(Guid.TryParse(guid, out var _guid) == false)
-            {
-                _guid = Guid.NewGuid();
-            }
+            var length = headerBuffer.Length;
 
-            var entry = new Entry
-            {
-                guid = _guid.ToByteArray(),
-                path = path,
-                size = stream.Length,
-                stream = stream,
-            };
+            var bytes = BitConverter.GetBytes(length);
 
-            entries.Add(entry);
-        }
+            writer.Write(bytes);
 
-        public Stream Open(string path)
-        {
-            foreach(var entry in entries)
-            {
-                if(entry.path == path)
-                {
-                    return new ResourceStream()
-                    {
-                        owner = backend,
-                        position = 0,
-                        offset = offsets[entries.IndexOf(entry)],
-                        length = entry.size,
-                    };
-                }
-            }
+            writer.Write(headerBuffer);
 
-            return null;
-        }
-
-        public Stream OpenGuid(byte[] guid)
-        {
             foreach (var entry in entries)
             {
-                if (entry.guid.SequenceEqual(guid))
-                {
-                    return new ResourceStream()
-                    {
-                        owner = backend,
-                        position = 0,
-                        offset = offsets[entries.IndexOf(entry)],
-                        length = entry.size,
-                    };
-                }
-            }
+                var buffer = MessagePackSerializer.Serialize(entry);
 
-            return null;
-        }
+                length = buffer.Length;
 
-        public Stream OpenGuid(string guid)
-        {
-            if(Guid.TryParse(guid, out var _guid))
-            {
-                return OpenGuid(_guid.ToByteArray());
-            }
-
-            return null;
-        }
-
-        internal bool Serialize(Stream writer)
-        {
-            try
-            {
-                var headerBuffer = MessagePackSerializer.Serialize(new Header());
-
-                var length = headerBuffer.Length;
-
-                var bytes = BitConverter.GetBytes(length);
+                bytes = BitConverter.GetBytes(length);
 
                 writer.Write(bytes);
 
-                writer.Write(headerBuffer);
+                writer.Write(buffer);
 
-                foreach (var entry in entries)
-                {
-                    var buffer = MessagePackSerializer.Serialize(entry);
-
-                    length = buffer.Length;
-
-                    bytes = BitConverter.GetBytes(length);
-
-                    writer.Write(bytes);
-
-                    writer.Write(buffer);
-
-                    entry.stream.CopyTo(writer);
-                }
+                entry.stream.CopyTo(writer);
             }
-            catch(Exception e)
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    internal bool Deserialize(Stream reader)
+    {
+        entries.Clear();
+        offsets.Clear();
+        files.Clear();
+
+        try
+        {
+            var length = 0;
+
+            var intBytes = new byte[sizeof(int)];
+
+            if(reader.Read(intBytes) != sizeof(int))
             {
                 return false;
             }
 
-            return true;
-        }
+            length = BitConverter.ToInt32(intBytes);
 
-        internal bool Deserialize(Stream reader)
-        {
-            entries.Clear();
-            offsets.Clear();
-            files.Clear();
+            var buffer = new byte[length];
 
-            try
+            if(reader.Read(buffer) != length)
             {
-                var length = 0;
+                return false;
+            }
 
-                var intBytes = new byte[sizeof(int)];
+            var header = MessagePackSerializer.Deserialize<Header>(buffer);
 
+            if(header.header.SequenceEqual(ValidHeader) == false ||
+                header.version != ValidVersion)
+            {
+                Console.WriteLine($"[ResourcePak] Invalid Header");
+
+                return false;
+            }
+
+            while (reader.Position < reader.Length)
+            {
                 if(reader.Read(intBytes) != sizeof(int))
                 {
                     return false;
@@ -284,72 +310,45 @@ namespace Staple.Internal
 
                 length = BitConverter.ToInt32(intBytes);
 
-                var buffer = new byte[length];
+                buffer = new byte[length];
 
                 if(reader.Read(buffer) != length)
                 {
                     return false;
                 }
 
-                var header = MessagePackSerializer.Deserialize<Header>(buffer);
+                var entry = MessagePackSerializer.Deserialize<Entry>(buffer);
 
-                if(header.header.SequenceEqual(ValidHeader) == false ||
-                    header.version != ValidVersion)
+                entries.Add(entry);
+                offsets.Add(reader.Position);
+
+                files.Add(new FileInfo()
                 {
-                    Console.WriteLine($"[ResourcePak] Invalid Header");
+                    guid = new Guid(entry.guid).ToString(),
+                    path = entry.path,
+                    size = entry.size,
+                });
 
-                    return false;
-                }
-
-                while (reader.Position < reader.Length)
-                {
-                    if(reader.Read(intBytes) != sizeof(int))
-                    {
-                        return false;
-                    }
-
-                    length = BitConverter.ToInt32(intBytes);
-
-                    buffer = new byte[length];
-
-                    if(reader.Read(buffer) != length)
-                    {
-                        return false;
-                    }
-
-                    var entry = MessagePackSerializer.Deserialize<Entry>(buffer);
-
-                    entries.Add(entry);
-                    offsets.Add(reader.Position);
-
-                    files.Add(new FileInfo()
-                    {
-                        guid = new Guid(entry.guid).ToString(),
-                        path = entry.path,
-                        size = entry.size,
-                    });
-
-                    reader.Position = reader.Position + entry.size;
-                }
+                reader.Position = reader.Position + entry.size;
             }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[ResourcePak] Error deserializing: {e}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"[ResourcePak] Error deserializing: {e}");
 
-                return false;
-            }
-
-            backend = reader;
-
-            return true;
+            return false;
         }
 
-        public void Dispose()
+        backend = reader;
+
+        return true;
+    }
+
+    public void Dispose()
+    {
+        if(backend != null)
         {
-            if(backend != null)
-            {
-                backend.Dispose();
-            }
+            backend.Dispose();
         }
     }
 }

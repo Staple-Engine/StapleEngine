@@ -1,30 +1,29 @@
 ﻿using MessagePack;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+[MessagePackObject]
+public class SerializableMaterialHeader
 {
-    [MessagePackObject]
-    public class SerializableMaterialHeader
+    [IgnoreMember]
+    public readonly static char[] ValidHeader = new char[]
     {
-        [IgnoreMember]
-        public readonly static char[] ValidHeader = new char[]
-        {
-            'S', 'M', 'A', 'T'
-        };
+        'S', 'M', 'A', 'T'
+    };
 
-        [IgnoreMember]
-        public const byte ValidVersion = 1;
+    [IgnoreMember]
+    public const byte ValidVersion = 1;
 
-        [Key(0)]
-        public char[] header = ValidHeader;
+    [Key(0)]
+    public char[] header = ValidHeader;
 
-        [Key(1)]
-        public byte version = ValidVersion;
-    }
+    [Key(1)]
+    public byte version = ValidVersion;
+}
 
-    [MessagePackObject]
-    public class SerializableMaterial
-    {
-        [Key(0)]
-        public MaterialMetadata metadata;
-    }
+[MessagePackObject]
+public class SerializableMaterial
+{
+    [Key(0)]
+    public MaterialMetadata metadata;
 }

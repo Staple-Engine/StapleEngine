@@ -6,78 +6,77 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Baker
-{
-    static partial class Program
-    {
-        private static void ProcessAppSettings(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
-        {
-            Console.WriteLine($"Processing AppSettings");
+namespace Baker;
 
-            string appSettingsText;
+static partial class Program
+{
+    private static void ProcessAppSettings(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
+    {
+        Console.WriteLine($"Processing AppSettings");
+
+        string appSettingsText;
+
+        try
+        {
+            var p = Path.Combine(inputPath, "AppSettings.json");
+
+            if(editorMode)
+            {
+                p = Path.Combine(inputPath, "..", "Settings", "AppSettings.json");
+            }
+
+            appSettingsText = File.ReadAllText(p);
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"\t\tError: Failed to read app settings");
+
+            return;
+        }
+
+        if ((appSettingsText?.Length ?? 0) > 0)
+        {
+            AppSettings settings;
 
             try
             {
-                var p = Path.Combine(inputPath, "AppSettings.json");
-
-                if(editorMode)
-                {
-                    p = Path.Combine(inputPath, "..", "Settings", "AppSettings.json");
-                }
-
-                appSettingsText = File.ReadAllText(p);
+                settings = JsonConvert.DeserializeObject<AppSettings>(appSettingsText);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Console.WriteLine($"\t\tError: Failed to read app settings");
+                Console.WriteLine($"\t\tError: Failed to load app settings: {e.Message}");
 
                 return;
             }
 
-            if ((appSettingsText?.Length ?? 0) > 0)
+            if (settings != null)
             {
-                AppSettings settings;
+                var outputFile = Path.Combine(outputPath, "AppSettings");
 
                 try
                 {
-                    settings = JsonConvert.DeserializeObject<AppSettings>(appSettingsText);
+                    File.Delete(outputFile);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine($"\t\tError: Failed to load app settings: {e.Message}");
-
-                    return;
                 }
 
-                if (settings != null)
+                var header = new AppSettingsHeader();
+
+                using (var stream = File.OpenWrite(outputFile))
                 {
-                    var outputFile = Path.Combine(outputPath, "AppSettings");
-
-                    try
+                    using (var writer = new BinaryWriter(stream))
                     {
-                        File.Delete(outputFile);
+                        var encoded = MessagePackSerializer.Serialize(header)
+                            .Concat(MessagePackSerializer.Serialize(settings));
+
+                        writer.Write(encoded.ToArray());
                     }
-                    catch (Exception)
-                    {
-                    }
-
-                    var header = new AppSettingsHeader();
-
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(settings));
-
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
-
-                    Console.WriteLine($"\tProcessed app settings");
                 }
+
+                Console.WriteLine($"\tProcessed app settings");
             }
-
         }
+
     }
 }

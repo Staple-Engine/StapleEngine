@@ -1,8 +1,7 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+public enum MeshIndexFormat
 {
-    public enum MeshIndexFormat
-    {
-        UInt16,
-        UInt32
-    }
+    UInt16,
+    UInt32
 }

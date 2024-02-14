@@ -1,9 +1,8 @@
-﻿namespace Staple.Editor
+﻿namespace Staple.Editor;
+
+internal enum ProjectBrowserNodeAction
 {
-    internal enum ProjectBrowserNodeAction
-    {
-        None,
-        InspectScene,
-        Open,
-    }
+    None,
+    InspectScene,
+    Open,
 }

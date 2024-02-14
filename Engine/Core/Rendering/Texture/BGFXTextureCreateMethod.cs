@@ -1,49 +1,48 @@
 ﻿using Bgfx;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+internal class BGFXTextureCreateMethod : ITextureCreateMethod
 {
-    internal class BGFXTextureCreateMethod : ITextureCreateMethod
+    public string path;
+    public byte[] data;
+    public TextureMetadata metadata;
+    public TextureFlags flags;
+    public byte skip;
+
+    public BGFXTextureCreateMethod(string path, byte[] data, TextureMetadata metadata, TextureFlags flags, byte skip)
     {
-        public string path;
-        public byte[] data;
-        public TextureMetadata metadata;
-        public TextureFlags flags;
-        public byte skip;
+        this.path = path;
+        this.data = data;
+        this.metadata = metadata;
+        this.flags = flags;
+        this.skip = skip;
+    }
 
-        public BGFXTextureCreateMethod(string path, byte[] data, TextureMetadata metadata, TextureFlags flags, byte skip)
+    public bool Create(Texture texture)
+    {
+        unsafe
         {
-            this.path = path;
-            this.data = data;
-            this.metadata = metadata;
-            this.flags = flags;
-            this.skip = skip;
-        }
+            Texture.ProcessFlags(ref flags, metadata);
 
-        public bool Create(Texture texture)
-        {
-            unsafe
+            bgfx.TextureInfo info;
+
+            fixed (void* ptr = data)
             {
-                Texture.ProcessFlags(ref flags, metadata);
+                bgfx.Memory* memory = bgfx.copy(ptr, (uint)data.Length);
 
-                bgfx.TextureInfo info;
+                texture.handle = bgfx.create_texture(memory, (ulong)flags, skip, &info);
 
-                fixed (void* ptr = data)
+                if (texture.handle.Valid == false)
                 {
-                    bgfx.Memory* memory = bgfx.copy(ptr, (uint)data.Length);
-
-                    texture.handle = bgfx.create_texture(memory, (ulong)flags, skip, &info);
-
-                    if (texture.handle.Valid == false)
-                    {
-                        return false;
-                    }
-
-                    texture.guid = path;
-                    texture.metadata = metadata;
-                    texture.info = info;
-
-                    return true;
+                    return false;
                 }
+
+                texture.guid = path;
+                texture.metadata = metadata;
+                texture.info = info;
+
+                return true;
             }
         }
     }

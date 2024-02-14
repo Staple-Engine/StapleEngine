@@ -62,6 +62,7 @@
     <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\AndroidBuildProcessor.cs" />
     <Compile Include="Backends\BuildInfo.cs" />
+    <Compile Include="Backends\BuildProcessorResult.cs" />
     <Compile Include="Backends\IBuildPostprocessor.cs" />
     <Compile Include="Backends\IBuildPreprocessor.cs" />
     <Compile Include="Backends\iOSBuildProcessor.cs" />

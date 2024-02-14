@@ -3,89 +3,88 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Baker
+namespace Baker;
+
+static partial class Program
 {
-    static partial class Program
+    private static void ProcessAssets(AppPlatform platform, string inputPath, string outputPath)
     {
-        private static void ProcessAssets(AppPlatform platform, string inputPath, string outputPath)
+        var assetFiles = new List<string>();
+
+        try
         {
-            var assetFiles = new List<string>();
+            assetFiles.AddRange(Directory.GetFiles(inputPath, $"*.asset", SearchOption.AllDirectories));
+        }
+        catch (Exception)
+        {
+        }
+
+        Console.WriteLine($"Processing {assetFiles.Count} assets...");
+
+        for (var i = 0; i < assetFiles.Count; i++)
+        {
+            Console.WriteLine($"\t{assetFiles[i]}");
 
             try
             {
-                assetFiles.AddRange(Directory.GetFiles(inputPath, $"*.asset", SearchOption.AllDirectories));
-            }
-            catch (Exception)
-            {
-            }
-
-            Console.WriteLine($"Processing {assetFiles.Count} assets...");
-
-            for (var i = 0; i < assetFiles.Count; i++)
-            {
-                Console.WriteLine($"\t{assetFiles[i]}");
-
-                try
-                {
-                    if (File.Exists(assetFiles[i]) == false)
-                    {
-                        Console.WriteLine($"\t\tError: {assetFiles[i]} doesn't exist");
-
-                        continue;
-                    }
-                }
-                catch (Exception)
+                if (File.Exists(assetFiles[i]) == false)
                 {
                     Console.WriteLine($"\t\tError: {assetFiles[i]} doesn't exist");
 
                     continue;
                 }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine($"\t\tError: {assetFiles[i]} doesn't exist");
 
-                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(assetFiles[i]));
-                var file = Path.GetFileName(assetFiles[i]);
-                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
+                continue;
+            }
 
-                var index = outputFile.IndexOf(inputPath);
+            var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(assetFiles[i]));
+            var file = Path.GetFileName(assetFiles[i]);
+            var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
-                if (index >= 0 && index < outputFile.Length)
-                {
-                    outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-                }
+            var index = outputFile.IndexOf(inputPath);
 
-                Console.WriteLine($"\t\t -> {outputFile}");
+            if (index >= 0 && index < outputFile.Length)
+            {
+                outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
 
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-                }
-                catch (Exception)
-                {
-                }
+            Console.WriteLine($"\t\t -> {outputFile}");
 
-                try
-                {
-                    Directory.CreateDirectory(outputPath);
-                }
-                catch (Exception)
-                {
-                }
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+            }
+            catch (Exception)
+            {
+            }
 
-                try
-                {
-                    File.Delete(outputFile);
-                }
-                catch (Exception)
-                {
-                }
+            try
+            {
+                Directory.CreateDirectory(outputPath);
+            }
+            catch (Exception)
+            {
+            }
 
-                try
-                {
-                    File.Copy(assetFiles[i], outputFile, true);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"\t\tError: Failed to save asset: {e}");
-                }
+            try
+            {
+                File.Delete(outputFile);
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                File.Copy(assetFiles[i], outputFile, true);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"\t\tError: Failed to save asset: {e}");
             }
         }
     }

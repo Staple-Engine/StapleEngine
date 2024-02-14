@@ -1,15 +1,12 @@
-﻿using System.Numerics;
+﻿namespace Staple;
 
-namespace Staple
+/// <summary>
+/// Represents a 3D sphere collider
+/// </summary>
+public sealed class SphereCollider3D : Collider3D
 {
     /// <summary>
-    /// Represents a 3D sphere collider
+    /// The radius of the sphere
     /// </summary>
-    public sealed class SphereCollider3D : Collider3D
-    {
-        /// <summary>
-        /// The radius of the sphere
-        /// </summary>
-        public float radius = 1;
-    }
+    public float radius = 1;
 }

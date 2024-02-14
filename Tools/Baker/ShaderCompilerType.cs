@@ -1,9 +1,8 @@
-﻿namespace Baker
+﻿namespace Baker;
+
+internal enum ShaderCompilerType
 {
-    internal enum ShaderCompilerType
-    {
-        vertex,
-        fragment,
-        compute
-    }
+    vertex,
+    fragment,
+    compute
 }

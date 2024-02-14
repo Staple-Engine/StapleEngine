@@ -1,33 +1,32 @@
 ﻿using System.Numerics;
 
-namespace Staple
+namespace Staple;
+
+internal interface IAudioSource
 {
-    internal interface IAudioSource
-    {
-        bool Playing { get; }
+    bool Playing { get; }
 
-        bool Paused { get; }
+    bool Paused { get; }
 
-        float Pitch { get; set; }
+    float Pitch { get; set; }
 
-        float Volume { get; set; }
+    float Volume { get; set; }
 
-        Vector3 Position { get; set; }
+    Vector3 Position { get; set; }
 
-        Vector3 Velocity { get; set; }
+    Vector3 Velocity { get; set; }
 
-        bool Looping { get; set; }
+    bool Looping { get; set; }
 
-        bool Init();
+    bool Init();
 
-        void Destroy();
+    void Destroy();
 
-        bool Bind(IAudioClip clip);
+    bool Bind(IAudioClip clip);
 
-        void Play();
+    void Play();
 
-        void Pause();
+    void Pause();
 
-        void Stop();
-    }
+    void Stop();
 }

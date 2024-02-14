@@ -1,24 +1,23 @@
 ﻿using JoltPhysicsSharp;
 
-namespace Staple
+namespace Staple;
+
+internal class JoltPhysicsBodyFilter : BodyFilter
 {
-    internal class JoltPhysicsBodyFilter : BodyFilter
+    public PhysicsTriggerQuery triggerQuery;
+
+    protected override bool ShouldCollide(BodyID bodyID)
     {
-        public PhysicsTriggerQuery triggerQuery;
+        return true;
+    }
 
-        protected override bool ShouldCollide(BodyID bodyID)
+    protected override bool ShouldCollideLocked(Body body)
+    {
+        if(triggerQuery == PhysicsTriggerQuery.Ignore && body.IsSensor)
         {
-            return true;
+            return false;
         }
 
-        protected override bool ShouldCollideLocked(Body body)
-        {
-            if(triggerQuery == PhysicsTriggerQuery.Ignore && body.IsSensor)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        return true;
     }
 }

@@ -1,8 +1,7 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+public class MeshRenderer : Renderable
 {
-    public class MeshRenderer : Renderable
-    {
-        public Mesh mesh;
-        public Material material;
-    }
+    public Mesh mesh;
+    public Material material;
 }

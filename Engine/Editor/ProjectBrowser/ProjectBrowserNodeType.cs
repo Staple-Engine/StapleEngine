@@ -1,8 +1,7 @@
-﻿namespace Staple.Editor
+﻿namespace Staple.Editor;
+
+internal enum ProjectBrowserNodeType
 {
-    internal enum ProjectBrowserNodeType
-    {
-        File,
-        Folder
-    }
+    File,
+    Folder
 }

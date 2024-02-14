@@ -1,109 +1,108 @@
 ﻿using System.IO;
 using System.Reflection;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+internal partial class StapleEditor
 {
-    internal partial class StapleEditor
+    public void ResetScenePhysics()
     {
-        public void ResetScenePhysics()
+        foreach(var pair in pickEntityBodies)
         {
-            foreach(var pair in pickEntityBodies)
+            Physics3D.Instance.DestroyBody(pair.Value.body);
+        }
+
+        pickEntityBodies.Clear();
+
+        componentIcons.Clear();
+
+        if(Scene.current?.world != null)
+        {
+            Scene.current.world.Iterate((entity) =>
             {
-                Physics3D.Instance.DestroyBody(pair.Value.body);
-            }
+                var gotIcon = false;
 
-            pickEntityBodies.Clear();
-
-            componentIcons.Clear();
-
-            if(Scene.current?.world != null)
-            {
-                Scene.current.world.Iterate((entity) =>
+                Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
                 {
-                    var gotIcon = false;
-
-                    Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                    if(gotIcon)
                     {
-                        if(gotIcon)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        var attribute = component.GetType().GetCustomAttribute<ComponentIconAttribute>();
+                    var attribute = component.GetType().GetCustomAttribute<ComponentIconAttribute>();
 
-                        if(attribute == null)
-                        {
-                            return;
-                        }
+                    if(attribute == null)
+                    {
+                        return;
+                    }
 
-                        var icon = ThumbnailCache.GetTexture(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Component Icons", attribute.path), true);
+                    var icon = ThumbnailCache.GetTexture(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Component Icons", attribute.path), true);
 
-                        if(icon != null)
-                        {
-                            gotIcon = true;
+                    if(icon != null)
+                    {
+                        gotIcon = true;
 
-                            componentIcons.AddOrSetKey(entity, icon);
-                        }
-                    });
+                        componentIcons.AddOrSetKey(entity, icon);
+                    }
                 });
+            });
+        }
+    }
+
+    public void ReplaceEntityBody(Entity entity, Transform transform, AABB bounds)
+    {
+        if(pickEntityBodies.TryGetValue(entity, out var pair))
+        {
+            Physics3D.Instance.DestroyBody(pair.body);
+
+            pickEntityBodies.Remove(entity);
+        }
+
+        var extents = bounds.extents;
+
+        var needsBoundsFix = extents.X < JoltPhysics3D.MinExtents ||
+            extents.Y < JoltPhysics3D.MinExtents ||
+            extents.Z < JoltPhysics3D.MinExtents;
+
+        if(needsBoundsFix)
+        {
+            if(extents.X < JoltPhysics3D.MinExtents)
+            {
+                extents.X = JoltPhysics3D.MinExtents;
+            }
+
+            if (extents.Y < JoltPhysics3D.MinExtents)
+            {
+                extents.Y = JoltPhysics3D.MinExtents;
+            }
+
+            if (extents.Z < JoltPhysics3D.MinExtents)
+            {
+                extents.Z = JoltPhysics3D.MinExtents;
             }
         }
 
-        public void ReplaceEntityBody(Entity entity, Transform transform, AABB bounds)
+        if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false,
+            0, 0, 0, true, true, true, false, out var body))
         {
-            if(pickEntityBodies.TryGetValue(entity, out var pair))
+            pickEntityBodies.Add(entity, new EntityBody()
             {
-                Physics3D.Instance.DestroyBody(pair.body);
+                body = body,
+                bounds = bounds,
+            });
+        }
+    }
 
-                pickEntityBodies.Remove(entity);
-            }
-
-            var extents = bounds.extents;
-
-            var needsBoundsFix = extents.X < JoltPhysics3D.MinExtents ||
-                extents.Y < JoltPhysics3D.MinExtents ||
-                extents.Z < JoltPhysics3D.MinExtents;
-
-            if(needsBoundsFix)
-            {
-                if(extents.X < JoltPhysics3D.MinExtents)
-                {
-                    extents.X = JoltPhysics3D.MinExtents;
-                }
-
-                if (extents.Y < JoltPhysics3D.MinExtents)
-                {
-                    extents.Y = JoltPhysics3D.MinExtents;
-                }
-
-                if (extents.Z < JoltPhysics3D.MinExtents)
-                {
-                    extents.Z = JoltPhysics3D.MinExtents;
-                }
-            }
-
-            if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false,
-                0, 0, 0, true, true, true, false, out var body))
-            {
-                pickEntityBodies.Add(entity, new EntityBody()
-                {
-                    body = body,
-                    bounds = bounds,
-                });
-            }
+    public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
+    {
+        if(bounds.extents.LengthSquared() == 0)
+        {
+            return;
         }
 
-        public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
+        if (pickEntityBodies.TryGetValue(entity, out var pair) == false || (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
         {
-            if(bounds.extents.LengthSquared() == 0)
-            {
-                return;
-            }
-
-            if (pickEntityBodies.TryGetValue(entity, out var pair) == false || (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
-            {
-                ReplaceEntityBody(entity, transform, bounds);
-            }
+            ReplaceEntityBody(entity, transform, bounds);
         }
     }
 }

@@ -1,17 +1,16 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+/// <summary>
+/// Flag for validating if a raycast hits triggers
+/// </summary>
+public enum PhysicsTriggerQuery
 {
     /// <summary>
-    /// Flag for validating if a raycast hits triggers
+    /// Doesn't hit triggers
     /// </summary>
-    public enum PhysicsTriggerQuery
-    {
-        /// <summary>
-        /// Doesn't hit triggers
-        /// </summary>
-        Ignore,
-        /// <summary>
-        /// Hits triggers
-        /// </summary>
-        Collide
-    }
+    Ignore,
+    /// <summary>
+    /// Hits triggers
+    /// </summary>
+    Collide
 }

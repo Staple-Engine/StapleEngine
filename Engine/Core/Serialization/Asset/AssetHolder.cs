@@ -1,23 +1,21 @@
 ﻿using MessagePack;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+[MessagePackObject]
+public class AssetHolder
 {
-    [MessagePackObject]
-    public class AssetHolder
-    {
-        [Key(0)]
-        public string guid;
+    [Key(0)]
+    public string guid;
 
-        [Key(1)]
-        public string typeName;
-    }
+    [Key(1)]
+    public string typeName;
+}
 
-    [JsonSourceGenerationOptions(IncludeFields = true)]
-    [JsonSerializable(typeof(string))]
-    [JsonSerializable(typeof(AssetHolder))]
-    internal partial class AssetHolderSerializationContext : JsonSerializerContext
-    {
-    }
+[JsonSourceGenerationOptions(IncludeFields = true)]
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(AssetHolder))]
+internal partial class AssetHolderSerializationContext : JsonSerializerContext
+{
 }

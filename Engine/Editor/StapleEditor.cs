@@ -14,1139 +14,1138 @@ using System.Threading;
 
 [assembly: InternalsVisibleTo("StapleEditorApp")]
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+internal partial class StapleEditor
 {
-    internal partial class StapleEditor
+    public const int StapleVersion = 0x010000;
+
+    enum ViewportType
     {
-        public const int StapleVersion = 0x010000;
+        Scene,
+        Game
+    }
 
-        enum ViewportType
+    internal class DragDropPayload
+    {
+        public int index;
+        public ImGuiUtils.ContentGridItem item;
+        public Action<int, ImGuiUtils.ContentGridItem> action;
+    }
+
+    [Serializable]
+    class ProjectInfo
+    {
+        public int stapleVersion;
+    }
+
+    [Serializable]
+    class LastSessionInfo
+    {
+        public string lastOpenScene;
+        public AppPlatform currentPlatform;
+
+        public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
+    }
+
+    [Serializable]
+    class LastProjectItem
+    {
+        public string name;
+        public string path;
+        public DateTime date;
+    }
+
+    [Serializable]
+    class LastProjectInfo
+    {
+        public string lastOpenProject = "";
+        public List<LastProjectItem> items = new();
+    }
+
+    class EntityBody
+    {
+        public AABB bounds;
+        public IBody3D body;
+    }
+
+    class MenuItemInfo
+    {
+        public string name;
+
+        public Action onClick;
+
+        public List<MenuItemInfo> children = new();
+    }
+
+    class GameAssemblyLoadContext : AssemblyLoadContext
+    {
+        private readonly AssemblyDependencyResolver resolver;
+
+        public GameAssemblyLoadContext(string path) : base(true)
         {
-            Scene,
-            Game
+            resolver = new AssemblyDependencyResolver(path);
         }
 
-        internal class DragDropPayload
+        protected override Assembly Load(AssemblyName assemblyName)
         {
-            public int index;
-            public ImGuiUtils.ContentGridItem item;
-            public Action<int, ImGuiUtils.ContentGridItem> action;
-        }
+            var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
 
-        [Serializable]
-        class ProjectInfo
-        {
-            public int stapleVersion;
-        }
-
-        [Serializable]
-        class LastSessionInfo
-        {
-            public string lastOpenScene;
-            public AppPlatform currentPlatform;
-
-            public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
-        }
-
-        [Serializable]
-        class LastProjectItem
-        {
-            public string name;
-            public string path;
-            public DateTime date;
-        }
-
-        [Serializable]
-        class LastProjectInfo
-        {
-            public string lastOpenProject = "";
-            public List<LastProjectItem> items = new();
-        }
-
-        class EntityBody
-        {
-            public AABB bounds;
-            public IBody3D body;
-        }
-
-        class MenuItemInfo
-        {
-            public string name;
-
-            public Action onClick;
-
-            public List<MenuItemInfo> children = new();
-        }
-
-        class GameAssemblyLoadContext : AssemblyLoadContext
-        {
-            private readonly AssemblyDependencyResolver resolver;
-
-            public GameAssemblyLoadContext(string path) : base(true)
+            if (assemblyPath != null)
             {
-                resolver = new AssemblyDependencyResolver(path);
+                return LoadFromAssemblyPath(assemblyPath);
             }
 
-            protected override Assembly Load(AssemblyName assemblyName)
-            {
-                var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+            return null;
+        }
+    }
 
-                if (assemblyPath != null)
-                {
-                    return LoadFromAssemblyPath(assemblyPath);
-                }
+    internal static string StapleBasePath => Storage.StapleBasePath;
 
-                return null;
-            }
+    internal const int ClearView = 0;
+    internal const int SceneView = 253;
+    internal const int WireframeView = 254;
+
+    internal delegate bool BackgroundTaskProgressCallback(ref float progress);
+
+    private readonly List<Thread> backgroundThreads = new();
+    private readonly object backgroundLock = new();
+
+    private RenderWindow window;
+
+    private ImGuiProxy imgui;
+
+    private Entity selectedEntity = Entity.Empty;
+
+    private ProjectBrowserNode selectedProjectNode;
+
+    private object selectedProjectNodeData;
+
+    private int activeBottomTab = 0;
+
+    private string basePath;
+
+    private string lastOpenScene;
+
+    internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
+
+    private RenderTarget gameRenderTarget;
+
+    private readonly RenderSystem renderSystem = new();
+
+    private const int TargetFramerate = 30;
+
+    private Color32 clearColor = new Color32("#7393B3");
+
+    private ViewportType viewportType = ViewportType.Scene;
+
+    private readonly Camera camera = new();
+
+    private readonly Transform cameraTransform = new();
+
+    private readonly AppSettings editorSettings = AppSettings.Default;
+
+    private AppSettings projectAppSettings;
+
+    private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
+
+    internal Material wireframeMaterial;
+
+    internal Mesh wireframeMesh;
+
+    private readonly Dictionary<string, Editor> cachedEditors = new();
+
+    private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = new();
+
+    private readonly Editor defaultEditor = new();
+
+    private GameAssemblyLoadContext gameAssemblyLoadContext;
+
+    private WeakReference<Assembly> gameAssembly;
+
+    internal string buildBackend;
+
+    private AppPlatform currentPlatform = AppPlatform.Windows;
+
+    internal bool buildPlayerDebug = false;
+
+    internal bool buildPlayerNativeAOT = false;
+
+    internal bool showingProgress = false;
+
+    internal bool wasShowingProgress = false;
+
+    internal float progressFraction = 0;
+
+    private bool shouldTerminate = false;
+
+    private PlayerSettings playerSettings;
+
+    private readonly CSProjManager csProjManager = new();
+
+    private readonly ProjectBrowser projectBrowser = new();
+
+    private readonly Dictionary<string, byte[]> registeredAssetTemplates = new();
+
+    private readonly Dictionary<string, Type> registeredAssetTypes = new();
+
+    private List<Type> registeredComponents = new();
+
+    internal List<EditorWindow> editorWindows = new();
+
+    private List<MenuItemInfo> menuItems = new();
+
+    private Dictionary<Entity, Texture> componentIcons = new();
+
+    private Material componentIconMaterial;
+
+    public bool mouseIsHoveringImGui = false;
+
+    private bool hadFocus = true;
+
+    private bool needsGameRecompile = false;
+
+    private bool gameLoadDisabled = false;
+
+    private bool resetSelection = false;
+
+    private Entity draggedEntity = Entity.Empty;
+
+    internal Entity dropTargetEntity = Entity.Empty;
+
+    private LastProjectInfo lastProjects = new();
+
+    private FileSystemWatcher fileSystemWatcher;
+
+    internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
+
+    private static WeakReference<StapleEditor> privInstance;
+
+    public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
+
+    public void Run()
+    {
+        privInstance = new WeakReference<StapleEditor>(this);
+
+        ReloadTypeCache();
+
+        Platform.IsPlaying = false;
+        Platform.IsEditor = true;
+
+        editorSettings.runInBackground = true;
+        editorSettings.appName = "Staple Editor";
+        editorSettings.companyName = "Staple Engine";
+
+        LayerMask.AllLayers = editorSettings.layers;
+        LayerMask.AllSortingLayers = editorSettings.sortingLayers;
+
+        AssetDatabase.assetPathResolver = CachePathResolver;
+
+        Storage.Update(editorSettings.appName, editorSettings.companyName);
+
+        Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
+
+        Log.Instance.onLog += (type, message) =>
+        {
+            System.Console.WriteLine($"[{type}] {message}");
+        };
+
+        PlayerBackendManager.Instance.Initialize();
+
+        Log.Info($"Current Platform: {Platform.CurrentPlatform.Value}");
+
+        currentPlatform = Platform.CurrentPlatform.Value;
+
+        buildBackend = PlayerBackendManager.Instance.GetBackend(currentPlatform).name;
+
+        if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
+        {
+            Log.Error("Failed to load default resources pak");
+
+            return;
         }
 
-        internal static string StapleBasePath => Storage.StapleBasePath;
+        SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
-        internal const int ClearView = 0;
-        internal const int SceneView = 253;
-        internal const int WireframeView = 254;
+        ReloadAssetTemplates();
 
-        internal delegate bool BackgroundTaskProgressCallback(ref float progress);
+        playerSettings = PlayerSettings.Load(editorSettings);
 
-        private readonly List<Thread> backgroundThreads = new();
-        private readonly object backgroundLock = new();
-
-        private RenderWindow window;
-
-        private ImGuiProxy imgui;
-
-        private Entity selectedEntity = Entity.Empty;
-
-        private ProjectBrowserNode selectedProjectNode;
-
-        private object selectedProjectNodeData;
-
-        private int activeBottomTab = 0;
-
-        private string basePath;
-
-        private string lastOpenScene;
-
-        internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
-
-        private RenderTarget gameRenderTarget;
-
-        private readonly RenderSystem renderSystem = new();
-
-        private const int TargetFramerate = 30;
-
-        private Color32 clearColor = new Color32("#7393B3");
-
-        private ViewportType viewportType = ViewportType.Scene;
-
-        private readonly Camera camera = new();
-
-        private readonly Transform cameraTransform = new();
-
-        private readonly AppSettings editorSettings = AppSettings.Default;
-
-        private AppSettings projectAppSettings;
-
-        private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
-
-        internal Material wireframeMaterial;
-
-        internal Mesh wireframeMesh;
-
-        private readonly Dictionary<string, Editor> cachedEditors = new();
-
-        private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = new();
-
-        private readonly Editor defaultEditor = new();
-
-        private GameAssemblyLoadContext gameAssemblyLoadContext;
-
-        private WeakReference<Assembly> gameAssembly;
-
-        internal string buildBackend;
-
-        private AppPlatform currentPlatform = AppPlatform.Windows;
-
-        internal bool buildPlayerDebug = false;
-
-        internal bool buildPlayerNativeAOT = false;
-
-        internal bool showingProgress = false;
-
-        internal bool wasShowingProgress = false;
-
-        internal float progressFraction = 0;
-
-        private bool shouldTerminate = false;
-
-        private PlayerSettings playerSettings;
-
-        private readonly CSProjManager csProjManager = new();
-
-        private readonly ProjectBrowser projectBrowser = new();
-
-        private readonly Dictionary<string, byte[]> registeredAssetTemplates = new();
-
-        private readonly Dictionary<string, Type> registeredAssetTypes = new();
-
-        private List<Type> registeredComponents = new();
-
-        internal List<EditorWindow> editorWindows = new();
-
-        private List<MenuItemInfo> menuItems = new();
-
-        private Dictionary<Entity, Texture> componentIcons = new();
-
-        private Material componentIconMaterial;
-
-        public bool mouseIsHoveringImGui = false;
-
-        private bool hadFocus = true;
-
-        private bool needsGameRecompile = false;
-
-        private bool gameLoadDisabled = false;
-
-        private bool resetSelection = false;
-
-        private Entity draggedEntity = Entity.Empty;
-
-        internal Entity dropTargetEntity = Entity.Empty;
-
-        private LastProjectInfo lastProjects = new();
-
-        private FileSystemWatcher fileSystemWatcher;
-
-        internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
-
-        private static WeakReference<StapleEditor> privInstance;
-
-        public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
-
-        public void Run()
+        if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
         {
-            privInstance = new WeakReference<StapleEditor>(this);
+            playerSettings.screenWidth = editorSettings.defaultWindowWidth;
+            playerSettings.screenHeight = editorSettings.defaultWindowHeight;
 
-            ReloadTypeCache();
+            playerSettings.windowPosition = Vector2Int.Zero;
+        }
 
-            Platform.IsPlaying = false;
-            Platform.IsEditor = true;
+        window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
+            playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
+            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
-            editorSettings.runInBackground = true;
-            editorSettings.appName = "Staple Editor";
-            editorSettings.companyName = "Staple Engine";
+        if(window == null)
+        {
+            return;
+        }
 
-            LayerMask.AllLayers = editorSettings.layers;
-            LayerMask.AllSortingLayers = editorSettings.sortingLayers;
+        window.OnInit = () =>
+        {
+            AssetDatabase.Reload();
 
-            AssetDatabase.assetPathResolver = CachePathResolver;
+            Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
-            Storage.Update(editorSettings.appName, editorSettings.companyName);
+            projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
+            projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
 
-            Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
+            var iconPath = Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Icon.png");
 
-            Log.Instance.onLog += (type, message) =>
+            ThumbnailCache.GetTexture(iconPath, force: true);
+
+            if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
             {
-                System.Console.WriteLine($"[{type}] {message}");
-            };
+                window.window.SetIcon(icon);
+            }
 
-            PlayerBackendManager.Instance.Initialize();
+            imgui = new ImGuiProxy();
 
-            Log.Info($"Current Platform: {Platform.CurrentPlatform.Value}");
-
-            currentPlatform = Platform.CurrentPlatform.Value;
-
-            buildBackend = PlayerBackendManager.Instance.GetBackend(currentPlatform).name;
-
-            if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
+            if (imgui.Initialize() == false)
             {
-                Log.Error("Failed to load default resources pak");
+                imgui.Destroy();
+
+                window.Cleanup();
+
+                window.shouldStop = true;
 
                 return;
             }
 
-            SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
+            var io = ImGui.GetIO();
 
-            ReloadAssetTemplates();
+            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+            io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
-            playerSettings = PlayerSettings.Load(editorSettings);
+            EditorGUI.io = io;
+            EditorGUI.editor = this;
 
-            if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
+            var style = ImGui.GetStyle();
+
+            style.Colors[(int)ImGuiCol.Text] = new Vector4(1, 1, 1, 1);
+            style.Colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
+            style.Colors[(int)ImGuiCol.ChildBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[(int)ImGuiCol.PopupBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[(int)ImGuiCol.Border] = new Vector4(0.12f, 0.12f, 0.12f, 0.71f);
+            style.Colors[(int)ImGuiCol.BorderShadow] = new Vector4(1.00f, 1.00f, 1.00f, 0.06f);
+            style.Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.42f, 0.42f, 0.42f, 0.54f);
+            style.Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.42f, 0.42f, 0.42f, 0.40f);
+            style.Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.56f, 0.56f, 0.56f, 0.67f);
+            style.Colors[(int)ImGuiCol.TitleBg] = new Vector4(0.19f, 0.19f, 0.19f, 1.00f);
+            style.Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.22f, 0.22f, 0.22f, 1.00f);
+            style.Colors[(int)ImGuiCol.TitleBgCollapsed] = new Vector4(0.17f, 0.17f, 0.17f, 0.90f);
+            style.Colors[(int)ImGuiCol.MenuBarBg] = new Vector4(0.335f, 0.335f, 0.335f, 1.000f);
+            style.Colors[(int)ImGuiCol.ScrollbarBg] = new Vector4(0.24f, 0.24f, 0.24f, 0.53f);
+            style.Colors[(int)ImGuiCol.ScrollbarGrab] = new Vector4(0.41f, 0.41f, 0.41f, 1.00f);
+            style.Colors[(int)ImGuiCol.ScrollbarGrabHovered] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
+            style.Colors[(int)ImGuiCol.ScrollbarGrabActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
+            style.Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.65f, 0.65f, 0.65f, 1.00f);
+            style.Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
+            style.Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.64f, 0.64f, 0.64f, 1.00f);
+            style.Colors[(int)ImGuiCol.Button] = new Vector4(0.54f, 0.54f, 0.54f, 0.35f);
+            style.Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.52f, 0.52f, 0.52f, 0.59f);
+            style.Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
+            style.Colors[(int)ImGuiCol.Header] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
+            style.Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
+            style.Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.76f, 0.76f, 0.76f, 0.77f);
+            style.Colors[(int)ImGuiCol.Separator] = new Vector4(0.000f, 0.000f, 0.000f, 0.137f);
+            style.Colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.700f, 0.671f, 0.600f, 0.290f);
+            style.Colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.702f, 0.671f, 0.600f, 0.674f);
+            style.Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.26f, 0.59f, 0.98f, 0.25f);
+            style.Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
+            style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
+            style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
+            style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
+            style.Colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
+            style.Colors[(int)ImGuiCol.PlotHistogramHovered] = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
+            style.Colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.73f, 0.73f, 0.73f, 0.35f);
+            style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+            style.Colors[(int)ImGuiCol.DragDropTarget] = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
+            style.Colors[(int)ImGuiCol.NavHighlight] = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
+            style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
+            style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
+            style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
+            style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
+            style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
+            style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
+            style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.85f, 0.85f, 0.85f, 0.28f);
+
+            style.PopupRounding = 3;
+
+            style.WindowPadding = style.ItemInnerSpacing = new Vector2(4, 4);
+            style.FramePadding = new Vector2(6, 4);
+            style.ItemSpacing = new Vector2(6, 2);
+
+            style.ScrollbarSize = 18;
+
+            style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = 1;
+            style.FrameBorderSize = style.TabBorderSize = 2;
+
+            style.WindowRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
+
+            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+
+            bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+
+            bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+
+            Physics3D.Instance = new Physics3D(new JoltPhysics3D());
+
+            Physics3D.Instance.Startup();
+
+            wireframeMaterial = ResourceManager.instance.LoadMaterial("Materials/Wireframe.mat");
+
+            wireframeMaterial.SetVector4("opacity", new Vector4(1, 1, 1, 1));
+
+            wireframeMaterial.SetVector4("thickness", new Vector4(1, 1, 1, 1));
+
+            wireframeMesh = new Mesh(true, true);
+
+            wireframeMesh.Vertices = new Vector3[]
             {
-                playerSettings.screenWidth = editorSettings.defaultWindowWidth;
-                playerSettings.screenHeight = editorSettings.defaultWindowHeight;
+                new Vector3(-0.5f, 0.5f, 0.5f),
+                Vector3.One * 0.5f,
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f),
+                Vector3.One * -0.5f,
+                new Vector3(0.5f, -0.5f, -0.5f),
+            };
 
-                playerSettings.windowPosition = Vector2Int.Zero;
+            wireframeMesh.Indices = new int[]
+            {
+                0, 1, 2,
+                3, 7, 1,
+                5, 0, 4,
+                2, 6, 7,
+                4, 5
+            };
+
+            wireframeMesh.MeshTopology = MeshTopology.LineStrip;
+
+            renderSystem.Startup();
+
+            cameraTransform.Position = new Vector3(0, 0, 5);
+
+            try
+            {
+                var json = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"));
+
+                lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
+            }
+            catch(Exception)
+            {
             }
 
-            window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
-                playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-                playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+            lastProjects ??= new();
 
-            if(window == null)
+            if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
+            {
+                LoadProject(lastProjects.lastOpenProject);
+            }
+        };
+
+        window.OnUpdate = () =>
+        {
+            var io = ImGui.GetIO();
+
+            bgfx.touch(ClearView);
+
+            if(window.width == 0 || window.height == 0)
             {
                 return;
             }
 
-            window.OnInit = () =>
+            if(viewportType == ViewportType.Scene)
             {
-                AssetDatabase.Reload();
+                RenderScene();
 
-                Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
+                var axis = Vector3.Zero;
 
-                projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
-                projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
-
-                var iconPath = Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Icon.png");
-
-                ThumbnailCache.GetTexture(iconPath, force: true);
-
-                if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
+                if(Input.GetKey(KeyCode.A))
                 {
-                    window.window.SetIcon(icon);
+                    axis += cameraTransform.Left;
                 }
 
-                imgui = new ImGuiProxy();
-
-                if (imgui.Initialize() == false)
+                if(Input.GetKey(KeyCode.D))
                 {
-                    imgui.Destroy();
-
-                    window.Cleanup();
-
-                    window.shouldStop = true;
-
-                    return;
+                    axis += cameraTransform.Right;
                 }
 
-                var io = ImGui.GetIO();
-
-                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-                io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
-
-                EditorGUI.io = io;
-                EditorGUI.editor = this;
-
-                var style = ImGui.GetStyle();
-
-                style.Colors[(int)ImGuiCol.Text] = new Vector4(1, 1, 1, 1);
-                style.Colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
-                style.Colors[(int)ImGuiCol.ChildBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
-                style.Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
-                style.Colors[(int)ImGuiCol.PopupBg] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
-                style.Colors[(int)ImGuiCol.Border] = new Vector4(0.12f, 0.12f, 0.12f, 0.71f);
-                style.Colors[(int)ImGuiCol.BorderShadow] = new Vector4(1.00f, 1.00f, 1.00f, 0.06f);
-                style.Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.42f, 0.42f, 0.42f, 0.54f);
-                style.Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.42f, 0.42f, 0.42f, 0.40f);
-                style.Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.56f, 0.56f, 0.56f, 0.67f);
-                style.Colors[(int)ImGuiCol.TitleBg] = new Vector4(0.19f, 0.19f, 0.19f, 1.00f);
-                style.Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.22f, 0.22f, 0.22f, 1.00f);
-                style.Colors[(int)ImGuiCol.TitleBgCollapsed] = new Vector4(0.17f, 0.17f, 0.17f, 0.90f);
-                style.Colors[(int)ImGuiCol.MenuBarBg] = new Vector4(0.335f, 0.335f, 0.335f, 1.000f);
-                style.Colors[(int)ImGuiCol.ScrollbarBg] = new Vector4(0.24f, 0.24f, 0.24f, 0.53f);
-                style.Colors[(int)ImGuiCol.ScrollbarGrab] = new Vector4(0.41f, 0.41f, 0.41f, 1.00f);
-                style.Colors[(int)ImGuiCol.ScrollbarGrabHovered] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
-                style.Colors[(int)ImGuiCol.ScrollbarGrabActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
-                style.Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.65f, 0.65f, 0.65f, 1.00f);
-                style.Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.52f, 0.52f, 0.52f, 1.00f);
-                style.Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.64f, 0.64f, 0.64f, 1.00f);
-                style.Colors[(int)ImGuiCol.Button] = new Vector4(0.54f, 0.54f, 0.54f, 0.35f);
-                style.Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.52f, 0.52f, 0.52f, 0.59f);
-                style.Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.76f, 0.76f, 0.76f, 1.00f);
-                style.Colors[(int)ImGuiCol.Header] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
-                style.Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
-                style.Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.76f, 0.76f, 0.76f, 0.77f);
-                style.Colors[(int)ImGuiCol.Separator] = new Vector4(0.000f, 0.000f, 0.000f, 0.137f);
-                style.Colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.700f, 0.671f, 0.600f, 0.290f);
-                style.Colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.702f, 0.671f, 0.600f, 0.674f);
-                style.Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.26f, 0.59f, 0.98f, 0.25f);
-                style.Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
-                style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
-                style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
-                style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
-                style.Colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
-                style.Colors[(int)ImGuiCol.PlotHistogramHovered] = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
-                style.Colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.73f, 0.73f, 0.73f, 0.35f);
-                style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
-                style.Colors[(int)ImGuiCol.DragDropTarget] = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
-                style.Colors[(int)ImGuiCol.NavHighlight] = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-                style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
-                style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
-                style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(0.38f, 0.38f, 0.38f, 1.00f);
-                style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
-                style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.40f, 0.40f, 0.40f, 1.00f);
-                style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
-                style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.25f, 0.25f, 0.25f, 1.00f);
-                style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.33f, 0.33f, 0.33f, 1.00f);
-                style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.85f, 0.85f, 0.85f, 0.28f);
-
-                style.PopupRounding = 3;
-
-                style.WindowPadding = style.ItemInnerSpacing = new Vector2(4, 4);
-                style.FramePadding = new Vector2(6, 4);
-                style.ItemSpacing = new Vector2(6, 2);
-
-                style.ScrollbarSize = 18;
-
-                style.WindowBorderSize = style.ChildBorderSize = style.PopupBorderSize = 1;
-                style.FrameBorderSize = style.TabBorderSize = 2;
-
-                style.WindowRounding = style.ChildRounding = style.FrameRounding = style.ScrollbarRounding = style.GrabRounding = style.TabRounding = 3;
-
-                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-                bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
-
-                Physics3D.Instance = new Physics3D(new JoltPhysics3D());
-
-                Physics3D.Instance.Startup();
-
-                wireframeMaterial = ResourceManager.instance.LoadMaterial("Materials/Wireframe.mat");
-
-                wireframeMaterial.SetVector4("opacity", new Vector4(1, 1, 1, 1));
-
-                wireframeMaterial.SetVector4("thickness", new Vector4(1, 1, 1, 1));
-
-                wireframeMesh = new Mesh(true, true);
-
-                wireframeMesh.Vertices = new Vector3[]
+                if(Input.GetKey(KeyCode.W))
                 {
-                    new Vector3(-0.5f, 0.5f, 0.5f),
-                    Vector3.One * 0.5f,
-                    new Vector3(-0.5f, -0.5f, 0.5f),
-                    new Vector3(0.5f, -0.5f, 0.5f),
-                    new Vector3(-0.5f, 0.5f, -0.5f),
-                    new Vector3(0.5f, 0.5f, -0.5f),
-                    Vector3.One * -0.5f,
-                    new Vector3(0.5f, -0.5f, -0.5f),
-                };
-
-                wireframeMesh.Indices = new int[]
-                {
-                    0, 1, 2,
-                    3, 7, 1,
-                    5, 0, 4,
-                    2, 6, 7,
-                    4, 5
-                };
-
-                wireframeMesh.MeshTopology = MeshTopology.LineStrip;
-
-                renderSystem.Startup();
-
-                cameraTransform.Position = new Vector3(0, 0, 5);
-
-                try
-                {
-                    var json = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"));
-
-                    lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
-                }
-                catch(Exception)
-                {
+                    axis += cameraTransform.Forward;
                 }
 
-                lastProjects ??= new();
-
-                if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
+                if(Input.GetKey(KeyCode.S))
                 {
-                    LoadProject(lastProjects.lastOpenProject);
+                    axis += cameraTransform.Back;
                 }
-            };
 
-            window.OnUpdate = () =>
+                cameraTransform.LocalPosition += axis * 10 * Time.deltaTime;
+
+                if(Input.GetMouseButton(MouseButton.Right))
+                {
+                    var rotation = Math.ToEulerAngles(cameraTransform.LocalRotation);
+
+                    rotation.X -= Input.MouseRelativePosition.Y;
+                    rotation.Y -= Input.MouseRelativePosition.X;
+
+                    cameraTransform.LocalRotation = Math.FromEulerAngles(rotation);
+                }
+            }
+
+            io.DisplaySize = new Vector2(window.width, window.height);
+            io.DisplayFramebufferScale = new Vector2(1, 1);
+
+            if (gameRenderTarget != null && Scene.current != null)
             {
-                var io = ImGui.GetIO();
+                RenderTarget.SetActive(1, gameRenderTarget);
 
-                bgfx.touch(ClearView);
+                Screen.Width = gameRenderTarget.width;
+                Screen.Height = gameRenderTarget.height;
 
-                if(window.width == 0 || window.height == 0)
+                renderSystem.Update();
+
+                Screen.Width = window.width;
+                Screen.Height = window.height;
+            }
+
+            if(resetSelection)
+            {
+                resetSelection = false;
+
+                SetSelectedEntity(selectedEntity);
+            }
+
+            ThumbnailCache.OnFrameStart();
+            imgui.BeginFrame();
+
+            mouseIsHoveringImGui = true;
+            var viewport = ImGui.GetMainViewport();
+
+            ImGui.SetNextWindowPos(viewport.Pos);
+            ImGui.SetNextWindowSize(viewport.Size);
+
+            if (projectAppSettings == null)
+            {
+                ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
+
+                ImGui.SetNextWindowSize(new Vector2(800, 400));
+                ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Always, Vector2.One * 0.5f);
+
+                ImGui.Begin("ProjectListContent", ImGuiWindowFlags.NoBackground |
+                    ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoDocking |
+                    ImGuiWindowFlags.NoDecoration);
+
+                ImGui.Text("Project List");
+
+                ImGui.Spacing();
+
+                if (ImGui.Button("New"))
                 {
-                    return;
+                    ImGuiNewProject();
                 }
 
-                if(viewportType == ViewportType.Scene)
+                ImGui.SameLine();
+
+                if (ImGui.Button("Open"))
                 {
-                    RenderScene();
+                    ImGuiOpenProject();
+                }
 
-                    var axis = Vector3.Zero;
+                ImGui.Spacing();
 
-                    if(Input.GetKey(KeyCode.A))
+                if(ImGui.BeginListBox("##ProjectList"))
+                {
+                    //TODO
+                    ImGui.EndListBox();
+                }
+
+                ImGui.End();
+
+                ImGui.End();
+            }
+            else
+            {
+                ImGui.SetNextWindowViewport(viewport.ID);
+
+                Dockspace();
+                Viewport(io);
+                Entities(io);
+                Inspector(io);
+                BottomPanel(io);
+            }
+
+            var currentWindows = new List<EditorWindow>(editorWindows);
+
+            for(var i = 0; i < currentWindows.Count; i++)
+            {
+                var window = currentWindows[i];
+                var shouldShow = false;
+
+                var flags = ImGuiWindowFlags.None;
+
+                if(window.allowDocking == false)
+                {
+                    flags |= ImGuiWindowFlags.NoDocking;
+                }
+
+                if(window.allowResize == false)
+                {
+                    flags |= ImGuiWindowFlags.NoResize;
+
+                    ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
+
+                    if(window.centerWindow)
                     {
-                        axis += cameraTransform.Left;
-                    }
-
-                    if(Input.GetKey(KeyCode.D))
-                    {
-                        axis += cameraTransform.Right;
-                    }
-
-                    if(Input.GetKey(KeyCode.W))
-                    {
-                        axis += cameraTransform.Forward;
-                    }
-
-                    if(Input.GetKey(KeyCode.S))
-                    {
-                        axis += cameraTransform.Back;
-                    }
-
-                    cameraTransform.LocalPosition += axis * 10 * Time.deltaTime;
-
-                    if(Input.GetMouseButton(MouseButton.Right))
-                    {
-                        var rotation = Math.ToEulerAngles(cameraTransform.LocalRotation);
-
-                        rotation.X -= Input.MouseRelativePosition.Y;
-                        rotation.Y -= Input.MouseRelativePosition.X;
-
-                        cameraTransform.LocalRotation = Math.FromEulerAngles(rotation);
+                        ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
                     }
                 }
 
-                io.DisplaySize = new Vector2(window.width, window.height);
-                io.DisplayFramebufferScale = new Vector2(1, 1);
-
-                if (gameRenderTarget != null && Scene.current != null)
+                switch(window.windowType)
                 {
-                    RenderTarget.SetActive(1, gameRenderTarget);
+                    case EditorWindowType.Modal:
+                    case EditorWindowType.Popup:
 
-                    Screen.Width = gameRenderTarget.width;
-                    Screen.Height = gameRenderTarget.height;
+                        if (window.opened == false)
+                        {
+                            window.opened = true;
 
-                    renderSystem.Update();
-
-                    Screen.Width = window.width;
-                    Screen.Height = window.height;
-                }
-
-                if(resetSelection)
-                {
-                    resetSelection = false;
-
-                    SetSelectedEntity(selectedEntity);
-                }
-
-                ThumbnailCache.OnFrameStart();
-                imgui.BeginFrame();
-
-                mouseIsHoveringImGui = true;
-                var viewport = ImGui.GetMainViewport();
-
-                ImGui.SetNextWindowPos(viewport.Pos);
-                ImGui.SetNextWindowSize(viewport.Size);
-
-                if (projectAppSettings == null)
-                {
-                    ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
-
-                    ImGui.SetNextWindowSize(new Vector2(800, 400));
-                    ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Always, Vector2.One * 0.5f);
-
-                    ImGui.Begin("ProjectListContent", ImGuiWindowFlags.NoBackground |
-                        ImGuiWindowFlags.NoMove |
-                        ImGuiWindowFlags.NoResize |
-                        ImGuiWindowFlags.NoDocking |
-                        ImGuiWindowFlags.NoDecoration);
-
-                    ImGui.Text("Project List");
-
-                    ImGui.Spacing();
-
-                    if (ImGui.Button("New"))
-                    {
-                        ImGuiNewProject();
-                    }
-
-                    ImGui.SameLine();
-
-                    if (ImGui.Button("Open"))
-                    {
-                        ImGuiOpenProject();
-                    }
-
-                    ImGui.Spacing();
-
-                    if(ImGui.BeginListBox("##ProjectList"))
-                    {
-                        //TODO
-                        ImGui.EndListBox();
-                    }
-
-                    ImGui.End();
-
-                    ImGui.End();
-                }
-                else
-                {
-                    ImGui.SetNextWindowViewport(viewport.ID);
-
-                    Dockspace();
-                    Viewport(io);
-                    Entities(io);
-                    Inspector(io);
-                    BottomPanel(io);
-                }
-
-                var currentWindows = new List<EditorWindow>(editorWindows);
-
-                for(var i = 0; i < currentWindows.Count; i++)
-                {
-                    var window = currentWindows[i];
-                    var shouldShow = false;
-
-                    var flags = ImGuiWindowFlags.None;
-
-                    if(window.allowDocking == false)
-                    {
-                        flags |= ImGuiWindowFlags.NoDocking;
-                    }
-
-                    if(window.allowResize == false)
-                    {
-                        flags |= ImGuiWindowFlags.NoResize;
+                            ImGui.OpenPopup($"{window.title}##Popup{window.GetType().Name}");
+                        }
 
                         ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
+                        ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
 
-                        if(window.centerWindow)
+                        if(window.windowType == EditorWindowType.Popup)
                         {
-                            ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
+                            shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}");
                         }
+                        else
+                        {
+                            shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}");
+                        }
+
+                        if (shouldShow == false)
+                        {
+                            ImGui.CloseCurrentPopup();
+
+                            editorWindows.Remove(window);
+                        }
+
+                        break;
+
+                    default:
+
+                        shouldShow = ImGui.Begin($"{window.title}##{i}{window.title}", flags);
+
+                        break;
+                }
+
+                if (shouldShow)
+                {
+                    try
+                    {
+                        window.OnGUI();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"Window {window.GetType().FullName} Error: {e}");
                     }
 
-                    switch(window.windowType)
+                    switch (window.windowType)
                     {
-                        case EditorWindowType.Modal:
                         case EditorWindowType.Popup:
+                        case EditorWindowType.Modal:
 
-                            if (window.opened == false)
-                            {
-                                window.opened = true;
-
-                                ImGui.OpenPopup($"{window.title}##Popup{window.GetType().Name}");
-                            }
-
-                            ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
-                            ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
-
-                            if(window.windowType == EditorWindowType.Popup)
-                            {
-                                shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}");
-                            }
-                            else
-                            {
-                                shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}");
-                            }
-
-                            if (shouldShow == false)
-                            {
-                                ImGui.CloseCurrentPopup();
-
-                                editorWindows.Remove(window);
-                            }
+                            ImGui.EndPopup();
 
                             break;
 
                         default:
 
-                            shouldShow = ImGui.Begin($"{window.title}##{i}{window.title}", flags);
+                            ImGui.End();
 
                             break;
                     }
 
-                    if (shouldShow)
-                    {
-                        try
-                        {
-                            window.OnGUI();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error($"Window {window.GetType().FullName} Error: {e}");
-                        }
+                    var size = ImGui.GetWindowSize();
 
-                        switch (window.windowType)
-                        {
-                            case EditorWindowType.Popup:
-                            case EditorWindowType.Modal:
-
-                                ImGui.EndPopup();
-
-                                break;
-
-                            default:
-
-                                ImGui.End();
-
-                                break;
-                        }
-
-                        var size = ImGui.GetWindowSize();
-
-                        window.size = new Vector2Int((int)size.X, (int)size.Y);
-                    }
+                    window.size = new Vector2Int((int)size.X, (int)size.Y);
                 }
+            }
 
-                if(needsGameRecompile && window.HasFocus)
-                {
-                    needsGameRecompile = false;
-
-                    UnloadGame();
-
-                    ImGui.OpenPopup("ShowingProgress");
-
-                    showingProgress = true;
-                    progressFraction = 0;
-
-                    StartBackgroundTask((ref float progress) =>
-                    {
-                        RefreshStaging(currentPlatform);
-
-                        return true;
-                    });
-                }
-
-                ProgressPopup(io);
-
-                ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
-
-                if (Scene.current?.world != null)
-                {
-                    var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
-
-                    var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
-
-                    ImGui.Text($"Mouse Ray:");
-
-                    ImGui.Text($"Position: {mouseRay.position.X}, {mouseRay.position.Y}, {mouseRay.position.Z}");
-
-                    ImGui.Text($"Direction: {mouseRay.direction.X}, {mouseRay.direction.Y}, {mouseRay.direction.Z}");
-
-                    ImGui.Checkbox("Hit", ref hit);
-
-                    ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
-                }
-
-                ImGui.End();
-
-                imgui.EndFrame();
-
-                if (Scene.current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
-                {
-                    var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
-
-                    if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
-                    {
-                        SetSelectedEntity(body.Entity);
-                    }
-                    else
-                    {
-                        SetSelectedEntity(Entity.Empty);
-                    }
-                }
-            };
-
-            window.OnScreenSizeChange = (hasFocus) =>
+            if(needsGameRecompile && window.HasFocus)
             {
-                var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
+                needsGameRecompile = false;
 
-                Screen.Width = playerSettings.screenWidth = window.width;
-                Screen.Height = playerSettings.screenHeight = window.height;
+                UnloadGame();
 
-                playerSettings.monitorIndex = window.MonitorIndex;
-                playerSettings.maximized = window.Maximized;
+                ImGui.OpenPopup("ShowingProgress");
 
-                PlayerSettings.Save(playerSettings);
+                showingProgress = true;
+                progressFraction = 0;
 
-                bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
-
-                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-                bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-                
-                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
-
-                if(hadFocus != hasFocus && hasFocus)
+                StartBackgroundTask((ref float progress) =>
                 {
-                    if (csProjManager.NeedsGameRecompile())
-                    {
-                        needsGameRecompile = true;
-                    }
-                }
+                    RefreshStaging(currentPlatform);
 
-                hadFocus = hasFocus;
-            };
+                    return true;
+                });
+            }
 
-            window.OnMove = (position) =>
+            ProgressPopup(io);
+
+            ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
+
+            if (Scene.current?.world != null)
             {
-                playerSettings.windowPosition = position;
+                var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
 
-                PlayerSettings.Save(playerSettings);
-            };
+                var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
 
-            window.OnCleanup = () =>
+                ImGui.Text($"Mouse Ray:");
+
+                ImGui.Text($"Position: {mouseRay.position.X}, {mouseRay.position.Y}, {mouseRay.position.Z}");
+
+                ImGui.Text($"Direction: {mouseRay.direction.X}, {mouseRay.direction.Y}, {mouseRay.direction.Z}");
+
+                ImGui.Checkbox("Hit", ref hit);
+
+                ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
+            }
+
+            ImGui.End();
+
+            imgui.EndFrame();
+
+            if (Scene.current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
+            {
+                var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+
+                if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
+                {
+                    SetSelectedEntity(body.Entity);
+                }
+                else
+                {
+                    SetSelectedEntity(Entity.Empty);
+                }
+            }
+        };
+
+        window.OnScreenSizeChange = (hasFocus) =>
+        {
+            var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
+
+            Screen.Width = playerSettings.screenWidth = window.width;
+            Screen.Height = playerSettings.screenHeight = window.height;
+
+            playerSettings.monitorIndex = window.MonitorIndex;
+            playerSettings.maximized = window.Maximized;
+
+            PlayerSettings.Save(playerSettings);
+
+            bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
+
+            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+
+            bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+            
+            bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
+            bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+
+            if(hadFocus != hasFocus && hasFocus)
+            {
+                if (csProjManager.NeedsGameRecompile())
+                {
+                    needsGameRecompile = true;
+                }
+            }
+
+            hadFocus = hasFocus;
+        };
+
+        window.OnMove = (position) =>
+        {
+            playerSettings.windowPosition = position;
+
+            PlayerSettings.Save(playerSettings);
+        };
+
+        window.OnCleanup = () =>
+        {
+            lock(backgroundLock)
+            {
+                shouldTerminate = true;
+            }
+
+            for(; ; )
             {
                 lock(backgroundLock)
                 {
-                    shouldTerminate = true;
-                }
-
-                for(; ; )
-                {
-                    lock(backgroundLock)
+                    if(backgroundThreads.Count == 0)
                     {
-                        if(backgroundThreads.Count == 0)
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
+            }
 
-                imgui.Destroy();
+            imgui.Destroy();
 
-                renderSystem.Shutdown();
+            renderSystem.Shutdown();
 
-                SubsystemManager.instance.Destroy();
+            SubsystemManager.instance.Destroy();
 
-                ResourceManager.instance.Destroy(true);
-            };
+            ResourceManager.instance.Destroy(true);
+        };
 
-            window.Run();
-        }
+        window.Run();
+    }
 
-        private void SaveLastProjects()
+    private void SaveLastProjects()
+    {
+        try
         {
-            try
-            {
-                var json = JsonConvert.SerializeObject(lastProjects);
+            var json = JsonConvert.SerializeObject(lastProjects);
 
-                File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"), json);
-            }
-            catch(Exception)
-            {
-            }
+            File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"), json);
         }
-
-        private void CreateProject(string path)
+        catch(Exception)
         {
-            try
-            {
-                var directory = new DirectoryInfo(path);
+        }
+    }
 
-                if(directory.GetDirectories().Length != 0 || directory.GetFiles().Length != 0)
-                {
-                    Log.Error($"Failed to create project: Directory not empty");
+    private void CreateProject(string path)
+    {
+        try
+        {
+            var directory = new DirectoryInfo(path);
 
-                    return;
-                }
-            }
-            catch(Exception)
+            if(directory.GetDirectories().Length != 0 || directory.GetFiles().Length != 0)
             {
-                Log.Error($"Failed to create project: Directory not valid");
+                Log.Error($"Failed to create project: Directory not empty");
 
                 return;
             }
+        }
+        catch(Exception)
+        {
+            Log.Error($"Failed to create project: Directory not valid");
 
-            try
-            {
-                var json = JsonConvert.SerializeObject(new ProjectInfo()
-                {
-                    stapleVersion = StapleVersion,
-                });
-
-                File.WriteAllText(Path.Combine(path, "ProjectInfo.json"), json);
-            }
-            catch(Exception)
-            {
-            }
-
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(path, "Assets"));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                CopyDirectory(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings"));
-            }
-            catch(Exception)
-            {
-            }
+            return;
         }
 
-        private void AddMenuItem(string path, Action onClick)
+        try
         {
-            MenuItemInfo item = null;
-            var pieces = path.Split("/".ToCharArray()).ToList();
-
-            while (pieces.Count > 0)
+            var json = JsonConvert.SerializeObject(new ProjectInfo()
             {
+                stapleVersion = StapleVersion,
+            });
+
+            File.WriteAllText(Path.Combine(path, "ProjectInfo.json"), json);
+        }
+        catch(Exception)
+        {
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(path, "Assets"));
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            CopyDirectory(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings"));
+        }
+        catch(Exception)
+        {
+        }
+    }
+
+    private void AddMenuItem(string path, Action onClick)
+    {
+        MenuItemInfo item = null;
+        var pieces = path.Split("/".ToCharArray()).ToList();
+
+        while (pieces.Count > 0)
+        {
+            if (item == null)
+            {
+                item = menuItems.Find(x => x.name == pieces[0]);
+
                 if (item == null)
                 {
-                    item = menuItems.Find(x => x.name == pieces[0]);
-
-                    if (item == null)
+                    item = new MenuItemInfo()
                     {
-                        item = new MenuItemInfo()
-                        {
-                            name = pieces[0],
-                            onClick = pieces.Count == 1 ? onClick : null,
-                        };
+                        name = pieces[0],
+                        onClick = pieces.Count == 1 ? onClick : null,
+                    };
 
-                        menuItems.Add(item);
-                    }
+                    menuItems.Add(item);
                 }
-                else
-                {
-                    var child = item.children.Find(x => x.name == pieces[0]);
-
-                    if (child == null)
-                    {
-                        child = new MenuItemInfo()
-                        {
-                            name = pieces[0],
-                            onClick = pieces.Count == 1 ? onClick : null,
-                        };
-
-                        item.children.Add(child);
-                    }
-
-                    item = child;
-                }
-
-                pieces.RemoveAt(0);
             }
-        }
-
-        private MenuItemInfo FindMenuItem(string path)
-        {
-            MenuItemInfo item = null;
-            var pieces = path.Split("/".ToCharArray()).ToList();
-
-            while(pieces.Count > 0)
+            else
             {
+                var child = item.children.Find(x => x.name == pieces[0]);
+
+                if (child == null)
+                {
+                    child = new MenuItemInfo()
+                    {
+                        name = pieces[0],
+                        onClick = pieces.Count == 1 ? onClick : null,
+                    };
+
+                    item.children.Add(child);
+                }
+
+                item = child;
+            }
+
+            pieces.RemoveAt(0);
+        }
+    }
+
+    private MenuItemInfo FindMenuItem(string path)
+    {
+        MenuItemInfo item = null;
+        var pieces = path.Split("/".ToCharArray()).ToList();
+
+        while(pieces.Count > 0)
+        {
+            if(item == null)
+            {
+                item = menuItems.Find(x => x.name == pieces[0]);
+
                 if(item == null)
                 {
-                    item = menuItems.Find(x => x.name == pieces[0]);
-
-                    if(item == null)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
-                else
+            }
+            else
+            {
+                item = item.children.Find(x => x.name == pieces[0]);
+
+                if (item == null)
                 {
-                    item = item.children.Find(x => x.name == pieces[0]);
-
-                    if (item == null)
-                    {
-                        return null;
-                    }
-                }
-
-                pieces.RemoveAt(0);
-            }
-
-            return item;
-        }
-
-        private LastSessionInfo GetLastSession()
-        {
-            var path = Path.Combine(basePath, "Cache", "LastSession.json");
-
-            try
-            {
-                var text = File.ReadAllText(path);
-
-                return JsonConvert.DeserializeObject<LastSessionInfo>(text);
-            }
-            catch(Exception)
-            {
-                return null;
-            }
-        }
-
-        internal void UpdateLastSession()
-        {
-            UpdateLastSession(new LastSessionInfo()
-            {
-                currentPlatform = currentPlatform,
-                lastOpenScene = lastOpenScene,
-                lastPickedBuildDirectories = lastPickedBuildDirectories,
-            });
-        }
-
-        private void UpdateLastSession(LastSessionInfo info)
-        {
-            var path = Path.Combine(basePath, "Cache", "LastSession.json");
-
-            try
-            {
-                var text = JsonConvert.SerializeObject(info, Formatting.Indented);
-
-                File.WriteAllText(path, text);
-            }
-            catch(Exception)
-            {
-            }
-        }
-
-        internal string ProjectNodeCachePath(string path)
-        {
-            var cachePath = path;
-
-            var pathIndex = path.IndexOf("Assets");
-
-            if (pathIndex >= 0)
-            {
-                cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "Assets\\".Length));
-            }
-
-            return cachePath;
-        }
-
-        private string CachePathResolver(string path)
-        {
-            if(basePath == null)
-            {
-                return path;
-            }
-
-            var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
-
-            try
-            {
-                if (File.Exists(p))
-                {
-                    return p;
+                    return null;
                 }
             }
-            catch(Exception)
-            {
-            }
 
-            p = Path.Combine(basePath, "Assets", path);
+            pieces.RemoveAt(0);
+        }
 
-            try
-            {
-                if (File.Exists(p))
-                {
-                    return p;
-                }
-            }
-            catch (Exception)
-            {
-            }
+        return item;
+    }
 
+    private LastSessionInfo GetLastSession()
+    {
+        var path = Path.Combine(basePath, "Cache", "LastSession.json");
+
+        try
+        {
+            var text = File.ReadAllText(path);
+
+            return JsonConvert.DeserializeObject<LastSessionInfo>(text);
+        }
+        catch(Exception)
+        {
+            return null;
+        }
+    }
+
+    internal void UpdateLastSession()
+    {
+        UpdateLastSession(new LastSessionInfo()
+        {
+            currentPlatform = currentPlatform,
+            lastOpenScene = lastOpenScene,
+            lastPickedBuildDirectories = lastPickedBuildDirectories,
+        });
+    }
+
+    private void UpdateLastSession(LastSessionInfo info)
+    {
+        var path = Path.Combine(basePath, "Cache", "LastSession.json");
+
+        try
+        {
+            var text = JsonConvert.SerializeObject(info, Formatting.Indented);
+
+            File.WriteAllText(path, text);
+        }
+        catch(Exception)
+        {
+        }
+    }
+
+    internal string ProjectNodeCachePath(string path)
+    {
+        var cachePath = path;
+
+        var pathIndex = path.IndexOf("Assets");
+
+        if (pathIndex >= 0)
+        {
+            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "Assets\\".Length));
+        }
+
+        return cachePath;
+    }
+
+    private string CachePathResolver(string path)
+    {
+        if(basePath == null)
+        {
             return path;
         }
 
-        public void ShowAssetPicker(Type type, string key)
+        var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+
+        try
         {
-            var window = EditorWindow.GetWindow<AssetPickerWindow>();
-
-            window.assetPickerKey = key;
-            window.assetPickerSearch = "";
-            window.assetPickerType = type;
-            window.currentPlatform = currentPlatform;
-            window.basePath = basePath;
-            window.projectBrowser = projectBrowser;
-        }
-
-        public void ShowSpritePicker(Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)
-        {
-            var window = EditorWindow.GetWindow<SpritePicker>();
-
-            window.texture = texture;
-            window.sprites = sprites;
-            window.onFinish = onFinish;
-        }
-
-        private void SetSelectedEntity(Entity entity)
-        {
-            selectedEntity = entity;
-            selectedProjectNode = null;
-            selectedProjectNodeData = null;
-
-            foreach(var editor in cachedEditors)
+            if (File.Exists(p))
             {
-                editor.Value?.Destroy();
+                return p;
             }
+        }
+        catch(Exception)
+        {
+        }
 
-            cachedEditors.Clear();
-            cachedGizmoEditors.Clear();
-            EditorGUI.pendingObjectPickers.Clear();
+        p = Path.Combine(basePath, "Assets", path);
 
-            EditorWindow.GetWindow<AssetPickerWindow>().Close();
+        try
+        {
+            if (File.Exists(p))
+            {
+                return p;
+            }
+        }
+        catch (Exception)
+        {
+        }
 
-            if(selectedEntity == Entity.Empty)
+        return path;
+    }
+
+    public void ShowAssetPicker(Type type, string key)
+    {
+        var window = EditorWindow.GetWindow<AssetPickerWindow>();
+
+        window.assetPickerKey = key;
+        window.assetPickerSearch = "";
+        window.assetPickerType = type;
+        window.currentPlatform = currentPlatform;
+        window.basePath = basePath;
+        window.projectBrowser = projectBrowser;
+    }
+
+    public void ShowSpritePicker(Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)
+    {
+        var window = EditorWindow.GetWindow<SpritePicker>();
+
+        window.texture = texture;
+        window.sprites = sprites;
+        window.onFinish = onFinish;
+    }
+
+    private void SetSelectedEntity(Entity entity)
+    {
+        selectedEntity = entity;
+        selectedProjectNode = null;
+        selectedProjectNodeData = null;
+
+        foreach(var editor in cachedEditors)
+        {
+            editor.Value?.Destroy();
+        }
+
+        cachedEditors.Clear();
+        cachedGizmoEditors.Clear();
+        EditorGUI.pendingObjectPickers.Clear();
+
+        EditorWindow.GetWindow<AssetPickerWindow>().Close();
+
+        if(selectedEntity == Entity.Empty)
+        {
+            return;
+        }
+
+        var counter = 0;
+
+        Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+        {
+            counter++;
+
+            if (component is Transform transform)
             {
                 return;
             }
 
-            var counter = 0;
+            var editor = Editor.CreateEditor(component);
 
-            Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+            if (editor != null)
             {
-                counter++;
+                cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
+            }
 
-                if (component is Transform transform)
-                {
-                    return;
-                }
+            var gizmoEditor = GizmoEditor.CreateGizmoEditor(component);
 
-                var editor = Editor.CreateEditor(component);
+            if(gizmoEditor != null)
+            {
+                cachedGizmoEditors.Add(counter - 1, gizmoEditor);
+            }
+        });
+    }
 
-                if (editor != null)
-                {
-                    cachedEditors.Add($"{counter}{component.GetType().FullName}", editor);
-                }
+    private void ReloadAssetTemplates()
+    {
+        registeredAssetTemplates.Clear();
 
-                var gizmoEditor = GizmoEditor.CreateGizmoEditor(component);
+        string[] files = Array.Empty<string>();
 
-                if(gizmoEditor != null)
-                {
-                    cachedGizmoEditors.Add(counter - 1, gizmoEditor);
-                }
-            });
+        try
+        {
+            files = Directory.GetFiles(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "AssetTemplates"));
+        }
+        catch(Exception)
+        {
+            return;
         }
 
-        private void ReloadAssetTemplates()
+        foreach(var file in files)
         {
-            registeredAssetTemplates.Clear();
-
-            string[] files = Array.Empty<string>();
-
             try
             {
-                files = Directory.GetFiles(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "AssetTemplates"));
+                registeredAssetTemplates.Add(Path.GetFileName(file), File.ReadAllBytes(file));
             }
             catch(Exception)
             {
-                return;
-            }
-
-            foreach(var file in files)
-            {
-                try
-                {
-                    registeredAssetTemplates.Add(Path.GetFileName(file), File.ReadAllBytes(file));
-                }
-                catch(Exception)
-                {
-                }
             }
         }
     }

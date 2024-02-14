@@ -1,12 +1,11 @@
 ﻿using JoltPhysicsSharp;
 
-namespace Staple
+namespace Staple;
+
+internal class JoltPhysicsObjectLayerFilter : ObjectLayerFilter
 {
-    internal class JoltPhysicsObjectLayerFilter : ObjectLayerFilter
+    protected override bool ShouldCollide(ObjectLayer layer)
     {
-        protected override bool ShouldCollide(ObjectLayer layer)
-        {
-            return true;
-        }
+        return true;
     }
 }

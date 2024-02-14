@@ -2,251 +2,250 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+internal enum AppEventType
 {
-    internal enum AppEventType
+    ResetFlags,
+    KeyDown,
+    KeyUp,
+    MouseDown,
+    MouseUp,
+    MouseDelta,
+    Text,
+    MaximizeWindow,
+    MoveWindow,
+    Touch
+}
+
+internal enum InputState
+{
+    Release,
+    Press,
+    Repeat,
+}
+
+internal enum MouseButton
+{
+    Button1,
+    Button2,
+    Button3,
+    Button4,
+    Button5,
+    Button6,
+    Button7,
+    Button8,
+
+    Left = Button1,
+
+    Right = Button2,
+
+    Middle = Button3
+}
+
+[Flags]
+internal enum ModifierKeys
+{
+    Shift = 0x0001,
+
+    Control = 0x0002,
+
+    Alt = 0x0004,
+
+    Super = 0x0008,
+
+    CapsLock = 0x0010,
+
+    NumLock = 0x0020
+}
+
+internal struct MouseEvent
+{
+    public MouseButton button;
+    public InputState state;
+    public ModifierKeys modifiers;
+}
+
+internal struct KeyboardEvent
+{
+    public KeyCode key;
+    public int scancode;
+    public InputState state;
+    public ModifierKeys mods;
+}
+
+internal struct ResetEvent
+{
+    public Bgfx.bgfx.ResetFlags resetFlags;
+}
+
+internal struct MouseDeltaEvent
+{
+    public Vector2 delta;
+}
+
+internal struct MaximizeWindowEvent
+{
+    public bool maximized;
+}
+
+internal struct MoveWindowEvent
+{
+    public Vector2Int windowPosition;
+}
+
+internal struct TouchEvent
+{
+    public int touchID;
+    public Vector2 position;
+    public InputState state;
+}
+
+/// <summary>
+/// Stores information on an app event
+/// </summary>
+internal class AppEvent
+{
+    public AppEventType type;
+    public uint character;
+    public KeyboardEvent key;
+    public MouseEvent mouse;
+    public ResetEvent reset;
+    public MouseDeltaEvent mouseDelta;
+    public MaximizeWindowEvent maximizeWindow;
+    public MoveWindowEvent moveWindow;
+    public TouchEvent touchEvent;
+
+    public static AppEvent Touch(int touchID, Vector2 position, InputState state)
     {
-        ResetFlags,
-        KeyDown,
-        KeyUp,
-        MouseDown,
-        MouseUp,
-        MouseDelta,
-        Text,
-        MaximizeWindow,
-        MoveWindow,
-        Touch
-    }
-
-    internal enum InputState
-    {
-        Release,
-        Press,
-        Repeat,
-    }
-
-    internal enum MouseButton
-    {
-        Button1,
-        Button2,
-        Button3,
-        Button4,
-        Button5,
-        Button6,
-        Button7,
-        Button8,
-
-        Left = Button1,
-
-        Right = Button2,
-
-        Middle = Button3
-    }
-
-    [Flags]
-    internal enum ModifierKeys
-    {
-        Shift = 0x0001,
-
-        Control = 0x0002,
-
-        Alt = 0x0004,
-
-        Super = 0x0008,
-
-        CapsLock = 0x0010,
-
-        NumLock = 0x0020
-    }
-
-    internal struct MouseEvent
-    {
-        public MouseButton button;
-        public InputState state;
-        public ModifierKeys modifiers;
-    }
-
-    internal struct KeyboardEvent
-    {
-        public KeyCode key;
-        public int scancode;
-        public InputState state;
-        public ModifierKeys mods;
-    }
-
-    internal struct ResetEvent
-    {
-        public Bgfx.bgfx.ResetFlags resetFlags;
-    }
-
-    internal struct MouseDeltaEvent
-    {
-        public Vector2 delta;
-    }
-
-    internal struct MaximizeWindowEvent
-    {
-        public bool maximized;
-    }
-
-    internal struct MoveWindowEvent
-    {
-        public Vector2Int windowPosition;
-    }
-
-    internal struct TouchEvent
-    {
-        public int touchID;
-        public Vector2 position;
-        public InputState state;
-    }
-
-    /// <summary>
-    /// Stores information on an app event
-    /// </summary>
-    internal class AppEvent
-    {
-        public AppEventType type;
-        public uint character;
-        public KeyboardEvent key;
-        public MouseEvent mouse;
-        public ResetEvent reset;
-        public MouseDeltaEvent mouseDelta;
-        public MaximizeWindowEvent maximizeWindow;
-        public MoveWindowEvent moveWindow;
-        public TouchEvent touchEvent;
-
-        public static AppEvent Touch(int touchID, Vector2 position, InputState state)
+        return new()
         {
-            return new()
+            type = AppEventType.Touch,
+            touchEvent = new()
             {
-                type = AppEventType.Touch,
-                touchEvent = new()
-                {
-                    touchID = touchID,
-                    position = position,
-                    state = state,
-                },
-            };
-        }
-
-        public static AppEvent MoveWindow(Vector2Int position)
-        {
-            return new()
-            {
-                type = AppEventType.MoveWindow,
-                moveWindow = new()
-                {
-                    windowPosition = position,
-                },
-            };
-        }
-
-        public static AppEvent Maximize(bool maximized)
-        {
-            return new()
-            {
-                type = AppEventType.MaximizeWindow,
-                maximizeWindow = new()
-                {
-                    maximized = maximized,
-                },
-            };
-        }
-
-        public static AppEvent Text(uint codepoint)
-        {
-            return new()
-            {
-                type = AppEventType.Text,
-                character = codepoint,
-            };
-        }
-
-        public static AppEvent ResetFlags(Bgfx.bgfx.ResetFlags flags)
-        {
-            return new()
-            {
-                type = AppEventType.ResetFlags,
-                reset = new()
-                {
-                    resetFlags = flags,
-                },
-            };
-        }
-
-        public static AppEvent Key(KeyCode key, int scancode, InputState state, ModifierKeys mods)
-        {
-            var keyEvent = new KeyboardEvent()
-            {
-                key = key,
-                scancode = scancode,
+                touchID = touchID,
+                position = position,
                 state = state,
-                mods = mods,
-            };
+            },
+        };
+    }
 
-            return new()
-            {
-                type = state != InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
-                key = keyEvent,
-            };
-        }
-
-        public static AppEvent Mouse(MouseButton button, InputState state, ModifierKeys modifiers)
+    public static AppEvent MoveWindow(Vector2Int position)
+    {
+        return new()
         {
-            var mouseEvent = new MouseEvent()
+            type = AppEventType.MoveWindow,
+            moveWindow = new()
             {
-                button = button,
-                state = state,
-                modifiers = modifiers
-            };
+                windowPosition = position,
+            },
+        };
+    }
 
-            return new()
-            {
-                type = state == InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
-                mouse = mouseEvent,
-            };
-        }
-
-        public static AppEvent MouseDelta(Vector2 delta)
+    public static AppEvent Maximize(bool maximized)
+    {
+        return new()
         {
-            return new()
+            type = AppEventType.MaximizeWindow,
+            maximizeWindow = new()
             {
-                type = AppEventType.MouseDelta,
-                mouseDelta = new()
-                {
-                    delta = delta,
-                },
-            };
+                maximized = maximized,
+            },
+        };
+    }
+
+    public static AppEvent Text(uint codepoint)
+    {
+        return new()
+        {
+            type = AppEventType.Text,
+            character = codepoint,
+        };
+    }
+
+    public static AppEvent ResetFlags(Bgfx.bgfx.ResetFlags flags)
+    {
+        return new()
+        {
+            type = AppEventType.ResetFlags,
+            reset = new()
+            {
+                resetFlags = flags,
+            },
+        };
+    }
+
+    public static AppEvent Key(KeyCode key, int scancode, InputState state, ModifierKeys mods)
+    {
+        var keyEvent = new KeyboardEvent()
+        {
+            key = key,
+            scancode = scancode,
+            state = state,
+            mods = mods,
+        };
+
+        return new()
+        {
+            type = state != InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
+            key = keyEvent,
+        };
+    }
+
+    public static AppEvent Mouse(MouseButton button, InputState state, ModifierKeys modifiers)
+    {
+        var mouseEvent = new MouseEvent()
+        {
+            button = button,
+            state = state,
+            modifiers = modifiers
+        };
+
+        return new()
+        {
+            type = state == InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
+            mouse = mouseEvent,
+        };
+    }
+
+    public static AppEvent MouseDelta(Vector2 delta)
+    {
+        return new()
+        {
+            type = AppEventType.MouseDelta,
+            mouseDelta = new()
+            {
+                delta = delta,
+            },
+        };
+    }
+}
+
+internal class AppEventQueue
+{
+    public static readonly AppEventQueue instance = new();
+
+    private readonly Queue<AppEvent> events = new();
+    private readonly object stackLock = new();
+
+    public AppEvent Next()
+    {
+        lock(stackLock)
+        {
+            if(events.Count == 0)
+            {
+                return null;
+            }
+
+            return events.Dequeue();
         }
     }
 
-    internal class AppEventQueue
+    public void Add(AppEvent appEvent)
     {
-        public static readonly AppEventQueue instance = new();
-
-        private readonly Queue<AppEvent> events = new();
-        private readonly object stackLock = new();
-
-        public AppEvent Next()
+        lock(stackLock)
         {
-            lock(stackLock)
-            {
-                if(events.Count == 0)
-                {
-                    return null;
-                }
-
-                return events.Dequeue();
-            }
-        }
-
-        public void Add(AppEvent appEvent)
-        {
-            lock(stackLock)
-            {
-                events.Enqueue(appEvent);
-            }
+            events.Enqueue(appEvent);
         }
     }
 }

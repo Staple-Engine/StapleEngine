@@ -1,56 +1,55 @@
 ﻿using System;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+public class EditorWindow
 {
-    public class EditorWindow
+    public string title;
+    public bool allowDocking = true;
+    public EditorWindowType windowType = EditorWindowType.Normal;
+    public bool allowResize = true;
+    public Vector2Int size = new(200, 300);
+    public bool centerWindow = false;
+
+    internal bool opened = false;
+
+    public virtual void OnGUI()
     {
-        public string title;
-        public bool allowDocking = true;
-        public EditorWindowType windowType = EditorWindowType.Normal;
-        public bool allowResize = true;
-        public Vector2Int size = new(200, 300);
-        public bool centerWindow = false;
+    }
 
-        internal bool opened = false;
+    public void Close()
+    {
+        StapleEditor.instance.editorWindows.Remove(this);
+    }
 
-        public virtual void OnGUI()
+    public static T GetWindow<T>() where T : EditorWindow
+    {
+        foreach(var window in StapleEditor.instance.editorWindows)
         {
+            if(window != null && window.GetType() == typeof(T))
+            {
+                return (T)window;
+            }
         }
 
-        public void Close()
+        try
         {
-            StapleEditor.instance.editorWindows.Remove(this);
-        }
+            var result = (T)Activator.CreateInstance(typeof(T));
 
-        public static T GetWindow<T>() where T : EditorWindow
-        {
-            foreach(var window in StapleEditor.instance.editorWindows)
-            {
-                if(window != null && window.GetType() == typeof(T))
-                {
-                    return (T)window;
-                }
-            }
-
-            try
-            {
-                var result = (T)Activator.CreateInstance(typeof(T));
-
-                if (result == null)
-                {
-                    return null;
-                }
-
-                result.title = typeof(T).Name;
-
-                StapleEditor.instance.editorWindows.Add(result);
-
-                return result;
-            }
-            catch(Exception)
+            if (result == null)
             {
                 return null;
             }
+
+            result.title = typeof(T).Name;
+
+            StapleEditor.instance.editorWindows.Add(result);
+
+            return result;
+        }
+        catch(Exception)
+        {
+            return null;
         }
     }
 }

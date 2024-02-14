@@ -1,17 +1,16 @@
 ﻿using MessagePack;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+[MessagePackObject]
+public class FolderAsset
 {
-    [MessagePackObject]
-    public class FolderAsset
-    {
-        [Key(0)]
-        public string guid;
+    [Key(0)]
+    public string guid;
 
-        [Key(1)]
-        public string typeName;
+    [Key(1)]
+    public string typeName;
 
-        [Key(2)]
-        public string pakName;
-    }
+    [Key(2)]
+    public string pakName;
 }

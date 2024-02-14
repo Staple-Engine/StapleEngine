@@ -1,9 +1,8 @@
-﻿namespace Staple.Editor
+﻿namespace Staple.Editor;
+
+public enum EditorWindowType
 {
-    public enum EditorWindowType
-    {
-        Normal,
-        Modal,
-        Popup
-    }
+    Normal,
+    Modal,
+    Popup
 }

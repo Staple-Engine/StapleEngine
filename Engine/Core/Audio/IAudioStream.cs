@@ -1,25 +1,24 @@
 ﻿using System;
 
-namespace Staple
+namespace Staple;
+
+internal interface IAudioStream
 {
-    internal interface IAudioStream
-    {
-        int Channels { get; }
+    int Channels { get; }
 
-        int SampleRate { get; }
+    int SampleRate { get; }
 
-        int BitsPerSample { get; }
+    int BitsPerSample { get; }
 
-        TimeSpan TotalTime { get; }
+    TimeSpan TotalTime { get; }
 
-        TimeSpan CurrentTime { get; }
+    TimeSpan CurrentTime { get; }
 
-        int Read(short[] buffer, int count);
+    int Read(short[] buffer, int count);
 
-        short[] ReadAll();
+    short[] ReadAll();
 
-        void Open();
+    void Open();
 
-        void Close();
-    }
+    void Close();
 }

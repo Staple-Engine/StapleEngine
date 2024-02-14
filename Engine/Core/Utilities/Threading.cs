@@ -2,63 +2,62 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Staple
+namespace Staple;
+
+public static class Threading
 {
-    public static class Threading
+    private static Thread mainThread;
+    private static readonly List<Action> pendingActions = new();
+    private static readonly object threadLock = new();
+
+    public static bool IsMainThread => mainThread == Thread.CurrentThread;
+
+    internal static void Initialize()
     {
-        private static Thread mainThread;
-        private static readonly List<Action> pendingActions = new();
-        private static readonly object threadLock = new();
+        mainThread ??= Thread.CurrentThread;
+    }
 
-        public static bool IsMainThread => mainThread == Thread.CurrentThread;
-
-        internal static void Initialize()
+    internal static void PerformAction(Action action)
+    {
+        try
         {
-            mainThread ??= Thread.CurrentThread;
+            action?.Invoke();
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[Threading] Failed to perform an action: {e}");
+        }
+    }
+
+    internal static void Update()
+    {
+        if(IsMainThread == false)
+        {
+            return;
         }
 
-        internal static void PerformAction(Action action)
+        lock(threadLock)
         {
-            try
-            {
-                action?.Invoke();
-            }
-            catch(Exception e)
-            {
-                Log.Debug($"[Threading] Failed to perform an action: {e}");
-            }
-        }
-
-        internal static void Update()
-        {
-            if(IsMainThread == false)
-            {
-                return;
-            }
-
-            lock(threadLock)
-            {
-                foreach(var action in pendingActions)
-                {
-                    PerformAction(action);
-                }
-
-                pendingActions.Clear();
-            }
-        }
-
-        public static void Dispatch(Action action)
-        {
-            if(IsMainThread)
+            foreach(var action in pendingActions)
             {
                 PerformAction(action);
             }
-            else
+
+            pendingActions.Clear();
+        }
+    }
+
+    public static void Dispatch(Action action)
+    {
+        if(IsMainThread)
+        {
+            PerformAction(action);
+        }
+        else
+        {
+            lock(threadLock)
             {
-                lock(threadLock)
-                {
-                    pendingActions.Add(action);
-                }
+                pendingActions.Add(action);
             }
         }
     }

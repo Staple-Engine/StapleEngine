@@ -6,265 +6,264 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.IO;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+[CustomEditor(typeof(MaterialMetadata))]
+internal class MaterialEditor : Editor
 {
-    [CustomEditor(typeof(MaterialMetadata))]
-    internal class MaterialEditor : Editor
+    private Dictionary<string, Shader> cachedShaders = new();
+    private Dictionary<string, Texture> cachedTextures = new();
+
+    public override bool RenderField(FieldInfo field)
     {
-        private Dictionary<string, Shader> cachedShaders = new();
-        private Dictionary<string, Texture> cachedTextures = new();
+        var material = target as MaterialMetadata;
 
-        public override bool RenderField(FieldInfo field)
+        switch(field.Name)
         {
-            var material = target as MaterialMetadata;
+            case nameof(MaterialMetadata.guid):
+            case nameof(MaterialMetadata.typeName):
 
-            switch(field.Name)
-            {
-                case nameof(MaterialMetadata.guid):
-                case nameof(MaterialMetadata.typeName):
+                return true;
 
-                    return true;
+            case nameof(MaterialMetadata.parameters):
 
-                case nameof(MaterialMetadata.parameters):
+                foreach (var parameter in material.parameters)
+                {
+                    var label = parameter.Key.ExpandCamelCaseName();
 
-                    foreach (var parameter in material.parameters)
+                    switch (parameter.Value.type)
                     {
-                        var label = parameter.Key.ExpandCamelCaseName();
+                        case MaterialParameterType.Texture:
 
-                        switch (parameter.Value.type)
-                        {
-                            case MaterialParameterType.Texture:
+                            {
+                                var key = parameter.Value.textureValue ?? "";
 
+                                if(cachedTextures.ContainsKey(key) == false)
                                 {
-                                    var key = parameter.Value.textureValue ?? "";
+                                    var t = ResourceManager.instance.LoadTexture(key);
 
-                                    if(cachedTextures.ContainsKey(key) == false)
+                                    if (t != null)
                                     {
-                                        var t = ResourceManager.instance.LoadTexture(key);
+                                        cachedTextures.AddOrSetKey(key, t);
+                                    }
+                                }
 
-                                        if (t != null)
+                                cachedTextures.TryGetValue(key, out var texture);
+
+                                var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture);
+
+                                if(newValue != texture)
+                                {
+                                    if(newValue is Texture t)
+                                    {
+                                        var guid = t.Guid;
+
+                                        if(guid != null)
                                         {
-                                            cachedTextures.AddOrSetKey(key, t);
+                                            parameter.Value.textureValue = guid;
+
+                                            cachedTextures.AddOrSetKey(guid, t);
                                         }
                                     }
-
-                                    cachedTextures.TryGetValue(key, out var texture);
-
-                                    var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture);
-
-                                    if(newValue != texture)
+                                    else
                                     {
-                                        if(newValue is Texture t)
-                                        {
-                                            var guid = t.Guid;
-
-                                            if(guid != null)
-                                            {
-                                                parameter.Value.textureValue = guid;
-
-                                                cachedTextures.AddOrSetKey(guid, t);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            parameter.Value.textureValue = null;
-                                        }
+                                        parameter.Value.textureValue = null;
                                     }
                                 }
+                            }
 
-                                break;
+                            break;
 
-                            case MaterialParameterType.Vector2:
+                        case MaterialParameterType.Vector2:
 
+                            {
+                                if (parameter.Value.vec2Value == null)
                                 {
-                                    if (parameter.Value.vec2Value == null)
-                                    {
-                                        parameter.Value.vec2Value = new();
-                                    }
-
-                                    var current = parameter.Value.vec2Value.ToVector2();
-
-                                    var newValue = EditorGUI.Vector2Field(label, current);
-
-                                    if (newValue != current)
-                                    {
-                                        parameter.Value.vec2Value.x = newValue.X;
-                                        parameter.Value.vec2Value.y = newValue.Y;
-                                    }
+                                    parameter.Value.vec2Value = new();
                                 }
 
-                                break;
+                                var current = parameter.Value.vec2Value.ToVector2();
 
-                            case MaterialParameterType.Vector3:
+                                var newValue = EditorGUI.Vector2Field(label, current);
 
+                                if (newValue != current)
                                 {
-                                    if (parameter.Value.vec3Value == null)
-                                    {
-                                        parameter.Value.vec3Value = new();
-                                    }
-
-                                    var current = parameter.Value.vec3Value.ToVector3();
-
-                                    var newValue = EditorGUI.Vector3Field(label, current);
-
-                                    if (newValue != current)
-                                    {
-                                        parameter.Value.vec3Value.x = newValue.X;
-                                        parameter.Value.vec3Value.y = newValue.Y;
-                                        parameter.Value.vec3Value.z = newValue.Z;
-                                    }
+                                    parameter.Value.vec2Value.x = newValue.X;
+                                    parameter.Value.vec2Value.y = newValue.Y;
                                 }
+                            }
 
-                                break;
+                            break;
 
-                            case MaterialParameterType.Vector4:
+                        case MaterialParameterType.Vector3:
 
+                            {
+                                if (parameter.Value.vec3Value == null)
                                 {
-                                    if (parameter.Value.vec4Value == null)
-                                    {
-                                        parameter.Value.vec4Value = new();
-                                    }
-
-                                    var current = parameter.Value.vec4Value.ToVector4();
-
-                                    var newValue = EditorGUI.Vector4Field(label, current);
-
-                                    if (newValue != current)
-                                    {
-                                        parameter.Value.vec4Value.x = newValue.X;
-                                        parameter.Value.vec4Value.y = newValue.Y;
-                                        parameter.Value.vec4Value.z = newValue.Z;
-                                        parameter.Value.vec4Value.w = newValue.W;
-                                    }
+                                    parameter.Value.vec3Value = new();
                                 }
 
-                                break;
+                                var current = parameter.Value.vec3Value.ToVector3();
 
-                            case MaterialParameterType.Color:
+                                var newValue = EditorGUI.Vector3Field(label, current);
 
-                                parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Value.colorValue);
+                                if (newValue != current)
+                                {
+                                    parameter.Value.vec3Value.x = newValue.X;
+                                    parameter.Value.vec3Value.y = newValue.Y;
+                                    parameter.Value.vec3Value.z = newValue.Z;
+                                }
+                            }
 
-                                break;
+                            break;
 
-                            case MaterialParameterType.Float:
+                        case MaterialParameterType.Vector4:
 
-                                parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Value.floatValue);
+                            {
+                                if (parameter.Value.vec4Value == null)
+                                {
+                                    parameter.Value.vec4Value = new();
+                                }
 
-                                break;
-                        }
+                                var current = parameter.Value.vec4Value.ToVector4();
+
+                                var newValue = EditorGUI.Vector4Field(label, current);
+
+                                if (newValue != current)
+                                {
+                                    parameter.Value.vec4Value.x = newValue.X;
+                                    parameter.Value.vec4Value.y = newValue.Y;
+                                    parameter.Value.vec4Value.z = newValue.Z;
+                                    parameter.Value.vec4Value.w = newValue.W;
+                                }
+                            }
+
+                            break;
+
+                        case MaterialParameterType.Color:
+
+                            parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Value.colorValue);
+
+                            break;
+
+                        case MaterialParameterType.Float:
+
+                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Value.floatValue);
+
+                            break;
                     }
+                }
 
-                    return true;
+                return true;
 
-                case nameof(MaterialMetadata.shader):
+            case nameof(MaterialMetadata.shader):
 
+                {
+                    var key = material.shader;
+                    Shader shader = null;
+
+                    if(key != null)
                     {
-                        var key = material.shader;
-                        Shader shader = null;
-
-                        if(key != null)
+                        if (cachedShaders.TryGetValue(key, out shader) == false)
                         {
-                            if (cachedShaders.TryGetValue(key, out shader) == false)
+                            if(key.Length > 0)
                             {
-                                if(key.Length > 0)
+                                shader = ResourceManager.instance.LoadShader(material.shader);
+
+                                cachedShaders.AddOrSetKey(key, shader);
+
+                                if(shader != null)
                                 {
-                                    shader = ResourceManager.instance.LoadShader(material.shader);
-
-                                    cachedShaders.AddOrSetKey(key, shader);
-
-                                    if(shader != null)
-                                    {
-                                        material.shader = shader.Guid;
-                                    }
+                                    material.shader = shader.Guid;
                                 }
-                            }
-                        }
-
-                        var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader);
-
-                        if (newValue != shader)
-                        {
-                            if (newValue is Shader s)
-                            {
-                                cachedShaders.AddOrSetKey(s.metadata.guid, s);
-
-                                material.shader = s.Guid;
-                            }
-                            else
-                            {
-                                material.shader = "";
                             }
                         }
                     }
 
-                    return true;
-            }
+                    var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader);
 
-            return base.RenderField(field);
+                    if (newValue != shader)
+                    {
+                        if (newValue is Shader s)
+                        {
+                            cachedShaders.AddOrSetKey(s.metadata.guid, s);
+
+                            material.shader = s.Guid;
+                        }
+                        else
+                        {
+                            material.shader = "";
+                        }
+                    }
+                }
+
+                return true;
         }
 
-        public override void OnInspectorGUI()
+        return base.RenderField(field);
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var metadata = (MaterialMetadata)target;
+        var originalMetadata = (MaterialMetadata)original;
+
+        var hasChanges = metadata != originalMetadata;
+
+        if (hasChanges)
         {
-            base.OnInspectorGUI();
-
-            var metadata = (MaterialMetadata)target;
-            var originalMetadata = (MaterialMetadata)original;
-
-            var hasChanges = metadata != originalMetadata;
-
-            if (hasChanges)
+            if (EditorGUI.Button("Apply"))
             {
-                if (EditorGUI.Button("Apply"))
+                try
                 {
-                    try
+                    var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
                     {
-                        var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
+                        Converters =
                         {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                            new StringEnumConverter(),
+                        }
+                    });
 
-                        File.WriteAllText(path, text);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(original, field.GetValue(metadata));
-                    }
-
-                    EditorUtils.RefreshAssets(false, null);
+                    File.WriteAllText(path, text);
                 }
-
-                EditorGUI.SameLine();
-
-                if (EditorGUI.Button("Revert"))
+                catch (Exception)
                 {
-                    metadata.shader = originalMetadata.shader;
-                    metadata.parameters.Clear();
-
-                    foreach(var parameter in originalMetadata.parameters)
-                    {
-                        metadata.parameters.Add(parameter.Key, parameter.Value.Clone());
-                    }
-
-                    EditorGUI.pendingObjectPickers.Clear();
                 }
+
+                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                foreach (var field in fields)
+                {
+                    field.SetValue(original, field.GetValue(metadata));
+                }
+
+                EditorUtils.RefreshAssets(false, null);
             }
-            else
+
+            EditorGUI.SameLine();
+
+            if (EditorGUI.Button("Revert"))
             {
-                EditorGUI.ButtonDisabled("Apply");
+                metadata.shader = originalMetadata.shader;
+                metadata.parameters.Clear();
 
-                EditorGUI.SameLine();
+                foreach(var parameter in originalMetadata.parameters)
+                {
+                    metadata.parameters.Add(parameter.Key, parameter.Value.Clone());
+                }
 
-                EditorGUI.ButtonDisabled("Revert");
+                EditorGUI.pendingObjectPickers.Clear();
             }
+        }
+        else
+        {
+            EditorGUI.ButtonDisabled("Apply");
+
+            EditorGUI.SameLine();
+
+            EditorGUI.ButtonDisabled("Revert");
         }
     }
 }

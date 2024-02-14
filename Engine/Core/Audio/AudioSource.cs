@@ -1,33 +1,32 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+public sealed class AudioSource : IComponent
 {
-    public sealed class AudioSource : IComponent
+    public AudioClip audioClip;
+    public float volume = 1;
+    public float pitch = 1;
+    public bool loop = false;
+    public bool spatial = false;
+    public bool autoplay = false;
+
+    internal IAudioSource audioSource;
+
+    public bool Playing => audioSource?.Playing ?? false;
+
+    public bool Paused => audioSource?.Paused ?? false;
+
+    public void Play()
     {
-        public AudioClip audioClip;
-        public float volume = 1;
-        public float pitch = 1;
-        public bool loop = false;
-        public bool spatial = false;
-        public bool autoplay = false;
+        audioSource?.Play();
+    }
 
-        internal IAudioSource audioSource;
+    public void Pause()
+    {
+        audioSource?.Pause();
+    }
 
-        public bool Playing => audioSource?.Playing ?? false;
-
-        public bool Paused => audioSource?.Paused ?? false;
-
-        public void Play()
-        {
-            audioSource?.Play();
-        }
-
-        public void Pause()
-        {
-            audioSource?.Pause();
-        }
-
-        public void Stop()
-        {
-            audioSource?.Stop();
-        }
+    public void Stop()
+    {
+        audioSource?.Stop();
     }
 }

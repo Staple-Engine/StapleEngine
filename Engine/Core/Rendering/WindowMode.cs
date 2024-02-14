@@ -1,12 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Staple
+namespace Staple;
+
+[JsonConverter(typeof(JsonStringEnumConverter<WindowMode>))]
+public enum WindowMode
 {
-    [JsonConverter(typeof(JsonStringEnumConverter<WindowMode>))]
-    public enum WindowMode
-    {
-        Windowed,
-        Fullscreen,
-        Borderless
-    }
+    Windowed,
+    Fullscreen,
+    Borderless
 }

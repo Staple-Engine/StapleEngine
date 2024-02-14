@@ -1,30 +1,29 @@
 ﻿using MessagePack;
 
-namespace Staple.Internal
+namespace Staple.Internal;
+
+[MessagePackObject]
+public class SerializableAudioClipHeader
 {
-    [MessagePackObject]
-    public class SerializableAudioClipHeader
+    [IgnoreMember]
+    public readonly static char[] ValidHeader = new char[]
     {
-        [IgnoreMember]
-        public readonly static char[] ValidHeader = new char[]
-        {
-            'S', 'T', 'A', 'C'
-        };
+        'S', 'T', 'A', 'C'
+    };
 
-        [IgnoreMember]
-        public const byte ValidVersion = 1;
+    [IgnoreMember]
+    public const byte ValidVersion = 1;
 
-        [Key(0)]
-        public char[] header = ValidHeader;
+    [Key(0)]
+    public char[] header = ValidHeader;
 
-        [Key(1)]
-        public byte version = ValidVersion;
-    }
+    [Key(1)]
+    public byte version = ValidVersion;
+}
 
-    [MessagePackObject]
-    public class SerializableAudioClip
-    {
-        [Key(0)]
-        public AudioClipMetadata metadata;
-    }
+[MessagePackObject]
+public class SerializableAudioClip
+{
+    [Key(0)]
+    public AudioClipMetadata metadata;
 }

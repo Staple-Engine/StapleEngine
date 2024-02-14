@@ -1,48 +1,47 @@
-﻿namespace Staple.Internal
+﻿namespace Staple.Internal;
+
+internal interface IRenderWindow
 {
-    internal interface IRenderWindow
-    {
-        bool ContextLost { get; set; }
+    bool ContextLost { get; set; }
 
-        bool IsFocused { get; }
+    bool IsFocused { get; }
 
-        bool ShouldClose { get; }
+    bool ShouldClose { get; }
 
-        bool Unavailable { get; }
+    bool Unavailable { get; }
 
-        int MonitorIndex { get; }
+    int MonitorIndex { get; }
 
-        bool Maximized { get; }
+    bool Maximized { get; }
 
-        Vector2Int Position { get; set; }
+    Vector2Int Position { get; set; }
 
-        string Title { get; set; }
+    string Title { get; set; }
 
-        bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position,
-            bool maximized, int monitorIndex);
+    bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position,
+        bool maximized, int monitorIndex);
 
-        void PollEvents();
+    void PollEvents();
 
-        void GetWindowSize(out int width, out int height);
+    void GetWindowSize(out int width, out int height);
 
-        void Destroy();
+    void Destroy();
 
-        void Init();
+    void Init();
 
-        void Terminate();
+    void Terminate();
 
-        nint MonitorPointer(AppPlatform platform);
+    nint MonitorPointer(AppPlatform platform);
 
-        nint WindowPointer(AppPlatform platform);
+    nint WindowPointer(AppPlatform platform);
 
-        void LockCursor();
+    void LockCursor();
 
-        void UnlockCursor();
+    void UnlockCursor();
 
-        void ShowCursor();
+    void ShowCursor();
 
-        void HideCursor();
+    void HideCursor();
 
-        void SetIcon(RawTextureData icon);
-    }
+    void SetIcon(RawTextureData icon);
 }

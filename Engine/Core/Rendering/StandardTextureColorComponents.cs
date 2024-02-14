@@ -1,10 +1,9 @@
-﻿namespace Staple
+﻿namespace Staple;
+
+public enum StandardTextureColorComponents
 {
-    public enum StandardTextureColorComponents
-    {
-        RGB,
-        RGBA,
-        Greyscale,
-        GreyscaleAlpha
-    }
+    RGB,
+    RGBA,
+    Greyscale,
+    GreyscaleAlpha
 }

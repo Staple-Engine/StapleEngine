@@ -1,14 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Staple
+namespace Staple;
+
+[JsonConverter(typeof(JsonStringEnumConverter<AppPlatform>))]
+public enum AppPlatform
 {
-    [JsonConverter(typeof(JsonStringEnumConverter<AppPlatform>))]
-    public enum AppPlatform
-    {
-        Windows,
-        Linux,
-        MacOSX,
-        Android,
-        iOS
-    }
+    Windows,
+    Linux,
+    MacOSX,
+    Android,
+    iOS
 }

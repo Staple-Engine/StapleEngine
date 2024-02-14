@@ -1,13 +1,12 @@
-﻿namespace Baker
+﻿namespace Baker;
+
+internal enum Renderer
 {
-    internal enum Renderer
-    {
-        d3d11,
-        d3d12,
-        metal,
-        opengl,
-        opengles,
-        pssl,
-        spirv
-    }
+    d3d11,
+    d3d12,
+    metal,
+    opengl,
+    opengles,
+    pssl,
+    spirv
 }

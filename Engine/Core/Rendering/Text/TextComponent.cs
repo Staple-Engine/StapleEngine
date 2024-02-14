@@ -1,9 +1,8 @@
-namespace Staple
-{
-    public class TextComponent : Renderable
-    {
-        public string text = "";
+namespace Staple;
 
-        public int fontSize = 14;
-    }
+public class TextComponent : Renderable
+{
+    public string text = "";
+
+    public int fontSize = 14;
 }

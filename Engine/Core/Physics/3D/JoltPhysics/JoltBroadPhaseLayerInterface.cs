@@ -1,31 +1,30 @@
 ﻿using JoltPhysicsSharp;
 
-namespace Staple
+namespace Staple;
+
+/// <summary>
+/// Broadphase layer interface.
+/// Responsible for getting the collision layers for Jolt Physics
+/// </summary>
+internal class JoltBroadPhaseLayerInterface : BroadPhaseLayerInterface
 {
-    /// <summary>
-    /// Broadphase layer interface.
-    /// Responsible for getting the collision layers for Jolt Physics
-    /// </summary>
-    internal class JoltBroadPhaseLayerInterface : BroadPhaseLayerInterface
+    protected override BroadPhaseLayer GetBroadPhaseLayer(ObjectLayer layer)
     {
-        protected override BroadPhaseLayer GetBroadPhaseLayer(ObjectLayer layer)
+        if (layer < LayerMask.AllLayers.Count)
         {
-            if (layer < LayerMask.AllLayers.Count)
-            {
-                return new BroadPhaseLayer();
-            }
-
-            return new BroadPhaseLayer((byte)layer.Value);
+            return new BroadPhaseLayer();
         }
 
-        protected override string GetBroadPhaseLayerName(BroadPhaseLayer layer)
-        {
-            return LayerMask.LayerToName(layer.Value);
-        }
+        return new BroadPhaseLayer((byte)layer.Value);
+    }
 
-        protected override int GetNumBroadPhaseLayers()
-        {
-            return LayerMask.AllLayers.Count;
-        }
+    protected override string GetBroadPhaseLayerName(BroadPhaseLayer layer)
+    {
+        return LayerMask.LayerToName(layer.Value);
+    }
+
+    protected override int GetNumBroadPhaseLayers()
+    {
+        return LayerMask.AllLayers.Count;
     }
 }

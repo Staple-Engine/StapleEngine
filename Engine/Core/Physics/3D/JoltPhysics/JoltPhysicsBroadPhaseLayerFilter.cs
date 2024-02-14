@@ -1,12 +1,11 @@
 ﻿using JoltPhysicsSharp;
 
-namespace Staple
+namespace Staple;
+
+internal class JoltPhysicsBroadPhaseLayerFilter : BroadPhaseLayerFilter
 {
-    internal class JoltPhysicsBroadPhaseLayerFilter : BroadPhaseLayerFilter
+    protected override bool ShouldCollide(BroadPhaseLayer layer)
     {
-        protected override bool ShouldCollide(BroadPhaseLayer layer)
-        {
-            return true;
-        }
+        return true;
     }
 }

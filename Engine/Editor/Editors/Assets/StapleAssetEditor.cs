@@ -1,64 +1,62 @@
-﻿using Staple.Internal;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace Staple.Editor
+namespace Staple.Editor;
+
+[CustomEditor(typeof(IStapleAsset))]
+public class StapleAssetEditor : Editor
 {
-    [CustomEditor(typeof(IStapleAsset))]
-    public class StapleAssetEditor : Editor
+    public bool ApplyChanges() => StapleEditor.SaveAsset(path, (IStapleAsset)target);
+
+    public void RenderApplyRevertFields()
     {
-        public bool ApplyChanges() => StapleEditor.SaveAsset(path, (IStapleAsset)target);
+        var asset = (IStapleAsset)target;
+        var originalAsset = (IStapleAsset)original;
 
-        public void RenderApplyRevertFields()
+        var hasChanges = asset != originalAsset;
+
+        if (hasChanges)
         {
-            var asset = (IStapleAsset)target;
-            var originalAsset = (IStapleAsset)original;
-
-            var hasChanges = asset != originalAsset;
-
-            if (hasChanges)
+            if (EditorGUI.Button("Apply"))
             {
-                if (EditorGUI.Button("Apply"))
-                {
-                    if (ApplyChanges())
-                    {
-                        var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                        foreach (var field in fields)
-                        {
-                            field.SetValue(originalAsset, field.GetValue(asset));
-                        }
-
-                        EditorUtils.RefreshAssets(false, null);
-                    }
-                }
-
-                EditorGUI.SameLine();
-
-                if (EditorGUI.Button("Revert"))
+                if (ApplyChanges())
                 {
                     var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
                     foreach (var field in fields)
                     {
-                        field.SetValue(asset, field.GetValue(originalAsset));
+                        field.SetValue(originalAsset, field.GetValue(asset));
                     }
+
+                    EditorUtils.RefreshAssets(false, null);
                 }
             }
-            else
+
+            EditorGUI.SameLine();
+
+            if (EditorGUI.Button("Revert"))
             {
-                EditorGUI.ButtonDisabled("Apply");
+                var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
-                EditorGUI.SameLine();
-
-                EditorGUI.ButtonDisabled("Revert");
+                foreach (var field in fields)
+                {
+                    field.SetValue(asset, field.GetValue(originalAsset));
+                }
             }
         }
-
-        public override void OnInspectorGUI()
+        else
         {
-            base.OnInspectorGUI();
+            EditorGUI.ButtonDisabled("Apply");
 
-            RenderApplyRevertFields();
+            EditorGUI.SameLine();
+
+            EditorGUI.ButtonDisabled("Revert");
         }
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        RenderApplyRevertFields();
     }
 }

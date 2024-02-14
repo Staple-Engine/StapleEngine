@@ -1,15 +1,14 @@
 ﻿using System.Numerics;
 
-namespace Staple
+namespace Staple;
+
+/// <summary>
+/// Represents a 3D box collider
+/// </summary>
+public sealed class BoxCollider3D : Collider3D
 {
     /// <summary>
-    /// Represents a 3D box collider
+    /// Size of the box
     /// </summary>
-    public sealed class BoxCollider3D : Collider3D
-    {
-        /// <summary>
-        /// Size of the box
-        /// </summary>
-        public Vector3 size = Vector3.One;
-    }
+    public Vector3 size = Vector3.One;
 }
