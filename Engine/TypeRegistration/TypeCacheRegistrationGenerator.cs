@@ -54,7 +54,7 @@ namespace Staple
                         return;
                     }
 
-                    var typeName = $"{baseTypeName}.{t.Name}";
+                    var typeName = baseTypeName.Length == 0 ? t.Name : $"{baseTypeName}.{t.Name}";
 
                     Debug.WriteLine($"Adding type {typeName}");
 
@@ -195,6 +195,8 @@ namespace Staple
                 {
                     HandleNamespace(n);
                 }
+
+                HandleNamespace(symbol.GlobalNamespace);
             }
 
             foreach (var symbol in context.Compilation.SourceModule.ReferencedAssemblySymbols)
