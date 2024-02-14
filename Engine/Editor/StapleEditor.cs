@@ -299,7 +299,7 @@ namespace Staple.Editor
 
                 var iconPath = Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Icon.png");
 
-                ThumbnailCache.GetTexture(iconPath);
+                ThumbnailCache.GetTexture(iconPath, force: true);
 
                 if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
                 {
