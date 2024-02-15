@@ -165,7 +165,7 @@ internal partial class StapleEditor
 
     internal string buildBackend;
 
-    private AppPlatform currentPlatform = AppPlatform.Windows;
+    internal AppPlatform currentPlatform = AppPlatform.Windows;
 
     internal bool buildPlayerDebug = false;
 

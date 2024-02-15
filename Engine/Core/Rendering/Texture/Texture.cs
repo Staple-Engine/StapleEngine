@@ -139,9 +139,9 @@ public class Texture : IGuidAsset
     /// </summary>
     /// <param name="stage">The texture stage</param>
     /// <param name="sampler">The sampler uniform</param>
-    internal void SetActive(byte stage, bgfx.UniformHandle sampler)
+    internal void SetActive(byte stage, bgfx.UniformHandle sampler, TextureFlags flags = (TextureFlags)uint.MaxValue)
     {
-        bgfx.set_texture(stage, sampler, handle, uint.MaxValue);
+        bgfx.set_texture(stage, sampler, handle, (uint)flags);
     }
 
     /// <summary>
@@ -352,7 +352,8 @@ public class Texture : IGuidAsset
     /// </summary>
     /// <param name="flags">The texture flags</param>
     /// <param name="metadata">The metadata</param>
-    internal static void ProcessFlags(ref TextureFlags flags, TextureMetadata metadata)
+    /// <param name="ignoreWrap">Whether to ignore wrapping mode</param>
+    internal static void ProcessFlags(ref TextureFlags flags, TextureMetadata metadata, bool ignoreWrap = false)
     {
         switch (metadata.type)
         {
@@ -367,58 +368,61 @@ public class Texture : IGuidAsset
                 break;
         }
 
-        switch (metadata.wrapU)
+        if(ignoreWrap == false)
         {
-            case TextureWrap.Repeat:
-                //This is the default
+            switch (metadata.wrapU)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
 
-                break;
+                    break;
 
-            case TextureWrap.Mirror:
-                flags |= TextureFlags.SamplerUMirror;
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerUMirror;
 
-                break;
+                    break;
 
-            case TextureWrap.Clamp:
-                flags |= TextureFlags.SamplerUClamp;
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerUClamp;
 
-                break;
-        }
+                    break;
+            }
 
-        switch (metadata.wrapV)
-        {
-            case TextureWrap.Repeat:
-                //This is the default
+            switch (metadata.wrapV)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
 
-                break;
+                    break;
 
-            case TextureWrap.Mirror:
-                flags |= TextureFlags.SamplerVMirror;
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerVMirror;
 
-                break;
+                    break;
 
-            case TextureWrap.Clamp:
-                flags |= TextureFlags.SamplerVClamp;
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerVClamp;
 
-                break;
-        }
+                    break;
+            }
 
-        switch (metadata.wrapW)
-        {
-            case TextureWrap.Repeat:
-                //This is the default
+            switch (metadata.wrapW)
+            {
+                case TextureWrap.Repeat:
+                    //This is the default
 
-                break;
+                    break;
 
-            case TextureWrap.Mirror:
-                flags |= TextureFlags.SamplerWMirror;
+                case TextureWrap.Mirror:
+                    flags |= TextureFlags.SamplerWMirror;
 
-                break;
+                    break;
 
-            case TextureWrap.Clamp:
-                flags |= TextureFlags.SamplerWClamp;
+                case TextureWrap.Clamp:
+                    flags |= TextureFlags.SamplerWClamp;
 
-                break;
+                    break;
+            }
         }
 
         switch (metadata.filter)

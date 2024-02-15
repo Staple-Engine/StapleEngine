@@ -187,7 +187,7 @@
 			"{",
 			"   if(diffuseTextureSet != 0.0)",
 			"   {",
-			"      gl_FragColor = texture2D(diffuseTexture, v_texcoord0);",
+			"      gl_FragColor = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;",
 			"   }",
 			"   else",
 			"   {",

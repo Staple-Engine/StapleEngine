@@ -2,6 +2,7 @@
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -226,7 +227,18 @@ public static class EditorGUI
 
         if (current is IGuidAsset guidAsset)
         {
-            selectedName = AssetDatabase.GetAssetName(guidAsset.Guid);
+            var guid = guidAsset.Guid;
+
+            if(Path.IsPathRooted(guidAsset.Guid))
+            {
+                var cacheIndex = guid.IndexOf(StapleEditor.instance.currentPlatform.ToString());
+
+                guid = guid.Substring(cacheIndex + $"{StapleEditor.instance.currentPlatform}0".Length).Replace("\\", "/");
+
+                guid = AssetDatabase.GetAssetGuid(guid) ?? guid;
+            }
+
+            selectedName = AssetDatabase.GetAssetName(guid);
         }
 
         selectedName ??= current?.ToString() ?? "(None)";

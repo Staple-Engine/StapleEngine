@@ -18,6 +18,7 @@ public enum MaterialParameterType
     Float,
     Matrix3x3,
     Matrix4x4,
+    TextureWrap,
 }
 
 [Serializable]
@@ -324,6 +325,9 @@ public class MaterialParameter
     [Key(6)]
     public float floatValue;
 
+    [Key(7)]
+    public TextureWrap textureWrapValue;
+
     public bool ShouldSerializevec2Value() => vec2Value != null && type == MaterialParameterType.Vector2;
 
     public bool ShouldSerializevec3Value() => vec3Value != null && type == MaterialParameterType.Vector3;
@@ -336,6 +340,8 @@ public class MaterialParameter
 
     public bool ShouldSerializecolorValue() => type == MaterialParameterType.Color;
 
+    public bool ShouldSerializetextureWrapValue() => type == MaterialParameterType.TextureWrap;
+
     public MaterialParameter Clone()
     {
         var outValue = new MaterialParameter()
@@ -344,6 +350,7 @@ public class MaterialParameter
             textureValue = textureValue,
             colorValue = colorValue,
             floatValue = floatValue,
+            textureWrapValue = textureWrapValue,
         };
 
         if(vec2Value != null)
@@ -397,7 +404,8 @@ public class MaterialParameter
             lhs.vec4Value == rhs.vec4Value &&
             lhs.textureValue == rhs.textureValue &&
             lhs.colorValue == rhs.colorValue &&
-            lhs.floatValue == rhs.floatValue;
+            lhs.floatValue == rhs.floatValue &&
+            lhs.textureWrapValue == rhs.textureWrapValue;
     }
 
     public static bool operator !=(MaterialParameter lhs, MaterialParameter rhs)
@@ -418,7 +426,8 @@ public class MaterialParameter
             lhs.vec4Value != rhs.vec4Value ||
             lhs.textureValue != rhs.textureValue ||
             lhs.colorValue != rhs.colorValue ||
-            lhs.floatValue != rhs.floatValue;
+            lhs.floatValue != rhs.floatValue ||
+            lhs.textureWrapValue != rhs.textureWrapValue;
     }
 
     public override bool Equals(object obj)

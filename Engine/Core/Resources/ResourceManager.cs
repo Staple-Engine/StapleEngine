@@ -756,6 +756,16 @@ internal class ResourceManager
             {
                 switch(parameter.Value.type)
                 {
+                    case MaterialParameterType.TextureWrap:
+
+                        material.parameters.Add(parameter.Key, new()
+                        {
+                            type = MaterialParameterType.TextureWrap,
+                            value = parameter.Value.textureWrapValue,
+                        });
+
+                        break;
+
                     case MaterialParameterType.Texture:
 
                         if((parameter.Value.textureValue?.Length ?? 0) > 0)

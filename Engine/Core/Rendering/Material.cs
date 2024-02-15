@@ -10,7 +10,7 @@ namespace Staple;
 /// </summary>
 public sealed class Material : IGuidAsset
 {
-    private class ParameterInfo
+    internal class ParameterInfo
     {
         public MaterialParameterType type;
         public object value;
@@ -33,7 +33,7 @@ public sealed class Material : IGuidAsset
     internal Shader shader;
     internal string guid;
 
-    private Dictionary<string, ParameterInfo> parameters = new();
+    internal Dictionary<string, ParameterInfo> parameters = new();
 
     /// <summary>
     /// The material's main color
@@ -364,8 +364,46 @@ public sealed class Material : IGuidAsset
             {
                 case MaterialParameterType.Texture:
 
-                    shader?.SetFloat($"{parameter.Key}Set", parameter.Value.value == null ? 0 : 1);
-                    shader?.SetTexture(parameter.Key, (Texture)parameter.Value.value);
+                    {
+                        shader?.SetFloat($"{parameter.Key}Set", parameter.Value.value == null ? 0 : 1);
+
+                        var texture = (Texture)parameter.Value.value;
+
+                        var overrideFlags = (TextureFlags)uint.MaxValue;
+
+                        if(texture != null)
+                        {
+                            overrideFlags = 0;
+
+                            Texture.ProcessFlags(ref overrideFlags, texture.metadata, true);
+
+                            if (parameters.TryGetValue($"{parameter.Key}_UMapping", out var p) &&
+                                p.type == MaterialParameterType.TextureWrap &&
+                                p.value is TextureWrap UWrap &&
+                                parameters.TryGetValue($"{parameter.Key}_VMapping", out p) &&
+                                p.type == MaterialParameterType.TextureWrap &&
+                                p.value is TextureWrap VWrap)
+                            {
+                                overrideFlags |=
+                                    UWrap switch
+                                    {
+                                        TextureWrap.Mirror => TextureFlags.SamplerUMirror,
+                                        TextureWrap.Repeat => 0,
+                                        _ => TextureFlags.SamplerUClamp,
+                                    };
+                                
+                                overrideFlags |=
+                                    VWrap switch
+                                    {
+                                        TextureWrap.Mirror => TextureFlags.SamplerUMirror,
+                                        TextureWrap.Repeat => 0,
+                                        _ => TextureFlags.SamplerUClamp,
+                                    };
+                            }
+                        }
+
+                        shader?.SetTexture(parameter.Key, texture, overrideFlags);
+                    }
 
                     break;
 

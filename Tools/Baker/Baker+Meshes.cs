@@ -124,9 +124,7 @@ static partial class Program
 
             if(metadata.makeLeftHanded)
             {
-                flags |= Assimp.PostProcessSteps.MakeLeftHanded |
-                    Assimp.PostProcessSteps.FlipUVs |
-                    Assimp.PostProcessSteps.FlipWindingOrder;
+                flags |= Assimp.PostProcessSteps.MakeLeftHanded;
             }
 
             if(metadata.flipUVs)
@@ -252,12 +250,43 @@ static partial class Program
                 {
                     var texturePath = "";
 
+                    var mappingU = TextureWrap.Clamp;
+                    var mappingV = TextureWrap.Clamp;
+
                     if (has)
                     {
                         var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
                         texturePath = slot.FilePath;
 
-                        while(pieces.Count > 0)
+                        mappingU = slot.WrapModeU switch
+                        {
+                            Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
+                            Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
+                            Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
+                            _ => TextureWrap.Clamp,
+                        };
+
+                        mappingV = slot.WrapModeV switch
+                        {
+                            Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
+                            Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
+                            Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
+                            _ => TextureWrap.Clamp,
+                        };
+
+                        materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
+                        {
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = mappingU,
+                        });
+
+                        materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
+                        {
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = mappingV,
+                        });
+
+                        while (pieces.Count > 0)
                         {
                             try
                             {
@@ -296,6 +325,20 @@ static partial class Program
                         }
 
                         //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
+                    }
+                    else
+                    {
+                        materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
+                        {
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = mappingU,
+                        });
+
+                        materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
+                        {
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = mappingV,
+                        });
                     }
 
                     materialMetadata.parameters.Add(name, new MaterialParameter()

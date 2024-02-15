@@ -199,6 +199,16 @@ public static class AssetDatabase
     /// <returns>The name or null</returns>
     public static string GetAssetName(string guid)
     {
+        if(guid.Contains(":"))
+        {
+            var parts = guid.Split(':');
+
+            if(parts.Length == 2)
+            {
+                guid = parts[0];
+            }
+        }
+
         return assets.FirstOrDefault(x => x.guid == guid)?.name;
     }
 

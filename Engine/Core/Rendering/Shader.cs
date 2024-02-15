@@ -510,7 +510,8 @@ internal class Shader : IGuidAsset
     /// </summary>
     /// <param name="name">The uniform's name</param>
     /// <param name="value">The value</param>
-    public void SetTexture(string name, Texture value)
+    /// <param name="overrideFlags">Flags to override texture state</param>
+    public void SetTexture(string name, Texture value, TextureFlags overrideFlags = (TextureFlags)uint.MaxValue)
     {
         if (Disposed || value == null || value.Disposed)
         {
@@ -528,7 +529,7 @@ internal class Shader : IGuidAsset
 
         unsafe
         {
-            value.SetActive(uniform.stage, uniform.handle);
+            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
         }
     }
 

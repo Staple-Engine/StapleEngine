@@ -151,6 +151,12 @@ internal class MaterialEditor : Editor
                             parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Value.floatValue);
 
                             break;
+
+                        case MaterialParameterType.TextureWrap:
+
+                            parameter.Value.textureWrapValue = EditorGUI.EnumDropdown(label, parameter.Value.textureWrapValue);
+
+                            break;
                     }
                 }
 
