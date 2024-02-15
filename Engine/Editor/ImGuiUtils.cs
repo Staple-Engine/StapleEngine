@@ -45,7 +45,9 @@ internal static class ImGuiUtils
                 {
                     onClick?.Invoke(i, item);
                 }
-                else if(dragPayload != null && ImGui.BeginDragDropSource())
+                else if(dragPayload != null &&
+                    StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) == false &&
+                    ImGui.BeginDragDropSource())
                 {
                     ImGui.SetDragDropPayload(dragPayload, nint.Zero, 0);
 
