@@ -1148,17 +1148,14 @@ internal class ResourceManager
                 return null;
             }
 
-            var asset = new MeshAsset
-            {
-                materialCount = meshAssetData.materialCount
-            };
+            var asset = new MeshAsset();
 
             foreach (var m in meshAssetData.meshes)
             {
                 var newMesh = new MeshAsset.MeshInfo()
                 {
                     name = m.name,
-                    materialIndex = m.materialIndex,
+                    materialGuid = m.materialGuid,
                     topology = m.topology,
                     vertices = m.vertices.Select(x => x.ToVector3()).ToList(),
                     normals = m.normals.Select(x => x.ToVector3()).ToList(),

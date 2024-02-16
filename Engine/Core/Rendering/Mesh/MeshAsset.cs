@@ -9,7 +9,8 @@ public class MeshAsset
     public class MeshInfo
     {
         public string name;
-        public int materialIndex;
+        public string materialGuid;
+        public MeshAssetType type;
         public MeshTopology topology;
         public List<Vector3> vertices = new();
         public List<Vector3> normals = new();
@@ -29,6 +30,4 @@ public class MeshAsset
     }
 
     public List<MeshInfo> meshes = new();
-
-    public int materialCount;
 }

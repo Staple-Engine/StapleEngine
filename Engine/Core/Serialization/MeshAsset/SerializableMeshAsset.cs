@@ -1,14 +1,60 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple.Internal;
+
+public enum MeshAssetType
+{
+    Normal,
+    Skinned,
+}
 
 public enum MeshAssetRotation
 {
     None,
     NinetyPositive,
     NinetyNegative,
+}
+
+[MessagePackObject]
+public class Matrix4x4Holder
+{
+    [Key(1)]
+    public float[] values = new float[16];
+
+    public Matrix4x4Holder()
+    {
+    }
+
+    public Matrix4x4Holder(Matrix4x4 matrix)
+    {
+        values =
+        [
+            matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+            matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+            matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+            matrix.M41, matrix.M42, matrix.M43, matrix.M44,
+        ];
+    }
+
+    public bool ToMatrix4x4(out Matrix4x4 matrix)
+    {
+        if(values == null || values.Length != 16)
+        {
+            matrix = default;
+
+            return false;
+        }
+
+        matrix = new Matrix4x4(values[0], values[1], values[2], values[3],
+            values[4], values[5], values[6], values[7],
+            values[8], values[9], values[10], values[11],
+            values[12], values[13], values[14], values[15]);
+
+        return true;
+    }
 }
 
 [MessagePackObject]
@@ -124,13 +170,36 @@ public class MeshAssetMetadata
 }
 
 [MessagePackObject]
+public class MeshAssetVertexWeight
+{
+    [Key(0)]
+    public int vertexID;
+
+    [Key(1)]
+    public float weight;
+}
+
+[MessagePackObject]
+public class MeshAssetBone
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public Matrix4x4Holder offsetMatrix;
+
+    [Key(2)]
+    public List<MeshAssetVertexWeight> weights = new();
+}
+
+[MessagePackObject]
 public class MeshAssetMeshInfo
 {
     [Key(0)]
     public string name;
 
     [Key(1)]
-    public int materialIndex;
+    public string materialGuid;
 
     [Key(2)]
     public MeshTopology topology;
@@ -182,6 +251,12 @@ public class MeshAssetMeshInfo
 
     [Key(18)]
     public List<Vector2Holder> UV8 = new();
+
+    [Key(19)]
+    public MeshAssetType type;
+
+    [Key(20)]
+    public List<MeshAssetBone> bones = new();
 }
 
 [MessagePackObject]
@@ -192,7 +267,4 @@ public class SerializableMeshAsset
 
     [Key(1)]
     public List<MeshAssetMeshInfo> meshes = new();
-
-    [Key(2)]
-    public int materialCount;
 }

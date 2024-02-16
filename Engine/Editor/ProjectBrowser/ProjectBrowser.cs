@@ -778,9 +778,7 @@ internal class ProjectBrowser
 
                                 var meshRenderer = Scene.current.world.AddComponent<MeshRenderer>(meshEntity);
 
-                                var targetPath = StapleEditor.instance.ProjectNodeCachePath($"{Path.GetDirectoryName(item.path)}/{Path.GetFileNameWithoutExtension(item.path)} {mesh.materialIndex + 1}.mat");
-
-                                meshRenderer.material = ResourceManager.instance.LoadMaterial(targetPath);
+                                meshRenderer.material = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
 
                                 meshRenderer.mesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
                             }

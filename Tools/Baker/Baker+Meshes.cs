@@ -178,10 +178,60 @@ static partial class Program
             var meshData = new SerializableMeshAsset
             {
                 metadata = metadata,
-                materialCount = scene.MaterialCount
             };
 
+            Matrix4x4 ToMatrix4x4(Assimp.Matrix4x4 matrix)
+            {
+                return new Matrix4x4(matrix.A1, matrix.A2, matrix.A3, matrix.A4,
+                    matrix.B1, matrix.B2, matrix.B3, matrix.B4,
+                    matrix.C1, matrix.C2, matrix.C3, matrix.C4,
+                    matrix.D1, matrix.D2, matrix.D3, matrix.D4);
+            }
+
+            Matrix4x4Holder ToMatrix4x4Holder(Assimp.Matrix4x4 matrix)
+            {
+                return new Matrix4x4Holder(ToMatrix4x4(matrix));
+            }
+
+            var globalInverseTransform = scene.RootNode.Transform;
+
+            globalInverseTransform.Inverse();
+
+            Assimp.Node FindNode(Assimp.Node node, string name)
+            {
+                if(node.Name == name)
+                {
+                    return node;
+                }
+
+                foreach(var child in node.Children)
+                {
+                    node = FindNode(child, name);
+
+                    if(node != null)
+                    {
+                        return node;
+                    }
+                }
+
+                return null;
+            }
+
+            Assimp.Matrix4x4 TransformNode(Assimp.Matrix4x4 current, Assimp.Node node)
+            {
+                if(node.Parent != null)
+                {
+                    var result = TransformNode(current, node.Parent);
+
+                    return result * node.Transform;
+                }
+
+                return node.Transform;
+            }
+
             var counter = 0;
+
+            var materialMapping = new List<string>();
 
             foreach(var material in scene.Materials)
             {
@@ -198,6 +248,9 @@ static partial class Program
                 }
 
                 var target = Path.Combine(Path.GetDirectoryName(meshFiles[i]), fileName);
+                var materialGuid = FindGuid<Material>($"{target}.meta");
+
+                materialMapping.Add(materialGuid);
 
                 try
                 {
@@ -387,11 +440,9 @@ static partial class Program
 
                 try
                 {
-                    var g = FindGuid<Material>($"{target}.meta");
-
                     var assetHolder = new AssetHolder()
                     {
-                        guid = g,
+                        guid = materialGuid,
                         typeName = typeof(Material).FullName,
                     };
 
@@ -424,7 +475,8 @@ static partial class Program
                 var m = new MeshAssetMeshInfo
                 {
                     name = mesh.Name,
-                    materialIndex = mesh.MaterialIndex
+                    materialGuid = mesh.MaterialIndex >= 0 && mesh.MaterialIndex < materialMapping.Count ? materialMapping[mesh.MaterialIndex] : "",
+                    type = mesh.HasBones ? MeshAssetType.Skinned : MeshAssetType.Normal,
                 };
 
                 var center = (mesh.BoundingBox.Max + mesh.BoundingBox.Min) / 2;
@@ -487,6 +539,24 @@ static partial class Program
                             y = x.Y,
                         })
                         .ToList());
+                }
+
+                if (mesh.HasBones)
+                {
+                    foreach (var bone in mesh.Bones)
+                    {
+                        m.bones.Add(new()
+                        {
+                            name = bone.Name,
+                            offsetMatrix = ToMatrix4x4Holder(bone.OffsetMatrix),
+                            weights = bone.VertexWeights
+                                .Select(x => new MeshAssetVertexWeight()
+                                {
+                                    vertexID = x.VertexID,
+                                    weight = x.Weight,
+                                }).ToList()
+                        });
+                    }
                 }
 
                 meshData.meshes.Add(m);
