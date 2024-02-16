@@ -543,18 +543,67 @@ static partial class Program
 
                 if (mesh.HasBones)
                 {
+                    var boneIndices = new List<Vector4Holder>();
+                    var boneWeights = new List<Vector4Holder>();
+
+                    for(var j = 0; j < m.vertices.Count; j++)
+                    {
+                        boneIndices.Add(new());
+                        boneWeights.Add(new());
+                    }
+
+                    for (var j = 0; j < mesh.Bones.Count; j++)
+                    {
+                        var bone = mesh.Bones[j];
+
+                        var count = bone.VertexWeightCount > 4 ? 4 : bone.VertexWeightCount;
+
+                        for (var k = 0; k < count; k++)
+                        {
+                            var item = bone.VertexWeights[k];
+
+                            switch (k)
+                            {
+                                case 0:
+
+                                    boneIndices[item.VertexID].x = j;
+                                    boneWeights[item.VertexID].x = item.Weight;
+
+                                    break;
+
+                                case 1:
+
+                                    boneIndices[item.VertexID].y = j;
+                                    boneWeights[item.VertexID].y = item.Weight;
+
+                                    break;
+
+                                case 2:
+
+                                    boneIndices[item.VertexID].z = j;
+                                    boneWeights[item.VertexID].z = item.Weight;
+
+                                    break;
+
+                                case 3:
+
+                                    boneIndices[item.VertexID].w = j;
+                                    boneWeights[item.VertexID].w = item.Weight;
+
+                                    break;
+                            }
+                        }
+                    }
+
+                    m.boneIndices = boneIndices;
+                    m.boneWeights = boneWeights;
+
                     foreach (var bone in mesh.Bones)
                     {
                         m.bones.Add(new()
                         {
                             name = bone.Name,
                             offsetMatrix = ToMatrix4x4Holder(bone.OffsetMatrix),
-                            weights = bone.VertexWeights
-                                .Select(x => new MeshAssetVertexWeight()
-                                {
-                                    vertexID = x.VertexID,
-                                    weight = x.Weight,
-                                }).ToList()
                         });
                     }
                 }

@@ -25,6 +25,8 @@ public partial class Mesh
     internal Vector2[] uv7;
     internal Vector2[] uv8;
     internal int[] indices;
+    internal Vector4[] boneIndices;
+    internal Vector4[] boneWeights;
     internal MeshIndexFormat indexFormat = MeshIndexFormat.UInt16;
     internal MeshTopology meshTopology = MeshTopology.TriangleStrip;
     internal VertexBuffer vertexBuffer;
@@ -45,6 +47,10 @@ public partial class Mesh
     internal bool HasUV6 => (uv6?.Length ?? 0) > 0;
     internal bool HasUV7 => (uv7?.Length ?? 0) > 0;
     internal bool HasUV8 => (uv8?.Length ?? 0) > 0;
+
+    internal bool HasBoneIndices => (boneIndices?.Length ?? 0) > 0;
+
+    internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
     internal static readonly Dictionary<string, Mesh> defaultMeshes = new();
 
@@ -226,6 +232,16 @@ public partial class Mesh
             keyBuilder.Append("u8");
         }
 
+        if(mesh.HasBoneIndices)
+        {
+            keyBuilder.Append("bi");
+        }
+
+        if (mesh.HasBoneWeights)
+        {
+            keyBuilder.Append("bw");
+        }
+
         var key = keyBuilder.ToString();
 
         if(vertexLayouts.TryGetValue(key, out var layout) && layout != null)
@@ -295,6 +311,16 @@ public partial class Mesh
         if (mesh.HasUV8)
         {
             builder.Add(bgfx.Attrib.TexCoord7, 2, bgfx.AttribType.Float);
+        }
+
+        if(mesh.HasBoneIndices)
+        {
+            builder.Add(bgfx.Attrib.Indices, 4, bgfx.AttribType.Float, false, false);
+        }
+
+        if(mesh.HasBoneWeights)
+        {
+            builder.Add(bgfx.Attrib.Weight, 4, bgfx.AttribType.Float, false, false);
         }
 
         layout = builder.Build();
@@ -423,6 +449,22 @@ public partial class Mesh
             {
                 Copy(BitConverter.GetBytes(uv8[i].X), ref index);
                 Copy(BitConverter.GetBytes(uv8[i].Y), ref index);
+            }
+
+            if(HasBoneIndices)
+            {
+                Copy(BitConverter.GetBytes(boneIndices[i].X), ref index);
+                Copy(BitConverter.GetBytes(boneIndices[i].Y), ref index);
+                Copy(BitConverter.GetBytes(boneIndices[i].Z), ref index);
+                Copy(BitConverter.GetBytes(boneIndices[i].W), ref index);
+            }
+
+            if(HasBoneWeights)
+            {
+                Copy(BitConverter.GetBytes(boneWeights[i].X), ref index);
+                Copy(BitConverter.GetBytes(boneWeights[i].Y), ref index);
+                Copy(BitConverter.GetBytes(boneWeights[i].Z), ref index);
+                Copy(BitConverter.GetBytes(boneWeights[i].W), ref index);
             }
         }
 

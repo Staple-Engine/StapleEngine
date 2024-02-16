@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 
@@ -1076,6 +1077,10 @@ internal class ResourceManager
             uv8 = m.UV8.ToArray(),
 
             indices = m.indices.ToArray(),
+
+            boneIndices = m.boneIndices.ToArray(),
+            boneWeights = m.boneWeights.ToArray(),
+
             meshTopology = m.topology,
             indexFormat = MeshIndexFormat.UInt32,
             bounds = m.bounds,
@@ -1177,6 +1182,8 @@ internal class ResourceManager
                     UV8 = m.UV8.Select(x => x.ToVector2()).ToList(),
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
                     indices = m.indices,
+                    boneIndices = m.boneIndices.Select(x => x.ToVector4()).ToList(),
+                    boneWeights = m.boneWeights.Select(x => x.ToVector4()).ToList(),
                 };
 
                 asset.meshes.Add(newMesh);

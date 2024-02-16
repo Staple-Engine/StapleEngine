@@ -26,6 +26,8 @@ public class MeshAsset
         public List<Vector2> UV7 = new();
         public List<Vector2> UV8 = new();
         public List<int> indices = new();
+        public List<Vector4> boneIndices = new();
+        public List<Vector4> boneWeights = new();
         public AABB bounds;
     }
 

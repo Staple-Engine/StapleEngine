@@ -558,7 +558,7 @@ public partial class Mesh : IGuidAsset
     }
 
     /// <summary>
-    /// Sets or gets the current UVs for channel 0.
+    /// Sets or gets the geometry indices for the mesh.
     /// Getting depends on isReadable.
     /// </summary>
     public int[] Indices
@@ -581,6 +581,62 @@ public partial class Mesh : IGuidAsset
             }
 
             indices = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the bone indices for the mesh.
+    /// Getting depends on isReadable.
+    /// </summary>
+    public Vector4[] BoneIndices
+    {
+        get
+        {
+            if (isReadable == false)
+            {
+                return new Vector4[0];
+            }
+
+            return boneIndices ?? new Vector4[0];
+        }
+
+        set
+        {
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            boneIndices = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the bone weights for the mesh.
+    /// Getting depends on isReadable.
+    /// </summary>
+    public Vector4[] BoneWeights
+    {
+        get
+        {
+            if (isReadable == false)
+            {
+                return new Vector4[0];
+            }
+
+            return boneWeights ?? new Vector4[0];
+        }
+
+        set
+        {
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            boneWeights = value;
             changed = true;
         }
     }

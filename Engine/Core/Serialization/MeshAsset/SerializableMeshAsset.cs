@@ -170,16 +170,6 @@ public class MeshAssetMetadata
 }
 
 [MessagePackObject]
-public class MeshAssetVertexWeight
-{
-    [Key(0)]
-    public int vertexID;
-
-    [Key(1)]
-    public float weight;
-}
-
-[MessagePackObject]
 public class MeshAssetBone
 {
     [Key(0)]
@@ -187,9 +177,6 @@ public class MeshAssetBone
 
     [Key(1)]
     public Matrix4x4Holder offsetMatrix;
-
-    [Key(2)]
-    public List<MeshAssetVertexWeight> weights = new();
 }
 
 [MessagePackObject]
@@ -257,6 +244,12 @@ public class MeshAssetMeshInfo
 
     [Key(20)]
     public List<MeshAssetBone> bones = new();
+
+    [Key(21)]
+    public List<Vector4Holder> boneIndices = new();
+
+    [Key(22)]
+    public List<Vector4Holder> boneWeights = new();
 }
 
 [MessagePackObject]
