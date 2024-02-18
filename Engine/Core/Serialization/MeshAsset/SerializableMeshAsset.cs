@@ -96,10 +96,10 @@ public class MeshAssetMetadata
     public bool limitBoneWeights;
 
     [Key(5)]
-    public bool flipUVs;
+    public bool flipUVs = true;
 
     [Key(6)]
-    public bool flipWindingOrder;
+    public bool flipWindingOrder = true;
 
     [Key(7)]
     public bool splitByBoneCount;
