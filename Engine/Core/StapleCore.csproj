@@ -92,6 +92,7 @@
 
 	<ItemGroup>
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
+		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
 		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
@@ -110,6 +111,9 @@
 		<Compile Include="Audio\Readers\MP3AudioStream.cs" />
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
+		<Compile Include="Entities\Entity+Components.cs" />
+		<Compile Include="Entities\Entity+Iteration.cs" />
+		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
@@ -300,12 +304,16 @@
 		<Compile Include="Serialization\Texture\TextureMetadata.cs" />
 		<Compile Include="Scene\Scene.cs" />
 		<Compile Include="Scene\SceneList.cs" />
-		<Compile Include="Transform\Transform.cs" />
+		<Compile Include="Entities\Transform.cs" />
 		<Compile Include="Utilities\Log\ConsoleLog.cs" />
 		<Compile Include="Utilities\Log\FSLog.cs" />
 		<Compile Include="Utilities\Log\ILog.cs" />
 		<Compile Include="Utilities\Log\Log.cs" />
 		<Compile Include="Utilities\Randomizer.cs" />
 		<Compile Include="Utilities\Storage.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Transform\" />
 	</ItemGroup>
 </Project>

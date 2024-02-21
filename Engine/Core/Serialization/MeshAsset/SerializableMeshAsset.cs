@@ -253,6 +253,71 @@ public class MeshAssetMeshInfo
 }
 
 [MessagePackObject]
+public class MeshAssetNode
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public string parent;
+
+    [Key(2)]
+    public Matrix4x4Holder matrix;
+}
+
+[MessagePackObject]
+public class MeshAssetVectorAnimationKey
+{
+    [Key(0)]
+    public float time;
+
+    [Key(1)]
+    public Vector3Holder value;
+}
+
+[MessagePackObject]
+public class MeshAssetQuaternionAnimationKey
+{
+    [Key(0)]
+    public float time;
+
+    [Key(1)]
+    public Vector4Holder value;
+}
+
+[MessagePackObject]
+public class MeshAssetAnimationChannel
+{
+    [Key(0)]
+    public string nodeName;
+
+    [Key(1)]
+    public List<MeshAssetVectorAnimationKey> positionKeys = new();
+
+    [Key(2)]
+    public List<MeshAssetQuaternionAnimationKey> rotationKeys = new();
+
+    [Key(3)]
+    public List<MeshAssetVectorAnimationKey> scaleKeys = new();
+}
+
+[MessagePackObject]
+public class MeshAssetAnimation
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public float duration;
+
+    [Key(2)]
+    public float ticksPerSecond;
+
+    [Key(3)]
+    public List<MeshAssetAnimationChannel> channels = new();
+}
+
+[MessagePackObject]
 public class SerializableMeshAsset
 {
     [Key(0)]
@@ -260,4 +325,10 @@ public class SerializableMeshAsset
 
     [Key(1)]
     public List<MeshAssetMeshInfo> meshes = new();
+
+    [Key(2)]
+    public List<MeshAssetNode> nodes = new();
+
+    [Key(3)]
+    public List<MeshAssetAnimation> animations = new();
 }

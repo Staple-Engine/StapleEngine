@@ -9,6 +9,33 @@ namespace Staple;
 public partial class World
 {
     /// <summary>
+    /// Gets an entity's internal data if valid
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <returns>The entity info, or null</returns>
+    internal bool TryGetEntity(Entity entity, out EntityInfo info)
+    {
+        var localID = entity.Identifier.ID - 1;
+
+        lock (lockObject)
+        {
+            if (localID < 0 ||
+                localID >= entities.Count ||
+                entities[localID].alive == false ||
+                entities[localID].generation != entity.Identifier.generation)
+            {
+                info = default;
+
+                return false;
+            }
+
+            info = entities[localID];
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Unloads all components from an assembly (Used for editor purposes)
     /// </summary>
     /// <param name="assembly">The assembly to unload from</param>
@@ -97,7 +124,10 @@ public partial class World
     /// <param name="entity">The entity to add the component to</param>
     /// <returns>The component instance, or default</returns>
     public T AddComponent
-        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>
+        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+        DynamicallyAccessedMemberTypes.PublicFields |
+        DynamicallyAccessedMemberTypes.PublicProperties)]
+        T>
         (Entity entity) where T : IComponent
     {
         return (T)AddComponent(entity, typeof(T));
@@ -110,19 +140,18 @@ public partial class World
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
     public IComponent AddComponent(Entity entity,
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+        DynamicallyAccessedMemberTypes.PublicFields |
+        DynamicallyAccessedMemberTypes.PublicProperties)]
         Type t)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return default;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return default;
-            }
-
             ComponentInfo info = null;
             var infoIndex = 0;
 
@@ -157,11 +186,9 @@ public partial class World
                 componentsRepository.Add(infoIndex, info);
             }
 
-            var e = entities[entity.ID];
-
-            if (e.components.Contains(infoIndex) == false)
+            if (entityInfo.components.Contains(infoIndex) == false)
             {
-                e.components.Add(infoIndex);
+                entityInfo.components.Add(infoIndex);
 
                 //Reset the component data if it already was there
                 if (info.Create(out var component) == false)
@@ -179,12 +206,39 @@ public partial class World
                     EmitAddComponentEvent(entity, ref component);
                 }
 
-                info.components[entity.ID] = component;
+                info.components[entityInfo.localID] = component;
             }
 
             collectionModified = true;
 
-            return info.components[entity.ID];
+            if(t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
+            {
+                try
+                {
+                    var outValue = info.components[entityInfo.localID];
+
+                    var field = t.GetField("entity");
+
+                    if (field != null)
+                    {
+                        field.SetValue(outValue, entity);
+                    }
+
+                    var property = t.GetProperty("entity");
+
+                    if (property != null)
+                    {
+                        property.SetValue(outValue, entity);
+                    }
+
+                    info.components[entityInfo.localID] = outValue;
+                }
+                catch(Exception)
+                {
+                }
+            }
+
+            return info.components[entityInfo.localID];
         }
     }
 
@@ -205,30 +259,27 @@ public partial class World
     /// <param name="t">The type to remove</param>
     public void RemoveComponent(Entity entity, Type t)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return;
-            }
-
             var componentIndex = ComponentIndex(t);
 
             if (componentIndex >= 0)
             {
                 if (componentsRepository.TryGetValue(componentIndex, out var info))
                 {
-                    var component = info.components[entity.ID];
+                    var component = info.components[entityInfo.localID];
 
                     EmitRemoveComponentEvent(entity, ref component);
 
-                    info.components[entity.ID] = component;
+                    info.components[entityInfo.localID] = component;
                 }
 
-                entities[entity.ID].components.Remove(componentIndex);
+                entityInfo.components.Remove(componentIndex);
 
                 collectionModified = true;
             }
@@ -243,30 +294,23 @@ public partial class World
     /// <returns>The component instance, or default</returns>
     public IComponent GetComponent(Entity entity, Type t)
     {
-        if (typeof(IComponent).IsAssignableFrom(t) == false)
+        if (typeof(IComponent).IsAssignableFrom(t) == false ||
+            TryGetEntity(entity, out var entityInfo) == false)
         {
             return default;
         }
 
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return default;
-            }
-
             var componentIndex = ComponentIndex(t);
 
-            if (entities[entity.ID].components.Contains(componentIndex) == false ||
+            if (entityInfo.components.Contains(componentIndex) == false ||
                 componentsRepository.TryGetValue(componentIndex, out var info) == false)
             {
                 return default;
             }
 
-            return info.components[entity.ID];
+            return info.components[entityInfo.localID];
         }
     }
 
@@ -290,7 +334,8 @@ public partial class World
     /// <returns>Whether the component was found</returns>
     public bool TryGetComponent(Entity entity, out IComponent component, Type t)
     {
-        if (typeof(IComponent).IsAssignableFrom(t) == false)
+        if (typeof(IComponent).IsAssignableFrom(t) == false ||
+            TryGetEntity(entity, out var entityInfo) == false)
         {
             component = default;
 
@@ -299,19 +344,9 @@ public partial class World
 
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                component = default;
-
-                return false;
-            }
-
             var componentIndex = ComponentIndex(t);
 
-            if (entities[entity.ID].components.Contains(componentIndex) == false ||
+            if (entityInfo.components.Contains(componentIndex) == false ||
                 componentsRepository.TryGetValue(componentIndex, out var info) == false)
             {
                 component = default;
@@ -319,7 +354,7 @@ public partial class World
                 return false;
             }
 
-            component = info.components[entity.ID];
+            component = info.components[entityInfo.localID];
 
             return true;
         }
@@ -354,23 +389,29 @@ public partial class World
     /// <param name="component">The component instance to replace</param>
     public void UpdateComponent(Entity entity, IComponent component)
     {
-        lock(lockObject)
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
+        lock (lockObject)
         {
             var componentIndex = ComponentIndex(component.GetType());
 
-            if (componentIndex < 0 ||
-                entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
+            if (componentIndex < 0)
             {
                 return;
             }
 
-            componentsRepository[componentIndex].components[entity.ID] = component;
+            componentsRepository[componentIndex].components[entityInfo.localID] = component;
         }
     }
 
+    /// <summary>
+    /// Adds a callback for when a component is added to an entity
+    /// </summary>
+    /// <param name="componentType">The component type</param>
+    /// <param name="callback">The callback to call</param>
     public static void AddComponentAddedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
         OnComponentChangedCallback callback)
     {
@@ -397,6 +438,11 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Adds a callback for when a component is removed from an entity
+    /// </summary>
+    /// <param name="componentType">The component type</param>
+    /// <param name="callback">The callback to call</param>
     public static void AddComponentRemovedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
         OnComponentChangedCallback callback)
     {
@@ -423,6 +469,11 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Emits a component added event
+    /// </summary>
+    /// <param name="entity">The entity to emit for</param>
+    /// <param name="component">The component that was added</param>
     internal void EmitAddComponentEvent(Entity entity, ref IComponent component)
     {
         if (component == null)
@@ -469,6 +520,11 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Emits a remove component event
+    /// </summary>
+    /// <param name="entity">The entity the component was removed from</param>
+    /// <param name="component">The component being removed</param>
     internal void EmitRemoveComponentEvent(Entity entity, ref IComponent component)
     {
         if(component == null)

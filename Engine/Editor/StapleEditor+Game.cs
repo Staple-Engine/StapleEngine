@@ -171,7 +171,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                Scene.current?.world.UnloadComponentsFromAssembly(assembly);
+                World.Current?.UnloadComponentsFromAssembly(assembly);
 
                 EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
                 EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
@@ -184,7 +184,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                SetSelectedEntity(Entity.Empty);
+                SetSelectedEntity(default);
             }
 
             Scene.SetActiveScene(null);

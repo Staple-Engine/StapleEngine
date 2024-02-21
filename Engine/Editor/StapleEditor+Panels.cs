@@ -256,7 +256,7 @@ internal partial class StapleEditor
                     flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
                 }
 
-                var entityName = Scene.current.world.GetEntityName(transform.entity);
+                var entityName = transform.entity.Name;
 
                 if (ImGui.TreeNodeEx($"{entityName}##0", flags))
                 {
@@ -270,11 +270,11 @@ internal partial class StapleEditor
                         {
                             if (payload.NativePtr != null)
                             {
-                                var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
+                                var t = draggedEntity.GetComponent<Transform>();
 
                                 t?.SetParent(transform);
 
-                                draggedEntity = Entity.Empty;
+                                draggedEntity = default;
                             }
                         }
 
@@ -289,7 +289,7 @@ internal partial class StapleEditor
                                 p.action(p.index, p.item);
 
                                 dragDropPayloads.Clear();
-                                dropTargetEntity = Entity.Empty;
+                                dropTargetEntity = default;
                             }
                         }
 
@@ -312,7 +312,7 @@ internal partial class StapleEditor
                     {
                         if(ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                         {
-                            ImGui.OpenPopup($"{transform.entity.ID}_Context");
+                            ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                         }
                         else if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                         {
@@ -320,13 +320,13 @@ internal partial class StapleEditor
                         }
                     }
 
-                    if (ImGui.BeginPopup($"{transform.entity.ID}_Context"))
+                    if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
                     {
                         if (ImGui.MenuItem("Create Entity"))
                         {
-                            var entity = Scene.current.world.CreateEntity();
+                            var entity = Entity.Create();
 
-                            var t = Scene.current.world.AddComponent<Transform>(entity);
+                            var t = entity.AddComponent<Transform>();
 
                             t.entity = entity;
 
@@ -341,7 +341,7 @@ internal partial class StapleEditor
 
                         if (ImGui.MenuItem("Delete"))
                         {
-                            Scene.current.world.DestroyEntity(transform.entity);
+                            transform.entity.Destroy();
 
                             ImGui.EndPopup();
 
@@ -355,11 +355,11 @@ internal partial class StapleEditor
 
                     foreach (var child in transform)
                     {
-                        var childEntity = Scene.current.FindEntity(child.entity.ID);
+                        var childEntity = World.Current.FindEntity(child.entity.Identifier.ID);
 
-                        if (childEntity != Entity.Empty)
+                        if (childEntity.IsValid)
                         {
-                            var t = Scene.current.GetComponent<Transform>(childEntity);
+                            var t = childEntity.GetComponent<Transform>();
 
                             if(t != null)
                             {
@@ -380,9 +380,9 @@ internal partial class StapleEditor
                 }
             }
 
-            Scene.current.world.Iterate((entity) =>
+            World.Current.Iterate((entity) =>
             {
-                var transform = Scene.current.GetComponent<Transform>(entity);
+                var transform = entity.GetComponent<Transform>();
 
                 if(transform == null)
                 {
@@ -408,9 +408,9 @@ internal partial class StapleEditor
         {
             if(ImGui.MenuItem("Create Entity"))
             {
-                var entity = Scene.current.world.CreateEntity();
+                var entity = Entity.Create();
 
-                var transform = Scene.current.world.AddComponent<Transform>(entity);
+                var transform = entity.AddComponent<Transform>();
 
                 transform.entity = entity;
 
@@ -430,7 +430,7 @@ internal partial class StapleEditor
             {
                 if (payload.NativePtr != null)
                 {
-                    var t = Scene.current.world.GetComponent<Transform>(draggedEntity);
+                    var t = draggedEntity.GetComponent<Transform>();
 
                     t?.SetParent(null);
                 }
@@ -447,7 +447,7 @@ internal partial class StapleEditor
                     p.action(p.index, p.item);
 
                     dragDropPayloads.Clear();
-                    dropTargetEntity = Entity.Empty;
+                    dropTargetEntity = default;
                 }
             }
 
@@ -517,25 +517,25 @@ internal partial class StapleEditor
 
         ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 0));
 
-        if (selectedEntity != null && Scene.current != null && Scene.current.world.IsValidEntity(selectedEntity))
+        if (selectedEntity != null && selectedEntity.IsValid)
         {
-            var name = Scene.current.world.GetEntityName(selectedEntity);
+            var name = selectedEntity.Name;
 
             if(ImGui.InputText("Name", ref name, 120))
             {
-                Scene.current.world.SetEntityName(selectedEntity, name);
+                selectedEntity.Name = name;
             }
 
-            var enabled = Scene.current.world.IsEntityEnabled(selectedEntity);
+            var enabled = selectedEntity.Enabled;
 
             var newValue = EditorGUI.Toggle("Enabled", enabled);
 
             if(newValue != enabled)
             {
-                Scene.current.world.SetEntityEnabled(selectedEntity, newValue);
+                selectedEntity.Enabled = true;
             }
 
-            var currentLayer = Scene.current.world.GetEntityLayer(selectedEntity);
+            var currentLayer = selectedEntity.Layer;
             var layers = LayerMask.AllLayers;
 
             if (ImGui.BeginCombo("Layer", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
@@ -546,7 +546,7 @@ internal partial class StapleEditor
 
                     if (ImGui.Selectable(layers[j], selected))
                     {
-                        Scene.current.world.SetEntityLayer(selectedEntity, (uint)j);
+                        selectedEntity.Layer = (uint)j;
                     }
                 }
 
@@ -555,7 +555,7 @@ internal partial class StapleEditor
 
             var counter = 0;
 
-            Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+            selectedEntity.IterateComponents((ref IComponent component) =>
             {
                 if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow))
                 {
@@ -578,7 +578,7 @@ internal partial class StapleEditor
                     {
                         if(ImGui.SmallButton("X"))
                         {
-                            Scene.current.world.RemoveComponent(selectedEntity, component.GetType());
+                            selectedEntity.RemoveComponent(component.GetType());
 
                             resetSelection = true;
 
@@ -599,7 +599,7 @@ internal partial class StapleEditor
                         }
                     }
 
-                    Scene.current.UpdateComponent(selectedEntity, component);
+                    selectedEntity.UpdateComponent(component);
 
                     ImGui.TreePop();
                 }
@@ -624,7 +624,7 @@ internal partial class StapleEditor
                 {
                     foreach(var component in registeredComponents)
                     {
-                        if(Scene.current.world.GetComponent(selectedEntity, component) != null)
+                        if(selectedEntity.GetComponent(component) != null)
                         {
                             continue;
                         }
@@ -633,7 +633,7 @@ internal partial class StapleEditor
 
                         if (ImGui.IsItemClicked())
                         {
-                            Scene.current.world.AddComponent(selectedEntity, component);
+                            selectedEntity.AddComponent(component);
 
                             resetSelection = true;
 
@@ -733,7 +733,7 @@ internal partial class StapleEditor
     {
         projectBrowser.Draw(io, (item) =>
         {
-            selectedEntity = Entity.Empty;
+            selectedEntity = default;
             selectedProjectNode = item;
             selectedProjectNodeData = null;
 

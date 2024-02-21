@@ -159,7 +159,7 @@ internal class RenderSystem : ISubsystem
 
     public void Update()
     {
-        if(Scene.current?.world == null)
+        if(World.Current == null)
         {
             return;
         }
@@ -178,7 +178,7 @@ internal class RenderSystem : ISubsystem
     {
         ushort viewID = 1;
 
-        var cameras = Scene.current.world.SortedCameras;
+        var cameras = World.Current.SortedCameras;
 
         if (cameras.Length > 0)
         {
@@ -194,7 +194,7 @@ internal class RenderSystem : ISubsystem
 
                 unsafe
                 {
-                    var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                    var projection = Camera.Projection(c.entity, c.camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);
@@ -227,14 +227,14 @@ internal class RenderSystem : ISubsystem
 
                 bgfx.touch(viewID);
 
-                Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform t) =>
+                Scene.ForEach((Entity entity, bool enabled, ref Transform t) =>
                 {
                     if (enabled == false)
                     {
                         return;
                     }
 
-                    var layer = Scene.current.world.GetEntityLayer(entity);
+                    var layer = entity.Layer;
 
                     if (camera.cullingLayers.HasLayer(layer) == false)
                     {
@@ -243,11 +243,11 @@ internal class RenderSystem : ISubsystem
 
                     foreach (var system in renderSystems)
                     {
-                        var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+                        var related = entity.GetComponent(system.RelatedComponent());
 
                         if (related != null)
                         {
-                            system.Preprocess(Scene.current.world, entity, t, related, camera, cameraTransform);
+                            system.Preprocess(entity, t, related, camera, cameraTransform);
 
                             if (related is Renderable renderable &&
                                 renderable.enabled)
@@ -256,7 +256,7 @@ internal class RenderSystem : ISubsystem
 
                                 if (renderable.isVisible && renderable.forceRenderingOff == false)
                                 {
-                                    system.Process(Scene.current.world, entity, t, related, camera, cameraTransform, viewID);
+                                    system.Process(entity, t, related, camera, cameraTransform, viewID);
                                 }
                             }
                         }
@@ -290,7 +290,7 @@ internal class RenderSystem : ISubsystem
 
                 unsafe
                 {
-                    var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                    var projection = Camera.Projection(c.entity, c.camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);
@@ -308,7 +308,7 @@ internal class RenderSystem : ISubsystem
     {
         ushort viewID = 1;
 
-        var cameras = Scene.current.world.SortedCameras;
+        var cameras = Scene.SortedCameras;
 
         if (cameras.Length > 0)
         {
@@ -324,7 +324,7 @@ internal class RenderSystem : ISubsystem
 
                 unsafe
                 {
-                    var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                    var projection = Camera.Projection(c.entity, c.camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);
@@ -365,7 +365,7 @@ internal class RenderSystem : ISubsystem
                     {
                         foreach (var call in drawCalls)
                         {
-                            var previous = previousDrawCalls.Find(x => x.entity.ID == call.entity.ID);
+                            var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
 
                             if (call.renderable.enabled)
                             {
@@ -394,7 +394,7 @@ internal class RenderSystem : ISubsystem
                                 {
                                     if (call.relatedComponent.GetType() == system.RelatedComponent())
                                     {
-                                        system.Process(Scene.current.world, call.entity, stagingTransform, call.relatedComponent,
+                                        system.Process(call.entity, stagingTransform, call.relatedComponent,
                                             camera, cameraTransform, viewID);
                                     }
                                 }
@@ -430,7 +430,7 @@ internal class RenderSystem : ISubsystem
 
                 unsafe
                 {
-                    var projection = Camera.Projection(Scene.current.world, c.entity, c.camera);
+                    var projection = Camera.Projection(c.entity, c.camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);
@@ -438,14 +438,14 @@ internal class RenderSystem : ISubsystem
                     frustumCuller.Update(view, projection);
                 }
 
-                Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform t) =>
+                Scene.ForEach((Entity entity, bool enabled, ref Transform t) =>
                 {
                     if (enabled == false)
                     {
                         return;
                     }
 
-                    var layer = Scene.current.world.GetEntityLayer(entity);
+                    var layer = entity.Layer;
 
                     if (camera.cullingLayers.HasLayer(layer) == false)
                     {
@@ -454,11 +454,11 @@ internal class RenderSystem : ISubsystem
 
                     foreach (var system in renderSystems)
                     {
-                        var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+                        var related = entity.GetComponent(system.RelatedComponent());
 
                         if (related != null)
                         {
-                            system.Preprocess(Scene.current.world, entity, t, related, camera, cameraTransform);
+                            system.Preprocess(entity, t, related, camera, cameraTransform);
 
                             if (related is Renderable renderable &&
                                 renderable.enabled)
@@ -500,12 +500,12 @@ internal class RenderSystem : ISubsystem
         {
             if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
             {
-                drawCalls = new List<DrawCall>();
+                drawCalls = new();
 
                 currentDrawBucket.drawCalls.Add(viewID, drawCalls);
             }
 
-            drawCalls.Add(new DrawCall()
+            drawCalls.Add(new()
             {
                 entity = entity,
                 renderable = renderable,

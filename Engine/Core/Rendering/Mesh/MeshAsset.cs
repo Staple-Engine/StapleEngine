@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -31,5 +32,93 @@ public class MeshAsset
         public AABB bounds;
     }
 
+    public class Node
+    {
+        public string name;
+
+        public Node parent;
+
+        public List<Node> children = new();
+
+        public Matrix4x4 transform;
+
+        public Matrix4x4 GlobalTransform
+        {
+            get
+            {
+                if(parent != null)
+                {
+                    return parent.GlobalTransform * transform;
+                }
+
+                return transform;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"({name}, parent: {parent?.name ?? "None"})";
+        }
+    }
+
+    public class AnimationKey<T>
+    {
+        public float time;
+        public T value;
+    }
+
+    public class AnimationChannel
+    {
+        public Node node;
+
+        public List<AnimationKey<Vector3>> positions = new();
+        
+        public List<AnimationKey<Vector3>> scales = new();
+
+        public List<AnimationKey<Quaternion>> rotations = new();
+
+        public Matrix4x4 TransformMatrix(float time)
+        {
+            T GetValue<T>(List<AnimationKey<T>> values)
+            {
+                T value = default;
+
+                for(var i = 0; i < values.Count; i++)
+                {
+                    if (values[i].time > time)
+                    {
+                        return value;
+                    }
+
+                    value = values[i].value;
+                }
+
+                return value;
+            }
+
+            var position = GetValue(positions);
+            var scale = GetValue(scales);
+            var rotation = GetValue(rotations);
+
+            return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
+        }
+    }
+
+    public class Animation
+    {
+        public string name;
+        public float duration;
+        public float ticksPerSecond;
+        public List<AnimationChannel> channels = new();
+    }
+
     public List<MeshInfo> meshes = new();
+    public Node rootNode;
+    public Dictionary<string, Node> nodes = new();
+    public Matrix4x4 inverseTransform;
+    public Dictionary<string, Animation> animations = new();
+
+    public Node GetNode(string name) => name != null && nodes.TryGetValue(name, out var node) ? node : null;
+
+    public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
 }

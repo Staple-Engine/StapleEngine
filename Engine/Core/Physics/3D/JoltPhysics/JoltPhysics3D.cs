@@ -201,7 +201,7 @@ internal class JoltPhysics3D : IPhysics3D
 
         foreach (var pair in bodies)
         {
-            if(Scene.current.world.IsEntityEnabled(pair.entity) == false)
+            if(pair.entity.Enabled == false)
             {
                 if(pair.body.IsActive)
                 {
@@ -218,7 +218,7 @@ internal class JoltPhysics3D : IPhysics3D
 
         foreach(var pair in bodies)
         {
-            var transform = Scene.current.world.GetComponent<Transform>(pair.entity);
+            var transform = pair.entity.GetComponent<Transform>();
 
             if(transform != null)
             {

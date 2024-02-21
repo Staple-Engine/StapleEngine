@@ -63,7 +63,13 @@ public class Camera : IComponent
 
     internal float Height => viewport.W * Screen.Height;
 
-    internal static Matrix4x4 Projection(World world, Entity entity, Camera camera)
+    /// <summary>
+    /// Calculates projection matrix for a camera
+    /// </summary>
+    /// <param name="entity">The entity that the camera belongs to</param>
+    /// <param name="camera">The camera</param>
+    /// <returns>The matrix, or identity if failed</returns>
+    internal static Matrix4x4 Projection(Entity entity, Camera camera)
     {
         switch (camera.cameraType)
         {
@@ -71,7 +77,7 @@ public class Camera : IComponent
 
                 if (camera.nearPlane <= 0 || camera.farPlane <= 0 || camera.nearPlane >= camera.farPlane)
                 {
-                    Log.Error($"{world?.GetEntityName(entity)} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
+                    Log.Error($"{entity} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
 
                     return Matrix4x4.Identity;
                 }
@@ -83,7 +89,7 @@ public class Camera : IComponent
 
                 if(camera.orthographicSize < 1)
                 {
-                    Log.Error($"{world?.GetEntityName(entity)} camera component has invalid orthographic size: {camera.orthographicSize}");
+                    Log.Error($"{entity} camera component has invalid orthographic size: {camera.orthographicSize}");
 
                     return Matrix4x4.Identity;
                 }
@@ -105,18 +111,17 @@ public class Camera : IComponent
     /// Converts a screen point to world coordinates
     /// </summary>
     /// <param name="point">The point</param>
-    /// <param name="world">The world the camera belongs to</param>
     /// <param name="entity">The entity the camera belongs to</param>
     /// <param name="camera">The camera</param>
     /// <param name="transform">The camera's transform</param>
     /// <returns>A world-space point</returns>
-    public static Vector3 ScreenPointToWorld(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
+    public static Vector3 ScreenPointToWorld(Vector2 point, Entity entity, Camera camera, Transform transform)
     {
         var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
             (1.0f - (point.Y * 2.0f) / Screen.Height),
             0.0f, 1.0f);
 
-        var p = Projection(world, entity, camera);
+        var p = Projection(entity, camera);
 
         if (Matrix4x4.Invert(p, out var invP) == false)
         {
@@ -135,18 +140,17 @@ public class Camera : IComponent
     /// Converts a screen point to a ray
     /// </summary>
     /// <param name="point">The point</param>
-    /// <param name="world">The world the camera belongs to</param>
     /// <param name="entity">The entity the camera belongs to</param>
     /// <param name="camera">The camera</param>
     /// <param name="transform">The camera's transform</param>
     /// <returns>The ray</returns>
-    public static Ray ScreenPointToRay(Vector2 point, World world, Entity entity, Camera camera, Transform transform)
+    public static Ray ScreenPointToRay(Vector2 point, Entity entity, Camera camera, Transform transform)
     {
         var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
             (1.0f - (point.Y * 2.0f) / Screen.Height),
             0.0f, 1.0f);
 
-        var p = Projection(world, entity, camera);
+        var p = Projection(entity, camera);
 
         if(Matrix4x4.Invert(p, out var invP) == false)
         {

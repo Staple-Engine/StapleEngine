@@ -77,7 +77,7 @@ internal class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform)
     {
         var r = relatedComponent as SpriteRenderer;
@@ -157,7 +157,7 @@ internal class SpriteRenderSystem : IRenderSystem
         r.bounds = new AABB(transform.Position, size);
     }
 
-    public void Process(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
         var r = relatedComponent as SpriteRenderer;

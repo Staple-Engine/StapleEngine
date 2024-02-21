@@ -13,7 +13,7 @@ public interface IEntitySystem
 
     void Startup();
 
-    void Process(World world, float deltaTime);
+    void Process(float deltaTime);
 
     void Shutdown();
 }

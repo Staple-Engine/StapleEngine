@@ -4,7 +4,7 @@ class MyEntitySystem : IEntitySystem
 {
     public SubsystemType UpdateType => SubsystemType.FixedUpdate;
 
-    public void Process(World world, float deltaTime)
+    public void Process(float deltaTime)
     {
         //Handle each update here
     }

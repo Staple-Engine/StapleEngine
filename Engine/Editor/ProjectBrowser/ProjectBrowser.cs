@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 
 namespace Staple.Editor;
@@ -749,38 +750,67 @@ internal class ProjectBrowser
 
                             Transform parent = null;
 
-                            if (targetEntity != Entity.Empty)
+                            if (targetEntity != default)
                             {
-                                parent = Scene.current.world.GetComponent<Transform>(targetEntity);
+                                parent = targetEntity.GetComponent<Transform>();
                             }
 
-                            var baseEntity = Scene.current.world.CreateEntity();
-
-                            Scene.current.world.SetEntityName(baseEntity, item.name);
-
-                            var baseTransform = Scene.current.world.AddComponent<Transform>(baseEntity);
+                            var baseEntity = Entity.Create(item.name);
+                            var baseTransform = baseEntity.AddComponent<Transform>();
 
                             baseTransform.entity = baseEntity;
                             baseTransform.SetParent(parent);
+
+                            if(asset.rootNode != null)
+                            {
+                                void Recursive(MeshAsset.Node current, Transform parent)
+                                {
+                                    if (Matrix4x4.Decompose(current.transform, out var nodeScale, out var nodeRotation, out var nodePosition))
+                                    {
+                                        var nodeEntity = Entity.Create(current.name);
+
+                                        var nodeTransform = nodeEntity.AddComponent<Transform>();
+
+                                        nodeTransform.entity = nodeEntity;
+                                        nodeTransform.SetParent(parent);
+
+                                        nodeTransform.LocalPosition = nodePosition;
+                                        nodeTransform.LocalRotation = nodeRotation;
+                                        nodeTransform.LocalScale = nodeScale;
+
+                                        //Debug only
+                                        /*
+                                        var meshRenderer = nodeEntity.AddComponent<MeshRenderer>(nodeEntity);
+
+                                        meshRenderer.mesh = Mesh.Cube;
+                                        meshRenderer.material = ResourceManager.instance.LoadMaterial("Materials/Sprite.mat");
+                                        */
+
+                                        foreach (var child in current.children)
+                                        {
+                                            Recursive(child, nodeTransform);
+                                        }
+                                    }
+                                }
+
+                                Recursive(asset.rootNode, baseTransform);
+                            }
 
                             var meshIndex = 0;
 
                             foreach (var mesh in asset.meshes)
                             {
-                                var meshEntity = Scene.current.world.CreateEntity();
+                                var meshEntity = Entity.Create(mesh.name);
 
-                                Scene.current.world.SetEntityName(meshEntity, mesh.name);
-
-                                var meshTransform = Scene.current.world.AddComponent<Transform>(meshEntity);
+                                var meshTransform = meshEntity.AddComponent<Transform>();
 
                                 meshTransform.entity = meshEntity;
                                 meshTransform.SetParent(baseTransform);
 
-                                var meshRenderer = Scene.current.world.AddComponent<MeshRenderer>(meshEntity);
-
-                                meshRenderer.material = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
+                                var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
                                 meshRenderer.mesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
+                                meshRenderer.material = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
                             }
                         }
 

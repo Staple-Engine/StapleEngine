@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System.Linq;
 using System.Numerics;
 
@@ -13,7 +14,7 @@ internal partial class StapleEditor
 
         unsafe
         {
-            var projection = Camera.Projection(Scene.current?.world, Entity.Empty, camera);
+            var projection = Camera.Projection(default, camera);
             var view = cameraTransform.Matrix;
 
             Matrix4x4.Invert(view, out view);
@@ -29,11 +30,11 @@ internal partial class StapleEditor
             system.Prepare();
         }
 
-        if (Scene.current?.world != null)
+        if (World.Current != null)
         {
-            var renderCamera = Scene.current.world.SortedCameras.FirstOrDefault()?.camera ?? camera;
+            var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
 
-            Scene.current.world.ForEach((Entity entity, bool enabled, ref Transform transform) =>
+            Scene.ForEach((Entity entity, bool enabled, ref Transform transform) =>
             {
                 if(enabled == false)
                 {
@@ -42,15 +43,15 @@ internal partial class StapleEditor
 
                 foreach(var system in renderSystem.renderSystems)
                 {
-                    var related = Scene.current.world.GetComponent(entity, system.RelatedComponent());
+                    var related = entity.GetComponent(system.RelatedComponent());
 
                     if (related != null)
                     {
-                        system.Preprocess(Scene.current.world, entity, transform, related, renderCamera, cameraTransform);
+                        system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
 
                         if (related is Renderable renderable)
                         {
-                            system.Process(Scene.current.world, entity, transform, related, renderCamera, cameraTransform, SceneView);
+                            system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
@@ -62,19 +63,19 @@ internal partial class StapleEditor
             {
                 var counter = 0;
 
-                Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+                selectedEntity.IterateComponents((ref IComponent component) =>
                 {
                     if(cachedGizmoEditors.TryGetValue(counter++, out var editor))
                     {
-                        editor.OnGizmo(selectedEntity, Scene.current.world.GetComponent<Transform>(selectedEntity), component);
+                        editor.OnGizmo(selectedEntity, selectedEntity.GetComponent<Transform>(), component);
                     }
                 });
             }
 
             /*
-            Scene.current.world.Iterate((entity) =>
+            Scene.IterateEntities((entity) =>
             {
-                var transform = Scene.current.world.GetComponent<Transform>(entity);
+                var transform = entity.GetComponent<Transform>();
 
                 if(transform == null)
                 {

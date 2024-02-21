@@ -115,7 +115,8 @@ internal class BuildWindow : EditorWindow
                             p.action(p.index, p.item);
 
                             StapleEditor.instance.dragDropPayloads.Clear();
-                            StapleEditor.instance.dropTargetEntity = Entity.Empty;
+
+                            StapleEditor.instance.dropTargetEntity = default;
                         }
                     }
 

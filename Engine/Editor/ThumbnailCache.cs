@@ -177,11 +177,11 @@ internal class ThumbnailCache
 
         pendingDestructionTextures.Clear();
 
-        if (Scene.current?.world != null)
+        if (World.Current != null)
         {
-            Scene.current.world.Iterate((entity) =>
+            Scene.IterateEntities((entity) =>
             {
-                Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                entity.IterateComponents((ref IComponent component) =>
                 {
                     var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
 

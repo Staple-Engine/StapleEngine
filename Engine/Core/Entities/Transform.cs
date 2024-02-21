@@ -8,6 +8,7 @@ namespace Staple;
 /// Transform component.
 /// Contains rotation, position, scale, and parent connection.
 /// </summary>
+[AutoAssignEntity]
 public class Transform : IComponent, IEnumerable<Transform>
 {
     private readonly List<Transform> children = new();
@@ -24,7 +25,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <summary>
     /// The entity related to this transform
     /// </summary>
-    public Entity entity { get; internal set; } = Entity.Empty;
+    public Entity entity { get; internal set; }
 
     /// <summary>
     /// Gets the transform's Transformation Matrix
@@ -37,7 +38,7 @@ public class Transform : IComponent, IEnumerable<Transform>
             {
                 Changed = false;
 
-                matrix = Matrix4x4.CreateScale(scale.X, scale.Y, scale.Z) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
+                matrix = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
             }
 
             if(parent != null)

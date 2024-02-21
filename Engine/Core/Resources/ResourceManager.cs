@@ -406,20 +406,20 @@ internal class ResourceManager
 
             foreach(var sceneObject in sceneObjects)
             {
-                var entity = Entity.Empty;
+                var entity = new Entity();
 
                 switch (sceneObject.kind)
                 {
                     case SceneObjectKind.Entity:
 
-                        entity = scene.Instantiate(sceneObject, out var localID, false);
+                        entity = Scene.Instantiate(sceneObject, out var localID, false);
 
-                        if (entity == Entity.Empty)
+                        if (entity == default)
                         {
                             continue;
                         }
 
-                        var transform = scene.GetComponent<Transform>(entity);
+                        var transform = entity.GetComponent<Transform>();
 
                         localIDs.Add(localID, transform);
 
@@ -501,20 +501,20 @@ internal class ResourceManager
 
             foreach (var sceneObject in sceneData.objects)
             {
-                var entity = Entity.Empty;
+                var entity = new Entity();
 
                 switch (sceneObject.kind)
                 {
                     case SceneObjectKind.Entity:
 
-                        entity = scene.Instantiate(sceneObject, out var localID, true);
+                        entity = Scene.Instantiate(sceneObject, out var localID, true);
 
-                        if (entity == Entity.Empty)
+                        if (entity == default)
                         {
                             continue;
                         }
 
-                        var transform = scene.GetComponent<Transform>(entity);
+                        var transform = entity.GetComponent<Transform>();
 
                         localIDs.Add(localID, transform);
 
@@ -1187,6 +1187,86 @@ internal class ResourceManager
                 };
 
                 asset.meshes.Add(newMesh);
+            }
+
+            foreach(var n in meshAssetData.nodes)
+            {
+                if(n.name == null || asset.nodes.ContainsKey(n.name))
+                {
+                    continue;
+                }
+
+                if(n.matrix.ToMatrix4x4(out var transform) == false)
+                {
+                    transform = Matrix4x4.Identity;
+                }
+
+                var node = new MeshAsset.Node()
+                {
+                    name = n.name,
+                    transform = transform,
+                    parent = asset.GetNode(n.parent),
+                };
+
+                if(node.parent != null)
+                {
+                    node.parent.children.Add(node);
+                }
+
+                asset.nodes.Add(n.name, node);
+
+                asset.rootNode ??= node;
+
+                if(node.parent == null)
+                {
+                    Matrix4x4.Invert(node.transform, out asset.inverseTransform);
+                }
+            }
+
+            foreach(var a in meshAssetData.animations)
+            {
+                var animation = new MeshAsset.Animation()
+                {
+                    name = a.name,
+                    duration = a.duration,
+                    ticksPerSecond = a.ticksPerSecond,
+                };
+
+                foreach(var c in a.channels)
+                {
+                    var node = asset.GetNode(c.nodeName);
+
+                    if(node == null)
+                    {
+                        continue;
+                    }
+
+                    var channel = new MeshAsset.AnimationChannel()
+                    {
+                        node = node,
+                        positions = c.positionKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
+                        {
+                            time = x.time,
+                            value = x.value.ToVector3(),
+                        }).ToList(),
+
+                        rotations = c.rotationKeys.Select(x => new MeshAsset.AnimationKey<Quaternion>()
+                        {
+                            time = x.time,
+                            value = new Quaternion(x.value.x, x.value.y, x.value.z, x.value.w),
+                        }).ToList(),
+
+                        scales = c.scaleKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
+                        {
+                            time = x.time,
+                            value = x.value.ToVector3(),
+                        }).ToList(),
+                    };
+
+                    animation.channels.Add(channel);
+                }
+
+                asset.animations.AddOrSetKey(animation.name, animation);
             }
 
             if(ignoreCache == false)

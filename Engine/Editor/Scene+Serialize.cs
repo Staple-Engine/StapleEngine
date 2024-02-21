@@ -12,18 +12,19 @@ internal static class SceneSerialize
     {
         var outValue = new SerializableScene();
 
-        scene.world.Iterate((Entity entity) =>
+        Scene.IterateEntities((Entity entity) =>
         {
             SceneObjectTransform transform = null;
+
             var components = new List<SceneComponent>();
 
-            var entityTransform = scene.GetComponent<Transform>(entity);
+            var entityTransform = entity.GetComponent<Transform>();
 
-            var parent = entityTransform.parent?.entity ?? Entity.Empty;
+            var parent = entityTransform.parent?.entity ?? default;
 
             if (entityTransform != null)
             {
-                transform = new SceneObjectTransform()
+                transform = new()
                 {
                     position = new Vector3Holder(entityTransform.LocalPosition),
                     rotation = new Vector3Holder(entityTransform.LocalRotation),
@@ -31,7 +32,7 @@ internal static class SceneSerialize
                 };
             }
 
-            scene.world.IterateComponents(entity, (ref IComponent component) =>
+            entity.IterateComponents((ref IComponent component) =>
             {
                 if (component == null || component.GetType() == typeof(Transform))
                 {
@@ -145,7 +146,7 @@ internal static class SceneSerialize
 
             string entityLayer;
 
-            var index = scene.world.GetEntityLayer(entity);
+            var index = entity.Layer;
 
             if(index < LayerMask.AllLayers.Count)
             {
@@ -158,11 +159,11 @@ internal static class SceneSerialize
 
             var outEntity = new SceneObject()
             {
-                ID = entity.ID,
-                name = scene.world.GetEntityName(entity),
-                enabled = scene.world.IsEntityEnabled(entity),
+                ID = entity.Identifier.ID,
+                name = entity.Name,
+                enabled = entity.Enabled,
                 kind = SceneObjectKind.Entity,
-                parent = parent.ID,
+                parent = parent.Identifier.ID,
                 transform = transform,
                 components = components,
                 layer = entityLayer,

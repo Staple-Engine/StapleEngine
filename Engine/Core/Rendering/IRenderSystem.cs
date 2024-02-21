@@ -23,27 +23,25 @@ internal interface IRenderSystem
     /// Pre-processes an entity.
     /// Use this to prepare information before the rendering pass, such as updating bounds.
     /// </summary>
-    /// <param name="world">The world the entity belongs to</param>
     /// <param name="entity">The entity</param>
     /// <param name="transform">The entity's transform</param>
     /// <param name="relatedComponent">The related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Processes the entity.
     /// This is when you should handle the entity's data in order to render.
     /// </summary>
-    /// <param name="world">The world the entity belongs to</param>
     /// <param name="entity">The entity</param>
     /// <param name="transform">The entity's transform</param>
     /// <param name="relatedComponent">The related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
     /// <param name="viewId">The current view ID</param>
-    void Process(World world, Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera,
+    void Process(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera,
         Transform activeCameraTransform, ushort viewId);
 
     /// <summary>

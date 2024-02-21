@@ -115,7 +115,7 @@ internal partial class StapleEditor
 
     private ImGuiProxy imgui;
 
-    private Entity selectedEntity = Entity.Empty;
+    private Entity selectedEntity;
 
     private ProjectBrowserNode selectedProjectNode;
 
@@ -209,9 +209,9 @@ internal partial class StapleEditor
 
     private bool resetSelection = false;
 
-    private Entity draggedEntity = Entity.Empty;
+    private Entity draggedEntity;
 
-    internal Entity dropTargetEntity = Entity.Empty;
+    internal Entity dropTargetEntity;
 
     private LastProjectInfo lastProjects = new();
 
@@ -716,9 +716,9 @@ internal partial class StapleEditor
 
             ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
 
-            if (Scene.current?.world != null)
+            if (World.Current != null)
             {
-                var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+                var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
                 var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
 
@@ -737,9 +737,9 @@ internal partial class StapleEditor
 
             imgui.EndFrame();
 
-            if (Scene.current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
+            if (World.Current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
             {
-                var ray = Camera.ScreenPointToRay(Input.MousePosition, Scene.current.world, Entity.Empty, camera, cameraTransform);
+                var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
                 if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
                 {
@@ -747,7 +747,7 @@ internal partial class StapleEditor
                 }
                 else
                 {
-                    SetSelectedEntity(Entity.Empty);
+                    SetSelectedEntity(default);
                 }
             }
         };
@@ -1091,14 +1091,14 @@ internal partial class StapleEditor
 
         EditorWindow.GetWindow<AssetPickerWindow>().Close();
 
-        if(selectedEntity == Entity.Empty)
+        if(selectedEntity == default)
         {
             return;
         }
 
         var counter = 0;
 
-        Scene.current.world.IterateComponents(selectedEntity, (ref IComponent component) =>
+        selectedEntity.IterateComponents((ref IComponent component) =>
         {
             counter++;
 
@@ -1127,7 +1127,7 @@ internal partial class StapleEditor
     {
         registeredAssetTemplates.Clear();
 
-        string[] files = Array.Empty<string>();
+        string[] files;
 
         try
         {

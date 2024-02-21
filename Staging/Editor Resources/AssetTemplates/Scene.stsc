@@ -1,1 +1,48 @@
-[]
+[
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 1,
+    "parent": -1,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 10.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "clearMode": "SolidColor",
+          "cameraType": "Perspective",
+          "orthographicSize": 5.0,
+          "fov": 90.0,
+          "nearPlane": 0.01,
+          "farPlane": 1000.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "clearColor": "#007FFFFF",
+          "cullingLayers": 4294967295
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true
+  }
+]

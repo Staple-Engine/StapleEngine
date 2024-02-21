@@ -29,19 +29,22 @@ public partial class World
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.ID];
+                T t = (T)componentsRepository[index].components[entity.localID];
 
                 try
                 {
                     var e = new Entity()
                     {
-                        ID = entity.ID,
-                        generation = entity.generation,
+                        Identifier = new()
+                        {
+                            ID = entity.ID,
+                            generation = entity.generation,
+                        },
                     };
 
                     callback(e, IsEntityEnabled(e, true), ref t);
 
-                    componentsRepository[index].components[entity.ID] = t;
+                    componentsRepository[index].components[entity.localID] = t;
                 }
                 catch (Exception e)
                 {
@@ -88,21 +91,24 @@ public partial class World
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.ID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.ID];
+                T t = (T)componentsRepository[index].components[entity.localID];
+                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
 
                 try
                 {
                     var e = new Entity()
                     {
-                        ID = entity.ID,
-                        generation = entity.generation,
+                        Identifier = new()
+                        {
+                            ID = entity.ID,
+                            generation = entity.generation,
+                        },
                     };
 
                     callback(e, IsEntityEnabled(e, true), ref t, ref t2);
 
-                    componentsRepository[index].components[entity.ID] = t;
-                    componentsRepository[index2].components[entity.ID] = t2;
+                    componentsRepository[index].components[entity.localID] = t;
+                    componentsRepository[index2].components[entity.localID] = t2;
                 }
                 catch (Exception e)
                 {
@@ -154,23 +160,26 @@ public partial class World
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.ID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.ID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.ID];
+                T t = (T)componentsRepository[index].components[entity.localID];
+                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
+                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
 
                 try
                 {
                     var e = new Entity()
                     {
-                        ID = entity.ID,
-                        generation = entity.generation,
+                        Identifier = new()
+                        {
+                            ID = entity.ID,
+                            generation = entity.generation,
+                        },
                     };
 
                     callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3);
 
-                    componentsRepository[index].components[entity.ID] = t;
-                    componentsRepository[index2].components[entity.ID] = t2;
-                    componentsRepository[index3].components[entity.ID] = t3;
+                    componentsRepository[index].components[entity.localID] = t;
+                    componentsRepository[index2].components[entity.localID] = t2;
+                    componentsRepository[index3].components[entity.localID] = t3;
                 }
                 catch (Exception e)
                 {
@@ -227,25 +236,28 @@ public partial class World
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.ID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.ID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.ID];
-                T4 t4 = (T4)componentsRepository[index4].components[entity.ID];
+                T t = (T)componentsRepository[index].components[entity.localID];
+                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
+                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
+                T4 t4 = (T4)componentsRepository[index4].components[entity.localID];
 
                 try
                 {
                     var e = new Entity()
                     {
-                        ID = entity.ID,
-                        generation = entity.generation,
+                        Identifier = new()
+                        {
+                            ID = entity.ID,
+                            generation = entity.generation,
+                        },
                     };
 
                     callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4);
 
-                    componentsRepository[index].components[entity.ID] = t;
-                    componentsRepository[index2].components[entity.ID] = t2;
-                    componentsRepository[index3].components[entity.ID] = t3;
-                    componentsRepository[index4].components[entity.ID] = t4;
+                    componentsRepository[index].components[entity.localID] = t;
+                    componentsRepository[index2].components[entity.localID] = t2;
+                    componentsRepository[index3].components[entity.localID] = t3;
+                    componentsRepository[index4].components[entity.localID] = t4;
                 }
                 catch (Exception e)
                 {
@@ -307,27 +319,30 @@ public partial class World
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.ID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.ID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.ID];
-                T4 t4 = (T4)componentsRepository[index4].components[entity.ID];
-                T5 t5 = (T5)componentsRepository[index5].components[entity.ID];
+                T t = (T)componentsRepository[index].components[entity.localID];
+                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
+                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
+                T4 t4 = (T4)componentsRepository[index4].components[entity.localID];
+                T5 t5 = (T5)componentsRepository[index5].components[entity.localID];
 
                 try
                 {
                     var e = new Entity()
                     {
-                        ID = entity.ID,
-                        generation = entity.generation,
+                        Identifier = new()
+                        {
+                            ID = entity.ID,
+                            generation = entity.generation,
+                        },
                     };
 
                     callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4, ref t5);
 
-                    componentsRepository[index].components[entity.ID] = t;
-                    componentsRepository[index2].components[entity.ID] = t2;
-                    componentsRepository[index3].components[entity.ID] = t3;
-                    componentsRepository[index4].components[entity.ID] = t4;
-                    componentsRepository[index5].components[entity.ID] = t5;
+                    componentsRepository[index].components[entity.localID] = t;
+                    componentsRepository[index2].components[entity.localID] = t2;
+                    componentsRepository[index3].components[entity.localID] = t3;
+                    componentsRepository[index4].components[entity.localID] = t4;
+                    componentsRepository[index5].components[entity.localID] = t5;
                 }
                 catch (Exception e)
                 {
@@ -372,7 +387,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
-                if (entity.alive == false || entity.components.Contains(componentIndex) == false)
+                if (entity.alive == false ||
+                    entity.components.Contains(componentIndex) == false)
                 {
                     continue;
                 }
@@ -391,24 +407,29 @@ public partial class World
     /// <returns>The entity if valid, or Entity.Empty</returns>
     public Entity FindEntity(int ID)
     {
+        var localID = ID - 1;
+
         lock (lockObject)
         {
-            if(ID < 0 || ID >= entities.Count)
+            if(localID < 0 || localID >= entities.Count)
             {
-                return Entity.Empty;
+                return default;
             }
 
-            var e = entities[ID];
+            var e = entities[localID];
 
             if(e.alive == false)
             {
-                return Entity.Empty;
+                return default;
             }
 
             return new Entity()
             {
-                ID = e.ID,
-                generation = e.generation,
+                Identifier = new()
+                {
+                    ID = e.ID,
+                    generation = e.generation,
+                },
             };
         }
     }
@@ -434,14 +455,17 @@ public partial class World
                 {
                     return new Entity()
                     {
-                        ID = pair.ID,
-                        generation = pair.generation,
+                        Identifier = new()
+                        {
+                            ID = pair.ID,
+                            generation = pair.generation,
+                        },
                     };
                 }
             }
         }
 
-        return Entity.Empty;
+        return default;
     }
 
     /// <summary>
@@ -455,13 +479,6 @@ public partial class World
     public bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out IComponent component)
     {
         var e = FindEntity(name, allowDisabled);
-
-        if(e == Entity.Empty)
-        {
-            component = default;
-
-            return false;
-        }
 
         return TryGetComponent(e, out component, componentType);
     }
@@ -477,13 +494,6 @@ public partial class World
     public bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T: IComponent
     {
         var e = FindEntity(name, allowDisabled);
-
-        if (e == Entity.Empty)
-        {
-            component = default;
-
-            return false;
-        }
 
         return TryGetComponent(e, out component);
     }
@@ -507,8 +517,11 @@ public partial class World
 
                 callback(new Entity()
                 {
-                    ID = entity.ID,
-                    generation = entity.generation,
+                    Identifier = new()
+                    {
+                        ID = entity.ID,
+                        generation = entity.generation,
+                    }
                 });
 
                 if (collectionModified)
@@ -526,25 +539,18 @@ public partial class World
     /// <param name="callback">A callback to handle the component</param>
     internal void IterateComponents(Entity entity, IterateComponentCallback callback)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
-            if(entity.ID < 0 || entity.ID >= entities.Count)
-            {
-                return;
-            }
-
-            var e = entities[entity.ID];
-
-            if (e.ID != entity.ID || e.generation != entity.generation || e.alive == false)
-            {
-                return;
-            }
-
             collectionModified = false;
 
-            foreach (var index in e.components)
+            foreach (var index in entityInfo.components)
             {
-                var component = componentsRepository[index].components[e.ID];
+                var component = componentsRepository[index].components[entityInfo.localID];
 
                 callback(ref component);
 
@@ -553,7 +559,7 @@ public partial class World
                     return;
                 }
 
-                componentsRepository[index].components[e.ID] = component;
+                componentsRepository[index].components[entityInfo.localID] = component;
             }
 
             if (collectionModified)

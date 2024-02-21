@@ -359,7 +359,7 @@ internal class Physics3D : ISubsystem
 
     public void Shutdown()
     {
-        Scene.current?.world.ForEach((Entity entity, bool enabled, ref RigidBody3D rigidBody) =>
+        World.Current.ForEach((Entity entity, bool enabled, ref RigidBody3D rigidBody) =>
         {
             DestroyBody(rigidBody.body);
         });

@@ -40,7 +40,7 @@ public partial class World
     /// <summary>
     /// Contains data on an entity
     /// </summary>
-    private struct EntityInfo
+    internal class EntityInfo
     {
         /// <summary>
         /// The entity's ID
@@ -51,6 +51,11 @@ public partial class World
         /// The entity's generation
         /// </summary>
         public int generation;
+
+        /// <summary>
+        /// The normalized entity info, which is the actual index
+        /// </summary>
+        public int localID;
 
         /// <summary>
         /// Whether this entity is alive. If it's not, queries on it will fail.
@@ -65,7 +70,7 @@ public partial class World
         /// <summary>
         /// The active components for the entity
         /// </summary>
-        public List<int> components;
+        public List<int> components = new();
 
         /// <summary>
         /// The entity's name
@@ -159,6 +164,8 @@ public partial class World
         public Camera camera;
         public Transform transform;
     }
+
+    public static World Current { get; internal set; } = new();
 
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();

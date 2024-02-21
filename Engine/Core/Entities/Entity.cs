@@ -1,33 +1,56 @@
-﻿namespace Staple;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+
+namespace Staple;
 
 /// <summary>
 /// Represents an entity
 /// </summary>
-public struct Entity
+public partial struct Entity
 {
     /// <summary>
-    /// The entity's ID
+    /// The entity's identifier, containing the ID and generation
     /// </summary>
-    public int ID;
+    internal EntityID Identifier;
 
     /// <summary>
-    /// The entity's generation.
-    /// This gets increased internally as an entity with the same ID is destroyed, thus making old references fail to reference it again.
+    /// Whether this entity is enabled
     /// </summary>
-    public int generation;
-
-    /// <summary>
-    /// An empty entity
-    /// </summary>
-    public readonly static Entity Empty = new()
+    public bool Enabled
     {
-        ID = -1,
-        generation = 0,
-    };
+        get => World.Current?.IsEntityEnabled(this) ?? false;
+
+        set => World.Current?.SetEntityEnabled(this, value);
+    }
+
+    /// <summary>
+    /// The entity's name
+    /// </summary>
+    public string Name
+    {
+        get => World.Current?.GetEntityName(this);
+
+        set => World.Current?.SetEntityName(this, value);
+    }
+
+    /// <summary>
+    /// The entity's layer
+    /// </summary>
+    public uint Layer
+    {
+        get => World.Current?.GetEntityLayer(this) ?? 0;
+
+        set => World.Current?.SetEntityLayer(this, value);
+    }
+
+    /// <summary>
+    /// Checks if this entity is valid
+    /// </summary>
+    public bool IsValid => World.Current?.IsValidEntity(this) ?? false;
 
     public static bool operator==(Entity a, Entity b)
     {
-        return a.ID == b.ID && a.generation == b.generation;
+        return a.Identifier == b.Identifier;
     }
 
     public static bool operator!=(Entity a, Entity b)
@@ -52,11 +75,47 @@ public struct Entity
 
     public override int GetHashCode()
     {
-        return ID.GetHashCode() * 17 + generation.GetHashCode();
+        return Identifier.GetHashCode();
     }
 
     public override string ToString()
     {
-        return $"Entity ({ID} {generation})";
+        var nameString = Name ?? "Unnamed Entity";
+
+        return $"{nameString} {Identifier.ID}:{Identifier.generation}";
+    }
+
+    public static Entity Create()
+    {
+        if (World.Current == null)
+        {
+            return default;
+        }
+
+        return World.Current.CreateEntity();
+    }
+
+    public static Entity Create(string name)
+    {
+        if(World.Current == null)
+        {
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        World.Current.SetEntityName(entity, name);
+
+        return entity;
+    }
+
+    public void Destroy()
+    {
+        if(World.Current == null)
+        {
+            return;
+        }
+
+        World.Current.DestroyEntity(this);
     }
 }

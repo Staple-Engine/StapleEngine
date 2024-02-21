@@ -97,7 +97,7 @@ internal class EntitySystemManager : ISubsystem
 
         foreach (var system in systems)
         {
-            system.Process(Scene.current.world, time);
+            system.Process(time);
         }
     }
 }

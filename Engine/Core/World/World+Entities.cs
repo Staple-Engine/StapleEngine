@@ -13,12 +13,14 @@ public partial class World
     /// <returns>Whether it is valid</returns>
     public bool IsValidEntity(Entity entity)
     {
+        var localID = entity.Identifier.ID - 1;
+
         lock(lockObject)
         {
-            if (entity.ID >= 0 &&
-                entity.ID < entities.Count &&
-                entities[entity.ID].alive &&
-                entities[entity.ID].generation == entity.generation)
+            if (localID >= 0 &&
+                localID < entities.Count &&
+                entities[localID].alive &&
+                entities[localID].generation == entity.Identifier.generation)
             {
                 return true;
             }
@@ -34,55 +36,52 @@ public partial class World
     /// <returns>Whether the entity is enabled</returns>
     public bool IsEntityEnabled(Entity entity, bool checkParent = false)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return false;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID >= 0 &&
-                entity.ID < entities.Count &&
-                entities[entity.ID].alive &&
-                entities[entity.ID].generation == entity.generation)
+            if (entityInfo.enabled == false)
             {
-                if (entities[entity.ID].enabled == false)
+                return false;
+            }
+
+            if (checkParent == false)
+            {
+                return true;
+            }
+
+            var transform = GetComponent<Transform>(entity);
+
+            if(transform == null)
+            {
+                return true;
+            }
+
+            bool Recursive(Transform t)
+            {
+                if(t == null)
+                {
+                    return true;
+                }
+
+                if(IsEntityEnabled(t.entity, false) == false)
                 {
                     return false;
                 }
 
-                if (checkParent == false)
+                if(t.parent != null)
                 {
-                    return true;
+                    return Recursive(t.parent);
                 }
 
-                var transform = GetComponent<Transform>(entity);
-
-                if(transform == null)
-                {
-                    return true;
-                }
-
-                bool Recursive(Transform t)
-                {
-                    if(t == null)
-                    {
-                        return true;
-                    }
-
-                    if(IsEntityEnabled(t.entity, false) == false)
-                    {
-                        return false;
-                    }
-
-                    if(t.parent != null)
-                    {
-                        return Recursive(t.parent);
-                    }
-
-                    return true;
-                }
-
-                return Recursive(transform.parent);
+                return true;
             }
-        }
 
-        return false;
+            return Recursive(transform.parent);
+        }
     }
 
     /// <summary>
@@ -92,19 +91,14 @@ public partial class World
     /// <param name="enabled">Whether it should be enabled</param>
     public void SetEntityEnabled(Entity entity, bool enabled)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID >= 0 &&
-                entity.ID < entities.Count &&
-                entities[entity.ID].alive &&
-                entities[entity.ID].generation == entity.generation)
-            {
-                var e = entities[entity.ID];
-                
-                e.enabled = enabled;
-
-                entities[entity.ID] = e;
-            }
+            entityInfo.enabled = enabled;
         }
     }
 
@@ -129,22 +123,23 @@ public partial class World
                     other.alive = true;
                     other.enabled = true;
 
-                    entities[i] = other;
-
                     return new Entity()
                     {
-                        ID = other.ID,
-                        generation = other.generation,
+                        Identifier = new()
+                        {
+                            ID = other.ID,
+                            generation = other.generation,
+                        },
                     };
                 }
             }
 
             var newEntity = new EntityInfo()
             {
-                ID = entities.Count,
+                ID = entities.Count + 1,
+                localID = entities.Count,
                 alive = true,
                 enabled = true,
-                components = new List<int>(),
                 name = DefaultEntityName,
             };
 
@@ -159,8 +154,11 @@ public partial class World
 
             return new Entity()
             {
-                ID = newEntity.ID,
-                generation = newEntity.generation,
+                Identifier = new()
+                {
+                    ID = newEntity.ID,
+                    generation = newEntity.generation,
+                },
             };
         }
     }
@@ -171,34 +169,27 @@ public partial class World
     /// <param name="entity">The entity to destroy</param>
     public void DestroyEntity(Entity entity)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID >= 0 && entity.ID < entities.Count)
+            var transform = GetComponent<Transform>(entity);
+
+            transform?.SetParent(null);
+
+            entityInfo.components.Clear();
+            entityInfo.alive = false;
+
+            collectionModified = true;
+
+            while(transform.ChildCount > 0)
             {
-                var e = entities[entity.ID];
+                var child = transform.GetChild(0);
 
-                if (e.generation != entity.generation)
-                {
-                    return;
-                }
-
-                var transform = GetComponent<Transform>(entity);
-
-                transform?.SetParent(null);
-
-                e.components.Clear();
-                e.alive = false;
-
-                collectionModified = true;
-
-                entities[e.ID] = e;
-
-                while(transform.ChildCount > 0)
-                {
-                    var child = transform.GetChild(0);
-
-                    DestroyEntity(child.entity);
-                }
+                DestroyEntity(child.entity);
             }
         }
     }
@@ -210,17 +201,14 @@ public partial class World
     /// <returns>The current name of the entity</returns>
     public string GetEntityName(Entity entity)
     {
+        if(TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return default;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return default;
-            }
-
-            return entities[entity.ID].name;
+            return entityInfo.name;
         }
     }
 
@@ -231,21 +219,14 @@ public partial class World
     /// <param name="name">The new name</param>
     public void SetEntityName(Entity entity, string name)
     {
-        lock(lockObject)
+        if (TryGetEntity(entity, out var entityInfo) == false)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return;
-            }
+            return;
+        }
 
-            var t = entities[entity.ID];
-
-            t.name = name;
-
-            entities[entity.ID] = t;
+        lock (lockObject)
+        {
+            entityInfo.name = name;
         }
     }
 
@@ -256,17 +237,14 @@ public partial class World
     /// <returns>The current layer of the entity</returns>
     public uint GetEntityLayer(Entity entity)
     {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return default;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return default;
-            }
-
-            return entities[entity.ID].layer;
+            return entityInfo.layer;
         }
     }
 
@@ -277,21 +255,14 @@ public partial class World
     /// <param name="layer">The new layter</param>
     public void SetEntityLayer(Entity entity, uint layer)
     {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
-            if (entity.ID < 0 ||
-                entity.ID >= entities.Count ||
-                entities[entity.ID].alive == false ||
-                entities[entity.ID].generation != entity.generation)
-            {
-                return;
-            }
-
-            var t = entities[entity.ID];
-
-            t.layer = layer;
-
-            entities[entity.ID] = t;
+            entityInfo.layer = layer;
         }
     }
 }

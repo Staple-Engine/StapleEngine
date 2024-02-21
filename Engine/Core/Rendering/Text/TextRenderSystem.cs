@@ -55,12 +55,12 @@ internal class TextRenderSystem : IRenderSystem
         textRenderer.DrawText(text, parameters, material, scale, viewID);
     }
 
-    public void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
         if(relatedComponent is not TextComponent text)

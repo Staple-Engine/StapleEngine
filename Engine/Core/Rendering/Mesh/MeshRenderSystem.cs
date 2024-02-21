@@ -65,7 +65,7 @@ internal class MeshRenderSystem : IRenderSystem
         renderers.Clear();
     }
 
-    public void Preprocess(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform)
     {
         var r = relatedComponent as MeshRenderer;
@@ -84,7 +84,7 @@ internal class MeshRenderSystem : IRenderSystem
         r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
     }
 
-    public void Process(World world, Entity entity, Transform transform, IComponent relatedComponent,
+    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
         var r = relatedComponent as MeshRenderer;

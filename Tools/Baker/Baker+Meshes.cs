@@ -182,10 +182,11 @@ static partial class Program
 
             Matrix4x4 ToMatrix4x4(Assimp.Matrix4x4 matrix)
             {
-                return new Matrix4x4(matrix.A1, matrix.A2, matrix.A3, matrix.A4,
-                    matrix.B1, matrix.B2, matrix.B3, matrix.B4,
-                    matrix.C1, matrix.C2, matrix.C3, matrix.C4,
-                    matrix.D1, matrix.D2, matrix.D3, matrix.D4);
+                matrix.Decompose(out var scale, out var rotation, out var position);
+
+                return Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, scale.Z)) *
+                    Matrix4x4.CreateFromQuaternion(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)) *
+                    Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
             }
 
             Matrix4x4Holder ToMatrix4x4Holder(Assimp.Matrix4x4 matrix)
@@ -468,6 +469,60 @@ static partial class Program
             Vector3Holder ApplyTransform(Vector3Holder value)
             {
                 return new Vector3Holder(Vector3.Transform(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale), transformMatrix));
+            }
+
+            void RegisterNode(Assimp.Node node)
+            {
+                meshData.nodes.Add(new MeshAssetNode()
+                {
+                    name = node.Name,
+                    parent = node.Parent?.Name,
+                    matrix = new Matrix4x4Holder(ToMatrix4x4(node.Transform)),
+                });
+
+                foreach(var n in node.Children)
+                {
+                    RegisterNode(n);
+                }
+            }
+
+            RegisterNode(scene.RootNode);
+
+            foreach(var animation in scene.Animations)
+            {
+                var a = new MeshAssetAnimation()
+                {
+                    duration = (float)animation.DurationInTicks,
+                    ticksPerSecond = (float)animation.TicksPerSecond,
+                    name = animation.Name,
+                };
+
+                foreach(var channel in animation.NodeAnimationChannels)
+                {
+                    var c = new MeshAssetAnimationChannel()
+                    {
+                        nodeName = channel.NodeName,
+                        positionKeys = channel.PositionKeys.Select(x => new MeshAssetVectorAnimationKey()
+                        {
+                            time = (float)x.Time,
+                            value = new Vector3Holder(new Vector3(x.Value.X, x.Value.Y, x.Value.Z)),
+                        }).ToList(),
+                        rotationKeys = channel.RotationKeys.Select(x => new MeshAssetQuaternionAnimationKey()
+                        {
+                            time = (float)x.Time,
+                            value = new Vector4Holder(new Vector4(x.Value.X, x.Value.Y, x.Value.Z, x.Value.W)),
+                        }).ToList(),
+                        scaleKeys = channel.ScalingKeys.Select(x => new MeshAssetVectorAnimationKey()
+                        {
+                            time = (float)x.Time,
+                            value = new Vector3Holder(new Vector3(x.Value.X, x.Value.Y, x.Value.Z)),
+                        }).ToList(),
+                    };
+
+                    a.channels.Add(c);
+                }
+
+                meshData.animations.Add(a);
             }
 
             foreach (var mesh in scene.Meshes)

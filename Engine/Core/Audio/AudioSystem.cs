@@ -92,7 +92,7 @@ internal class AudioSystem : ISubsystem
 
             if(source.audioSource.Init() == false)
             {
-                Log.Debug($"[AudioSystem] Failed to create audio source for entity {Scene.current.world.GetEntityName(entity)}");
+                Log.Debug($"[AudioSystem] Failed to create audio source for entity {entity}");
 
                 source.audioSource = null;
 
@@ -170,7 +170,7 @@ internal class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
 
-        Scene.current?.world?.ForEach((Entity entity, bool enabled, ref Transform transform, ref AudioListener listener) =>
+        Scene.ForEach((Entity entity, bool enabled, ref Transform transform, ref AudioListener listener) =>
         {
             if (enabled == false)
             {
@@ -274,7 +274,7 @@ internal class AudioSystem : ISubsystem
 
             if (source.spatial)
             {
-                var transform = Scene.current.world.GetComponent<Transform>(item.entity);
+                var transform = item.entity.GetComponent<Transform>();
 
                 source.audioSource.Position = transform.Position;
             }

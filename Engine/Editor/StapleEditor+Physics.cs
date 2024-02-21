@@ -16,13 +16,13 @@ internal partial class StapleEditor
 
         componentIcons.Clear();
 
-        if(Scene.current?.world != null)
+        if(World.Current != null)
         {
-            Scene.current.world.Iterate((entity) =>
+            Scene.IterateEntities((entity) =>
             {
                 var gotIcon = false;
 
-                Scene.current.world.IterateComponents(entity, (ref IComponent component) =>
+                entity.IterateComponents((ref IComponent component) =>
                 {
                     if(gotIcon)
                     {
