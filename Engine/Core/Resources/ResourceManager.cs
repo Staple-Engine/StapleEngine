@@ -1184,6 +1184,11 @@ internal class ResourceManager
                     indices = m.indices,
                     boneIndices = m.boneIndices.Select(x => x.ToVector4()).ToList(),
                     boneWeights = m.boneWeights.Select(x => x.ToVector4()).ToList(),
+                    bones = m.bones.Select(x => new MeshAsset.Bone()
+                    {
+                        name = x.name,
+                        offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
+                    }).ToList(),
                 };
 
                 asset.meshes.Add(newMesh);

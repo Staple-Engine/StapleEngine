@@ -5,8 +5,15 @@ using System.Numerics;
 
 namespace Staple;
 
-public class MeshAsset
+public class MeshAsset : IGuidAsset
 {
+    public class Bone
+    {
+        public string name;
+
+        public Matrix4x4 offsetMatrix;
+    }
+
     public class MeshInfo
     {
         public string name;
@@ -29,6 +36,7 @@ public class MeshAsset
         public List<int> indices = new();
         public List<Vector4> boneIndices = new();
         public List<Vector4> boneWeights = new();
+        public List<Bone> bones = new();
         public AABB bounds;
     }
 
@@ -118,7 +126,14 @@ public class MeshAsset
     public Matrix4x4 inverseTransform;
     public Dictionary<string, Animation> animations = new();
 
+    public string Guid { get; set; }
+
     public Node GetNode(string name) => name != null && nodes.TryGetValue(name, out var node) ? node : null;
 
     public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
+
+    public static object Create(string guid)
+    {
+        return ResourceManager.instance.LoadMeshAsset(guid);
+    }
 }

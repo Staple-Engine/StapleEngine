@@ -272,6 +272,42 @@ public class Transform : IComponent, IEnumerable<Transform>
     public Transform GetChild(int index) => index >= 0 && index < children.Count ? children[index] : null;
 
     /// <summary>
+    /// Searches for a child transform with a specific name and optional partial search
+    /// </summary>
+    /// <param name="name">The name of the child</param>
+    /// <param name="partial">Whether the search should be partial. If so, it will search as a prefix</param>
+    /// <returns>The child transform, or null</returns>
+    public Transform SearchChild(string name, bool partial = false)
+    {
+        if(ChildCount == 0)
+        {
+            return null;
+        }
+
+        foreach(var child in children)
+        {
+            if(partial && child.entity.Name.StartsWith(name, System.StringComparison.Ordinal))
+            {
+                return child;
+            }
+
+            if(child.entity.Name == name)
+            {
+                return child;
+            }
+
+            var result = child.SearchChild(name, partial);
+
+            if(result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Sets this transform's parent
     /// </summary>
     /// <param name="parent">The new parent (can be null to remove)</param>
