@@ -96,6 +96,8 @@ internal class BuildWindow : EditorWindow
                     {
                         scenes.Remove(guid);
 
+                        UpdateSceneList();
+
                         break;
                     }
                 }
