@@ -41,7 +41,7 @@ internal class TextRenderSystem : IRenderSystem
 
         if(material == null)
         {
-            var resource = ResourceManager.instance.LoadMaterial("Materials/Sprite.mat");
+            var resource = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
 
             if(resource != null)
             {

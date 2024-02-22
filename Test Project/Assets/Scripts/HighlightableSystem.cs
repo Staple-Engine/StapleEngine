@@ -12,9 +12,9 @@ namespace TestGame
         {
         }
 
-        public void Process(World world, float deltaTime)
+        public void Process(float deltaTime)
         {
-            var sortedCameras = world.SortedCameras;
+            var sortedCameras = Scene.SortedCameras;
 
             var c = sortedCameras.FirstOrDefault();
 
@@ -39,9 +39,9 @@ namespace TestGame
                 }
             }
 
-            var worldPosition = Camera.ScreenPointToWorld(mousePosition, world, c.entity, c.camera, c.transform);
+            var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
 
-            world.ForEach((Entity entity, bool enabled, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
+            Scene.ForEach((Entity entity, bool enabled, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
             {
                 if (enabled == false)
                 {
@@ -55,7 +55,7 @@ namespace TestGame
             {
                 var entity = body.Entity;
 
-                var renderer = world.GetComponent<SpriteRenderer>(entity);
+                var renderer = entity.GetComponent<SpriteRenderer>();
 
                 if(renderer != null)
                 {
@@ -64,7 +64,7 @@ namespace TestGame
 
                 if(Input.GetMouseButtonDown(MouseButton.Left) || Input.GetTouchDown(0))
                 {
-                    var audioSource = world.GetComponent<AudioSource>(entity);
+                    var audioSource = entity.GetComponent<AudioSource>();
 
                     audioSource?.Play();
                 }

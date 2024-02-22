@@ -220,6 +220,7 @@ internal partial class StapleEditor
         TypeCache.Clear();
         registeredAssetTypes.Clear();
         registeredComponents.Clear();
+        registeredEntityTemplates.Clear();
         menuItems.Clear();
         cachedEditors.Clear();
         cachedGizmoEditors.Clear();
@@ -229,6 +230,7 @@ internal partial class StapleEditor
         var t = Assembly.GetExecutingAssembly().GetTypes()
             .Concat(Assembly.GetCallingAssembly().GetTypes())
             .Concat(core.GetTypes())
+            .Distinct()
             .ToList();
 
         if(gameAssembly?.TryGetTarget(out var assembly) ?? false)
@@ -250,10 +252,21 @@ internal partial class StapleEditor
                 registeredAssetTypes.AddOrSetKey(v.FullName, v);
             }
             else if(typeof(IComponent).IsAssignableFrom(v) &&
-                v.IsInterface == false &&
                 v.GetCustomAttribute<AbstractComponentAttribute>() == null)
             {
                 registeredComponents.Add(v);
+            }
+            else if(typeof(IEntityTemplate).IsAssignableFrom(v))
+            {
+                try
+                {
+                    var instance = (IEntityTemplate)Activator.CreateInstance(v);
+
+                    registeredEntityTemplates.Add(instance);
+                }
+                catch(Exception)
+                {
+                }
             }
             else if(v.IsSubclassOf(typeof(EditorWindow)))
             {
@@ -281,5 +294,7 @@ internal partial class StapleEditor
                 }
             }
         }
+
+        registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
     }
 }

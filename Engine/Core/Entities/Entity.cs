@@ -85,17 +85,29 @@ public partial struct Entity
         return $"{nameString} {Identifier.ID}:{Identifier.generation}";
     }
 
-    public static Entity Create()
+    public static Entity Create(params Type[] componentTypes)
     {
         if (World.Current == null)
         {
             return default;
         }
 
-        return World.Current.CreateEntity();
+        var entity = World.Current.CreateEntity();
+
+        if(entity.IsValid == false)
+        {
+            return default;
+        }
+
+        foreach(var component in componentTypes)
+        {
+            entity.AddComponent(component);
+        }
+
+        return entity;
     }
 
-    public static Entity Create(string name)
+    public static Entity Create(string name, params Type[] componentTypes)
     {
         if(World.Current == null)
         {
@@ -104,7 +116,17 @@ public partial struct Entity
 
         var entity = World.Current.CreateEntity();
 
-        World.Current.SetEntityName(entity, name);
+        if (entity.IsValid == false)
+        {
+            return default;
+        }
+
+        entity.Name = name;
+
+        foreach (var component in componentTypes)
+        {
+            entity.AddComponent(component);
+        }
 
         return entity;
     }

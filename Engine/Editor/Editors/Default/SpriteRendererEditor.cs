@@ -69,7 +69,7 @@ internal class SpriteRendererEditor : Editor
 
                 if(renderer.material == null)
                 {
-                    renderer.material = ResourceManager.instance.LoadMaterial("Materials/Sprite.mat");
+                    renderer.material = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
                 }
 
                 return false;

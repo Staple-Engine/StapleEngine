@@ -46,8 +46,8 @@ internal class ImGuiProxy
 
         SetupImGuiKeyMaps(ImGuiIO);
 
-        program = ResourceManager.instance.LoadShader("Shaders/UI/ocornut_imgui.stsh");
-        imageProgram = ResourceManager.instance.LoadShader("Shaders/UI/imgui_image.stsh");
+        program = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/ocornut_imgui.stsh");
+        imageProgram = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/imgui_image.stsh");
 
         if(program == null || imageProgram == null)
         {

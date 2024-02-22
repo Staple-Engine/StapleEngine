@@ -12,6 +12,35 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    private bool CreateEntityMenu(Transform parent)
+    {
+        if (ImGui.BeginMenu("Create"))
+        {
+            foreach(var t in registeredEntityTemplates)
+            {
+                if(ImGui.MenuItem(t.Name))
+                {
+                    var e = t.Create();
+
+                    if(e.IsValid)
+                    {
+                        var transform = e.GetComponent<Transform>() ?? e.AddComponent<Transform>();
+
+                        transform.SetParent(parent);
+                    }
+
+                    ImGui.EndMenu();
+
+                    return true;
+                }
+            }
+
+            ImGui.EndMenu();
+        }
+
+        return false;
+    }
+
     private void CreateAssetMenu()
     {
         string GetProperFileName(string current, string fileName, string path, string extension)
@@ -322,16 +351,8 @@ internal partial class StapleEditor
 
                     if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
                     {
-                        if (ImGui.MenuItem("Create Entity"))
+                        if(CreateEntityMenu(transform))
                         {
-                            var entity = Entity.Create();
-
-                            var t = entity.AddComponent<Transform>();
-
-                            t.entity = entity;
-
-                            t.SetParent(transform);
-
                             ImGui.EndPopup();
 
                             skip = true;
@@ -342,6 +363,8 @@ internal partial class StapleEditor
                         if (ImGui.MenuItem("Delete"))
                         {
                             transform.entity.Destroy();
+
+                            ImGui.EndMenu();
 
                             ImGui.EndPopup();
 
@@ -406,16 +429,7 @@ internal partial class StapleEditor
 
         if(ImGui.BeginPopup("EntityPanelContext"))
         {
-            if(ImGui.MenuItem("Create Entity"))
-            {
-                var entity = Entity.Create();
-
-                var transform = entity.AddComponent<Transform>();
-
-                transform.entity = entity;
-
-                ImGui.EndMenu();
-            }
+            CreateEntityMenu(null);
 
             ImGui.EndPopup();
         }

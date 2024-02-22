@@ -97,6 +97,11 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="ResourceUtils.cs" />
+    <Compile Include="Templates\CubeTemplate.cs" />
+    <Compile Include="Templates\EntityTemplate.cs" />
+    <Compile Include="Templates\IEntityTemplate.cs" />
+    <Compile Include="Templates\QuadTemplate.cs" />
+    <Compile Include="Templates\SpriteTemplate.cs" />
     <Compile Include="Windows\SpritePicker.cs" />
     <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />

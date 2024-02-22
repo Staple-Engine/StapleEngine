@@ -12,9 +12,9 @@ namespace TestGame
         {
         }
 
-        public void Process(World world, float deltaTime)
+        public void Process(float deltaTime)
         {
-            world.ForEach((Entity entity, bool enabled, ref CircularMovementComponent movement, ref Transform transform) =>
+            Scene.ForEach((Entity entity, bool enabled, ref CircularMovementComponent movement, ref Transform transform) =>
             {
                 if (enabled == false)
                 {

@@ -1,0 +1,83 @@
+{
+	"shader": "1ca9a72c-161e-44db-ad76-bf0ae432f78b",
+	"parameters": {
+		"ambientColor": {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		},
+		"ambientTexture": {
+			"type": "Texture"
+		},
+		"ambientOcclusionTexture": {
+			"type": "Texture"
+		},
+		"diffuseColor": {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		},
+		"diffuseTexture": {
+			"type": "Texture"
+		},
+		"displacementTexture": {
+			"type": "Texture"
+		},
+		"emissiveColor": {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		},
+		"emissiveTexture": {
+			"type": "Texture"
+		},
+		"heightTexture": {
+			"type": "Texture"
+		},
+		"lightmapTexture": {
+			"type": "Texture"
+		},
+		"normalTexture": {
+			"type": "Texture"
+		},
+		"opacityTexture": {
+			"type": "Texture"
+		},
+		"reflectionTexture": {
+			"type": "Texture"
+		},
+		"specularColor": {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		},
+		"specularTexture": {
+			"type": "Texture"
+		},
+		"transparentColor": {
+			"type": "Color",
+			"colorValue": {
+				"r": 255,
+				"g": 255,
+				"b": 255,
+				"a": 255
+			}
+		}
+	}
+}

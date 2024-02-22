@@ -232,9 +232,9 @@ internal class ProjectBrowser
 
             var currentPath = currentContentNode?.path;
 
-            var targetNode = allNodes.FirstOrDefault(x => x.path == currentPath);
+            currentContentNode = allNodes.FirstOrDefault(x => x.path == currentPath);
 
-            UpdateCurrentContentNodes(targetNode?.subnodes ?? projectBrowserNodes);
+            UpdateCurrentContentNodes(currentContentNode?.subnodes ?? projectBrowserNodes);
         }
     }
 
@@ -671,9 +671,7 @@ internal class ProjectBrowser
 
                 if (currentContentNode == null)
                 {
-                    currentContentNode = projectBrowserNodes[index];
-
-                    item = currentContentNode;
+                    item = projectBrowserNodes[index];
                 }
                 else
                 {

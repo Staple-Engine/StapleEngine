@@ -189,6 +189,8 @@ internal partial class StapleEditor
 
     private readonly Dictionary<string, Type> registeredAssetTypes = new();
 
+    private List<IEntityTemplate> registeredEntityTemplates = new();
+
     private List<Type> registeredComponents = new();
 
     internal List<EditorWindow> editorWindows = new();
@@ -407,7 +409,7 @@ internal partial class StapleEditor
 
             Physics3D.Instance.Startup();
 
-            wireframeMaterial = ResourceManager.instance.LoadMaterial("Materials/Wireframe.mat");
+            wireframeMaterial = ResourceManager.instance.LoadMaterial("Hidden/Materials/Wireframe.mat");
 
             wireframeMaterial.SetVector4("opacity", new Vector4(1, 1, 1, 1));
 

@@ -389,6 +389,10 @@ internal class ResourceManager
     /// <returns>The scene, or null</returns>
     public Scene LoadRawSceneFromPath(string path)
     {
+        World.Current = new();
+
+        Scene.current = null;
+
         var data = LoadFileString(path);
 
         if (data == null)
@@ -769,9 +773,8 @@ internal class ResourceManager
 
                     case MaterialParameterType.Texture:
 
-                        if((parameter.Value.textureValue?.Length ?? 0) > 0)
                         {
-                            var texture = LoadTexture(parameter.Value.textureValue);
+                            Texture texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
 
                             material.SetTexture(parameter.Key, texture);
                         }
@@ -1375,7 +1378,7 @@ internal class ResourceManager
             {
                 if(asset is IGuidAsset guidAsset)
                 {
-                    guidAsset.Guid = guid;
+                    guidAsset.Guid = path;
                 }
 
                 if(ignoreCache == false)
