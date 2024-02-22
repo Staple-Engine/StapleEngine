@@ -8,5 +8,8 @@
   "flipWindingOrder": false,
   "splitByBoneCount": false,
   "debone": false,
-  "typeName": "Staple.Mesh"
+  "typeName": "Staple.Mesh",
+  "convertUnits": false,
+  "rotation": "NinetyNegative",
+  "scale": 5.0
 }

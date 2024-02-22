@@ -87,6 +87,18 @@ internal class AssetPickerWindow : EditorWindow
                     return;
                 }
 
+                if(assetPickerType == typeof(Mesh) && Mesh.defaultMeshes.TryGetValue(i.path, out var defaultMesh))
+                {
+                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                    {
+                        EditorGUI.pendingObjectPickers[assetPickerKey] = defaultMesh;
+                    }
+
+                    Close();
+
+                    return;
+                }
+
                 var cachePath = i.path;
 
                 var cacheIndex = i.path.IndexOf("Assets");
