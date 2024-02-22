@@ -52,10 +52,13 @@ public partial class Mesh
 
     internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
-    internal static readonly Dictionary<string, Mesh> defaultMeshes = new();
+    internal static readonly Dictionary<string, Mesh> defaultMeshes = new()
+    {
+        { "Internal/Quad", Quad },
+        { "Internal/Cube", Cube },
+    };
 
     private static Mesh _quad;
-
     internal static Mesh Quad
     {
         get
@@ -64,34 +67,32 @@ public partial class Mesh
             {
                 _quad = new Mesh(false, false)
                 {
-                    vertices = new Vector3[]
-                    {
+                    guid = "Internal/Quad",
+                    changed = true,
+
+                    vertices =
+                    [
                         new Vector3(-0.5f, -0.5f, 0),
                         new Vector3(-0.5f, 0.5f, 0),
                         new Vector3(0.5f, 0.5f, 0),
                         new Vector3(0.5f, -0.5f, 0),
-                    },
+                    ],
 
-                    uv = new Vector2[]
-                    {
+                    uv = 
+                    [
                         new Vector2(0, 1),
                         Vector2.Zero,
                         new Vector2(1, 0),
                         Vector2.One,
-                    },
+                    ],
 
-                    indices = new int[]
-                    {
+                    indices = 
+                    [
                         0, 1, 2, 2, 3, 0
-                    },
+                    ],
                 };
 
-                _quad.UploadMeshData();
                 _quad.UpdateBounds();
-
-                _quad.guid = "Internal/Quad";
-
-                defaultMeshes.Add(_quad.guid, _quad);
             }
 
             return _quad;
@@ -107,8 +108,11 @@ public partial class Mesh
             {
                 _cube = new Mesh(false, false)
                 {
-                    vertices = new Vector3[]
-                    {
+                    changed = true,
+                    guid = "Internal/Cube",
+
+                    vertices = 
+                    [
                         new Vector3(-0.5f, 0.5f, 0.5f),
                         Vector3.One * 0.5f,
                         new Vector3(-0.5f, -0.5f, 0.5f),
@@ -117,24 +121,19 @@ public partial class Mesh
                         new Vector3(0.5f, 0.5f, -0.5f),
                         Vector3.One * -0.5f,
                         new Vector3(0.5f, -0.5f, -0.5f),
-                    },
+                    ],
 
-                    indices = new int[]
-                    {
+                    indices =
+                    [
                         0, 1, 2,
                         3, 7, 1,
                         5, 0, 4,
                         2, 6, 7,
                         4, 5
-                    },
+                    ],
                 };
 
-                _cube.UploadMeshData();
-
-                _cube.guid = "Internal/Cube";
                 _cube.UpdateBounds();
-
-                defaultMeshes.Add(_cube.guid, _cube);
             }
 
             return _cube;

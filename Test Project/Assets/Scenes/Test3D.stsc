@@ -2,8 +2,8 @@
   {
     "kind": "Entity",
     "name": "Camera",
-    "ID": 0,
-    "parent": -1,
+    "ID": 1,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
@@ -55,8 +55,8 @@
   {
     "kind": "Entity",
     "name": "Cube",
-    "ID": 1,
-    "parent": -1,
+    "ID": 2,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
@@ -79,11 +79,10 @@
         "type": "Staple.MeshRenderer",
         "data": {
           "mesh": "Internal/Cube",
-          "material": "Materials/SolidColor.mat",
+          "material": "db3c6e30-0fce-4b1b-a9e7-9bf7dcbfec30",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
-          "renderingLayerMask": 0,
           "sortingLayer": 0,
           "sortingOrder": 0
         }

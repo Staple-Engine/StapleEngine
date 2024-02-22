@@ -41,6 +41,19 @@ public static class AssetDatabase
     {
         assets.Clear();
 
+        foreach(var pair in Mesh.defaultMeshes)
+        {
+            var asset = new AssetInfo()
+            {
+                guid = pair.Key,
+                path = pair.Key,
+                name = pair.Key.Replace("Internal/", ""),
+                typeName = typeof(Mesh).FullName,
+            };
+
+            assets.Add(asset);
+        }
+
         var files = new Dictionary<string, string[]>();
 
         foreach(var path in assetDirectories)
