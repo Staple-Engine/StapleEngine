@@ -118,6 +118,8 @@
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
+		<Compile Include="Rendering\Mesh\SkinnedMeshRenderer.cs" />
+		<Compile Include="Rendering\Mesh\SkinnedMeshRenderSystem.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Resources\Resources.cs" />

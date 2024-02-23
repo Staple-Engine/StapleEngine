@@ -8,9 +8,63 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 
 namespace Baker;
+
+class Vector4Filler
+{
+    public float x;
+    public float y;
+    public float z;
+    public float w;
+
+    public int index = 0;
+
+    public void Add(float value)
+    {
+        switch(index++)
+        {
+            case 0:
+
+                x = value;
+
+                break;
+
+            case 1:
+
+                y = value;
+                
+                break;
+
+            case 2:
+
+                z = value;
+
+                break;
+
+            case 3:
+
+                w = value;
+
+                break;
+
+            default:
+
+                break;
+        }
+    }
+
+    public Vector4Holder ToHolder()
+    {
+        return new()
+        {
+            x = x,
+            y = y,
+            z = z,
+            w = w,
+        };
+    }
+}
 
 static partial class Program
 {
@@ -234,6 +288,8 @@ static partial class Program
 
             var materialMapping = new List<string>();
 
+            var materialRequiresSkinning = scene.AnimationCount > 0;
+
             foreach(var material in scene.Materials)
             {
                 string fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
@@ -264,12 +320,9 @@ static partial class Program
                 {
                 }
 
-                //Guid collision fix
-                Thread.Sleep(25);
-
                 var materialMetadata = new MaterialMetadata()
                 {
-                    shader = "Shaders/Default/Standard.stsh",
+                    shader = materialRequiresSkinning ? "Hidden/Shaders/Default/StandardSkinned.stsh" : "Hidden/Shaders/Default/Standard.stsh",
                 };
 
                 var basePath = Path.GetDirectoryName(meshFiles[i]).Replace(inputPath, "").Substring(1);
@@ -598,8 +651,8 @@ static partial class Program
 
                 if (mesh.HasBones)
                 {
-                    var boneIndices = new List<Vector4Holder>();
-                    var boneWeights = new List<Vector4Holder>();
+                    var boneIndices = new List<Vector4Filler>();
+                    var boneWeights = new List<Vector4Filler>();
 
                     for(var j = 0; j < m.vertices.Count; j++)
                     {
@@ -611,47 +664,20 @@ static partial class Program
                     {
                         var bone = mesh.Bones[j];
 
-                        var count = bone.VertexWeightCount > 4 ? 4 : bone.VertexWeightCount;
-
-                        for (var k = 0; k < count; k++)
+                        for (var k = 0; k < bone.VertexWeightCount; k++)
                         {
                             var item = bone.VertexWeights[k];
 
-                            switch (k)
-                            {
-                                case 0:
+                            var boneIndex = boneIndices[item.VertexID];
+                            var boneWeight = boneWeights[item.VertexID];
 
-                                    boneIndices[item.VertexID].x = j;
-                                    boneWeights[item.VertexID].x = item.Weight;
-
-                                    break;
-
-                                case 1:
-
-                                    boneIndices[item.VertexID].y = j;
-                                    boneWeights[item.VertexID].y = item.Weight;
-
-                                    break;
-
-                                case 2:
-
-                                    boneIndices[item.VertexID].z = j;
-                                    boneWeights[item.VertexID].z = item.Weight;
-
-                                    break;
-
-                                case 3:
-
-                                    boneIndices[item.VertexID].w = j;
-                                    boneWeights[item.VertexID].w = item.Weight;
-
-                                    break;
-                            }
+                            boneIndex.Add(j);
+                            boneWeight.Add(item.Weight);
                         }
                     }
 
-                    m.boneIndices = boneIndices;
-                    m.boneWeights = boneWeights;
+                    m.boneIndices = boneIndices.Select(x => x.ToHolder()).ToList();
+                    m.boneWeights = boneWeights.Select(x => x.ToHolder()).ToList();
 
                     foreach (var bone in mesh.Bones)
                     {

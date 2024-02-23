@@ -743,20 +743,18 @@ internal class ProjectBrowser
                         if (item.typeName == typeof(Mesh).FullName)
                         {
                             var asset = ResourceManager.instance.LoadMeshAsset(guid);
-
                             var targetEntity = StapleEditor.instance.dropTargetEntity;
 
                             Transform parent = null;
 
-                            if (targetEntity != default)
+                            if (targetEntity.IsValid)
                             {
                                 parent = targetEntity.GetComponent<Transform>();
                             }
 
-                            var baseEntity = Entity.Create(item.name);
-                            var baseTransform = baseEntity.AddComponent<Transform>();
+                            var baseEntity = Entity.Create(item.name, typeof(Transform));
+                            var baseTransform = baseEntity.GetComponent<Transform>();
 
-                            baseTransform.entity = baseEntity;
                             baseTransform.SetParent(parent);
 
                             if(asset.rootNode != null)
@@ -765,11 +763,10 @@ internal class ProjectBrowser
                                 {
                                     if (Matrix4x4.Decompose(current.transform, out var nodeScale, out var nodeRotation, out var nodePosition))
                                     {
-                                        var nodeEntity = Entity.Create(current.name);
+                                        var nodeEntity = Entity.Create(current.name, typeof(Transform));
 
-                                        var nodeTransform = nodeEntity.AddComponent<Transform>();
+                                        var nodeTransform = nodeEntity.GetComponent<Transform>();
 
-                                        nodeTransform.entity = nodeEntity;
                                         nodeTransform.SetParent(parent);
 
                                         nodeTransform.LocalPosition = nodePosition;
@@ -781,7 +778,7 @@ internal class ProjectBrowser
                                         var meshRenderer = nodeEntity.AddComponent<MeshRenderer>(nodeEntity);
 
                                         meshRenderer.mesh = Mesh.Cube;
-                                        meshRenderer.material = ResourceManager.instance.LoadMaterial("Materials/Sprite.mat");
+                                        meshRenderer.material = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
                                         */
 
                                         foreach (var child in current.children)
@@ -798,17 +795,32 @@ internal class ProjectBrowser
 
                             foreach (var mesh in asset.meshes)
                             {
-                                var meshEntity = Entity.Create(mesh.name);
+                                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
 
-                                var meshTransform = meshEntity.AddComponent<Transform>();
+                                var meshTransform = meshEntity.GetComponent<Transform>();
 
-                                meshTransform.entity = meshEntity;
                                 meshTransform.SetParent(baseTransform);
 
-                                var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                                var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
+                                var outMaterial = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
 
-                                meshRenderer.mesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
-                                meshRenderer.material = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
+                                if(outMesh != null)
+                                {
+                                    if(outMesh.boneIndices.Length > 0)
+                                    {
+                                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                                        skinnedRenderer.mesh = outMesh;
+                                        skinnedRenderer.material = outMaterial;
+                                    }
+                                    else
+                                    {
+                                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                                        meshRenderer.mesh = outMesh;
+                                        meshRenderer.material = outMaterial;
+                                    }
+                                }
                             }
                         }
 

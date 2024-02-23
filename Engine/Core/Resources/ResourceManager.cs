@@ -1087,6 +1087,9 @@ internal class ResourceManager
             meshTopology = m.topology,
             indexFormat = MeshIndexFormat.UInt32,
             bounds = m.bounds,
+
+            meshAsset = asset,
+            meshAssetIndex = index,
         };
 
         if (m.colors.Count > 0)
@@ -1192,6 +1195,7 @@ internal class ResourceManager
                         name = x.name,
                         offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
                     }).ToList(),
+                    type = m.bones.Count > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
                 };
 
                 asset.meshes.Add(newMesh);

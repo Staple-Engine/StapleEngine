@@ -32,6 +32,9 @@ public partial class Mesh
     internal VertexBuffer vertexBuffer;
     internal IndexBuffer indexBuffer;
 
+    internal MeshAsset meshAsset;
+    internal int meshAssetIndex;
+
     internal static Dictionary<string, VertexLayout> vertexLayouts = new();
 
     internal bool HasNormals => (normals?.Length ?? 0) > 0;

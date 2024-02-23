@@ -1,4 +1,7 @@
-﻿namespace Staple;
+﻿using System;
+using System.Numerics;
+
+namespace Staple;
 
 public class MeshRenderer : Renderable
 {

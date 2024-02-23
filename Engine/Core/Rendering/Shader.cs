@@ -2,13 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace Staple.Internal;
 
 /// <summary>
 /// Shader resource
 /// </summary>
-internal class Shader : IGuidAsset
+internal partial class Shader : IGuidAsset
 {
     internal class UniformInfo<T>
     {
@@ -16,6 +17,7 @@ internal class Shader : IGuidAsset
         public bgfx.UniformHandle handle;
         public T value;
         public byte stage;
+        public int count = 1;
 
         public bool Create()
         {
@@ -61,7 +63,7 @@ internal class Shader : IGuidAsset
                     return false;
             }
 
-            handle = bgfx.create_uniform(uniform.name, type, 1);
+            handle = bgfx.create_uniform(uniform.name, type, (ushort)count);
 
             return handle.Valid;
         }
@@ -77,6 +79,11 @@ internal class Shader : IGuidAsset
     internal readonly byte[] fragmentShaderSource;
 
     internal Dictionary<ShaderUniformType, object> uniforms = new();
+
+    [GeneratedRegex("\\[([0-9]+)\\]")]
+    private static partial Regex UniformCountRegex();
+
+    private static Regex uniformCountRegex = UniformCountRegex();
 
     public string Guid { get; set; }
 
@@ -105,13 +112,35 @@ internal class Shader : IGuidAsset
         Destroy();
     }
 
-    private string NormalizeUniformName(string name, ShaderUniformType type)
+    private static string NormalizeUniformName(string name, ShaderUniformType type)
     {
+        if(uniformCountRegex.IsMatch(name))
+        {
+            name = name.Replace(uniformCountRegex.Match(name).Value, string.Empty);
+        }
+
         return type switch
         {
             ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
             _ => name
         };
+    }
+
+    private static int NormalizeUniformCount(string name)
+    {
+        if(uniformCountRegex.IsMatch(name) == false)
+        {
+            return 1;
+        }
+
+        var match = uniformCountRegex.Match(name);
+
+        if(match.Groups.Count == 2)
+        {
+            return int.TryParse(match.Groups[1].Value, out var value) ? value : 1;
+        }
+
+        return 1;
     }
 
     internal unsafe bool Create()
@@ -253,6 +282,7 @@ internal class Shader : IGuidAsset
                                 name = NormalizeUniformName(uniform.name, uniform.type),
                                 type = uniform.type,
                             },
+                            count = NormalizeUniformCount(uniform.name),
                         };
 
                         if (u.Create())
@@ -557,6 +587,35 @@ internal class Shader : IGuidAsset
         unsafe
         {
             bgfx.set_uniform(uniform.handle, &value, 1);
+        }
+    }
+
+    /// <summary>
+    /// Sets a Matrix4x4 array uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    /// <param name="count">The amount of elements</param>
+    public void SetMatrix4x4(string name, Matrix4x4[] value, int count)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Matrix4x4>(ShaderUniformType.Matrix4x4, name);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed(void *ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)count);
+            }
         }
     }
 

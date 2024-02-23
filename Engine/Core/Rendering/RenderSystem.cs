@@ -141,6 +141,7 @@ internal class RenderSystem : ISubsystem
     {
         renderSystems.Add(new SpriteRenderSystem());
         renderSystems.Add(new MeshRenderSystem());
+        renderSystems.Add(new SkinnedMeshRenderSystem());
         renderSystems.Add(new TextRenderSystem());
 
         Time.OnAccumulatorFinished += () =>

@@ -56,7 +56,7 @@ public class MeshAsset : IGuidAsset
             {
                 if(parent != null)
                 {
-                    return parent.GlobalTransform * transform;
+                    return transform * parent.GlobalTransform;
                 }
 
                 return transform;
