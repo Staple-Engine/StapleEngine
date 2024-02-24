@@ -315,8 +315,4 @@
 		<Compile Include="Utilities\Randomizer.cs" />
 		<Compile Include="Utilities\Storage.cs" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Transform\" />
-	</ItemGroup>
 </Project>

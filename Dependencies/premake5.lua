@@ -122,6 +122,11 @@ project "bgfx"
 		links {
 			"m", "pthread", "X11", "GL"
 		}
+		
+	filter "system:windows"
+		links {
+			"psapi"
+		}
 
 	setBxCompat()
 
