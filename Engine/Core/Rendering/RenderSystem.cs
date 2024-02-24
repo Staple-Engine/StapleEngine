@@ -9,6 +9,7 @@ namespace Staple;
 /// <summary>
 /// Base Rendering subsystem
 /// </summary>
+[AdditionalLibrary(AppPlatform.Android, "bgfx")]
 internal class RenderSystem : ISubsystem
 {
     /// <summary>

@@ -547,9 +547,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         Java.Lang.JavaSystem.LoadLibrary("android");
         Java.Lang.JavaSystem.LoadLibrary("nativewindow");
         Java.Lang.JavaSystem.LoadLibrary("log");
-        Java.Lang.JavaSystem.LoadLibrary("bgfx");
-        Java.Lang.JavaSystem.LoadLibrary("joltc");
-        Java.Lang.JavaSystem.LoadLibrary("freetype6");
 
         foreach (var library in AdditionalLibraries())
         {

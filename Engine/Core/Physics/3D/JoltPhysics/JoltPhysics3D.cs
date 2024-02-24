@@ -8,6 +8,7 @@ namespace Staple;
 /// <summary>
 /// Implements Jolt Physics
 /// </summary>
+[AdditionalLibrary(AppPlatform.Android, "joltc")]
 internal class JoltPhysics3D : IPhysics3D
 {
     public const float MinExtents = 0.2f;

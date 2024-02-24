@@ -525,8 +525,10 @@ internal class CSProjManager
 
         var trimmerRootAssemblies = p.Xml.AddItemGroup();
 
-        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player");
-        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore");
+        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player")
+            .AddMetadata("RootMode", "library");
+        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore")
+            .AddMetadata("RootMode", "library");
 
         switch (platform)
         {

@@ -51,11 +51,21 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
                     break;
                 }
 
+                var resourcePath = Path.Combine(projectDirectory, "Resources", pair.Key);
+
                 try
                 {
-                    File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon.png"), iconTexture.EncodePNG());
-                    File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_background.png"), backgroundTexture.EncodePNG());
-                    File.WriteAllBytes(Path.Combine(projectDirectory, "Resources", pair.Key, "appicon_foreground.png"), foregroundTexture.EncodePNG());
+                    Directory.CreateDirectory(resourcePath);
+                }
+                catch(Exception)
+                {
+                }
+
+                try
+                {
+                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon.png"), iconTexture.EncodePNG());
+                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon_background.png"), backgroundTexture.EncodePNG());
+                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon_foreground.png"), foregroundTexture.EncodePNG());
                 }
                 catch (Exception e)
                 {
