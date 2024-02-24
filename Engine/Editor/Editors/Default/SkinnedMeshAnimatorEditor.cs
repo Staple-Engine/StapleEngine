@@ -3,17 +3,17 @@ using System.Reflection;
 
 namespace Staple.Editor;
 
-[CustomEditor(typeof(SkinnedMeshRenderer))]
-internal class SkinnedMeshRendererEditor : Editor
+[CustomEditor(typeof(SkinnedMeshAnimator))]
+internal class SkinnedMeshAnimatorEditor : Editor
 {
     public override bool RenderField(FieldInfo field)
     {
-        if(target is not SkinnedMeshRenderer renderer)
+        if(target is not SkinnedMeshAnimator renderer)
         {
             return base.RenderField(field);
         }
 
-        if(field.Name == nameof(SkinnedMeshRenderer.animation))
+        if(field.Name == nameof(SkinnedMeshAnimator.animation))
         {
             if(renderer.mesh?.meshAsset != null)
             {

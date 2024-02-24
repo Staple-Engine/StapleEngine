@@ -11,6 +11,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
     private struct RenderInfo
     {
         public SkinnedMeshRenderer renderer;
+        public SkinnedMeshAnimator animator;
         public Matrix4x4 transform;
         public ushort viewID;
     }
@@ -41,34 +42,6 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
         {
             return;
         }
-
-        void GatherNodes(MeshAsset.Node node)
-        {
-            if(node == null)
-            {
-                return;
-            }
-
-            var t = transform.parent?.SearchChild(node.name);
-
-            if (t == null)
-            {
-                return;
-            }
-
-            r.nodeRenderers.AddOrSetKey(node.name, new SkinnedMeshRendererItem()
-            {
-                node = node,
-                transform = t,
-            });
-
-            foreach(var child in node.children)
-            {
-                GatherNodes(child);
-            }
-        }
-
-        GatherNodes(r.mesh.meshAsset.rootNode);
     }
 
     public void Process(Entity entity, Transform transform, IComponent relatedComponent,
@@ -87,9 +60,12 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             return;
         }
 
+        var animator = entity.GetComponentInParent<SkinnedMeshAnimator>();
+
         renderers.Add(new RenderInfo()
         {
             renderer = r,
+            animator = animator,
             transform = transform.Matrix,
             viewID = viewId,
         });
@@ -110,23 +86,12 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
         foreach (var pair in renderers)
         {
             var renderer = pair.renderer;
+            var animator = pair.animator;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
 
-            var useAnimator = (renderer.animation?.Length ?? 0) > 0 && meshAsset.animations.ContainsKey(renderer.animation);
-
-            if(useAnimator &&
-                (renderer.animator == null ||
-                renderer.animator.animation.name != renderer.animation))
-            {
-                renderer.animator = new(meshAsset, meshAsset.animations[renderer.animation]);
-            }
-
-            if(useAnimator)
-            {
-                renderer.animator.Evaluate();
-            }
+            var useAnimator = animator != null && animator.evaluator != null;
 
             for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
@@ -139,7 +104,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                     Matrix4x4 localTransform;
                     Matrix4x4 globalTransform;
 
-                    if (useAnimator && renderer.animator.nodes.TryGetValue(bone.name, out var localNode))
+                    if (useAnimator && animator.evaluator.nodes.TryGetValue(bone.name, out var localNode))
                     {
                         globalTransform = localNode.GlobalTransform;
                         localTransform = localNode.transform;
@@ -154,7 +119,8 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
                     boneMatrices[j] = bone.offsetMatrix * globalTransform * renderer.mesh.meshAsset.inverseTransform;
 
-                    if (renderer.nodeRenderers.TryGetValue(bone.name, out var item) &&
+                    if (useAnimator &&
+                        animator.nodeRenderers.TryGetValue(bone.name, out var item) &&
                         Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
                     {
                         item.transform.LocalPosition = translation;

@@ -141,6 +141,7 @@ internal class RenderSystem : ISubsystem
     {
         renderSystems.Add(new SpriteRenderSystem());
         renderSystems.Add(new MeshRenderSystem());
+        renderSystems.Add(new SkinnedMeshAnimatorSystem());
         renderSystems.Add(new SkinnedMeshRenderSystem());
         renderSystems.Add(new TextRenderSystem());
 
@@ -259,6 +260,10 @@ internal class RenderSystem : ISubsystem
                                 {
                                     system.Process(entity, t, related, camera, cameraTransform, viewID);
                                 }
+                            }
+                            else if(related is not Renderable) //Systems that do not require a renderer
+                            {
+                                system.Process(entity, t, related, camera, cameraTransform, viewID);
                             }
                         }
                     }

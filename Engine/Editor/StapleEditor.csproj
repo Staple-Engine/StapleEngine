@@ -80,7 +80,7 @@
     <Compile Include="Editors\Assets\StapleAssetEditor.cs" />
     <Compile Include="Editors\Default\MaterialEditor.cs" />
     <Compile Include="Editors\Default\MeshAssetEditor.cs" />
-    <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
+    <Compile Include="Editors\Default\SkinnedMeshAnimatorEditor.cs" />
     <Compile Include="Editors\Default\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />

@@ -118,7 +118,9 @@
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
+		<Compile Include="Rendering\Mesh\SkinnedMeshAnimationEvaluator.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshAnimator.cs" />
+		<Compile Include="Rendering\Mesh\SkinnedMeshAnimatorSystem.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderer.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderSystem.cs" />
 		<Compile Include="Rendering\Screen.cs" />

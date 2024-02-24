@@ -71,6 +71,7 @@ public partial struct Entity
 
         return World.Current.GetComponent(this, t);
     }
+
     /// <summary>
     /// Attempts to get a component from this entity
     /// </summary>
@@ -84,6 +85,60 @@ public partial struct Entity
         }
 
         return World.Current.GetComponent<T>(this);
+    }
+
+    /// <summary>
+    /// Attempts to get a component from a parent entity
+    /// </summary>
+    /// <param name="t">The component type</param>
+    /// <returns>The component instance, or default</returns>
+    public IComponent GetComponentInParent(Type t)
+    {
+        if (World.Current == null)
+        {
+            return default;
+        }
+
+        var transform = GetComponent<Transform>();
+
+        if(transform == null || transform.parent == null)
+        {
+            return default;
+        }
+
+        if(transform.parent.entity.TryGetComponent(out var value, t))
+        {
+            return value;
+        }
+
+        return transform.parent.entity.GetComponentInParent(t);
+    }
+
+    /// <summary>
+    /// Attempts to get a component from this entity
+    /// </summary>
+    /// <typeparam name="T">The component type</typeparam>
+    /// <returns>The component instance, or default</returns>
+    public T GetComponentInParent<T>() where T : IComponent
+    {
+        if (World.Current == null)
+        {
+            return default;
+        }
+
+        var transform = GetComponent<Transform>();
+
+        if (transform == null || transform.parent == null)
+        {
+            return default;
+        }
+
+        if (transform.parent.entity.TryGetComponent(out T value))
+        {
+            return value;
+        }
+
+        return transform.parent.entity.GetComponentInParent<T>();
     }
 
     /// <summary>
