@@ -802,7 +802,7 @@ internal class ProjectBrowser
                                 meshTransform.SetParent(baseTransform);
 
                                 var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
-                                var outMaterial = ResourceManager.instance.LoadMaterial(mesh.materialGuid);
+                                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
 
                                 if(outMesh != null)
                                 {
@@ -811,14 +811,14 @@ internal class ProjectBrowser
                                         var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
                                         skinnedRenderer.mesh = outMesh;
-                                        skinnedRenderer.material = outMaterial;
+                                        skinnedRenderer.materials = outMaterials;
                                     }
                                     else
                                     {
                                         var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
                                         meshRenderer.mesh = outMesh;
-                                        meshRenderer.material = outMaterial;
+                                        meshRenderer.materials = outMaterials;
                                     }
                                 }
                             }

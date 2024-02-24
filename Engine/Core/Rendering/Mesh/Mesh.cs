@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple;
@@ -667,10 +668,15 @@ public partial class Mesh : IGuidAsset
 
     public Mesh() { }
 
+    /// <summary>
+    /// Clears all data in this mesh
+    /// </summary>
     public void Clear()
     {
         vertices = null;
         normals = null;
+        colors = null;
+        colors32 = null;
         uv = null;
         uv2 = null;
         uv3 = null;
@@ -681,6 +687,13 @@ public partial class Mesh : IGuidAsset
         uv8 = null;
         indices = null;
         tangents = null;
+        bitangents = null;
+        boneIndices = null;
+        boneWeights = null;
+        meshAsset = null;
+        meshAssetIndex = 0;
+
+        submeshes.Clear();
 
         changed = true;
 
@@ -691,8 +704,16 @@ public partial class Mesh : IGuidAsset
         indexBuffer = null;
     }
 
+    /// <summary>
+    /// Uploads the mesh data to the GPU
+    /// </summary>
     public void UploadMeshData()
     {
+        if(changed == false)
+        {
+            return;
+        }
+
         changed = false;
 
         vertexBuffer?.Destroy();
@@ -822,11 +843,17 @@ public partial class Mesh : IGuidAsset
         }
     }
 
+    /// <summary>
+    /// Updates the estimated bounds of the mesh by calculating an AABB
+    /// </summary>
     public void UpdateBounds()
     {
         bounds = AABB.FromPoints(vertices);
     }
 
+    /// <summary>
+    /// Marks a mesh as dynamic (can be modified)
+    /// </summary>
     public void MarkDynamic()
     {
         isDynamic = true;
@@ -838,5 +865,32 @@ public partial class Mesh : IGuidAsset
 
         vertexBuffer = null;
         indexBuffer = null;
+    }
+
+    /// <summary>
+    /// Adds a submesh to the mesh. By default a mesh has no submeshes and will be rendered as a whole
+    /// </summary>
+    /// <param name="startVertex">The start index of the vertices</param>
+    /// <param name="vertexCount">The amount of vertices to render</param>
+    /// <param name="startIndex">The start index of the indices</param>
+    /// <param name="indexCount">The amount of indices to render</param>
+    /// <param name="topology">The topology of the mesh</param>
+    public void AddSubmesh(int startVertex, int vertexCount, int startIndex, int indexCount, MeshTopology topology)
+    {
+        if(startVertex < 0 ||
+            startVertex + vertexCount > vertices.Length ||
+            startIndex < 0 || startIndex + indexCount > indices.Length)
+        {
+            return;
+        }
+
+        submeshes.Add(new()
+        {
+            startVertex = startVertex,
+            vertexCount = vertexCount,
+            startIndex = startIndex,
+            indexCount = indexCount,
+            topology = topology,
+        });
     }
 }

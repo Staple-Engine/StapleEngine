@@ -12,7 +12,7 @@ internal class SkinnedMeshRendererItem
 public class SkinnedMeshRenderer : Renderable
 {
     public Mesh mesh;
-    public Material material;
+    public List<Material> materials = new();
     public string animation;
 
     internal Dictionary<string, SkinnedMeshRendererItem> nodeRenderers = new();

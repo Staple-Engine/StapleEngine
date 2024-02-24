@@ -7,32 +7,42 @@ internal class SkinnedMeshAnimator
 {
     public MeshAsset.Animation animation;
     public MeshAsset meshAsset;
-    public Dictionary<string, Matrix4x4> currentTransforms = new();
 
     public Dictionary<int, int> lastPositionIndex = new();
     public Dictionary<int, int> lastRotationIndex = new();
     public Dictionary<int, int> lastScaleIndex = new();
+    public Dictionary<string, MeshAsset.Node> nodes = new();
     public float lastTime;
     public float playTime;
 
-    public Matrix4x4 GlobalTransform(string name)
+    public SkinnedMeshAnimator(MeshAsset asset, MeshAsset.Animation animation)
     {
-        if(meshAsset.nodes.TryGetValue(name, out var node) == false)
+        meshAsset = asset;
+        this.animation = animation;
+
+        foreach(var pair in asset.nodes)
         {
-            return Matrix4x4.Identity;
-        }
-        
-        if(currentTransforms.TryGetValue(name, out var currentMatrix) == false)
-        {
-            currentMatrix = node.transform;
+            nodes.Add(pair.Key, new()
+            {
+                name = pair.Value.name,
+                originalTransform = pair.Value.originalTransform,
+                transform = pair.Value.transform
+            });
         }
 
-        if(node.parent != null)
+        foreach(var pair in asset.nodes)
         {
-            return currentMatrix * GlobalTransform(node.parent.name);
-        }
+            var parent = nodes[pair.Key];
 
-        return currentMatrix;
+            foreach(var child in pair.Value.children)
+            {
+                var localChild = nodes[child.name];
+
+                parent.children.Add(localChild);
+
+                localChild.parent = parent;
+            }
+        }
     }
 
     public void Evaluate()
@@ -52,7 +62,8 @@ internal class SkinnedMeshAnimator
         {
             var channel = animation.channels[i];
 
-            if(channel.node == null)
+            if(channel.node == null ||
+                nodes.TryGetValue(channel.node.name, out var node) == false)
             {
                 continue;
             }
@@ -184,9 +195,7 @@ internal class SkinnedMeshAnimator
                     Matrix4x4.CreateFromQuaternion(rotation) *
                     Matrix4x4.CreateTranslation(position);
 
-            channel.node.transform = transform;
-
-            //currentTransforms.AddOrSetKey(channel.node.name, transform);
+            node.transform = transform;
         }
 
         lastTime = time;

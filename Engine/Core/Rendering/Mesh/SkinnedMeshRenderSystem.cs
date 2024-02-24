@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple;
@@ -34,10 +35,9 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             r.mesh.meshAsset == null ||
             r.mesh.meshAssetIndex < 0 ||
             r.mesh.meshAssetIndex >= r.mesh.meshAsset.meshes.Count ||
-            r.material == null ||
-            r.material.Disposed ||
-            r.material.shader == null ||
-            r.material.shader.Disposed)
+            r.materials == null ||
+            r.materials.Count != r.mesh.submeshes.Count ||
+            r.materials.Any(x => x.IsValid == false))
         {
             return;
         }
@@ -80,10 +80,9 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             r.mesh.meshAsset == null ||
             r.mesh.meshAssetIndex < 0 ||
             r.mesh.meshAssetIndex >= r.mesh.meshAsset.meshes.Count ||
-            r.material == null ||
-            r.material.Disposed ||
-            r.material.shader == null ||
-            r.material.shader.Disposed)
+            r.materials == null ||
+            r.materials.Count != r.mesh.submeshes.Count ||
+            r.materials.Any(x => x.IsValid == false))
         {
             return;
         }
@@ -121,11 +120,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                 (renderer.animator == null ||
                 renderer.animator.animation.name != renderer.animation))
             {
-                renderer.animator = new()
-                {
-                    animation = meshAsset.animations[renderer.animation],
-                    meshAsset = meshAsset,
-                };
+                renderer.animator = new(meshAsset, meshAsset.animations[renderer.animation]);
             }
 
             if(useAnimator)
@@ -133,56 +128,58 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.animator.Evaluate();
             }
 
-            var boneMatrices = new Matrix4x4[meshAssetMesh.bones.Count];
-
-            for(var i = 0; i < boneMatrices.Length; i++)
+            for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
-                var bone = meshAssetMesh.bones[i];
+                var boneMatrices = new Matrix4x4[meshAssetMesh.bones[i].Count];
 
-                var localTransform = Matrix4x4.Identity;
-                var globalTransform = Matrix4x4.Identity;
-
-                /*
-                if (useAnimator && renderer.animator.currentTransforms.TryGetValue(bone.name, out localTransform))
+                for (var j = 0; j < boneMatrices.Length; j++)
                 {
-                    globalTransform = renderer.animator.GlobalTransform(bone.name);
+                    var bone = meshAssetMesh.bones[i][j];
+
+                    Matrix4x4 localTransform;
+                    Matrix4x4 globalTransform;
+
+                    if (useAnimator && renderer.animator.nodes.TryGetValue(bone.name, out var localNode))
+                    {
+                        globalTransform = localNode.GlobalTransform;
+                        localTransform = localNode.transform;
+                    }
+                    else
+                    {
+                        var node = mesh.meshAsset.GetNode(bone.name);
+
+                        localTransform = node.transform;
+                        globalTransform = node.GlobalTransform;
+                    }
+
+                    boneMatrices[j] = bone.offsetMatrix * globalTransform * renderer.mesh.meshAsset.inverseTransform;
+
+                    if (renderer.nodeRenderers.TryGetValue(bone.name, out var item) &&
+                        Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
+                    {
+                        item.transform.LocalPosition = translation;
+                        item.transform.LocalRotation = rotation;
+                        item.transform.LocalScale = scale;
+                    }
                 }
-                else
+
+                unsafe
                 {
-                */
-                    var node = mesh.meshAsset.GetNode(bone.name);
+                    var transform = pair.transform;
 
-                    localTransform = node.transform;
-                    globalTransform = node.GlobalTransform;
-                //}
-
-                boneMatrices[i] = bone.offsetMatrix * globalTransform;
-
-                if (renderer.nodeRenderers.TryGetValue(bone.name, out var item) &&
-                    Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
-                {
-                    item.transform.LocalPosition = translation;
-                    item.transform.LocalRotation = rotation;
-                    item.transform.LocalScale = scale;
+                    _ = bgfx.set_transform(&transform, 1);
                 }
+
+                bgfx.set_state((ulong)(state | renderer.mesh.PrimitiveFlag() | renderer.materials[i].shader.BlendingFlag()), 0);
+
+                renderer.materials[i].ApplyProperties();
+
+                renderer.materials[i].shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
+
+                renderer.mesh.SetActive(i);
+
+                bgfx.submit(pair.viewID, renderer.materials[i].shader.program, 0, (byte)bgfx.DiscardFlags.All);
             }
-
-            unsafe
-            {
-                var transform = pair.transform;
-
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            bgfx.set_state((ulong)(state | renderer.mesh.PrimitiveFlag() | renderer.material.shader.BlendingFlag()), 0);
-
-            renderer.material.ApplyProperties();
-
-            renderer.material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
-
-            renderer.mesh.SetActive();
-
-            bgfx.submit(pair.viewID, renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }
     }
 }

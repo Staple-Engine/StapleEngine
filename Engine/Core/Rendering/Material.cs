@@ -98,6 +98,16 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public bool Disposed { get; internal set; } = false;
 
+    public bool IsValid
+    {
+        get
+        {
+            return Disposed == false &&
+                shader != null &&
+                shader.Disposed == false;
+        }
+    }
+
     public Material()
     {
         SetColor(MainColorProperty, Color.White);

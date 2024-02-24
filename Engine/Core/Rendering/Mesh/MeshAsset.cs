@@ -14,10 +14,17 @@ public class MeshAsset : IGuidAsset
         public Matrix4x4 offsetMatrix;
     }
 
+    public class SubmeshInfo
+    {
+        public int startVertex;
+        public int vertexCount;
+        public int startIndex;
+        public int indexCount;
+    }
+
     public class MeshInfo
     {
         public string name;
-        public string materialGuid;
         public MeshAssetType type;
         public MeshTopology topology;
         public List<Vector3> vertices = new();
@@ -36,8 +43,11 @@ public class MeshAsset : IGuidAsset
         public List<int> indices = new();
         public List<Vector4> boneIndices = new();
         public List<Vector4> boneWeights = new();
-        public List<Bone> bones = new();
+        //One list per submesh
+        public List<List<Bone>> bones = new();
         public AABB bounds;
+        public List<SubmeshInfo> submeshes = new();
+        public List<string> submeshMaterialGuids = new();
     }
 
     public class Node

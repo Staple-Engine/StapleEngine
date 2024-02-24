@@ -9,6 +9,15 @@ namespace Staple;
 
 public partial class Mesh
 {
+    internal class SubmeshInfo
+    {
+        public int startVertex;
+        public int vertexCount;
+        public int startIndex;
+        public int indexCount;
+        public MeshTopology topology;
+    }
+
     internal bool changed;
     internal Vector3[] vertices;
     internal Vector3[] normals;
@@ -34,6 +43,8 @@ public partial class Mesh
 
     internal MeshAsset meshAsset;
     internal int meshAssetIndex;
+
+    internal List<SubmeshInfo> submeshes = new();
 
     internal static Dictionary<string, VertexLayout> vertexLayouts = new();
 
@@ -473,7 +484,7 @@ public partial class Mesh
         return buffer;
     }
 
-    internal bool SetActive()
+    internal bool SetActive(int submeshIndex = 0)
     {
         if(changed)
         {
@@ -485,8 +496,22 @@ public partial class Mesh
             return false;
         }
 
-        vertexBuffer.SetActive(0, 0, (uint)vertices.Length);
-        indexBuffer.SetActive(0, (uint)indices.Length);
+        if(submeshes.Count == 0)
+        {
+            vertexBuffer.SetActive(0, 0, (uint)vertices.Length);
+            indexBuffer.SetActive(0, (uint)indices.Length);
+        }
+        else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
+        {
+            var submesh = submeshes[submeshIndex];
+
+            vertexBuffer.SetActive(0, (uint)submesh.startVertex, (uint)submesh.vertexCount);
+            indexBuffer.SetActive((uint)submesh.startIndex, (uint)submesh.indexCount);
+        }
+        else
+        {
+            return false;
+        }
 
         return true;
     }

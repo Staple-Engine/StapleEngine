@@ -13,7 +13,7 @@ internal class CubeTemplate : IEntityTemplate
         var renderer = entity.GetComponent<MeshRenderer>();
 
         renderer.mesh = Mesh.Cube;
-        renderer.material = Resources.Load<Material>("Hidden/Materials/Standard.mat");
+        renderer.materials = new([ Resources.Load<Material>("Hidden/Materials/Standard.mat") ]);
 
         return entity;
     }

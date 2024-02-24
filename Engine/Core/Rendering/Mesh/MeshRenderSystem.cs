@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple;
@@ -18,7 +19,9 @@ internal class MeshRenderSystem : IRenderSystem
 
     public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, ushort viewID)
     {
-        if(mesh == null || material == null || material.Disposed || material.shader == null || material.shader.Disposed)
+        if(mesh == null ||
+            material == null ||
+            material.IsValid)
         {
             return;
         }
@@ -70,7 +73,14 @@ internal class MeshRenderSystem : IRenderSystem
     {
         var r = relatedComponent as MeshRenderer;
 
-        if (r.mesh == null || r.material == null || r.material.Disposed || r.material.shader == null || r.material.shader.Disposed)
+        if (r.mesh == null ||
+            r.materials == null ||
+            r.materials.Any(x => x.IsValid == false))
+        {
+            return;
+        }
+
+        if(r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
         {
             return;
         }
@@ -89,7 +99,14 @@ internal class MeshRenderSystem : IRenderSystem
     {
         var r = relatedComponent as MeshRenderer;
 
-        if (r.mesh == null || r.material == null || r.material.Disposed || r.material.shader == null || r.material.shader.Disposed)
+        if (r.mesh == null ||
+            r.materials == null ||
+            r.materials.Any(x => x.IsValid == false))
+        {
+            return;
+        }
+
+        if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
         {
             return;
         }
@@ -116,20 +133,35 @@ internal class MeshRenderSystem : IRenderSystem
 
         foreach (var pair in renderers)
         {
-            unsafe
+            void DrawMesh(int index)
             {
-                var transform = pair.transform;
+                unsafe
+                {
+                    var transform = pair.transform;
 
-                _ = bgfx.set_transform(&transform, 1);
+                    _ = bgfx.set_transform(&transform, 1);
+                }
+
+                bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.materials[index].shader.BlendingFlag()), 0);
+
+                pair.renderer.materials[index].ApplyProperties();
+
+                pair.renderer.mesh.SetActive(index);
+
+                bgfx.submit(pair.viewID, pair.renderer.materials[index].shader.program, 0, (byte)bgfx.DiscardFlags.All);
             }
 
-            bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.material.shader.BlendingFlag()), 0);
-
-            pair.renderer.material.ApplyProperties();
-
-            pair.renderer.mesh.SetActive();
-
-            bgfx.submit(pair.viewID, pair.renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+            if (pair.renderer.mesh.submeshes.Count == 0)
+            {
+                DrawMesh(0);
+            }
+            else
+            {
+                for (var i = 0; i < pair.renderer.mesh.submeshes.Count; i++)
+                {
+                    DrawMesh(i);
+                }
+            }
         }
     }
 }
