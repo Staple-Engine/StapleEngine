@@ -62,6 +62,30 @@ internal partial class StapleEditor
         var configurationName = debug ? "Debug" : "Release";
         var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : projectDirectory, backend.dataDir);
 
+        try
+        {
+            Directory.CreateDirectory(projectDirectory);
+        }
+        catch(Exception)
+        {
+        }
+
+        try
+        {
+            Directory.CreateDirectory(assetsCacheDirectory);
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            Directory.CreateDirectory(targetResourcesPath);
+        }
+        catch (Exception)
+        {
+        }
+
         var buildInfo = new BuildInfo(basePath, projectDirectory, outPath, assetsCacheDirectory, targetResourcesPath,
             backend.platform, projectAppSettings.Clone());
 

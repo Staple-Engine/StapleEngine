@@ -2216,7 +2216,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(9);
+            writer.WriteArrayHeader(11);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Serialize(ref writer, value.type, options);
             writer.Write(value.boolValue);
@@ -2226,6 +2226,8 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Serialize(ref writer, value.vector2Value, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.vector3Value, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.vector4Value, options);
+            formatterResolver.GetFormatterWithVerify<object>().Serialize(ref writer, value.arrayValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Serialize(ref writer, value.arrayType, options);
         }
 
         public global::Staple.Internal.SceneComponentParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2270,6 +2272,12 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 8:
                         ____result.vector4Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Deserialize(ref reader, options);
+                        break;
+                    case 9:
+                        ____result.arrayValue = formatterResolver.GetFormatterWithVerify<object>().Deserialize(ref reader, options);
+                        break;
+                    case 10:
+                        ____result.arrayType = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

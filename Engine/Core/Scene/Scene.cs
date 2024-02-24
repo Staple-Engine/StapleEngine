@@ -279,6 +279,69 @@ public class Scene
                         {
                             switch (parameter.type)
                             {
+                                case SceneComponentParameterType.Array:
+
+                                    if(field.FieldType.IsGenericType &&
+                                        field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                                    {
+                                        var o = Activator.CreateInstance(field.FieldType);
+
+                                        if(o == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        var list = (IList)o;
+
+                                        if(list == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        switch(parameter.arrayType)
+                                        {
+                                            case SceneComponentParameterType.String:
+
+                                                if(parameter.arrayValue is object[] objectArray)
+                                                {
+                                                    switch(field.FieldType.GetGenericArguments()[0])
+                                                    {
+                                                        case Type t when t == typeof(string):
+
+                                                            foreach (var obj in objectArray)
+                                                            {
+                                                                if (obj is string str)
+                                                                {
+                                                                    list.Add(str);
+                                                                }
+                                                            }
+
+                                                            break;
+
+                                                        case Type t when t.GetInterface(typeof(IGuidAsset).FullName) != null:
+
+                                                            foreach (var obj in objectArray)
+                                                            {
+                                                                if (obj is string str)
+                                                                {
+                                                                    var asset = AssetSerialization.GetGuidAsset(t, str);
+
+                                                                    list.Add(asset);
+                                                                }
+                                                            }
+
+                                                            break;
+                                                    }
+                                                }
+
+                                                break;
+                                        }
+
+                                        field.SetValue(componentInstance, list);
+                                    }
+
+                                    break;
+
                                 case SceneComponentParameterType.Bool:
 
                                     if (field.FieldType == typeof(bool))

@@ -20,6 +20,7 @@ public enum SceneComponentParameterType
     Vector2,
     Vector3,
     Vector4,
+    Array,
 }
 
 [Serializable]
@@ -73,6 +74,12 @@ public class SceneComponentParameter
 
     [Key(8)]
     public Vector4Holder vector4Value;
+
+    [Key(9)]
+    public object arrayValue;
+
+    [Key(10)]
+    public SceneComponentParameterType arrayType;
 }
 
 [Serializable]

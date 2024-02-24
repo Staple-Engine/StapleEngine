@@ -135,7 +135,39 @@ static partial class Program
                     {
                         if (pair.Value != null)
                         {
-                            if (pair.Value.GetType() == typeof(string))
+                            if (pair.Value is JArray array)
+                            {
+                                if(array.Count == 0)
+                                {
+                                    continue;
+                                }
+
+                                switch(array[0].Type)
+                                {
+                                    case JTokenType.String:
+
+                                        var list = new List<string>();
+
+                                        foreach (var element in array)
+                                        {
+                                            if (element.Type == JTokenType.String)
+                                            {
+                                                list.Add(element.Value<string>());
+                                            }
+                                        }
+
+                                        component.parameters.Add(new SceneComponentParameter()
+                                        {
+                                            name = pair.Key,
+                                            type = SceneComponentParameterType.Array,
+                                            arrayType = SceneComponentParameterType.String,
+                                            arrayValue = list.ToArray(),
+                                        });
+
+                                        break;
+                                }
+                            }
+                            else if (pair.Value.GetType() == typeof(string))
                             {
                                 component.parameters.Add(new SceneComponentParameter()
                                 {
