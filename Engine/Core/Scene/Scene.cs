@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text.Json;
@@ -92,6 +93,51 @@ public class Scene
 
                     if (field != null && pair.Value != null && pair.Value is JsonElement element)
                     {
+                        if (field.FieldType.IsGenericType)
+                        {
+                            if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>) && element.ValueKind == JsonValueKind.Array)
+                            {
+                                var listType = field.FieldType.GetGenericArguments()[0];
+
+                                if (listType != null)
+                                {
+                                    var o = Activator.CreateInstance(field.FieldType);
+
+                                    if (o == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    var list = (IList)o;
+
+                                    if (list == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                                    {
+                                        foreach(var item in element.EnumerateArray())
+                                        {
+                                            if(item.ValueKind == JsonValueKind.String)
+                                            {
+                                                var path = item.GetString();
+
+                                                var value = AssetSerialization.GetGuidAsset(listType, path);
+
+                                                if(value != null)
+                                                {
+                                                    list.Add(value);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    field.SetValue(componentInstance, list);
+                                }
+                            }
+                        }
+
                         if (field.FieldType == typeof(bool) && (element.ValueKind == JsonValueKind.False || element.ValueKind == JsonValueKind.True))
                         {
                             field.SetValue(componentInstance, element.GetBoolean());
@@ -110,23 +156,23 @@ public class Scene
                         }
                         else if (field.FieldType.IsEnum && element.ValueKind == JsonValueKind.String)
                         {
-                            if(Enum.TryParse(field.FieldType, element.GetString(), true, out var value))
+                            if (Enum.TryParse(field.FieldType, element.GetString(), true, out var value))
                             {
                                 field.SetValue(componentInstance, value);
                             }
                         }
-                        else if(field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null && element.ValueKind == JsonValueKind.String)
+                        else if (field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null && element.ValueKind == JsonValueKind.String)
                         {
                             var path = element.GetString();
 
                             var value = AssetSerialization.GetGuidAsset(field.FieldType, path);
 
-                            if(value != null)
+                            if (value != null)
                             {
                                 field.SetValue(componentInstance, value);
                             }
                         }
-                        else if(field.FieldType == typeof(Vector2) && element.ValueKind == JsonValueKind.Object)
+                        else if (field.FieldType == typeof(Vector2) && element.ValueKind == JsonValueKind.Object)
                         {
                             try
                             {
@@ -164,7 +210,7 @@ public class Scene
                                 var z = element.GetProperty("z").GetDouble();
                                 var w = element.GetProperty("w").GetDouble();
 
-                                if(field.FieldType == typeof(Quaternion))
+                                if (field.FieldType == typeof(Quaternion))
                                 {
                                     field.SetValue(componentInstance, new Quaternion((float)x, (float)y, (float)z, (float)w));
                                 }
@@ -197,7 +243,7 @@ public class Scene
 
                                     color = new Color32((byte)r, (byte)g, (byte)b, (byte)a);
                                 }
-                                catch(Exception e)
+                                catch (Exception e)
                                 {
                                     continue;
                                 }

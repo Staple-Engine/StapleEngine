@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -52,6 +53,36 @@ internal static class SceneSerialize
                     if(field.GetCustomAttribute<NonSerializedAttribute>() != null)
                     {
                         continue;
+                    }
+
+                    if (field.FieldType.IsGenericType)
+                    {
+                        if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            var listType = field.FieldType.GetGenericArguments()[0];
+
+                            if (listType != null)
+                            {
+                                if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                                {
+                                    var newList = new List<string>();
+
+                                    var inList = (IList)field.GetValue(component);
+
+                                    foreach (var item in inList)
+                                    {
+                                        if (item is IGuidAsset g)
+                                        {
+                                            newList.Add(g.Guid);
+                                        }
+                                    }
+
+                                    sceneComponent.data.Add(field.Name, newList);
+                                }
+                            }
+
+                            continue;
+                        }
                     }
 
                     if (field.FieldType == typeof(bool) ||
