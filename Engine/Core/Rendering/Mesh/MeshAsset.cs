@@ -48,7 +48,22 @@ public class MeshAsset : IGuidAsset
 
         public List<Node> children = new();
 
+        public Matrix4x4 originalTransform;
+
         public Matrix4x4 transform;
+
+        public Matrix4x4 OriginalGlobalTransform
+        {
+            get
+            {
+                if (parent != null)
+                {
+                    return originalTransform * parent.OriginalGlobalTransform;
+                }
+
+                return originalTransform;
+            }
+        }
 
         public Matrix4x4 GlobalTransform
         {
@@ -118,6 +133,8 @@ public class MeshAsset : IGuidAsset
         public float duration;
         public float ticksPerSecond;
         public List<AnimationChannel> channels = new();
+
+        public float DurationRealtime => duration / ticksPerSecond;
     }
 
     public List<MeshInfo> meshes = new();

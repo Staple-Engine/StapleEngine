@@ -110,8 +110,28 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
         foreach (var pair in renderers)
         {
-            var mesh = pair.renderer.mesh;
-            var meshAssetMesh = pair.renderer.mesh.meshAsset.meshes[mesh.meshAssetIndex];
+            var renderer = pair.renderer;
+            var mesh = renderer.mesh;
+            var meshAsset = mesh.meshAsset;
+            var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
+
+            var useAnimator = (renderer.animation?.Length ?? 0) > 0 && meshAsset.animations.ContainsKey(renderer.animation);
+
+            if(useAnimator &&
+                (renderer.animator == null ||
+                renderer.animator.animation.name != renderer.animation))
+            {
+                renderer.animator = new()
+                {
+                    animation = meshAsset.animations[renderer.animation],
+                    meshAsset = meshAsset,
+                };
+            }
+
+            if(useAnimator)
+            {
+                renderer.animator.Evaluate();
+            }
 
             var boneMatrices = new Matrix4x4[meshAssetMesh.bones.Count];
 
@@ -119,14 +139,27 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             {
                 var bone = meshAssetMesh.bones[i];
 
-                var node = mesh.meshAsset.GetNode(bone.name);
+                var localTransform = Matrix4x4.Identity;
+                var globalTransform = Matrix4x4.Identity;
 
-                var fullTransform = node.GlobalTransform;
+                /*
+                if (useAnimator && renderer.animator.currentTransforms.TryGetValue(bone.name, out localTransform))
+                {
+                    globalTransform = renderer.animator.GlobalTransform(bone.name);
+                }
+                else
+                {
+                */
+                    var node = mesh.meshAsset.GetNode(bone.name);
 
-                boneMatrices[i] = bone.offsetMatrix * fullTransform;
+                    localTransform = node.transform;
+                    globalTransform = node.GlobalTransform;
+                //}
 
-                if (pair.renderer.nodeRenderers.TryGetValue(bone.name, out var item) &&
-                    Matrix4x4.Decompose(node.transform, out var scale, out var rotation, out var translation))
+                boneMatrices[i] = bone.offsetMatrix * globalTransform;
+
+                if (renderer.nodeRenderers.TryGetValue(bone.name, out var item) &&
+                    Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
                 {
                     item.transform.LocalPosition = translation;
                     item.transform.LocalRotation = rotation;
@@ -141,15 +174,15 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                 _ = bgfx.set_transform(&transform, 1);
             }
 
-            bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.material.shader.BlendingFlag()), 0);
+            bgfx.set_state((ulong)(state | renderer.mesh.PrimitiveFlag() | renderer.material.shader.BlendingFlag()), 0);
 
-            pair.renderer.material.ApplyProperties();
+            renderer.material.ApplyProperties();
 
-            pair.renderer.material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
+            renderer.material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
 
-            pair.renderer.mesh.SetActive();
+            renderer.mesh.SetActive();
 
-            bgfx.submit(pair.viewID, pair.renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+            bgfx.submit(pair.viewID, renderer.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }
     }
 }

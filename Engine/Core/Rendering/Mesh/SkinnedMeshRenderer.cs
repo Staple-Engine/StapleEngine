@@ -13,8 +13,8 @@ public class SkinnedMeshRenderer : Renderable
 {
     public Mesh mesh;
     public Material material;
-    public string animationName;
-    public float time;
+    public string animation;
 
     internal Dictionary<string, SkinnedMeshRendererItem> nodeRenderers = new();
+    internal SkinnedMeshAnimator animator;
 }

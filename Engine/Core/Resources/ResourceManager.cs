@@ -1217,6 +1217,7 @@ internal class ResourceManager
                 {
                     name = n.name,
                     transform = transform,
+                    originalTransform = transform,
                     parent = asset.GetNode(n.parent),
                 };
 

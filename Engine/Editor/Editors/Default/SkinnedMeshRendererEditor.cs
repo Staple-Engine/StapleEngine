@@ -13,7 +13,7 @@ internal class SkinnedMeshRendererEditor : Editor
             return base.RenderField(field);
         }
 
-        if(field.Name == nameof(SkinnedMeshRenderer.animationName))
+        if(field.Name == nameof(SkinnedMeshRenderer.animation))
         {
             if(renderer.mesh?.meshAsset != null)
             {
@@ -21,7 +21,7 @@ internal class SkinnedMeshRendererEditor : Editor
 
                 var animationNames = animations.Select(x => x.Key).ToList();
 
-                var current = animationNames.IndexOf(renderer.animationName);
+                var current = animationNames.IndexOf(renderer.animation);
 
                 if (current < 0)
                 {
