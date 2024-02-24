@@ -95,6 +95,14 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
             for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
+                if (meshAssetMesh.bones[i].Count > 128)
+                {
+                    Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
+                        $"Bone count of {meshAssetMesh.bones[i].Count} exceeds limit of 128, try setting split large meshes in the import settings!");
+
+                    continue;
+                }
+
                 var boneMatrices = new Matrix4x4[meshAssetMesh.bones[i].Count];
 
                 for (var j = 0; j < boneMatrices.Length; j++)

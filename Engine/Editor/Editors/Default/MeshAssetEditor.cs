@@ -3,6 +3,7 @@ using Newtonsoft.Json.Converters;
 using Staple.Internal;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -10,6 +11,9 @@ namespace Staple.Editor;
 [CustomEditor(typeof(MeshAssetMetadata))]
 internal class MeshAssetEditor : Editor
 {
+    private MeshAsset meshAsset;
+    private bool needsLoad = true;
+
     public override bool RenderField(FieldInfo field)
     {
         if(field.Name == nameof(MeshAssetMetadata.typeName) ||
@@ -27,6 +31,13 @@ internal class MeshAssetEditor : Editor
 
         var metadata = (MeshAssetMetadata)target;
         var originalMetadata = (MeshAssetMetadata)original;
+
+        if(needsLoad)
+        {
+            needsLoad = false;
+
+            meshAsset = ResourceManager.instance.LoadMeshAsset(metadata.guid, true);
+        }
 
         var hasChanges = metadata != originalMetadata;
 
@@ -57,7 +68,11 @@ internal class MeshAssetEditor : Editor
                     field.SetValue(original, field.GetValue(metadata));
                 }
 
-                EditorUtils.RefreshAssets(false, null);
+                EditorUtils.RefreshAssets(false, () =>
+                {
+                    meshAsset = null;
+                    needsLoad = true;
+                });
             }
 
             EditorGUI.SameLine();
@@ -79,6 +94,19 @@ internal class MeshAssetEditor : Editor
             EditorGUI.SameLine();
 
             EditorGUI.ButtonDisabled("Revert");
+        }
+
+        if (meshAsset != null)
+        {
+            var hasExcessiveBones = meshAsset.meshes.Any(x => x.bones.Any(x => x.Count > 128));
+
+            EditorGUI.Label($"{meshAsset.meshes.Count} meshes.");
+
+            if(hasExcessiveBones)
+            {
+                EditorGUI.Label("There are one or more meshes with excessive bone count. " +
+                    "Please change import settings to reduce bones or split meshes.");
+            }
         }
     }
 }

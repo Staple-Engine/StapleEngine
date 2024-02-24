@@ -119,6 +119,9 @@ public class MeshAssetMetadata
     [Key(12)]
     public float scale = 1.0f;
 
+    [Key(13)]
+    public bool combineMeshes = true;
+
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
         return lhs.guid == rhs.guid &&
@@ -133,7 +136,8 @@ public class MeshAssetMetadata
             lhs.typeName == rhs.typeName &&
             lhs.convertUnits == rhs.convertUnits &&
             lhs.rotation == rhs.rotation &&
-            lhs.scale == rhs.scale;
+            lhs.scale == rhs.scale &&
+            lhs.combineMeshes == rhs.combineMeshes;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -150,7 +154,8 @@ public class MeshAssetMetadata
             lhs.typeName != rhs.typeName ||
             lhs.convertUnits != rhs.convertUnits ||
             lhs.rotation != rhs.rotation ||
-            lhs.scale != rhs.scale;
+            lhs.scale != rhs.scale ||
+            lhs.combineMeshes != rhs.combineMeshes;
     }
 
     public override bool Equals(object obj)

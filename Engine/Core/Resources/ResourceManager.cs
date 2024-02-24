@@ -1166,7 +1166,10 @@ internal class ResourceManager
 
             var asset = new MeshAsset();
 
+            var useCombinedMeshes = meshAssetData.metadata.combineMeshes;
+
             var combinedMeshes = new Dictionary<string, List<MeshAssetMeshInfo>>();
+            var combinedMeshBoneCounters = new Dictionary<string, int>();
 
             foreach (var m in meshAssetData.meshes)
             {
@@ -1178,121 +1181,245 @@ internal class ResourceManager
                 }
 
                 list.Add(m);
+
+                if(combinedMeshBoneCounters.TryGetValue(m.name, out var boneCount) == false)
+                {
+                    combinedMeshBoneCounters.Add(m.name, 0);
+                }
+
+                boneCount += m.bones.Count;
+
+                combinedMeshBoneCounters[m.name] = boneCount;
             }
 
-            foreach(var pair in combinedMeshes)
+            if(combinedMeshBoneCounters.Any(x => x.Value > 128))
             {
-                var newMesh = new MeshAsset.MeshInfo()
+                useCombinedMeshes = false;
+            }
+
+            if(useCombinedMeshes)
+            {
+                foreach (var pair in combinedMeshes)
                 {
-                    name = pair.Key,
-                    topology = pair.Value[0].topology,
-
-                    bounds = new AABB(pair.Value[0].boundsCenter.ToVector3(), pair.Value[0].boundsExtents.ToVector3()),
-
-                    vertices = pair.Value
-                        .SelectMany(x => x.vertices)
-                        .Select(x => x.ToVector3())
-                        .ToList(),
-
-                    normals = pair.Value
-                        .SelectMany(x => x.normals)
-                        .Select(x => x.ToVector3()).ToList(),
-
-                    colors = pair.Value
-                        .SelectMany(x => x.colors)
-                        .Select(x =>
-                        {
-                            var v = x.ToVector4();
-
-                            return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToList(),
-
-                    tangents = pair.Value
-                        .SelectMany(x => x.tangents)
-                        .Select(x => x.ToVector3())
-                        .ToList(),
-
-                    bitangents = pair.Value
-                        .SelectMany(x => x.bitangents)
-                        .Select(x => x.ToVector3())
-                        .ToList(),
-
-                    UV1 = pair.Value
-                        .SelectMany(x => x.UV1)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV2 = pair.Value
-                        .SelectMany(x => x.UV2)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV3 = pair.Value
-                        .SelectMany(x => x.UV3)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV4 = pair.Value
-                        .SelectMany(x => x.UV4)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV5 = pair.Value
-                        .SelectMany(x => x.UV5)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV6 = pair.Value
-                        .SelectMany(x => x.UV6)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV7 = pair.Value
-                        .SelectMany(x => x.UV7)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    UV8 = pair.Value
-                        .SelectMany(x => x.UV8)
-                        .Select(x => x.ToVector2()).ToList(),
-
-                    indices = pair.Value
-                        .SelectMany(x => x.indices)
-                        .ToList(),
-
-                    boneIndices = pair.Value
-                        .SelectMany(x => x.boneIndices)
-                        .Select(x => x.ToVector4()).ToList(),
-
-                    boneWeights = pair.Value
-                        .SelectMany(x => x.boneWeights)
-                        .Select(x => x.ToVector4()).ToList(),
-                };
-
-                var startVertex = 0;
-                var startIndex = 0;
-
-                foreach(var m in pair.Value)
-                {
-                    var bones = m.bones.Select(x => new MeshAsset.Bone()
+                    var newMesh = new MeshAsset.MeshInfo()
                     {
-                        name = x.name,
-                        offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
-                    }).ToList();
+                        name = pair.Key,
+                        topology = pair.Value[0].topology,
 
-                    newMesh.bones.Add(bones);
+                        bounds = new AABB(pair.Value[0].boundsCenter.ToVector3(), pair.Value[0].boundsExtents.ToVector3()),
+
+                        vertices = pair.Value
+                            .SelectMany(x => x.vertices)
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        normals = pair.Value
+                            .SelectMany(x => x.normals)
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        colors = pair.Value
+                            .SelectMany(x => x.colors)
+                            .Select(x =>
+                            {
+                                var v = x.ToVector4();
+
+                                return new Color(v.X, v.Y, v.Z, v.W);
+                            }).ToList(),
+
+                        tangents = pair.Value
+                            .SelectMany(x => x.tangents)
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        bitangents = pair.Value
+                            .SelectMany(x => x.bitangents)
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        UV1 = pair.Value
+                            .SelectMany(x => x.UV1)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV2 = pair.Value
+                            .SelectMany(x => x.UV2)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV3 = pair.Value
+                            .SelectMany(x => x.UV3)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV4 = pair.Value
+                            .SelectMany(x => x.UV4)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV5 = pair.Value
+                            .SelectMany(x => x.UV5)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV6 = pair.Value
+                            .SelectMany(x => x.UV6)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV7 = pair.Value
+                            .SelectMany(x => x.UV7)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV8 = pair.Value
+                            .SelectMany(x => x.UV8)
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        indices = pair.Value
+                            .SelectMany(x => x.indices)
+                            .ToList(),
+
+                        boneIndices = pair.Value
+                            .SelectMany(x => x.boneIndices)
+                            .Select(x => x.ToVector4())
+                            .ToList(),
+
+                        boneWeights = pair.Value
+                            .SelectMany(x => x.boneWeights)
+                            .Select(x => x.ToVector4())
+                            .ToList(),
+                    };
+
+                    var startVertex = 0;
+                    var startIndex = 0;
+
+                    foreach (var m in pair.Value)
+                    {
+                        var bones = m.bones.Select(x => new MeshAsset.Bone()
+                        {
+                            name = x.name,
+                            offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
+                        }).ToList();
+
+                        newMesh.bones.Add(bones);
+
+                        newMesh.submeshes.Add(new()
+                        {
+                            startVertex = startVertex,
+                            startIndex = startIndex,
+                            vertexCount = m.vertices.Count,
+                            indexCount = m.indices.Count,
+                        });
+
+                        newMesh.submeshMaterialGuids.Add(m.materialGuid);
+
+                        startVertex += m.vertices.Count;
+                        startIndex += m.indices.Count;
+                    }
+
+                    asset.meshes.Add(newMesh);
+                }
+            }
+            else
+            {
+                foreach(var m in meshAssetData.meshes)
+                {
+                    var newMesh = new MeshAsset.MeshInfo()
+                    {
+                        name = m.name,
+                        topology = m.topology,
+
+                        bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
+
+                        vertices = m.vertices
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        normals = m.normals
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        colors = m.colors
+                            .Select(x =>
+                            {
+                                var v = x.ToVector4();
+
+                                return new Color(v.X, v.Y, v.Z, v.W);
+                            }).ToList(),
+
+                        tangents = m.tangents
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        bitangents = m.bitangents
+                            .Select(x => x.ToVector3())
+                            .ToList(),
+
+                        UV1 = m.UV1
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV2 = m.UV2
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV3 = m.UV3
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV4 = m.UV4
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV5 = m.UV5
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV6 = m.UV6
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV7 = m.UV7
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        UV8 = m.UV8
+                            .Select(x => x.ToVector2())
+                            .ToList(),
+
+                        indices = m.indices,
+
+                        boneIndices = m.boneIndices
+                            .Select(x => x.ToVector4())
+                            .ToList(),
+
+                        boneWeights = m.boneWeights
+                            .Select(x => x.ToVector4())
+                            .ToList(),
+                        bones = [m.bones.Select(x => new MeshAsset.Bone()
+                        {
+                            name = x.name,
+                            offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
+                        }).ToList()],
+                    };
 
                     newMesh.submeshes.Add(new()
                     {
-                        startVertex = startVertex,
-                        startIndex = startIndex,
+                        startVertex = 0,
+                        startIndex = 0,
                         vertexCount = m.vertices.Count,
                         indexCount = m.indices.Count,
                     });
 
                     newMesh.submeshMaterialGuids.Add(m.materialGuid);
 
-                    startVertex += m.vertices.Count;
-                    startIndex += m.indices.Count;
+                    asset.meshes.Add(newMesh);
                 }
-
-                asset.meshes.Add(newMesh);
             }
 
-            foreach(var n in meshAssetData.nodes)
+            foreach (var n in meshAssetData.nodes)
             {
                 if(n.name == null || asset.nodes.ContainsKey(n.name))
                 {
