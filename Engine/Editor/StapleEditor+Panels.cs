@@ -546,7 +546,7 @@ internal partial class StapleEditor
 
             if(newValue != enabled)
             {
-                selectedEntity.Enabled = true;
+                selectedEntity.Enabled = newValue;
             }
 
             var currentLayer = selectedEntity.Layer;

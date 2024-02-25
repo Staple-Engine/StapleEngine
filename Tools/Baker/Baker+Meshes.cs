@@ -155,6 +155,13 @@ static partial class Program
 
             using var context = new Assimp.AssimpContext();
 
+            context.XAxisRotation = metadata.rotation switch
+            {
+                MeshAssetRotation.NinetyNegative => -90,
+                MeshAssetRotation.NinetyPositive => 90,
+                _ => 0
+            };
+
             var flags = Assimp.PostProcessSteps.TransformUVCoords |
                 Assimp.PostProcessSteps.GenerateNormals |
                 Assimp.PostProcessSteps.GenerateUVCoords |
@@ -272,23 +279,11 @@ static partial class Program
                 return null;
             }
 
-            Assimp.Matrix4x4 TransformNode(Assimp.Matrix4x4 current, Assimp.Node node)
-            {
-                if(node.Parent != null)
-                {
-                    var result = TransformNode(current, node.Parent);
-
-                    return result * node.Transform;
-                }
-
-                return node.Transform;
-            }
-
             var counter = 0;
 
             var materialMapping = new List<string>();
 
-            var materialRequiresSkinning = scene.AnimationCount > 0;
+            var materialRequiresSkinning = scene.Meshes.Any(x => x.HasBones);
 
             foreach(var material in scene.Materials)
             {
@@ -511,17 +506,9 @@ static partial class Program
                 Console.WriteLine($"\t\tGenerated material {target}");
             }
 
-            var transformMatrix = metadata.rotation switch
-            {
-                MeshAssetRotation.None => Matrix4x4.Identity,
-                MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)),
-                MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(-90)),
-                _ => Matrix4x4.Identity
-            };
-
             Vector3Holder ApplyTransform(Vector3Holder value)
             {
-                return new Vector3Holder(Vector3.Transform(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale), transformMatrix));
+                return new Vector3Holder(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale));
             }
 
             void RegisterNode(Assimp.Node node)
