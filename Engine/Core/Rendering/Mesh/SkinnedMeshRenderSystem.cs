@@ -30,15 +30,15 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform)
     {
-        var r = relatedComponent as SkinnedMeshRenderer;
+        var renderer = relatedComponent as SkinnedMeshRenderer;
 
-        if (r.mesh == null ||
-            r.mesh.meshAsset == null ||
-            r.mesh.meshAssetIndex < 0 ||
-            r.mesh.meshAssetIndex >= r.mesh.meshAsset.meshes.Count ||
-            r.materials == null ||
-            r.materials.Count != r.mesh.submeshes.Count ||
-            r.materials.Any(x => x.IsValid == false))
+        if (renderer.mesh == null ||
+            renderer.mesh.meshAsset == null ||
+            renderer.mesh.meshAssetIndex < 0 ||
+            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+            renderer.materials == null ||
+            renderer.materials.Count != renderer.mesh.submeshes.Count ||
+            renderer.materials.Any(x => x.IsValid == false))
         {
             return;
         }
@@ -47,15 +47,15 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
     public void Process(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        var r = relatedComponent as SkinnedMeshRenderer;
+        var renderer = relatedComponent as SkinnedMeshRenderer;
 
-        if (r.mesh == null ||
-            r.mesh.meshAsset == null ||
-            r.mesh.meshAssetIndex < 0 ||
-            r.mesh.meshAssetIndex >= r.mesh.meshAsset.meshes.Count ||
-            r.materials == null ||
-            r.materials.Count != r.mesh.submeshes.Count ||
-            r.materials.Any(x => x.IsValid == false))
+        if (renderer.mesh == null ||
+            renderer.mesh.meshAsset == null ||
+            renderer.mesh.meshAssetIndex < 0 ||
+            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+            renderer.materials == null ||
+            renderer.materials.Count != renderer.mesh.submeshes.Count ||
+            renderer.materials.Any(x => x.IsValid == false))
         {
             return;
         }
@@ -64,7 +64,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
         renderers.Add(new RenderInfo()
         {
-            renderer = r,
+            renderer = renderer,
             animator = animator,
             transform = transform.Matrix,
             viewID = viewId,
@@ -112,10 +112,18 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                     Matrix4x4 localTransform;
                     Matrix4x4 globalTransform;
 
-                    if (useAnimator && animator.evaluator.nodes.TryGetValue(bone.name, out var localNode))
+                    if (useAnimator && MeshAsset.TryGetNode(animator.evaluator.rootNode, bone.name, out var localNode))
                     {
-                        globalTransform = localNode.GlobalTransform;
                         localTransform = localNode.transform;
+                        globalTransform = localNode.GlobalTransform;
+
+                        if (animator.nodeRenderers.TryGetValue(bone.name, out var item) &&
+                            Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
+                        {
+                            item.transform.LocalPosition = translation;
+                            item.transform.LocalRotation = rotation;
+                            item.transform.LocalScale = scale;
+                        }
                     }
                     else
                     {
@@ -125,16 +133,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                         globalTransform = node.GlobalTransform;
                     }
 
-                    boneMatrices[j] = bone.offsetMatrix * globalTransform * renderer.mesh.meshAsset.inverseTransform;
-
-                    if (useAnimator &&
-                        animator.nodeRenderers.TryGetValue(bone.name, out var item) &&
-                        Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
-                    {
-                        item.transform.LocalPosition = translation;
-                        item.transform.LocalRotation = rotation;
-                        item.transform.LocalScale = scale;
-                    }
+                    boneMatrices[j] = bone.offsetMatrix * globalTransform * meshAsset.inverseTransform;
                 }
 
                 unsafe

@@ -1,9 +1,45 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Staple;
 
 internal class SkinnedMeshAnimatorSystem : IRenderSystem
 {
+    public static Dictionary<string, SkinnedMeshAnimator.Item> GatherNodes(Transform current, MeshAsset.Node node)
+    {
+        var outValue = new Dictionary<string, SkinnedMeshAnimator.Item>();
+
+        void GatherNodes(MeshAsset.Node node)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            var childTransform = current.SearchChild(node.name);
+
+            if (childTransform == null)
+            {
+                return;
+            }
+
+            outValue.AddOrSetKey(node.name, new()
+            {
+                node = node,
+                transform = childTransform,
+            });
+
+            foreach (var child in node.children)
+            {
+                GatherNodes(child);
+            }
+        }
+
+        GatherNodes(node);
+
+        return outValue;
+    }
+
     public Type RelatedComponent()
     {
         return typeof(SkinnedMeshAnimator);
@@ -31,47 +67,20 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
             return;
         }
 
-        var t = transform;
-        var a = animator;
-
-        void GatherNodes(MeshAsset.Node node)
+        if ((animator.evaluator == null ||
+            animator.evaluator.animation.name != animator.animation))
         {
-            if (node == null)
-            {
-                return;
-            }
-
-            var childTransform = t.SearchChild(node.name);
-
-            if (childTransform == null)
-            {
-                return;
-            }
-
-            a.nodeRenderers.AddOrSetKey(node.name, new()
-            {
-                node = node,
-                transform = childTransform,
-            });
-
-            foreach (var child in node.children)
-            {
-                GatherNodes(child);
-            }
+            animator.evaluator = new(animator.mesh.meshAsset,
+                animator.mesh.meshAsset.animations[animator.animation],
+                animator.mesh.meshAsset.rootNode.Clone());
         }
 
         if (animator.nodeRenderers.Count == 0)
         {
-            GatherNodes(animator.mesh.meshAsset.rootNode);
+            animator.nodeRenderers = GatherNodes(transform, animator.mesh.meshAsset.rootNode);
         }
 
-        if ((animator.evaluator == null ||
-            animator.evaluator.animation.name != animator.animation))
-        {
-            animator.evaluator = new(animator.mesh.meshAsset, animator.mesh.meshAsset.animations[animator.animation]);
-        }
-
-        if(Platform.IsPlaying)
+        if (Platform.IsPlaying)
         {
             animator.evaluator.Evaluate();
         }

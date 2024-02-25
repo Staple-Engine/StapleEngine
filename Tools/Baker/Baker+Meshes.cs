@@ -163,18 +163,16 @@ static partial class Program
             };
 
             var flags = Assimp.PostProcessSteps.TransformUVCoords |
-                Assimp.PostProcessSteps.GenerateNormals |
+                Assimp.PostProcessSteps.GenerateSmoothNormals |
                 Assimp.PostProcessSteps.GenerateUVCoords |
                 Assimp.PostProcessSteps.FindDegenerates |
                 Assimp.PostProcessSteps.FindInvalidData |
-                Assimp.PostProcessSteps.FindInstances |
                 Assimp.PostProcessSteps.FixInFacingNormals |
+                Assimp.PostProcessSteps.ImproveCacheLocality |
+                Assimp.PostProcessSteps.JoinIdenticalVertices |
                 Assimp.PostProcessSteps.Triangulate |
                 Assimp.PostProcessSteps.SortByPrimitiveType |
-                Assimp.PostProcessSteps.JoinIdenticalVertices |
                 Assimp.PostProcessSteps.RemoveRedundantMaterials |
-                Assimp.PostProcessSteps.OptimizeMeshes |
-                Assimp.PostProcessSteps.OptimizeGraph |
                 Assimp.PostProcessSteps.CalculateTangentSpace |
                 Assimp.PostProcessSteps.GenerateBoundingBoxes;
 
@@ -289,8 +287,7 @@ static partial class Program
             {
                 string fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
 
-                //TODO: handle refs in-project
-                if(material.HasName && false)
+                if(material.HasName)
                 {
                     fileName = $"{material.Name}.mat";
                 }
@@ -511,24 +508,27 @@ static partial class Program
                 return new Vector3Holder(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale));
             }
 
-            void RegisterNode(Assimp.Node node)
+            void RegisterNode(Assimp.Node node, MeshAssetNode parent)
             {
-                meshData.nodes.Add(new MeshAssetNode()
+                var newNode = new MeshAssetNode()
                 {
                     name = node.Name,
-                    parent = node.Parent?.Name,
                     matrix = new Matrix4x4Holder(ToMatrix4x4(node.Transform)),
-                });
+                };
 
-                foreach(var n in node.Children)
+                meshData.rootNode ??= newNode;
+
+                parent?.children.Add(newNode);
+
+                foreach (var n in node.Children)
                 {
-                    RegisterNode(n);
+                    RegisterNode(n, newNode);
                 }
             }
 
-            RegisterNode(scene.RootNode);
+            RegisterNode(scene.RootNode, null);
 
-            foreach(var animation in scene.Animations)
+            foreach (var animation in scene.Animations)
             {
                 var a = new MeshAssetAnimation()
                 {

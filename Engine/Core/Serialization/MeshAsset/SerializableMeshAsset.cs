@@ -119,9 +119,6 @@ public class MeshAssetMetadata
     [Key(12)]
     public float scale = 1.0f;
 
-    [Key(13)]
-    public bool combineMeshes = true;
-
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
         return lhs.guid == rhs.guid &&
@@ -136,8 +133,7 @@ public class MeshAssetMetadata
             lhs.typeName == rhs.typeName &&
             lhs.convertUnits == rhs.convertUnits &&
             lhs.rotation == rhs.rotation &&
-            lhs.scale == rhs.scale &&
-            lhs.combineMeshes == rhs.combineMeshes;
+            lhs.scale == rhs.scale;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -154,8 +150,7 @@ public class MeshAssetMetadata
             lhs.typeName != rhs.typeName ||
             lhs.convertUnits != rhs.convertUnits ||
             lhs.rotation != rhs.rotation ||
-            lhs.scale != rhs.scale ||
-            lhs.combineMeshes != rhs.combineMeshes;
+            lhs.scale != rhs.scale;
     }
 
     public override bool Equals(object obj)
@@ -264,10 +259,10 @@ public class MeshAssetNode
     public string name;
 
     [Key(1)]
-    public string parent;
+    public Matrix4x4Holder matrix;
 
     [Key(2)]
-    public Matrix4x4Holder matrix;
+    public List<MeshAssetNode> children = new();
 }
 
 [MessagePackObject]
@@ -332,7 +327,7 @@ public class SerializableMeshAsset
     public List<MeshAssetMeshInfo> meshes = new();
 
     [Key(2)]
-    public List<MeshAssetNode> nodes = new();
+    public MeshAssetNode rootNode;
 
     [Key(3)]
     public List<MeshAssetAnimation> animations = new();

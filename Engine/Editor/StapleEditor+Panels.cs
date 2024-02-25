@@ -747,6 +747,11 @@ internal partial class StapleEditor
     {
         projectBrowser.Draw(io, (item) =>
         {
+            if(item == selectedProjectNode)
+            {
+                return;
+            }
+
             selectedEntity = default;
             selectedProjectNode = item;
             selectedProjectNodeData = null;

@@ -12,6 +12,11 @@ public class MeshAsset : IGuidAsset
         public string name;
 
         public Matrix4x4 offsetMatrix;
+
+        public override string ToString()
+        {
+            return name ?? "(invalid)";
+        }
     }
 
     public class SubmeshInfo
@@ -88,6 +93,44 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        public Node GetNode(string name)
+        {
+            if(this.name == name)
+            {
+                return this;
+            }
+
+            foreach(var child in children)
+            {
+                var result = child.GetNode(name);
+
+                if(result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        public Node Clone(Node parent = null)
+        {
+            var result = new Node()
+            {
+                name = name,
+                originalTransform = originalTransform,
+                transform = transform,
+                parent = parent,
+            };
+
+            foreach(var child in children)
+            {
+                result.children.Add(child.Clone(result));
+            }
+
+            return result;
+        }
+
         public override string ToString()
         {
             return $"({name}, parent: {parent?.name ?? "None"})";
@@ -149,13 +192,38 @@ public class MeshAsset : IGuidAsset
 
     public List<MeshInfo> meshes = new();
     public Node rootNode;
-    public Dictionary<string, Node> nodes = new();
     public Matrix4x4 inverseTransform;
     public Dictionary<string, Animation> animations = new();
 
     public string Guid { get; set; }
 
-    public Node GetNode(string name) => name != null && nodes.TryGetValue(name, out var node) ? node : null;
+    public static Node GetNode(Node rootNode, string name)
+    {
+        if (name == null)
+        {
+            return null;
+        }
+
+        return rootNode.GetNode(name);
+    }
+
+    public static bool TryGetNode(Node rootNode, string name, out Node node)
+    {
+        if (name == null)
+        {
+            node = null;
+
+            return false;
+        }
+
+        node = rootNode.GetNode(name);
+
+        return node != null;
+    }
+
+    public Node GetNode(string name) => GetNode(rootNode, name);
+
+    public bool TryGetNode(string name, out Node node) => TryGetNode(rootNode, name, out node);
 
     public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
 

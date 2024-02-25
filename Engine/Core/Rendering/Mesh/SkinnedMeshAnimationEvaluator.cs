@@ -11,38 +11,15 @@ internal class SkinnedMeshAnimationEvaluator
     public Dictionary<int, int> lastPositionIndex = new();
     public Dictionary<int, int> lastRotationIndex = new();
     public Dictionary<int, int> lastScaleIndex = new();
-    public Dictionary<string, MeshAsset.Node> nodes = new();
     public float lastTime;
     public float playTime;
+    public MeshAsset.Node rootNode;
 
-    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation)
+    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode)
     {
         meshAsset = asset;
         this.animation = animation;
-
-        foreach(var pair in asset.nodes)
-        {
-            nodes.Add(pair.Key, new()
-            {
-                name = pair.Value.name,
-                originalTransform = pair.Value.originalTransform,
-                transform = pair.Value.transform
-            });
-        }
-
-        foreach(var pair in asset.nodes)
-        {
-            var parent = nodes[pair.Key];
-
-            foreach(var child in pair.Value.children)
-            {
-                var localChild = nodes[child.name];
-
-                parent.children.Add(localChild);
-
-                localChild.parent = parent;
-            }
-        }
+        this.rootNode = rootNode;
     }
 
     public void Evaluate()
@@ -63,7 +40,7 @@ internal class SkinnedMeshAnimationEvaluator
             var channel = animation.channels[i];
 
             if(channel.node == null ||
-                nodes.TryGetValue(channel.node.name, out var node) == false)
+                MeshAsset.TryGetNode(rootNode, channel.node.name, out var node) == false)
             {
                 continue;
             }
