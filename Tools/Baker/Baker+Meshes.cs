@@ -162,6 +162,8 @@ static partial class Program
                 _ => 0
             };
 
+            context.Scale = metadata.scale;
+
             var flags = Assimp.PostProcessSteps.TransformUVCoords |
                 Assimp.PostProcessSteps.GenerateSmoothNormals |
                 Assimp.PostProcessSteps.GenerateUVCoords |
@@ -503,9 +505,24 @@ static partial class Program
                 Console.WriteLine($"\t\tGenerated material {target}");
             }
 
+            var transformMatrix = metadata.rotation switch
+            {
+                MeshAssetRotation.None => Matrix4x4.Identity,
+                MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)),
+                MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(-90)),
+                _ => Matrix4x4.Identity
+            };
+
+            transformMatrix = Matrix4x4.CreateScale(metadata.scale) * transformMatrix;
+
+            if(scene.Meshes.Any(x => x.HasBones))
+            {
+                transformMatrix = Matrix4x4.Identity;
+            }
+
             Vector3Holder ApplyTransform(Vector3Holder value)
             {
-                return new Vector3Holder(new Vector3(value.x * metadata.scale, value.y * metadata.scale, value.z * metadata.scale));
+                return new Vector3Holder(Vector3.Transform(value.ToVector3(), transformMatrix));
             }
 
             void RegisterNode(Assimp.Node node, MeshAssetNode parent)
@@ -542,6 +559,22 @@ static partial class Program
                     var c = new MeshAssetAnimationChannel()
                     {
                         nodeName = channel.NodeName,
+                        preState = channel.PreState switch
+                        {
+                            Assimp.AnimationBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
+                            Assimp.AnimationBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
+                            Assimp.AnimationBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
+                            Assimp.AnimationBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
+                            _ => MeshAssetAnimationStateBehaviour.Default,
+                        },
+                        postState = channel.PostState switch
+                        {
+                            Assimp.AnimationBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
+                            Assimp.AnimationBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
+                            Assimp.AnimationBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
+                            Assimp.AnimationBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
+                            _ => MeshAssetAnimationStateBehaviour.Default,
+                        },
                         positionKeys = channel.PositionKeys.Select(x => new MeshAssetVectorAnimationKey()
                         {
                             time = (float)x.Time,

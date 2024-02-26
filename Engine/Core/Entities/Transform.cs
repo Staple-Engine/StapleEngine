@@ -38,7 +38,7 @@ public class Transform : IComponent, IEnumerable<Transform>
             {
                 Changed = false;
 
-                matrix = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
+                matrix = Math.TransformationMatrix(position, scale, rotation);
             }
 
             if(parent != null)

@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -152,32 +151,6 @@ public class MeshAsset : IGuidAsset
         public List<AnimationKey<Vector3>> scales = new();
 
         public List<AnimationKey<Quaternion>> rotations = new();
-
-        public Matrix4x4 TransformMatrix(float time)
-        {
-            T GetValue<T>(List<AnimationKey<T>> values)
-            {
-                T value = default;
-
-                for(var i = 0; i < values.Count; i++)
-                {
-                    if (values[i].time > time)
-                    {
-                        return value;
-                    }
-
-                    value = values[i].value;
-                }
-
-                return value;
-            }
-
-            var position = GetValue(positions);
-            var scale = GetValue(scales);
-            var rotation = GetValue(rotations);
-
-            return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
-        }
     }
 
     public class Animation

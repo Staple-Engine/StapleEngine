@@ -21,7 +21,7 @@ internal class MeshRenderSystem : IRenderSystem
     {
         if(mesh == null ||
             material == null ||
-            material.IsValid)
+            material.IsValid == false)
         {
             return;
         }
@@ -75,6 +75,7 @@ internal class MeshRenderSystem : IRenderSystem
 
         if (r.mesh == null ||
             r.materials == null ||
+            r.materials.Count == 0 ||
             r.materials.Any(x => x.IsValid == false))
         {
             return;
@@ -101,6 +102,7 @@ internal class MeshRenderSystem : IRenderSystem
 
         if (r.mesh == null ||
             r.materials == null ||
+            r.materials.Count == 0 ||
             r.materials.Any(x => x.IsValid == false))
         {
             return;

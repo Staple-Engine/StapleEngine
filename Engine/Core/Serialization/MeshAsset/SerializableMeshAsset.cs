@@ -5,6 +5,14 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
+public enum MeshAssetAnimationStateBehaviour
+{
+    Default,
+    Constant,
+    Linear,
+    Repeat,
+}
+
 public enum MeshAssetType
 {
     Normal,
@@ -299,6 +307,12 @@ public class MeshAssetAnimationChannel
 
     [Key(3)]
     public List<MeshAssetVectorAnimationKey> scaleKeys = new();
+
+    [Key(4)]
+    public MeshAssetAnimationStateBehaviour preState;
+
+    [Key(5)]
+    public MeshAssetAnimationStateBehaviour postState;
 }
 
 [MessagePackObject]

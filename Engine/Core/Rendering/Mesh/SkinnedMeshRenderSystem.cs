@@ -124,6 +124,10 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                             item.transform.LocalRotation = rotation;
                             item.transform.LocalScale = scale;
                         }
+                        else
+                        {
+                            Log.Warning($"Failed to get node renderer for {bone.name}");
+                        }
                     }
                     else
                     {
@@ -133,7 +137,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                         globalTransform = node.GlobalTransform;
                     }
 
-                    boneMatrices[j] = bone.offsetMatrix * globalTransform * meshAsset.inverseTransform;
+                    boneMatrices[j] = bone.offsetMatrix * globalTransform;
                 }
 
                 unsafe

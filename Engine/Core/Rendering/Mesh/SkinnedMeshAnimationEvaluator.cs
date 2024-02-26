@@ -168,11 +168,7 @@ internal class SkinnedMeshAnimationEvaluator
             lastScaleIndex.AddOrSetKey(i, scaleIndex);
             lastRotationIndex.AddOrSetKey(i, rotationIndex);
 
-            var transform = Matrix4x4.CreateScale(scale) *
-                    Matrix4x4.CreateFromQuaternion(rotation) *
-                    Matrix4x4.CreateTranslation(position);
-
-            node.transform = transform;
+            node.transform = Math.TransformationMatrix(position, scale, rotation);
         }
 
         lastTime = time;

@@ -318,6 +318,30 @@ public static class Math
         return Quaternion.CreateFromYawPitchRoll(Deg2Rad(angles.Y), Deg2Rad(angles.X), Deg2Rad(angles.Z));
     }
 
+    /// <summary>
+    /// Creates a transformation matrix
+    /// </summary>
+    /// <param name="position">The position</param>
+    /// <param name="scale">The scale</param>
+    /// <param name="rotation">The rotation</param>
+    /// <returns>The transformation matrix</returns>
+    public static Matrix4x4 TransformationMatrix(Vector3 position, Vector3 scale, Quaternion rotation)
+    {
+        return Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, scale.Z)) *
+            Matrix4x4.CreateFromQuaternion(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)) *
+            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
+    }
+
+    /// <summary>
+    /// Creates a left-handed orthographic projection matrix
+    /// </summary>
+    /// <param name="left">left coordinate</param>
+    /// <param name="right">right coordinate</param>
+    /// <param name="bottom">bottom coordinate</param>
+    /// <param name="top">top coordinate</param>
+    /// <param name="zNear">near plane</param>
+    /// <param name="zFar">far plane</param>
+    /// <returns>The matrix</returns>
     public static Matrix4x4 OrthoLeftHanded(float left, float right, float bottom, float top, float zNear, float zFar)
     {
         var outValue = Matrix4x4.Identity;
@@ -332,6 +356,16 @@ public static class Math
         return outValue;
     }
 
+    /// <summary>
+    /// Creates a right-handed orthographic projection matrix
+    /// </summary>
+    /// <param name="left">left coordinate</param>
+    /// <param name="right">right coordinate</param>
+    /// <param name="bottom">bottom coordinate</param>
+    /// <param name="top">top coordinate</param>
+    /// <param name="zNear">near plane</param>
+    /// <param name="zFar">far plane</param>
+    /// <returns>The matrix</returns>
     public static Matrix4x4 OrthoRightHanded(float left, float right, float bottom, float top, float zNear, float zFar)
     {
         var outValue = Matrix4x4.Identity;

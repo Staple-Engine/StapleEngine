@@ -58,7 +58,7 @@ internal partial class StapleEditor
             pickEntityBodies.Remove(entity);
         }
 
-        var extents = bounds.extents;
+        var extents = bounds.extents * transform.Scale * 2;
 
         var needsBoundsFix = extents.X < JoltPhysics3D.MinExtents ||
             extents.Y < JoltPhysics3D.MinExtents ||

@@ -49,10 +49,10 @@ internal partial class StapleEditor
                     {
                         system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
 
+                        system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+
                         if (related is Renderable renderable)
                         {
-                            system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
-
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
                     }

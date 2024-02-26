@@ -67,22 +67,26 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
             return;
         }
 
-        if ((animator.evaluator == null ||
-            animator.evaluator.animation.name != animator.animation))
-        {
-            animator.evaluator = new(animator.mesh.meshAsset,
-                animator.mesh.meshAsset.animations[animator.animation],
-                animator.mesh.meshAsset.rootNode.Clone());
-        }
-
         if (animator.nodeRenderers.Count == 0)
         {
             animator.nodeRenderers = GatherNodes(transform, animator.mesh.meshAsset.rootNode);
         }
 
-        if (Platform.IsPlaying)
+        if (Platform.IsPlaying || animator.playInEditMode)
         {
+            if ((animator.evaluator == null ||
+                animator.evaluator.animation.name != animator.animation))
+            {
+                animator.evaluator = new(animator.mesh.meshAsset,
+                    animator.mesh.meshAsset.animations[animator.animation],
+                    animator.mesh.meshAsset.rootNode.Clone());
+            }
+
             animator.evaluator.Evaluate();
+        }
+        else if(animator.playInEditMode == false)
+        {
+            animator.evaluator = null;
         }
     }
 
