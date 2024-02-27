@@ -271,6 +271,9 @@ public class MeshAssetNode
 
     [Key(2)]
     public List<MeshAssetNode> children = new();
+
+    [Key(3)]
+    public List<int> meshIndices = new();
 }
 
 [MessagePackObject]

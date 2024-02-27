@@ -283,11 +283,11 @@ static partial class Program
 
             var materialMapping = new List<string>();
 
-            var materialRequiresSkinning = scene.Meshes.Any(x => x.HasBones);
-
-            foreach(var material in scene.Materials)
+            for(var j = 0; j < scene.MaterialCount; j++)
             {
-                string fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
+                var material = scene.Materials[j];
+
+                var fileName = Path.GetFileNameWithoutExtension(meshFiles[i].Replace(".meta", ""));
 
                 if(material.HasName)
                 {
@@ -300,6 +300,8 @@ static partial class Program
 
                 var target = Path.Combine(Path.GetDirectoryName(meshFiles[i]), fileName);
                 var materialGuid = FindGuid<Material>($"{target}.meta");
+
+                var materialRequiresSkinning = scene.Meshes.Any(x => x.MaterialIndex == j && x.HasBones);
 
                 materialMapping.Add(materialGuid);
 
@@ -391,23 +393,56 @@ static partial class Program
                         {
                             try
                             {
-                                var p = Path.Combine(Path.GetDirectoryName(meshFiles[i]), string.Join("/", pieces)).Replace("\\", "/");
+                                var baseP = Path.Combine(Path.GetDirectoryName(meshFiles[i]), string.Join("/", pieces.Take(pieces.Count - 1)));
 
-                                if (File.Exists(p))
+                                var directories = Directory.GetDirectories(baseP);
+
+                                bool Find(string path)
                                 {
-                                    texturePath = string.Join("/", pieces);
+                                    var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
 
-                                    if(processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                    if (File.Exists(p))
                                     {
-                                        texturePath = guid;
+                                        texturePath = string.Join("/", pieces);
+
+                                        if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                        {
+                                            texturePath = guid;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+
+                                            texturePath = "";
+                                        }
+
+                                        return true;
                                     }
-                                    else
+
+                                    return false;
+                                }
+
+                                var found = false;
+
+                                foreach (var directory in directories)
+                                {
+                                    found = Find(Path.Combine(baseP, directory));
+
+                                    if(found)
                                     {
-                                        Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
-
-                                        texturePath = "";
+                                        break;
                                     }
+                                }
 
+                                if(found)
+                                {
+                                    break;
+                                }
+
+                                found = Find(baseP);
+
+                                if(found)
+                                {
                                     break;
                                 }
                             }
@@ -531,6 +566,7 @@ static partial class Program
                 {
                     name = node.Name,
                     matrix = new Matrix4x4Holder(ToMatrix4x4(node.Transform)),
+                    meshIndices = node.MeshIndices,
                 };
 
                 meshData.rootNode ??= newNode;

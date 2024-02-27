@@ -1931,10 +1931,11 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(3);
+            writer.WriteArrayHeader(4);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Matrix4x4Holder>().Serialize(ref writer, value.matrix, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetNode>>().Serialize(ref writer, value.children, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.meshIndices, options);
         }
 
         public global::Staple.Internal.MeshAssetNode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1961,6 +1962,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 2:
                         ____result.children = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetNode>>().Deserialize(ref reader, options);
+                        break;
+                    case 3:
+                        ____result.meshIndices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

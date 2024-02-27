@@ -60,6 +60,10 @@ internal static class ImGuiUtils
 
                     ImGui.EndDragDropSource();
                 }
+                else if(ImGui.IsMouseDown(ImGuiMouseButton.Left) == false)
+                {
+                    StapleEditor.instance.dragDropPayloads.Clear();
+                }
             }
 
             ImGui.TextWrapped(item.name);

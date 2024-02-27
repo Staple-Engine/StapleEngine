@@ -62,6 +62,8 @@ public class MeshAsset : IGuidAsset
 
         public List<Node> children = new();
 
+        public List<int> meshIndices = new();
+
         public Matrix4x4 originalTransform;
 
         public Matrix4x4 transform;
@@ -120,6 +122,7 @@ public class MeshAsset : IGuidAsset
                 originalTransform = originalTransform,
                 transform = transform,
                 parent = parent,
+                meshIndices = meshIndices,
             };
 
             foreach(var child in children)

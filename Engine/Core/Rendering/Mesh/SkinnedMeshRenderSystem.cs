@@ -38,7 +38,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
             renderer.materials == null ||
             renderer.materials.Count != renderer.mesh.submeshes.Count ||
-            renderer.materials.Any(x => x.IsValid == false))
+            renderer.materials.Any(x => x == null || x.IsValid == false))
         {
             return;
         }
@@ -55,7 +55,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
             renderer.materials == null ||
             renderer.materials.Count != renderer.mesh.submeshes.Count ||
-            renderer.materials.Any(x => x.IsValid == false))
+            renderer.materials.Any(x => x == null || x.IsValid == false))
         {
             return;
         }

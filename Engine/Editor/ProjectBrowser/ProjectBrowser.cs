@@ -773,13 +773,53 @@ internal class ProjectBrowser
                                         nodeTransform.LocalRotation = nodeRotation;
                                         nodeTransform.LocalScale = nodeScale;
 
-                                        //Debug only
-                                        /*
-                                        var meshRenderer = nodeEntity.AddComponent<MeshRenderer>(nodeEntity);
+                                        if(current.meshIndices.Count > 0)
+                                        {
+                                            foreach(var index in current.meshIndices)
+                                            {
+                                                if(index < 0 || index >= asset.meshes.Count)
+                                                {
+                                                    continue;
+                                                }
 
-                                        meshRenderer.mesh = Mesh.Cube;
-                                        meshRenderer.material = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
-                                        */
+                                                var mesh = asset.meshes[index];
+                                                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
+
+                                                var meshTransform = meshEntity.GetComponent<Transform>();
+
+                                                var isSkinned = mesh.bones.Any(x => x.Count > 0);
+
+                                                if (isSkinned)
+                                                {
+                                                    meshTransform.SetParent(baseTransform);
+                                                }
+                                                else
+                                                {
+                                                    meshTransform.SetParent(nodeTransform);
+                                                }
+
+                                                var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{index}", true);
+                                                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
+
+                                                if (outMesh != null)
+                                                {
+                                                    if (isSkinned)
+                                                    {
+                                                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                                                        skinnedRenderer.mesh = outMesh;
+                                                        skinnedRenderer.materials = outMaterials;
+                                                    }
+                                                    else
+                                                    {
+                                                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                                                        meshRenderer.mesh = outMesh;
+                                                        meshRenderer.materials = outMaterials;
+                                                    }
+                                                }
+                                            }
+                                        }
 
                                         foreach (var child in current.children)
                                         {
@@ -789,38 +829,6 @@ internal class ProjectBrowser
                                 }
 
                                 Recursive(asset.rootNode, baseTransform);
-                            }
-
-                            var meshIndex = 0;
-
-                            foreach (var mesh in asset.meshes)
-                            {
-                                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
-
-                                var meshTransform = meshEntity.GetComponent<Transform>();
-
-                                meshTransform.SetParent(baseTransform);
-
-                                var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{meshIndex++}");
-                                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
-
-                                if(outMesh != null)
-                                {
-                                    if(outMesh.boneIndices.Length > 0)
-                                    {
-                                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
-
-                                        skinnedRenderer.mesh = outMesh;
-                                        skinnedRenderer.materials = outMaterials;
-                                    }
-                                    else
-                                    {
-                                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
-
-                                        meshRenderer.mesh = outMesh;
-                                        meshRenderer.materials = outMaterials;
-                                    }
-                                }
                             }
                         }
 

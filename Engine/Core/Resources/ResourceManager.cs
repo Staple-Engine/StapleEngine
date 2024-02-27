@@ -740,7 +740,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var shader = LoadShader(materialData.metadata.shader);
+            var shader = LoadShader(materialData.metadata.shader, ignoreCache);
 
             if (shader == null)
             {
@@ -1278,6 +1278,7 @@ internal class ResourceManager
                     transform = transform,
                     originalTransform = transform,
                     parent = parent,
+                    meshIndices = node.meshIndices,
                 };
 
                 parent?.children.Add(outNode);
