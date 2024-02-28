@@ -132,10 +132,20 @@ internal partial class StapleEditor
 
         fileSystemWatcher = new FileSystemWatcher(Path.Combine(basePath, "Assets"));
 
-        fileSystemWatcher.Changed += (_, _) =>
+        FileSystemEventHandler fileSystemHandler = (object sender, FileSystemEventArgs e) =>
         {
             needsGameRecompile = true;
         };
+
+        RenamedEventHandler renamedFileSystemHandler = (object sender, RenamedEventArgs e) =>
+        {
+            needsGameRecompile = true;
+        };
+
+        fileSystemWatcher.Changed += fileSystemHandler;
+        fileSystemWatcher.Created += fileSystemHandler;
+        fileSystemWatcher.Deleted += fileSystemHandler;
+        fileSystemWatcher.Renamed += renamedFileSystemHandler;
 
         fileSystemWatcher.EnableRaisingEvents = true;
 

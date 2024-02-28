@@ -775,6 +775,12 @@ internal class ProjectBrowser
 
                                         if(current.meshIndices.Count > 0)
                                         {
+                                            var skinningParentEntity = Entity.Create(current.name, typeof(Transform));
+
+                                            var skinningParentTransform = skinningParentEntity.GetComponent<Transform>();
+
+                                            skinningParentTransform.SetParent(baseTransform);
+
                                             foreach(var index in current.meshIndices)
                                             {
                                                 if(index < 0 || index >= asset.meshes.Count)
@@ -783,19 +789,27 @@ internal class ProjectBrowser
                                                 }
 
                                                 var mesh = asset.meshes[index];
+
                                                 var meshEntity = Entity.Create(mesh.name, typeof(Transform));
 
                                                 var meshTransform = meshEntity.GetComponent<Transform>();
 
                                                 var isSkinned = mesh.bones.Any(x => x.Count > 0);
 
-                                                if (isSkinned)
+                                                meshTransform.SetParent(skinningParentTransform);
+
+                                                if (isSkinned == false)
                                                 {
-                                                    meshTransform.SetParent(baseTransform);
-                                                }
-                                                else
-                                                {
-                                                    meshTransform.SetParent(nodeTransform);
+                                                    meshTransform.SetParent(skinningParentTransform);
+
+                                                    if(Matrix4x4.Invert(baseTransform.Matrix, out var invertedBase) &&
+                                                        Matrix4x4.Decompose(nodeTransform.Matrix * invertedBase,
+                                                            out var scale, out var rotation, out var translation))
+                                                    {
+                                                        meshTransform.LocalPosition = translation;
+                                                        meshTransform.LocalRotation = rotation;
+                                                        meshTransform.LocalScale = scale;
+                                                    }
                                                 }
 
                                                 var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{index}", true);
