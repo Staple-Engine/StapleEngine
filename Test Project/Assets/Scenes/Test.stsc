@@ -2,8 +2,8 @@
   {
     "kind": "Entity",
     "name": "Camera",
-    "ID": 0,
-    "parent": -1,
+    "ID": 1,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
@@ -54,8 +54,8 @@
   {
     "kind": "Entity",
     "name": "Opossum",
-    "ID": 1,
-    "parent": -1,
+    "ID": 2,
+    "parent": 0,
     "transform": {
       "position": {
         "x": -1.0,
@@ -155,8 +155,8 @@
   {
     "kind": "Entity",
     "name": "Cherry",
-    "ID": 2,
-    "parent": -1,
+    "ID": 3,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 1.0,
@@ -249,8 +249,8 @@
   {
     "kind": "Entity",
     "name": "Camera",
-    "ID": 3,
-    "parent": 1,
+    "ID": 4,
+    "parent": 2,
     "transform": {
       "position": {
         "x": 0.0,
@@ -295,8 +295,8 @@
   {
     "kind": "Entity",
     "name": "Music",
-    "ID": 4,
-    "parent": -1,
+    "ID": 5,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
@@ -324,45 +324,6 @@
           "loop": true,
           "spatial": false,
           "autoplay": true
-        }
-      }
-    ],
-    "layer": "Default",
-    "enabled": true
-  },
-  {
-    "kind": "Entity",
-    "name": "Entity",
-    "ID": 5,
-    "parent": -1,
-    "transform": {
-      "position": {
-        "x": -3.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "rotation": {
-        "x": -90.0,
-        "y": 359.99997,
-        "z": 0.0
-      },
-      "scale": {
-        "x": 10.0,
-        "y": 10.0,
-        "z": 10.0
-      }
-    },
-    "components": [
-      {
-        "type": "Staple.MeshRenderer",
-        "data": {
-          "mesh": "3be47127-20fa-4c4d-b743-1ba03765ee89",
-          "material": "20f18b69-3013-4ae1-a3c9-afac0b387c77",
-          "enabled": true,
-          "forceRenderingOff": false,
-          "receiveShadows": true,
-          "sortingLayer": 0,
-          "sortingOrder": 0
         }
       }
     ],

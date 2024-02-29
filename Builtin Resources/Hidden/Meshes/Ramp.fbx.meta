@@ -1,5 +1,5 @@
 {
-  "guid": "3be47127-20fa-4c4d-b743-1ba03765ee89",
+  "guid": "14cc6159-c2be-4436-816b-103e10bb89eb",
   "makeLeftHanded": false,
   "splitLargeMeshes": false,
   "preTransformVertices": false,
@@ -10,6 +10,6 @@
   "debone": false,
   "typeName": "Staple.Mesh",
   "convertUnits": true,
-  "rotation": "NinetyPositive",
-  "scale": 2.0
+  "rotation": "NinetyNegative",
+  "scale": 0.5
 }
