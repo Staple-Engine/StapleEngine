@@ -27,7 +27,12 @@ internal class AssetPickerWindow : EditorWindow
     {
         base.OnGUI();
 
-        ImGui.InputText("Search", ref assetPickerSearch, uint.MaxValue);
+        string newValue = assetPickerSearch;
+
+        if(ImGui.InputText("Search", ref newValue, 256))
+        {
+            assetPickerSearch = newValue;
+        }
 
         ImGui.BeginChildFrame(ImGui.GetID("AssetList"), Vector2.Zero);
 
@@ -41,7 +46,7 @@ internal class AssetPickerWindow : EditorWindow
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
                 asset.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
             {
-                return;
+                continue;
             }
 
             if (assetPickerType.FullName == asset.typeName)
