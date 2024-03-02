@@ -113,6 +113,7 @@ static partial class Program
                     byte[] ProcessShader(string varyingFileName, string shaderFileName, ShaderCompilerType shaderType, Renderer renderer)
                     {
                         var shaderPlatform = "";
+                        var outShaderFileName = GenerateGuid();
 
                         switch (renderer)
                         {
@@ -216,7 +217,7 @@ static partial class Program
                             StartInfo = new ProcessStartInfo
                             {
                                 FileName = shadercPath,
-                                Arguments = $"-f \"shader_input\" -o \"{shaderFileName}\" {shaderDefineString} --type {shaderType} {bgfxShaderInclude} {shaderPlatform} {varyingParameter}",
+                                Arguments = $"-f \"{shaderFileName}\" -o \"{outShaderFileName}\" {shaderDefineString} --type {shaderType} {bgfxShaderInclude} {shaderPlatform} {varyingParameter}",
                                 UseShellExecute = false,
                                 RedirectStandardOutput = true,
                                 CreateNoWindow = true,
@@ -238,7 +239,7 @@ static partial class Program
 
                             try
                             {
-                                File.Delete(shaderFileName);
+                                File.Delete(outShaderFileName);
                             }
                             catch (Exception)
                             {
@@ -251,9 +252,9 @@ static partial class Program
 
                         try
                         {
-                            var data = File.ReadAllBytes(shaderFileName);
+                            var data = File.ReadAllBytes(outShaderFileName);
 
-                            File.Delete(shaderFileName);
+                            File.Delete(outShaderFileName);
 
                             return data;
                         }
