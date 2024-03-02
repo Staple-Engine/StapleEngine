@@ -27,28 +27,30 @@ static partial class Program
 
         for (var i = 0; i < materialFiles.Count; i++)
         {
-            Console.WriteLine($"\t{materialFiles[i]}");
+            var materialFileName = materialFiles[i];
+
+            Console.WriteLine($"\t{materialFileName}");
 
             try
             {
-                if (File.Exists(materialFiles[i]) == false)
+                if (File.Exists(materialFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {materialFiles[i]} doesn't exist");
+                    Console.WriteLine($"\t\tError: {materialFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {materialFiles[i]} doesn't exist");
+                Console.WriteLine($"\t\tError: {materialFileName} doesn't exist");
 
                 continue;
             }
 
-            var guid = FindGuid<Material>(materialFiles[i]);
+            var guid = FindGuid<Material>(materialFileName);
 
-            var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(materialFiles[i]));
-            var file = Path.GetFileName(materialFiles[i]);
+            var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(materialFileName));
+            var file = Path.GetFileName(materialFileName);
             var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
             var index = outputFile.IndexOf(inputPath);
@@ -58,83 +60,86 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            Console.WriteLine($"\t\t -> {outputFile}");
+            WorkScheduler.Dispatch(() =>
+            {
+                Console.WriteLine($"\t\t -> {outputFile}");
 
-            string text;
-            MaterialMetadata metadata;
+                string text;
+                MaterialMetadata metadata;
 
-            try
-            {
-                text = File.ReadAllText(materialFiles[i]);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"\t\tError: Failed to read file");
-
-                continue;
-            }
-
-            try
-            {
-                metadata = JsonConvert.DeserializeObject<MaterialMetadata>(text);
-
-                metadata.guid = guid;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"\t\tError: Metadata is corrupted");
-
-                continue;
-            }
-
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                Directory.CreateDirectory(outputPath);
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                File.Delete(outputFile);
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                var material = new SerializableMaterial()
+                try
                 {
-                    metadata = metadata
-                };
-
-                var header = new SerializableMaterialHeader();
-
-                using (var stream = File.OpenWrite(outputFile))
+                    text = File.ReadAllText(materialFileName);
+                }
+                catch (Exception)
                 {
-                    using (var writer = new BinaryWriter(stream))
+                    Console.WriteLine($"\t\tError: Failed to read file");
+
+                    return;
+                }
+
+                try
+                {
+                    metadata = JsonConvert.DeserializeObject<MaterialMetadata>(text);
+
+                    metadata.guid = guid;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"\t\tError: Metadata is corrupted");
+
+                    return;
+                }
+
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                }
+                catch (Exception)
+                {
+                }
+
+                try
+                {
+                    Directory.CreateDirectory(outputPath);
+                }
+                catch (Exception)
+                {
+                }
+
+                try
+                {
+                    File.Delete(outputFile);
+                }
+                catch (Exception)
+                {
+                }
+
+                try
+                {
+                    var material = new SerializableMaterial()
                     {
-                        var encoded = MessagePackSerializer.Serialize(header)
-                            .Concat(MessagePackSerializer.Serialize(material));
+                        metadata = metadata
+                    };
 
-                        writer.Write(encoded.ToArray());
+                    var header = new SerializableMaterialHeader();
+
+                    using (var stream = File.OpenWrite(outputFile))
+                    {
+                        using (var writer = new BinaryWriter(stream))
+                        {
+                            var encoded = MessagePackSerializer.Serialize(header)
+                                .Concat(MessagePackSerializer.Serialize(material));
+
+                            writer.Write(encoded.ToArray());
+                        }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"\t\tError: Failed to save baked material: {e}");
-            }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"\t\tError: Failed to save baked material: {e}");
+                }
+            });
         }
     }
 }

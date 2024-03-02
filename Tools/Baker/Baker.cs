@@ -297,6 +297,15 @@ static partial class Program
         ProcessAssets(platform, inputPath, outputPath);
         ProcessScenes(platform, inputPath, outputPath, editorMode);
         ProcessAppSettings(platform, inputPath, outputPath, editorMode);
+
+        WorkScheduler.WaitForTasks();
+    }
+
+    internal static string GenerateGuid()
+    {
+        Thread.Sleep(25);
+
+        return Guid.NewGuid().ToString();
     }
 
     internal static string FindGuid<T>(string path, bool ignoreType = false)
@@ -310,7 +319,7 @@ static partial class Program
 
             if (holder != null && (holder.guid?.Length ?? 0) > 0 && (ignoreType || holder.typeName == typeof(T).FullName))
             {
-                Console.WriteLine($"\t\tReusing guid {holder.guid}");
+                //Console.WriteLine($"\t\tReusing guid {holder.guid}");
 
                 return holder.guid;
             }
@@ -336,7 +345,7 @@ static partial class Program
 
             File.WriteAllText(meta, json);
 
-            Console.WriteLine($"\t\tRegenerating meta");
+            //Console.WriteLine($"\t\tRegenerating meta");
         }
         catch (Exception)
         {

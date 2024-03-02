@@ -53,6 +53,7 @@
 		<Compile Include="ShaderParameterSemantic.cs" />
 		<Compile Include="ShaderPiece.cs" />
 		<Compile Include="UnprocessedShader.cs" />
+		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>
