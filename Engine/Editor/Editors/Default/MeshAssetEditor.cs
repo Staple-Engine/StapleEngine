@@ -96,6 +96,32 @@ internal class MeshAssetEditor : Editor
             EditorGUI.ButtonDisabled("Revert");
         }
 
+        EditorGUI.SameLine();
+
+        if(EditorGUI.Button("Recreate Materials"))
+        {
+            try
+            {
+                var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.mat*");
+
+                foreach(var file in files)
+                {
+                    File.Delete(file);
+                }
+
+                File.Delete(cachePath);
+            }
+            catch(Exception)
+            {
+            }
+
+            EditorUtils.RefreshAssets(false, () =>
+            {
+                meshAsset = null;
+                needsLoad = true;
+            });
+        }
+
         if (meshAsset != null)
         {
             var hasExcessiveBones = meshAsset.meshes.Any(x => x.bones.Any(x => x.Count > 128));

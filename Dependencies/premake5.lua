@@ -9,6 +9,7 @@ local SUPPORT_DIR = "StapleSupport"
 solution "Dependencies"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
+	architecture "x64"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"

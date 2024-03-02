@@ -28,11 +28,14 @@
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="StapleCore">
 			<HintPath>..\..\Engine\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="StirlingLabs.Assimp.Net" Version="23.4.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Baker+AppSettings.cs" />
@@ -51,19 +54,11 @@
 		<Compile Include="ShaderPiece.cs" />
 		<Compile Include="UnprocessedShader.cs" />
 	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Include="StirlingLabs.Assimp.Net" Version="23.4.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-		</Reference>
-	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy  $(SolutionDir)Baker\bin\Debug\net8.0\*.exe $(SolutionDir)\bin
-			$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy  $(SolutionDir)Baker\bin\Debug\net8.0\*.dll $(SolutionDir)\bin
-			$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\Debug\net8.0\*.exe $(SolutionDir)\bin
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\Debug\net8.0\*.dll $(SolutionDir)\bin
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)\bin
 		</PostBuildEvent>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
