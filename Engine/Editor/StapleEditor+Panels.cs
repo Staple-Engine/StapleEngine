@@ -571,7 +571,28 @@ internal partial class StapleEditor
 
             selectedEntity.IterateComponents((ref IComponent component) =>
             {
-                if (ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow))
+                var isOpen = ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick);
+
+                if(component is not Transform)
+                {
+                    ImGui.SameLine();
+
+                    if (ImGui.SmallButton("X"))
+                    {
+                        selectedEntity.RemoveComponent(component.GetType());
+
+                        resetSelection = true;
+
+                        if(isOpen)
+                        {
+                            ImGui.TreePop();
+                        }
+
+                        return;
+                    }
+                }
+
+                if (isOpen)
                 {
                     if (component is Transform transform)
                     {
@@ -590,17 +611,6 @@ internal partial class StapleEditor
                     }
                     else
                     {
-                        if(ImGui.SmallButton("X"))
-                        {
-                            selectedEntity.RemoveComponent(component.GetType());
-
-                            resetSelection = true;
-
-                            ImGui.TreePop();
-
-                            return;
-                        }
-
                         if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
                         {
                             editor.OnInspectorGUI();
