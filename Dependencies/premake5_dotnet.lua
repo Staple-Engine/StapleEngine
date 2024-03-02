@@ -1,7 +1,4 @@
-local BUILD_DIR = path.join("build", _ACTION)
-if _OPTIONS["cc"] ~= nil then
-	BUILD_DIR = BUILD_DIR .. "_" .. _OPTIONS["cc"]
-end
+local BUILD_DIR = path.join("build", "dotnet")
 local BGFX_DIR = "bgfx"
 local BIMG_DIR = "bimg"
 local BX_DIR = "bx"
@@ -99,16 +96,16 @@ project "ImGui.NET"
 	
 	filter "system:windows"
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}/bin/x86_64/Debug",
-			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}/bin/x86_64/Release"
+			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}../native/bin/Debug",
+			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}../native/bin/Release"
 		}
 	
 	filter "system:linux"
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}/bin/x86_64/$(Configuration)"
+			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}../native/bin/$(Configuration)/"
 		}
 
 	filter "system:macos"
 		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}/bin/x86_64/$(Configuration)"
+			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}../native/bin/$(Configuration)/"
 		}

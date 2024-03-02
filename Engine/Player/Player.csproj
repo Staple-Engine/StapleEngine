@@ -49,10 +49,10 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)Player/bin/$(Configuration)/net8.0/Player* $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)Core/bin/$(Configuration)/net8.0/StapleCore.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/x86_64/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Player/bin/$(Configuration)/net8.0/Player* $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Core/bin/$(Configuration)/net8.0/StapleCore.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

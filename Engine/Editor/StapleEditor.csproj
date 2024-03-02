@@ -24,38 +24,28 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <ItemGroup>
+	<Reference Include="MessagePack">
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
+	</Reference>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<Reference Include="ImGui.NET">
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\ImGui.NET.dll</HintPath>
+	</Reference>
+	<Reference Include="NfdSharp">
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NfdSharp.dll</HintPath>
+	</Reference>
+  </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <Reference Include="MessagePack">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
-    </Reference>
 	<Reference Include="StapleCore">
 		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
 	</Reference>
-	<Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\ImGui.NET.dll</HintPath>
-    </Reference>
-	<Reference Include="NfdSharp">
-		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\NfdSharp.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Reference Include="MessagePack">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
-    </Reference>
 	<Reference Include="StapleCore">
 		<HintPath>..\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
-	</Reference>
-	<Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\ImGui.NET.dll</HintPath>
-    </Reference>
-	<Reference Include="NfdSharp">
-		<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\NfdSharp.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -126,9 +116,9 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL] $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL] $(SolutionDir)../Staging
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

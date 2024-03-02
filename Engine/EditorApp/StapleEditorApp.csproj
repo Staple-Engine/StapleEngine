@@ -43,11 +43,11 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-    $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/StapleEditorApp* $(SolutionDir)../Staging
-    $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-    $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.[DLL] $(SolutionDir)../Staging
-    $(SolutionDir)..\Dependencies\build\vs2022\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/vs2022/bin/x86_64/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
-    </PostBuildEvent>
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/StapleEditorApp* $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.[DLL] $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL] $(SolutionDir)../Staging
+	</PostBuildEvent>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

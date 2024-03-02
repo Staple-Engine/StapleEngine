@@ -1,4 +1,4 @@
-local BUILD_DIR = path.join("build", "vs2022")
+local BUILD_DIR = path.join("build", "native")
 local BGFX_DIR = "bgfx"
 local BIMG_DIR = "bimg"
 local BX_DIR = "bx"

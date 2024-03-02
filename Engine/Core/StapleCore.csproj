@@ -62,23 +62,23 @@
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
 
 		<Reference Include="glfwnet">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\glfwnet.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\glfwnet.dll</HintPath>
 		</Reference>
 
 	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\MessagePack.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="NVorbis">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\NVorbis.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NVorbis.dll</HintPath>
 		</Reference>
 		<Reference Include="NAudio">
-			<HintPath>..\..\Dependencies\build\vs2022\bin\Release\net8.0\NAudio.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NAudio.dll</HintPath>
 		</Reference>
 		<Reference Include="JoltPhysicsSharp">
 			<HintPath>..\..\Dependencies\JoltPhysicsSharp\JoltPhysicsSharp.dll</HintPath>
