@@ -7,6 +7,8 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    private FrustumCuller frustumCuller = new();
+
     public void RenderScene()
     {
         bgfx.touch(SceneView);
@@ -18,6 +20,8 @@ internal partial class StapleEditor
             var view = cameraTransform.Matrix;
 
             Matrix4x4.Invert(view, out view);
+
+            frustumCuller.Update(view, projection);
 
             bgfx.set_view_transform(SceneView, &view, &projection);
             bgfx.set_view_transform(WireframeView, &view, &projection);
@@ -49,11 +53,21 @@ internal partial class StapleEditor
                     {
                         system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
 
-                        system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
-
-                        if (related is Renderable renderable)
+                        if (related is Renderable renderable &&
+                            renderable.enabled)
                         {
+                            renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+
+                            if (renderable.isVisible && renderable.forceRenderingOff == false)
+                            {
+                                system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+                            }
+
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
+                        }
+                        else if(related is not Renderable)
+                        {
+                            system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
                         }
                     }
                 }
