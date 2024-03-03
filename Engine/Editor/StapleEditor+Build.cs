@@ -270,6 +270,15 @@ internal partial class StapleEditor
             {
                 File.Move(Path.Combine(outPath, $"Player.pdb"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}.pdb"), true);
             }
+            else
+            {
+                var pdbs = Directory.GetFiles(outPath, "*.pdb");
+
+                foreach(var file in pdbs)
+                {
+                    File.Delete(file);
+                }
+            }
         }
         catch (Exception)
         {
