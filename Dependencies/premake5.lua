@@ -302,12 +302,3 @@ project "glfw"
 
 	filter "action:vs*"
 		defines "_CRT_SECURE_NO_WARNINGS"
-
-
-project "dr_libs"
-	kind "SharedLib"
-	language "C"
-	
-	files {
-		"dr_libs/*.c"
-	}

@@ -1,5 +1,5 @@
 #define DR_MP3_IMPLEMENTATION
-#include "Original/dr_mp3.h"
+#include "../dr_libs/Original/dr_mp3.h"
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
