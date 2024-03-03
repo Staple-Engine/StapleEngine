@@ -46,4 +46,16 @@ internal class SkinnedMeshAnimatorEditor : Editor
 
         return base.RenderField(field);
     }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        if(target is not SkinnedMeshAnimator animator)
+        {
+            return;
+        }
+
+        animator.playInEditMode = EditorGUI.Toggle("Play on edit mode", animator.playInEditMode);
+    }
 }

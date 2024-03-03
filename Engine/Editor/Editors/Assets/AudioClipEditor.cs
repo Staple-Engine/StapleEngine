@@ -22,7 +22,7 @@ internal class AudioClipEditor : Editor
     {
         base.Destroy();
 
-        lock(lockObject)
+        lock (lockObject)
         {
             cancellation.Cancel();
             audioSource?.Destroy();
