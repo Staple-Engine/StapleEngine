@@ -2,6 +2,13 @@
 
 namespace Staple.Internal;
 
+public enum AudioClipFormat
+{
+    MP3,
+    OGG,
+    WAV
+}
+
 [MessagePackObject]
 public class SerializableAudioClipHeader
 {
@@ -26,4 +33,10 @@ public class SerializableAudioClip
 {
     [Key(0)]
     public AudioClipMetadata metadata;
+
+    [Key(1)]
+    public AudioClipFormat format;
+
+    [Key(2)]
+    public byte[] fileData;
 }

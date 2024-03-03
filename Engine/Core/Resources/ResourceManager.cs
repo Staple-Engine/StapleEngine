@@ -997,6 +997,8 @@ internal class ResourceManager
             audioClip = new AudioClip()
             {
                 metadata = audioData.metadata,
+                fileData = audioData.fileData,
+                format = audioData.format,
                 Guid = path,
             };
 

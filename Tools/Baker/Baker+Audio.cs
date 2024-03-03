@@ -91,32 +91,12 @@ static partial class Program
                 {
                 }
 
-                bool shouldCopy = true;
-
                 try
                 {
-                    shouldCopy = File.GetLastWriteTime(audioFileName.Replace(".meta", "")) > File.GetLastWriteTime($"{outputFile}.sbin");
-                }
-                catch (Exception)
-                {
-                }
+                    var fileData = File.ReadAllBytes(audioFileName.Replace(".meta", ""));
 
-                if (shouldCopy)
-                {
-                    Console.WriteLine($"\t\t\tCopying file as it is newer...");
+                    var extension = Path.GetExtension(audioFileName.Replace(".meta", "").ToUpperInvariant());
 
-                    try
-                    {
-                        File.Copy(audioFileName.Replace(".meta", ""), $"{outputFile}.sbin", true);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"\t\tError: Failed to save asset: {e}");
-                    }
-                }
-
-                try
-                {
                     var json = File.ReadAllText(audioFileName);
 
                     var metadata = JsonConvert.DeserializeObject<AudioClipMetadata>(json);
@@ -126,6 +106,14 @@ static partial class Program
                     var audioClip = new SerializableAudioClip()
                     {
                         metadata = metadata,
+                        fileData = fileData,
+                        format = extension switch
+                        {
+                            ".MP3" => AudioClipFormat.MP3,
+                            ".OGG" => AudioClipFormat.OGG,
+                            ".WAV" => AudioClipFormat.WAV,
+                            _ => 0,
+                        }
                     };
 
                     var header = new SerializableAudioClipHeader();
@@ -148,7 +136,6 @@ static partial class Program
                     try
                     {
                         File.Delete(outputFile);
-                        File.Delete($"{outputFile}.sbin");
                     }
                     catch (Exception)
                     {

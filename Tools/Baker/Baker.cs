@@ -295,6 +295,11 @@ static partial class Program
         ProcessMeshes(platform, inputPath, outputPath);
         ProcessMaterials(platform, inputPath, outputPath);
         ProcessAssets(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
+        CleanupUnusedFiles(platform, inputPath, outputPath);
+
         ProcessScenes(platform, inputPath, outputPath, editorMode);
         ProcessAppSettings(platform, inputPath, outputPath, editorMode);
 
