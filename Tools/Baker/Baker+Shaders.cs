@@ -42,6 +42,51 @@ static partial class Program
             shaderDefineString = $"--define {shaderDefineString}";
         }
 
+        bool ShouldClear()
+        {
+            for (var i = 0; i < shaderFiles.Count; i++)
+            {
+                var currentShader = shaderFiles[i];
+
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(currentShader));
+                var file = Path.GetFileName(currentShader);
+
+                foreach (var renderer in renderers)
+                {
+                    var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, renderer.ToString(), directory, file);
+                    var index = outputFile.IndexOf(inputPath);
+
+                    if (index >= 0 && index < outputFile.Length)
+                    {
+                        outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+                    }
+
+                    if (ShouldProcessFile(currentShader, outputFile))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        if(ShouldClear())
+        {
+            foreach (var renderer in renderers)
+            {
+                var outputDirectory = Path.Combine(outputPath == "." ? "" : outputPath, renderer.ToString());
+
+                try
+                {
+                    Directory.Delete(outputDirectory, true);
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
         for (var i = 0; i < shaderFiles.Count; i++)
         {
             var currentShader = shaderFiles[i];
@@ -70,7 +115,7 @@ static partial class Program
 
                 Console.WriteLine($"\t\t -> {outputFile}");
 
-                WorkScheduler.Dispatch(() =>
+                WorkScheduler.Dispatch(Path.GetFileName(currentShader.Replace(".meta", "")), () =>
                 {
                     try
                     {

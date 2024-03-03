@@ -41,7 +41,8 @@ static partial class Program
 
             foreach(var dir in outputDirs)
             {
-                if(inputDirs.All(x => Path.GetFileName(x) != Path.GetFileName(dir)))
+                if(inputDirs.All(x => Path.GetFileName(x) != Path.GetFileName(dir)) &&
+                    Enum.GetValues<Renderer>().Any(x => dir.Contains(x.ToString())) == false)
                 {
                     DeleteDirectory(dir);
                 }

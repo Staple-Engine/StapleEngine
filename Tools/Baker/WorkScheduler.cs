@@ -6,11 +6,17 @@ namespace Baker;
 internal static class WorkScheduler
 {
     private static int taskCount = 0;
+    private static int workCount = 0;
     private static object syncObject = new();
 
     public static void WaitForTasks()
     {
-        for(; ; )
+        lock (syncObject)
+        {
+            workCount = taskCount;
+        }
+
+        for (; ; )
         {
             lock(syncObject)
             {
@@ -22,7 +28,7 @@ internal static class WorkScheduler
         }
     }
 
-    public static void Dispatch(Action task)
+    public static void Dispatch(string fileName, Action task)
     {
         lock(syncObject)
         {
@@ -42,6 +48,8 @@ internal static class WorkScheduler
             lock (syncObject)
             {
                 taskCount--;
+
+                Console.WriteLine($"[{workCount - taskCount}/{workCount}] {fileName}");
             }
         });
     }
