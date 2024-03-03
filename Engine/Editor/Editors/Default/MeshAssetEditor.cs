@@ -133,6 +133,11 @@ internal class MeshAssetEditor : Editor
                 EditorGUI.Label("There are one or more meshes with excessive bone count. " +
                     "Please change import settings to reduce bones or split meshes.");
             }
+
+            if (meshAsset.meshes.Any(x => x.bones.Count > 0) && path.Contains(".fbx"))
+            {
+                EditorGUI.Label("Skinned FBX models currently import incorrectly,\nplease convert to another format such as gltf/glb");
+            }
         }
     }
 }
