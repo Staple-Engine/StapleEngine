@@ -11,7 +11,7 @@ public partial struct Entity
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
     public IComponent AddComponent(
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
         if (World.Current == null)
@@ -28,7 +28,7 @@ public partial struct Entity
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
     public T AddComponent
-        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>
+        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>
         () where T : IComponent
     {
         if (World.Current == null)

@@ -8,6 +8,9 @@ using System.Numerics;
 
 namespace Staple.Editor;
 
+/// <summary>
+/// GUI functions for custom editors and editor windows
+/// </summary>
 public static class EditorGUI
 {
     internal static ImGuiIOPtr io;
@@ -20,6 +23,9 @@ public static class EditorGUI
     private static bool changed = false;
     private static ulong counter = 0;
 
+    /// <summary>
+    /// Whether the GUI was interacted with this frame
+    /// </summary>
     public static bool Changed
     {
         get => changed;
@@ -39,36 +45,64 @@ public static class EditorGUI
         }
     }
 
+    /// <summary>
+    /// How much horizontal space is left in the current window
+    /// </summary>
+    /// <returns>The horizontal space</returns>
     public static float RemainingHorizontalSpace()
     {
         return ImGui.GetContentRegionAvail().X;
     }
 
+    /// <summary>
+    /// How much vertical space is left in the current window
+    /// </summary>
+    /// <returns>The vertical space</returns>
     public static float RemainingVerticalSpace()
     {
         return ImGui.GetContentRegionAvail().Y;
     }
 
+    /// <summary>
+    /// Make the next element be horizontal to the last one
+    /// </summary>
     public static void SameLine()
     {
         ImGui.SameLine();
     }
 
+    /// <summary>
+    /// Adds some space between elements
+    /// </summary>
     public static void Space()
     {
         ImGui.Spacing();
     }
 
+    /// <summary>
+    /// Shows a text label
+    /// </summary>
+    /// <param name="text">The text to show</param>
     public static void Label(string text)
     {
         ImGui.Text(text);
     }
 
+    /// <summary>
+    /// Shows a button
+    /// </summary>
+    /// <param name="label">The button label</param>
+    /// <returns>Whether the button was clicked</returns>
     public static bool Button(string label)
     {
         return ImGui.Button($"{label}##{counter++}");
     }
 
+    /// <summary>
+    /// Shows a disabled button
+    /// </summary>
+    /// <param name="label">The button label</param>
+    /// <returns>Whether the button was clicked</returns>
     public static bool ButtonDisabled(string label)
     {
         ImGui.BeginDisabled();
@@ -80,6 +114,12 @@ public static class EditorGUI
         return result;
     }
 
+    /// <summary>
+    /// Shows a text field for an int
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static int IntField(string label, int value)
     {
         Changed |= ImGui.InputInt(label, ref value);
@@ -87,6 +127,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a text field for a float
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static float FloatField(string label, float value)
     {
         Changed |= ImGui.InputFloat(label, ref value);
@@ -94,6 +140,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a text field for a Vector2
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static Vector2 Vector2Field(string label, Vector2 value)
     {
         Changed |= ImGui.InputFloat2(label, ref value);
@@ -101,6 +153,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a text field for a Vector2Int
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static Vector2Int Vector2IntField(string label, Vector2Int value)
     {
         var values = new int[] { value.X, value.Y };
@@ -110,6 +168,12 @@ public static class EditorGUI
         return new Vector2Int(values[0], values[1]);
     }
 
+    /// <summary>
+    /// Shows a text field for a Vector3
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static Vector3 Vector3Field(string label, Vector3 value)
     {
         Changed |= ImGui.InputFloat3(label, ref value);
@@ -117,6 +181,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a text field for a Vector4
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static Vector4 Vector4Field(string label, Vector4 value)
     {
         Changed |= ImGui.InputFloat4(label, ref value);
@@ -124,6 +194,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a dropdown field for an enum
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, T value) where T: struct, Enum
     {
         if(cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
@@ -147,6 +223,13 @@ public static class EditorGUI
         return newValue;
     }
 
+    /// <summary>
+    /// Shows a dropdown field for an enum
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <param name="values">The valid values for the field</param>
+    /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, T value, List<T> values) where T : struct, Enum
     {
         var current = values.IndexOf(value);
@@ -160,10 +243,15 @@ public static class EditorGUI
         return newValue;
     }
 
+    /// <summary>
+    /// Shows a dropdown field
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="options">The options for the field</param>
+    /// <param name="current">The current value index for the field</param>
+    /// <returns>The index of the selected value</returns>
     public static int Dropdown(string label, string[] options, int current)
     {
-        var previous = current;
-
         Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");
 
         if(current < 0)
@@ -174,6 +262,13 @@ public static class EditorGUI
         return current;
     }
 
+    /// <summary>
+    /// Shows a text field
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value</param>
+    /// <param name="maxLength">The maximum amount of characters</param>
+    /// <returns>The new value</returns>
     public static string TextField(string label, string value, int maxLength = 1000)
     {
         value ??= "";
@@ -183,15 +278,29 @@ public static class EditorGUI
         return value;
     }
 
-    public static string TextFieldMultiline(string label, string text, Vector2 size, int maxLength = 1000)
+    /// <summary>
+    /// Shows a text field with multiline input
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value</param>
+    /// <param name="size">The size the text box should use</param>
+    /// <param name="maxLength">The maximum amount of characters</param>
+    /// <returns>The new value</returns>
+    public static string TextFieldMultiline(string label, string value, Vector2 size, int maxLength = 1000)
     {
-        text ??= "";
+        value ??= "";
 
-        Changed |= ImGui.InputTextMultiline(label, ref text, (uint)maxLength, size);
+        Changed |= ImGui.InputTextMultiline(label, ref value, (uint)maxLength, size);
 
-        return text;
+        return value;
     }
 
+    /// <summary>
+    /// Shows a toggle
+    /// </summary>
+    /// <param name="label">The toggle label</param>
+    /// <param name="value">The current value</param>
+    /// <returns>The new value</returns>
     public static bool Toggle(string label, bool value)
     {
         Changed |= ImGui.Checkbox(label, ref value);
@@ -199,6 +308,12 @@ public static class EditorGUI
         return value;
     }
 
+    /// <summary>
+    /// Shows a color field
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value</param>
+    /// <returns>The new value</returns>
     public static Color ColorField(string label, Color value)
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
@@ -208,6 +323,12 @@ public static class EditorGUI
         return new Color(v.X, v.Y, v.Z, v.W);
     }
 
+    /// <summary>
+    /// Shows a color picker field
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value</param>
+    /// <returns>The new value</returns>
     public static Color ColorPicker(string label, Color value)
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
@@ -217,6 +338,13 @@ public static class EditorGUI
         return new Color(v.X, v.Y, v.Z, v.W);
     }
 
+    /// <summary>
+    /// Shows an object picker field
+    /// </summary>
+    /// <param name="type">The type to choose</param>
+    /// <param name="name">The name to show for the field</param>
+    /// <param name="current">The current value</param>
+    /// <returns>The new value</returns>
     public static object ObjectPicker(Type type, string name, object current)
     {
         ImGui.Text(name);
@@ -289,6 +417,11 @@ public static class EditorGUI
         return current;
     }
 
+    /// <summary>
+    /// Shows a texture
+    /// </summary>
+    /// <param name="texture">The texture to show</param>
+    /// <param name="size">The size of the image that will appear</param>
     public static void Texture(Texture texture, Vector2 size)
     {
         if(texture == null)
@@ -299,6 +432,13 @@ public static class EditorGUI
         ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size);
     }
 
+    /// <summary>
+    /// Shows a texture with a specific rectangle and rotation
+    /// </summary>
+    /// <param name="texture">The texture to show</param>
+    /// <param name="rect">The rectangle with the coordinates inside the texture</param>
+    /// <param name="size">The size of the image that will appear</param>
+    /// <param name="rotation">The rotation to apply to the texture</param>
     public static void TextureRect(Texture texture, Rect rect, Vector2 size, TextureSpriteRotation rotation = TextureSpriteRotation.None)
     {
         if (texture == null)

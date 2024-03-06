@@ -34,6 +34,10 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Loads a project at a specific path
+    /// </summary>
+    /// <param name="path">The patht to load from</param>
     public void LoadProject(string path)
     {
         try
@@ -186,6 +190,10 @@ internal partial class StapleEditor
         window.Title = $"Staple Editor - {Path.GetFileName(path)}";
     }
 
+    /// <summary>
+    /// Refreshes the current assets and optionally updates the C# project
+    /// </summary>
+    /// <param name="updateProject">Whether to update the project</param>
     public void RefreshAssets(bool updateProject)
     {
         RefreshStaging(currentPlatform, updateProject);
@@ -193,6 +201,11 @@ internal partial class StapleEditor
         projectBrowser.UpdateProjectBrowserNodes();
     }
 
+    /// <summary>
+    /// Refreshes the assets cache and optionally updates the C# project
+    /// </summary>
+    /// <param name="platform">The current platform</param>
+    /// <param name="updateProject">Whether to update the project</param>
     public void RefreshStaging(AppPlatform platform, bool updateProject = true)
     {
         if(gameLoadDisabled)
@@ -360,6 +373,12 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Saves a Staple Asset
+    /// </summary>
+    /// <param name="assetPath">The asset path</param>
+    /// <param name="assetInstance">The asset's instance</param>
+    /// <returns></returns>
     public static bool SaveAsset(string assetPath, IStapleAsset assetInstance)
     {
         var existed = false;

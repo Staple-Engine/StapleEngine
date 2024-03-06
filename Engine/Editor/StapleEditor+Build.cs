@@ -49,6 +49,13 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Builds the game (Player)
+    /// </summary>
+    /// <param name="backend">The backend to use</param>
+    /// <param name="outPath">The output path</param>
+    /// <param name="debug">Whether to make a debug build</param>
+    /// <param name="nativeAOT">Whether to build natively</param>
     public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT)
     {
         lock (backgroundLock)
@@ -307,6 +314,9 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Builds the game assembly
+    /// </summary>
     public void BuildGame()
     {
         if (gameLoadDisabled)

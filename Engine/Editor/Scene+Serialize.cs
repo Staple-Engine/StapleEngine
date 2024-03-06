@@ -9,6 +9,11 @@ namespace Staple.Internal;
 
 internal static class SceneSerialize
 {
+    /// <summary>
+    /// Serializes a scene into a SerializableScene
+    /// </summary>
+    /// <param name="scene">The scene to serialize to</param>
+    /// <returns>The serialized scene</returns>
     public static SerializableScene Serialize(this Scene scene)
     {
         var outValue = new SerializableScene();

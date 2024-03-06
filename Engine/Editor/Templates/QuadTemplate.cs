@@ -1,6 +1,4 @@
-﻿using Staple.Internal;
-
-namespace Staple.Editor;
+﻿namespace Staple.Editor;
 
 internal class QuadTemplate : IEntityTemplate
 {

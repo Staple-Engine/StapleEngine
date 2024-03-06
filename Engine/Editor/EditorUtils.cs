@@ -14,6 +14,11 @@ public static class EditorUtils
         "TB"
     };
 
+    /// <summary>
+    /// Calculates the expanded camel case name for a field name
+    /// </summary>
+    /// <param name="self">The field name</param>
+    /// <returns>The expanded camel case name</returns>
     public static string ExpandCamelCaseName(this string self)
     {
         var outString = new StringBuilder();
@@ -101,25 +106,40 @@ public static class EditorUtils
         return result;
     }
 
+    /// <summary>
+    /// Calculates a string with the abbreviated byte size of a byte count (For example: 1KB)
+    /// </summary>
+    /// <param name="size"></param>
+    /// <returns></returns>
     public static string ByteSizeString(long size)
     {
+        double longSize = size;
         var counter = 0;
 
-        while (size >= 1024 && counter < byteSizes.Length)
+        while (longSize >= 1024 && counter < byteSizes.Length)
         {
             counter++;
 
-            size /= 1024;
+            longSize /= 1024;
         }
 
-        return $"{size}{byteSizes[counter]}";
+        return $"{longSize:0.00}{byteSizes[counter]}";
     }
 
+    /// <summary>
+    /// Refreshes the current assets
+    /// </summary>
+    /// <param name="onFinish">Callback when finished</param>
     public static void RefreshAssets(Action onFinish)
     {
         RefreshAssets(true, onFinish);
     }
 
+    /// <summary>
+    /// Refreshes the current assets
+    /// </summary>
+    /// <param name="updateProject">Whether to recompile the project</param>
+    /// <param name="onFinish">Callback when finished</param>
     internal static void RefreshAssets(bool updateProject, Action onFinish)
     {
         var editor = StapleEditor.instance;

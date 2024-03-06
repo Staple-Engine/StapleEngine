@@ -5,6 +5,9 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    /// <summary>
+    /// Resets the scene physics
+    /// </summary>
     public void ResetScenePhysics()
     {
         foreach(var pair in pickEntityBodies)
@@ -49,6 +52,12 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Replaces an entity's physics body in the scene
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="transform">The entity transform</param>
+    /// <param name="bounds">The entity bounds</param>
     public void ReplaceEntityBody(Entity entity, Transform transform, AABB bounds)
     {
         if(pickEntityBodies.TryGetValue(entity, out var pair))
@@ -93,6 +102,12 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Replaces an entity's body in the scene if needed
+    /// </summary>
+    /// <param name="entity">The entity to replace</param>
+    /// <param name="transform">The entity's transform</param>
+    /// <param name="bounds">The entity's bounds</param>
     public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
     {
         if(bounds.extents.LengthSquared() == 0)

@@ -11,8 +11,14 @@ using System.Threading;
 
 namespace Staple.Editor;
 
+/// <summary>
+/// Handles the navigation and listing of project items
+/// </summary>
 internal class ProjectBrowser
 {
+    /// <summary>
+    /// All valid resource types
+    /// </summary>
     public static Dictionary<string, ProjectBrowserResourceType> resourceTypes = new()
     {
         { ".asset", ProjectBrowserResourceType.Asset },
@@ -40,25 +46,56 @@ internal class ProjectBrowser
 
     public const float contentPanelPadding = 16;
 
+    /// <summary>
+    /// The location of the project
+    /// </summary>
     public string basePath;
 
+    /// <summary>
+    /// Which drag and drop operation we're doing right now
+    /// </summary>
     public static ProjectBrowserDropType dropType = ProjectBrowserDropType.None;
 
+    /// <summary>
+    /// The current list of project browser nodes/items
+    /// </summary>
     internal List<ProjectBrowserNode> projectBrowserNodes = new();
 
+    /// <summary>
+    /// The currently selected project browser node
+    /// </summary>
     public ProjectBrowserNode currentContentNode;
 
+    /// <summary>
+    /// The currently browsable project browser nodes
+    /// </summary>
     private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
 
+    /// <summary>
+    /// All nodes in the project
+    /// </summary>
     private List<ProjectBrowserNode> allNodes = new();
 
+    /// <summary>
+    /// Local editor resources for rendering
+    /// </summary>
     internal Dictionary<string, Texture> editorResources = new();
 
+    /// <summary>
+    /// Gets an editor resource if able
+    /// </summary>
+    /// <param name="name">The resource name</param>
+    /// <returns>The texture or null</returns>
     public Texture GetEditorResource(string name)
     {
         return editorResources.TryGetValue(name, out var texture) ? texture : null;
     }
 
+    /// <summary>
+    /// Attempts to load an editor texture
+    /// </summary>
+    /// <param name="name">The resource name</param>
+    /// <param name="path">The texture path</param>
     public void LoadEditorTexture(string name, string path)
     {
         path = Path.Combine(Environment.CurrentDirectory, "Editor Resources", path);
@@ -87,6 +124,9 @@ internal class ProjectBrowser
         return ProjectBrowserResourceType.Other;
     }
 
+    /// <summary>
+    /// Updates all project browser nodes
+    /// </summary>
     public void UpdateProjectBrowserNodes()
     {
         allNodes.Clear();
@@ -238,6 +278,10 @@ internal class ProjectBrowser
         }
     }
 
+    /// <summary>
+    /// Updates the current visible content nodes
+    /// </summary>
+    /// <param name="nodes">The base nodes we have access to right now</param>
     public void UpdateCurrentContentNodes(List<ProjectBrowserNode> nodes)
     {
         currentContentBrowserNodes.Clear();
@@ -294,6 +338,9 @@ internal class ProjectBrowser
         }
     }
 
+    /// <summary>
+    /// Creates any missing meta files
+    /// </summary>
     public void CreateMissingMetaFiles()
     {
         static void Recursive(List<ProjectBrowserNode> nodes)
@@ -575,6 +622,13 @@ internal class ProjectBrowser
         Recursive(projectBrowserNodes);
     }
 
+    /// <summary>
+    /// Draws the project browser in the editor GUI
+    /// </summary>
+    /// <param name="io">The ImGUI IO Pointer</param>
+    /// <param name="onClick">Callback when an item is clicked</param>
+    /// <param name="onDoubleClick">Callback when an item is double clicked</param>
+    /// <returns>Whether the window is hovered</returns>
     public bool Draw(ImGuiIOPtr io, Action<ProjectBrowserNode> onClick, Action<ProjectBrowserNode> onDoubleClick)
     {
         ImGui.Columns(2, "ProjectBrowserContent");

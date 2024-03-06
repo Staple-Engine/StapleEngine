@@ -6,14 +6,23 @@ using System.Linq;
 
 namespace Staple.Internal
 {
+    /// <summary>
+    /// Loads and manages player backends
+    /// </summary>
     internal class PlayerBackendManager
     {
         private readonly List<PlayerBackend> backends = new();
 
+        /// <summary>
+        /// The name of each backend
+        /// </summary>
         public static string[] BackendNames { get; private set; }
 
         public static readonly PlayerBackendManager Instance = new();
 
+        /// <summary>
+        /// Loads and initializes each player backend
+        /// </summary>
         public void Initialize()
         {
             if(backends.Count != 0)
@@ -55,11 +64,21 @@ namespace Staple.Internal
             BackendNames = backends.Select(x => x.name).ToArray();
         }
 
+        /// <summary>
+        /// Gets a player backend by name
+        /// </summary>
+        /// <param name="name">The backend's name</param>
+        /// <returns>The backend or null</returns>
         public PlayerBackend GetBackend(string name)
         {
             return backends.FirstOrDefault(x => x.name == name);
         }
 
+        /// <summary>
+        /// Gets a player backend by platform
+        /// </summary>
+        /// <param name="platform">The platform to build for</param>
+        /// <returns>The backend or null</returns>
         public PlayerBackend GetBackend(AppPlatform platform)
         {
             return backends.FirstOrDefault(x => x.platform == platform);

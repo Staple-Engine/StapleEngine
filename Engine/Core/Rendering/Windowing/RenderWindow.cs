@@ -214,6 +214,8 @@ internal class RenderWindow
             }
 
             RenderFrame(ref last);
+
+            Threading.Update();
         }
 
         try
@@ -376,6 +378,8 @@ internal class RenderWindow
             }
 
             last = DateTime.Now;
+
+            Threading.Update();
         }
 
         try

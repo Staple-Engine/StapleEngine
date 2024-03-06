@@ -5,6 +5,10 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    /// <summary>
+    /// Executes a background task
+    /// </summary>
+    /// <param name="callback">The background callback</param>
     public void StartBackgroundTask(BackgroundTaskProgressCallback callback)
     {
         Thread thread = null;

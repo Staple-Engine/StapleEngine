@@ -3,11 +3,21 @@ using System.Numerics;
 
 namespace Staple.Editor;
 
+/// <summary>
+/// Helper class to show gizmos in the scene view
+/// </summary>
 public static class Gizmo
 {
     private static Material meshMaterial;
     private static Mesh wireCube = null;
 
+    /// <summary>
+    /// Shows a box
+    /// </summary>
+    /// <param name="position">The position of the box</param>
+    /// <param name="rotation">The rotation of the box</param>
+    /// <param name="scale">The scale of the box</param>
+    /// <param name="color">The color of the box</param>
     public static void Box(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
     {
         meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
@@ -17,6 +27,13 @@ public static class Gizmo
         MeshRenderSystem.DrawMesh(Mesh.Cube, position, rotation, scale, meshMaterial, StapleEditor.WireframeView);
     }
 
+    /// <summary>
+    /// Shows a wireframe box
+    /// </summary>
+    /// <param name="position">The position of the box</param>
+    /// <param name="rotation">The rotation of the box</param>
+    /// <param name="scale">The scale of the box</param>
+    /// <param name="color">The color of the box</param>
     public static void WireframeBox(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
     {
         meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
@@ -30,8 +47,8 @@ public static class Gizmo
                 MeshTopology = MeshTopology.LineStrip,
             };
 
-            wireCube.vertices = new Vector3[]
-            {
+            wireCube.vertices =
+            [
                 //back
                 new Vector3(-0.5f, -0.5f, -0.5f),
                 new Vector3(-0.5f, 0.5f, -0.5f),
@@ -65,7 +82,7 @@ public static class Gizmo
                 new Vector3(-0.5f, -0.5f, 0.5f),
 
                 //No need for right
-            };
+            ];
 
             wireCube.indices = wireCube.vertices.Select((x, xIndex) => xIndex).ToArray();
 

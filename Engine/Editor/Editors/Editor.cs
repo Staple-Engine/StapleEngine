@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -76,6 +77,68 @@ public class Editor
 
             switch (type)
             {
+                case Type t when t.IsGenericType:
+
+                    if(t.GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        var listType = t.GetGenericArguments()[0];
+
+                        if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                        {
+                            if(field.GetValue(target) is IList list)
+                            {
+                                EditorGUI.Label(field.Name.ExpandCamelCaseName());
+
+                                EditorGUI.SameLine();
+
+                                var changed = false;
+
+                                if (EditorGUI.Button("+"))
+                                {
+                                    changed = true;
+
+                                    list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
+                                }
+
+                                ImGui.BeginGroup();
+
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    var entry = list[i];
+
+                                    var result = EditorGUI.ObjectPicker(listType, "", entry);
+
+                                    if (result != entry)
+                                    {
+                                        changed = true;
+
+                                        list[i] = result;
+                                    }
+
+                                    EditorGUI.SameLine();
+
+                                    if (EditorGUI.Button("-"))
+                                    {
+                                        changed = true;
+
+                                        list.RemoveAt(i);
+
+                                        break;
+                                    }
+                                }
+
+                                ImGui.EndGroup();
+
+                                if(changed)
+                                {
+                                    field.SetValue(target, list);
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+
                 case Type t when t.IsEnum:
 
                     {

@@ -452,6 +452,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         }
 
         renderWindow.RenderFrame(ref lastTime);
+
+        Threading.Update();
     }
 
     public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)

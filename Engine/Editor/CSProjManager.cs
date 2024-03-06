@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace Staple.Editor;
 
+/// <summary>
+/// Handles generating C# Projects
+/// </summary>
 internal class CSProjManager
 {
     private readonly Dictionary<string, DateTime> fileModifyStates = new();
@@ -33,6 +35,9 @@ internal class CSProjManager
     public string basePath;
     public string stapleBasePath;
 
+    /// <summary>
+    /// Gets the modify states of each game script, to know whether we need a full recompile.
+    /// </summary>
     public void CollectGameScriptModifyStates()
     {
         var assetsDirectory = Path.Combine(basePath, "Assets");
@@ -67,6 +72,10 @@ internal class CSProjManager
         Recursive(assetsDirectory);
     }
 
+    /// <summary>
+    /// Checks whether we need to recompile the game
+    /// </summary>
+    /// <returns>Whether to recompile</returns>
     public bool NeedsGameRecompile()
     {
         var assetsDirectory = Path.Combine(basePath, "Assets");
@@ -110,6 +119,9 @@ internal class CSProjManager
         return Recursive(assetsDirectory);
     }
 
+    /// <summary>
+    /// Opens the game's solution file
+    /// </summary>
     public void OpenGameSolution()
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
@@ -122,6 +134,11 @@ internal class CSProjManager
         Process.Start(startInfo);
     }
 
+    /// <summary>
+    /// Generates the game project file
+    /// </summary>
+    /// <param name="platform">The current platform</param>
+    /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
     public void GenerateGameCSProj(AppPlatform platform, bool sandbox)
     {
         using var collection = new ProjectCollection();
@@ -284,6 +301,13 @@ internal class CSProjManager
         }
     }
 
+    /// <summary>
+    /// Generates the player project
+    /// </summary>
+    /// <param name="backend">The player backend</param>
+    /// <param name="projectAppSettings">The project app settings</param>
+    /// <param name="debug">Whether it's a debug build</param>
+    /// <param name="nativeAOT">Whether to build natively</param>
     public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT)
     {
         using var collection = new ProjectCollection();

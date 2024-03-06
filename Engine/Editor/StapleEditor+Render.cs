@@ -9,6 +9,9 @@ internal partial class StapleEditor
 {
     private FrustumCuller frustumCuller = new();
 
+    /// <summary>
+    /// Renders the scene
+    /// </summary>
     public void RenderScene()
     {
         bgfx.touch(SceneView);
@@ -86,6 +89,7 @@ internal partial class StapleEditor
                 });
             }
 
+            //Temporarily disabled because obtrusive
             /*
             Scene.IterateEntities((entity) =>
             {

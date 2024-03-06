@@ -4,10 +4,19 @@ using System.Reflection;
 
 namespace Staple.Editor;
 
+/// <summary>
+/// Editor for gizmos
+/// </summary>
 public class GizmoEditor
 {
     private static Type[] editorTypes;
 
+    /// <summary>
+    /// Called when an entity is selected, for each component
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="transform">The entity transform</param>
+    /// <param name="component">The component</param>
     public virtual void OnGizmo(Entity entity, Transform transform, IComponent component)
     {
     }
@@ -22,6 +31,11 @@ public class GizmoEditor
                 .ToArray();
     }
 
+    /// <summary>
+    /// Attempts to create a gizmo editor for a component
+    /// </summary>
+    /// <param name="component">The component</param>
+    /// <returns>The editor, or null</returns>
     public static GizmoEditor CreateGizmoEditor(IComponent component)
     {
         Type editorType = null;

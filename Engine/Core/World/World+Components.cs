@@ -124,9 +124,7 @@ public partial class World
     /// <param name="entity">The entity to add the component to</param>
     /// <returns>The component instance, or default</returns>
     public T AddComponent
-        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-        DynamicallyAccessedMemberTypes.PublicFields |
-        DynamicallyAccessedMemberTypes.PublicProperties)]
+        <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         T>
         (Entity entity) where T : IComponent
     {
@@ -140,9 +138,7 @@ public partial class World
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
     public IComponent AddComponent(Entity entity,
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-        DynamicallyAccessedMemberTypes.PublicFields |
-        DynamicallyAccessedMemberTypes.PublicProperties)]
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
         if(TryGetEntity(entity, out var entityInfo) == false)

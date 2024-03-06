@@ -11,11 +11,6 @@ internal static class WorkScheduler
 
     public static void WaitForTasks()
     {
-        lock (syncObject)
-        {
-            workCount = taskCount;
-        }
-
         for (; ; )
         {
             lock(syncObject)
@@ -33,6 +28,7 @@ internal static class WorkScheduler
         lock(syncObject)
         {
             taskCount++;
+            workCount++;
         }
 
         ThreadPool.QueueUserWorkItem((_) =>

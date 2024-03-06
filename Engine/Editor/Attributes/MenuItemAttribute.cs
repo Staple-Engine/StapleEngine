@@ -2,6 +2,12 @@
 
 namespace Staple.Editor;
 
+/// <summary>
+/// Describes a menu item for some editor components such as editor windows.
+/// Describe the location of the menu by separating sections with `/`.
+//  Example:
+//    My Menu/My Item
+/// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public class MenuItemAttribute : Attribute
 {

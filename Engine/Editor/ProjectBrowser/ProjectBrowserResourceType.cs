@@ -1,5 +1,8 @@
 ﻿namespace Staple.Editor;
 
+/// <summary>
+/// Possible project item resource types
+/// </summary>
 internal enum ProjectBrowserResourceType
 {
     Material,

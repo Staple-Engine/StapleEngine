@@ -261,6 +261,10 @@ internal partial class StapleEditor
         ImGui.End();
     }
 
+    /// <summary>
+    /// Renders the entities panel
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void Entities(ImGuiIOPtr io)
     {
         ImGui.Begin("Entities");
@@ -343,7 +347,7 @@ internal partial class StapleEditor
                         {
                             ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                         }
-                        else if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                        else if(ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
                             SetSelectedEntity(transform.entity);
                         }
@@ -471,6 +475,10 @@ internal partial class StapleEditor
         ImGui.End();
     }
 
+    /// <summary>
+    /// Renders the viewport window
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void Viewport(ImGuiIOPtr io)
     {
         ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
@@ -523,6 +531,10 @@ internal partial class StapleEditor
         ImGui.End();
     }
 
+    /// <summary>
+    /// Renders the inspector
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void Inspector(ImGuiIOPtr io)
     {
         EditorGUI.Changed = false;
@@ -690,6 +702,10 @@ internal partial class StapleEditor
         ImGui.End();
     }
 
+    /// <summary>
+    /// Renders the bottom panel
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void BottomPanel(ImGuiIOPtr io)
     {
         ImGui.Begin("BottomPanel");
@@ -753,6 +769,10 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Renders the project browser
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void ProjectBrowser(ImGuiIOPtr io)
     {
         projectBrowser.Draw(io, (item) =>
@@ -1017,10 +1037,18 @@ internal partial class StapleEditor
         });
     }
 
+    /// <summary>
+    /// Renders the console
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void Console(ImGuiIOPtr io)
     {
     }
 
+    /// <summary>
+    /// Shows the progress popup for the current background task
+    /// </summary>
+    /// <param name="io">The current ImGUI IO</param>
     private void ProgressPopup(ImGuiIOPtr io)
     {
         if(wasShowingProgress != showingProgress && showingProgress)

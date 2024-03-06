@@ -10,6 +10,9 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    /// <summary>
+    /// Loads the game
+    /// </summary>
     public void LoadGame()
     {
         if (gameLoadDisabled)
@@ -118,6 +121,11 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Attempts to unload the game.
+    /// Due to .NET core not allowing us to force everything from the game out, we have to assume that the contents will be removed eventually.
+    /// Doesn't help that debug runtime keeps objects alive longer than they should!
+    /// </summary>
     public void UnloadGame()
     {
         if(gameLoadDisabled)
@@ -210,6 +218,9 @@ internal partial class StapleEditor
         }
     }
 
+    /// <summary>
+    /// Reloads the type cache and cleans up editor data
+    /// </summary>
     public void ReloadTypeCache()
     {
         foreach (var editor in cachedEditors)

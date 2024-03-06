@@ -14,6 +14,16 @@ internal static class ImGuiUtils
         public Func<Texture, Texture> ensureValidTexture;
     }
 
+    /// <summary>
+    /// Creates a content grid
+    /// </summary>
+    /// <param name="items">The items to show</param>
+    /// <param name="padding">The padding</param>
+    /// <param name="thumbnailSize">The thumbnail size</param>
+    /// <param name="dragPayload">The drag payload, if any</param>
+    /// <param name="onClick">Callback when an item is clicked</param>
+    /// <param name="onDoubleClick">Callback when an item is double clicked</param>
+    /// <param name="onDragDropped">Callback when an item was dropped</param>
     public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload,
         Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped)
     {
