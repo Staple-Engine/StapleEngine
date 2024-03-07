@@ -114,6 +114,7 @@
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
+		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />
 		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
@@ -251,6 +252,7 @@
 		<Compile Include="Serialization\Audio\SerializableAudioClip.cs" />
 		<Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
 		<Compile Include="Serialization\MeshAsset\SerializableMeshAsset.cs" />
+		<Compile Include="Serialization\Scene\SceneSerialization.cs" />
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />

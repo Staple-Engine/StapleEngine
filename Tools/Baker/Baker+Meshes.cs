@@ -68,6 +68,8 @@ class Vector4Filler
 
 static partial class Program
 {
+    private static object meshMaterialLock = new();
+
     private static void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
         var meshFiles = new List<string>();
@@ -287,261 +289,264 @@ static partial class Program
 
                 var materialMapping = new List<string>();
 
-                for (var j = 0; j < scene.MaterialCount; j++)
+                lock(meshMaterialLock)
                 {
-                    var material = scene.Materials[j];
-
-                    var fileName = Path.GetFileNameWithoutExtension(meshFileName.Replace(".meta", ""));
-
-                    if (material.HasName)
+                    for (var j = 0; j < scene.MaterialCount; j++)
                     {
-                        fileName = $"{material.Name}.mat";
-                    }
-                    else
-                    {
-                        fileName += $" {++counter}.mat";
-                    }
+                        var material = scene.Materials[j];
 
-                    var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
-                    var materialGuid = FindGuid<Material>($"{target}.meta");
+                        var fileName = Path.GetFileNameWithoutExtension(meshFileName.Replace(".meta", ""));
 
-                    var materialRequiresSkinning = scene.Meshes.Any(x => x.MaterialIndex == j && x.HasBones);
-
-                    materialMapping.Add(materialGuid);
-
-                    try
-                    {
-                        if (File.Exists(target))
+                        if (material.HasName)
                         {
-                            continue;
+                            fileName = $"{material.Name}.mat";
                         }
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var materialMetadata = new MaterialMetadata()
-                    {
-                        shader = materialRequiresSkinning ? "Hidden/Shaders/Default/StandardSkinned.stsh" : "Hidden/Shaders/Default/Standard.stsh",
-                    };
-
-                    var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "").Substring(1);
-
-                    void AddColor(string name, bool has, Assimp.Color4D color)
-                    {
-                        var c = Color.White;
-
-                        if (has)
+                        else
                         {
-                            c.r = color.R;
-                            c.g = color.G;
-                            c.b = color.B;
-                            c.a = color.A;
+                            fileName += $" {++counter}.mat";
                         }
 
-                        materialMetadata.parameters.Add(name, new MaterialParameter()
+                        var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
+                        var materialGuid = FindGuid<Material>($"{target}.meta");
+
+                        var materialRequiresSkinning = scene.Meshes.Any(x => x.MaterialIndex == j && x.HasBones);
+
+                        materialMapping.Add(materialGuid);
+
+                        try
                         {
-                            type = MaterialParameterType.Color,
-                            colorValue = c,
-                        });
-                    }
-
-                    AddColor("ambientColor", material.HasColorAmbient, material.ColorAmbient);
-                    AddColor("diffuseColor", material.HasColorDiffuse, material.ColorDiffuse);
-                    AddColor("emissiveColor", material.HasColorEmissive, material.ColorEmissive);
-                    AddColor("reflectiveColor", material.HasColorReflective, material.ColorReflective);
-                    AddColor("specularColor", material.HasColorSpecular, material.ColorSpecular);
-                    AddColor("transparentColor", material.HasColorTransparent, material.ColorTransparent);
-
-                    void AddTexture(string name, bool has, Assimp.TextureSlot slot)
-                    {
-                        var texturePath = "";
-
-                        var mappingU = TextureWrap.Clamp;
-                        var mappingV = TextureWrap.Clamp;
-
-                        if (has)
+                            if (File.Exists(target))
+                            {
+                                continue;
+                            }
+                        }
+                        catch (Exception)
                         {
-                            var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
-                            texturePath = slot.FilePath;
+                        }
 
-                            mappingU = slot.WrapModeU switch
-                            {
-                                Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
-                                Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
-                                Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
-                                _ => TextureWrap.Clamp,
-                            };
+                        var materialMetadata = new MaterialMetadata()
+                        {
+                            shader = materialRequiresSkinning ? "Hidden/Shaders/Default/StandardSkinned.stsh" : "Hidden/Shaders/Default/Standard.stsh",
+                        };
 
-                            mappingV = slot.WrapModeV switch
-                            {
-                                Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
-                                Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
-                                Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
-                                _ => TextureWrap.Clamp,
-                            };
+                        var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "").Substring(1);
 
-                            materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
+                        void AddColor(string name, bool has, Assimp.Color4D color)
+                        {
+                            var c = Color.White;
+
+                            if (has)
                             {
-                                type = MaterialParameterType.TextureWrap,
-                                textureWrapValue = mappingU,
+                                c.r = color.R;
+                                c.g = color.G;
+                                c.b = color.B;
+                                c.a = color.A;
+                            }
+
+                            materialMetadata.parameters.Add(name, new MaterialParameter()
+                            {
+                                type = MaterialParameterType.Color,
+                                colorValue = c,
                             });
+                        }
 
-                            materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
-                            {
-                                type = MaterialParameterType.TextureWrap,
-                                textureWrapValue = mappingV,
-                            });
+                        AddColor("ambientColor", material.HasColorAmbient, material.ColorAmbient);
+                        AddColor("diffuseColor", material.HasColorDiffuse, material.ColorDiffuse);
+                        AddColor("emissiveColor", material.HasColorEmissive, material.ColorEmissive);
+                        AddColor("reflectiveColor", material.HasColorReflective, material.ColorReflective);
+                        AddColor("specularColor", material.HasColorSpecular, material.ColorSpecular);
+                        AddColor("transparentColor", material.HasColorTransparent, material.ColorTransparent);
 
-                            while (pieces.Count > 0)
+                        void AddTexture(string name, bool has, Assimp.TextureSlot slot)
+                        {
+                            var texturePath = "";
+
+                            var mappingU = TextureWrap.Clamp;
+                            var mappingV = TextureWrap.Clamp;
+
+                            if (has)
                             {
-                                try
+                                var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
+                                texturePath = slot.FilePath;
+
+                                mappingU = slot.WrapModeU switch
                                 {
-                                    var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
+                                    Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
+                                    Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
+                                    Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
+                                    _ => TextureWrap.Clamp,
+                                };
 
-                                    var directories = Directory.GetDirectories(baseP);
+                                mappingV = slot.WrapModeV switch
+                                {
+                                    Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
+                                    Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
+                                    Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
+                                    _ => TextureWrap.Clamp,
+                                };
 
-                                    bool Find(string path)
+                                materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
+                                {
+                                    type = MaterialParameterType.TextureWrap,
+                                    textureWrapValue = mappingU,
+                                });
+
+                                materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
+                                {
+                                    type = MaterialParameterType.TextureWrap,
+                                    textureWrapValue = mappingV,
+                                });
+
+                                while (pieces.Count > 0)
+                                {
+                                    try
                                     {
-                                        var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
+                                        var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
 
-                                        if (File.Exists(p))
+                                        var directories = Directory.GetDirectories(baseP);
+
+                                        bool Find(string path)
                                         {
-                                            texturePath = string.Join("/", pieces);
+                                            var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
 
-                                            if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                            if (File.Exists(p))
                                             {
-                                                texturePath = guid;
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+                                                texturePath = string.Join("/", pieces);
 
-                                                texturePath = "";
+                                                if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                                {
+                                                    texturePath = guid;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+
+                                                    texturePath = "";
+                                                }
+
+                                                return true;
                                             }
 
-                                            return true;
+                                            return false;
                                         }
 
-                                        return false;
-                                    }
+                                        var found = false;
 
-                                    var found = false;
+                                        foreach (var directory in directories)
+                                        {
+                                            found = Find(Path.Combine(baseP, directory));
 
-                                    foreach (var directory in directories)
-                                    {
-                                        found = Find(Path.Combine(baseP, directory));
+                                            if (found)
+                                            {
+                                                break;
+                                            }
+                                        }
+
+                                        if (found)
+                                        {
+                                            break;
+                                        }
+
+                                        found = Find(baseP);
 
                                         if (found)
                                         {
                                             break;
                                         }
                                     }
-
-                                    if (found)
+                                    catch (Exception)
                                     {
-                                        break;
                                     }
 
-                                    found = Find(baseP);
-
-                                    if (found)
-                                    {
-                                        break;
-                                    }
+                                    pieces.RemoveAt(0);
                                 }
-                                catch (Exception)
+
+                                if (pieces.Count == 0)
                                 {
+                                    Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
+
+                                    texturePath = "";
                                 }
 
-                                pieces.RemoveAt(0);
+                                //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
+                            }
+                            else
+                            {
+                                materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
+                                {
+                                    type = MaterialParameterType.TextureWrap,
+                                    textureWrapValue = mappingU,
+                                });
+
+                                materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
+                                {
+                                    type = MaterialParameterType.TextureWrap,
+                                    textureWrapValue = mappingV,
+                                });
                             }
 
-                            if (pieces.Count == 0)
+                            materialMetadata.parameters.Add(name, new MaterialParameter()
                             {
-                                Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
-
-                                texturePath = "";
-                            }
-
-                            //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
-                        }
-                        else
-                        {
-                            materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
-                            {
-                                type = MaterialParameterType.TextureWrap,
-                                textureWrapValue = mappingU,
-                            });
-
-                            materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
-                            {
-                                type = MaterialParameterType.TextureWrap,
-                                textureWrapValue = mappingV,
+                                type = MaterialParameterType.Texture,
+                                textureValue = texturePath,
                             });
                         }
 
-                        materialMetadata.parameters.Add(name, new MaterialParameter()
+                        AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);
+                        AddTexture("ambientOcclusionTexture", material.HasTextureAmbientOcclusion, material.TextureAmbientOcclusion);
+                        AddTexture("diffuseTexture", material.HasTextureDiffuse, material.TextureDiffuse);
+                        AddTexture("displacementTexture", material.HasTextureDisplacement, material.TextureDisplacement);
+                        AddTexture("emissiveTexture", material.HasTextureEmissive, material.TextureEmissive);
+                        AddTexture("heightTexture", material.HasTextureHeight, material.TextureHeight);
+                        AddTexture("lightmapTexture", material.HasTextureLightMap, material.TextureLightMap);
+                        AddTexture("normalTexture", material.HasTextureNormal, material.TextureNormal);
+                        AddTexture("opacityTexture", material.HasTextureOpacity, material.TextureOpacity);
+                        AddTexture("reflectionTexture", material.HasTextureReflection, material.TextureReflection);
+                        AddTexture("specularTexture", material.HasTextureSpecular, material.TextureSpecular);
+
+                        if (material.IsPBRMaterial)
                         {
-                            type = MaterialParameterType.Texture,
-                            textureValue = texturePath,
-                        });
-                    }
+                            AddTexture("baseColorTexture", material.PBR.HasTextureBaseColor, material.PBR.TextureBaseColor);
+                            AddTexture("roughnessTexture", material.PBR.HasTextureRoughness, material.PBR.TextureRoughness);
+                            AddTexture("metalnessTexture", material.PBR.HasTextureMetalness, material.PBR.TextureMetalness);
+                            AddTexture("normalCameraTexture", material.PBR.HasTextureNormalCamera, material.PBR.TextureNormalCamera);
+                            AddTexture("emissionColorTexture", material.PBR.HasTextureEmissionColor, material.PBR.TextureEmissionColor);
+                        }
 
-                    AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);
-                    AddTexture("ambientOcclusionTexture", material.HasTextureAmbientOcclusion, material.TextureAmbientOcclusion);
-                    AddTexture("diffuseTexture", material.HasTextureDiffuse, material.TextureDiffuse);
-                    AddTexture("displacementTexture", material.HasTextureDisplacement, material.TextureDisplacement);
-                    AddTexture("emissiveTexture", material.HasTextureEmissive, material.TextureEmissive);
-                    AddTexture("heightTexture", material.HasTextureHeight, material.TextureHeight);
-                    AddTexture("lightmapTexture", material.HasTextureLightMap, material.TextureLightMap);
-                    AddTexture("normalTexture", material.HasTextureNormal, material.TextureNormal);
-                    AddTexture("opacityTexture", material.HasTextureOpacity, material.TextureOpacity);
-                    AddTexture("reflectionTexture", material.HasTextureReflection, material.TextureReflection);
-                    AddTexture("specularTexture", material.HasTextureSpecular, material.TextureSpecular);
-
-                    if (material.IsPBRMaterial)
-                    {
-                        AddTexture("baseColorTexture", material.PBR.HasTextureBaseColor, material.PBR.TextureBaseColor);
-                        AddTexture("roughnessTexture", material.PBR.HasTextureRoughness, material.PBR.TextureRoughness);
-                        AddTexture("metalnessTexture", material.PBR.HasTextureMetalness, material.PBR.TextureMetalness);
-                        AddTexture("normalCameraTexture", material.PBR.HasTextureNormalCamera, material.PBR.TextureNormalCamera);
-                        AddTexture("emissionColorTexture", material.PBR.HasTextureEmissionColor, material.PBR.TextureEmissionColor);
-                    }
-
-                    try
-                    {
-                        var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()
+                        try
                         {
-                            Converters =
+                            var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()
+                            {
+                                Converters =
                         {
                             new StringEnumConverter(),
                         }
-                        });
+                            });
 
-                        File.WriteAllText(target, json);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    try
-                    {
-                        var assetHolder = new AssetHolder()
+                            File.WriteAllText(target, json);
+                        }
+                        catch (Exception)
                         {
-                            guid = materialGuid,
-                            typeName = typeof(Material).FullName,
-                        };
+                        }
 
-                        var json = JsonConvert.SerializeObject(assetHolder, Formatting.Indented);
+                        try
+                        {
+                            var assetHolder = new AssetHolder()
+                            {
+                                guid = materialGuid,
+                                typeName = typeof(Material).FullName,
+                            };
 
-                        File.WriteAllText($"{target}.meta", json);
+                            var json = JsonConvert.SerializeObject(assetHolder, Formatting.Indented);
+
+                            File.WriteAllText($"{target}.meta", json);
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        Console.WriteLine($"\t\tGenerated material {target}");
                     }
-                    catch (Exception)
-                    {
-                    }
-
-                    Console.WriteLine($"\t\tGenerated material {target}");
                 }
 
                 var transformMatrix = metadata.rotation switch

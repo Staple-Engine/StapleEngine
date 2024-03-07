@@ -13,5 +13,5 @@ public class Collider3D : IComponent
     /// <summary>
     /// The rotation of the collider in local space
     /// </summary>
-    public Quaternion rotation;
+    public Quaternion rotation = Quaternion.Identity;
 }

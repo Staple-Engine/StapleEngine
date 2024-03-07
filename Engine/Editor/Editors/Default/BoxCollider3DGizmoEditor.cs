@@ -12,6 +12,6 @@ internal class BoxCollider3DGizmoEditor : GizmoEditor
             return;
         }
 
-        Gizmo.WireframeBox(transform.Position, transform.Rotation, box.size * transform.Scale, new Color(0, 1, 0, 0.25f));
+        Gizmo.WireframeBox(transform.Position + box.position, transform.Rotation * box.rotation, box.size * transform.Scale, new Color(0, 1, 0, 0.25f));
     }
 }

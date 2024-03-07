@@ -102,7 +102,6 @@
     <Compile Include="StapleEditor+Physics.cs" />
     <Compile Include="ImGuiProxy.cs" />
     <Compile Include="ImGuiUtils.cs" />
-    <Compile Include="Scene+Serialize.cs" />
     <Compile Include="StapleEditor+Panels.cs" />
     <Compile Include="StapleEditor+Render.cs" />
     <Compile Include="StapleEditor.cs" />
