@@ -365,10 +365,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         Choreographer.Instance.PostFrameCallback(frameCallback);
 
-        Input.Character = 0;
-        Input.MouseDelta = Vector2.Zero;
-        Input.MouseRelativePosition = Vector2.Zero;
-
         Input.UpdateState();
 
         var renderWindow = AppPlayer.instance.renderWindow;

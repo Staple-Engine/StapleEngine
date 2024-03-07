@@ -31,7 +31,7 @@ public static class Input
     /// <summary>
     /// Last input character
     /// </summary>
-    public static uint Character { get; internal set; }
+    public static uint Character { get; private set; }
 
     /// <summary>
     /// Current mouse position
@@ -41,12 +41,14 @@ public static class Input
     /// <summary>
     /// Last movement of the mouse
     /// </summary>
-    public static Vector2 MouseRelativePosition { get; internal set; }
+    public static Vector2 MouseRelativePosition { get; private set; }
 
     /// <summary>
     /// Current mouse scroll wheel delta
     /// </summary>
-    public static Vector2 MouseDelta { get; internal set; }
+    public static Vector2 MouseDelta { get; private set; }
+
+    internal static Vector2 previousMousePosition;
 
     internal static IRenderWindow window;
 
@@ -86,6 +88,12 @@ public static class Input
         Handle(keyStates);
         Handle(mouseButtonStates);
         Handle(touchStates);
+
+        Character = 0;
+        MouseDelta = Vector2.Zero;
+        MouseRelativePosition = Vector2.Zero;
+
+        previousMousePosition = MousePosition;
     }
 
     internal static void HandleMouseDeltaEvent(AppEvent appEvent)
@@ -243,9 +251,9 @@ public static class Input
     {
         var newPos = new Vector2(xpos, ypos);
 
-        MouseRelativePosition = newPos - MousePosition;
-
         MousePosition = newPos;
+
+        MouseRelativePosition = previousMousePosition - newPos;
     }
 
     internal static void HandleTextEvent(AppEvent appEvent)

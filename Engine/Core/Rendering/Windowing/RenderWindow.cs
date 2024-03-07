@@ -129,10 +129,6 @@ internal class RenderWindow
 
         while (window.ShouldClose == false && shouldStop == false)
         {
-            Input.Character = 0;
-            Input.MouseDelta = Vector2.Zero;
-            Input.MouseRelativePosition = Vector2.Zero;
-
             Input.UpdateState();
 
             window.PollEvents();
@@ -295,10 +291,6 @@ internal class RenderWindow
 
         while (window.ShouldClose == false && shouldStop == false)
         {
-            Input.Character = 0;
-            Input.MouseDelta = Vector2.Zero;
-            Input.MouseRelativePosition = Vector2.Zero;
-
             Input.UpdateState();
 
             window.PollEvents();
