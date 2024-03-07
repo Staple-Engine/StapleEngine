@@ -45,10 +45,10 @@ public class RigidBody3D : IComponent
     /// <summary>
     /// The friction factor of this body
     /// </summary>
-    public float friction = 1;
+    public float friction = 0;
 
     /// <summary>
     /// The restitution factor of this body
     /// </summary>
-    public float restitution = 1;
+    public float restitution = 0;
 }

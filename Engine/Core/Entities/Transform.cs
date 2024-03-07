@@ -144,6 +144,13 @@ public class Transform : IComponent, IEnumerable<Transform>
 
             return rotation;
         }
+
+        set
+        {
+            var parentRotation = parent?.Rotation ?? Quaternion.Identity;
+
+            rotation = Quaternion.Inverse(parentRotation) * value;
+        }
     }
 
     /// <summary>
@@ -171,7 +178,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
         }
     }
 
@@ -182,7 +189,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
         }
     }
 
@@ -193,7 +200,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Rotation));
         }
     }
 
@@ -204,7 +211,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Rotation));
         }
     }
 
@@ -215,7 +222,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Rotation));
         }
     }
 
@@ -226,7 +233,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Matrix4x4.CreateFromQuaternion(Rotation)));
+            return Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Rotation));
         }
     }
 
