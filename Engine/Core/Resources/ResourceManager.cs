@@ -30,6 +30,7 @@ internal class ResourceManager
     internal readonly Dictionary<string, AudioClip> cachedAudioClips = new();
     internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
     internal readonly Dictionary<string, IStapleAsset> cachedAssets = new();
+    internal readonly Dictionary<string, Prefab> cachedPrefabs = new();
     internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
     internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
 
@@ -1461,6 +1462,77 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load a prefab
+    /// </summary>
+    /// <param name="path">The path to load from</param>
+    /// <param name="ignoreCache">Whether to ignore the asset cache</param>
+    /// <returns>The prefab, or null</returns>
+    public Prefab LoadPrefab(string path, bool ignoreCache = false)
+    {
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        if (ignoreCache == false &&
+            cachedPrefabs.TryGetValue(path, out var prefab) &&
+            prefab != null)
+        {
+            return prefab;
+        }
+
+        var data = LoadFile(path);
+
+        if (data == null)
+        {
+            return default;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializablePrefabHeader>(stream);
+
+            if (header == null ||
+                header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) == false ||
+                header.version != SerializablePrefabHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid header");
+
+                return default;
+            }
+
+            var prefabData = MessagePackSerializer.Deserialize<SerializablePrefab>(stream);
+
+            if (prefabData == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid prefab data");
+
+                return default;
+            }
+
+            prefab = new()
+            {
+                data = prefabData,
+                Guid = path,
+            };
+
+            if (ignoreCache == false)
+            {
+                cachedPrefabs.AddOrSetKey(path, prefab);
+            }
+
+            return prefab;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load prefab at path {path}: {e}");
 
             return default;
         }

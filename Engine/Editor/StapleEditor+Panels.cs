@@ -41,35 +41,35 @@ internal partial class StapleEditor
         return false;
     }
 
-    private void CreateAssetMenu()
+    internal static string GetProperFileName(string current, string fileName, string path, string extension)
     {
-        string GetProperFileName(string current, string fileName, string path, string extension)
+        try
         {
-            try
+            if (File.Exists(path))
             {
-                if (File.Exists(path))
+                var counter = 1;
+
+                for (; ; )
                 {
-                    var counter = 1;
+                    path = Path.Combine(current, $"{fileName}{counter++}.{extension}");
 
-                    for (; ; )
+                    if (File.Exists(path) == false)
                     {
-                        path = Path.Combine(current, $"{fileName}{counter++}.{extension}");
-
-                        if (File.Exists(path) == false)
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
+            }
 
-                return path;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return path;
         }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
 
+    private void CreateAssetMenu()
+    {
         foreach (var pair in registeredAssetTemplates)
         {
             var name = pair.Key;

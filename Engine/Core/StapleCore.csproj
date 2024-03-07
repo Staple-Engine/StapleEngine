@@ -117,6 +117,7 @@
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />
 		<Compile Include="Entities\EntityID.cs" />
+		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
@@ -252,6 +253,7 @@
 		<Compile Include="Serialization\Audio\SerializableAudioClip.cs" />
 		<Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
 		<Compile Include="Serialization\MeshAsset\SerializableMeshAsset.cs" />
+		<Compile Include="Serialization\Prefab\SerializablePrefab.cs" />
 		<Compile Include="Serialization\Scene\SceneSerialization.cs" />
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />

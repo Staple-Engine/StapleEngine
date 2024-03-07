@@ -25,6 +25,7 @@ internal class ProjectBrowser
         { ".mat", ProjectBrowserResourceType.Material },
         { ".stsh", ProjectBrowserResourceType.Shader },
         { ".stsc", ProjectBrowserResourceType.Scene },
+        { ".stpr", ProjectBrowserResourceType.Prefab },
     };
 
     static ProjectBrowser()
@@ -256,6 +257,12 @@ internal class ProjectBrowser
                         case ProjectBrowserResourceType.Mesh:
 
                             node.typeName = typeof(Mesh).FullName;
+
+                            break;
+
+                        case ProjectBrowserResourceType.Prefab:
+
+                            node.typeName = typeof(Prefab).FullName;
 
                             break;
 
@@ -582,6 +589,34 @@ internal class ProjectBrowser
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Prefab:
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = typeof(Prefab).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
+                                            {
+                                                new StringEnumConverter(),
+                                            }
+                                        });
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
                                 }
                                 catch (Exception)
@@ -918,6 +953,19 @@ internal class ProjectBrowser
         var result = ImGui.IsWindowHovered();
 
         ImGui.EndChild();
+
+        if (ImGui.BeginDragDropTarget())
+        {
+            var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+            unsafe
+            {
+                if (payload.NativePtr != null)
+                {
+                    StapleEditor.instance.CreatePrefabFromDragged();
+                }
+            }
+        }
 
         ImGui.Columns();
 

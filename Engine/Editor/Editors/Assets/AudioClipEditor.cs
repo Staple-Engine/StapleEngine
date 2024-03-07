@@ -176,9 +176,9 @@ internal class AudioClipEditor : Editor
                         var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
                         {
                             Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
+                            {
+                                new StringEnumConverter(),
+                            }
                         });
 
                         File.WriteAllText(path, text);
