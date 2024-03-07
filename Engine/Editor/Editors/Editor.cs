@@ -262,13 +262,28 @@ public class Editor
 
                         var newValue = (uint)value;
 
+                        var min = field.GetCustomAttribute<MinAttribute>();
+                        var range = field.GetCustomAttribute<RangeAttribute>();
+
                         if(field.GetCustomAttribute<SortingLayerAttribute>() != null)
                         {
                             newValue = (uint)EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), LayerMask.AllSortingLayers.ToArray(), value);
                         }
                         else
                         {
-                            newValue = (uint)EditorGUI.IntField(fieldName, value);
+                            if(range != null)
+                            {
+                                newValue = (uint)EditorGUI.IntSlider(fieldName, value, (int)range.minValue, (int)range.maxValue);
+                            }
+                            else
+                            {
+                                newValue = (uint)EditorGUI.IntField(fieldName, value);
+                            }
+                        }
+
+                        if(min != null && newValue < min.minValue)
+                        {
+                            newValue = (uint)min.minValue;
                         }
 
                         if (newValue != value)
@@ -284,7 +299,24 @@ public class Editor
                     {
                         var value = (int)field.GetValue(target);
 
-                        var newValue = EditorGUI.IntField(fieldName, value);
+                        var min = field.GetCustomAttribute<MinAttribute>();
+                        var range = field.GetCustomAttribute<RangeAttribute>();
+
+                        var newValue = value;
+
+                        if (range != null)
+                        {
+                            newValue = EditorGUI.IntSlider(fieldName, value, (int)range.minValue, (int)range.maxValue);
+                        }
+                        else
+                        {
+                            newValue = EditorGUI.IntField(fieldName, value);
+                        }
+
+                        if (min != null && newValue < min.minValue)
+                        {
+                            newValue = (int)min.minValue;
+                        }
 
                         if (newValue != value)
                         {
@@ -314,7 +346,24 @@ public class Editor
                     {
                         var value = (float)field.GetValue(target);
 
-                        var newValue = EditorGUI.FloatField(fieldName, value);
+                        var min = field.GetCustomAttribute<MinAttribute>();
+                        var range = field.GetCustomAttribute<RangeAttribute>();
+
+                        var newValue = value;
+
+                        if (range != null)
+                        {
+                            newValue = EditorGUI.FloatSlider(fieldName, value, range.minValue, range.maxValue);
+                        }
+                        else
+                        {
+                            newValue = EditorGUI.FloatField(fieldName, value);
+                        }
+
+                        if (min != null && newValue < min.minValue)
+                        {
+                            newValue = min.minValue;
+                        }
 
                         if (newValue != value)
                         {
@@ -331,6 +380,13 @@ public class Editor
 
                         if (ImGui.InputDouble(fieldName, ref value))
                         {
+                            var min = field.GetCustomAttribute<MinAttribute>();
+
+                            if(value < min.minValue)
+                            {
+                                value = min.minValue;
+                            }
+
                             field.SetValue(target, value);
                         }
                     }
@@ -345,14 +401,21 @@ public class Editor
 
                         if (ImGui.InputInt(fieldName, ref value))
                         {
-                            if (value < 0)
+                            if (value < byte.MinValue)
                             {
-                                value = 0;
+                                value = byte.MinValue;
                             }
 
-                            if (value > 255)
+                            if (value > byte.MaxValue)
                             {
-                                value = 255;
+                                value = byte.MaxValue;
+                            }
+
+                            var min = field.GetCustomAttribute<MinAttribute>();
+
+                            if (value < min.minValue)
+                            {
+                                value = (byte)min.minValue;
                             }
 
                             field.SetValue(target, (byte)value);
@@ -379,6 +442,13 @@ public class Editor
                                 value = short.MaxValue;
                             }
 
+                            var min = field.GetCustomAttribute<MinAttribute>();
+
+                            if (value < min.minValue)
+                            {
+                                value = (short)min.minValue;
+                            }
+
                             field.SetValue(target, (short)value);
                         }
                     }
@@ -401,6 +471,13 @@ public class Editor
                             if (value > ushort.MaxValue)
                             {
                                 value = ushort.MaxValue;
+                            }
+
+                            var min = field.GetCustomAttribute<MinAttribute>();
+
+                            if (value < min.minValue)
+                            {
+                                value = (ushort)min.minValue;
                             }
 
                             field.SetValue(target, (ushort)value);

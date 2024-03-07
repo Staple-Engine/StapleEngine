@@ -470,4 +470,30 @@ public static class EditorGUI
                 break;
         }
     }
+
+    /// <summary>
+    /// Shows a slider for an int value
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static int IntSlider(string label, int value, int min, int max)
+    {
+        Changed |= ImGui.SliderInt(label, ref value, min, max);
+
+        return value;
+    }
+
+    /// <summary>
+    /// Shows a slider for a float value
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static float FloatSlider(string label, float value, float min, float max)
+    {
+        Changed |= ImGui.SliderFloat(label, ref value, min, max);
+
+        return value;
+    }
 }

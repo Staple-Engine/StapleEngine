@@ -94,6 +94,8 @@
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
+		<Compile Include="Attributes\MinAttribute.cs" />
+		<Compile Include="Attributes\RangeAttribute.cs" />
 		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
