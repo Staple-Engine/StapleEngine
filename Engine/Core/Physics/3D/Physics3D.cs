@@ -3,6 +3,12 @@ using System.Numerics;
 
 namespace Staple;
 
+public delegate void OnBodyActivated3D(IBody3D body);
+public delegate void OnBodyDeactivated3D(IBody3D body);
+public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
+public delegate void OnContactPersisted3D(IBody3D self, IBody3D other);
+public delegate bool OnContactValidate3D(IBody3D self, IBody3D other);
+
 /// <summary>
 /// Physics 3D management proxy
 /// </summary>
@@ -29,12 +35,6 @@ internal class Physics3D : ISubsystem
     }
 
     public static readonly byte Priority = 2;
-
-    public delegate void OnBodyActivated3D(IBody3D body);
-    public delegate void OnBodyDeactivated3D(IBody3D body);
-    public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
-    public delegate void OnContactPersisted3D(IBody3D self, IBody3D other);
-    public delegate bool OnContactValidate3D(IBody3D self, IBody3D other);
 
     private IPhysics3D impl;
 

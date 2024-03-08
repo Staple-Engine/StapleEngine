@@ -49,4 +49,54 @@ public static class Physics
     {
         return Physics3D.Instance?.GetBody(entity);
     }
+
+    public static void AddOnBodyActivatedCallback(OnBodyActivated3D callback)
+    {
+        Physics3D.onBodyActivated += callback;
+    }
+
+    public static void RemoveOnBodyActivatedCallback(OnBodyActivated3D callback)
+    {
+        Physics3D.onBodyActivated -= callback;
+    }
+
+    public static void AddOnBodyDeactivatedCallback(OnBodyDeactivated3D callback)
+    {
+        Physics3D.onBodyDeactivated += callback;
+    }
+
+    public static void RemoveOnBodyDeactivatedCallback(OnBodyDeactivated3D callback)
+    {
+        Physics3D.onBodyDeactivated -= callback;
+    }
+
+    public static void AddOnContactAddedCallback(OnContactAdded3D callback)
+    {
+        Physics3D.onContactAdded += callback;
+    }
+
+    public static void RemoveOnContactAddedCallback(OnContactAdded3D callback)
+    {
+        Physics3D.onContactAdded -= callback;
+    }
+
+    public static void AddOnContactPersistedCallback(OnContactPersisted3D callback)
+    {
+        Physics3D.onContactPersisted += callback;
+    }
+
+    public static void RemoveOnContactPersistedCallback(OnContactPersisted3D callback)
+    {
+        Physics3D.onContactPersisted -= callback;
+    }
+
+    public static void AddOnContactValidateCallback(OnContactValidate3D callback)
+    {
+        Physics3D.onContactValidate += callback;
+    }
+
+    public static void RemoveOnContactValidateCallback(OnContactValidate3D callback)
+    {
+        Physics3D.onContactValidate -= callback;
+    }
 }
