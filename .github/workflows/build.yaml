@@ -10,4 +10,5 @@ jobs:
             - uses: abel0b/setup-premake@v2.3
               with:
                 version: '5.0.0-beta2'
-            - run: 'sh Dependencies/build_linux.sh'
+            - run: 'sh build_linux.sh'
+              working-directory: './Dependencies/'
