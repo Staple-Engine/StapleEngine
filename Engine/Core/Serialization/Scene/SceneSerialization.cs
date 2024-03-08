@@ -971,11 +971,11 @@ internal static class SceneSerialization
 
         foreach(var sceneObject in prefab.children)
         {
-            var childEntity = Scene.Instantiate(sceneObject, out var localID, true);
+            var childEntity = Scene.Instantiate(sceneObject, out _, true);
 
             if(childEntity.IsValid)
             {
-                localIDs.Add(counter++, localID);
+                localIDs.Add(counter++, childEntity.Identifier.ID);
 
                 if(localIDs.TryGetValue(sceneObject.parent, out var localParentID))
                 {
