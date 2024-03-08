@@ -4,13 +4,13 @@ premake5 --os=linux gmake
 premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake
 premake5 --os=linux --file=premake5_dotnet.lua vs2022
 
-cd build/vs2022
+cd build/native
 
 make -j $(nproc)
 
 make config=debug_x86_64 -j $(nproc)
 
-cd ../../build/vs2022
+cd ../../build/dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net7.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net7.0
