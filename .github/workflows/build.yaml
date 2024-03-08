@@ -7,9 +7,6 @@ jobs:
             - uses: actions/checkout@v4
               with:
                 submodules: "recursive"
-            - uses: actions/setup-dotnet@v4
-              with:
-                dotnet-version: '8.0.0'
             - uses: abel0b/setup-premake@v2.3
               with:
                 version: '5.0.0-beta2'
