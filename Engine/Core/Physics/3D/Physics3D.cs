@@ -30,7 +30,7 @@ internal class Physics3D : ISubsystem
 
     public static readonly byte Priority = 2;
 
-    private IPhysics3D impl;
+    internal IPhysics3D impl;
 
     private static readonly Vector3 DefaultGravity = new(0, -9.81f, 0);
 
@@ -405,6 +405,16 @@ internal class Physics3D : ISubsystem
         foreach (var system in systems)
         {
             system.OnContactPersisted(A, B);
+        }
+    }
+
+    internal static void ContactRemoved(IBody3D A, IBody3D B)
+    {
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach (var system in systems)
+        {
+            system.OnContactRemoved(A, B);
         }
     }
 

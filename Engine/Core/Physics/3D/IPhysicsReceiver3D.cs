@@ -34,6 +34,14 @@ public interface IPhysicsReceiver3D
     void OnContactPersisted(IBody3D A, IBody3D B);
 
     /// <summary>
+    /// Event for when a body stopped colliding with another
+    /// </summary>
+    /// <param name="A">The first body that collided</param>
+    /// <param name="B">The second body that collided</param>
+    /// <remarks>There's no repeat events for the other body with the parameters swapped, so you should check both bodies</remarks>
+    void OnContactRemoved(IBody3D A, IBody3D B);
+
+    /// <summary>
     /// Event for checking whether a body should collide with another
     /// </summary>
     /// <param name="A">The first body that collided</param>

@@ -159,6 +159,11 @@ internal class JoltPhysics3D : IPhysics3D
 
     private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
     {
+        if(TryFindBody(subShapePair.Body1ID, out var b1) &&
+            TryFindBody(subShapePair.Body2ID, out var b2))
+        {
+            Physics3D.ContactRemoved(b1, b2);
+        }
     }
 
     private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
@@ -701,6 +706,19 @@ internal class JoltPhysics3D : IPhysics3D
         foreach(var body in bodies)
         {
             if(body is JoltBodyPair pair && pair.entity == entity)
+            {
+                return body;
+            }
+        }
+
+        return null;
+    }
+
+    public IBody3D GetBody(BodyID bodyID)
+    {
+        foreach (var body in bodies)
+        {
+            if (body is JoltBodyPair pair && pair.body.ID == bodyID)
             {
                 return body;
             }
