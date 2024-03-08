@@ -61,9 +61,13 @@ public static class Resources
 
                 return ResourceManager.instance.LoadAudioClip(guid);
 
-            case Type t when t == typeof(MeshAsset):
+            case Type t when t == typeof(Mesh):
 
                 return ResourceManager.instance.LoadMesh(guid);
+
+            case Type t when t == typeof(MeshAsset):
+
+                return ResourceManager.instance.LoadMeshAsset(guid);
 
             case Type t when t.GetInterface(typeof(IStapleAsset).FullName) != null:
 

@@ -32,7 +32,7 @@ internal class Physics3D : ISubsystem
 
     private IPhysics3D impl;
 
-    private static readonly Vector3 DefaultGravity = new(0, -9.8f, 0);
+    private static readonly Vector3 DefaultGravity = new(0, -9.81f, 0);
 
     public delegate void OnBodyActivated3D(IBody3D body);
     public delegate void OnBodyDeactivated3D(IBody3D body);

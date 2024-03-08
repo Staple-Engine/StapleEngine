@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using Staple.Internal;
+using Staple.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -120,32 +121,18 @@ public partial class Mesh
         {
             if(_cube == null)
             {
-                _cube = new Mesh(false, false)
+                var builder = new CubicMeshBuilder();
+
+                foreach(var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
                 {
-                    changed = true,
-                    guid = "Internal/Cube",
+                    builder.CubeVertices(Vector3.Zero, 1, direction);
+                    builder.CubeTexture(new RectFloat(0, 1, 0, 1));
+                    builder.CubeFaces();
+                }
 
-                    vertices = 
-                    [
-                        new Vector3(-0.5f, 0.5f, 0.5f),
-                        Vector3.One * 0.5f,
-                        new Vector3(-0.5f, -0.5f, 0.5f),
-                        new Vector3(0.5f, -0.5f, 0.5f),
-                        new Vector3(-0.5f, 0.5f, -0.5f),
-                        new Vector3(0.5f, 0.5f, -0.5f),
-                        Vector3.One * -0.5f,
-                        new Vector3(0.5f, -0.5f, -0.5f),
-                    ],
+                _cube = builder.BuildMesh(true);
 
-                    indices =
-                    [
-                        0, 1, 2,
-                        3, 7, 1,
-                        5, 0, 4,
-                        2, 6, 7,
-                        4, 5
-                    ],
-                };
+                _cube.guid = "Internal/Cube";
 
                 _cube.UpdateBounds();
             }
