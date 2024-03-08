@@ -103,6 +103,12 @@ public static class AssetDatabase
 
                         break;
 
+                    case ".stpr":
+
+                        asset.typeName = typeof(Prefab).FullName;
+
+                        break;
+
                     default:
 
                         if(extension != null && extension.Length > 0)

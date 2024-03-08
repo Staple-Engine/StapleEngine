@@ -295,6 +295,7 @@ static partial class Program
         ProcessMeshes(platform, inputPath, outputPath);
         ProcessMaterials(platform, inputPath, outputPath);
         ProcessAssets(platform, inputPath, outputPath);
+        ProcessPrefabs(platform, inputPath, outputPath);
 
         WorkScheduler.WaitForTasks();
 

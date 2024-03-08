@@ -44,6 +44,7 @@
 		<Compile Include="Baker+Cleanup.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+Meshes.cs" />
+		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />
 		<Compile Include="Baker+Texture.cs" />

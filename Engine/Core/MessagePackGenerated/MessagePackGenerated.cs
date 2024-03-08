@@ -2880,10 +2880,9 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(5);
+            writer.WriteArrayHeader(4);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
-            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
-            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>().Serialize(ref writer, value.transform, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObject>().Serialize(ref writer, value.mainObject, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Serialize(ref writer, value.children, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
@@ -2908,15 +2907,12 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        ____result.mainObject = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObject>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.transform = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>().Deserialize(ref reader, options);
-                        break;
-                    case 3:
                         ____result.children = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Deserialize(ref reader, options);
                         break;
-                    case 4:
+                    case 3:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:

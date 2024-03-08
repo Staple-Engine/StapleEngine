@@ -10,7 +10,6 @@ namespace Staple.Internal;
 
 internal static class SceneSerialization
 {
-
     public static void DeserializeField(FieldInfo field, ref IComponent componentInstance, JsonElement element)
     {
         if (field.FieldType.IsGenericType)
@@ -436,7 +435,7 @@ internal static class SceneSerialization
         });
     }
 
-    public static SceneObject SerializeEntityComponents(Entity entity)
+    public static SceneObject SerializeEntityComponents(Entity entity, bool parameters)
     {
         var components = new List<SceneComponent>();
 
@@ -484,7 +483,20 @@ internal static class SceneSerialization
                                     }
                                 }
 
-                                sceneComponent.data.Add(field.Name, newList);
+                                if(parameters)
+                                {
+                                    sceneComponent.parameters.Add(new SceneComponentParameter()
+                                    {
+                                        name = field.Name,
+                                        arrayType = SceneComponentParameterType.String,
+                                        type = SceneComponentParameterType.Array,
+                                        arrayValue = newList,
+                                    });
+                                }
+                                else
+                                {
+                                    sceneComponent.data.Add(field.Name, newList);
+                                }
                             }
                         }
 
@@ -499,11 +511,98 @@ internal static class SceneSerialization
                     field.FieldType == typeof(uint) ||
                     field.FieldType == typeof(string))
                 {
-                    sceneComponent.data.Add(field.Name, field.GetValue(component));
+                    if(parameters)
+                    {
+                        switch(field.FieldType)
+                        {
+                            case Type t when t == typeof(bool):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.Bool,
+                                    boolValue = (bool)field.GetValue(component),
+                                });
+
+                                break;
+
+                            case Type t when t == typeof(float):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.Float,
+                                    floatValue = (float)field.GetValue(component),
+                                });
+
+                                break;
+
+                            case Type t when t == typeof(double):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.Float,
+                                    floatValue = (float)field.GetValue(component),
+                                });
+
+                                break;
+
+                            case Type t when t == typeof(int):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.Int,
+                                    intValue = (int)field.GetValue(component),
+                                });
+
+                                break;
+
+                            case Type t when t == typeof(uint):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.Int,
+                                    intValue = (int)field.GetValue(component),
+                                });
+
+                                break;
+
+
+                            case Type t when t == typeof(string):
+
+                                sceneComponent.parameters.Add(new SceneComponentParameter()
+                                {
+                                    name = field.Name,
+                                    type = SceneComponentParameterType.String,
+                                    stringValue = (string)field.GetValue(component),
+                                });
+
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, field.GetValue(component));
+                    }
                 }
                 else if (field.FieldType.IsEnum)
                 {
-                    sceneComponent.data.Add(field.Name, ((Enum)field.GetValue(component)).ToString());
+                    if(parameters)
+                    {
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.String,
+                            stringValue = ((Enum)field.GetValue(component)).ToString()
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, ((Enum)field.GetValue(component)).ToString());
+                    }
                 }
                 else if (field.FieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                 {
@@ -511,71 +610,189 @@ internal static class SceneSerialization
 
                     if (guidAsset != null && (guidAsset.Guid?.Length ?? 0) > 0)
                     {
-                        sceneComponent.data.Add(field.Name, guidAsset.Guid);
+                        if(parameters)
+                        {
+                            sceneComponent.parameters.Add(new SceneComponentParameter()
+                            {
+                                name = field.Name,
+                                type = SceneComponentParameterType.String,
+                                stringValue = guidAsset.Guid,
+                            });
+                        }
+                        else
+                        {
+                            sceneComponent.data.Add(field.Name, guidAsset.Guid);
+                        }
                     }
                 }
                 else if (field.FieldType == typeof(Vector2))
                 {
                     var value = (Vector2)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, new Vector2Holder()
+                    if (parameters)
                     {
-                        x = value.X,
-                        y = value.Y,
-                    });
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Vector2,
+                            vector2Value = new Vector2Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                            },
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, new Vector2Holder()
+                        {
+                            x = value.X,
+                            y = value.Y,
+                        });
+                    }
                 }
                 else if (field.FieldType == typeof(Vector3))
                 {
                     var value = (Vector3)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, new Vector3Holder()
+                    if (parameters)
                     {
-                        x = value.X,
-                        y = value.Y,
-                        z = value.Z,
-                    });
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Vector3,
+                            vector3Value = new Vector3Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                            },
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, new Vector3Holder()
+                        {
+                            x = value.X,
+                            y = value.Y,
+                            z = value.Z,
+                        });
+                    }
                 }
                 else if (field.FieldType == typeof(Vector4))
                 {
                     var value = (Vector4)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, new Vector4Holder()
+                    if (parameters)
                     {
-                        x = value.X,
-                        y = value.Y,
-                        z = value.Z,
-                        w = value.W,
-                    });
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Vector4,
+                            vector4Value = new Vector4Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                                w = value.W,
+                            },
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, new Vector4Holder()
+                        {
+                            x = value.X,
+                            y = value.Y,
+                            z = value.Z,
+                            w = value.W,
+                        });
+                    }
                 }
                 else if (field.FieldType == typeof(Quaternion))
                 {
                     var value = (Quaternion)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, new Vector4Holder()
+                    if (parameters)
                     {
-                        x = value.X,
-                        y = value.Y,
-                        z = value.Z,
-                        w = value.W,
-                    });
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Vector4,
+                            vector4Value = new Vector4Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                                z = value.Z,
+                                w = value.W,
+                            },
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, new Vector4Holder()
+                        {
+                            x = value.X,
+                            y = value.Y,
+                            z = value.Z,
+                            w = value.W,
+                        });
+                    }
                 }
                 else if (field.FieldType == typeof(Color32))
                 {
                     var color = (Color32)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, $"#{color.HexValue}");
+                    if (parameters)
+                    {
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.String,
+                            stringValue = $"#{color.HexValue}",
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, $"#{color.HexValue}");
+                    }
                 }
                 else if (field.FieldType == typeof(Color))
                 {
                     var color = (Color)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, $"#{color.HexValue}");
+
+                    if (parameters)
+                    {
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.String,
+                            stringValue = $"#{color.HexValue}",
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, $"#{color.HexValue}");
+                    }
                 }
                 else if (field.FieldType == typeof(LayerMask))
                 {
                     var mask = (LayerMask)field.GetValue(component);
 
-                    sceneComponent.data.Add(field.Name, mask.value);
+                    if (parameters)
+                    {
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (int)mask.value,
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, mask.value);
+                    }
                 }
             }
 
@@ -610,8 +827,9 @@ internal static class SceneSerialization
     /// Serializes an entity into a SceneObject
     /// </summary>
     /// <param name="entity">The entity to serialize</param>
+    /// <param name="parameters">Whether to use parameters instead of data (MessagePack or JSON)</param>
     /// <returns>The entity, or null</returns>
-    public static SceneObject SerializeEntity(Entity entity)
+    public static SceneObject SerializeEntity(Entity entity, bool parameters)
     {
         if(entity.IsValid == false)
         {
@@ -634,7 +852,7 @@ internal static class SceneSerialization
             };
         }
 
-        var outEntity = SerializeEntityComponents(entity);
+        var outEntity = SerializeEntityComponents(entity, parameters);
 
         outEntity.parent = parent.IsValid ? parent.Identifier.ID : 0;
         outEntity.transform = transform;
@@ -653,7 +871,7 @@ internal static class SceneSerialization
 
         Scene.IterateEntities((Entity entity) =>
         {
-            var outEntity = SerializeEntity(entity);
+            var outEntity = SerializeEntity(entity, false);
 
             if(outEntity == null)
             {
@@ -676,14 +894,9 @@ internal static class SceneSerialization
 
         var outValue = new SerializablePrefab();
 
-        outValue.name = entity.Name;
+        outValue.mainObject = SerializeEntity(entity, false);
 
-        outValue.transform = new()
-        {
-            position = new(entityTransform.LocalPosition),
-            rotation = new(entityTransform.LocalRotation),
-            scale = new(entityTransform.LocalScale),
-        };
+        outValue.mainObject.ID = 0;
 
         var localIDs = new Dictionary<int, int>();
 
@@ -703,7 +916,7 @@ internal static class SceneSerialization
         {
             if(first == false)
             {
-                var entityObject = SerializeEntity(transform.entity);
+                var entityObject = SerializeEntity(transform.entity, false);
 
                 if(entityObject == null ||
                     localIDs.TryGetValue(transform.entity.Identifier.ID, out var localID) == false ||
@@ -727,5 +940,56 @@ internal static class SceneSerialization
         GatherSceneObjects(entityTransform, true);
 
         return outValue;
+    }
+
+    public static Entity InstantiatePrefab(Entity parent, SerializablePrefab prefab)
+    {
+        if(prefab == null ||
+            prefab.mainObject == null ||
+            prefab.children == null)
+        {
+            return default;
+        }
+
+        var parentTransform = parent.GetComponent<Transform>();
+
+        var newEntity = Scene.Instantiate(prefab.mainObject, out _, true);
+
+        var transform = newEntity.GetComponent<Transform>();
+
+        transform.SetParent(parentTransform);
+
+        transform.LocalPosition = prefab.mainObject.transform.position.ToVector3();
+        transform.LocalRotation = prefab.mainObject.transform.rotation.ToQuaternion();
+        transform.LocalScale = prefab.mainObject.transform.scale.ToVector3();
+
+        var localIDs = new Dictionary<int, int>();
+
+        localIDs.AddOrSetKey(0, newEntity.Identifier.ID);
+
+        var counter = 1;
+
+        foreach(var sceneObject in prefab.children)
+        {
+            var childEntity = Scene.Instantiate(sceneObject, out var localID, true);
+
+            if(childEntity.IsValid)
+            {
+                localIDs.Add(counter++, localID);
+
+                if(localIDs.TryGetValue(sceneObject.parent, out var localParentID))
+                {
+                    var childTransform = childEntity.GetComponent<Transform>();
+                    var targetTransform = Scene.FindEntity(localParentID).GetComponent<Transform>();
+
+                    if(targetTransform != null)
+                    {
+                        childTransform.SetParent(targetTransform);
+                    }
+                }
+            }
+        }
+
+        return newEntity;
     }
 }

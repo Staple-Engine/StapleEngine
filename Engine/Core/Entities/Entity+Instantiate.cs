@@ -68,4 +68,47 @@ public partial struct Entity
 
         return newEntity;
     }
+    /// <summary>
+    /// Instantiates a new copy of an existing entity
+    /// </summary>
+    /// <param name="prefab">The prefab to instantiate</param>
+    /// <param name="parent">The parent transform, if any</param>
+    /// <returns>The new entity</returns>
+    public static Entity Instantiate(Prefab prefab, Transform parent)
+    {
+        if (prefab?.data == null)
+        {
+            return default;
+        }
+
+        return SceneSerialization.InstantiatePrefab(parent?.entity ?? default, prefab.data);
+    }
+
+    /// <summary>
+    /// Instantiates a new copy of an existing entity
+    /// </summary>
+    /// <param name="prefab">The entity to instantiate</param>
+    /// <param name="position">The entity's position</param>
+    /// <param name="rotation">The entity's rotation</param>
+    /// <param name="parent">The parent transform, if any</param>
+    /// <returns>The new entity</returns>
+    public static Entity Instantiate(Prefab prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        if (prefab?.data == null)
+        {
+            return default;
+        }
+
+        var newEntity = Instantiate(prefab, parent);
+
+        var transform = newEntity.GetComponent<Transform>();
+
+        if(transform != null)
+        {
+            transform.Position = position;
+            transform.Rotation = rotation;
+        }
+
+        return newEntity;
+    }
 }

@@ -31,15 +31,12 @@ public class SerializablePrefab
     public string guid = Guid.NewGuid().ToString();
 
     [Key(1)]
-    public string name;
+    public SceneObject mainObject;
 
     [Key(2)]
-    public SceneObjectTransform transform = new();
-
-    [Key(3)]
     public List<SceneObject> children = new();
 
-    [Key(4)]
+    [Key(3)]
     public string typeName = typeof(Prefab).FullName;
 }
 

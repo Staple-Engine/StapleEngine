@@ -291,7 +291,7 @@ internal partial class StapleEditor
 
                 var entityName = transform.entity.Name;
 
-                if (ImGui.TreeNodeEx($"{entityName}##0", flags))
+                if (ImGui.TreeNodeEx($"{entityName}##{transform.entity.Identifier.ID}", flags))
                 {
                     if(ImGui.BeginDragDropTarget())
                     {
