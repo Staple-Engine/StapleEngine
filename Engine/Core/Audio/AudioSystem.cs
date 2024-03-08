@@ -170,13 +170,8 @@ internal class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
 
-        Scene.ForEach((Entity entity, bool enabled, ref Transform transform, ref AudioListener listener) =>
+        Scene.ForEach((Entity entity, ref Transform transform, ref AudioListener listener) =>
         {
-            if (enabled == false)
-            {
-                return;
-            }
-
             listenerTransform ??= transform;
 
             if (listener.spatial)

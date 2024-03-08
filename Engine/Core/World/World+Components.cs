@@ -88,6 +88,31 @@ public partial class World
     }
 
     /// <summary>
+    /// Finds a component's index in an entity's components
+    /// </summary>
+    /// <param name="entity">The entity to check</param>
+    /// <param name="t">The type to check</param>
+    /// <returns>The index or -1 on failure</returns>
+    internal int ComponentIndex(EntityInfo entity, Type t)
+    {
+        lock (lockObject)
+        {
+            foreach(var componentIndex in entity.components)
+            {
+                if(componentsRepository.TryGetValue(componentIndex, out var info) &&
+                    (info.type == t ||
+                    info.type.IsSubclassOf(t) ||
+                    info.type.IsAssignableTo(t)))
+                {
+                    return componentIndex;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
     public CameraInfo[] SortedCameras
@@ -96,20 +121,15 @@ public partial class World
         {
             var pieces = new List<CameraInfo>();
 
-            ForEach((Entity entity, bool enabled, ref Camera camera, ref Transform transform) =>
+            ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
             {
-                if(enabled == false)
-                {
-                    return;
-                }
-
                 pieces.Add(new CameraInfo()
                 {
                     entity = entity,
                     camera = camera,
                     transform = transform
                 });
-            });
+            }, false);
 
             pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
 

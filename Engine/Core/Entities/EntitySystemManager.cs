@@ -19,6 +19,11 @@ internal class EntitySystemManager : ISubsystem
 
     private readonly HashSet<IEntitySystem> systems = new();
 
+    /// <summary>
+    /// Gets the entity system manager for a specific subsystem type
+    /// </summary>
+    /// <param name="type">The subsystem type</param>
+    /// <returns>The entity subsystem manager, or null</returns>
     public static EntitySystemManager GetEntitySystem(SubsystemType type)
     {
         if(entitySubsystems.Count == 0)
@@ -37,6 +42,34 @@ internal class EntitySystemManager : ISubsystem
         return entitySubsystems.TryGetValue(type, out var manager) ? manager : null;
     }
 
+    /// <summary>
+    /// Finds all entity systems subclassing or implementing a specific type
+    /// </summary>
+    /// <typeparam name="T">The type to check</typeparam>
+    /// <returns>All entity systems currently loaded of that type</returns>
+    public static T[] FindEntitySystemsSubclassing<T>()
+    {
+        var outValue = new List<T>();
+
+        foreach(var pair in entitySubsystems)
+        {
+            foreach(var system in pair.Value.systems)
+            {
+                if(system.GetType().IsSubclassOf(typeof(T)) ||
+                    system.GetType().IsAssignableTo(typeof(T)))
+                {
+                    outValue.Add((T)system);
+                }
+            }
+        }
+
+        return outValue.ToArray();
+    }
+
+    /// <summary>
+    /// Unloads all entity subsystems that belong to a specific assembly
+    /// </summary>
+    /// <param name="assembly">The assembly to unload from</param>
     internal void UnloadSystemsFromAssembly(Assembly assembly)
     {
         var unloaded = new List<IEntitySystem>();

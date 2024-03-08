@@ -9,22 +9,24 @@ public partial class World
     /// </summary>
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public void ForEach<T>(ForEachCallback<T> callback) where T : IComponent
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public void ForEach<T>(ForEachCallback<T> callback, bool includeDisabled) where T : IComponent
     {
         lock(lockObject)
         {
-            var index = ComponentIndex(typeof(T));
-
-            if (index < 0)
-            {
-                return;
-            }
-
             collectionModified = false;
 
             foreach (var entity in entities)
             {
-                if (entity.alive == false || entity.components.Contains(index) == false)
+                if (entity.alive == false ||
+                    (includeDisabled == false && entity.enabled == false))
+                {
+                    continue;
+                }
+
+                var index = ComponentIndex(entity, typeof(T));
+
+                if (index < 0)
                 {
                     continue;
                 }
@@ -42,7 +44,7 @@ public partial class World
                         },
                     };
 
-                    callback(e, IsEntityEnabled(e, true), ref t);
+                    callback(e, ref t);
 
                     componentsRepository[index].components[entity.localID] = t;
                 }
@@ -65,28 +67,28 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public void ForEach<T, T2>(ForEachCallback<T, T2> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public void ForEach<T, T2>(ForEachCallback<T, T2> callback, bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
     {
         lock (lockObject)
         {
-            var index = ComponentIndex(typeof(T));
-            var index2 = ComponentIndex(typeof(T2));
-
-            if (index < 0 ||
-                index2 < 0)
-            {
-                return;
-            }
-
             collectionModified = false;
 
             foreach (var entity in entities)
             {
                 if (entity.alive == false ||
-                    entity.components.Contains(index) == false ||
-                    entity.components.Contains(index2) == false)
+                    (includeDisabled == false && entity.enabled == false))
+                {
+                    continue;
+                }
+
+                var index = ComponentIndex(entity, typeof(T));
+                var index2 = ComponentIndex(entity, typeof(T2));
+
+                if (index < 0 ||
+                    index2 < 0)
                 {
                     continue;
                 }
@@ -105,7 +107,7 @@ public partial class World
                         },
                     };
 
-                    callback(e, IsEntityEnabled(e, true), ref t, ref t2);
+                    callback(e, ref t, ref t2);
 
                     componentsRepository[index].components[entity.localID] = t;
                     componentsRepository[index2].components[entity.localID] = t2;
@@ -130,32 +132,31 @@ public partial class World
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public void ForEach<T, T2, T3>(ForEachCallback<T, T2, T3> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public void ForEach<T, T2, T3>(ForEachCallback<T, T2, T3> callback, bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
     {
         lock (lockObject)
         {
-            var index = ComponentIndex(typeof(T));
-            var index2 = ComponentIndex(typeof(T2));
-            var index3 = ComponentIndex(typeof(T3));
-
-            if (index < 0 ||
-                index2 < 0 ||
-                index3 < 0)
-            {
-                return;
-            }
-
             collectionModified = false;
 
             foreach (var entity in entities)
             {
                 if (entity.alive == false ||
-                    entity.components.Contains(index) == false ||
-                    entity.components.Contains(index2) == false ||
-                    entity.components.Contains(index3) == false)
+                    (includeDisabled == false && entity.enabled == false))
+                {
+                    continue;
+                }
+
+                var index = ComponentIndex(entity, typeof(T));
+                var index2 = ComponentIndex(entity, typeof(T2));
+                var index3 = ComponentIndex(entity, typeof(T3));
+
+                if (index < 0 ||
+                    index2 < 0 ||
+                    index3 < 0)
                 {
                     continue;
                 }
@@ -175,7 +176,7 @@ public partial class World
                         },
                     };
 
-                    callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3);
+                    callback(e, ref t, ref t2, ref t3);
 
                     componentsRepository[index].components[entity.localID] = t;
                     componentsRepository[index2].components[entity.localID] = t2;
@@ -202,7 +203,8 @@ public partial class World
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public void ForEach<T, T2, T3, T4>(ForEachCallback<T, T2, T3, T4> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public void ForEach<T, T2, T3, T4>(ForEachCallback<T, T2, T3, T4> callback, bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -210,28 +212,25 @@ public partial class World
     {
         lock (lockObject)
         {
-            var index = ComponentIndex(typeof(T));
-            var index2 = ComponentIndex(typeof(T2));
-            var index3 = ComponentIndex(typeof(T3));
-            var index4 = ComponentIndex(typeof(T4));
-
-            if (index < 0 ||
-                index2 < 0 ||
-                index3 < 0 ||
-                index4 < 0)
-            {
-                return;
-            }
-
             collectionModified = false;
 
             foreach (var entity in entities)
             {
                 if (entity.alive == false ||
-                    entity.components.Contains(index) == false ||
-                    entity.components.Contains(index2) == false ||
-                    entity.components.Contains(index3) == false ||
-                    entity.components.Contains(index4) == false)
+                    (includeDisabled == false && entity.enabled == false))
+                {
+                    continue;
+                }
+
+                var index = ComponentIndex(entity, typeof(T));
+                var index2 = ComponentIndex(entity, typeof(T2));
+                var index3 = ComponentIndex(entity, typeof(T3));
+                var index4 = ComponentIndex(entity, typeof(T4));
+
+                if (index < 0 ||
+                    index2 < 0 ||
+                    index3 < 0 ||
+                    index4 < 0)
                 {
                     continue;
                 }
@@ -252,7 +251,7 @@ public partial class World
                         },
                     };
 
-                    callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4);
+                    callback(e, ref t, ref t2, ref t3, ref t4);
 
                     componentsRepository[index].components[entity.localID] = t;
                     componentsRepository[index2].components[entity.localID] = t2;
@@ -281,7 +280,8 @@ public partial class World
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public void ForEach<T, T2, T3, T4, T5>(ForEachCallback<T, T2, T3, T4, T5> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public void ForEach<T, T2, T3, T4, T5>(ForEachCallback<T, T2, T3, T4, T5> callback, bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -290,31 +290,27 @@ public partial class World
     {
         lock (lockObject)
         {
-            var index = ComponentIndex(typeof(T));
-            var index2 = ComponentIndex(typeof(T2));
-            var index3 = ComponentIndex(typeof(T3));
-            var index4 = ComponentIndex(typeof(T4));
-            var index5 = ComponentIndex(typeof(T5));
-
-            if (index < 0 ||
-                index2 < 0 ||
-                index3 < 0 ||
-                index4 < 0 ||
-                index5 < 0)
-            {
-                return;
-            }
-
             collectionModified = false;
 
             foreach (var entity in entities)
             {
                 if (entity.alive == false ||
-                    entity.components.Contains(index) == false ||
-                    entity.components.Contains(index2) == false ||
-                    entity.components.Contains(index3) == false ||
-                    entity.components.Contains(index4) == false ||
-                    entity.components.Contains(index5) == false)
+                    (includeDisabled == false && entity.enabled == false))
+                {
+                    continue;
+                }
+
+                var index = ComponentIndex(entity, typeof(T));
+                var index2 = ComponentIndex(entity, typeof(T2));
+                var index3 = ComponentIndex(entity, typeof(T3));
+                var index4 = ComponentIndex(entity, typeof(T4));
+                var index5 = ComponentIndex(entity, typeof(T5));
+
+                if (index < 0 ||
+                    index2 < 0 ||
+                    index3 < 0 ||
+                    index4 < 0 ||
+                    index5 < 0)
                 {
                     continue;
                 }
@@ -336,7 +332,7 @@ public partial class World
                         },
                     };
 
-                    callback(e, IsEntityEnabled(e, true), ref t, ref t2, ref t3, ref t4, ref t5);
+                    callback(e, ref t, ref t2, ref t3, ref t4, ref t5);
 
                     componentsRepository[index].components[entity.localID] = t;
                     componentsRepository[index2].components[entity.localID] = t2;

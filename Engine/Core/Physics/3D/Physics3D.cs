@@ -3,12 +3,6 @@ using System.Numerics;
 
 namespace Staple;
 
-public delegate void OnBodyActivated3D(IBody3D body);
-public delegate void OnBodyDeactivated3D(IBody3D body);
-public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
-public delegate void OnContactPersisted3D(IBody3D self, IBody3D other);
-public delegate bool OnContactValidate3D(IBody3D self, IBody3D other);
-
 /// <summary>
 /// Physics 3D management proxy
 /// </summary>
@@ -40,11 +34,11 @@ internal class Physics3D : ISubsystem
 
     private static readonly Vector3 DefaultGravity = new(0, -9.8f, 0);
 
-    public static event OnBodyActivated3D onBodyActivated;
-    public static event OnBodyDeactivated3D onBodyDeactivated;
-    public static event OnContactAdded3D onContactAdded;
-    public static event OnContactPersisted3D onContactPersisted;
-    public static event OnContactValidate3D onContactValidate;
+    public delegate void OnBodyActivated3D(IBody3D body);
+    public delegate void OnBodyDeactivated3D(IBody3D body);
+    public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
+    public delegate void OnContactPersisted3D(IBody3D self, IBody3D other);
+    public delegate bool OnContactValidate3D(IBody3D self, IBody3D other);
 
     /// <summary>
     /// Whether this has been destroyed
@@ -359,10 +353,10 @@ internal class Physics3D : ISubsystem
 
     public void Shutdown()
     {
-        World.Current.ForEach((Entity entity, bool enabled, ref RigidBody3D rigidBody) =>
+        World.Current.ForEach((Entity entity, ref RigidBody3D rigidBody) =>
         {
             DestroyBody(rigidBody.body);
-        });
+        }, true);
 
         impl.Destroy();
 
@@ -376,27 +370,57 @@ internal class Physics3D : ISubsystem
 
     internal static void BodyActivated(IBody3D body)
     {
-        onBodyActivated?.Invoke(body);
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach(var system in systems)
+        {
+            system.OnBodyActivated(body);
+        }
     }
 
     internal static void BodyDeactivated(IBody3D body)
     {
-        onBodyDeactivated?.Invoke(body);
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach (var system in systems)
+        {
+            system.OnBodyDeactivated(body);
+        }
     }
 
     internal static void ContactAdded(IBody3D A, IBody3D B)
     {
-        onContactAdded?.Invoke(A, B);
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach (var system in systems)
+        {
+            system.OnContactAdded(A, B);
+        }
     }
 
     internal static void ContactPersisted(IBody3D A, IBody3D B)
     {
-        onContactPersisted?.Invoke(A, B);
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach (var system in systems)
+        {
+            system.OnContactPersisted(A, B);
+        }
     }
 
     internal static bool ContactValidate(IBody3D A, IBody3D B)
     {
-        return onContactValidate?.Invoke(A, B) ?? true;
+        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+
+        foreach (var system in systems)
+        {
+            if(system.OnContactValidate(A, B) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
     #endregion
 }

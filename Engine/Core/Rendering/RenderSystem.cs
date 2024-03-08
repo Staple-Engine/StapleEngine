@@ -230,13 +230,8 @@ internal class RenderSystem : ISubsystem
 
                 bgfx.touch(viewID);
 
-                Scene.ForEach((Entity entity, bool enabled, ref Transform t) =>
+                Scene.ForEach((Entity entity, ref Transform t) =>
                 {
-                    if (enabled == false)
-                    {
-                        return;
-                    }
-
                     var layer = entity.Layer;
 
                     if (camera.cullingLayers.HasLayer(layer) == false)
@@ -445,13 +440,8 @@ internal class RenderSystem : ISubsystem
                     frustumCuller.Update(view, projection);
                 }
 
-                Scene.ForEach((Entity entity, bool enabled, ref Transform t) =>
+                Scene.ForEach((Entity entity, ref Transform t) =>
                 {
-                    if (enabled == false)
-                    {
-                        return;
-                    }
-
                     var layer = entity.Layer;
 
                     if (camera.cullingLayers.HasLayer(layer) == false)

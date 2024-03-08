@@ -120,6 +120,7 @@
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
+		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshAnimationEvaluator.cs" />

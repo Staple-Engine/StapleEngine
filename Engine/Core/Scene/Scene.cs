@@ -143,9 +143,10 @@ public class Scene
     /// </summary>
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public static void ForEach<T>(World.ForEachCallback<T> callback) where T : IComponent
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public static void ForEach<T>(World.ForEachCallback<T> callback, bool includeDisabled = false) where T : IComponent
     {
-        World.Current?.ForEach(callback);
+        World.Current?.ForEach(callback, includeDisabled);
     }
 
     /// <summary>
@@ -154,11 +155,12 @@ public class Scene
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public static void ForEach<T, T2>(World.ForEachCallback<T, T2> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public static void ForEach<T, T2>(World.ForEachCallback<T, T2> callback, bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
     {
-        World.Current?.ForEach(callback);
+        World.Current?.ForEach(callback, includeDisabled);
     }
 
     /// <summary>
@@ -168,12 +170,13 @@ public class Scene
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public static void ForEach<T, T2, T3>(World.ForEachCallback<T, T2, T3> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public static void ForEach<T, T2, T3>(World.ForEachCallback<T, T2, T3> callback, bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
     {
-        World.Current?.ForEach(callback);
+        World.Current?.ForEach(callback, includeDisabled);
     }
 
     /// <summary>
@@ -184,13 +187,14 @@ public class Scene
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public static void ForEach<T, T2, T3, T4>(World.ForEachCallback<T, T2, T3, T4> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public static void ForEach<T, T2, T3, T4>(World.ForEachCallback<T, T2, T3, T4> callback, bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
         where T4 : IComponent
     {
-        World.Current?.ForEach(callback);
+        World.Current?.ForEach(callback, includeDisabled);
     }
 
     /// <summary>
@@ -202,14 +206,15 @@ public class Scene
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="callback">The callback when handling an entity</param>
-    public static void ForEach<T, T2, T3, T4, T5>(World.ForEachCallback<T, T2, T3, T4, T5> callback)
+    /// <param name="includeDisabled">Whether to include disabled entities</param>
+    public static void ForEach<T, T2, T3, T4, T5>(World.ForEachCallback<T, T2, T3, T4, T5> callback, bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
         where T4 : IComponent
         where T5 : IComponent
     {
-        World.Current?.ForEach(callback);
+        World.Current?.ForEach(callback, includeDisabled);
     }
 
     /// <summary>

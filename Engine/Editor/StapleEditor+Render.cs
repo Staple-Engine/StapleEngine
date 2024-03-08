@@ -41,13 +41,8 @@ internal partial class StapleEditor
         {
             var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
 
-            Scene.ForEach((Entity entity, bool enabled, ref Transform transform) =>
+            Scene.ForEach((Entity entity, ref Transform transform) =>
             {
-                if(enabled == false)
-                {
-                    return;
-                }
-
                 foreach(var system in renderSystem.renderSystems)
                 {
                     var related = entity.GetComponent(system.RelatedComponent());
