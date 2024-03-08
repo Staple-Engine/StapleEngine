@@ -15,6 +15,9 @@ jobs:
 
             - run: 'sh build_linux.sh'
               working-directory: './Dependencies/'
+              
+            - run: 'dotnet workload restore'
+              working-directory: './Engine/'
 
             - run: 'sh build_linux.sh'
               working-directory: './Engine/'
