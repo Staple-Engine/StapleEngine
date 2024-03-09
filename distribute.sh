@@ -10,10 +10,10 @@ mkdir -p dist/StapleEngine/Editor
 mkdir -p dist/StapleEngine/Tools/bin
 mkdir -p dist/StapleEngine/Tools/ShaderIncludes
 
-cp -Rf DefaultResources dist/StapleEngine/DefaultResources
-cp -Rf Staging dist/StapleEngine/Editor
-cp -Rf Tools/bin dist/StapleEngine/Tools/bin
-cp -Rf Tools/ShaderIncludes dist/StapleEngine/Tools/ShaderIncludes
+cp -Rf DefaultResources dist/StapleEngine/
+cp -Rf Staging/* dist/StapleEngine/Editor/
+cp -Rf Tools/bin/* dist/StapleEngine/Tools/bin/
+cp -Rf Tools/ShaderIncludes/* dist/StapleEngine/Tools/ShaderIncludes/
 
 rm -Rf dist/StapleEngine/DefaultResources/Android
 rm -Rf dist/StapleEngine/DefaultResources/iOS
