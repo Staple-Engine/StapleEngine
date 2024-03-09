@@ -23,10 +23,6 @@ jobs:
               shell: cmd
               working-directory: './Dependencies/'
               
-            - run: 'dotnet workload restore'
-              shell: cmd
-              working-directory: './Engine/'
-              
             - run: 'build_windows.cmd'
               shell: cmd
               working-directory: './Engine/'
