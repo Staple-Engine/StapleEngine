@@ -1,24 +1,78 @@
 name: build
 on: [push, pull_request]
 jobs:
-    linux:
-        runs-on: ubuntu-latest
+    windows:
+        runs-on: windows-latest
         steps:
             - uses: actions/checkout@v4
               with:
                 submodules: "recursive"
+
             - uses: abel0b/setup-premake@v2.3
               with:
                 version: '5.0.0-beta2'
 
-            - run: 'sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev'
-            
             - uses: actions/setup-java@v3
               with:
                 java-version: '17'
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+
+            - run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" && build_windows.cmd' }}
+              shell: cmd
+              working-directory: './Dependencies/'
+              
+            - run: 'dotnet workload restore'
+              working-directory: './Engine/'
+
+            - run: 'build_windows.cmd'
+              shell: cmd
+              working-directory: './Engine/'
+
+            - run: 'build_backends.cmd'
+              shell: cmd
+              working-directory: './Engine/'
+
+            - run: 'build_windows.cmd'
+              shell: cmd
+              working-directory: './Tools/'
+
+            - run: 'builddefaultresources.cmd'
+              shell: cmd
+
+            - uses: actions/upload-artifact@v4
+              with:
+                name: windows-native-dependencies
+                path: ./Dependencies/build/native/
+
+            - uses: actions/upload-artifact@v4
+              with:
+                name: windows-production
+                path: |
+                   ./DefaultResources
+                  ./Staging
+                  ./Tools/bin
+                  ./Tools/ShaderIncludes
+    linux:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                submodules: "recursive"
+
+            - uses: abel0b/setup-premake@v2.3
+              with:
+                version: '5.0.0-beta2'
+
+            - uses: actions/setup-java@v3
+              with:
+                java-version: '17'
+                distribution: 'temurin'
+            
+            - uses: android-actions/setup-android@v3
+
+            - run: 'sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev'
 
             - run: 'sh build_linux.sh'
               working-directory: './Dependencies/'
@@ -46,6 +100,7 @@ jobs:
               with:
                 name: linux-production
                 path: |
+                   ./DefaultResources
                   ./Staging
                   ./Tools/bin
                   ./Tools/ShaderIncludes

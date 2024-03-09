@@ -8,4 +8,4 @@ devenv .build\projects\vs2022\bgfx.sln  /Build "Debug|x64"
 
 devenv .build\projects\vs2022\bgfx.sln  /Build "Release|x64"
 
-pause
+cd ..
