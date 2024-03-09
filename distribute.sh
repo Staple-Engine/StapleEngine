@@ -5,6 +5,10 @@ set -e
 rm -Rf dist
 
 mkdir -p dist/StapleEngine
+mkdir -p dist/StapleEngine/DefaultResources
+mkdir -p dist/StapleEngine/Editor
+mkdir -p dist/StapleEngine/Tools/bin
+mkdir -p dist/StapleEngine/Tools/ShaderIncludes
 
 cp -Rf DefaultResources dist/StapleEngine/DefaultResources
 cp -Rf Staging dist/StapleEngine/Editor

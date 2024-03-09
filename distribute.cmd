@@ -1,6 +1,6 @@
 @echo off
 
-rmdir /S /Q dist
+if exist dist\ rmdir /S /Q dist
 
 mkdir dist\StapleEngine
 
