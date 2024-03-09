@@ -59,8 +59,8 @@
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\Debug\net8.0\*.exe $(SolutionDir)bin\
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\Debug\net8.0\*.dll $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\$(Configuration)\net8.0\*.exe $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Baker\bin\$(Configuration)\net8.0\*.dll $(SolutionDir)bin\
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)bin\
 		</PostBuildEvent>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
