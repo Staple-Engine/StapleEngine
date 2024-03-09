@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 premake5 --os=linux gmake
 premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake
@@ -8,7 +9,7 @@ cd build/native
 
 make -j $(nproc)
 
-make config=debug_x86_64 -j $(nproc)
+make config=debug -j $(nproc)
 
 cd ../../build/dotnet
 

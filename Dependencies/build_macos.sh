@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 premake5 --os=macosx xcode4
 premake5 --os=macosx --file=NativeFileDialog/build/premake5.lua xcode4
@@ -17,9 +18,6 @@ xcodebuild -scheme bgfx -configuration Release build -workspace Dependencies.xcw
 
 xcodebuild -scheme glfw -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme glfw -configuration Release build -workspace Dependencies.xcworkspace
-
-xcodebuild -scheme dr_libs -configuration Debug build -workspace Dependencies.xcworkspace
-xcodebuild -scheme dr_libs -configuration Release build -workspace Dependencies.xcworkspace
 
 xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
