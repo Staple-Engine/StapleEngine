@@ -117,9 +117,9 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net8.0/*.dll $(SolutionDir)../Staging
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL] $(SolutionDir)../Staging
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL]" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>
