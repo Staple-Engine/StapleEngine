@@ -4,10 +4,10 @@ rmdir /S /Q dist
 
 mkdir dist\StapleEngine
 
-robocopy DefaultResources dist\StapleEngine\DefaultResources /E
-robocopy Staging dist\StapleEngine\Editor /E
-robocopy Tools\bin dist\StapleEngine\Tools\bin /E
-robocopy Tools\ShaderIncludes dist\StapleEngine\Tools\ShaderIncludes /E
+robocopy DefaultResources dist\StapleEngine\DefaultResources /E /NFL /NDL /NJH /NJS /NP /NS /NC
+robocopy Staging dist\StapleEngine\Editor /E /NFL /NDL /NJH /NJS /NP /NS /NC
+robocopy Tools\bin dist\StapleEngine\Tools\bin /E /NFL /NDL /NJH /NJS /NP /NS /NC
+robocopy Tools\ShaderIncludes dist\StapleEngine\Tools\ShaderIncludes /E /NFL /NDL /NJH /NJS /NP /NS /NC
 
 rmdir /S /Q dist\StapleEngine\DefaultResources\Android
 rmdir /S /Q dist\StapleEngine\DefaultResources\iOS

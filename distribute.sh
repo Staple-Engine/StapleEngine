@@ -4,7 +4,7 @@ set -e
 
 rm -Rf dist
 
-mkdir dist/StapleEngine
+mkdir -p dist/StapleEngine
 
 cp -Rf DefaultResources dist/StapleEngine/DefaultResources
 cp -Rf Staging dist/StapleEngine/Editor
