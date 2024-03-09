@@ -37,6 +37,9 @@ jobs:
 
             - run: 'builddefaultresources.cmd'
               shell: cmd
+            
+            - run: 'distribute.cmd'
+              shell: cmd
 
             - uses: actions/upload-artifact@v4
               with:
@@ -47,15 +50,7 @@ jobs:
               with:
                 name: windows-production
                 path: |
-                  ./DefaultResources
-                  ./Staging
-                  ./Tools/bin
-                  ./Tools/ShaderIncludes
-                  !./DefaultResources/Android
-                  !./DefaultResources/iOS
-                  !./DefaultResources/Linux
-                  !./DefaultResources/MacOSX
-                  !./DefaultResources/Windows
+                  ./dist
 
     linux:
         runs-on: ubuntu-latest
@@ -93,6 +88,8 @@ jobs:
               working-directory: './Tools/'
 
             - run: 'sh builddefaultresources.sh'
+            
+            - run: 'sh distribute.sh'
 
             - uses: actions/upload-artifact@v4
               with:
@@ -103,12 +100,4 @@ jobs:
               with:
                 name: linux-production
                 path: |
-                  ./DefaultResources
-                  ./Staging
-                  ./Tools/bin
-                  ./Tools/ShaderIncludes
-                  !./DefaultResources/Android
-                  !./DefaultResources/iOS
-                  !./DefaultResources/Linux
-                  !./DefaultResources/MacOSX
-                  !./DefaultResources/Windows
+                  ./dist
