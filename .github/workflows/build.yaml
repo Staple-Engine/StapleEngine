@@ -18,6 +18,10 @@ jobs:
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+
+            - run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" && build_windows.cmd' }}
+              shell: cmd
+              working-directory: './Dependencies/'
               
             - run: 'dotnet workload restore'
               shell: cmd
