@@ -9,6 +9,13 @@ namespace CrossCopy
     {
         public static void Main(string[] args)
         {
+            if(args.Length != 2)
+            {
+                Console.WriteLine("Usage: CrossCopy source destination");
+
+                Environment.Exit(1);
+            }
+
             var dllExt = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dll" : "so";
 
             for(var i = 0; i < args.Length; i++)
@@ -19,7 +26,15 @@ namespace CrossCopy
 					.Replace('/', Path.DirectorySeparatorChar);
             }
 
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
+            {
+                Directory.CreateDirectory(args[1]);
+            }
+            catch(Exception)
+            {
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 try
                 {
