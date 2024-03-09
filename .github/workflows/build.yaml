@@ -50,7 +50,7 @@ jobs:
               with:
                 name: windows-production
                 path: |
-                   ./DefaultResources
+                  ./DefaultResources
                   ./Staging
                   ./Tools/bin
                   ./Tools/ShaderIncludes
@@ -100,7 +100,7 @@ jobs:
               with:
                 name: linux-production
                 path: |
-                   ./DefaultResources
+                  ./DefaultResources
                   ./Staging
                   ./Tools/bin
                   ./Tools/ShaderIncludes
