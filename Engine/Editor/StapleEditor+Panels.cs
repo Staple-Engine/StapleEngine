@@ -610,7 +610,7 @@ internal partial class StapleEditor
                     {
                         transform.LocalPosition = EditorGUI.Vector3Field("Position", transform.LocalPosition);
 
-                        var rotation = Math.ToEulerAngles(transform.LocalRotation);
+                        var rotation = transform.LocalRotation.ToEulerAngles();
 
                         var newRotation = EditorGUI.Vector3Field("Rotation", rotation);
 

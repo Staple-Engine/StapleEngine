@@ -96,7 +96,7 @@ namespace CoreTests
                 var rotation = new Vector3(0, i * 18, 0);
 
                 var quaternion = Staple.Math.FromEulerAngles(rotation);
-                var newRotation = Staple.Math.ToEulerAngles(quaternion);
+                var newRotation = quaternion.ToEulerAngles();
 
                 Assert.Multiple(() =>
                 {

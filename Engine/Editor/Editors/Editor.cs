@@ -241,7 +241,7 @@ public class Editor
                     {
                         var quaternion = (Quaternion)field.GetValue(target);
 
-                        var value = Math.ToEulerAngles(quaternion);
+                        var value = quaternion.ToEulerAngles();
 
                         var newValue = EditorGUI.Vector3Field(fieldName, value);
 

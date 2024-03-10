@@ -503,7 +503,7 @@ internal partial class StapleEditor
 
                 if(Input.GetMouseButton(MouseButton.Right))
                 {
-                    var rotation = Math.ToEulerAngles(cameraTransform.LocalRotation);
+                    var rotation = cameraTransform.LocalRotation.ToEulerAngles();
 
                     rotation.X += Input.MouseRelativePosition.Y;
                     rotation.Y += Input.MouseRelativePosition.X;

@@ -125,7 +125,7 @@ public class Vector3Holder
         z = v.Z;
     }
 
-    public Vector3Holder(Quaternion q) : this(Math.ToEulerAngles(q))
+    public Vector3Holder(Quaternion q) : this(q.ToEulerAngles())
     {
     }
 

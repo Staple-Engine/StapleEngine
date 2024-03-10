@@ -247,7 +247,7 @@ public static class Math
     /// </summary>
     /// <param name="q">The quaternion</param>
     /// <returns>The angles as a vector3 of degrees</returns>
-    public static Vector3 ToEulerAngles(Quaternion q)
+    public static Vector3 ToEulerAngles(this Quaternion q)
     {
         var outValue = new Vector3();
 
