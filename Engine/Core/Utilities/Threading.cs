@@ -4,6 +4,9 @@ using System.Threading;
 
 namespace Staple;
 
+/// <summary>
+/// Thread helper for running actions in the main thread
+/// </summary>
 public static class Threading
 {
     private static Thread mainThread;
@@ -12,11 +15,18 @@ public static class Threading
 
     public static bool IsMainThread => mainThread == Thread.CurrentThread;
 
+    /// <summary>
+    /// Attempts to initialize the threading system with the current thread as the main thread
+    /// </summary>
     internal static void Initialize()
     {
         mainThread ??= Thread.CurrentThread;
     }
 
+    /// <summary>
+    /// Performs a thread action safely
+    /// </summary>
+    /// <param name="action">The action to perform</param>
     internal static void PerformAction(Action action)
     {
         try
@@ -29,6 +39,9 @@ public static class Threading
         }
     }
 
+    /// <summary>
+    /// Handles all pending actions in the main thread
+    /// </summary>
     internal static void Update()
     {
         if(IsMainThread == false)
@@ -36,29 +49,38 @@ public static class Threading
             return;
         }
 
-        lock(threadLock)
+        for(; ; )
         {
-            foreach(var action in pendingActions)
+            Action current = null;
+
+            lock (threadLock)
             {
-                PerformAction(action);
+                current = pendingActions.Count > 0 ? pendingActions[0] : null;
+
+                if (current != null)
+                {
+                    pendingActions.RemoveAt(0);
+                }
             }
 
-            pendingActions.Clear();
+            if(current == null)
+            {
+                return;
+            }
+
+            PerformAction(current);
         }
     }
 
+    /// <summary>
+    /// Dispatches an action to run on the main thread
+    /// </summary>
+    /// <param name="action">The action to run</param>
     public static void Dispatch(Action action)
     {
-        if(IsMainThread)
+        lock(threadLock)
         {
-            PerformAction(action);
-        }
-        else
-        {
-            lock(threadLock)
-            {
-                pendingActions.Add(action);
-            }
+            pendingActions.Add(action);
         }
     }
 }

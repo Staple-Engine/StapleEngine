@@ -13,14 +13,6 @@ internal class JoltPhysics3D : IPhysics3D
 {
     public const float MinExtents = 0.2f;
 
-    private const int AllocatorSize = 10 * 1024 * 1024;
-
-    private const uint MaxBodies = 1024;
-
-    private const uint NumBodyMutexes = 0;
-    private const uint MaxBodyPairs = 1024;
-    private const uint MaxContactConstraints = 1024;
-
     //Dependencies
     private readonly BroadPhaseLayerInterface broadPhaseLayerInterface;
     private readonly ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
@@ -31,6 +23,9 @@ internal class JoltPhysics3D : IPhysics3D
     private readonly List<JoltBodyPair> bodies = new();
 
     private bool destroyed = false;
+
+    private bool locked = false;
+    private object threadLock = new();
 
     public bool Destroyed => destroyed;
 
@@ -59,6 +54,8 @@ internal class JoltPhysics3D : IPhysics3D
                 System.Diagnostics.Debug.WriteLine(outMessage);
 
                 Log.Info(outMessage);
+
+                throw new Exception(outMessage);
 
                 return true;
             });
@@ -129,13 +126,16 @@ internal class JoltPhysics3D : IPhysics3D
     #region Internal
     private bool TryFindBody(Body body, out IBody3D outBody)
     {
-        foreach (var b in bodies)
+        lock (threadLock)
         {
-            if (b.body == body)
+            foreach (var b in bodies)
             {
-                outBody = b;
+                if (b.body == body)
+                {
+                    outBody = b;
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -146,13 +146,16 @@ internal class JoltPhysics3D : IPhysics3D
 
     private bool TryFindBody(BodyID body, out IBody3D outBody)
     {
-        foreach (var b in bodies)
+        lock (threadLock)
         {
-            if (b.body.ID == body)
+            foreach (var b in bodies)
             {
-                outBody = b;
+                if (b.body.ID == body)
+                {
+                    outBody = b;
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -163,37 +166,82 @@ internal class JoltPhysics3D : IPhysics3D
 
     private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2)
     {
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             Physics3D.ContactAdded(b1, b2);
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
     }
 
     private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2)
     {
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             Physics3D.ContactPersisted(b1, b2);
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
     }
 
     private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
     {
-        if(TryFindBody(subShapePair.Body1ID, out var b1) &&
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
+        if (TryFindBody(subShapePair.Body1ID, out var b1) &&
             TryFindBody(subShapePair.Body2ID, out var b2))
         {
             Physics3D.ContactRemoved(b1, b2);
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
     }
 
     private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
     {
-        if(TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
+        if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             if(Physics3D.ContactValidate(b1, b2) == false)
             {
+                lock (threadLock)
+                {
+                    locked = false;
+                }
+
                 return ValidateResult.RejectContact;
             }
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
 
         return ValidateResult.AcceptContact;
@@ -201,17 +249,37 @@ internal class JoltPhysics3D : IPhysics3D
 
     private void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
         if (TryFindBody(bodyID, out var body))
         {
             Physics3D.BodyActivated(body);
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
     }
 
     private void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
+        lock (threadLock)
+        {
+            locked = true;
+        }
+
         if (TryFindBody(bodyID, out var body))
         {
             Physics3D.BodyActivated(body);
+        }
+
+        lock (threadLock)
+        {
+            locked = false;
         }
     }
     #endregion
@@ -225,104 +293,131 @@ internal class JoltPhysics3D : IPhysics3D
 
         var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
 
-        foreach (var pair in bodies)
+        lock (threadLock)
         {
-            if(pair.entity.Enabled == false)
+            foreach (var pair in bodies)
             {
-                if(pair.body.IsActive)
+                if (pair.entity.Enabled == false)
                 {
-                    physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
+                    if (pair.body.IsActive)
+                    {
+                        physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
+                    }
                 }
-            }
-            else if(pair.body.IsActive == false)
-            {
-                physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
+                else if (pair.body.IsActive == false)
+                {
+                    physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
+                }
             }
         }
 
         physicsSystem.Step(deltaTime, collisionSteps);
 
-        foreach(var pair in bodies)
+        lock(threadLock)
         {
-            var transform = pair.entity.GetComponent<Transform>();
-
-            if(transform != null)
+            foreach (var pair in bodies)
             {
-                var body = pair.body;
+                var transform = pair.entity.GetComponent<Transform>();
 
-                transform.Position = body.Position;
-                transform.LocalRotation = body.Rotation;
+                if (transform != null)
+                {
+                    var body = pair.body;
+
+                    transform.Position = body.Position;
+                    transform.LocalRotation = body.Rotation;
+                }
             }
         }
     }
 
     private bool CreateBody(Entity entity, ShapeSettings settings, Vector3 position, Quaternion rotation, MotionType motionType, ushort layer,
-        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+        float mass, out IBody3D body)
     {
-        var creationSettings = new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer));
-
-        var dofs = new List<AllowedDOFs>
+        lock (threadLock)
         {
-            AllowedDOFs.TranslationX,
-            AllowedDOFs.TranslationY
-        };
+            var creationSettings = new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer));
 
-        if (freezeX == false)
-        {
-            dofs.Add(AllowedDOFs.RotationX);
-        }
-
-        if(freezeY == false)
-        {
-            dofs.Add(AllowedDOFs.RotationY);
-        }
-
-        if (freezeZ == false)
-        {
-            dofs.Add(AllowedDOFs.RotationZ);
-        }
-
-        if (is2DPlane == false)
-        {
-            dofs.Add(AllowedDOFs.TranslationZ);
-        }
-
-        AllowedDOFs dof = 0;
-
-        foreach(var d in dofs)
-        {
-            dof |= d;
-        }
-
-        creationSettings.AllowedDOFs = dof;
-
-        var b = physicsSystem.BodyInterface.CreateBody(creationSettings);
-
-        if (b != null)
-        {
-            var pair = new JoltBodyPair()
+            var dofs = new List<AllowedDOFs>
             {
-                body = b,
-                entity = entity,
+                AllowedDOFs.TranslationX,
+                AllowedDOFs.TranslationY
             };
 
-            bodies.Add(pair);
+            if (freezeX == false)
+            {
+                dofs.Add(AllowedDOFs.RotationX);
+            }
 
-            body = pair;
+            if (freezeY == false)
+            {
+                dofs.Add(AllowedDOFs.RotationY);
+            }
 
-            pair.IsTrigger = isTrigger;
-            pair.GravityFactor = gravityFactor;
-            pair.Friction = friction;
-            pair.Restitution = restitution;
+            if (freezeZ == false)
+            {
+                dofs.Add(AllowedDOFs.RotationZ);
+            }
 
-            AddBody(body, true);
+            if (is2DPlane == false)
+            {
+                dofs.Add(AllowedDOFs.TranslationZ);
+            }
 
-            return true;
+            AllowedDOFs dof = 0;
+
+            foreach (var d in dofs)
+            {
+                dof |= d;
+            }
+
+            creationSettings.AllowedDOFs = dof;
+
+            Body b;
+
+            if (locked)
+            {
+                b = physicsSystem.BodyInterfaceNoLock.CreateBody(creationSettings);
+            }
+            else
+            {
+                b = physicsSystem.BodyInterface.CreateBody(creationSettings);
+            }
+
+            if (b != null)
+            {
+                if(motionType != MotionType.Static)
+                {
+                    b.MotionProperties.SetMassProperties(dof, new MassProperties()
+                    {
+                        Mass = mass,
+                    });
+                }
+
+                var pair = new JoltBodyPair()
+                {
+                    body = b,
+                    entity = entity,
+                };
+
+                bodies.Add(pair);
+
+                body = pair;
+
+                pair.IsTrigger = isTrigger;
+                pair.GravityFactor = gravityFactor;
+                pair.Friction = friction;
+                pair.Restitution = restitution;
+
+                AddBody(body, true);
+
+                return true;
+            }
+
+            body = default;
+
+            return false;
         }
-
-        body = default;
-
-        return false;
     }
 
     private static MotionType GetMotionType(BodyMotionType motionType)
@@ -337,7 +432,8 @@ internal class JoltPhysics3D : IPhysics3D
     }
 
     public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+        float mass, out IBody3D body)
     {
         if(extents.X < MinExtents || extents.Y < MinExtents || extents.Z < MinExtents)
         {
@@ -345,11 +441,12 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
-        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+        float mass, out IBody3D body)
     {
         if(radius <= 0)
         {
@@ -357,12 +454,12 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         return CreateBody(entity, new SphereShapeSettings(radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
-        bool is2DPlane, out IBody3D body)
+        bool is2DPlane, float mass, out IBody3D body)
     {
         if(radius <= 0)
         {
@@ -375,12 +472,12 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         return CreateBody(entity, new CapsuleShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
-        bool is2DPlane, out IBody3D body)
+        bool is2DPlane, float mass, out IBody3D body)
     {
         if(radius <= 0)
         {
@@ -393,12 +490,12 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         return CreateBody(entity, new CylinderShapeSettings(height / 2, radius), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body)
+        float mass, out IBody3D body)
     {
         if(mesh is null)
         {
@@ -443,14 +540,15 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, friction, restitution,
-            freezeX, freezeY, freezeZ, is2DPlane, out body);
+            freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
-        ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane, out IBody3D body)
+        ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
+        float mass, out IBody3D body)
     {
         return CreateBody(entity, new MeshShapeSettings(triangles), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
-            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, out body);
+            friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
     public IBody3D CreateBody(Entity entity, World world)
@@ -612,7 +710,7 @@ internal class JoltPhysics3D : IPhysics3D
         if(CreateBody(entity, compound, transform.Position, transform.Rotation, GetMotionType(rigidBody.motionType),
             (ushort)world.GetEntityLayer(entity), rigidBody.isTrigger, rigidBody.gravityFactor, rigidBody.friction,
             rigidBody.restitution, rigidBody.freezeRotationX, rigidBody.freezeRotationY, rigidBody.freezeRotationZ,
-            rigidBody.is2DPlane, out var body))
+            rigidBody.is2DPlane, rigidBody.mass, out var body))
         {
             return body;
         }
@@ -628,9 +726,21 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if(body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.RemoveBody(pair.body.ID);
+                    physicsSystem.BodyInterfaceNoLock.DestroyBody(pair.body.ID);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
+                    physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
+                }
 
-            bodies.Remove(pair);
+                bodies.Remove(pair);
+            }
         }
     }
 
@@ -638,7 +748,17 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if(body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.AddBody(pair.body, activated ? Activation.Activate : Activation.DontActivate);
+                }
+            }
         }
     }
 
@@ -646,26 +766,58 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if (body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.RemoveBody(pair.body.ID);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
+                }
+            }
         }
     }
 
-    public bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance)
+    public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
         var hit = RayCastResult.Default;
 
         var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
 
-        var objectLayerFilter = new JoltPhysicsObjectLayerFilter();
+        var objectLayerFilter = new JoltPhysicsObjectLayerFilter()
+        {
+            layerMask = new()
+            {
+                value = layerMask.value,
+            }
+        };
 
         var bodyFilter = new JoltPhysicsBodyFilter()
         {
             triggerQuery = triggerQuery,
         };
 
-        if (physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit, broadPhaseFilter, objectLayerFilter, bodyFilter))
+        var result = false;
+
+        lock (threadLock)
         {
-            if(TryFindBody(hit.BodyID, out body))
+            if(locked)
+            {
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+            else
+            {
+                result = physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+        }
+
+        if (result)
+        {
+            if (TryFindBody(hit.BodyID, out body))
             {
                 fraction = hit.Fraction;
 
@@ -683,7 +835,17 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if(body is JoltBodyPair pair)
         {
-            return physicsSystem.BodyInterface.GetGravityFactor(pair.body.ID);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    return physicsSystem.BodyInterfaceNoLock.GetGravityFactor(pair.body.ID);
+                }
+                else
+                {
+                    return physicsSystem.BodyInterface.GetGravityFactor(pair.body.ID);
+                }
+            }
         }
 
         return 0;
@@ -693,7 +855,17 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if(body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
+                }
+                else
+                {
+                    physicsSystem.BodyInterfaceNoLock.SetGravityFactor(pair.body.ID, factor);
+                }
+            }
         }
     }
 
@@ -701,7 +873,17 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if(body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+            lock (threadLock)
+            {
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                }
+            }
         }
     }
 
@@ -709,7 +891,17 @@ internal class JoltPhysics3D : IPhysics3D
     {
         if (body is JoltBodyPair pair)
         {
-            physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+            lock(threadLock)
+            {
+                if(locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                }
+            }
         }
     }
 
@@ -723,11 +915,14 @@ internal class JoltPhysics3D : IPhysics3D
 
     public IBody3D GetBody(Entity entity)
     {
-        foreach(var body in bodies)
+        lock (threadLock)
         {
-            if(body is JoltBodyPair pair && pair.entity == entity)
+            foreach (var body in bodies)
             {
-                return body;
+                if (body is JoltBodyPair pair && pair.entity == entity)
+                {
+                    return body;
+                }
             }
         }
 
@@ -736,11 +931,14 @@ internal class JoltPhysics3D : IPhysics3D
 
     public IBody3D GetBody(BodyID bodyID)
     {
-        foreach (var body in bodies)
+        lock (threadLock)
         {
-            if (body is JoltBodyPair pair && pair.body.ID == bodyID)
+            foreach (var body in bodies)
             {
-                return body;
+                if (body is JoltBodyPair pair && pair.body.ID == bodyID)
+                {
+                    return body;
+                }
             }
         }
 

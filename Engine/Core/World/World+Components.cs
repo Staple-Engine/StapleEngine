@@ -225,8 +225,6 @@ public partial class World
                 info.components[entityInfo.localID] = component;
             }
 
-            collectionModified = true;
-
             if(t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
             {
                 try
@@ -252,6 +250,8 @@ public partial class World
                 catch(Exception)
                 {
                 }
+
+                entityInfo.componentsModified = true;
             }
 
             return info.components[entityInfo.localID];
@@ -297,7 +297,7 @@ public partial class World
 
                 entityInfo.components.Remove(componentIndex);
 
-                collectionModified = true;
+                entityInfo.componentsModified = true;
             }
         }
     }

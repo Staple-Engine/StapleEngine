@@ -53,11 +53,12 @@ internal interface IPhysics3D
     /// <param name="freezeY">Whether to freeze Y rotation</param>
     /// <param name="freezeZ">Whether to freeze Z rotation</param>
     /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
+    /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
     bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body);
+        float mass, out IBody3D body);
 
     /// <summary>
     /// Create a sphere body
@@ -76,11 +77,12 @@ internal interface IPhysics3D
     /// <param name="freezeY">Whether to freeze Y rotation</param>
     /// <param name="freezeZ">Whether to freeze Z rotation</param>
     /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
+    /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
     bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body);
+        float mass, out IBody3D body);
 
     /// <summary>
     /// Create a capsule body
@@ -100,11 +102,12 @@ internal interface IPhysics3D
     /// <param name="freezeY">Whether to freeze Y rotation</param>
     /// <param name="freezeZ">Whether to freeze Z rotation</param>
     /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
+    /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
     bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body);
+        float mass, out IBody3D body);
 
     /// <summary>
     /// Create a cylinder body
@@ -124,11 +127,12 @@ internal interface IPhysics3D
     /// <param name="freezeY">Whether to freeze Y rotation</param>
     /// <param name="freezeZ">Whether to freeze Z rotation</param>
     /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
+    /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
     bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body);
+        float mass, out IBody3D body);
 
     /// <summary>
     /// Create a mesh body
@@ -147,11 +151,12 @@ internal interface IPhysics3D
     /// <param name="freezeY">Whether to freeze Y rotation</param>
     /// <param name="freezeZ">Whether to freeze Z rotation</param>
     /// <param name="is2DPlane">Whether this collider should act as a 2D plane (X/Y movement, Z rotation)</param>
+    /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
     bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
-        out IBody3D body);
+        float mass, out IBody3D body);
 
     /// <summary>
     /// Destroys a body
@@ -178,10 +183,11 @@ internal interface IPhysics3D
     /// <param name="ray">The ray to cast</param>
     /// <param name="body">The body that was hit</param>
     /// <param name="fraction">The multiplier to hit the body from the ray position</param>
+    /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
     /// <param name="triggerQuery">Whether to hit triggers</param>
     /// <param name="maxDistance">The maximum distance to hit</param>
     /// <returns>Whether we hit something</returns>
-    bool RayCast(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery, float maxDistance);
+    bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance);
 
     /// <summary>
     /// Gets the gravity factor for a body

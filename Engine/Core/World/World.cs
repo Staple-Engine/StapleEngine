@@ -81,6 +81,11 @@ public partial class World
         /// The entity's layer. Defaults to the first layer.
         /// </summary>
         public uint layer;
+
+        /// <summary>
+        /// Whether the components list was just modified
+        /// </summary>
+        public bool componentsModified = false;
     }
 
     /// <summary>

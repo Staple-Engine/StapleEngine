@@ -51,4 +51,9 @@ public class RigidBody3D : IComponent
     /// The restitution factor of this body
     /// </summary>
     public float restitution = 0;
+
+    /// <summary>
+    /// The mass of this body
+    /// </summary>
+    public float mass = 1;
 }

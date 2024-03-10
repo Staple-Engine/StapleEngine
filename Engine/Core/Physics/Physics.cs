@@ -32,12 +32,12 @@ public static class Physics
     /// <param name="triggerQuery">Whether to hit triggers</param>
     /// <param name="maxDistance">The maximum distance to hit</param>
     /// <returns>Whether the body has been hit</returns>
-    public static bool RayCast3D(Ray ray, out IBody3D body, out float fraction, PhysicsTriggerQuery triggerQuery = PhysicsTriggerQuery.Ignore, float maxDistance = 1.0f)
+    public static bool RayCast3D(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery = PhysicsTriggerQuery.Ignore, float maxDistance = 1.0f)
     {
         body = default;
         fraction = default;
 
-        return Physics3D.Instance?.RayCast(ray, out body, out fraction, triggerQuery, maxDistance) ?? false;
+        return Physics3D.Instance?.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance) ?? false;
     }
 
     /// <summary>

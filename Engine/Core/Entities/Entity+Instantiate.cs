@@ -12,9 +12,10 @@ public partial struct Entity
     /// <param name="parent">The parent transform, if any</param>
     /// <param name="keepWorldPosition">Whether to keep the world position</param>
     /// <returns>The new entity</returns>
-    public static Entity Instantiate(Entity source, Transform parent, bool keepWorldPosition = false)
+    public static Entity Instantiate(Entity source, Transform parent, bool keepWorldPosition = true)
     {
-        if (source.IsValid == false || source.TryGetComponent<Transform>(out var sourceTransform) == false)
+        if (source.IsValid == false ||
+            source.TryGetComponent<Transform>(out var sourceTransform) == false)
         {
             return default;
         }
@@ -34,6 +35,24 @@ public partial struct Entity
 
         SceneSerialization.InstantiateEntityComponents(source, newEntity);
 
+        void Recursive(Transform sourceTransform, Transform targetTransform)
+        {
+            foreach(var child in sourceTransform)
+            {
+                var childEntity = Instantiate(child.entity, targetTransform);
+
+                if(childEntity.IsValid == false ||
+                    childEntity.TryGetComponent<Transform>(out var childTransform))
+                {
+                    continue;
+                }
+
+                Recursive(child, childTransform);
+            }
+        }
+
+        Recursive(sourceTransform, transform);
+
         return newEntity;
     }
 
@@ -47,7 +66,8 @@ public partial struct Entity
     /// <returns>The new entity</returns>
     public static Entity Instantiate(Entity source, Vector3 position, Quaternion rotation, Transform parent = null)
     {
-        if (source.IsValid == false)
+        if (source.IsValid == false ||
+            source.TryGetComponent<Transform>(out var sourceTransform) == false)
         {
             return default;
         }
@@ -65,6 +85,24 @@ public partial struct Entity
         transform.Rotation = rotation;
 
         SceneSerialization.InstantiateEntityComponents(source, newEntity);
+
+        void Recursive(Transform sourceTransform, Transform targetTransform)
+        {
+            foreach (var child in sourceTransform)
+            {
+                var childEntity = Instantiate(child.entity, targetTransform);
+
+                if (childEntity.IsValid == false ||
+                    childEntity.TryGetComponent<Transform>(out var childTransform))
+                {
+                    continue;
+                }
+
+                Recursive(child, childTransform);
+            }
+        }
+
+        Recursive(sourceTransform, transform);
 
         return newEntity;
     }

@@ -364,6 +364,11 @@ internal partial class StapleEditor
                             return;
                         }
 
+                        if(ImGui.MenuItem("Duplicate"))
+                        {
+                            Entity.Instantiate(transform.entity, transform.parent);
+                        }
+
                         if (ImGui.MenuItem("Delete"))
                         {
                             transform.entity.Destroy();

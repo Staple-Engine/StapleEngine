@@ -722,7 +722,7 @@ internal partial class StapleEditor
             {
                 var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
-                var hit = Physics.RayCast3D(mouseRay, out var body, out _, maxDistance: 10);
+                var hit = Physics.RayCast3D(mouseRay, out var body, out _, LayerMask.Everything, maxDistance: 10);
 
                 ImGui.Text($"Mouse Ray:");
 
@@ -743,7 +743,7 @@ internal partial class StapleEditor
             {
                 var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
-                if (Physics3D.Instance.RayCast(ray, out var body, out _, PhysicsTriggerQuery.Ignore, 1000))
+                if (Physics3D.Instance.RayCast(ray, out var body, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 1000))
                 {
                     SetSelectedEntity(body.Entity);
                 }

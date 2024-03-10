@@ -18,6 +18,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
+                entity.componentsModified = false;
+
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -78,6 +80,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
+                entity.componentsModified = false;
+
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -144,6 +148,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
+                entity.componentsModified = false;
+
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -216,6 +222,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
+                entity.componentsModified = false;
+
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -294,6 +302,8 @@ public partial class World
 
             foreach (var entity in entities)
             {
+                entity.componentsModified = false;
+
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -506,7 +516,9 @@ public partial class World
 
             foreach (var entity in entities)
             {
-                if(entity.alive == false)
+                entity.componentsModified = false;
+
+                if (entity.alive == false)
                 {
                     continue;
                 }
@@ -542,6 +554,8 @@ public partial class World
 
         lock (lockObject)
         {
+            entityInfo.componentsModified = false;
+
             collectionModified = false;
 
             foreach (var index in entityInfo.components)
@@ -550,7 +564,7 @@ public partial class World
 
                 callback(ref component);
 
-                if(collectionModified)
+                if(entityInfo.componentsModified)
                 {
                     return;
                 }
