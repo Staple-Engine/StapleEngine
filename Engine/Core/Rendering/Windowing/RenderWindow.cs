@@ -192,18 +192,18 @@ internal class RenderWindow
                 fixedTimer += (float)(current - last).TotalSeconds;
 
                 //Prevent hard stuck
-                var tries = 0;
+                var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < appSettings.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
                     OnFixedUpdate?.Invoke();
 
-                    tries++;
+                    currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if(tries >= 3)
+                if(currentFixedTime >= appSettings.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }
@@ -352,18 +352,18 @@ internal class RenderWindow
                 fixedTimer += (float)(current - last).TotalSeconds;
 
                 //Prevent hard stuck
-                var tries = 0;
+                var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < appSettings.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
                     OnFixedUpdate?.Invoke();
 
-                    tries++;
+                    currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if (tries >= 3)
+                if (currentFixedTime >= appSettings.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }

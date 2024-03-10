@@ -47,6 +47,25 @@ internal class AppSettingsWindow : EditorWindow
                 projectAppSettings.fixedTimeFrameRate = 1;
             }
 
+            projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps", projectAppSettings.maximumFixedTimestepTime);
+
+            if(projectAppSettings.maximumFixedTimestepTime <= 0)
+            {
+                projectAppSettings.maximumFixedTimestepTime = 0.1f;
+            }
+
+            ImGui.TreePop();
+        }
+
+        if (ImGui.TreeNodeEx("Physics", ImGuiTreeNodeFlags.SpanFullWidth))
+        {
+            projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", projectAppSettings.physicsFrameRate);
+
+            if (projectAppSettings.physicsFrameRate <= 0)
+            {
+                projectAppSettings.physicsFrameRate = 1;
+            }
+
             ImGui.TreePop();
         }
 

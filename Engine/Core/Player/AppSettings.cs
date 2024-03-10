@@ -113,7 +113,7 @@ public class AppSettings
     /// iOS Minimum deployment target
     /// </summary>
     [Key(16)]
-    public int iOSDeploymentTarget = 13;
+    public int iOSDeploymentTarget = 14;
 
     /// <summary>
     /// Whether to allow portrait orientation
@@ -126,6 +126,18 @@ public class AppSettings
     /// </summary>
     [Key(18)]
     public bool landscapeOrientation = true;
+
+    /// <summary>
+    /// Maximum time to run fixed timesteps
+    /// </summary>
+    [Key(19)]
+    public float maximumFixedTimestepTime = 1.0f;
+
+    /// <summary>
+    /// The frame rate at which the physics should simulate
+    /// </summary>
+    [Key(20)]
+    public int physicsFrameRate = 60;
 
     [IgnoreMember]
     public static AppSettings Default

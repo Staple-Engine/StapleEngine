@@ -34,6 +34,10 @@ internal class Physics3D : ISubsystem
 
     private static readonly Vector3 DefaultGravity = new(0, -9.81f, 0);
 
+    internal static float PhysicsDeltaTime = 1 / 60.0f;
+
+    private float deltaTimer = 0.0f;
+
     public delegate void OnBodyActivated3D(IBody3D body);
     public delegate void OnBodyDeactivated3D(IBody3D body);
     public delegate void OnContactAdded3D(IBody3D self, IBody3D other);
@@ -45,7 +49,7 @@ internal class Physics3D : ISubsystem
     /// </summary>
     public bool Destroyed => impl?.Destroyed ?? true;
 
-    public SubsystemType type => SubsystemType.FixedUpdate;
+    public SubsystemType type => SubsystemType.Update;
 
     /// <summary>
     /// Current gravity
@@ -395,7 +399,14 @@ internal class Physics3D : ISubsystem
 
     public void Update()
     {
-        impl.Update(Time.fixedDeltaTime);
+        deltaTimer += Time.deltaTime;
+
+        if(deltaTimer >= PhysicsDeltaTime)
+        {
+            deltaTimer -= PhysicsDeltaTime;
+
+            impl.Update(PhysicsDeltaTime);
+        }
     }
 
     internal static void BodyActivated(IBody3D body)

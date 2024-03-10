@@ -657,7 +657,7 @@ internal partial class StapleEditor
 
                     default:
 
-                        shouldShow = ImGui.Begin($"{window.title}##{i}{window.title}", flags);
+                        shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", flags);
 
                         break;
                 }
