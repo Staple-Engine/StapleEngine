@@ -319,6 +319,36 @@ internal class Physics3D : ISubsystem
         return impl.GetBody(entity);
     }
 
+    /// <summary>
+    /// Adds force to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="force">The force to add</param>
+    public void AddForce(IBody3D body, Vector3 force)
+    {
+        impl.AddForce(body, force);
+    }
+
+    /// <summary>
+    /// Adds impulse to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="impulse">The impulse to add</param>
+    public void AddImpulse(IBody3D body, Vector3 impulse)
+    {
+        impl.AddImpulse(body, impulse);
+    }
+
+    /// <summary>
+    /// Adds angular impulse to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="impulse">The impulse to add</param>
+    public void AddAngularImpulse(IBody3D body, Vector3 impulse)
+    {
+        impl.AddAngularImpulse(body, impulse);
+    }
+
     #endregion
 
     #region Internal
@@ -370,7 +400,7 @@ internal class Physics3D : ISubsystem
 
     internal static void BodyActivated(IBody3D body)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach(var system in systems)
         {
@@ -380,7 +410,7 @@ internal class Physics3D : ISubsystem
 
     internal static void BodyDeactivated(IBody3D body)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach (var system in systems)
         {
@@ -390,7 +420,7 @@ internal class Physics3D : ISubsystem
 
     internal static void ContactAdded(IBody3D A, IBody3D B)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach (var system in systems)
         {
@@ -400,7 +430,7 @@ internal class Physics3D : ISubsystem
 
     internal static void ContactPersisted(IBody3D A, IBody3D B)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach (var system in systems)
         {
@@ -410,7 +440,7 @@ internal class Physics3D : ISubsystem
 
     internal static void ContactRemoved(IBody3D A, IBody3D B)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach (var system in systems)
         {
@@ -420,7 +450,7 @@ internal class Physics3D : ISubsystem
 
     internal static bool ContactValidate(IBody3D A, IBody3D B)
     {
-        var systems = EntitySystemManager.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
         foreach (var system in systems)
         {

@@ -100,4 +100,19 @@ internal class JoltBodyPair : IBody3D
             Physics3D.Instance.SetGravityFactor(this, value);
         }
     }
+
+    public void AddAngularImpulse(Vector3 impulse)
+    {
+        Physics3D.Instance.AddAngularImpulse(this, impulse);
+    }
+
+    public void AddForce(Vector3 force)
+    {
+        Physics3D.Instance.AddForce(this, force);
+    }
+
+    public void AddImpulse(Vector3 impulse)
+    {
+        Physics3D.Instance.AddImpulse(this, impulse);
+    }
 }

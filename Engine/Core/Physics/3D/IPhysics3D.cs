@@ -224,4 +224,25 @@ internal interface IPhysics3D
     /// <param name="entity">The entity to query</param>
     /// <returns>The body if available, or null</returns>
     IBody3D GetBody(Entity entity);
+
+    /// <summary>
+    /// Adds force to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="force">The force to add</param>
+    void AddForce(IBody3D body, Vector3 force);
+
+    /// <summary>
+    /// Adds impulse to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="impulse">The impulse to add</param>
+    void AddImpulse(IBody3D body, Vector3 impulse);
+
+    /// <summary>
+    /// Adds angular impulse to a body
+    /// </summary>
+    /// <param name="body">The body to apply to</param>
+    /// <param name="impulse">The impulse to add</param>
+    void AddAngularImpulse(IBody3D body, Vector3 impulse);
 }

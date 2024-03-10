@@ -726,4 +726,34 @@ internal class JoltPhysics3D : IPhysics3D
 
         return null;
     }
+
+    public void AddForce(IBody3D body, Vector3 force)
+    {
+        if(body is not JoltBodyPair pair)
+        {
+            return;
+        }
+
+        pair.body.AddForce(force);
+    }
+
+    public void AddImpulse(IBody3D body, Vector3 impulse)
+    {
+        if (body is not JoltBodyPair pair)
+        {
+            return;
+        }
+
+        pair.body.AddImpulse(impulse);
+    }
+
+    public void AddAngularImpulse(IBody3D body, Vector3 impulse)
+    {
+        if (body is not JoltBodyPair pair)
+        {
+            return;
+        }
+
+        pair.body.AddAngularImpulse(impulse);
+    }
 }

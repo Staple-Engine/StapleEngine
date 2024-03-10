@@ -56,4 +56,22 @@ public interface IBody3D
     /// The body's restitution
     /// </summary>
     float Restitution { get; set; }
+
+    /// <summary>
+    /// Adds force to this body
+    /// </summary>
+    /// <param name="force">The force to add</param>
+    void AddForce(Vector3 force);
+
+    /// <summary>
+    /// Adds impulse to this body
+    /// </summary>
+    /// <param name="impulse">The impulse to add</param>
+    void AddImpulse(Vector3 impulse);
+
+    /// <summary>
+    /// Adds angular impulse to this body
+    /// </summary>
+    /// <param name="impulse">The impulse to add</param>
+    void AddAngularImpulse(Vector3 impulse);
 }

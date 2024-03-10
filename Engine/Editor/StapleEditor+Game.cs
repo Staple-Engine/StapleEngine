@@ -181,8 +181,7 @@ internal partial class StapleEditor
 
                 World.Current?.UnloadComponentsFromAssembly(assembly);
 
-                EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate).UnloadSystemsFromAssembly(assembly);
-                EntitySystemManager.GetEntitySystem(SubsystemType.Update).UnloadSystemsFromAssembly(assembly);
+                EntitySystemManager.Instance.UnloadSystemsFromAssembly(assembly);
 
                 for (var i = editorWindows.Count - 1; i >= 0; i--)
                 {

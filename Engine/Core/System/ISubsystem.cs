@@ -13,7 +13,7 @@ public enum SubsystemType
     /// <summary>
     /// Runs every frame
     /// </summary>
-    Update
+    Update,
 }
 
 /// <summary>

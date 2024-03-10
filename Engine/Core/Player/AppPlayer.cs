@@ -137,8 +137,7 @@ internal class AppPlayer
             }
 
             SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
-            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.FixedUpdate), EntitySystemManager.Priority);
-            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.GetEntitySystem(SubsystemType.Update), EntitySystemManager.Priority);
+            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
             SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
             SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
@@ -156,7 +155,7 @@ internal class AppPlayer
 
                     if (instance != null)
                     {
-                        EntitySystemManager.GetEntitySystem(instance.UpdateType)?.RegisterSystem(instance);
+                        EntitySystemManager.Instance.RegisterSystem(instance);
 
                         Log.Info($"Created entity system {type.FullName}");
                     }
@@ -192,6 +191,8 @@ internal class AppPlayer
         renderWindow.OnFixedUpdate = () =>
         {
             SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
+
+            EntitySystemManager.Instance.UpdateFixed();
         };
 
         renderWindow.OnUpdate = () =>

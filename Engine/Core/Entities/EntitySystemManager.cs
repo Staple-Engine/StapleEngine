@@ -9,45 +9,22 @@ namespace Staple;
 /// </summary>
 internal class EntitySystemManager : ISubsystem
 {
-    private static readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
+    private readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
 
     internal static readonly byte Priority = 0;
 
-    private SubsystemType timing = SubsystemType.FixedUpdate;
-
-    public SubsystemType type => timing;
+    public SubsystemType type => SubsystemType.Update;
 
     private readonly HashSet<IEntitySystem> systems = new();
 
-    /// <summary>
-    /// Gets the entity system manager for a specific subsystem type
-    /// </summary>
-    /// <param name="type">The subsystem type</param>
-    /// <returns>The entity subsystem manager, or null</returns>
-    public static EntitySystemManager GetEntitySystem(SubsystemType type)
-    {
-        if(entitySubsystems.Count == 0)
-        {
-            entitySubsystems.Add(SubsystemType.FixedUpdate, new EntitySystemManager()
-            {
-                timing = SubsystemType.FixedUpdate,
-            });
-
-            entitySubsystems.Add(SubsystemType.Update, new EntitySystemManager()
-            {
-                timing = SubsystemType.Update,
-            });
-        }
-
-        return entitySubsystems.TryGetValue(type, out var manager) ? manager : null;
-    }
+    public static readonly EntitySystemManager Instance = new();
 
     /// <summary>
     /// Finds all entity systems subclassing or implementing a specific type
     /// </summary>
     /// <typeparam name="T">The type to check</typeparam>
     /// <returns>All entity systems currently loaded of that type</returns>
-    public static T[] FindEntitySystemsSubclassing<T>()
+    public T[] FindEntitySystemsSubclassing<T>()
     {
         var outValue = new List<T>();
 
@@ -115,6 +92,24 @@ internal class EntitySystemManager : ISubsystem
     {
     }
 
+    public void UpdateFixed()
+    {
+        if (Scene.current == null)
+        {
+            return;
+        }
+
+        var time = Time.fixedDeltaTime;
+
+        foreach (var system in systems)
+        {
+            if (system.UpdateType == EntitySubsystemType.FixedUpdate || system.UpdateType == EntitySubsystemType.Both)
+            {
+                system.FixedUpdate(time);
+            }
+        }
+    }
+
     public void Update()
     {
         if(Scene.current == null)
@@ -122,15 +117,14 @@ internal class EntitySystemManager : ISubsystem
             return;
         }
 
-        var time = timing switch
-        {
-            SubsystemType.FixedUpdate => Time.fixedDeltaTime,
-            _ => Time.deltaTime,
-        };
+        var time = Time.deltaTime;
 
         foreach (var system in systems)
         {
-            system.Process(time);
+            if(system.UpdateType == EntitySubsystemType.Update || system.UpdateType == EntitySubsystemType.Both)
+            {
+                system.Update(time);
+            }
         }
     }
 }
