@@ -211,9 +211,6 @@
 		<Compile Include="Physics\3D\IBody3D.cs" />
 		<Compile Include="Physics\3D\IPhysics3D.cs" />
 		<Compile Include="Physics\3D\JoltPhysics\JoltBodyPair.cs" />
-		<Compile Include="Physics\3D\JoltPhysics\JoltBroadPhaseLayerInterface.cs" />
-		<Compile Include="Physics\3D\JoltPhysics\JoltObjectLayerPairFilter.cs" />
-		<Compile Include="Physics\3D\JoltPhysics\JoltObjectVsBroadPhaseLayerFilter.cs" />
 		<Compile Include="Physics\3D\JoltPhysics\JoltPhysics3D.cs" />
 		<Compile Include="Physics\3D\JoltPhysics\JoltPhysicsBodyFilter.cs" />
 		<Compile Include="Physics\3D\JoltPhysics\JoltPhysicsBroadPhaseLayerFilter.cs" />

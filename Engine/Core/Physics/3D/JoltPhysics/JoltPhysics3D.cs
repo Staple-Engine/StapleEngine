@@ -22,8 +22,6 @@ internal class JoltPhysics3D : IPhysics3D
     private const uint MaxContactConstraints = 1024;
 
     //Dependencies
-    private readonly TempAllocator allocator;
-    private readonly JobSystemThreadPool jobThreadPool;
     private readonly BroadPhaseLayerInterface broadPhaseLayerInterface;
     private readonly ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
     private readonly ObjectLayerPairFilter objectLayerPairFilter;
@@ -70,21 +68,43 @@ internal class JoltPhysics3D : IPhysics3D
             Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
         }
 
-        allocator = new(AllocatorSize);
-        jobThreadPool = new(JoltPhysicsSharp.Foundation.MaxPhysicsJobs, JoltPhysicsSharp.Foundation.MaxPhysicsBarriers);
-        broadPhaseLayerInterface = new JoltBroadPhaseLayerInterface();
-        objectVsBroadPhaseLayerFilter = new JoltObjectVsBroadPhaseLayerFilter();
-        objectLayerPairFilter = new JoltObjectLayerPairFilter();
+        var table = new BroadPhaseLayerInterfaceTable((uint)LayerMask.AllLayers.Count, (uint)LayerMask.AllLayers.Count);
 
-        physicsSystem = new();
+        broadPhaseLayerInterface = table;
 
-        physicsSystem.Init(MaxBodies,
-            NumBodyMutexes,
-            MaxBodyPairs,
-            MaxContactConstraints,
-            broadPhaseLayerInterface,
-            objectVsBroadPhaseLayerFilter,
-            objectLayerPairFilter);
+        for(var i = 0; i < LayerMask.AllLayers.Count; i++)
+        {
+            table.MapObjectToBroadPhaseLayer(new ObjectLayer((ushort)i), new BroadPhaseLayer((byte)i));
+        }
+
+        var layerPair = new ObjectLayerPairFilterTable((uint)LayerMask.AllLayers.Count);
+
+        for(var i = 0; i < LayerMask.AllLayers.Count; i++)
+        {
+            for(var j = 0; j < LayerMask.AllLayers.Count; j++)
+            {
+                if (ColliderMask.ShouldCollide(i, j))
+                {
+                    layerPair.EnableCollision(new ObjectLayer((ushort)i), new ObjectLayer((ushort)j));
+                }
+                else
+                {
+                    layerPair.DisableCollision(new ObjectLayer((ushort)i), new ObjectLayer((ushort)j));
+                }
+            }
+        }
+
+        objectLayerPairFilter = layerPair;
+
+        objectVsBroadPhaseLayerFilter = new ObjectVsBroadPhaseLayerFilterTable(broadPhaseLayerInterface, (uint)LayerMask.AllLayers.Count,
+            objectLayerPairFilter, (uint)LayerMask.AllLayers.Count);
+
+        physicsSystem = new(new PhysicsSystemSettings()
+        {
+            BroadPhaseLayerInterface = broadPhaseLayerInterface,
+            ObjectLayerPairFilter = objectLayerPairFilter,
+            ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter,
+        });
 
         physicsSystem.OnBodyActivated += OnBodyActivated;
         physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
@@ -220,7 +240,7 @@ internal class JoltPhysics3D : IPhysics3D
             }
         }
 
-        physicsSystem.Update(deltaTime, collisionSteps, allocator, jobThreadPool);
+        physicsSystem.Step(deltaTime, collisionSteps);
 
         foreach(var pair in bodies)
         {
