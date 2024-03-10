@@ -35,7 +35,7 @@ public class AppSettings
     /// How many frames per second to run in fixed time
     /// </summary>
     [Key(3)]
-    public int fixedTimeFrameRate = 30;
+    public int fixedTimeFrameRate = 50;
 
     /// <summary>
     /// Whether to use the multithreaded renderer
@@ -131,13 +131,13 @@ public class AppSettings
     /// Maximum time to run fixed timesteps
     /// </summary>
     [Key(19)]
-    public float maximumFixedTimestepTime = 1.0f;
+    public float maximumFixedTimestepTime = 0.1f;
 
     /// <summary>
     /// The frame rate at which the physics should simulate
     /// </summary>
     [Key(20)]
-    public int physicsFrameRate = 60;
+    public int physicsFrameRate = 50;
 
     [IgnoreMember]
     public static AppSettings Default
