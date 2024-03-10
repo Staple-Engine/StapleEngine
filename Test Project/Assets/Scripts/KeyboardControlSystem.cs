@@ -5,21 +5,20 @@ namespace TestGame
 {
     public class KeyboardControlSystem : IEntitySystem
     {
-        public SubsystemType UpdateType => SubsystemType.Update;
+        public EntitySubsystemType UpdateType => EntitySubsystemType.Update;
 
         public void Startup()
         {
         }
 
-        public void Process(float deltaTime)
+        public void FixedUpdate(float deltaTime)
         {
-            Scene.ForEach((Entity entity, bool enabled, ref KeyboardControlComponent component, ref Transform transform) =>
-            {
-                if(enabled == false)
-                {
-                    return;
-                }
+        }
 
+        public void Update(float deltaTime)
+        {
+            Scene.ForEach((Entity entity, ref KeyboardControlComponent component, ref Transform transform) =>
+            {
                 var targetRotation = Quaternion.Identity;
                 var targetDirection = Vector3.Zero;
 

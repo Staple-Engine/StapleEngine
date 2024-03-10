@@ -1,26 +1,20 @@
 using Staple;
 using System.Numerics;
-using Math = Staple.Math;
 
 namespace TestGame
 {
     public class CircularMovementSystem : IEntitySystem
     {
-        public SubsystemType UpdateType => SubsystemType.FixedUpdate;
+        public EntitySubsystemType UpdateType => EntitySubsystemType.FixedUpdate;
 
         public void Startup()
         {
         }
 
-        public void Process(float deltaTime)
+        public void FixedUpdate(float deltaTime)
         {
-            Scene.ForEach((Entity entity, bool enabled, ref CircularMovementComponent movement, ref Transform transform) =>
+            Scene.ForEach((Entity entity, ref CircularMovementComponent movement, ref Transform transform) =>
             {
-                if (enabled == false)
-                {
-                    return;
-                }
-
                 movement.t += deltaTime * movement.speed;
 
                 if (movement.followMouse)
@@ -34,6 +28,10 @@ namespace TestGame
                         0);
                 }
             });
+        }
+
+        public void Update(float deltaTime)
+        {
         }
 
         public void Shutdown()

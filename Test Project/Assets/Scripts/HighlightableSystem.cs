@@ -6,13 +6,17 @@ namespace TestGame
 {
     public class HighlightableSystem : IEntitySystem
     {
-        public SubsystemType UpdateType => SubsystemType.Update;
+        public EntitySubsystemType UpdateType => EntitySubsystemType.Update;
 
         public void Startup()
         {
         }
 
-        public void Process(float deltaTime)
+        public void FixedUpdate(float deltaTime)
+        {
+        }
+
+        public void Update(float deltaTime)
         {
             var sortedCameras = Scene.SortedCameras;
 
@@ -41,13 +45,8 @@ namespace TestGame
 
             var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
 
-            Scene.ForEach((Entity entity, bool enabled, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
+            Scene.ForEach((Entity entity, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
             {
-                if (enabled == false)
-                {
-                    return;
-                }
-
                 renderer.color = Color.White;
             });
 
