@@ -251,6 +251,11 @@ public static class Input
     {
         var newPos = new Vector2(xpos, ypos);
 
+        if(MousePosition == Vector2.Zero)
+        {
+            previousMousePosition = newPos;
+        }
+
         MousePosition = newPos;
 
         MouseRelativePosition = previousMousePosition - newPos;

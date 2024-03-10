@@ -9,8 +9,6 @@ namespace Staple;
 /// </summary>
 internal class EntitySystemManager : ISubsystem
 {
-    private readonly Dictionary<SubsystemType, EntitySystemManager> entitySubsystems = new();
-
     internal static readonly byte Priority = 0;
 
     public SubsystemType type => SubsystemType.Update;
@@ -28,15 +26,12 @@ internal class EntitySystemManager : ISubsystem
     {
         var outValue = new List<T>();
 
-        foreach(var pair in entitySubsystems)
+        foreach(var system in systems)
         {
-            foreach(var system in pair.Value.systems)
+            if(system.GetType().IsSubclassOf(typeof(T)) ||
+                system.GetType().IsAssignableTo(typeof(T)))
             {
-                if(system.GetType().IsSubclassOf(typeof(T)) ||
-                    system.GetType().IsAssignableTo(typeof(T)))
-                {
-                    outValue.Add((T)system);
-                }
+                outValue.Add((T)system);
             }
         }
 
