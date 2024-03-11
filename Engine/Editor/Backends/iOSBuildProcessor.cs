@@ -15,30 +15,6 @@ internal class iOSBuildProcessor : IBuildPreprocessor
         var projectDirectory = buildInfo.assemblyProjectPath;
         var projectAppSettings = buildInfo.projectAppSettings;
 
-        bool SaveResource(string path, string data)
-        {
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                File.WriteAllText(path, data);
-            }
-            catch (Exception e)
-            {
-                Log.Error($"{GetType().Name}: Failed to save a resource at {path}");
-
-                return false;
-            }
-
-            return true;
-        }
-
         var appDelegate = $$"""
 using Foundation;
 using UIKit;
@@ -59,7 +35,7 @@ public class AppDelegate : UIApplicationDelegate
 }
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "AppDelegate.cs"), appDelegate) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "AppDelegate.cs"), appDelegate) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -70,7 +46,7 @@ using UIKit;
 UIApplication.Main (args, null, typeof (AppDelegate));
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "Main.cs"), main) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "Main.cs"), main) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -159,7 +135,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </plist>
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "Info.plist"), infoPlist) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "Info.plist"), infoPlist) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -193,7 +169,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "LaunchScreen.storyboard"), launchScreen) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "LaunchScreen.storyboard"), launchScreen) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -226,7 +202,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "MainStoryboard_iPad.storyboard"), storyboardiPad) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPad.storyboard"), storyboardiPad) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -259,7 +235,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "MainStoryboard_iPhone.storyboard"), storyboardiPhone) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPhone.storyboard"), storyboardiPhone) == false)
         {
             return BuildProcessorResult.Failed;
         }

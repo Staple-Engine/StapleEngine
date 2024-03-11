@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System;
+using System.IO;
 
 namespace Staple.Editor;
 
@@ -13,6 +14,147 @@ public static class EditorUtils
         "GB",
         "TB"
     };
+
+    internal static Lazy<string> EditorPath = new(() =>
+    {
+        var basePath = Path.Combine(Storage.StapleBasePath, "Staging");
+
+        try
+        {
+            if (Directory.Exists(basePath) == false)
+            {
+                basePath = Path.Combine(Storage.StapleBasePath, "Editor");
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return basePath;
+    });
+
+    /// <summary>
+    /// Attempts to copy a file
+    /// </summary>
+    /// <param name="source">The source file</param>
+    /// <param name="destination">The destination file</param>
+    /// <returns>Whether it did so successfully</returns>
+    public static bool CopyFile(string source, string destination)
+    {
+        try
+        {
+            File.Copy(source, destination, true);
+        }
+        catch(Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to write file contents for a file
+    /// </summary>
+    /// <param name="path">The path to write to</param>
+    /// <param name="contents">The contents to write</param>
+    /// <returns>Whether it did so successfully</returns>
+    public static bool WriteFile(string path, string contents)
+    {
+        CreateDirectory(Path.GetDirectoryName(path));
+
+        try
+        {
+            File.WriteAllText(path, contents);
+        }
+        catch(Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to write file contents for a file
+    /// </summary>
+    /// <param name="path">The path to write to</param>
+    /// <param name="contents">The contents to write</param>
+    /// <returns>Whether it did so successfully</returns>
+    public static bool WriteFile(string path, byte[] contents)
+    {
+        CreateDirectory(Path.GetDirectoryName(path));
+
+        try
+        {
+            File.WriteAllBytes(path, contents);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to create a directory
+    /// </summary>
+    /// <param name="path">The directory's path</param>
+    public static void CreateDirectory(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+        }
+        catch(Exception)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Attempts to copy a directory and its contents to another location
+    /// </summary>
+    /// <param name="source">The source path</param>
+    /// <param name="destination">The target path</param>
+    /// <returns>Whether it did so successfully</returns>
+    public static bool CopyDirectory(string source, string destination)
+    {
+        CreateDirectory(destination);
+
+        try
+        {
+            var files = Directory.GetFiles(source, "*");
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            var directories = Directory.GetDirectories(source);
+
+            foreach (var directory in directories)
+            {
+                if(CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory))) == false)
+                {
+                    return false;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// Calculates the expanded camel case name for a field name

@@ -11,7 +11,7 @@ internal class QuadTemplate : IEntityTemplate
         var renderer = entity.GetComponent<MeshRenderer>();
 
         renderer.mesh = Mesh.Quad;
-        renderer.materials = new([Resources.Load<Material>("Hidden/Materials/Standard.mat")]);
+        renderer.materials = new([Resources.Load<Material>("Hidden/Materials/Checkerboard.mat")]);
 
         return entity;
     }

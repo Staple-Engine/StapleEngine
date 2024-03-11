@@ -314,17 +314,6 @@ internal class CSProjManager
 
         var p = new Project(collection);
 
-        void MakeDirectory(string path)
-        {
-            try
-            {
-                Directory.CreateDirectory(path);
-            }
-            catch (Exception)
-            {
-            }
-        }
-
         void FindScripts(string path)
         {
             try
@@ -354,50 +343,19 @@ internal class CSProjManager
             }
         }
 
-        void CopyDirectory(string from, string to)
-        {
-            MakeDirectory(to);
-
-            try
-            {
-                var files = Directory.GetFiles(from, "*");
-
-                foreach(var file in files)
-                {
-                    try
-                    {
-                        File.Copy(file, Path.Combine(to, Path.GetFileName(file)));
-                    }
-                    catch(Exception)
-                    {
-                    }
-                }
-
-                var directories = Directory.GetDirectories(from);
-
-                foreach(var directory in directories)
-                {
-                    CopyDirectory(directory, Path.Combine(to, Path.GetFileName(directory)));
-                }
-            }
-            catch(Exception)
-            {
-            }
-        }
-
         var platform = backend.platform;
 
-        MakeDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
+        EditorUtils.CreateDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
 
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
         var assetsDirectory = Path.Combine(basePath, "Assets");
         var configurationName = debug ? "Debug" : "Release";
 
-        CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
+        EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
 
         if(backend.dataDirIsOutput == false)
         {
-            CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(projectDirectory, backend.redistOutput));
+            EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(projectDirectory, backend.redistOutput));
         }
 
         var targetFramework = platformFramework[platform];
@@ -509,7 +467,7 @@ internal class CSProjManager
                 break;
         }
 
-        var typeRegistrationPath = Path.Combine(stapleBasePath, "Engine", "TypeRegistration", "TypeRegistration.csproj");
+        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 
         p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[]
         {
@@ -518,26 +476,26 @@ internal class CSProjManager
 
         p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[]
         {
-            new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "MessagePack.dll"))
+            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
         });
 
         p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[]
         {
-            new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "JoltPhysicsSharp.dll"))
+            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "JoltPhysicsSharp.dll"))
         });
 
         p.AddItem("Reference", "NAudio", new KeyValuePair<string, string>[] {
-            new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NAudio.dll"))
+            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
         });
 
         p.AddItem("Reference", "NVorbis", new KeyValuePair<string, string>[] {
-            new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "NVorbis.dll"))
+            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
         });
 
         if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
         {
             p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(stapleBasePath, "Engine", "Core", "bin", configurationName, targetFramework, "glfwnet.dll"))
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "glfwnet.dll"))
             });
         }
 
@@ -612,7 +570,7 @@ internal class CSProjManager
             default:
 
                 {
-                    var programPath = Path.Combine(stapleBasePath, "Engine", "Player", "Program.cs");
+                    var programPath = Path.Combine(projectDirectory, "Program.cs");
 
                     p.AddItem("Compile", Path.GetFullPath(programPath));
                 }

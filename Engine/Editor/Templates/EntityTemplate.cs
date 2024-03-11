@@ -6,6 +6,6 @@ internal class EntityTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        return Entity.Create();
+        return Entity.Create(typeof(Transform));
     }
 }

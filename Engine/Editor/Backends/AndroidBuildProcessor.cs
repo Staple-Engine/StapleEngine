@@ -53,23 +53,13 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
 
                 var resourcePath = Path.Combine(projectDirectory, "Resources", pair.Key);
 
-                try
-                {
-                    Directory.CreateDirectory(resourcePath);
-                }
-                catch(Exception)
-                {
-                }
+                EditorUtils.CreateDirectory(resourcePath);
 
-                try
+                if(EditorUtils.WriteFile(Path.Combine(resourcePath, "appicon.png"), iconTexture.EncodePNG()) == false ||
+                    EditorUtils.WriteFile(Path.Combine(resourcePath, "appicon_background.png"), backgroundTexture.EncodePNG()) == false ||
+                    EditorUtils.WriteFile(Path.Combine(resourcePath, "appicon_foreground.png"), foregroundTexture.EncodePNG()) == false)
                 {
-                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon.png"), iconTexture.EncodePNG());
-                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon_background.png"), backgroundTexture.EncodePNG());
-                    File.WriteAllBytes(Path.Combine(resourcePath, "appicon_foreground.png"), foregroundTexture.EncodePNG());
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"{GetType().Name}: Failed to process app icon: {e}");
+                    Log.Debug($"{GetType().Name}: Failed to process app icon: Failed to process app icon {pair.Key}");
 
                     return BuildProcessorResult.Failed;
                 }
@@ -82,37 +72,13 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
             return BuildProcessorResult.Failed;
         }
 
-        bool SaveResource(string path, string data)
-        {
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                File.WriteAllText(path, data);
-            }
-            catch (Exception e)
-            {
-                Log.Error($"{GetType().Name}: Failed to save a resource at {path}: {e}");
-
-                return false;
-            }
-
-            return true;
-        }
-
         var strings = $$"""
 <resources>
     <string name="app_name">{{projectAppSettings.appName}}</string>
 </resources>
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
         {
             return BuildProcessorResult.Failed;
         }
@@ -155,7 +121,7 @@ public class PlayerActivity : StapleActivity
 }
 """;
 
-        if (SaveResource(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
+        if (EditorUtils.WriteFile(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
         {
             return BuildProcessorResult.Failed;
         }

@@ -21,6 +21,7 @@ public class Camera : IComponent
     /// <summary>
     /// The camera's orthographic size, equal to half the screen size in world units
     /// </summary>
+    [Min(1)]
     public float orthographicSize = 5;
 
     /// <summary>

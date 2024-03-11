@@ -31,6 +31,11 @@ public class BuildInfo
     public readonly string targetResourcesPath;
 
     /// <summary>
+    /// The path to the backend's resources
+    /// </summary>
+    public readonly string backendResourcesPath;
+
+    /// <summary>
     /// The current platform
     /// </summary>
     public readonly AppPlatform platform;
@@ -41,12 +46,13 @@ public class BuildInfo
     public readonly AppSettings projectAppSettings;
 
     internal BuildInfo(string basePath, string assemblyProjectPath, string outPath, string assetsCacheDirectory,
-        string targetResourcesPath, AppPlatform platform, AppSettings projectAppSettings)
+        string targetResourcesPath, string backendResourcesPath, AppPlatform platform, AppSettings projectAppSettings)
     {
         this.basePath = basePath;
         this.assemblyProjectPath = assemblyProjectPath;
         this.outPath = outPath;
         this.assetsCacheDirectory = assetsCacheDirectory;
+        this.backendResourcesPath = backendResourcesPath;
         this.targetResourcesPath = targetResourcesPath;
         this.platform = platform;
         this.projectAppSettings = projectAppSettings;

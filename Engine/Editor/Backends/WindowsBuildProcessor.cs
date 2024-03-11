@@ -15,6 +15,13 @@ internal class WindowsBuildProcessor : IBuildPreprocessor
         var basePath = buildInfo.basePath;
         var projectDirectory = buildInfo.assemblyProjectPath;
 
+        if(EditorUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")) == false)
+        {
+            Log.Debug($"{GetType().Name}: Failed to copy program script");
+
+            return BuildProcessorResult.Failed;
+        }
+
         try
         {
             var iconData = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon.png"));

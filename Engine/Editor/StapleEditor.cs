@@ -18,7 +18,7 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
-    public const int StapleVersion = 0x010000;
+    public static readonly string StapleVersion = $"{Platform.StapleVersionMajor}.{Platform.StapleVersionMinor}";
 
     enum ViewportType
     {
@@ -36,7 +36,7 @@ internal partial class StapleEditor
     [Serializable]
     class ProjectInfo
     {
-        public int stapleVersion;
+        public string stapleVersion;
     }
 
     [Serializable]
@@ -44,6 +44,8 @@ internal partial class StapleEditor
     {
         public string lastOpenScene;
         public AppPlatform currentPlatform;
+        public bool debugBuild = false;
+        public bool nativeBuild = false;
 
         public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
     }
@@ -299,7 +301,7 @@ internal partial class StapleEditor
             projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
             projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
 
-            var iconPath = Path.Combine(StapleBasePath, "Staging", "Editor Resources", "Icon.png");
+            var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Icon.png");
 
             ThumbnailCache.GetTexture(iconPath, force: true);
 
@@ -838,7 +840,7 @@ internal partial class StapleEditor
         }
     }
 
-    private void CreateProject(string path)
+    private bool CreateProject(string path)
     {
         try
         {
@@ -848,14 +850,14 @@ internal partial class StapleEditor
             {
                 Log.Error($"Failed to create project: Directory not empty");
 
-                return;
+                return false;
             }
         }
         catch(Exception)
         {
             Log.Error($"Failed to create project: Directory not valid");
 
-            return;
+            return false;
         }
 
         try
@@ -869,23 +871,21 @@ internal partial class StapleEditor
         }
         catch(Exception)
         {
+            Log.Error($"Failed to create project: Failed to save project info json");
+
+            return false;
         }
 
-        try
+        EditorUtils.CreateDirectory(Path.Combine(path, "Assets"));
+
+        if(EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings")) == false)
         {
-            Directory.CreateDirectory(Path.Combine(path, "Assets"));
-        }
-        catch (Exception)
-        {
+            Log.Error($"Failed to create project: Failed to copy editor resources");
+
+            return false;
         }
 
-        try
-        {
-            CopyDirectory(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings"));
-        }
-        catch(Exception)
-        {
-        }
+        return true;
     }
 
     private void AddMenuItem(string path, Action onClick)
@@ -987,6 +987,8 @@ internal partial class StapleEditor
             currentPlatform = currentPlatform,
             lastOpenScene = lastOpenScene,
             lastPickedBuildDirectories = lastPickedBuildDirectories,
+            debugBuild = buildPlayerDebug,
+            nativeBuild = buildPlayerNativeAOT,
         });
     }
 
@@ -1133,7 +1135,7 @@ internal partial class StapleEditor
 
         try
         {
-            files = Directory.GetFiles(Path.Combine(StapleBasePath, "Staging", "Editor Resources", "AssetTemplates"));
+            files = Directory.GetFiles(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "AssetTemplates"));
         }
         catch(Exception)
         {

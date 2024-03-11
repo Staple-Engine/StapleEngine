@@ -125,6 +125,8 @@ internal partial class StapleEditor
             currentPlatform = lastSession.currentPlatform;
             lastOpenScene = lastSession.lastOpenScene;
             lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
+            buildPlayerDebug = lastSession.debugBuild;
+            buildPlayerNativeAOT = lastSession.nativeBuild;
         }
 
         if(fileSystemWatcher != null)

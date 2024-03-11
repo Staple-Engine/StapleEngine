@@ -10,3 +10,9 @@ dotnet build "Core/StapleCore.csproj" -c Release -o "../Staging/Player Backends/
 dotnet build "Core/StapleCore.csproj" -c Release -o "../Staging/Player Backends/MacOSX/Runtime/Release" /p:STAPLE_OSX=true /p:TargetFramework=net8.0
 dotnet build "Core/StapleCore.csproj" -c Release -o "../Staging/Player Backends/iOS/Runtime/Release" /p:STAPLE_IOS=true /p:TargetFramework=net8.0-ios
 dotnet build "Core/StapleCore.csproj" -c Release -o "../Staging/Player Backends/Android/Runtime/Release" /p:TargetFramework=net8.0-android
+
+cp -Rf TypeRegistration ../Staging/Player Backends/Windows/Runtime/
+cp -Rf TypeRegistration ../Staging/Player Backends/Linux/Runtime/
+cp -Rf TypeRegistration ../Staging/Player Backends/MacOSX/Runtime/
+cp -Rf TypeRegistration ../Staging/Player Backends/iOS/Runtime/
+cp -Rf TypeRegistration ../Staging/Player Backends/Android/Runtime/

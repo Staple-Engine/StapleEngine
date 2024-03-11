@@ -14,66 +14,23 @@ internal class MacOSBuildProcessor : IBuildPostprocessor
         }
 
         var outPath = buildInfo.outPath;
+        var projectDirectory = buildInfo.assemblyProjectPath;
+
+        if(EditorUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")) == false)
+        {
+            Log.Debug($"{GetType().Name}: Failed to copy program script");
+
+            return BuildProcessorResult.Failed;
+        }
 
         var appName = Path.GetFileName(outPath);
 
         var appPath = Path.Combine(outPath, $"{appName}.app");
 
-        try
-        {
-            Directory.CreateDirectory(appPath);
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(appPath, "Contents"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(appPath, "Contents", "MacOS"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(appPath, "Contents", "MacOS", "Data"));
-        }
-        catch (Exception)
-        {
-        }
-
-        bool SaveResource(string path, string data)
-        {
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                File.WriteAllText(path, data);
-            }
-            catch (Exception e)
-            {
-                Log.Error($"{GetType().Name}: Failed to save a resource at {path}");
-
-                return false;
-            }
-
-            return true;
-        }
+        EditorUtils.CreateDirectory(appPath);
+        EditorUtils.CreateDirectory(Path.Combine(appPath, "Contents"));
+        EditorUtils.CreateDirectory(Path.Combine(appPath, "Contents", "MacOS"));
+        EditorUtils.CreateDirectory(Path.Combine(appPath, "Contents", "MacOS", "Data"));
 
         var info = $$"""
 <?xml version="1.0" encoding="utf-8"?>
@@ -119,7 +76,7 @@ internal class MacOSBuildProcessor : IBuildPostprocessor
 </plist>
 """;
 
-        if(SaveResource(Path.Combine(appPath, "Contents", "Info.plist"), info) == false)
+        if(EditorUtils.WriteFile(Path.Combine(appPath, "Contents", "Info.plist"), info) == false)
         {
             return BuildProcessorResult.Failed;
         }

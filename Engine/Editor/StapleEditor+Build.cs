@@ -8,47 +8,6 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
-    private static void CopyDirectory(string sourceDir, string destinationDir)
-    {
-        var dir = new DirectoryInfo(sourceDir);
-
-        if (!dir.Exists)
-            throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
-
-        DirectoryInfo[] dirs = dir.GetDirectories();
-
-        try
-        {
-            Directory.CreateDirectory(destinationDir);
-        }
-        catch (Exception)
-        {
-        }
-
-        foreach (FileInfo file in dir.GetFiles())
-        {
-            string targetFilePath = Path.Combine(destinationDir, file.Name);
-
-            try
-            {
-                file.CopyTo(targetFilePath, true);
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to build player: {e}");
-
-                return;
-            }
-        }
-
-        foreach (DirectoryInfo subDir in dirs)
-        {
-            string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
-
-            CopyDirectory(subDir.FullName, newDestinationDir);
-        }
-    }
-
     /// <summary>
     /// Builds the game (Player)
     /// </summary>
@@ -94,7 +53,7 @@ internal partial class StapleEditor
         }
 
         var buildInfo = new BuildInfo(basePath, projectDirectory, outPath, assetsCacheDirectory, targetResourcesPath,
-            backend.platform, projectAppSettings.Clone());
+            Path.Combine(backend.basePath, "Resources"), backend.platform, projectAppSettings.Clone());
 
         var preprocessors = TypeCache.AllTypesSubclassingOrImplementing<IBuildPreprocessor>();
         var postprocessors = TypeCache.AllTypesSubclassingOrImplementing<IBuildPostprocessor>();
@@ -176,7 +135,12 @@ internal partial class StapleEditor
 
         if (backend.dataDirIsOutput)
         {
-            CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput));
+            if(EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
+            {
+                Log.Error($"Failed to build player: Failed to copy redistributable files");
+
+                return;
+            }
         }
 
         lock (backgroundLock)
