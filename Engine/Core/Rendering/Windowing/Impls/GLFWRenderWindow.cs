@@ -145,13 +145,10 @@ internal class GLFWRenderWindow : IRenderWindow
             AppEventQueue.instance.Add(AppEvent.Maximize(maximized));
         });
 
-        //TODO: Decide whether to keep this.
-        /*
         if (Glfw.RawMouseMotionSupported())
         {
-            Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)GLFW.Constants.True);
+            Glfw.SetInputMode(window, InputMode.RawMouseMotion, (int)Constants.True);
         }
-        */
 
         return true;
     }
