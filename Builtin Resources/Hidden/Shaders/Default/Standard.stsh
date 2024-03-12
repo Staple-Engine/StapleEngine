@@ -21,6 +21,18 @@
 			"attribute": "TEXCOORD0"
 		},
 		{
+			"name": "a_weight",
+			"semantic": "Varying",
+			"type": "Vector4",
+			"attribute": "BLENDWEIGHT"
+		},
+		{
+			"name": "a_indices",
+			"semantic": "Varying",
+			"type": "Vector4",
+			"attribute": "BLENDINDICES"
+		},
+		{
 			"name": "ambientColor",
 			"semantic": "Uniform",
 			"type": "Color"
@@ -166,7 +178,14 @@
 		"code": [
 			"void main()",
 			"{",
-			"	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);",
+			"	mat4 model = u_model[0];",
+			"",
+			"   if(IsSkinning != 0.0)",
+			"	{",
+			"       model = StapleGetSkinningMatrix(a_indices, a_weight);",
+			"	}",
+			"",
+			"	mat4 projViewWorld = mul(mul(u_proj, u_view), model);",
 			"",
 			"	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));",
 			"",

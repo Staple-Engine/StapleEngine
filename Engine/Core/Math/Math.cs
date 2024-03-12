@@ -327,9 +327,7 @@ public static class Math
     /// <returns>The transformation matrix</returns>
     public static Matrix4x4 TransformationMatrix(Vector3 position, Vector3 scale, Quaternion rotation)
     {
-        return Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, scale.Z)) *
-            Matrix4x4.CreateFromQuaternion(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)) *
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
+        return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
     }
 
     /// <summary>

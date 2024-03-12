@@ -319,6 +319,7 @@ internal class SpriteRenderSystem : IRenderSystem
 
             s.material.shader.SetColor(Material.MainColorProperty, s.color);
             s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
+            s.material.shader.SetFloat("u_isSkinning", 0);
 
             bgfx.submit(s.viewID, s.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
         }

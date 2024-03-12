@@ -182,6 +182,7 @@ static partial class Program
                     Assimp.PostProcessSteps.SortByPrimitiveType |
                     Assimp.PostProcessSteps.RemoveRedundantMaterials |
                     Assimp.PostProcessSteps.CalculateTangentSpace |
+                    Assimp.PostProcessSteps.LimitBoneWeights |
                     Assimp.PostProcessSteps.GenerateBoundingBoxes;
 
                 if (metadata.convertUnits)
@@ -217,11 +218,6 @@ static partial class Program
                 if (metadata.debone)
                 {
                     flags |= Assimp.PostProcessSteps.Debone;
-                }
-
-                if (metadata.limitBoneWeights)
-                {
-                    flags |= Assimp.PostProcessSteps.LimitBoneWeights;
                 }
 
                 if (metadata.splitByBoneCount)
@@ -309,8 +305,6 @@ static partial class Program
                         var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
                         var materialGuid = FindGuid<Material>($"{target}.meta");
 
-                        var materialRequiresSkinning = scene.Meshes.Any(x => x.MaterialIndex == j && x.HasBones);
-
                         materialMapping.Add(materialGuid);
 
                         try
@@ -326,7 +320,7 @@ static partial class Program
 
                         var materialMetadata = new MaterialMetadata()
                         {
-                            shader = materialRequiresSkinning ? "Hidden/Shaders/Default/StandardSkinned.stsh" : "Hidden/Shaders/Default/Standard.stsh",
+                            shader = "Hidden/Shaders/Default/Standard.stsh",
                         };
 
                         var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "").Substring(1);
@@ -518,9 +512,9 @@ static partial class Program
                             var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()
                             {
                                 Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
+                                {
+                                    new StringEnumConverter(),
+                                }
                             });
 
                             File.WriteAllText(target, json);
@@ -692,14 +686,14 @@ static partial class Program
 
                     var uvs = new List<Vector2Holder>[8]
                     {
-                    m.UV1,
-                    m.UV2,
-                    m.UV3,
-                    m.UV4,
-                    m.UV5,
-                    m.UV6,
-                    m.UV7,
-                    m.UV8,
+                        m.UV1,
+                        m.UV2,
+                        m.UV3,
+                        m.UV4,
+                        m.UV5,
+                        m.UV6,
+                        m.UV7,
+                        m.UV8,
                     };
 
                     var uvCount = mesh.TextureCoordinateChannelCount > uvs.Length ? uvs.Length : mesh.TextureCoordinateChannelCount;
@@ -707,10 +701,10 @@ static partial class Program
                     for (var j = 0; j < uvCount; j++)
                     {
                         uvs[j].AddRange(mesh.TextureCoordinateChannels[j].Select(x => new Vector2Holder()
-                        {
-                            x = x.X,
-                            y = x.Y,
-                        })
+                            {
+                                x = x.X,
+                                y = x.Y,
+                            })
                             .ToList());
                     }
 

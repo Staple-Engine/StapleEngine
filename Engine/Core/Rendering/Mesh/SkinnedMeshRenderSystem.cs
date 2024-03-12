@@ -153,6 +153,8 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.materials[i].shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
 
+                renderer.materials[i].shader.SetFloat("u_isSkinning", 1);
+
                 renderer.mesh.SetActive(i);
 
                 bgfx.submit(pair.viewID, renderer.materials[i].shader.program, 0, (byte)bgfx.DiscardFlags.All);

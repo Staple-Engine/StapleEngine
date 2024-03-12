@@ -148,6 +148,8 @@ internal class MeshRenderSystem : IRenderSystem
 
                 pair.renderer.materials[index].ApplyProperties();
 
+                pair.renderer.materials[index].shader.SetFloat("u_isSkinning", 0);
+
                 pair.renderer.mesh.SetActive(index);
 
                 bgfx.submit(pair.viewID, pair.renderer.materials[index].shader.program, 0, (byte)bgfx.DiscardFlags.All);

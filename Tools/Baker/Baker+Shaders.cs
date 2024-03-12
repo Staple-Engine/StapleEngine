@@ -409,7 +409,10 @@ static partial class Program
                                 return;
                             }
 
-                            var varying = "";
+                            var varying = $"""
+vec4 a_weight : BLENDWEIGHT;
+vec4 a_indices : BLENDINDICES;
+""";
 
                             if (shader.parameters != null)
                             {
@@ -471,17 +474,32 @@ static partial class Program
                             {
                                 code = "";
 
-                                if ((piece.inputs?.Count ?? 0) > 0)
+                                if(type == ShaderCompilerType.vertex)
                                 {
-                                    code += $"$input  {string.Join(", ", piece.inputs)}\n";
+                                    code += $"$input a_weight, a_indices ";
+
+                                    if ((piece.inputs?.Count ?? 0) > 0)
+                                    {
+                                        code += $", {string.Join(", ", piece.inputs)}";
+                                    }
                                 }
+                                else
+                                {
+
+                                    if ((piece.inputs?.Count ?? 0) > 0)
+                                    {
+                                        code += $"$input {string.Join(", ", piece.inputs)}";
+                                    }
+                                }
+
+                                code += "\n";
 
                                 if ((piece.outputs?.Count ?? 0) > 0)
                                 {
                                     code += $"$output  {string.Join(", ", piece.outputs)}\n";
                                 }
 
-                                code += "#include <bgfx_shader.sh>\n";
+                                code += "#include <StapleShader.sh>\n";
 
                                 var counters = new Dictionary<ShaderUniformType, int>();
 

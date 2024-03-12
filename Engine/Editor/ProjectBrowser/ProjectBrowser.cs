@@ -911,21 +911,7 @@ internal class ProjectBrowser
 
                                                         var isSkinned = mesh.bones.Any(x => x.Count > 0);
 
-                                                        meshTransform.SetParent(skinningParentTransform);
-
-                                                        if (isSkinned == false)
-                                                        {
-                                                            meshTransform.SetParent(skinningParentTransform);
-
-                                                            if (Matrix4x4.Invert(baseTransform.Matrix, out var invertedBase) &&
-                                                                Matrix4x4.Decompose(nodeTransform.Matrix * invertedBase,
-                                                                    out var scale, out var rotation, out var translation))
-                                                            {
-                                                                meshTransform.LocalPosition = translation;
-                                                                meshTransform.LocalRotation = rotation;
-                                                                meshTransform.LocalScale = scale;
-                                                            }
-                                                        }
+                                                        meshTransform.SetParent(isSkinned ? skinningParentTransform : nodeTransform);
 
                                                         var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{index}", true);
                                                         var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
