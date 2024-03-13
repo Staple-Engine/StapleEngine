@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 premake5 --os=linux gmake
 premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake

@@ -102,7 +102,7 @@ jobs:
                 path: |
                   ./dist
    
-    macis:
+    macos:
         runs-on: macos-14
         steps:
             - uses: actions/checkout@v4

@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 premake5 --os=macosx xcode4
 premake5 --os=macosx --file=NativeFileDialog/build/premake5.lua xcode4
