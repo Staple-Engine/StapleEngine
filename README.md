@@ -2,39 +2,47 @@
 
 .NET Game Engine "stapled" together
 
-Status: Extremely early state, unusable for games at this point
+Status: Early state, usable for small demos
 
 # Features
 
-* GLFW windowing with windowed, fullscreen, and borderless modes
 * Basic renderer using bgfx
 * Entities inspired by both modern ECS and Unity
 * Scenes
-* Input (Keyboard and Mouse for now)
+* Input (Keyboard, Mouse, Touch for now)
 * Math classes
 * Materials
 * Sprites
 * Textures
-* Shader format based on BGFX's, in a single file
+* Meshes, including some imported formats and skeletal animation
+* Audio (MP3, WAV, OGG) through OpenAL
+* Shader format based on BGFX, in a single file
 * Baking pipeline (Baker) that processes game resources to fast usage in engine
 * Resource Packer that packs multiple files in its own format
-* Editor app that can edit game data and make builds for windows, linux, and android
+* Unity-style Editor app that runs on windows, linux, and mac, that can edit game data and make builds for windows, linux, mac, and android
+* Unity-style custom editor scripting and editor window scripting
 * Custom asset system
-* Unity-Style custom editor and editor window support
-* Text rendering using FreeType
-* Windows, Linux, and Android support
 * Physics support (3D: Jolt Physics)
-* Sound support through OpenAL
+
+# Installation
+
+You can grab binaries from the releases page (Soon). You also need the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
 # Building
 
-You need [premake 5](https://premake.github.io/) to generate some files, as well as [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
-
-For Windows, you also need visual studio 2022.
+You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
 ## Windows
 
-To compile dependencies, go to `Dependencies` and run `premake5 vs2022` as well as `build_windows_dotnet.cmd`, then go to `Dependencies/build/vs2022/` and build the `Dependencies.sln` solution for both debug and release configurations. (Keep in mind you don't need to build `Dependencies_Dotnet.sln` here since you already did by running the cmd file)
+You also need visual studio 2022.
+
+## MacOS
+
+You also need xcode.
+
+## Windows
+
+To compile dependencies, open the visual studio dev terminal, go to the `Dependencies` directory, and run `build_windows`.
 
 After that, you will need to compile the engine, so go to `Engine` and run `build_windows.cmd`.
 
@@ -56,10 +64,24 @@ Finally, go to the `Redist` folder in `Dependencies` and copy the windows DLLs t
 
 To compile dependencies, go to `Dependencies` and run `build_linux.sh`.
 
-After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh`.
+After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh` and then run `build_backends.sh`.
 
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL and Vulkan there.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
+
+Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
+
+## MacOS
+
+### Instructions
+
+To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
+
+After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh` and then run `build_backends.sh`.
+
+After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
+
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
