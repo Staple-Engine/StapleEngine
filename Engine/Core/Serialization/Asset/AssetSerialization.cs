@@ -129,12 +129,7 @@ internal static partial class AssetSerialization
     [GeneratedRegex("(.*?)(\\\\|\\/)Assets(\\\\|\\/)(.*?)")]
     private static partial Regex AssetPathRegex();
 
-    /// <summary>
-    /// Checks whether a type is valid for serialization
-    /// </summary>
-    /// <param name="type">The type to check</param>
-    /// <returns>Whether it can be serialized</returns>
-    private static bool IsValidType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
+    private static bool IsDirectParameter(Type type)
     {
         if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
         {
@@ -146,12 +141,32 @@ internal static partial class AssetSerialization
             return true;
         }
 
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether a type is valid for serialization
+    /// </summary>
+    /// <param name="type">The type to check</param>
+    /// <returns>Whether it can be serialized</returns>
+    private static bool IsValidType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
+    {
+        if(IsDirectParameter(type))
+        {
+            return true;
+        }
+
         if(type.GetInterface(typeof(IGuidAsset).FullName) != null || type == typeof(IGuidAsset))
         {
             return true;
         }
 
         if (type.GetCustomAttribute<MessagePackObjectAttribute>() != null)
+        {
+            return true;
+        }
+
+        if(type.GetCustomAttribute<SerializableAttribute>() != null)
         {
             return true;
         }
@@ -172,47 +187,43 @@ internal static partial class AssetSerialization
         return false;
     }
 
-    /// <summary>
-    /// Attempts to serialize a Staple Asset into a SerializableStapleAsset
-    /// </summary>
-    /// <param name="instance">The object's instance. The object must implement IStapleAsset</param>
-    /// <returns>The SerializableStapleAsset, or null</returns>
-    public static SerializableStapleAsset Serialize(object instance)
+    private static SerializableStapleAssetContainer SerializeContainer(object instance)
     {
-        if(instance == null || instance.GetType().GetInterface(typeof(IStapleAsset).FullName) == null)
+        if (instance == null)
         {
             return default;
         }
 
-        var outValue = new SerializableStapleAsset()
+        var outValue = new SerializableStapleAssetContainer()
         {
             typeName = instance.GetType().FullName,
         };
+
 
         var fields = instance.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         foreach (var field in fields)
         {
-            if(field.GetCustomAttribute<NonSerializedAttribute>() != null)
+            if (field.GetCustomAttribute<NonSerializedAttribute>() != null)
             {
                 continue;
             }
 
-            if(field.IsPublic == false && field.GetCustomAttribute<SerializableAttribute>() == null)
+            if (field.IsPublic == false && field.GetCustomAttribute<SerializableAttribute>() == null)
             {
                 continue;
             }
 
-            if(IsValidType(field.FieldType))
+            if (IsValidType(field.FieldType))
             {
                 var value = field.GetValue(instance);
 
-                if(value == null)
+                if (value == null)
                 {
                     continue;
                 }
 
-                if(value is IGuidAsset guidAsset)
+                if (value is IGuidAsset guidAsset)
                 {
                     outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
                     {
@@ -223,7 +234,7 @@ internal static partial class AssetSerialization
                     continue;
                 }
 
-                if(value.GetType().IsGenericType)
+                if (value.GetType().IsGenericType)
                 {
                     if (value.GetType().GetGenericTypeDefinition() == typeof(List<>))
                     {
@@ -231,15 +242,15 @@ internal static partial class AssetSerialization
 
                         if (listType != null)
                         {
-                            if(listType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                            if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
                             {
                                 var newList = new List<string>();
 
                                 var inList = (IList)value;
 
-                                foreach(var item in inList)
+                                foreach (var item in inList)
                                 {
-                                    if(item is IGuidAsset g)
+                                    if (item is IGuidAsset g)
                                     {
                                         newList.Add(g.Guid);
                                     }
@@ -253,8 +264,68 @@ internal static partial class AssetSerialization
 
                                 continue;
                             }
+                            else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
+                            {
+                                try
+                                {
+                                    var newList = new List<SerializableStapleAssetContainer>();
+
+                                    var inList = (IList)value;
+
+                                    foreach(var item in inList)
+                                    {
+                                        try
+                                        {
+                                            var container = SerializeContainer(item);
+
+                                            if(container != null)
+                                            {
+                                                newList.Add(container);
+                                            }
+                                        }
+                                        catch(Exception)
+                                        {
+                                        }
+                                    }
+
+                                    outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
+                                    {
+                                        typeName = value.GetType().FullName,
+                                        value = newList,
+                                    });
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                continue;
+                            }
                         }
                     }
+                }
+
+                //Need to describe the item
+                if (IsDirectParameter(value.GetType()) == false &&
+                    value.GetType().GetCustomAttribute<SerializableAttribute>() != null)
+                {
+                    try
+                    {
+                        var container = SerializeContainer(value);
+
+                        if(container != null)
+                        {
+                            outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
+                            {
+                                typeName = value.GetType().FullName,
+                                value = container,
+                            });
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    continue;
                 }
 
                 outValue.parameters.Add(field.Name, new SerializableStapleAssetParameter()
@@ -268,6 +339,246 @@ internal static partial class AssetSerialization
         return outValue;
     }
 
+    /// <summary>
+    /// Attempts to serialize a Staple Asset into a SerializableStapleAsset
+    /// </summary>
+    /// <param name="instance">The object's instance. The object must implement IStapleAsset</param>
+    /// <returns>The SerializableStapleAsset, or null</returns>
+    public static SerializableStapleAsset Serialize(object instance)
+    {
+        if(instance == null || instance.GetType().GetInterface(typeof(IStapleAsset).FullName) == null)
+        {
+            return default;
+        }
+
+        try
+        {
+            var container = SerializeContainer(instance);
+
+            if (container == null)
+            {
+                return default;
+            }
+
+            var outValue = new SerializableStapleAsset()
+            {
+                typeName = instance.GetType().FullName,
+                parameters = container.parameters,
+            };
+
+            return outValue;
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[AssetSerialization] Failed to serialize {instance.GetType().FullName}: {e}");
+
+            return default;
+        }
+    }
+
+    private static object DeserializeContainer(SerializableStapleAssetContainer container)
+    {
+        var type = TypeCache.GetType(container.typeName);
+
+        if (type == null)
+        {
+            return null;
+        }
+
+        object instance;
+
+        try
+        {
+            instance = Activator.CreateInstance(type);
+
+            foreach (var pair in container.parameters)
+            {
+                try
+                {
+                    var field = type.GetField(pair.Key);
+                    var valueType = TypeCache.GetType(pair.Value.typeName);
+
+                    if (valueType == null ||
+                        field == null ||
+                        (field.FieldType.FullName != pair.Value.typeName && valueType.GetInterface(field.FieldType.FullName) == null))
+                    {
+                        continue;
+                    }
+
+                    if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                    {
+                        if (pair.Value.value is string guid)
+                        {
+                            var result = GetGuidAsset(valueType, guid);
+
+                            if (result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
+                            {
+                                break;
+                            }
+
+                            field.SetValue(instance, result);
+                        }
+
+                        continue;
+                    }
+
+                    if (pair.Value.value != null && field.FieldType == pair.Value.value.GetType())
+                    {
+                        field.SetValue(instance, pair.Value.value);
+
+                        continue;
+                    }
+
+                    if (field.FieldType.IsGenericType)
+                    {
+                        if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            var o = Activator.CreateInstance(field.FieldType);
+
+                            if (o == null)
+                            {
+                                continue;
+                            }
+
+                            var list = (IList)o;
+
+                            if (list == null)
+                            {
+                                continue;
+                            }
+
+                            var fail = false;
+
+                            if (pair.Value.value is object[] array)
+                            {
+                                foreach (var item in array)
+                                {
+                                    var fieldType = field.FieldType.GenericTypeArguments[0];
+
+                                    if (fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                                    {
+                                        if (item is string guid)
+                                        {
+                                            var v = GetGuidAsset(fieldType, guid);
+
+                                            if (v != null)
+                                            {
+                                                list.Add(v);
+                                            }
+                                        }
+                                    }
+                                    else if(fieldType.GetCustomAttribute<SerializableAttribute>() != null)
+                                    {
+                                        try
+                                        {
+                                            if (item is object[] containers &&
+                                                containers.Length == 2 &&
+                                                containers[0] is string innerTypeName &&
+                                                containers[1] is Dictionary<object, object> parameters) //Name and parameters
+                                            {
+                                                var itemContainer = new SerializableStapleAssetContainer()
+                                                {
+                                                    typeName = innerTypeName,
+                                                };
+
+                                                var containerParameters = new Dictionary<string, SerializableStapleAssetParameter>();
+
+                                                foreach (var containerPair in parameters)
+                                                {
+                                                    if (containerPair.Key is string containerKey &&
+                                                        containerPair.Value is object[] pieces &&
+                                                        pieces.Length == 2 &&
+                                                        pieces[0] is string parameterTypeName)
+                                                    {
+                                                        var tempParameter = new SerializableStapleAssetParameter()
+                                                        {
+                                                            typeName = parameterTypeName,
+                                                            value = pieces[1]
+                                                        };
+
+                                                        containerParameters.Add(containerKey, tempParameter);
+                                                    }
+                                                }
+
+                                                itemContainer.parameters = containerParameters;
+
+                                                var itemInstance = DeserializeContainer(itemContainer);
+
+                                                if(itemInstance != null)
+                                                {
+                                                    list.Add(itemInstance);
+                                                }
+                                            }
+                                        }
+                                        catch(Exception e)
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
+
+                                            list.Add(value);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            fail = true;
+
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (fail)
+                                {
+                                    continue;
+                                }
+
+                                field.SetValue(instance, list);
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    if(field.FieldType == typeof(SerializableStapleAssetContainer) &&
+                        field.GetValue(pair.Value.value) is SerializableStapleAssetContainer innerContainer)
+                    {
+                        try
+                        {
+                            var value = DeserializeContainer(innerContainer);
+
+                            if(value != null)
+                            {
+                                field.SetValue(instance, value);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        continue;
+                    }
+
+                    field.SetValue(instance, pair.Value.value);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to load an asset of type {container.typeName}: {e}");
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+
+        return instance;
+    }
+
     public static IStapleAsset Deserialize(SerializableStapleAsset asset)
     {
         if(asset == null)
@@ -275,137 +586,22 @@ internal static partial class AssetSerialization
             return null;
         }
 
-        var type = TypeCache.GetType(asset.typeName);
-
-        if(type == null)
+        var instance = DeserializeContainer(new SerializableStapleAssetContainer()
         {
-            return null;
-        }
+            parameters = asset.parameters,
+            typeName = asset.typeName,
+        });
 
-        IStapleAsset instance;
-
-        try
+        if(instance is IStapleAsset stapleAsset)
         {
-            instance = (IStapleAsset)Activator.CreateInstance(type);
-        }
-        catch(Exception)
-        {
-            return null;
-        }
-
-        foreach(var pair in asset.parameters)
-        {
-            try
+            if(stapleAsset is IGuidAsset guidAsset)
             {
-                var field = type.GetField(pair.Key);
-                var valueType = TypeCache.GetType(pair.Value.typeName);
-
-                if (valueType == null ||
-                    field == null ||
-                    (field.FieldType.FullName != pair.Value.typeName && valueType.GetInterface(field.FieldType.FullName) == null))
-                {
-                    continue;
-                }
-
-                if(valueType.GetInterface(typeof(IGuidAsset).FullName) != null)
-                {
-                    if(pair.Value.value is string guid)
-                    {
-                        var result = GetGuidAsset(valueType, guid);
-
-                        if(result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
-                        {
-                            break;
-                        }
-
-                        field.SetValue(instance, result);
-                    }
-
-                    continue;
-                }
-
-                if(pair.Value.value != null && field.FieldType == pair.Value.value.GetType())
-                {
-                    field.SetValue(instance, pair.Value.value);
-
-                    continue;
-                }
-
-                if(field.FieldType.IsGenericType)
-                {
-                    if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
-                    {
-                        var o = Activator.CreateInstance(field.FieldType);
-
-                        if(o == null)
-                        {
-                            continue;
-                        }
-
-                        var list = (IList)o;
-
-                        if(list == null)
-                        {
-                            continue;
-                        }
-
-                        var fail = false;
-
-                        if(pair.Value.value is object[] array)
-                        {
-                            foreach(var item in array)
-                            {
-                                var fieldType = field.FieldType.GenericTypeArguments[0];
-
-                                if(fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
-                                {
-                                    if(item is string guid)
-                                    {
-                                        var v = GetGuidAsset(fieldType, guid);
-
-                                        if(v != null)
-                                        {
-                                            list.Add(v);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    try
-                                    {
-                                        var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
-
-                                        list.Add(value);
-                                    }
-                                    catch (Exception)
-                                    {
-                                        fail = true;
-
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if(fail)
-                            {
-                                continue;
-                            }
-
-                            field.SetValue(instance, list);
-                        }
-
-                        continue;
-                    }
-                }
-
-                field.SetValue(instance, pair.Value.value);
+                guidAsset.Guid = asset.guid;
             }
-            catch(Exception e)
-            {
-                Log.Error($"Failed to load an asset of type {asset.typeName}: {e}");
-            }
+
+            return stapleAsset;
         }
 
-        return instance;
+        return null;
     }
 }

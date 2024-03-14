@@ -33,6 +33,16 @@ public class SerializableStapleAssetParameter
 }
 
 [MessagePackObject]
+public class SerializableStapleAssetContainer
+{
+    [Key(0)]
+    public string typeName;
+
+    [Key(1)]
+    public Dictionary<string, SerializableStapleAssetParameter> parameters = new();
+}
+
+[MessagePackObject]
 public class SerializableStapleAsset
 {
     [Key(0)]

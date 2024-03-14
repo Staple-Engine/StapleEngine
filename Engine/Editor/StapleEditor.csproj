@@ -62,6 +62,7 @@
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="Backends\WindowsBuildProcessor.cs" />
     <Compile Include="CSProjManager.cs" />
+    <Compile Include="Editors\Assets\AnimationStateMachineEditor.cs" />
     <Compile Include="Editors\Assets\TileMapAssetEditor.cs" />
     <Compile Include="Editors\Assets\AudioClipEditor.cs" />
     <Compile Include="Editors\Default\BoxCollider3DGizmoEditor.cs" />
