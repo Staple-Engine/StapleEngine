@@ -13,10 +13,17 @@ namespace CrossCopy
             {
                 Console.WriteLine("Usage: CrossCopy source destination");
 
+                Console.WriteLine($"Debug: Arguments passed:\n{string.Join("\n", args)}");
+
                 Environment.Exit(1);
             }
 
             var dllExt = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dll" : "so";
+
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                dllExt = "dylib";
+            }
 
             for(var i = 0; i < args.Length; i++)
             {
