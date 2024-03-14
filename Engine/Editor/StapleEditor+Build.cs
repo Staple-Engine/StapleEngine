@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Evaluation;
-using Staple.Internal;
 using System;
 using System.Diagnostics;
 using System.IO;

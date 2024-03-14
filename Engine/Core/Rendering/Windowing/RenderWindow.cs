@@ -1,11 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Threading;
-
-[assembly: InternalsVisibleTo("StapleEditor")]
 
 namespace Staple.Internal;
 
@@ -28,6 +24,7 @@ internal class RenderWindow
     internal bgfx.ResetFlags resetFlags;
     internal bool shouldStop = false;
     internal bool shouldRender = true;
+    internal bool forceContextLoss = false;
     internal object renderLock = new();
 
     public Action OnFixedUpdate;
@@ -83,8 +80,9 @@ internal class RenderWindow
 
     internal void CheckContextLost()
     {
-        if (window.ContextLost)
+        if (window.ContextLost || forceContextLoss)
         {
+            forceContextLoss = false;
             window.ContextLost = false;
 
             ResourceManager.instance.Destroy(false);

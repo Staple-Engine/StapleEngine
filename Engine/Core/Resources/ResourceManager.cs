@@ -222,9 +222,16 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshes)
         {
+            if(pair.Value == null)
+            {
+                continue;
+            }
+
             try
             {
-                pair.Value?.UploadMeshData();
+                pair.Value.changed = true;
+
+                pair.Value.UploadMeshData();
 
                 Log.Debug($"Recreated mesh {pair.Key}");
             }
@@ -236,9 +243,16 @@ internal class ResourceManager
 
         foreach (var pair in Mesh.defaultMeshes)
         {
+            if (pair.Value == null)
+            {
+                continue;
+            }
+
             try
             {
-                pair.Value?.UploadMeshData();
+                pair.Value.changed = true;
+
+                pair.Value.UploadMeshData();
 
                 Log.Debug($"Recreated mesh {pair.Key}");
             }

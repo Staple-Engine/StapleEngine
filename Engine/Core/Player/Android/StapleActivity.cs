@@ -485,7 +485,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 }
             });
 
-            Log.Debug($"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
+            Android.Util.Log.Info("Staple", $"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
         }
 
         void Delay()

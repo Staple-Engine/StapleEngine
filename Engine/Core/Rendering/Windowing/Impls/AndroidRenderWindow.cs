@@ -2,8 +2,6 @@
 using System;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Player")]
-
 namespace Staple.Internal;
 
 internal class AndroidRenderWindow : IRenderWindow

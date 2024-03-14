@@ -212,6 +212,16 @@ internal partial class StapleEditor
                 ImGui.EndMenu();
             }
 
+            if(ImGui.BeginMenu("Edit"))
+            {
+                if(ImGui.MenuItem("Recreate render device"))
+                {
+                    window.forceContextLoss = true;
+                }
+
+                ImGui.EndMenu();
+            }
+
             if (ImGui.BeginMenu("Assets"))
             {
                 if (ImGui.BeginMenu("Create"))
