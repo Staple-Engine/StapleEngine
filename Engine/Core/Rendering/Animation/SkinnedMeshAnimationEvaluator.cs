@@ -7,39 +7,46 @@ internal class SkinnedMeshAnimationEvaluator
 {
     public MeshAsset.Animation animation;
     public MeshAsset meshAsset;
+    public SkinnedMeshAnimator animator;
 
     public Dictionary<int, int> lastPositionIndex = new();
     public Dictionary<int, int> lastRotationIndex = new();
     public Dictionary<int, int> lastScaleIndex = new();
     public float lastTime;
-    public float playTime;
     public MeshAsset.Node rootNode;
 
-    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode)
+    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode, SkinnedMeshAnimator animator)
     {
         meshAsset = asset;
         this.animation = animation;
         this.rootNode = rootNode;
+        this.animator = animator;
     }
 
     public void Evaluate()
     {
-        if(animation == null || meshAsset == null)
+        if (animation == null || meshAsset == null)
         {
             return;
         }
 
-        playTime += Time.deltaTime;
+        animator.playTime += Time.deltaTime;
 
-        var t = playTime * animation.ticksPerSecond;
-
+        var t = animator.playTime * animation.ticksPerSecond;
         var time = t % animation.duration;
 
-        for(var i = 0; i < animation.channels.Count; i++)
+        if (animator.repeat == false && t >= animation.duration)
+        {
+            time = animation.duration;
+        }
+
+        animator.playTime = time / animation.ticksPerSecond;
+
+        for (var i = 0; i < animation.channels.Count; i++)
         {
             var channel = animation.channels[i];
 
-            if(channel.node == null ||
+            if (channel.node == null ||
                 MeshAsset.TryGetNode(rootNode, channel.node.name, out var node) == false)
             {
                 continue;
@@ -51,7 +58,7 @@ internal class SkinnedMeshAnimationEvaluator
 
                 if (keys.Count > 0)
                 {
-                    var frame = (time >= lastTime) ? last : 0;
+                    var frame = time >= lastTime ? last : 0;
 
                     while (frame < keys.Count - 1)
                     {
@@ -75,12 +82,12 @@ internal class SkinnedMeshAnimationEvaluator
 
                     var timeDifference = next.time - current.time;
 
-                    if(timeDifference < 0)
+                    if (timeDifference < 0)
                     {
                         timeDifference += animation.duration;
                     }
 
-                    if(timeDifference > 0)
+                    if (timeDifference > 0)
                     {
                         outValue = Vector3.Lerp(current.value, next.value, (time - current.time) / timeDifference);
                     }
@@ -101,7 +108,7 @@ internal class SkinnedMeshAnimationEvaluator
 
                 if (keys.Count > 0)
                 {
-                    var frame = (time >= lastTime) ? last : 0;
+                    var frame = time >= lastTime ? last : 0;
 
                     while (frame < keys.Count - 1)
                     {
@@ -145,7 +152,7 @@ internal class SkinnedMeshAnimationEvaluator
                 return outValue;
             }
 
-            if(lastPositionIndex.TryGetValue(i, out var positionIndex) == false)
+            if (lastPositionIndex.TryGetValue(i, out var positionIndex) == false)
             {
                 lastPositionIndex.Add(i, 0);
             }

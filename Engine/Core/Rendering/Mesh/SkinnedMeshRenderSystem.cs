@@ -93,7 +93,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
 
             var useAnimator = animator != null && animator.evaluator != null;
 
-            for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
+            for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
                 if (meshAssetMesh.bones[i].Count > 128)
                 {

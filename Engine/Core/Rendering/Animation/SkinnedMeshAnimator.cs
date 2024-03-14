@@ -12,8 +12,10 @@ public class SkinnedMeshAnimator : IComponent
 
     public Mesh mesh;
     public string animation;
+    public bool repeat = true;
 
     internal bool playInEditMode;
+    internal float playTime;
     internal Dictionary<string, Item> nodeRenderers = new();
     internal SkinnedMeshAnimationEvaluator evaluator;
 }

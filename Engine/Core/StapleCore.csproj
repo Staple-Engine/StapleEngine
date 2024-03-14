@@ -122,11 +122,12 @@
 		<Compile Include="External\OpenAL-CS\src\DllName.cs" />
 		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
+		<Compile Include="Rendering\Animation\AnimationStateMachine.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
-		<Compile Include="Rendering\Mesh\SkinnedMeshAnimationEvaluator.cs" />
-		<Compile Include="Rendering\Mesh\SkinnedMeshAnimator.cs" />
-		<Compile Include="Rendering\Mesh\SkinnedMeshAnimatorSystem.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimationEvaluator.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimator.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimatorSystem.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderer.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderSystem.cs" />
 		<Compile Include="Rendering\Screen.cs" />

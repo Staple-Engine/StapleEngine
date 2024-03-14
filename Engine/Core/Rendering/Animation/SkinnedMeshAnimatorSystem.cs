@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple;
 
@@ -74,18 +75,34 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
 
         if (Platform.IsPlaying || animator.playInEditMode)
         {
-            if ((animator.evaluator == null ||
-                animator.evaluator.animation.name != animator.animation))
+            if (animator.evaluator == null ||
+                animator.evaluator.animation.name != animator.animation)
             {
                 animator.evaluator = new(animator.mesh.meshAsset,
                     animator.mesh.meshAsset.animations[animator.animation],
-                    animator.mesh.meshAsset.rootNode.Clone());
+                    animator.mesh.meshAsset.rootNode.Clone(),
+                    animator);
             }
 
             animator.evaluator.Evaluate();
         }
-        else if(animator.playInEditMode == false)
+        else if (animator.playInEditMode == false)
         {
+            if(animator.evaluator != null)
+            {
+                foreach(var pair in animator.nodeRenderers)
+                {
+                    if(Matrix4x4.Decompose(pair.Value.node.originalTransform, out var scale, out var rotation, out var translation) == false)
+                    {
+                        continue;
+                    }
+
+                    pair.Value.transform.LocalPosition = translation;
+                    pair.Value.transform.LocalRotation = rotation;
+                    pair.Value.transform.LocalScale = scale;
+                }
+            }
+
             animator.evaluator = null;
         }
     }
