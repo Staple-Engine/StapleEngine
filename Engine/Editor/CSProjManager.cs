@@ -451,7 +451,6 @@ internal class CSProjManager
                 p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
                 p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                 p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                p.SetProperty("EnableLLVM", "true");
                 p.SetProperty("RuntimeIdentifiers", "android-arm64");
 
                 break;
