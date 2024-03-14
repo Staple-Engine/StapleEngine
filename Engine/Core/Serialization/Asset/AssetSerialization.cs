@@ -97,7 +97,7 @@ internal static partial class AssetSerialization
             {
                 var parameters = method.GetParameters();
 
-                if (parameters.Length != 1 || parameters[0].Name != "path")
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(string))
                 {
                     continue;
                 }

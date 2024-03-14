@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple;
@@ -46,6 +47,26 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
         return typeof(SkinnedMeshAnimator);
     }
 
+    private void SetState(SkinnedMeshAnimator animator, string name)
+    {
+        if(name == null)
+        {
+            return;
+        }
+
+        var state = animator.stateMachine.states.FirstOrDefault(x => x.name == name);
+
+        if(state == null)
+        {
+            return;
+        }
+
+        animator.repeat = state.repeat;
+        animator.animation = state.animation;
+        animator.playTime = 0;
+        animator.currentState = state;
+    }
+
     public void Prepare()
     {
     }
@@ -71,6 +92,17 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
         if (animator.nodeRenderers.Count == 0)
         {
             animator.nodeRenderers = GatherNodes(transform, animator.mesh.meshAsset.rootNode);
+        }
+
+        if(Platform.IsPlaying)
+        {
+            if (animator.stateMachine != null)
+            {
+                if (animator.currentState == null)
+                {
+                    SetState(animator, animator.stateMachine.states.FirstOrDefault()?.name);
+                }
+            }
         }
 
         if (Platform.IsPlaying || animator.playInEditMode)

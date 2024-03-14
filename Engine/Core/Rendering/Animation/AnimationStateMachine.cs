@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Staple;
 
-public class AnimationStateMachine : IStapleAsset
+public class AnimationStateMachine : IStapleAsset, IGuidAsset
 {
     public enum AnimationCondition
     {
@@ -47,4 +47,11 @@ public class AnimationStateMachine : IStapleAsset
     public Mesh mesh;
 
     public List<AnimationState> states = new();
+
+    public string Guid { get; set; }
+
+    public static object Create(string guid)
+    {
+        return Resources.Load<AnimationStateMachine>(guid);
+    }
 }

@@ -177,6 +177,15 @@ internal static class SceneSerialization
                 field.SetValue(componentInstance, (Color)color);
             }
         }
+        else if (field.FieldType == typeof(LayerMask) && element.ValueKind == JsonValueKind.Number)
+        {
+            var mask = new LayerMask()
+            {
+                value = element.GetUInt32(),
+            };
+
+            field.SetValue(componentInstance, mask);
+        }
     }
 
     public static void DeserializeField(FieldInfo field, ref IComponent componentInstance, SceneComponentParameter parameter)
@@ -374,18 +383,10 @@ internal static class SceneSerialization
                 }
                 else if (field.FieldType == typeof(LayerMask))
                 {
-                    var mask = new LayerMask();
-
-                    if (parameter.stringValue.ToUpperInvariant() == "EVERYTHING")
+                    var mask = new LayerMask()
                     {
-                        mask = LayerMask.Everything;
-                    }
-                    else
-                    {
-                        var layers = LayerMask.GetMask(parameter.stringValue.Split(" ".ToCharArray()));
-
-                        mask.value = layers;
-                    }
+                        value = (uint)parameter.intValue,
+                    };
 
                     field.SetValue(componentInstance, mask);
                 }
