@@ -78,59 +78,8 @@ public static class AssetDatabase
                     guid = file.guid,
                     path = file.path,
                     name = Path.GetFileNameWithoutExtension(file.path.Replace(".meta", "")),
+                    typeName = file.typeName,
                 };
-
-                var extension = Path.GetExtension(file.path);
-
-                //TODO: Do this better
-                switch (extension)
-                {
-                    case ".stsh":
-
-                        asset.typeName = typeof(Shader).FullName;
-
-                        break;
-
-                    case ".mat":
-
-                        asset.typeName = typeof(Material).FullName;
-
-                        break;
-
-                    case ".stsc":
-
-                        asset.typeName = typeof(Scene).FullName;
-
-                        break;
-
-                    case ".stpr":
-
-                        asset.typeName = typeof(Prefab).FullName;
-
-                        break;
-
-                    default:
-
-                        if(extension != null && extension.Length > 0)
-                        {
-                            var shortExtension = extension.Substring(1);
-
-                            if (AssetSerialization.TextureExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(Texture).FullName;
-                            }
-                            else if (AssetSerialization.AudioExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(AudioClip).FullName;
-                            }
-                            else if (AssetSerialization.MeshExtensions.Contains(shortExtension))
-                            {
-                                asset.typeName = typeof(Mesh).FullName;
-                            }
-                        }
-
-                        break;
-                }
 
                 assets.Add(asset);
             }

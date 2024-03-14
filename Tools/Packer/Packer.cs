@@ -156,6 +156,7 @@ static class Program
                     var filePaths = new List<string>();
                     var localFilePaths = new List<string>();
                     var fileGuids = new List<string>();
+                    var fileTypes = new List<string>();
                     var fileStreams = new List<Stream>();
 
                     void Recursive(string basePath, string current)
@@ -176,7 +177,7 @@ static class Program
                             }
 
                             var localPath = Path.GetRelativePath(basePath, file).Replace(Path.DirectorySeparatorChar, '/');
-                            var guid = PackerUtils.ExtractGuid(file) ?? Guid.NewGuid().ToString();
+                            var guid = PackerUtils.ExtractGuid(file, out var typeName) ?? Guid.NewGuid().ToString();
 
                             if(fileGuids.Any(x => x == guid))
                             {
@@ -185,6 +186,7 @@ static class Program
 
                             filePaths.Add(file);
                             localFilePaths.Add(localPath);
+                            fileTypes.Add(typeName);
                             fileStreams.Add(new FileStream(file, FileMode.Open));
                             fileGuids.Add(guid);
                         }
@@ -215,7 +217,7 @@ static class Program
 
                     for(var i = 0; i < filePaths.Count; i++)
                     {
-                        resourcePak.AddEntry(fileGuids[i], localFilePaths[i], fileStreams[i]);
+                        resourcePak.AddEntry(fileGuids[i], localFilePaths[i], fileTypes[i], fileStreams[i]);
                     }
 
                     try

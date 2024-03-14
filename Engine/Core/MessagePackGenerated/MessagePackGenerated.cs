@@ -2118,10 +2118,11 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(3);
+            writer.WriteArrayHeader(4);
             writer.Write(value.guid);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.path, options);
             writer.Write(value.size);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.ResourcePak.Entry Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2148,6 +2149,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 2:
                         ____result.size = reader.ReadInt64();
+                        break;
+                    case 3:
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

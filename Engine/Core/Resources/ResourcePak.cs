@@ -33,6 +33,9 @@ public class ResourcePak : IDisposable
         [Key(2)]
         public long size;
 
+        [Key(3)]
+        public string typeName;
+
         [IgnoreMember]
         public Stream stream;
     }
@@ -147,6 +150,7 @@ public class ResourcePak : IDisposable
         public string guid;
         public string path;
         public long size;
+        public string typeName;
     }
 
     private List<Entry> entries = new();
@@ -162,7 +166,7 @@ public class ResourcePak : IDisposable
         entries.Clear();
     }
 
-    public void AddEntry(string guid, string path, Stream stream)
+    public void AddEntry(string guid, string path, string typeName, Stream stream)
     {
         if(Guid.TryParse(guid, out var _guid) == false)
         {
@@ -174,6 +178,7 @@ public class ResourcePak : IDisposable
             guid = _guid.ToByteArray(),
             path = path,
             size = stream.Length,
+            typeName = typeName,
             stream = stream,
         };
 
@@ -327,9 +332,10 @@ public class ResourcePak : IDisposable
                     guid = new Guid(entry.guid).ToString(),
                     path = entry.path,
                     size = entry.size,
+                    typeName = entry.typeName,
                 });
 
-                reader.Position = reader.Position + entry.size;
+                reader.Position += entry.size;
             }
         }
         catch (Exception e)

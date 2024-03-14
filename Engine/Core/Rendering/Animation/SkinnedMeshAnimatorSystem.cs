@@ -65,6 +65,7 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
         animator.animation = state.animation;
         animator.playTime = 0;
         animator.currentState = state;
+        animator.evaluator = null;
     }
 
     public void Prepare()

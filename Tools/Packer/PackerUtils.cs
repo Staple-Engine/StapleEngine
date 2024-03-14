@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Staple;
 using Staple.Internal;
 using System;
 using System.IO;
@@ -8,10 +9,14 @@ namespace Packer;
 
 static class PackerUtils
 {
-    public static string ExtractGuid(string path)
+    public static string ExtractGuid(string path, out string typeName)
     {
-        if(path.EndsWith(".mat"))
+        typeName = "Unknown";
+
+        if (path.EndsWith(".mat"))
         {
+            typeName = typeof(Material).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
@@ -39,6 +44,8 @@ static class PackerUtils
         }
         else if(path.EndsWith(".stsc"))
         {
+            typeName = typeof(Scene).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
@@ -66,6 +73,8 @@ static class PackerUtils
         }
         else if(path.EndsWith(".stsh"))
         {
+            typeName = typeof(Shader).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
@@ -109,6 +118,8 @@ static class PackerUtils
 
                 var value = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
 
+                typeName = value.typeName;
+
                 return value.guid;
             }
             catch (Exception e)
@@ -120,6 +131,8 @@ static class PackerUtils
         }
         else if(AssetSerialization.TextureExtensions.Any(x => path.EndsWith($".{x}")))
         {
+            typeName = typeof(Texture).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
@@ -147,6 +160,8 @@ static class PackerUtils
         }
         else if (AssetSerialization.AudioExtensions.Any(x => path.EndsWith($".{x}")))
         {
+            typeName = typeof(AudioClip).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
@@ -174,6 +189,8 @@ static class PackerUtils
         }
         else if (AssetSerialization.MeshExtensions.Any(x => path.EndsWith($".{x}")))
         {
+            typeName = typeof(Mesh).FullName;
+
             try
             {
                 var data = File.ReadAllBytes(path);
