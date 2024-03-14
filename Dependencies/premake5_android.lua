@@ -1,3 +1,5 @@
+require "cmake"
+
 local BUILD_DIR = path.join("build", "native")
 local BGFX_DIR = "bgfx"
 local BIMG_DIR = "bimg"
@@ -19,7 +21,7 @@ solution "Dependencies"
 		defines "_DEBUG"
 		optimize "Debug"
 		symbols "On"
-		
+
 	filter { "system:android or system:macosx" }
 		architecture "arm64"
 
@@ -51,7 +53,7 @@ function setBxCompat()
 	filter { "system:windows", "action:gmake" }
 		includedirs { path.join(BX_DIR, "include/compat/mingw") }
 
-    filter "action:gmake"
+    filter "action:gmake or action:cmake"
         buildoptions { "-fPIC" }
 end
 
@@ -118,6 +120,12 @@ project "bgfx"
 	filter "system:linux"
 		links {
 			"m", "pthread", "X11", "GL"
+		}
+	
+	filter "system:android"
+
+		links {
+			"m", "log", "EGL", "GLESv3", "vulkan", "nativewindow"
 		}
 		
 	filter "system:windows"
@@ -227,74 +235,3 @@ project "StapleSupport"
 		files { path.join(SUPPORT_DIR, "*.m") }
 
 		links { "QuartzCore.framework" }
-
-project "glfw"
-	kind "SharedLib"
-	language "C"
-
-	files {
-		path.join(GLFW_DIR, "include/GLFW/*.h"),
-		path.join(GLFW_DIR, "src/context.c"),
-		path.join(GLFW_DIR, "src/egl_context.*"),
-		path.join(GLFW_DIR, "src/init.c"),
-		path.join(GLFW_DIR, "src/input.c"),
-		path.join(GLFW_DIR, "src/internal.h"),
-		path.join(GLFW_DIR, "src/monitor.c"),
-		path.join(GLFW_DIR, "src/null_init.c"),
-		path.join(GLFW_DIR, "src/null_joystick.c"),
-		path.join(GLFW_DIR, "src/null_monitor.c"),
-		path.join(GLFW_DIR, "src/null_window.c"),
-		path.join(GLFW_DIR, "src/osmesa_context.*"),
-		path.join(GLFW_DIR, "src/platform.c"),
-		path.join(GLFW_DIR, "src/vulkan.c"),
-		path.join(GLFW_DIR, "src/window.c"),
-	}
-
-	includedirs { path.join(GLFW_DIR, "include") }
-
-	filter "system:windows"
-		defines "_GLFW_WIN32"
-		defines "_GLFW_BUILD_DLL"
-
-		files {
-			path.join(GLFW_DIR, "src/win32_*.*"),
-			path.join(GLFW_DIR, "src/wgl_context.*")
-		}
-
-	filter "system:linux"
-		defines "_GLFW_X11"
-
-		files {
-			path.join(GLFW_DIR, "src/glx_context.*"),
-			path.join(GLFW_DIR, "src/linux*.*"),
-			path.join(GLFW_DIR, "src/posix*.*"),
-			path.join(GLFW_DIR, "src/x11*.*"),
-			path.join(GLFW_DIR, "src/xkb*.*")
-		}
-
-	filter "system:macosx"
-		defines "_GLFW_COCOA"
-
-		files {
-			path.join(GLFW_DIR, "src/cocoa_*.*"),
-			path.join(GLFW_DIR, "src/posix_thread.h"),
-			path.join(GLFW_DIR, "src/nsgl_context.h"),
-			path.join(GLFW_DIR, "src/egl_context.h"),
-			path.join(GLFW_DIR, "src/osmesa_context.h"),
-
-			path.join(GLFW_DIR, "src/posix_thread.c"),
-			path.join(GLFW_DIR, "src/posix_module.c"),
-			path.join(GLFW_DIR, "src/nsgl_context.m"),
-			path.join(GLFW_DIR, "src/egl_context.c"),
-			path.join(GLFW_DIR, "src/nsgl_context.m"),
-			path.join(GLFW_DIR, "src/osmesa_context.c"),
-		}
-
-		links {
-			"Cocoa.framework",
-			"OpenGL.framework",
-			"IOKit.framework"
-		}
-
-	filter "action:vs*"
-		defines "_CRT_SECURE_NO_WARNINGS"

@@ -101,6 +101,34 @@ jobs:
                 name: linux-production
                 path: |
                   ./dist
+    
+    android-dependencies:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                submodules: "recursive"
+
+            - uses: abel0b/setup-premake@v2.3
+              with:
+                version: '5.0.0-beta2'
+
+            - uses: actions/setup-java@v3
+              with:
+                java-version: '17'
+                distribution: 'temurin'
+            
+            - uses: android-actions/setup-android@v3
+
+            - run: 'sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev'
+
+            - run: 'sh build_android.sh'
+              working-directory: './Dependencies/'
+
+            - uses: actions/upload-artifact@v4
+              with:
+                name: android-native-dependencies
+                path: ./Dependencies/build/native/
    
     macos:
         runs-on: macos-14
