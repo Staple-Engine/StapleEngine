@@ -2,9 +2,14 @@
 
 class MyEntitySystem : IEntitySystem
 {
-    public SubsystemType UpdateType => SubsystemType.FixedUpdate;
+    public EntitySubsystemType UpdateType => EntitySubsystemType.FixedUpdate;
 
-    public void Process(float deltaTime)
+    public void FixedUpdate(float deltaTime)
+    {
+        //Handle each update here
+    }
+
+    public void Update(float deltaTime)
     {
         //Handle each update here
     }
