@@ -45,6 +45,23 @@ namespace CoreTests
             public int notSerialized2 = 0;
         }
 
+        internal class SerializableAsset : IStapleAsset
+        {
+            [Serializable]
+            public class InnerClass
+            {
+                [Serializable]
+                public class InnerInnerClass
+                {
+                    public int value = 3;
+                }
+
+                public InnerInnerClass container;
+            }
+
+            public InnerClass container;
+        }
+
         [Test]
         public void TestSerialize()
         {
@@ -135,6 +152,93 @@ namespace CoreTests
             Assert.That(newAsset.pathAsset != null);
             Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
+        }
+
+        [Test]
+        public void TestSerializeSerializable()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new SerializableAsset
+            {
+                container = new()
+                {
+                    container = null,
+                }
+            };
+
+            var result = AssetSerialization.Serialize(asset);
+
+            Assert.That(result, Is.Not.EqualTo(null));
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(SerializableAsset).FullName));
+
+            Assert.That(result.parameters, Has.Count.EqualTo(1));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.parameters.ContainsKey(nameof(SerializableAsset.container)), Is.True);
+                Assert.That(result.parameters[nameof(SerializableAsset.container)].value, Is.TypeOf(typeof(SerializableStapleAssetContainer)));
+
+                if(result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
+                {
+                    Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                    Assert.That(parameter.value, Is.TypeOf<SerializableStapleAssetContainer>());
+
+                    if(parameter.value is SerializableStapleAssetContainer container)
+                    {
+                        Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                        Assert.That(container.parameters, Has.Count.EqualTo(0));
+                    }
+                }
+            });
+
+            asset.container.container = new();
+
+            result = AssetSerialization.Serialize(asset);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.parameters.ContainsKey(nameof(SerializableAsset.container)), Is.True);
+                Assert.That(result.parameters[nameof(SerializableAsset.container)].value, Is.TypeOf(typeof(SerializableStapleAssetContainer)));
+
+                if (result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
+                {
+                    Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                    Assert.That(parameter.value, Is.TypeOf<SerializableStapleAssetContainer>());
+
+                    if (parameter.value is SerializableStapleAssetContainer container)
+                    {
+                        Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                        Assert.That(container.parameters, Has.Count.EqualTo(1));
+
+                        Assert.That(container.parameters.ContainsKey(nameof(SerializableAsset.InnerClass.container)), Is.True);
+
+                        Assert.That(container.parameters[nameof(SerializableAsset.InnerClass.container)].value, Is.TypeOf<SerializableStapleAssetContainer>());
+
+                        if (container.parameters[nameof(SerializableAsset.InnerClass.container)].value is SerializableStapleAssetContainer innerContainer)
+                        {
+                            Assert.That(innerContainer.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass.InnerInnerClass).FullName));
+
+                            Assert.That(innerContainer.parameters.Count, Is.EqualTo(1));
+
+                            Assert.That(innerContainer.parameters.ContainsKey(nameof(SerializableAsset.InnerClass.InnerInnerClass.value)));
+
+                            if(innerContainer.parameters.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
+                            {
+                                Assert.That(innerParameter.typeName, Is.EqualTo(typeof(int).FullName));
+
+                                Assert.That(innerParameter.value, Is.TypeOf<int>());
+
+                                if(innerParameter.value is int intValue)
+                                {
+                                    Assert.That(intValue, Is.EqualTo(asset.container.container.value));
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     }
 }
