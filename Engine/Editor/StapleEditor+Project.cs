@@ -395,10 +395,10 @@ internal partial class StapleEditor
 
         try
         {
-            var guidField = assetInstance.GetType().GetField("guid");
+            var guidField = assetInstance.GetType().GetProperty("Guid");
             var guid = Guid.NewGuid().ToString();
 
-            if (guidField != null && guidField.FieldType == typeof(string) && guidField.GetValue(assetInstance) != null)
+            if (guidField != null && guidField.PropertyType == typeof(string) && guidField.GetValue(assetInstance) != null)
             {
                 guid = (string)guidField.GetValue(assetInstance);
             }

@@ -14,11 +14,11 @@ public class SkinnedMeshAnimator : IComponent
     public string animation;
     public bool repeat = true;
 
-    public AnimationStateMachine stateMachine;
+    public SkinnedAnimationStateMachine stateMachine;
+    public SkinnedAnimationController animationController;
 
     internal bool playInEditMode;
     internal float playTime;
     internal Dictionary<string, Item> nodeRenderers = new();
     internal SkinnedMeshAnimationEvaluator evaluator;
-    internal AnimationStateMachine.AnimationState currentState;
 }
