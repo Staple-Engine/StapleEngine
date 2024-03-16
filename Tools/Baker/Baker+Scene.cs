@@ -289,6 +289,24 @@ static partial class Program
                         stringValue = (string)pair.Value,
                     });
                 }
+                else if (pair.Value.GetType() == typeof(int))
+                {
+                    component.parameters.Add(new SceneComponentParameter()
+                    {
+                        name = pair.Key,
+                        type = SceneComponentParameterType.Int,
+                        intValue = (int)pair.Value,
+                    });
+                }
+                else if (pair.Value.GetType() == typeof(float))
+                {
+                    component.parameters.Add(new SceneComponentParameter()
+                    {
+                        name = pair.Key,
+                        type = SceneComponentParameterType.Float,
+                        floatValue = (float)pair.Value,
+                    });
+                }
                 else if (pair.Value.GetType() == typeof(long))
                 {
                     component.parameters.Add(new SceneComponentParameter()

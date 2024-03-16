@@ -14,7 +14,8 @@ internal partial class StapleEditor
     /// <param name="outPath">The output path</param>
     /// <param name="debug">Whether to make a debug build</param>
     /// <param name="nativeAOT">Whether to build natively</param>
-    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT)
+    /// <param name="assetsOnly">Whether to just pack and copy assets</param>
+    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool assetsOnly)
     {
         lock (backgroundLock)
         {
@@ -179,6 +180,11 @@ internal partial class StapleEditor
         {
             Log.Error($"Failed to build player: Unable to pack resources");
 
+            return;
+        }
+
+        if(assetsOnly)
+        {
             return;
         }
 

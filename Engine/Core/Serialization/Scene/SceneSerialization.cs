@@ -279,15 +279,27 @@ internal static class SceneSerialization
 
             case SceneComponentParameterType.Int:
 
-                try
+                if (field.FieldType == typeof(LayerMask))
                 {
-                    var value = System.Convert.ChangeType(parameter.intValue, field.FieldType);
+                    var mask = new LayerMask()
+                    {
+                        value = (uint)parameter.intValue,
+                    };
 
-                    field.SetValue(componentInstance, value);
+                    field.SetValue(componentInstance, mask);
                 }
-                catch (Exception e)
+                else
                 {
-                    return;
+                    try
+                    {
+                        var value = System.Convert.ChangeType(parameter.intValue, field.FieldType);
+
+                        field.SetValue(componentInstance, value);
+                    }
+                    catch (Exception e)
+                    {
+                        return;
+                    }
                 }
 
                 break;
@@ -380,15 +392,6 @@ internal static class SceneSerialization
                     {
                         field.SetValue(componentInstance, value);
                     }
-                }
-                else if (field.FieldType == typeof(LayerMask))
-                {
-                    var mask = new LayerMask()
-                    {
-                        value = (uint)parameter.intValue,
-                    };
-
-                    field.SetValue(componentInstance, mask);
                 }
 
                 break;

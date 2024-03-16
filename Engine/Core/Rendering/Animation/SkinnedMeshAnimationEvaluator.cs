@@ -8,12 +8,21 @@ internal class SkinnedMeshAnimationEvaluator
     public MeshAsset.Animation animation;
     public MeshAsset meshAsset;
     public SkinnedMeshAnimator animator;
-
-    public Dictionary<int, int> lastPositionIndex = new();
-    public Dictionary<int, int> lastRotationIndex = new();
-    public Dictionary<int, int> lastScaleIndex = new();
-    public float lastTime;
     public MeshAsset.Node rootNode;
+
+    private Dictionary<int, int> lastPositionIndex = new();
+    private Dictionary<int, int> lastRotationIndex = new();
+    private Dictionary<int, int> lastScaleIndex = new();
+    private float lastTime;
+
+    public bool FinishedPlaying
+    {
+        get
+        {
+            return animator.repeat == false &&
+                animator.playTime * animation.ticksPerSecond >= animation.duration;
+        }
+    }
 
     public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode, SkinnedMeshAnimator animator)
     {

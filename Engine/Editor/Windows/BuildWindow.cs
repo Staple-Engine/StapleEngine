@@ -164,7 +164,38 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.StartBackgroundTask((ref float progressFraction) =>
                 {
-                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT);
+                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, false);
+
+                    return true;
+                });
+            }
+            else
+            {
+                Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
+            }
+        }
+
+        EditorGUI.SameLine();
+
+        if (EditorGUI.Button("Build (Assets Only)"))
+        {
+            var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
+                out var path);
+
+            if (result == Nfd.NfdResult.NFD_OKAY)
+            {
+                StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
+
+                StapleEditor.instance.UpdateLastSession();
+
+                StapleEditor.instance.showingProgress = true;
+                StapleEditor.instance.progressFraction = 0;
+
+                ImGui.OpenPopup("ShowingProgress");
+
+                StapleEditor.instance.StartBackgroundTask((ref float progressFraction) =>
+                {
+                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, true);
 
                     return true;
                 });

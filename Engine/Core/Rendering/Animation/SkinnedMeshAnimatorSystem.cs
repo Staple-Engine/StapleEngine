@@ -77,7 +77,7 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
         {
             if (animator.stateMachine != null && animator.animationController == null)
             {
-                animator.animationController = new(animator, animator.stateMachine);
+                animator.animationController = new(animator);
             }
         }
 

@@ -19,12 +19,13 @@ public class SkinnedAnimationController
 
     private Dictionary<string, Parameter> parameters = new();
 
-    public SkinnedAnimationController(SkinnedMeshAnimator animator, SkinnedAnimationStateMachine stateMachine)
+    public SkinnedAnimationController(SkinnedMeshAnimator animator)
     {
         this.animator = animator;
-        this.stateMachine = stateMachine;
 
-        var startState = this.stateMachine.states.FirstOrDefault()?.name;
+        stateMachine = animator.stateMachine;
+
+        var startState = stateMachine.states.FirstOrDefault()?.name;
 
         if(startState != null)
         {
@@ -76,6 +77,18 @@ public class SkinnedAnimationController
         }
 
         CheckConditions();
+    }
+
+    private bool AnimationFinished()
+    {
+        if(currentState == null ||
+            animator.animation != currentState.animation ||
+            animator.evaluator == null)
+        {
+            return false;
+        }
+
+        return animator.evaluator.FinishedPlaying;
     }
 
     private bool CheckParameter(SkinnedAnimationStateMachine.AnimationConditionParameter parameter)
@@ -235,34 +248,42 @@ public class SkinnedAnimationController
         {
             var shouldTrigger = false;
 
-            if(connection.any)
+            if(connection.onFinish)
             {
-                foreach(var parameter in connection.parameters)
-                {
-                    if(CheckParameter(parameter))
-                    {
-                        shouldTrigger = true;
+                shouldTrigger = AnimationFinished();
+            }
 
-                        break;
+            if (shouldTrigger == false && connection.parameters.Count > 0)
+            {
+                if (connection.any)
+                {
+                    foreach (var parameter in connection.parameters)
+                    {
+                        if (CheckParameter(parameter))
+                        {
+                            shouldTrigger = true;
+
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    shouldTrigger = true;
+
+                    foreach (var parameter in connection.parameters)
+                    {
+                        if (CheckParameter(parameter) == false)
+                        {
+                            shouldTrigger = false;
+
+                            break;
+                        }
                     }
                 }
             }
-            else
-            {
-                shouldTrigger = true;
 
-                foreach(var parameter in connection.parameters)
-                {
-                    if(CheckParameter(parameter) == false)
-                    {
-                        shouldTrigger = false;
-
-                        break;
-                    }
-                }
-            }
-
-            if(shouldTrigger)
+            if (shouldTrigger)
             {
                 SetState(connection.name);
 

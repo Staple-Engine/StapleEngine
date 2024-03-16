@@ -35,6 +35,8 @@ internal class RenderSystem : ISubsystem
 
     public SubsystemType type { get; } = SubsystemType.Update;
 
+    internal static byte Priority = 1;
+
     public static bool useDrawcallInterpolator = false;
 
     /// <summary>
@@ -53,8 +55,6 @@ internal class RenderSystem : ISubsystem
     internal readonly List<IRenderSystem> renderSystems = new();
 
     private readonly Transform stagingTransform = new();
-
-    internal static byte Priority = 1;
 
     /// <summary>
     /// Calculates the blending function for blending flags
@@ -141,9 +141,9 @@ internal class RenderSystem : ISubsystem
     public void Startup()
     {
         renderSystems.Add(new SpriteRenderSystem());
-        renderSystems.Add(new MeshRenderSystem());
         renderSystems.Add(new SkinnedMeshAnimatorSystem());
         renderSystems.Add(new SkinnedMeshRenderSystem());
+        renderSystems.Add(new MeshRenderSystem());
         renderSystems.Add(new TextRenderSystem());
 
         Time.OnAccumulatorFinished += () =>
@@ -250,7 +250,7 @@ internal class RenderSystem : ISubsystem
                             if (related is Renderable renderable &&
                                 renderable.enabled)
                             {
-                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
 
                                 if (renderable.isVisible && renderable.forceRenderingOff == false)
                                 {
@@ -269,37 +269,6 @@ internal class RenderSystem : ISubsystem
                 {
                     system.Submit();
                 }
-
-                viewID++;
-            }
-        }
-
-        if (needsDrawCalls)
-        {
-            viewID = 1;
-
-            lock (lockObject)
-            {
-                (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
-
-                currentDrawBucket.drawCalls.Clear();
-            }
-
-            foreach (var c in cameras)
-            {
-                var camera = c.camera;
-                var cameraTransform = c.transform;
-
-                unsafe
-                {
-                    var projection = Camera.Projection(c.entity, c.camera);
-                    var view = cameraTransform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    frustumCuller.Update(view, projection);
-                }
-
 
                 viewID++;
             }
@@ -460,7 +429,7 @@ internal class RenderSystem : ISubsystem
                             if (related is Renderable renderable &&
                                 renderable.enabled)
                             {
-                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
 
                                 if (renderable.isVisible && renderable.forceRenderingOff == false)
                                 {
