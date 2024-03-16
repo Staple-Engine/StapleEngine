@@ -14,31 +14,34 @@ internal partial class StapleEditor
 {
     private bool CreateEntityMenu(Transform parent)
     {
-        if (ImGui.BeginMenu("Create"))
+        var result = false;
+
+        EditorGUI.Menu("Create", () =>
         {
-            foreach(var t in registeredEntityTemplates)
+            foreach (var t in registeredEntityTemplates)
             {
-                if(ImGui.MenuItem(t.Name))
+                EditorGUI.MenuItem(t.Name, () =>
                 {
                     var e = t.Create();
 
-                    if(e.IsValid)
+                    if (e.IsValid)
                     {
                         var transform = e.GetComponent<Transform>() ?? e.AddComponent<Transform>();
 
                         transform.SetParent(parent);
                     }
 
-                    ImGui.EndMenu();
+                    result = true;
+                });
 
-                    return true;
+                if (result)
+                {
+                    break;
                 }
             }
+        });
 
-            ImGui.EndMenu();
-        }
-
-        return false;
+        return result;
     }
 
     internal static string GetProperFileName(string current, string fileName, string path, string extension)
@@ -76,7 +79,7 @@ internal partial class StapleEditor
             var fileName = Path.GetFileNameWithoutExtension(name);
             var extension = Path.GetExtension(name).Substring(1);
 
-            if (ImGui.MenuItem($"{fileName}##r{pair.Key}"))
+            EditorGUI.MenuItem(fileName, () =>
             {
                 var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
                 var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
@@ -91,16 +94,14 @@ internal partial class StapleEditor
                 {
                     Log.Error($"Failed to create asset at {assetPath}: {e}");
                 }
-
-                ImGui.EndMenu();
-            }
+            });
         }
 
         foreach (var pair in registeredAssetTypes)
         {
             var name = pair.Value.Name;
 
-            if (ImGui.MenuItem($"{name}##{pair.Key}"))
+            EditorGUI.MenuItem(name, () =>
             {
                 var fileName = name;
                 var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
@@ -119,9 +120,7 @@ internal partial class StapleEditor
                 {
                     Log.Error($"Failed to create asset at {assetPath}: {e}");
                 }
-
-                ImGui.EndMenu();
-            }
+            });
         }
     }
 
@@ -143,33 +142,33 @@ internal partial class StapleEditor
 
         if (ImGui.BeginMainMenuBar())
         {
-            if (ImGui.BeginMenu("File"))
+            EditorGUI.Menu("File", () =>
             {
-                if(ImGui.MenuItem("New Project"))
+                EditorGUI.MenuItem("New Project", () =>
                 {
                     ImGuiNewProject();
-                }
+                });
 
-                if(ImGui.MenuItem("Open Project"))
+                EditorGUI.MenuItem("Open Project", () =>
                 {
                     ImGuiOpenProject();
-                }
+                });
 
-                if (ImGui.MenuItem("Project Settings"))
+                EditorGUI.MenuItem("Project Settings", () =>
                 {
                     var window = EditorWindow.GetWindow<AppSettingsWindow>();
 
                     window.projectAppSettings = projectAppSettings;
                     window.basePath = basePath;
-                }
+                });
 
-                if(ImGui.MenuItem("Open Solution"))
+                EditorGUI.MenuItem("Open Solution", () =>
                 {
                     csProjManager.GenerateGameCSProj(currentPlatform, true);
                     csProjManager.OpenGameSolution();
-                }
+                });
 
-                if (ImGui.MenuItem("Save"))
+                EditorGUI.MenuItem("Save", () =>
                 {
                     if (Scene.current != null && lastOpenScene != null)
                     {
@@ -191,73 +190,66 @@ internal partial class StapleEditor
                         {
                         }
                     }
-                }
+                });
 
-                ImGui.Separator();
+                EditorGUI.Separator();
 
-                if (ImGui.MenuItem("Build"))
+                EditorGUI.MenuItem("Build", () =>
                 {
                     var window = EditorWindow.GetWindow<BuildWindow>();
 
                     window.basePath = basePath;
-                }
+                });
 
-                ImGui.Separator();
+                EditorGUI.Separator();
 
-                if (ImGui.MenuItem("Exit"))
+                EditorGUI.MenuItem("Exit", () =>
                 {
                     window.shouldStop = true;
-                }
+                });
+            });
 
-                ImGui.EndMenu();
-            }
-
-            if(ImGui.BeginMenu("Edit"))
+            EditorGUI.Menu("Edit", () =>
             {
-                if(ImGui.MenuItem("Recreate render device"))
+                EditorGUI.MenuItem("Recreate render device", () =>
                 {
                     window.forceContextLoss = true;
-                }
+                });
+            });
 
-                ImGui.EndMenu();
-            }
-
-            if (ImGui.BeginMenu("Assets"))
+            EditorGUI.Menu("Assets", () =>
             {
-                if (ImGui.BeginMenu("Create"))
+                EditorGUI.Menu("Create", () =>
                 {
                     CreateAssetMenu();
-
-                    ImGui.EndMenu();
-                }
-
-                ImGui.EndMenu();
-            }
+                });
+            });
 
             void Recursive(MenuItemInfo parent)
             {
-                if(parent.children.Count == 0)
+                EditorGUI.MenuItem(parent.name, () =>
                 {
-                    if(ImGui.MenuItem($"{parent.name}##0") && parent.onClick != null)
+                    if (parent.children.Count == 0)
                     {
-                        try
+                        if (parent.onClick != null)
                         {
-                            parent.onClick();
-                        }
-                        catch(Exception)
-                        {
+                            try
+                            {
+                                parent.onClick();
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
                     }
-                }
-                else if(ImGui.BeginMenu($"{parent.name}##0"))
-                {
-                    foreach(var child in parent.children)
+                    else
                     {
-                        Recursive(child);
+                        foreach (var child in parent.children)
+                        {
+                            Recursive(child);
+                        }
                     }
-
-                    ImGui.EndMenu();
-                }
+                });
             }
 
             foreach(var item in menuItems)
@@ -292,18 +284,11 @@ internal partial class StapleEditor
                     return;
                 }
 
-                var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow;
-
-                if (transform.ChildCount == 0)
-                {
-                    flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
-                }
-
                 var entityName = transform.entity.Name;
 
-                if (ImGui.TreeNodeEx($"{entityName}##{transform.entity.Identifier.ID}", flags))
+                EditorGUI.TreeNode(entityName, transform.ChildCount == 0, () =>
                 {
-                    if(ImGui.BeginDragDropTarget())
+                    if (ImGui.BeginDragDropTarget())
                     {
                         dropTargetEntity = transform.entity;
 
@@ -340,7 +325,7 @@ internal partial class StapleEditor
 
                         return;
                     }
-                    else if(ImGui.BeginDragDropSource())
+                    else if (ImGui.BeginDragDropSource())
                     {
                         draggedEntity = transform.entity;
 
@@ -353,11 +338,11 @@ internal partial class StapleEditor
 
                     if (ImGui.IsItemHovered())
                     {
-                        if(ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                         {
                             ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                         }
-                        else if(ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
                             SetSelectedEntity(transform.entity);
                         }
@@ -365,7 +350,7 @@ internal partial class StapleEditor
 
                     if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
                     {
-                        if(CreateEntityMenu(transform))
+                        if (CreateEntityMenu(transform))
                         {
                             ImGui.EndPopup();
 
@@ -374,7 +359,7 @@ internal partial class StapleEditor
                             return;
                         }
 
-                        if(ImGui.MenuItem("Duplicate"))
+                        if (ImGui.MenuItem("Duplicate"))
                         {
                             Entity.Instantiate(transform.entity, transform.parent);
                         }
@@ -403,26 +388,21 @@ internal partial class StapleEditor
                         {
                             var t = childEntity.GetComponent<Transform>();
 
-                            if(t != null)
+                            if (t != null)
                             {
                                 Recursive(t);
                             }
                         }
 
-                        if(skip)
+                        if (skip)
                         {
                             break;
                         }
                     }
-
-                    if (transform.ChildCount > 0 || skip)
-                    {
-                        ImGui.TreePop();
-                    }
-                }
+                });
             }
 
-            World.Current.Iterate((entity) =>
+            Scene.IterateEntities((entity) =>
             {
                 var transform = entity.GetComponent<Transform>();
 
@@ -500,24 +480,23 @@ internal partial class StapleEditor
 
         mouseIsHoveringImGui = (viewportType == ViewportType.Scene && ImGui.IsItemActive()) == false;
 
-        if (ImGui.BeginTabBar("Viewport Tab"))
+        EditorGUI.TabBar(["Scene", "Game"], (tabIndex) =>
         {
-            if (ImGui.BeginTabItem("Scene"))
+            switch (tabIndex)
             {
-                viewportType = ViewportType.Scene;
+                case 0:
 
-                ImGui.EndTabItem();
+                    viewportType = ViewportType.Scene;
+
+                    break;
+
+                case 1:
+
+                    viewportType = ViewportType.Game;
+
+                    break;
             }
-
-            if (ImGui.BeginTabItem("Game"))
-            {
-                viewportType = ViewportType.Game;
-
-                ImGui.EndTabItem();
-            }
-
-            ImGui.EndTabBar();
-        }
+        });
 
         if (viewportType == ViewportType.Game)
         {
@@ -537,7 +516,7 @@ internal partial class StapleEditor
 
             if (texture != null)
             {
-                ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), new Vector2(width, height));
+                EditorGUI.Texture(texture, new Vector2(width, height));
             }
 
             ImGui.End();
@@ -562,9 +541,11 @@ internal partial class StapleEditor
         {
             var name = selectedEntity.Name;
 
-            if(ImGui.InputText("Name", ref name, 120))
+            var newName = EditorGUI.TextField("Name", name);
+
+            if(name != newName)
             {
-                selectedEntity.Name = name;
+                selectedEntity.Name = newName;
             }
 
             var enabled = selectedEntity.Enabled;
@@ -598,30 +579,17 @@ internal partial class StapleEditor
 
             selectedEntity.IterateComponents((ref IComponent component) =>
             {
-                var isOpen = ImGui.TreeNodeEx(component.GetType().Name + $"##{counter++}", ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick);
+                var localComponent = component;
+                var removed = false;
 
-                if(component is not Transform)
+                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), false, () =>
                 {
-                    ImGui.SameLine();
-
-                    if (ImGui.SmallButton("X"))
+                    if(removed)
                     {
-                        selectedEntity.RemoveComponent(component.GetType());
-
-                        resetSelection = true;
-
-                        if(isOpen)
-                        {
-                            ImGui.TreePop();
-                        }
-
                         return;
                     }
-                }
 
-                if (isOpen)
-                {
-                    if (component is Transform transform)
+                    if (localComponent is Transform transform)
                     {
                         transform.LocalPosition = EditorGUI.Vector3Field("Position", transform.LocalPosition);
 
@@ -638,22 +606,37 @@ internal partial class StapleEditor
                     }
                     else
                     {
-                        if (cachedEditors.TryGetValue($"{counter}{component.GetType().FullName}", out var editor))
+                        if (cachedEditors.TryGetValue($"{counter}{localComponent.GetType().FullName}", out var editor))
                         {
                             editor.OnInspectorGUI();
                         }
                         else
                         {
-                            defaultEditor.target = component;
+                            defaultEditor.target = localComponent;
 
                             defaultEditor.OnInspectorGUI();
                         }
                     }
 
-                    selectedEntity.UpdateComponent(component);
+                    if (EditorGUI.Changed)
+                    {
+                        selectedEntity.UpdateComponent(localComponent);
+                    }
+                },
+                () =>
+                {
+                    ImGui.SameLine();
 
-                    ImGui.TreePop();
-                }
+                    if (ImGui.SmallButton("X"))
+                    {
+                        selectedEntity.RemoveComponent(localComponent.GetType());
+
+                        removed = true;
+                        resetSelection = true;
+
+                        return;
+                    }
+                });
             });
 
             if(ImGui.Button("Add Component"))
@@ -727,20 +710,10 @@ internal partial class StapleEditor
 
         ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 32));
 
-        if (ImGui.BeginTabBar("BottomTabBar"))
+        EditorGUI.TabBar(["Project", "Log"], (tabIndex) =>
         {
-            if (ImGui.TabItemButton("Project"))
-            {
-                activeBottomTab = 0;
-            }
-
-            if (ImGui.TabItemButton("Log"))
-            {
-                activeBottomTab = 1;
-            }
-
-            ImGui.EndTabBar();
-        }
+            activeBottomTab = tabIndex;
+        });
 
         ImGui.EndChildFrame();
 

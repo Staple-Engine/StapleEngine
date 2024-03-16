@@ -1,7 +1,5 @@
-﻿using ImGuiNET;
-using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
-using Staple.Internal;
 using System.Collections.Generic;
 using System.IO;
 using System;
@@ -23,7 +21,7 @@ internal class AppSettingsWindow : EditorWindow
     {
         base.OnGUI();
 
-        if (ImGui.TreeNodeEx("General", ImGuiTreeNodeFlags.SpanFullWidth))
+        EditorGUI.TreeNode("General", false, () =>
         {
             projectAppSettings.appName = EditorGUI.TextField("App Name", projectAppSettings.appName ?? "");
 
@@ -34,11 +32,9 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.appDisplayVersion = EditorGUI.TextField("App Display Version", projectAppSettings.appDisplayVersion ?? "");
 
             projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", projectAppSettings.appVersion);
+        });
 
-            ImGui.TreePop();
-        }
-
-        if (ImGui.TreeNodeEx("Timing", ImGuiTreeNodeFlags.SpanFullWidth))
+        EditorGUI.TreeNode("Timing", false, () =>
         {
             projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", projectAppSettings.fixedTimeFrameRate);
 
@@ -49,15 +45,13 @@ internal class AppSettingsWindow : EditorWindow
 
             projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps", projectAppSettings.maximumFixedTimestepTime);
 
-            if(projectAppSettings.maximumFixedTimestepTime <= 0)
+            if (projectAppSettings.maximumFixedTimestepTime <= 0)
             {
                 projectAppSettings.maximumFixedTimestepTime = 0.1f;
             }
+        });
 
-            ImGui.TreePop();
-        }
-
-        if (ImGui.TreeNodeEx("Physics", ImGuiTreeNodeFlags.SpanFullWidth))
+        EditorGUI.TreeNode("Physics", false, () =>
         {
             projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", projectAppSettings.physicsFrameRate);
 
@@ -65,24 +59,29 @@ internal class AppSettingsWindow : EditorWindow
             {
                 projectAppSettings.physicsFrameRate = 1;
             }
+        });
 
-            ImGui.TreePop();
-        }
-
-        if (ImGui.TreeNodeEx("Layers", ImGuiTreeNodeFlags.SpanFullWidth))
+        EditorGUI.TreeNode("Layers", false, () =>
         {
             void Handle(List<string> layers)
             {
+                EditorGUI.SameLine();
+
+                if (EditorGUI.Button("+"))
+                {
+                    layers.Add("Layer");
+                }
+
                 for (var i = 0; i < layers.Count; i++)
                 {
-                    layers[i] = EditorGUI.TextField($"Layer {i + 1}##{layers.GetHashCode()}{i}", layers[i]);
+                    layers[i] = EditorGUI.TextField($"Layer {i + 1}", layers[i]);
 
                     //Can't remove default layer
                     if (i > 1)
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("Up##{layers.GetHashCode()}{i}"))
+                        if (EditorGUI.Button("Up"))
                         {
                             (layers[i], layers[i - 1]) = (layers[i - 1], layers[i]);
                         }
@@ -92,7 +91,7 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("Down##{layers.GetHashCode()}{i}"))
+                        if (EditorGUI.Button("Down"))
                         {
                             (layers[i], layers[i + 1]) = (layers[i + 1], layers[i]);
                         }
@@ -103,18 +102,13 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button($"X##{layers.GetHashCode()}{i}"))
+                        if (EditorGUI.Button("X"))
                         {
                             layers.RemoveAt(i);
 
                             break;
                         }
                     }
-                }
-
-                if (EditorGUI.Button($"+##{layers.GetHashCode()}"))
-                {
-                    layers.Add("Layer");
                 }
 
                 LayerMask.AllLayers = projectAppSettings.layers;
@@ -128,105 +122,91 @@ internal class AppSettingsWindow : EditorWindow
             EditorGUI.Label("Sorting Layers");
 
             Handle(projectAppSettings.sortingLayers);
+        });
 
-            ImGui.TreePop();
-        }
-
-        if (ImGui.TreeNodeEx("Rendering and Presentation", ImGuiTreeNodeFlags.SpanFullWidth))
+        EditorGUI.TreeNode("Rendering and Presentation", false, () =>
         {
             projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", projectAppSettings.runInBackground);
 
             projectAppSettings.multiThreadedRenderer = EditorGUI.Toggle("Multithreaded Renderer (experimental)", projectAppSettings.multiThreadedRenderer);
 
-            if (ImGui.BeginTabBar("Platforms"))
+            EditorGUI.TabBar(PlayerBackendManager.BackendNames, (index) =>
             {
-                foreach (var backendName in PlayerBackendManager.BackendNames)
+                var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
+
+                if (backend.platform == AppPlatform.Windows ||
+                    backend.platform == AppPlatform.Linux ||
+                    backend.platform == AppPlatform.MacOSX)
                 {
-                    var backend = PlayerBackendManager.Instance.GetBackend(backendName);
+                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window Mode *", projectAppSettings.defaultWindowMode);
 
-                    if (ImGui.BeginTabItem($"{backend.name}##0"))
+                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window Width *", projectAppSettings.defaultWindowWidth);
+
+                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window Height *", projectAppSettings.defaultWindowHeight);
+                }
+                else if (backend.platform == AppPlatform.Android ||
+                    backend.platform == AppPlatform.iOS)
+                {
+                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait Orientation *", projectAppSettings.portraitOrientation);
+
+                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape Orientation *", projectAppSettings.landscapeOrientation);
+
+                    if (backend.platform == AppPlatform.Android)
                     {
-                        if (backend.platform == AppPlatform.Windows ||
-                            backend.platform == AppPlatform.Linux ||
-                            backend.platform == AppPlatform.MacOSX)
+                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Android Min SDK", projectAppSettings.androidMinSDK);
+
+                        if (projectAppSettings.androidMinSDK < 26)
                         {
-                            projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window Mode *", projectAppSettings.defaultWindowMode);
-
-                            projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window Width *", projectAppSettings.defaultWindowWidth);
-
-                            projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window Height *", projectAppSettings.defaultWindowHeight);
+                            projectAppSettings.androidMinSDK = 26;
                         }
-                        else if (backend.platform == AppPlatform.Android ||
-                            backend.platform == AppPlatform.iOS)
+                    }
+                    else if (backend.platform == AppPlatform.iOS)
+                    {
+                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS Deployment Target", projectAppSettings.iOSDeploymentTarget);
+
+                        if (projectAppSettings.iOSDeploymentTarget < 13)
                         {
-                            projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait Orientation *", projectAppSettings.portraitOrientation);
-
-                            projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape Orientation *", projectAppSettings.landscapeOrientation);
-
-                            if (backend.platform == AppPlatform.Android)
-                            {
-                                projectAppSettings.androidMinSDK = EditorGUI.IntField("Android Min SDK", projectAppSettings.androidMinSDK);
-
-                                if (projectAppSettings.androidMinSDK < 26)
-                                {
-                                    projectAppSettings.androidMinSDK = 26;
-                                }
-                            }
-                            else if (backend.platform == AppPlatform.iOS)
-                            {
-                                projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS Deployment Target", projectAppSettings.iOSDeploymentTarget);
-
-                                if (projectAppSettings.iOSDeploymentTarget < 13)
-                                {
-                                    projectAppSettings.iOSDeploymentTarget = 13;
-                                }
-                            }
+                            projectAppSettings.iOSDeploymentTarget = 13;
                         }
-
-                        ImGui.Text("Renderers");
-
-                        if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
-                        {
-                            renderers = new();
-
-                            projectAppSettings.renderers.Add(backend.platform, renderers);
-                        }
-
-                        for (var i = 0; i < renderers.Count; i++)
-                        {
-                            var result = EditorGUI.EnumDropdown($"Renderer##{i}", renderers[i], backend.renderers);
-
-                            if (result != renderers[i] && renderers.All(x => x != result))
-                            {
-                                renderers[i] = result;
-                            }
-
-                            EditorGUI.SameLine();
-
-                            if (EditorGUI.Button($"-##{i}"))
-                            {
-                                renderers.RemoveAt(i);
-
-                                break;
-                            }
-                        }
-
-                        if (EditorGUI.Button("+##Renderers"))
-                        {
-                            renderers.Add(backend.renderers.FirstOrDefault());
-                        }
-
-                        ImGui.EndTabItem();
                     }
                 }
 
-                ImGui.EndTabBar();
-            }
+                EditorGUI.Label("Renderers");
 
-            ImGui.TreePop();
-        }
+                if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
+                {
+                    renderers = new();
 
-        ImGui.Text("* - Shared setting between platforms");
+                    projectAppSettings.renderers.Add(backend.platform, renderers);
+                }
+
+                for (var i = 0; i < renderers.Count; i++)
+                {
+                    var result = EditorGUI.EnumDropdown("Renderer", renderers[i], backend.renderers);
+
+                    if (result != renderers[i] && renderers.All(x => x != result))
+                    {
+                        renderers[i] = result;
+                    }
+
+                    EditorGUI.SameLine();
+
+                    if (EditorGUI.Button("-"))
+                    {
+                        renderers.RemoveAt(i);
+
+                        break;
+                    }
+                }
+
+                if (EditorGUI.Button("+"))
+                {
+                    renderers.Add(backend.renderers.FirstOrDefault());
+                }
+            });
+        });
+
+        EditorGUI.Label("* - Shared setting between platforms");
 
         if (EditorGUI.Button("Apply Changes"))
         {
@@ -235,9 +215,9 @@ internal class AppSettingsWindow : EditorWindow
                 var json = JsonConvert.SerializeObject(projectAppSettings, Formatting.Indented, new JsonSerializerSettings()
                 {
                     Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
+                    {
+                        new StringEnumConverter(),
+                    }
                 });
 
                 File.WriteAllText(Path.Combine(basePath, "Settings", "AppSettings.json"), json);

@@ -1,4 +1,3 @@
-using ImGuiNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Staple.Internal;
@@ -94,30 +93,25 @@ internal class TextureAssetEditor : Editor
 
             case nameof(TextureMetadata.overrides):
 
-                if (ImGui.BeginTabBar($"##{metadata.guid}_OVERRIDES"))
                 {
                     var platformTypes = Enum.GetValues<AppPlatform>();
 
-                    foreach (var platform in platformTypes)
+                    EditorGUI.TabBar(platformTypes.Select(x => x.ToString()).ToArray(), (tabIndex) =>
                     {
-                        if (ImGui.BeginTabItem(platform.ToString()))
+                        var platform = platformTypes[tabIndex];
+                        var overrides = metadata.overrides;
+
+                        if (overrides.TryGetValue(platform, out var item) == false)
                         {
-                            var overrides = metadata.overrides;
+                            item = new();
 
-                            if (overrides.TryGetValue(platform, out var item) == false)
-                            {
-                                item = new();
+                            overrides.Add(platform, item);
+                        }
 
-                                overrides.Add(platform, item);
-                            }
+                        item.shouldOverride = EditorGUI.Toggle("Override", item.shouldOverride);
 
-                            item.shouldOverride = EditorGUI.Toggle("Override", item.shouldOverride);
-
-                            if (item.shouldOverride == false)
-                            {
-                                ImGui.BeginDisabled();
-                            }
-
+                        EditorGUI.Disabled(item.shouldOverride == false, () =>
+                        {
                             var format = item.shouldOverride ? item.format : metadata.format;
 
                             var quality = item.shouldOverride ? item.quality : metadata.quality;
@@ -146,23 +140,15 @@ internal class TextureAssetEditor : Editor
 
                             premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", premultiplyAlpha);
 
-                            if (item.shouldOverride == false)
-                            {
-                                ImGui.EndDisabled();
-                            }
-                            else
+                            if (item.shouldOverride)
                             {
                                 item.format = format;
                                 item.quality = quality;
                                 item.maxSize = maxSize;
                                 item.premultiplyAlpha = premultiplyAlpha;
                             }
-
-                            ImGui.EndTabItem();
-                        }
-                    }
-
-                    ImGui.EndTabBar();
+                        });
+                    });
                 }
 
                 return true;
@@ -285,17 +271,17 @@ internal class TextureAssetEditor : Editor
         {
             void DrawTexture(Texture texture, long diskSize, uint VRAMSize, List<TextureSpriteInfo> sprites, bool isOriginal)
             {
-                var width = ImGui.GetContentRegionAvail().X;
+                var width = EditorGUI.RemainingHorizontalSpace();
 
                 var aspect = texture.Width / (float)texture.Height;
 
                 var height = width / aspect;
 
-                var currentCursor = ImGui.GetCursorScreenPos();
+                var currentCursor = EditorGUI.CurrentGUICursorPosition();
 
                 EditorGUI.Texture(texture, new Vector2(width, height));
 
-                var textureCursor = ImGui.GetCursorScreenPos();
+                var textureCursor = EditorGUI.CurrentGUICursorPosition();
 
                 if (metadata.type == TextureType.Sprite)
                 {
@@ -316,18 +302,16 @@ internal class TextureAssetEditor : Editor
                         var size = new Vector2Int(Math.RoundToInt(spriteRect.Width * scale), Math.RoundToInt(spriteRect.Height * scale));
                         var rect = new Rect(position, size);
 
-                        ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
-                            new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
+                        EditorGUI.AddRectangle(rect, Color32.White);
 
                         if (isOriginal)
                         {
                             void CenteredText(string text)
                             {
-                                Vector2 textSize = ImGui.CalcTextSize(text);
+                                Vector2 textSize = EditorGUI.GetTextSize(text);
 
-                                ImGui.GetWindowDrawList().AddText(new Vector2(rect.Min.X + (rect.Width - textSize.X) / 2,
-                                    rect.Min.Y + (rect.Height - textSize.Y) / 2),
-                                    ImGuiProxy.ImGuiRGBA(255, 255, 255, 255), text);
+                                EditorGUI.AddText(text, new Vector2(rect.Min.X + (rect.Width - textSize.X) / 2,
+                                    rect.Min.Y + (rect.Height - textSize.Y) / 2), Color32.White);
                             }
 
                             switch (sprite.rotation)
@@ -371,24 +355,22 @@ internal class TextureAssetEditor : Editor
             if (previewTexture != null && previewTexture.Disposed == false &&
                 originalTexture != null && originalTexture.Disposed == false)
             {
-                if (ImGui.BeginTabBar("##TextureAssetPreviewTexture"))
+                EditorGUI.TabBar(["Preview", "Processed"], (tabIndex) =>
                 {
-                    if (ImGui.BeginTabItem("Preview"))
+                    switch(tabIndex)
                     {
-                        DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.metadata.sprites, true);
+                        case 0:
+                            DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.metadata.sprites, true);
 
-                        ImGui.EndTabItem();
+                            break;
+
+                        case 1:
+
+                            DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
+
+                            break;
                     }
-
-                    if (ImGui.BeginTabItem("Processed"))
-                    {
-                        DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
-
-                        ImGui.EndTabItem();
-                    }
-
-                    ImGui.EndTabBar();
-                }
+                });
             }
             else if (previewTexture != null)
             {

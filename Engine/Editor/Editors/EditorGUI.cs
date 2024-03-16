@@ -82,6 +82,15 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Gets the current GUI cursor position (where the GUI is currently being filled)
+    /// </summary>
+    /// <returns>The cursor position</returns>
+    public static Vector2 CurrentGUICursorPosition()
+    {
+        return ImGui.GetCursorScreenPos();
+    }
+
+    /// <summary>
     /// Make the next element be horizontal to the last one
     /// </summary>
     public static void SameLine()
@@ -534,7 +543,8 @@ public static class EditorGUI
     /// <param name="label">The label of the tree node</param>
     /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
     /// <param name="handler">A handler for when it is clicked or is open</param>
-    public static void TreeNode(string label, bool leaf, Action handler)
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    public static void TreeNode(string label, bool leaf, Action handler, Action prefixHandler = null)
     {
         var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
 
@@ -543,7 +553,11 @@ public static class EditorGUI
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
         }
 
-        if (ImGui.TreeNodeEx(MakeIdentifier(label), flags))
+        var isOpen = ImGui.TreeNodeEx(MakeIdentifier(label), flags);
+
+        ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
+
+        if(isOpen)
         {
             ExecuteHandler(handler, $"TreeNode {label}");
 
@@ -552,5 +566,137 @@ public static class EditorGUI
                 ImGui.TreePop();
             }
         }
+    }
+
+    /// <summary>
+    /// Creates a tab bar
+    /// </summary>
+    /// <param name="titles">The tab titles</param>
+    /// <param name="handler">A handler with the tab index to render</param>
+    public static void TabBar(string[] titles, Action<int> handler)
+    {
+        if(ImGui.BeginTabBar(MakeIdentifier("")))
+        {
+            for(var i = 0; i < titles.Length; i++)
+            {
+                var title = titles[i];
+
+                //Apparently using IDs here doesn't work out, so we don't.
+                //The tab bar itself seems to work independently as long as we use IDs for it.
+                if(ImGui.BeginTabItem(title))
+                {
+                    try
+                    {
+                        handler?.Invoke(i);
+                    }
+                    catch(Exception e)
+                    {
+                        Log.Debug($"[EditorGUI] TabBar item {title} exception: {e}");
+                    }
+
+                    ImGui.EndTabItem();
+                }
+            }
+
+            ImGui.EndTabBar();
+        }
+    }
+
+    /// <summary>
+    /// Creates a disabled group
+    /// </summary>
+    /// <param name="disabled">Whether to actually disable (to simplify code)</param>
+    /// <param name="handler">The handler for the code inside it</param>
+    public static void Disabled(bool disabled, Action handler)
+    {
+        if(disabled)
+        {
+            ImGui.BeginDisabled();
+        }
+
+        ExecuteHandler(handler, $"Disabled ({disabled})");
+
+        if(disabled)
+        {
+            ImGui.EndDisabled();
+        }
+    }
+
+    /// <summary>
+    /// Adds a rectangle to the GUI
+    /// </summary>
+    /// <param name="rect">The rectangle coordinates</param>
+    /// <param name="color">The color of the coordinate</param>
+    public static void AddRectangle(Rect rect, Color32 color)
+    {
+        ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y), new Vector2(rect.Max.X, rect.Max.Y),
+            ImGuiProxy.ImGuiRGBA(color.r, color.g, color.b, color.a));
+    }
+
+    /// <summary>
+    /// Adds a rectangle to the GUI
+    /// </summary>
+    /// <param name="rect">The rectangle coordinates</param>
+    /// <param name="color">The color of the coordinate</param>
+    public static void AddRectangle(RectFloat rect, Color32 color)
+    {
+        ImGui.GetWindowDrawList().AddRect(rect.Min, rect.Max, ImGuiProxy.ImGuiRGBA(color.r, color.g, color.b, color.a));
+    }
+
+    /// <summary>
+    /// Gets the size of a text string
+    /// </summary>
+    /// <param name="text">The text to measure</param>
+    public static Vector2 GetTextSize(string text)
+    {
+        return ImGui.CalcTextSize(text);
+    }
+
+    /// <summary>
+    /// Adds text to the GUI. You probably want to use the `Label` method instead!
+    /// </summary>
+    /// <param name="text">The text to add</param>
+    /// <param name="position">The position of the text</param>
+    /// <param name="color">The color of the text</param>
+    public static void AddText(string text, Vector2 position, Color32 color)
+    {
+        ImGui.GetWindowDrawList().AddText(position, ImGuiProxy.ImGuiRGBA(color.r, color.g, color.b, color.a),
+            text);
+    }
+
+    /// <summary>
+    /// Creates a menu
+    /// </summary>
+    /// <param name="name">The name of the menu</param>
+    /// <param name="handler">A handler called if the menu is used</param>
+    public static void Menu(string name, Action handler)
+    {
+        if(ImGui.BeginMenu(MakeIdentifier(name)))
+        {
+            ExecuteHandler(handler, $"Menu {name}");
+
+            ImGui.EndMenu();
+        }
+    }
+
+    /// <summary>
+    /// Creates a menu item, normally used with menus
+    /// </summary>
+    /// <param name="name">The name of the menu item</param>
+    /// <param name="handler">A handler called if the item is clicked</param>
+    public static void MenuItem(string name, Action handler)
+    {
+        if(ImGui.MenuItem(MakeIdentifier(name)))
+        {
+            ExecuteHandler(handler, $"MenuItem {name}");
+        }
+    }
+
+    /// <summary>
+    /// Creates a separator
+    /// </summary>
+    public static void Separator()
+    {
+        ImGui.Separator();
     }
 }

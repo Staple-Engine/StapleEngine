@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,12 +28,7 @@ internal class AssetPickerWindow : EditorWindow
 
         string newValue = assetPickerSearch;
 
-        if(ImGui.InputText("Search", ref newValue, 256))
-        {
-            assetPickerSearch = newValue;
-        }
-
-        ImGui.BeginChildFrame(ImGui.GetID("AssetList"), Vector2.Zero);
+        assetPickerSearch = EditorGUI.TextField("Search", newValue);
 
         var validItems = new List<ProjectBrowserNode>
         {
@@ -240,7 +234,5 @@ internal class AssetPickerWindow : EditorWindow
 
                 Close();
             }, null);
-
-        ImGui.EndChildFrame();
     }
 }

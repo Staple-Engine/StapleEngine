@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -25,52 +24,51 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                     asset.frames.Add(0);
                 }
 
-                ImGui.BeginGroup();
-
-                for(var i = 0; i < asset.frames.Count; i++)
+                EditorGUI.Group(() =>
                 {
-                    var frame = asset.frames[i];
-                    var frameIndex = i;
-
-                    if(EditorGUI.Button("-"))
+                    for (var i = 0; i < asset.frames.Count; i++)
                     {
-                        asset.frames.RemoveAt(i);
+                        var frame = asset.frames[i];
+                        var frameIndex = i;
 
-                        break;
-                    }
-
-                    EditorGUI.SameLine();
-
-                    if (frame >= 0 && frame < asset.texture.metadata.sprites.Count)
-                    {
-                        var sprite = asset.texture.metadata.sprites[frame];
-
-                        EditorGUI.TextureRect(asset.texture, sprite.rect, new Vector2(32, 32), sprite.rotation);
-                    }
-                    else
-                    {
-                        EditorGUI.Label("(none)");
-                    }
-
-                    EditorGUI.SameLine();
-
-                    if (EditorGUI.Button($"O##SpritePicker{i}"))
-                    {
-                        var editor = StapleEditor.instance;
-                        var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));
-
-                        if (assetPath != asset.texture.guid && Path.IsPathRooted(assetPath) == false)
+                        if (EditorGUI.Button("-"))
                         {
-                            assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
+                            asset.frames.RemoveAt(i);
+
+                            break;
                         }
 
-                        editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? asset.texture,
-                            asset.texture.metadata.sprites,
-                            (index) => asset.frames[frameIndex] = index);
-                    }
-                }
+                        EditorGUI.SameLine();
 
-                ImGui.EndGroup();
+                        if (frame >= 0 && frame < asset.texture.metadata.sprites.Count)
+                        {
+                            var sprite = asset.texture.metadata.sprites[frame];
+
+                            EditorGUI.TextureRect(asset.texture, sprite.rect, new Vector2(32, 32), sprite.rotation);
+                        }
+                        else
+                        {
+                            EditorGUI.Label("(none)");
+                        }
+
+                        EditorGUI.SameLine();
+
+                        if (EditorGUI.Button("O"))
+                        {
+                            var editor = StapleEditor.instance;
+                            var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));
+
+                            if (assetPath != asset.texture.guid && Path.IsPathRooted(assetPath) == false)
+                            {
+                                assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
+                            }
+
+                            editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? asset.texture,
+                                asset.texture.metadata.sprites,
+                                (index) => asset.frames[frameIndex] = index);
+                        }
+                    }
+                });
             }
 
             return true;

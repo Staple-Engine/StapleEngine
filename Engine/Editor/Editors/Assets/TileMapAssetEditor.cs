@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -18,23 +17,22 @@ internal class TileMapAssetEditor : StapleAssetEditor
                 tilesets.Add(null);
             }
 
-            ImGui.BeginGroup();
-
-            for (var i = 0; i < tilesets.Count; i++)
+            EditorGUI.Group(() =>
             {
-                if (EditorGUI.Button("-"))
+                for (var i = 0; i < tilesets.Count; i++)
                 {
-                    tilesets.RemoveAt(i);
+                    if (EditorGUI.Button("-"))
+                    {
+                        tilesets.RemoveAt(i);
 
-                    break;
+                        break;
+                    }
+
+                    EditorGUI.SameLine();
+
+                    tilesets[i] = (Texture)EditorGUI.ObjectPicker(typeof(Texture), $"Texture {i}", tilesets[i]);
                 }
-
-                EditorGUI.SameLine();
-
-                tilesets[i] = (Texture)EditorGUI.ObjectPicker(typeof(Texture), $"Texture {i}", tilesets[i]);
-            }
-
-            ImGui.EndGroup();
+            });
 
             return true;
         }

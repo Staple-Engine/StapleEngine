@@ -1081,7 +1081,7 @@ internal class ResourceManager
 
         mesh = new Mesh(true, false)
         {
-            Guid = original,
+            Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original,
             vertices = m.vertices.ToArray(),
             normals = m.normals.ToArray(),
             tangents = m.tangents.ToArray(),
@@ -1181,7 +1181,10 @@ internal class ResourceManager
                 return null;
             }
 
-            var asset = new MeshAsset();
+            var asset = new MeshAsset()
+            {
+                Guid = guid,
+            };
 
             foreach(var m in meshAssetData.meshes)
             {

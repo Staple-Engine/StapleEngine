@@ -42,7 +42,7 @@ internal class SpriteRendererEditor : Editor
 
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("O##SpritePicker"))
+                        if (EditorGUI.Button("O"))
                         {
                             var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.Guid));
