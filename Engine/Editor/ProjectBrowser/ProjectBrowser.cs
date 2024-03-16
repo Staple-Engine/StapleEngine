@@ -733,7 +733,7 @@ internal class ProjectBrowser
         ImGui.BeginChild("ProjectBrowserContentAssets");
 
         ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
-            "ASSET",
+            "ASSET", true,
             (index, _) =>
             {
                 ProjectBrowserNode item = null;
@@ -963,6 +963,72 @@ internal class ProjectBrowser
                 }
 
                 dropType = ProjectBrowserDropType.None;
+            }, (index, localItem, name) =>
+            {
+                var invalidChars = Path.GetInvalidPathChars()
+                    .Concat(Path.GetInvalidFileNameChars())
+                    .ToList();
+
+                if(invalidChars.Any(x => name.Contains(x)))
+                {
+                    return;
+                }
+
+
+                ProjectBrowserNode item = null;
+
+                if (currentContentNode == null)
+                {
+                    currentContentNode = projectBrowserNodes[index];
+
+                    item = currentContentNode;
+                }
+                else
+                {
+                    item = currentContentNode.type == ProjectBrowserNodeType.Folder ? (index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null) :
+                        currentContentNode;
+                }
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                var normalizedPath = Path.Combine(Path.GetDirectoryName(item.path), $"{name}{Path.GetExtension(item.path) ?? ""}");
+
+                switch(item.type)
+                {
+                    case ProjectBrowserNodeType.File:
+
+                        try
+                        {
+                            File.Move(item.path, normalizedPath);
+
+                            if(File.Exists($"{item.path}.meta"))
+                            {
+                                File.Move($"{item.path}.meta", $"{normalizedPath}.meta");
+                            }
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        break;
+
+                    case ProjectBrowserNodeType.Folder:
+
+                        try
+                        {
+                            Directory.Move(item.path, normalizedPath);
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        break;
+                }
+
+                EditorUtils.RefreshAssets(null);
             });
 
         var result = ImGui.IsWindowHovered();

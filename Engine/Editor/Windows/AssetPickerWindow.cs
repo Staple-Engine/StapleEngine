@@ -66,7 +66,7 @@ internal class AssetPickerWindow : EditorWindow
             }).ToList();
 
         ImGuiUtils.ContentGrid(gridItems, ProjectBrowser.contentPanelPadding, ProjectBrowser.contentPanelThumbnailSize,
-            null,
+            null, false,
             (index, item) =>
             {
             },
@@ -233,6 +233,6 @@ internal class AssetPickerWindow : EditorWindow
                 }
 
                 Close();
-            }, null);
+            }, null, null);
     }
 }

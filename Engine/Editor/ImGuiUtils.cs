@@ -9,6 +9,9 @@ internal static class ImGuiUtils
 {
     public class ContentGridItem
     {
+        public bool renaming = false;
+        public bool selected = false;
+        public string renamedName;
         public string name;
         public Texture texture;
         public Func<Texture, Texture> ensureValidTexture;
@@ -24,8 +27,9 @@ internal static class ImGuiUtils
     /// <param name="onClick">Callback when an item is clicked</param>
     /// <param name="onDoubleClick">Callback when an item is double clicked</param>
     /// <param name="onDragDropped">Callback when an item was dropped</param>
-    public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload,
-        Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped)
+    public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload, bool allowRename,
+        Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped,
+        Action<int, ContentGridItem, string> onRename)
     {
         var cellSize = padding + thumbnailSize;
         var width = ImGui.GetContentRegionAvail().X;
@@ -53,6 +57,14 @@ internal static class ImGuiUtils
                 }
                 else if(ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
+                    foreach(var j in items)
+                    {
+                        j.selected = false;
+                        j.renaming = false;
+                    }
+
+                    item.selected = true;
+
                     onClick?.Invoke(i, item);
                 }
                 else if(dragPayload != null &&
@@ -70,13 +82,37 @@ internal static class ImGuiUtils
 
                     ImGui.EndDragDropSource();
                 }
-                else if(ImGui.IsMouseDown(ImGuiMouseButton.Left) == false)
+                else if (ImGui.IsMouseDown(ImGuiMouseButton.Left) == false)
                 {
                     StapleEditor.instance.dragDropPayloads.Clear();
                 }
             }
 
-            ImGui.TextWrapped(item.name);
+            if (item.selected)
+            {
+                if (Input.GetKeyDown(KeyCode.Enter))
+                {
+                    item.renaming = true;
+                    item.renamedName = item.name;
+                }
+            }
+
+            if (item.renaming && Input.GetKeyDown(KeyCode.Escape) == false)
+            {
+                if (ImGui.InputText("##RENAME", ref item.renamedName, 1000, ImGuiInputTextFlags.EnterReturnsTrue |
+                    ImGuiInputTextFlags.AutoSelectAll))
+                {
+                    item.renaming = false;
+
+                    onRename?.Invoke(i, item, item.renamedName);
+                }
+            }
+            else
+            {
+                item.renaming = false;
+
+                ImGui.TextWrapped(item.name);
+            }
 
             ImGui.NextColumn();
 
