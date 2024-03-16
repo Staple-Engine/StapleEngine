@@ -23,6 +23,28 @@ public static class EditorGUI
     private static bool changed = false;
     private static ulong counter = 0;
 
+    private static string MakeIdentifier(string identifier)
+    {
+        return $"{identifier}##{counter++}";
+    }
+
+    private static void ExecuteHandler(Action handler, string label)
+    {
+        try
+        {
+            handler?.Invoke();
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
+        }
+    }
+
+    internal static void OnFrameStart()
+    {
+        counter = 0;
+    }
+
     /// <summary>
     /// Whether the GUI was interacted with this frame
     /// </summary>
@@ -34,11 +56,7 @@ public static class EditorGUI
         {
             changed = value;
 
-            if(changed == false)
-            {
-                counter = 0;
-            }
-            else
+            if(changed)
             {
                 StapleEditor.instance.mouseIsHoveringImGui = true;
             }
@@ -95,7 +113,7 @@ public static class EditorGUI
     /// <returns>Whether the button was clicked</returns>
     public static bool Button(string label)
     {
-        return ImGui.Button($"{label}##{counter++}");
+        return ImGui.Button(MakeIdentifier(label));
     }
 
     /// <summary>
@@ -107,7 +125,7 @@ public static class EditorGUI
     {
         ImGui.BeginDisabled();
 
-        var result = ImGui.Button($"{label}##{counter++}");
+        var result = ImGui.Button(MakeIdentifier(label));
 
         ImGui.EndDisabled();
 
@@ -122,7 +140,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntField(string label, int value)
     {
-        Changed |= ImGui.InputInt(label, ref value);
+        Changed |= ImGui.InputInt(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -135,7 +153,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatField(string label, float value)
     {
-        Changed |= ImGui.InputFloat(label, ref value);
+        Changed |= ImGui.InputFloat(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -148,7 +166,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector2 Vector2Field(string label, Vector2 value)
     {
-        Changed |= ImGui.InputFloat2(label, ref value);
+        Changed |= ImGui.InputFloat2(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -163,7 +181,7 @@ public static class EditorGUI
     {
         var values = new int[] { value.X, value.Y };
 
-        Changed |= ImGui.InputInt2(label, ref values[0]);
+        Changed |= ImGui.InputInt2(MakeIdentifier(label), ref values[0]);
 
         return new Vector2Int(values[0], values[1]);
     }
@@ -176,7 +194,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector3 Vector3Field(string label, Vector3 value)
     {
-        Changed |= ImGui.InputFloat3(label, ref value);
+        Changed |= ImGui.InputFloat3(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -189,7 +207,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector4 Vector4Field(string label, Vector4 value)
     {
-        Changed |= ImGui.InputFloat4(label, ref value);
+        Changed |= ImGui.InputFloat4(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -238,7 +256,7 @@ public static class EditorGUI
             .Select(x => x.ToString())
             .ToArray();
 
-        var newValue = values[Dropdown(label, valueStrings, current)];
+        var newValue = values[Dropdown(MakeIdentifier(label), valueStrings, current)];
 
         return newValue;
     }
@@ -252,7 +270,7 @@ public static class EditorGUI
     /// <returns>The index of the selected value</returns>
     public static int Dropdown(string label, string[] options, int current)
     {
-        Changed |= ImGui.Combo(label, ref current, $"{string.Join("\0", options)}\0");
+        Changed |= ImGui.Combo(MakeIdentifier(label), ref current, $"{string.Join("\0", options)}\0");
 
         if(current < 0)
         {
@@ -273,7 +291,7 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= ImGui.InputText(label, ref value, (uint)maxLength);
+        Changed |= ImGui.InputText(MakeIdentifier(label), ref value, (uint)maxLength);
 
         return value;
     }
@@ -290,7 +308,7 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= ImGui.InputTextMultiline(label, ref value, (uint)maxLength, size);
+        Changed |= ImGui.InputTextMultiline(MakeIdentifier(label), ref value, (uint)maxLength, size);
 
         return value;
     }
@@ -303,7 +321,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static bool Toggle(string label, bool value)
     {
-        Changed |= ImGui.Checkbox(label, ref value);
+        Changed |= ImGui.Checkbox(MakeIdentifier(label), ref value);
 
         return value;
     }
@@ -318,7 +336,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorEdit4(label, ref v);
+        Changed |= ImGui.ColorEdit4(MakeIdentifier(label), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -333,7 +351,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorPicker4(label, ref v);
+        Changed |= ImGui.ColorPicker4(MakeIdentifier(label), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -384,7 +402,7 @@ public static class EditorGUI
 
         var key = $"{type.FullName}{name}{current}";
 
-        if (ImGui.SmallButton($"O##{key}"))
+        if (ImGui.SmallButton(MakeIdentifier("O")))
         {
             editor.ShowAssetPicker(type, key);
         }
@@ -479,7 +497,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntSlider(string label, int value, int min, int max)
     {
-        Changed |= ImGui.SliderInt(label, ref value, min, max);
+        Changed |= ImGui.SliderInt(MakeIdentifier(label), ref value, min, max);
 
         return value;
     }
@@ -492,8 +510,47 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatSlider(string label, float value, float min, float max)
     {
-        Changed |= ImGui.SliderFloat(label, ref value, min, max);
+        Changed |= ImGui.SliderFloat(MakeIdentifier(label), ref value, min, max);
 
         return value;
+    }
+
+    /// <summary>
+    /// Creates a group
+    /// </summary>
+    /// <param name="handler">A handler for the content of the group</param>
+    public static void Group(Action handler)
+    {
+        ImGui.BeginGroup();
+
+        ExecuteHandler(handler, "Group");
+
+        ImGui.EndGroup();
+    }
+
+    /// <summary>
+    /// Creates a tree node, and runs a handler if it's open
+    /// </summary>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="handler">A handler for when it is clicked or is open</param>
+    public static void TreeNode(string label, bool leaf, Action handler)
+    {
+        var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (leaf)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        if (ImGui.TreeNodeEx(MakeIdentifier(label), flags))
+        {
+            ExecuteHandler(handler, $"TreeNode {label}");
+
+            if(leaf == false)
+            {
+                ImGui.TreePop();
+            }
+        }
     }
 }

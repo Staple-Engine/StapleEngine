@@ -538,6 +538,7 @@ internal partial class StapleEditor
             }
 
             ThumbnailCache.OnFrameStart();
+            EditorGUI.OnFrameStart();
             imgui.BeginFrame();
 
             mouseIsHoveringImGui = true;

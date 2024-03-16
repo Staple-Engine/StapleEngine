@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -29,41 +28,38 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                 EditorGUI.Label(field.Name.ExpandCamelCaseName());
 
-                if(ImGui.TreeNodeEx("Parameters", ImGuiTreeNodeFlags.OpenOnDoubleClick))
+                EditorGUI.TreeNode("Parameters", false, () =>
                 {
                     EditorGUI.SameLine();
 
-                    if (EditorGUI.Button($"+##{stateMachine.GetHashCode() + 1}"))
+                    if (EditorGUI.Button("+"))
                     {
                         stateMachine.parameters.Add(new());
                     }
 
-                    ImGui.BeginGroup();
-
-                    for (var i = 0; i < stateMachine.parameters.Count; i++)
+                    EditorGUI.Group(() =>
                     {
-                        var parameter = stateMachine.parameters[i];
-
-                        parameter.name = EditorGUI.TextField($"Name##{parameter.GetHashCode()}", parameter.name);
-
-                        EditorGUI.SameLine();
-
-                        if (EditorGUI.Button($"-##{parameter.GetHashCode()}"))
+                        for (var i = 0; i < stateMachine.parameters.Count; i++)
                         {
-                            stateMachine.parameters.RemoveAt(i);
+                            var parameter = stateMachine.parameters[i];
 
-                            break;
+                            parameter.name = EditorGUI.TextField("Name", parameter.name);
+
+                            EditorGUI.SameLine();
+
+                            if (EditorGUI.Button("-"))
+                            {
+                                stateMachine.parameters.RemoveAt(i);
+
+                                break;
+                            }
+
+                            parameter.parameterType = EditorGUI.EnumDropdown("Type", parameter.parameterType);
                         }
+                    });
+                });
 
-                        parameter.parameterType = EditorGUI.EnumDropdown($"Type##{parameter.GetHashCode()}", parameter.parameterType);
-                    }
-
-                    ImGui.EndGroup();
-
-                    ImGui.TreePop();
-                }
-
-                if (ImGui.TreeNodeEx("States", ImGuiTreeNodeFlags.OpenOnDoubleClick))
+                EditorGUI.TreeNode("States", false, () =>
                 {
                     EditorGUI.SameLine();
 
@@ -77,132 +73,124 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                         .Where(x => x != null)
                         .ToList();
 
-                    ImGui.BeginGroup();
-
-                    for (var i = 0; i < stateMachine.states.Count; i++)
+                    EditorGUI.Group(() =>
                     {
-                        var state = stateMachine.states[i];
-
-                        var allAvailableStates = stateMachine.states
-                            .Select(x => x.name)
-                            .Where(x => x != null && x != state.name)
-                            .ToList();
-
-                        state.name = EditorGUI.TextField($"Name##{state.GetHashCode()}", state.name);
-
-                        EditorGUI.SameLine();
-
-                        if (EditorGUI.Button($"-##{state.GetHashCode()}"))
+                        for (var i = 0; i < stateMachine.states.Count; i++)
                         {
-                            stateMachine.states.RemoveAt(i);
+                            var state = stateMachine.states[i];
 
-                            break;
-                        }
+                            var allAvailableStates = stateMachine.states
+                                .Select(x => x.name)
+                                .Where(x => x != null && x != state.name)
+                                .ToList();
 
-                        var currentAnimationIndex = allAnimations.IndexOf(state.animation);
+                            state.name = EditorGUI.TextField("Name", state.name);
 
-                        var newAnimationIndex = EditorGUI.Dropdown($"Animation##{state.GetHashCode()}", allAnimations.ToArray(), currentAnimationIndex);
-
-                        if (newAnimationIndex != currentAnimationIndex && newAnimationIndex >= 0)
-                        {
-                            state.animation = allAnimations[newAnimationIndex];
-                        }
-
-                        state.repeat = EditorGUI.Toggle($"Repeat##{state.GetHashCode()}", state.repeat);
-
-                        if (ImGui.TreeNodeEx($"Connections##{state.GetHashCode()}", ImGuiTreeNodeFlags.OpenOnDoubleClick))
-                        {
                             EditorGUI.SameLine();
 
-                            if (EditorGUI.Button($"+##{state.GetHashCode() + 1}"))
+                            if (EditorGUI.Button($"-"))
                             {
-                                state.connections.Add(new());
+                                stateMachine.states.RemoveAt(i);
+
+                                break;
                             }
 
-                            ImGui.BeginGroup();
+                            var currentAnimationIndex = allAnimations.IndexOf(state.animation);
 
-                            for (var j = 0; j < state.connections.Count; j++)
+                            var newAnimationIndex = EditorGUI.Dropdown("Animation", allAnimations.ToArray(), currentAnimationIndex);
+
+                            if (newAnimationIndex != currentAnimationIndex && newAnimationIndex >= 0)
                             {
-                                var connection = state.connections[j];
+                                state.animation = allAnimations[newAnimationIndex];
+                            }
 
-                                var currentStateIndex = allAvailableStates.IndexOf(connection.name);
+                            state.repeat = EditorGUI.Toggle("Repeat", state.repeat);
 
-                                var newStateIndex = EditorGUI.Dropdown($"Transition to##{connection.GetHashCode()}", allAvailableStates.ToArray(), currentStateIndex);
+                            EditorGUI.TreeNode("Connections", false, () =>
+                            {
+                                EditorGUI.SameLine();
 
-                                if (newStateIndex != currentStateIndex && newStateIndex >= 0 && newStateIndex < allAvailableStates.Count)
+                                if (EditorGUI.Button("+"))
                                 {
-                                    connection.name = allAvailableStates[newStateIndex];
+                                    state.connections.Add(new());
                                 }
 
-                                connection.any = EditorGUI.Toggle($"Trigger on any##{connection.GetHashCode()}", connection.any);
-
-                                connection.onFinish = EditorGUI.Toggle($"Trigger on finish##{connection.GetHashCode()}", connection.onFinish);
-
-                                if (ImGui.TreeNodeEx($"Conditions##{connection.GetHashCode()}", ImGuiTreeNodeFlags.OpenOnDoubleClick))
+                                EditorGUI.Group(() =>
                                 {
-                                    EditorGUI.SameLine();
-
-                                    if(EditorGUI.Button($"+##{connection.GetHashCode()}"))
+                                    for (var j = 0; j < state.connections.Count; j++)
                                     {
-                                        connection.parameters.Add(new());
-                                    }
+                                        var connection = state.connections[j];
 
-                                    for(var k = 0; k < connection.parameters.Count; k++)
-                                    {
-                                        var parameter = connection.parameters[k];
+                                        var currentStateIndex = allAvailableStates.IndexOf(connection.name);
 
-                                        var currentNameIndex = allAvailableParameters.IndexOf(parameter.name);
+                                        var newStateIndex = EditorGUI.Dropdown("Transition to", allAvailableStates.ToArray(), currentStateIndex);
 
-                                        var newNameIndex = EditorGUI.Dropdown($"Name##{parameter.GetHashCode()}", allAvailableParameters.ToArray(), currentNameIndex);
-
-                                        if(newNameIndex != currentNameIndex && newNameIndex >= 0 && newNameIndex < allAvailableParameters.Count)
+                                        if (newStateIndex != currentStateIndex && newStateIndex >= 0 && newStateIndex < allAvailableStates.Count)
                                         {
-                                            parameter.name = allAvailableParameters[newNameIndex];
+                                            connection.name = allAvailableStates[newStateIndex];
                                         }
 
-                                        parameter.condition = EditorGUI.EnumDropdown($"Condition##{parameter.GetHashCode()}", parameter.condition);
+                                        connection.any = EditorGUI.Toggle("Trigger on any", connection.any);
 
-                                        var existingParameter = stateMachine.parameters.FirstOrDefault(x => x.name == parameter.name);
+                                        connection.onFinish = EditorGUI.Toggle("Trigger on finish", connection.onFinish);
 
-                                        if(existingParameter != null)
+                                        EditorGUI.TreeNode("Conditions", false, () =>
                                         {
-                                            switch(existingParameter.parameterType)
+                                            EditorGUI.SameLine();
+
+                                            if (EditorGUI.Button("+"))
                                             {
-                                                case SkinnedAnimationStateMachine.AnimationParameterType.Bool:
-
-                                                    parameter.boolValue = EditorGUI.Toggle($"Value##{parameter.GetHashCode()}", parameter.boolValue);
-
-                                                    break;
-
-                                                case SkinnedAnimationStateMachine.AnimationParameterType.Float:
-
-                                                    parameter.floatValue = EditorGUI.FloatField($"Value##{parameter.GetHashCode()}", parameter.floatValue);
-
-                                                    break;
-
-                                                case SkinnedAnimationStateMachine.AnimationParameterType.Int:
-
-                                                    parameter.intValue = EditorGUI.IntField($"Value##{parameter.GetHashCode()}", parameter.intValue);
-
-                                                    break;
+                                                connection.parameters.Add(new());
                                             }
-                                        }
+
+                                            for (var k = 0; k < connection.parameters.Count; k++)
+                                            {
+                                                var parameter = connection.parameters[k];
+
+                                                var currentNameIndex = allAvailableParameters.IndexOf(parameter.name);
+
+                                                var newNameIndex = EditorGUI.Dropdown("Name", allAvailableParameters.ToArray(), currentNameIndex);
+
+                                                if (newNameIndex != currentNameIndex && newNameIndex >= 0 && newNameIndex < allAvailableParameters.Count)
+                                                {
+                                                    parameter.name = allAvailableParameters[newNameIndex];
+                                                }
+
+                                                parameter.condition = EditorGUI.EnumDropdown("Condition", parameter.condition);
+
+                                                var existingParameter = stateMachine.parameters.FirstOrDefault(x => x.name == parameter.name);
+
+                                                if (existingParameter != null)
+                                                {
+                                                    switch (existingParameter.parameterType)
+                                                    {
+                                                        case SkinnedAnimationStateMachine.AnimationParameterType.Bool:
+
+                                                            parameter.boolValue = EditorGUI.Toggle("Value", parameter.boolValue);
+
+                                                            break;
+
+                                                        case SkinnedAnimationStateMachine.AnimationParameterType.Float:
+
+                                                            parameter.floatValue = EditorGUI.FloatField("Value", parameter.floatValue);
+
+                                                            break;
+
+                                                        case SkinnedAnimationStateMachine.AnimationParameterType.Int:
+
+                                                            parameter.intValue = EditorGUI.IntField("Value", parameter.intValue);
+
+                                                            break;
+                                                    }
+                                                }
+                                            }
+                                        });
                                     }
-
-                                    ImGui.TreePop();
-                                }
-                            }
-
-                            ImGui.EndGroup();
-
-                            ImGui.TreePop();
+                                });
+                            });
                         }
-                    }
-
-                    ImGui.EndGroup();
-
-                    ImGui.TreePop();
-                }
+                    });
+                });
 
                 break;
         }
