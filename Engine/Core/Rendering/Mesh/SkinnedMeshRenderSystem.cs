@@ -109,31 +109,16 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     var bone = meshAssetMesh.bones[i][j];
 
-                    Matrix4x4 localTransform;
                     Matrix4x4 globalTransform;
 
                     if (useAnimator && MeshAsset.TryGetNode(animator.evaluator.rootNode, bone.name, out var localNode))
                     {
-                        localTransform = localNode.transform;
                         globalTransform = localNode.GlobalTransform;
-
-                        if (animator.nodeRenderers.TryGetValue(bone.name, out var item) &&
-                            Matrix4x4.Decompose(localTransform, out var scale, out var rotation, out var translation))
-                        {
-                            item.transform.LocalPosition = translation;
-                            item.transform.LocalRotation = rotation;
-                            item.transform.LocalScale = scale;
-                        }
-                        else
-                        {
-                            Log.Warning($"Failed to get node renderer for {bone.name}");
-                        }
                     }
                     else
                     {
                         var node = mesh.meshAsset.GetNode(bone.name);
 
-                        localTransform = node.transform;
                         globalTransform = node.GlobalTransform;
                     }
 

@@ -68,11 +68,6 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
             return;
         }
 
-        if (animator.nodeRenderers.Count == 0)
-        {
-            animator.nodeRenderers = GatherNodes(transform, animator.mesh.meshAsset.rootNode);
-        }
-
         if(Platform.IsPlaying)
         {
             if (animator.stateMachine != null && animator.animationController == null)
@@ -90,9 +85,23 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator.mesh.meshAsset.animations[animator.animation],
                     animator.mesh.meshAsset.rootNode.Clone(),
                     animator);
+
+                animator.nodeRenderers = GatherNodes(transform, animator.evaluator.rootNode);
             }
 
             animator.evaluator.Evaluate();
+
+            foreach (var pair in animator.nodeRenderers)
+            {
+                if (Matrix4x4.Decompose(pair.Value.node.transform, out var scale, out var rotation, out var translation) == false)
+                {
+                    continue;
+                }
+
+                pair.Value.transform.LocalPosition = translation;
+                pair.Value.transform.LocalRotation = rotation;
+                pair.Value.transform.LocalScale = scale;
+            }
         }
         else if (animator.playInEditMode == false)
         {
