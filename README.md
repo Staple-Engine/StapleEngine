@@ -26,7 +26,7 @@ Status: Early state, usable for small demos
 
 # Installation
 
-You can grab binaries from the releases page (Soon). You also need the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+You can grab binaries from the releases page. You also need the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
 # Building
 
