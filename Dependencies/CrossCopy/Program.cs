@@ -47,11 +47,18 @@ namespace CrossCopy
                 {
                     var process = new Process();
 
+                    var argsString = "";
+
+                    foreach(var arg in args)
+                    {
+                        argsString += $"\"{arg}\" ";
+                    }
+
                     var startInfo = new ProcessStartInfo
                     {
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = "cmd.exe",
-                        Arguments = $"/C copy /B /Y {string.Join(" ", args)}",
+                        Arguments = $"/C copy /B /Y {argsString}",
                         RedirectStandardOutput = true,
                         CreateNoWindow = true,
                     };
