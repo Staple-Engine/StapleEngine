@@ -89,23 +89,13 @@ project "ImGui.NET"
 	kind "SharedLib"
 	language "C#"
 	clr "Unsafe"
+	dependson { "CrossCopy" }
 
 	files {
 		"ImGui.NET/src/**.cs"
 	}
 	
-	filter "system:windows"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}../native/bin/Debug",
-			"{COPYFILE} %{wks.location}../../ImGui.NET/win-x64/*.dll %{wks.location}../native/bin/Release"
-		}
-	
-	filter "system:linux"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/linux-x64/*.so %{wks.location}../native/bin/$(Configuration)/"
-		}
-
-	filter "system:macos"
-		postbuildcommands {
-			"{COPYFILE} %{wks.location}../../ImGui.NET/osx/*.dylib %{wks.location}../native/bin/$(Configuration)/"
-		}
+	postbuildcommands {
+		'$(SolutionDir)bin/Release/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Debug"',
+		'$(SolutionDir)bin/Release/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Release"'
+	}
