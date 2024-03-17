@@ -86,10 +86,17 @@ namespace CrossCopy
                 {
                     var process = new Process();
 
+                    var argsString = "";
+
+                    foreach(var arg in args)
+                    {
+                        argsString += $"{arg.Replace(" ", "\\ ")} ";
+                    }
+
                     var startInfo = new ProcessStartInfo
                     {
                         FileName = "/bin/bash",
-                        Arguments = $"-lc \"cp -Rf {string.Join(" ", args)}\"",
+                        Arguments = $"-lc \"cp -Rf {argsString}\"",
                         RedirectStandardOutput = true,
                     };
 

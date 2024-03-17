@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 premake5 --os=macosx xcode4
 premake5 --os=macosx --file=NativeFileDialog/build/premake5.lua xcode4
 premake5 --os=macosx --file=premake5_dotnet.lua vs2022
@@ -31,6 +33,8 @@ cd ../../GENie
 make
 
 cd ../bgfx
+
+make GENIE=../GENie/bin/darwin/genie projgen
 
 make GENIE=../GENie/bin/darwin/genie tools -j $(sysctl -n hw.logicalcpu)
 

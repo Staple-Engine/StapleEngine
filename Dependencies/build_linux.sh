@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 premake5 --os=linux gmake
 premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake
 premake5 --os=linux --file=premake5_dotnet.lua vs2022
@@ -20,6 +22,8 @@ cd ../../GENie
 make
 
 cd ../bgfx
+
+make GENIE=../GENie/bin/linux/genie projgen
 
 make GENIE=../GENie/bin/linux/genie tools -j $(nproc)
 

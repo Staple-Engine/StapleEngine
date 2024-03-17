@@ -96,6 +96,6 @@ project "ImGui.NET"
 	}
 	
 	postbuildcommands {
-		'$(SolutionDir)bin/Release/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Debug"',
-		'$(SolutionDir)bin/Release/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Release"'
+		'$(SolutionDir)bin/$(Configuration)/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Debug"',
+		'$(SolutionDir)bin/$(Configuration)/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Release"'
 	}
