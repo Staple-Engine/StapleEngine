@@ -28,14 +28,14 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                 EditorGUI.Label(field.Name.ExpandCamelCaseName());
 
-                EditorGUI.TreeNode("Parameters", false, () =>
+                EditorGUI.TreeNode("Parameters", false, true, () =>
                 {
                     EditorGUI.SameLine();
 
-                    if (EditorGUI.Button("+"))
+                    EditorGUI.Button("+", () =>
                     {
                         stateMachine.parameters.Add(new());
-                    }
+                    });
 
                     EditorGUI.Group(() =>
                     {
@@ -47,26 +47,24 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                             EditorGUI.SameLine();
 
-                            if (EditorGUI.Button("-"))
+                            EditorGUI.Button("-", () =>
                             {
                                 stateMachine.parameters.RemoveAt(i);
-
-                                break;
-                            }
+                            });
 
                             parameter.parameterType = EditorGUI.EnumDropdown("Type", parameter.parameterType);
                         }
                     });
                 });
 
-                EditorGUI.TreeNode("States", false, () =>
+                EditorGUI.TreeNode("States", false, true, () =>
                 {
                     EditorGUI.SameLine();
 
-                    if (EditorGUI.Button($"+##{stateMachine.GetHashCode()}"))
+                    EditorGUI.Button("+", () =>
                     {
                         stateMachine.states.Add(new());
-                    }
+                    });
 
                     var allAvailableParameters = stateMachine.parameters
                         .Select(x => x.name)
@@ -88,12 +86,10 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                             EditorGUI.SameLine();
 
-                            if (EditorGUI.Button($"-"))
+                            EditorGUI.Button("-", () =>
                             {
                                 stateMachine.states.RemoveAt(i);
-
-                                break;
-                            }
+                            });
 
                             var currentAnimationIndex = allAnimations.IndexOf(state.animation);
 
@@ -106,14 +102,14 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                             state.repeat = EditorGUI.Toggle("Repeat", state.repeat);
 
-                            EditorGUI.TreeNode("Connections", false, () =>
+                            EditorGUI.TreeNode("Connections", false, false, () =>
                             {
                                 EditorGUI.SameLine();
 
-                                if (EditorGUI.Button("+"))
+                                EditorGUI.Button("+", () =>
                                 {
                                     state.connections.Add(new());
-                                }
+                                });
 
                                 EditorGUI.Group(() =>
                                 {
@@ -134,14 +130,14 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                                         connection.onFinish = EditorGUI.Toggle("Trigger on finish", connection.onFinish);
 
-                                        EditorGUI.TreeNode("Conditions", false, () =>
+                                        EditorGUI.TreeNode("Conditions", false, false, () =>
                                         {
                                             EditorGUI.SameLine();
 
-                                            if (EditorGUI.Button("+"))
+                                            EditorGUI.Button("+", () =>
                                             {
                                                 connection.parameters.Add(new());
-                                            }
+                                            });
 
                                             for (var k = 0; k < connection.parameters.Count; k++)
                                             {

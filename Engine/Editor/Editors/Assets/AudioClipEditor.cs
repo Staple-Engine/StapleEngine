@@ -124,44 +124,44 @@ internal class AudioClipEditor : Editor
 
             if (audioSource != null)
             {
-                if (EditorGUI.Button("Play"))
+                EditorGUI.Button("Play", () =>
                 {
                     audioSource.Play();
-                }
+                });
 
                 EditorGUI.SameLine();
 
                 if (audioSource.Playing)
                 {
-                    if (EditorGUI.Button("Pause"))
+                    EditorGUI.Button("Pause", () =>
                     {
                         audioSource.Pause();
-                    }
+                    });
                 }
                 else if (audioSource.Paused)
                 {
-                    if (EditorGUI.Button("Resume"))
+                    EditorGUI.Button("Resume", () =>
                     {
                         audioSource.Play();
-                    }
+                    });
                 }
                 else
                 {
-                    EditorGUI.ButtonDisabled("Pause");
+                    EditorGUI.ButtonDisabled("Pause", null);
                 }
 
                 EditorGUI.SameLine();
 
                 if (audioSource.Playing)
                 {
-                    if (EditorGUI.Button("Stop"))
+                    EditorGUI.Button("Stop", () =>
                     {
                         audioSource.Stop();
-                    }
+                    });
                 }
                 else
                 {
-                    EditorGUI.ButtonDisabled("Stop");
+                    EditorGUI.ButtonDisabled("Stop", null);
                 }
             }
 
@@ -169,7 +169,7 @@ internal class AudioClipEditor : Editor
 
             if (hasChanges)
             {
-                if (EditorGUI.Button("Apply"))
+                EditorGUI.Button("Apply", () =>
                 {
                     try
                     {
@@ -195,11 +195,11 @@ internal class AudioClipEditor : Editor
                     }
 
                     EditorUtils.RefreshAssets(false, null);
-                }
+                });
 
                 EditorGUI.SameLine();
 
-                if (EditorGUI.Button("Revert"))
+                EditorGUI.Button("Revert", () =>
                 {
                     var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -207,15 +207,15 @@ internal class AudioClipEditor : Editor
                     {
                         field.SetValue(metadata, field.GetValue(original));
                     }
-                }
+                });
             }
             else
             {
-                EditorGUI.ButtonDisabled("Apply");
+                EditorGUI.ButtonDisabled("Apply", null);
 
                 EditorGUI.SameLine();
 
-                EditorGUI.ButtonDisabled("Revert");
+                EditorGUI.ButtonDisabled("Revert", null);
             }
         }
     }

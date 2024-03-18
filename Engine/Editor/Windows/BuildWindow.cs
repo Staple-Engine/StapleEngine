@@ -146,7 +146,7 @@ internal class BuildWindow : EditorWindow
             return;
         }
 
-        if (EditorGUI.Button("Build"))
+        EditorGUI.Button("Build", () =>
         {
             var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
                 out var path);
@@ -173,11 +173,11 @@ internal class BuildWindow : EditorWindow
             {
                 Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
             }
-        }
+        });
 
         EditorGUI.SameLine();
 
-        if (EditorGUI.Button("Build (Assets Only)"))
+        EditorGUI.Button("Build (Assets Only)", () =>
         {
             var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
                 out var path);
@@ -204,13 +204,13 @@ internal class BuildWindow : EditorWindow
             {
                 Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
             }
-        }
+        });
 
         EditorGUI.SameLine();
 
-        if (EditorGUI.Button("Close"))
+        EditorGUI.Button("Close", () =>
         {
             Close();
-        }
+        });
     }
 }

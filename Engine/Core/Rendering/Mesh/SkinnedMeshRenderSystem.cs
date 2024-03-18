@@ -146,4 +146,100 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
             }
         }
     }
+
+    public static void GatherNodes(Transform parent, Dictionary<string, MeshAsset.Node> nodeCache, MeshAsset.Node rootNode)
+    {
+        if (parent == null || nodeCache == null)
+        {
+            return;
+        }
+
+        nodeCache.Clear();
+
+        void GatherNodes(MeshAsset.Node node)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            nodeCache.AddOrSetKey(node.name, node);
+
+            foreach (var child in node.children)
+            {
+                GatherNodes(child);
+            }
+        }
+
+        GatherNodes(rootNode);
+    }
+
+    public static void GatherNodeTransforms(Transform parent, Dictionary<string, Transform> transformCache, MeshAsset.Node rootNode)
+    {
+        if (parent == null || transformCache == null)
+        {
+            return;
+        }
+
+        transformCache.Clear();
+
+        void GatherNodes(MeshAsset.Node node)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            var childTransform = parent.SearchChild(node.name);
+
+            if (childTransform == null)
+            {
+                foreach (var child in node.children)
+                {
+                    GatherNodes(child);
+                }
+
+                return;
+            }
+
+            transformCache.AddOrSetKey(node.name, childTransform);
+
+            foreach (var child in node.children)
+            {
+                GatherNodes(child);
+            }
+        }
+
+        GatherNodes(rootNode);
+    }
+
+    public static void ApplyNodeTransform(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache, bool original = false)
+    {
+        foreach (var pair in transformCache)
+        {
+            if(nodeCache.TryGetValue(pair.Key, out var node) == false ||
+                Matrix4x4.Decompose(original ? node.originalTransform : node.transform,
+                    out var scale, out var rotation, out var translation) == false)
+            {
+                continue;
+            }
+
+            pair.Value.LocalPosition = translation;
+            pair.Value.LocalRotation = rotation;
+            pair.Value.LocalScale = scale;
+        }
+    }
+
+    public static void ApplyTransformsToNodes(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache)
+    {
+        foreach(var pair in nodeCache)
+        {
+            if(transformCache.TryGetValue(pair.Key, out var transform) == false)
+            {
+                continue;
+            }
+
+            pair.Value.transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
+        }
+    }
 }

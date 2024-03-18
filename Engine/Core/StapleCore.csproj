@@ -123,6 +123,8 @@
 		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationController.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationPoser.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationPoserSystem.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationStateMachine.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />

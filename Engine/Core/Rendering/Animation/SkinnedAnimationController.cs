@@ -308,9 +308,6 @@ public class SkinnedAnimationController
 
         currentState = state;
 
-        animator.repeat = state.repeat;
-        animator.animation = state.animation;
-        animator.playTime = 0;
-        animator.evaluator = null;
+        animator.SetAnimation(state.animation, state.repeat);
     }
 }

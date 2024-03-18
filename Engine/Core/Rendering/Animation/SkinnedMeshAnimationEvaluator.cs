@@ -27,6 +27,7 @@ internal class SkinnedMeshAnimationEvaluator
     public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode, SkinnedMeshAnimator animator)
     {
         meshAsset = asset;
+
         this.animation = animation;
         this.rootNode = rootNode;
         this.animator = animator;

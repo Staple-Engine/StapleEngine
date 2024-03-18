@@ -286,7 +286,7 @@ internal partial class StapleEditor
 
                 var entityName = transform.entity.Name;
 
-                EditorGUI.TreeNode(entityName, transform.ChildCount == 0, () =>
+                EditorGUI.TreeNode(entityName, transform.ChildCount == 0, true, () =>
                 {
                     if (ImGui.BeginDragDropTarget())
                     {
@@ -582,7 +582,7 @@ internal partial class StapleEditor
                 var localComponent = component;
                 var removed = false;
 
-                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), false, () =>
+                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), false, false, () =>
                 {
                     if(removed)
                     {
@@ -625,17 +625,15 @@ internal partial class StapleEditor
                 },
                 () =>
                 {
-                    ImGui.SameLine();
+                    EditorGUI.SameLine();
 
-                    if (ImGui.SmallButton("X"))
+                    EditorGUI.Button("X", () =>
                     {
                         selectedEntity.RemoveComponent(localComponent.GetType());
 
                         removed = true;
                         resetSelection = true;
-
-                        return;
-                    }
+                    });
                 });
             });
 

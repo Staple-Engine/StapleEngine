@@ -21,7 +21,7 @@ internal class AppSettingsWindow : EditorWindow
     {
         base.OnGUI();
 
-        EditorGUI.TreeNode("General", false, () =>
+        EditorGUI.TreeNode("General", false, true, () =>
         {
             projectAppSettings.appName = EditorGUI.TextField("App Name", projectAppSettings.appName ?? "");
 
@@ -34,7 +34,7 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", projectAppSettings.appVersion);
         });
 
-        EditorGUI.TreeNode("Timing", false, () =>
+        EditorGUI.TreeNode("Timing", false, true, () =>
         {
             projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", projectAppSettings.fixedTimeFrameRate);
 
@@ -51,7 +51,7 @@ internal class AppSettingsWindow : EditorWindow
             }
         });
 
-        EditorGUI.TreeNode("Physics", false, () =>
+        EditorGUI.TreeNode("Physics", false, true, () =>
         {
             projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", projectAppSettings.physicsFrameRate);
 
@@ -61,16 +61,16 @@ internal class AppSettingsWindow : EditorWindow
             }
         });
 
-        EditorGUI.TreeNode("Layers", false, () =>
+        EditorGUI.TreeNode("Layers", false, true, () =>
         {
             void Handle(List<string> layers)
             {
                 EditorGUI.SameLine();
 
-                if (EditorGUI.Button("+"))
+                EditorGUI.Button("+", () =>
                 {
                     layers.Add("Layer");
-                }
+                });
 
                 for (var i = 0; i < layers.Count; i++)
                 {
@@ -81,20 +81,20 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("Up"))
+                        EditorGUI.Button("Up", () =>
                         {
                             (layers[i], layers[i - 1]) = (layers[i - 1], layers[i]);
-                        }
+                        });
                     }
 
                     if (i > 0 && i + 1 < layers.Count)
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("Down"))
+                        EditorGUI.Button("Down", () =>
                         {
                             (layers[i], layers[i + 1]) = (layers[i + 1], layers[i]);
-                        }
+                        });
                     }
 
                     //Can't remove default layer
@@ -102,12 +102,10 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("X"))
+                        EditorGUI.Button("X", () =>
                         {
                             layers.RemoveAt(i);
-
-                            break;
-                        }
+                        });
                     }
                 }
 
@@ -124,7 +122,7 @@ internal class AppSettingsWindow : EditorWindow
             Handle(projectAppSettings.sortingLayers);
         });
 
-        EditorGUI.TreeNode("Rendering and Presentation", false, () =>
+        EditorGUI.TreeNode("Rendering and Presentation", false, true, () =>
         {
             projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", projectAppSettings.runInBackground);
 
@@ -191,24 +189,22 @@ internal class AppSettingsWindow : EditorWindow
 
                     EditorGUI.SameLine();
 
-                    if (EditorGUI.Button("-"))
+                    EditorGUI.Button("-", () =>
                     {
                         renderers.RemoveAt(i);
-
-                        break;
-                    }
+                    });
                 }
 
-                if (EditorGUI.Button("+"))
+                EditorGUI.Button("+", () =>
                 {
                     renderers.Add(backend.renderers.FirstOrDefault());
-                }
+                });
             });
         });
 
         EditorGUI.Label("* - Shared setting between platforms");
 
-        if (EditorGUI.Button("Apply Changes"))
+        EditorGUI.Button("Apply Changes", () =>
         {
             try
             {
@@ -225,13 +221,13 @@ internal class AppSettingsWindow : EditorWindow
             catch (Exception)
             {
             }
-        }
+        });
 
         EditorGUI.SameLine();
 
-        if (EditorGUI.Button("Close"))
+        EditorGUI.Button("Close", () =>
         {
             Close();
-        }
+        });
     }
 }

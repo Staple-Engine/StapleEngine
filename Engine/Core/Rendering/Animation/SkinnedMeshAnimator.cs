@@ -4,12 +4,6 @@ namespace Staple;
 
 public class SkinnedMeshAnimator : IComponent
 {
-    internal class Item
-    {
-        public MeshAsset.Node node;
-        public Transform transform;
-    }
-
     public Mesh mesh;
     public string animation;
     public bool repeat = true;
@@ -19,6 +13,16 @@ public class SkinnedMeshAnimator : IComponent
 
     internal bool playInEditMode;
     internal float playTime;
-    internal Dictionary<string, Item> nodeRenderers = new();
+    internal Dictionary<string, Transform> transformCache = new();
+    internal Dictionary<string, MeshAsset.Node> nodeCache = new();
     internal SkinnedMeshAnimationEvaluator evaluator;
+
+    public void SetAnimation(string name, bool repeat)
+    {
+        this.repeat = repeat;
+
+        animation = name;
+        playTime = 0;
+        evaluator = null;
+    }
 }

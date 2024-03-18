@@ -16,7 +16,7 @@ public class StapleAssetEditor : Editor
 
         if (hasChanges)
         {
-            if (EditorGUI.Button("Apply"))
+            EditorGUI.Button("Apply", () =>
             {
                 if (ApplyChanges())
                 {
@@ -29,11 +29,11 @@ public class StapleAssetEditor : Editor
 
                     EditorUtils.RefreshAssets(false, null);
                 }
-            }
+            });
 
             EditorGUI.SameLine();
 
-            if (EditorGUI.Button("Revert"))
+            EditorGUI.Button("Revert", () =>
             {
                 var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -41,15 +41,15 @@ public class StapleAssetEditor : Editor
                 {
                     field.SetValue(asset, field.GetValue(originalAsset));
                 }
-            }
+            });
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply");
+            EditorGUI.ButtonDisabled("Apply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert");
+            EditorGUI.ButtonDisabled("Revert", null);
         }
     }
 

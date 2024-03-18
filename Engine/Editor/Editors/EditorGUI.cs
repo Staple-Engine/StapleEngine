@@ -119,26 +119,32 @@ public static class EditorGUI
     /// Shows a button
     /// </summary>
     /// <param name="label">The button label</param>
+    /// <param name="handler">A handler to execute if the button is clicked</param>
     /// <returns>Whether the button was clicked</returns>
-    public static bool Button(string label)
+    public static void Button(string label, Action handler)
     {
-        return ImGui.Button(MakeIdentifier(label));
+        if(ImGui.Button(MakeIdentifier(label)))
+        {
+            ExecuteHandler(handler, $"Button {label}");
+        }
     }
 
     /// <summary>
     /// Shows a disabled button
     /// </summary>
     /// <param name="label">The button label</param>
+    /// <param name="handler">A handler to execute if the button is clicked</param>
     /// <returns>Whether the button was clicked</returns>
-    public static bool ButtonDisabled(string label)
+    public static void ButtonDisabled(string label, Action handler)
     {
         ImGui.BeginDisabled();
 
-        var result = ImGui.Button(MakeIdentifier(label));
+        if(ImGui.Button(MakeIdentifier(label)))
+        {
+            ExecuteHandler(handler, $"ButtonDisabled {label}");
+        }
 
         ImGui.EndDisabled();
-
-        return result;
     }
 
     /// <summary>
@@ -542,11 +548,17 @@ public static class EditorGUI
     /// </summary>
     /// <param name="label">The label of the tree node</param>
     /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="spanFullWidth">Whether to use the full width</param>
     /// <param name="handler">A handler for when it is clicked or is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
-    public static void TreeNode(string label, bool leaf, Action handler, Action prefixHandler = null)
+    public static void TreeNode(string label, bool leaf, bool spanFullWidth, Action handler, Action prefixHandler = null)
     {
-        var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if(spanFullWidth)
+        {
+            flags |= ImGuiTreeNodeFlags.SpanFullWidth;
+        }
 
         if (leaf)
         {

@@ -141,6 +141,7 @@ internal class RenderSystem : ISubsystem
     public void Startup()
     {
         renderSystems.Add(new SpriteRenderSystem());
+        renderSystems.Add(new SkinnedAnimationPoserSystem());
         renderSystems.Add(new SkinnedMeshAnimatorSystem());
         renderSystems.Add(new SkinnedMeshRenderSystem());
         renderSystems.Add(new MeshRenderSystem());

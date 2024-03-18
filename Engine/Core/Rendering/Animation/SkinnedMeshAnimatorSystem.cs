@@ -1,46 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple;
 
 internal class SkinnedMeshAnimatorSystem : IRenderSystem
 {
-    public static Dictionary<string, SkinnedMeshAnimator.Item> GatherNodes(Transform current, MeshAsset.Node node)
-    {
-        var outValue = new Dictionary<string, SkinnedMeshAnimator.Item>();
-
-        void GatherNodes(MeshAsset.Node node)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            var childTransform = current.SearchChild(node.name);
-
-            if (childTransform == null)
-            {
-                return;
-            }
-
-            outValue.AddOrSetKey(node.name, new()
-            {
-                node = node,
-                transform = childTransform,
-            });
-
-            foreach (var child in node.children)
-            {
-                GatherNodes(child);
-            }
-        }
-
-        GatherNodes(node);
-
-        return outValue;
-    }
-
     public Type RelatedComponent()
     {
         return typeof(SkinnedMeshAnimator);
@@ -68,7 +31,12 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
             return;
         }
 
-        if(Platform.IsPlaying)
+        if(animator.nodeCache.Count == 0 && animator.transformCache.Count == 0)
+        {
+            SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.rootNode);
+        }
+
+        if (Platform.IsPlaying)
         {
             if (animator.stateMachine != null && animator.animationController == null)
             {
@@ -86,38 +54,18 @@ internal class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator.mesh.meshAsset.rootNode.Clone(),
                     animator);
 
-                animator.nodeRenderers = GatherNodes(transform, animator.evaluator.rootNode);
+                SkinnedMeshRenderSystem.GatherNodes(transform, animator.nodeCache, animator.evaluator.rootNode);
             }
 
             animator.evaluator.Evaluate();
 
-            foreach (var pair in animator.nodeRenderers)
-            {
-                if (Matrix4x4.Decompose(pair.Value.node.transform, out var scale, out var rotation, out var translation) == false)
-                {
-                    continue;
-                }
-
-                pair.Value.transform.LocalPosition = translation;
-                pair.Value.transform.LocalRotation = rotation;
-                pair.Value.transform.LocalScale = scale;
-            }
+            SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
         }
         else if (animator.playInEditMode == false)
         {
             if(animator.evaluator != null)
             {
-                foreach(var pair in animator.nodeRenderers)
-                {
-                    if(Matrix4x4.Decompose(pair.Value.node.originalTransform, out var scale, out var rotation, out var translation) == false)
-                    {
-                        continue;
-                    }
-
-                    pair.Value.transform.LocalPosition = translation;
-                    pair.Value.transform.LocalRotation = rotation;
-                    pair.Value.transform.LocalScale = scale;
-                }
+                SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
             }
 
             animator.evaluator = null;

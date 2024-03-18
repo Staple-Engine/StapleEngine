@@ -43,7 +43,7 @@ internal class MeshAssetEditor : Editor
 
         if (hasChanges)
         {
-            if (EditorGUI.Button("Apply"))
+            EditorGUI.Button("Apply", () =>
             {
                 try
                 {
@@ -73,11 +73,11 @@ internal class MeshAssetEditor : Editor
                     meshAsset = null;
                     needsLoad = true;
                 });
-            }
+            });
 
             EditorGUI.SameLine();
 
-            if (EditorGUI.Button("Revert"))
+            EditorGUI.Button("Revert", () =>
             {
                 var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -85,33 +85,33 @@ internal class MeshAssetEditor : Editor
                 {
                     field.SetValue(metadata, field.GetValue(original));
                 }
-            }
+            });
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply");
+            EditorGUI.ButtonDisabled("Apply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert");
+            EditorGUI.ButtonDisabled("Revert", null);
         }
 
         EditorGUI.SameLine();
 
-        if(EditorGUI.Button("Recreate Materials"))
+        EditorGUI.Button("Recreate Materials", () =>
         {
             try
             {
                 var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.mat*");
 
-                foreach(var file in files)
+                foreach (var file in files)
                 {
                     File.Delete(file);
                 }
 
                 File.Delete(cachePath);
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
 
@@ -120,7 +120,7 @@ internal class MeshAssetEditor : Editor
                 meshAsset = null;
                 needsLoad = true;
             });
-        }
+        });
 
         if (meshAsset != null)
         {

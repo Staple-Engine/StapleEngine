@@ -19,10 +19,10 @@ internal class SpriteAnimationEditor : StapleAssetEditor
         {
             if(asset.texture != null)
             {
-                if(EditorGUI.Button("+"))
+                EditorGUI.Button("+", () =>
                 {
                     asset.frames.Add(0);
-                }
+                });
 
                 EditorGUI.Group(() =>
                 {
@@ -31,12 +31,10 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                         var frame = asset.frames[i];
                         var frameIndex = i;
 
-                        if (EditorGUI.Button("-"))
+                        EditorGUI.Button("-", () =>
                         {
                             asset.frames.RemoveAt(i);
-
-                            break;
-                        }
+                        });
 
                         EditorGUI.SameLine();
 
@@ -53,7 +51,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
 
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("O"))
+                        EditorGUI.Button("O", () =>
                         {
                             var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));
@@ -66,7 +64,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                             editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? asset.texture,
                                 asset.texture.metadata.sprites,
                                 (index) => asset.frames[frameIndex] = index);
-                        }
+                        });
                     }
                 });
             }

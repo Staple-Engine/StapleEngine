@@ -42,12 +42,12 @@ internal class SpriteRendererEditor : Editor
 
                         EditorGUI.SameLine();
 
-                        if (EditorGUI.Button("O"))
+                        EditorGUI.Button("O", () =>
                         {
                             var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.Guid));
 
-                            if(assetPath != value.guid && Path.IsPathRooted(assetPath) == false)
+                            if (assetPath != value.guid && Path.IsPathRooted(assetPath) == false)
                             {
                                 assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                             }
@@ -55,7 +55,7 @@ internal class SpriteRendererEditor : Editor
                             editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? value,
                                 value.metadata.sprites,
                                 (index) => renderer.spriteIndex = index);
-                        }
+                        });
                     }
                 }
 

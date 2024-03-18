@@ -77,7 +77,9 @@ public partial class World
         {
             foreach (var pair in componentsRepository)
             {
-                if (pair.Value.type == t)
+                if (pair.Value.type == t ||
+                    pair.Value.type.IsSubclassOf(t) ||
+                    pair.Value.type.IsAssignableTo(t))
                 {
                     return pair.Key;
                 }

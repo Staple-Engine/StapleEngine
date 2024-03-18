@@ -168,7 +168,7 @@ internal class TextureAssetEditor : Editor
 
         if (hasChanges)
         {
-            if (EditorGUI.Button("Apply"))
+            EditorGUI.Button("Apply", () =>
             {
                 try
                 {
@@ -194,11 +194,11 @@ internal class TextureAssetEditor : Editor
                 }
 
                 EditorUtils.RefreshAssets(false, UpdatePreview);
-            }
+            });
 
             EditorGUI.SameLine();
 
-            if (EditorGUI.Button("Revert"))
+            EditorGUI.Button("Revert", () =>
             {
                 var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -206,18 +206,18 @@ internal class TextureAssetEditor : Editor
                 {
                     field.SetValue(metadata, field.GetValue(original));
                 }
-            }
+            });
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply");
+            EditorGUI.ButtonDisabled("Apply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert");
+            EditorGUI.ButtonDisabled("Revert", null);
         }
 
-        if (EditorGUI.Button("Apply to all in folder"))
+        EditorGUI.Button("Apply to all in folder", () =>
         {
             try
             {
@@ -265,7 +265,7 @@ internal class TextureAssetEditor : Editor
             {
                 Log.Error($"Failed to Apply All: {e}");
             }
-        }
+        });
 
         if (previewTexture != null)
         {

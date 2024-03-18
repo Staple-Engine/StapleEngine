@@ -12,21 +12,19 @@ internal class TileMapAssetEditor : StapleAssetEditor
         {
             var tilesets = (List<Texture>)field.GetValue(target);
 
-            if (EditorGUI.Button("+"))
+            EditorGUI.Button("+", () =>
             {
                 tilesets.Add(null);
-            }
+            });
 
             EditorGUI.Group(() =>
             {
                 for (var i = 0; i < tilesets.Count; i++)
                 {
-                    if (EditorGUI.Button("-"))
+                    EditorGUI.Button("-", () =>
                     {
                         tilesets.RemoveAt(i);
-
-                        break;
-                    }
+                    });
 
                     EditorGUI.SameLine();
 

@@ -32,7 +32,7 @@ internal class FolderAssetEditor : Editor
 
         if (hasChanges)
         {
-            if (EditorGUI.Button("Apply"))
+            EditorGUI.Button("Apply", () =>
             {
                 try
                 {
@@ -56,11 +56,11 @@ internal class FolderAssetEditor : Editor
                 {
                     field.SetValue(originalAsset, field.GetValue(asset));
                 }
-            }
+            });
 
             EditorGUI.SameLine();
 
-            if (EditorGUI.Button("Revert"))
+            EditorGUI.Button("Revert", () =>
             {
                 var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -68,15 +68,15 @@ internal class FolderAssetEditor : Editor
                 {
                     field.SetValue(asset, field.GetValue(originalAsset));
                 }
-            }
+            });
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply");
+            EditorGUI.ButtonDisabled("Apply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert");
+            EditorGUI.ButtonDisabled("Revert", null);
         }
     }
 }

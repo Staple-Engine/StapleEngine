@@ -220,7 +220,7 @@ internal class MaterialEditor : Editor
 
         if (hasChanges)
         {
-            if (EditorGUI.Button("Apply"))
+            EditorGUI.Button("Apply", () =>
             {
                 try
                 {
@@ -246,30 +246,30 @@ internal class MaterialEditor : Editor
                 }
 
                 EditorUtils.RefreshAssets(false, null);
-            }
+            });
 
             EditorGUI.SameLine();
 
-            if (EditorGUI.Button("Revert"))
+            EditorGUI.Button("Revert", () =>
             {
                 metadata.shader = originalMetadata.shader;
                 metadata.parameters.Clear();
 
-                foreach(var parameter in originalMetadata.parameters)
+                foreach (var parameter in originalMetadata.parameters)
                 {
                     metadata.parameters.Add(parameter.Key, parameter.Value.Clone());
                 }
 
                 EditorGUI.pendingObjectPickers.Clear();
-            }
+            });
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply");
+            EditorGUI.ButtonDisabled("Apply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert");
+            EditorGUI.ButtonDisabled("Revert", null);
         }
     }
 }

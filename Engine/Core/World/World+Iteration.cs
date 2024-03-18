@@ -12,7 +12,12 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     public void ForEach<T>(ForEachCallback<T> callback, bool includeDisabled) where T : IComponent
     {
-        lock(lockObject)
+        if (ComponentIndex(typeof(T)) == -1)
+        {
+            return;
+        }
+
+        lock (lockObject)
         {
             collectionModified = false;
 
@@ -74,6 +79,12 @@ public partial class World
         where T : IComponent
         where T2 : IComponent
     {
+        if (ComponentIndex(typeof(T)) == -1 ||
+            ComponentIndex(typeof(T2)) == -1)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
             collectionModified = false;
@@ -142,6 +153,13 @@ public partial class World
         where T2 : IComponent
         where T3 : IComponent
     {
+        if (ComponentIndex(typeof(T)) == -1 ||
+            ComponentIndex(typeof(T2)) == -1 ||
+            ComponentIndex(typeof(T3)) == -1)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
             collectionModified = false;
@@ -216,6 +234,14 @@ public partial class World
         where T3 : IComponent
         where T4 : IComponent
     {
+        if (ComponentIndex(typeof(T)) == -1 ||
+            ComponentIndex(typeof(T2)) == -1 ||
+            ComponentIndex(typeof(T3)) == -1 ||
+            ComponentIndex(typeof(T4)) == -1)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
             collectionModified = false;
@@ -296,6 +322,15 @@ public partial class World
         where T4 : IComponent
         where T5 : IComponent
     {
+        if (ComponentIndex(typeof(T)) == -1 ||
+            ComponentIndex(typeof(T2)) == -1 ||
+            ComponentIndex(typeof(T3)) == -1 ||
+            ComponentIndex(typeof(T4)) == -1 ||
+            ComponentIndex(typeof(T5)) == -1)
+        {
+            return;
+        }
+
         lock (lockObject)
         {
             collectionModified = false;

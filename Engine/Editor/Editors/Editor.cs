@@ -93,12 +93,12 @@ public class Editor
 
                                 var changed = false;
 
-                                if (EditorGUI.Button("+"))
+                                EditorGUI.Button("+", () =>
                                 {
                                     changed = true;
 
                                     list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
-                                }
+                                });
 
                                 ImGui.BeginGroup();
 
@@ -117,14 +117,12 @@ public class Editor
 
                                     EditorGUI.SameLine();
 
-                                    if (EditorGUI.Button("-"))
+                                    EditorGUI.Button("-", () =>
                                     {
                                         changed = true;
 
                                         list.RemoveAt(i);
-
-                                        break;
-                                    }
+                                    });
                                 }
 
                                 ImGui.EndGroup();
