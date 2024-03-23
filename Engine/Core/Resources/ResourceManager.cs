@@ -1263,7 +1263,7 @@ internal class ResourceManager
                     bones = [m.bones.Select(x => new MeshAsset.Bone()
                     {
                         name = x.name,
-                        offsetMatrix = x.offsetMatrix.ToMatrix4x4(out var mat) ? mat : Matrix4x4.Identity,
+                        offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
                     }).ToList()],
                 };
 
@@ -1287,10 +1287,7 @@ internal class ResourceManager
                     return;
                 }
 
-                if(node.matrix.ToMatrix4x4(out var transform) == false)
-                {
-                    transform = Matrix4x4.Identity;
-                }
+                var transform = Math.TransformationMatrix(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
 
                 var outNode = new MeshAsset.Node()
                 {

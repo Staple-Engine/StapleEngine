@@ -27,45 +27,6 @@ public enum MeshAssetRotation
 }
 
 [MessagePackObject]
-public class Matrix4x4Holder
-{
-    [Key(1)]
-    public float[] values = new float[16];
-
-    public Matrix4x4Holder()
-    {
-    }
-
-    public Matrix4x4Holder(Matrix4x4 matrix)
-    {
-        values =
-        [
-            matrix.M11, matrix.M12, matrix.M13, matrix.M14,
-            matrix.M21, matrix.M22, matrix.M23, matrix.M24,
-            matrix.M31, matrix.M32, matrix.M33, matrix.M34,
-            matrix.M41, matrix.M42, matrix.M43, matrix.M44,
-        ];
-    }
-
-    public bool ToMatrix4x4(out Matrix4x4 matrix)
-    {
-        if(values == null || values.Length != 16)
-        {
-            matrix = default;
-
-            return false;
-        }
-
-        matrix = new Matrix4x4(values[0], values[1], values[2], values[3],
-            values[4], values[5], values[6], values[7],
-            values[8], values[9], values[10], values[11],
-            values[12], values[13], values[14], values[15]);
-
-        return true;
-    }
-}
-
-[MessagePackObject]
 public class SerializableMeshAssetHeader
 {
     [IgnoreMember]
@@ -184,7 +145,13 @@ public class MeshAssetBone
     public string name;
 
     [Key(1)]
-    public Matrix4x4Holder offsetMatrix;
+    public Vector3Holder offsetPosition;
+
+    [Key(2)]
+    public Vector3Holder offsetRotation;
+
+    [Key(3)]
+    public Vector3Holder offsetScale;
 }
 
 [MessagePackObject]
@@ -267,12 +234,18 @@ public class MeshAssetNode
     public string name;
 
     [Key(1)]
-    public Matrix4x4Holder matrix;
+    public Vector3Holder position;
 
     [Key(2)]
-    public List<MeshAssetNode> children = new();
+    public Vector3Holder rotation;
 
     [Key(3)]
+    public Vector3Holder scale;
+
+    [Key(4)]
+    public List<MeshAssetNode> children = new();
+
+    [Key(5)]
     public List<int> meshIndices = new();
 }
 

@@ -252,11 +252,6 @@ static partial class Program
                         Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
                 }
 
-                Matrix4x4Holder ToMatrix4x4Holder(Assimp.Matrix4x4 matrix)
-                {
-                    return new Matrix4x4Holder(ToMatrix4x4(matrix));
-                }
-
                 var globalInverseTransform = scene.RootNode.Transform;
 
                 globalInverseTransform.Inverse();
@@ -565,11 +560,15 @@ static partial class Program
 
                 void RegisterNode(Assimp.Node node, MeshAssetNode parent)
                 {
+                    node.Transform.Decompose(out var scale, out var rotation, out var translation);
+
                     var newNode = new MeshAssetNode()
                     {
                         name = node.Name,
-                        matrix = new Matrix4x4Holder(ToMatrix4x4(node.Transform)),
                         meshIndices = node.MeshIndices,
+                        position = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
+                        scale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
+                        rotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
                     };
 
                     meshData.rootNode ??= newNode;
@@ -740,10 +739,14 @@ static partial class Program
 
                         foreach (var bone in mesh.Bones)
                         {
+                            bone.OffsetMatrix.Decompose(out var scale, out var rotation, out var translation);
+
                             m.bones.Add(new()
                             {
                                 name = bone.Name,
-                                offsetMatrix = ToMatrix4x4Holder(bone.OffsetMatrix),
+                                offsetPosition = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
+                                offsetScale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
+                                offsetRotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
                             });
                         }
                     }
