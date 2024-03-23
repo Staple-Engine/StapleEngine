@@ -484,7 +484,7 @@ internal class SDL2RenderWindow : IRenderWindow
         {
             var ptr = pinnedArray.AddrOfPinnedObject();
 
-            var surface = SDL.SDL_CreateRGBSurfaceFrom(ptr, icon.width, icon.height, 32, icon.width * 4, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+            var surface = SDL.SDL_CreateRGBSurfaceFrom(ptr, icon.width, icon.height, 32, icon.width * 4, 0x000000FF, 0x00FF0000, 0x0000FF00, 0xFF000000);
 
             SDL.SDL_SetWindowIcon(window, surface);
 
