@@ -434,7 +434,9 @@ internal class SDL2RenderWindow : IRenderWindow
                                 value = 0;
                             }
 
-                            Input.GamepadMovement(AppEvent.GamepadMovement(key, (SDL.SDL_GameControllerAxis)_event.caxis.axis switch
+                            var floatValue = value / (float)short.MaxValue;
+
+                            var axis = (SDL.SDL_GameControllerAxis)_event.caxis.axis switch
                             {
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX => GamepadAxis.LeftX,
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY => GamepadAxis.LeftY,
@@ -443,7 +445,14 @@ internal class SDL2RenderWindow : IRenderWindow
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT => GamepadAxis.TriggerLeft,
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT => GamepadAxis.TriggerRight,
                                 _ => GamepadAxis.Invalid,
-                            }, value / (float)short.MaxValue));
+                            };
+
+                            if(axis == GamepadAxis.LeftY || axis == GamepadAxis.RightY)
+                            {
+                                floatValue *= -1;
+                            }
+
+                            Input.GamepadMovement(AppEvent.GamepadMovement(key, axis, floatValue));
                         }
                     }
 
