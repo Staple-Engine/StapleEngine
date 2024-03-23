@@ -469,22 +469,13 @@ internal class SDL2RenderWindow : IRenderWindow
             return;
         }
 
-        var copy = new byte[icon.data.Length];
-
-        Array.Copy(icon.data, copy, copy.Length);
-
-        for(var i = 0; i < copy.Length; i+=4)
-        {
-            (copy[i], copy[i + 2]) = (copy[i + 2], copy[i]);
-        }
-
-        var pinnedArray = GCHandle.Alloc(copy, GCHandleType.Pinned);
+        var pinnedArray = GCHandle.Alloc(icon.data, GCHandleType.Pinned);
 
         unsafe
         {
             var ptr = pinnedArray.AddrOfPinnedObject();
 
-            var surface = SDL.SDL_CreateRGBSurfaceFrom(ptr, icon.width, icon.height, 32, icon.width * 4, 0x000000FF, 0x00FF0000, 0x0000FF00, 0xFF000000);
+            var surface = SDL.SDL_CreateRGBSurfaceFrom(ptr, icon.width, icon.height, 32, icon.width * 4, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
 
             SDL.SDL_SetWindowIcon(window, surface);
 
