@@ -14,6 +14,8 @@ static partial class Program
             try
             {
                 Directory.Delete(path, true);
+
+                Console.WriteLine($"\t Deleted {path}");
             }
             catch (Exception e)
             {
@@ -25,18 +27,20 @@ static partial class Program
             try
             {
                 File.Delete(path);
+
+                Console.WriteLine($"\t Deleted {path}");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
             }
         }
 
         try
         {
-            var inputDirs = Directory.GetDirectories(inputPath).ToList();
+            var inputDirs = Directory.GetDirectories(inputPath);
             var outputDirs = Directory.GetDirectories(outputPath);
 
-            var inputFiles = Directory.GetFiles(inputPath).ToList();
+            var inputFiles = Directory.GetFiles(inputPath);
             var outputFiles = Directory.GetFiles(outputPath);
 
             foreach(var dir in outputDirs)
@@ -50,20 +54,30 @@ static partial class Program
 
             foreach(var file in outputFiles)
             {
+                var fileName = Path.GetFileName(file);
+
+                if(fileName == "AppSettings" || fileName == "SceneList")
+                {
+                    continue;
+                }
+
                 if(inputFiles.All(x => Path.GetFileName(x) != Path.GetFileName(file)))
                 {
                     DeleteFile(file);
                 }
             }
 
-            inputDirs = Directory.GetDirectories(inputPath).ToList();
+            inputDirs = Directory.GetDirectories(inputPath);
             outputDirs = Directory.GetDirectories(outputPath);
 
-            if(inputDirs.Count == outputDirs.Length)
+            for(var i = 0; i < inputDirs.Length; i++)
             {
-                for(var i = 0; i < inputDirs.Count; i++)
+                var input = inputDirs[i];
+                var similar = outputDirs.FirstOrDefault(x => Path.GetFileName(x) == Path.GetFileName(inputDirs[i]));
+
+                if(similar != null)
                 {
-                    CleanupUnusedFiles(platform, inputDirs[i], outputDirs[i]);
+                    CleanupUnusedFiles(platform, input, similar);
                 }
             }
         }
