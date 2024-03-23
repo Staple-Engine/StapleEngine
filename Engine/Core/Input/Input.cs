@@ -236,7 +236,7 @@ public static class Input
 
         MousePosition = newPos;
 
-        MouseRelativePosition = newPos - previousMousePosition;
+        MouseRelativePosition = previousMousePosition - newPos;
     }
 
     internal static void HandleTextEvent(AppEvent appEvent)

@@ -525,7 +525,9 @@ internal class SDL2RenderWindow : IRenderWindow
     {
         var info = new SDL.SDL_SysWMinfo();
 
-        if(SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
+        SDL.SDL_GetVersion(out info.version);
+
+        if (SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
         {
             return nint.Zero;
         }
@@ -558,6 +560,8 @@ internal class SDL2RenderWindow : IRenderWindow
     public nint MonitorPointer(AppPlatform platform)
     {
         var info = new SDL.SDL_SysWMinfo();
+
+        SDL.SDL_GetVersion(out info.version);
 
         if (SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
         {
