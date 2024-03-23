@@ -386,9 +386,9 @@ internal class SDL2RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
 
                     {
-                        if (TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        if (TryFindGamepad(_event.cdevice.which, out var key, out _))
                         {
-                            Input.GamepadButton(AppEvent.GamepadButton(_event.cdevice.which, (SDL.SDL_GameControllerButton)_event.cbutton.button switch
+                            Input.GamepadButton(AppEvent.GamepadButton(key, (SDL.SDL_GameControllerButton)_event.cbutton.button switch
                             {
                                 SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A => GamepadButton.A,
                                 SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B => GamepadButton.B,
@@ -425,7 +425,7 @@ internal class SDL2RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
 
                     {
-                        if (TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        if (TryFindGamepad(_event.cdevice.which, out var key, out _))
                         {
                             var value = _event.caxis.axisValue;
 
@@ -434,7 +434,7 @@ internal class SDL2RenderWindow : IRenderWindow
                                 value = 0;
                             }
 
-                            Input.GamepadMovement(AppEvent.GamepadMovement(_event.cdevice.which, (SDL.SDL_GameControllerAxis)_event.caxis.axis switch
+                            Input.GamepadMovement(AppEvent.GamepadMovement(key, (SDL.SDL_GameControllerAxis)_event.caxis.axis switch
                             {
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX => GamepadAxis.LeftX,
                                 SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY => GamepadAxis.LeftY,
