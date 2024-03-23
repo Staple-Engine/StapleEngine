@@ -290,11 +290,29 @@ static partial class Program
         }
 
         ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessTextures(platform, texturecPath, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessAudio(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessMeshes(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessMaterials(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessAssets(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessPrefabs(platform, inputPath, outputPath);
 
         WorkScheduler.WaitForTasks();
