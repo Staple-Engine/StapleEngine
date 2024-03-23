@@ -803,7 +803,7 @@ internal class RenderWindow
 #else
         if(Platform.IsWindows || Platform.IsLinux || Platform.IsMacOS)
         {
-            renderWindow.window = new GLFWRenderWindow();
+            renderWindow.window = new SDL2RenderWindow();
         }
 #endif
 

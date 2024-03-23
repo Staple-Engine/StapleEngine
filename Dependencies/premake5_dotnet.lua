@@ -42,6 +42,15 @@ project "TiledCS"
 		"TiledCS/**.cs"
 	}
 
+project "SDL2-CS"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"SDL2-CS/**.cs"
+	}
+
 project "NAudio"
 	kind "SharedLib"
 	language "C#"
@@ -66,14 +75,6 @@ project "NfdSharp"
 	
 	files {
 		"NfdSharp/**.cs"
-	}
-
-project "glfwnet"
-	kind "SharedLib"
-	language "C#"
-
-	files {
-		"glfw-net/GLFW.NET/**.cs"
 	}
 
 project "MessagePack"
