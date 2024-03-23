@@ -15,7 +15,10 @@ internal enum AppEventType
     Text,
     MaximizeWindow,
     MoveWindow,
-    Touch
+    Touch,
+    GamepadConnect,
+    GamepadMovement,
+    GamepadButton,
 }
 
 internal enum InputState
@@ -101,6 +104,26 @@ internal struct TouchEvent
     public InputState state;
 }
 
+internal struct GamepadConnectEvent
+{
+    public int index;
+    public GamepadConnectionState state;
+}
+
+internal struct GamepadButtonEvent
+{
+    public int index;
+    public GamepadButton button;
+    public InputState state;
+}
+
+internal struct GamepadMovement
+{
+    public int index;
+    public GamepadAxis axis;
+    public float movement; //-1 to 1
+}
+
 /// <summary>
 /// Stores information on an app event
 /// </summary>
@@ -114,14 +137,17 @@ internal class AppEvent
     public MouseDeltaEvent mouseDelta;
     public MaximizeWindowEvent maximizeWindow;
     public MoveWindowEvent moveWindow;
-    public TouchEvent touchEvent;
+    public TouchEvent touch;
+    public GamepadConnectEvent gamepadConnect;
+    public GamepadButtonEvent gamepadButton;
+    public GamepadMovement gamepadMovement;
 
     public static AppEvent Touch(int touchID, Vector2 position, InputState state)
     {
         return new()
         {
             type = AppEventType.Touch,
-            touchEvent = new()
+            touch = new()
             {
                 touchID = touchID,
                 position = position,
@@ -217,6 +243,47 @@ internal class AppEvent
             {
                 delta = delta,
             },
+        };
+    }
+
+    public static AppEvent GamepadConnect(int index, GamepadConnectionState state)
+    {
+        return new()
+        {
+            type = AppEventType.GamepadConnect,
+            gamepadConnect = new()
+            {
+                index = index,
+                state = state,
+            }
+        };
+    }
+
+    public static AppEvent GamepadButton(int index, GamepadButton button, InputState state)
+    {
+        return new()
+        {
+            type = AppEventType.GamepadButton,
+            gamepadButton = new()
+            {
+                index = index,
+                button = button,
+                state = state,
+            }
+        };
+    }
+
+    public static AppEvent GamepadMovement(int index, GamepadAxis axis, float movement)
+    {
+        return new()
+        {
+            type = AppEventType.GamepadMovement,
+            gamepadMovement = new()
+            {
+                index = index,
+                axis = axis,
+                movement = movement,
+            }
         };
     }
 }

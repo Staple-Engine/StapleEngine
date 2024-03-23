@@ -18,6 +18,13 @@ public static class Input
         FirstRelease
     }
 
+    private class GamepadState
+    {
+        public GamepadConnectionState state = GamepadConnectionState.Unknown;
+        public readonly Dictionary<GamepadButton, InputState> buttonStates = new();
+        public readonly Dictionary<GamepadAxis, float> axis = new();
+    }
+
     private static readonly Dictionary<KeyCode, InputState> keyStates = new();
 
     private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = new();
@@ -27,6 +34,8 @@ public static class Input
     private static readonly Dictionary<int, Vector2> touchPositions = new();
 
     private static readonly HashSet<int> touchKeysToRemove = new();
+
+    private static readonly Dictionary<int, GamepadState> gamepads = new();
 
     /// <summary>
     /// Last input character
@@ -96,6 +105,81 @@ public static class Input
         previousMousePosition = MousePosition;
     }
 
+    private static void HandleInputStateChange<Key>(Key key, Internal.InputState state, Dictionary<Key, InputState> states)
+    {
+        bool pressed = state == Internal.InputState.Press;
+
+        var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
+
+        if (states.ContainsKey(key))
+        {
+            buttonState = states[key];
+
+            if (pressed)
+            {
+                if (buttonState == InputState.FirstPress)
+                {
+                    buttonState = InputState.Press;
+                }
+                else
+                {
+                    buttonState = InputState.FirstPress;
+                }
+            }
+            else
+            {
+                if (buttonState == InputState.FirstRelease)
+                {
+                    buttonState = InputState.Release;
+                }
+                else
+                {
+                    buttonState = InputState.FirstRelease;
+                }
+            }
+
+            states[key] = buttonState;
+        }
+        else
+        {
+            states.Add(key, buttonState);
+        }
+    }
+
+    internal static void GamepadConnect(AppEvent appEvent)
+    {
+        if(gamepads.TryGetValue(appEvent.gamepadConnect.index, out var gamepad) == false)
+        {
+            gamepad = new();
+
+            gamepads.Add(appEvent.gamepadConnect.index, gamepad);
+        }
+
+        gamepad.state = appEvent.gamepadConnect.state;
+
+        gamepad.axis.Clear();
+    }
+
+    internal static void GamepadButton(AppEvent appEvent)
+    {
+        if(gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+        {
+            return;
+        }
+
+        HandleInputStateChange(appEvent.gamepadButton.button, appEvent.gamepadButton.state, gamepad.buttonStates);
+    }
+
+    internal static void GamepadMovement(AppEvent appEvent)
+    {
+        if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+        {
+            return;
+        }
+
+        gamepad.axis.AddOrSetKey(appEvent.gamepadMovement.axis, appEvent.gamepadMovement.movement);
+    }
+
     internal static void HandleMouseDeltaEvent(AppEvent appEvent)
     {
         MouseDelta = appEvent.mouseDelta.delta;
@@ -108,143 +192,37 @@ public static class Input
 
     internal static void HandleTouchEvent(AppEvent appEvent)
     {
-        if (touchPositions.ContainsKey(appEvent.touchEvent.touchID))
+        if (touchPositions.ContainsKey(appEvent.touch.touchID))
         {
-            touchPositions[appEvent.touchEvent.touchID] = appEvent.touchEvent.position;
+            touchPositions[appEvent.touch.touchID] = appEvent.touch.position;
         }
         else
         {
-            touchPositions.Add(appEvent.touchEvent.touchID, appEvent.touchEvent.position);
+            touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
         }
 
-        if (appEvent.touchEvent.state == Internal.InputState.Repeat)
+        if (appEvent.touch.state == Internal.InputState.Repeat)
         {
             return;
         }
 
-        bool pressed = appEvent.touchEvent.state == Internal.InputState.Press;
-
-        InputState touchState = pressed ? InputState.FirstPress : InputState.FirstRelease;
-
-        if (touchStates.ContainsKey(appEvent.touchEvent.touchID))
-        {
-            touchState = touchStates[appEvent.touchEvent.touchID];
-
-            if (pressed)
-            {
-                if (touchState == InputState.FirstPress)
-                {
-                    touchState = InputState.Press;
-                }
-                else
-                {
-                    touchState = InputState.FirstPress;
-                }
-            }
-            else
-            {
-                if (touchState == InputState.FirstRelease)
-                {
-                    touchState = InputState.Release;
-                }
-                else
-                {
-                    touchState = InputState.FirstRelease;
-                }
-            }
-
-            touchStates[appEvent.touchEvent.touchID] = touchState;
-        }
-        else
-        {
-            touchStates.Add(appEvent.touchEvent.touchID, touchState);
-        }
+        HandleInputStateChange(appEvent.touch.touchID, appEvent.touch.state, touchStates);
     }
 
     internal static void HandleMouseButtonEvent(AppEvent appEvent)
     {
-        MouseButton mouseButton = (MouseButton)appEvent.mouse.button;
+        var mouseButton = (MouseButton)appEvent.mouse.button;
 
-        bool pressed = appEvent.type == AppEventType.MouseDown;
-
-        InputState mouseButtonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
-
-        if (mouseButtonStates.ContainsKey(mouseButton))
-        {
-            mouseButtonState = mouseButtonStates[mouseButton];
-
-            if (pressed)
-            {
-                if (mouseButtonState == InputState.FirstPress)
-                {
-                    mouseButtonState = InputState.Press;
-                }
-                else
-                {
-                    mouseButtonState = InputState.FirstPress;
-                }
-            }
-            else
-            {
-                if (mouseButtonState == InputState.FirstRelease)
-                {
-                    mouseButtonState = InputState.Release;
-                }
-                else
-                {
-                    mouseButtonState = InputState.FirstRelease;
-                }
-            }
-
-            mouseButtonStates[mouseButton] = mouseButtonState;
-        }
-        else
-        {
-            mouseButtonStates.Add(mouseButton, mouseButtonState);
-        }
+        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? Internal.InputState.Press : Internal.InputState.Release,
+            mouseButtonStates);
     }
 
     internal static void HandleKeyEvent(AppEvent appEvent)
     {
         var code = appEvent.key.key;
 
-        bool pressed = appEvent.type == AppEventType.KeyDown;
-
-        var keyState = pressed ? InputState.FirstPress : InputState.FirstRelease;
-
-        if (keyStates.ContainsKey(code))
-        {
-            keyState = keyStates[code];
-
-            if (pressed)
-            {
-                if (keyState == InputState.FirstPress)
-                {
-                    keyState = InputState.Press;
-                }
-                else
-                {
-                    keyState = InputState.FirstPress;
-                }
-            }
-            else
-            {
-                if (keyState == InputState.FirstRelease)
-                {
-                    keyState = InputState.Release;
-                }
-                else
-                {
-                    keyState = InputState.FirstRelease;
-                }
-            }
-
-            keyStates[code] = keyState;
-        }
-        else
-        {
-            keyStates.Add(code, keyState);
-        }
+        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? Internal.InputState.Press : Internal.InputState.Release,
+            keyStates);
     }
 
     internal static void CursorPosCallback(float xpos, float ypos)
@@ -379,6 +357,119 @@ public static class Input
     public static bool GetMouseButtonUp(MouseButton button)
     {
         return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstRelease;
+    }
+
+    /// <summary>
+    /// Gets how many gamepads are currently usable
+    /// </summary>
+    /// <returns>How many gamepads are connected</returns>
+    public static int GetGamepadCount()
+    {
+        return gamepads.Count;
+    }
+
+    /// <summary>
+    /// Checks whether a gamepad is usable
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <returns>Whether the gamepad is available for use</returns>
+    public static bool IsGamepadAvailable(int index)
+    {
+        return gamepads.TryGetValue(index, out var gamepad) && gamepad.state == GamepadConnectionState.Connected;
+    }
+
+    /// <summary>
+    /// Checks whether a gamepad button is pressed
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <param name="button">The button to check</param>
+    /// <returns>Whether it is currently being pressed</returns>
+    public static bool GetGamepadButton(int index, GamepadButton button)
+    {
+        if(gamepads.TryGetValue(index, out var gamepad) == false ||
+            gamepad.state == GamepadConnectionState.Disconnected ||
+            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        {
+            return false;
+        }
+
+        return state == InputState.Press || state == InputState.FirstPress;
+    }
+
+    /// <summary>
+    /// Checks whether a gamepad button was just pressed
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <param name="button">The button to check</param>
+    /// <returns>Whether it was just pressed</returns>
+    public static bool GetGamepadButtonDown(int index, GamepadButton button)
+    {
+        if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            gamepad.state == GamepadConnectionState.Disconnected ||
+            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        {
+            return false;
+        }
+
+        return state == InputState.FirstPress;
+    }
+
+    /// <summary>
+    /// Checks whether a gamepad button was just released
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <param name="button">The button to check</param>
+    /// <returns>Whether it was just released</returns>
+    public static bool GetGamepadButtonUp(int index, GamepadButton button)
+    {
+        if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            gamepad.state == GamepadConnectionState.Disconnected ||
+            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        {
+            return false;
+        }
+
+        return state == InputState.FirstRelease;
+    }
+
+    /// <summary>
+    /// Gets a gamepad's axis movement
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <param name="axis">The axis to check</param>
+    /// <returns>The axis movement</returns>
+    public static float GetGamepadAxis(int index, GamepadAxis axis)
+    {
+        if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            gamepad.state == GamepadConnectionState.Disconnected ||
+            gamepad.axis.TryGetValue(axis, out var state) == false)
+        {
+            return 0;
+        }
+
+        return state;
+    }
+
+    /// <summary>
+    /// Gets the left thumbstick movement for a gamepad
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <returns>The movement</returns>
+    public static Vector2 GetGamepadLeftAxis(int index)
+    {
+        return new Vector2(GetGamepadAxis(index, GamepadAxis.LeftX),
+            GetGamepadAxis(index, GamepadAxis.LeftY));
+    }
+
+    /// <summary>
+    /// Gets the right thumbstick movement for a gamepad
+    /// </summary>
+    /// <param name="index">The gamepad index</param>
+    /// <returns>The movement</returns>
+    public static Vector2 GetGamepadRightAxis(int index)
+    {
+        return new Vector2(GetGamepadAxis(index, GamepadAxis.RightX),
+            GetGamepadAxis(index, GamepadAxis.RightY));
     }
 
     /// <summary>

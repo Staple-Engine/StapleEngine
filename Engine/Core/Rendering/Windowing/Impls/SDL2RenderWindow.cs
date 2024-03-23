@@ -1,6 +1,7 @@
 ﻿#if !ANDROID && !IOS
 using SDL2;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,7 +9,16 @@ namespace Staple.Internal;
 
 internal class SDL2RenderWindow : IRenderWindow
 {
+    private const short AxisDeadzone = 8000;
+
+    private class GamepadState
+    {
+        public nint instance;
+    }
+
     public nint window;
+
+    private Dictionary<int, GamepadState> gamepads = new();
 
     private bool movedWindow = false;
     private DateTime movedWindowTimer;
@@ -271,6 +281,27 @@ internal class SDL2RenderWindow : IRenderWindow
         return modifiers;
     }
 
+    private bool TryFindGamepad(int which, out int key, out GamepadState state)
+    {
+        foreach (var pair in gamepads)
+        {
+            var joystsickInstance = SDL.SDL_JoystickInstanceID(SDL.SDL_GameControllerGetJoystick(pair.Value.instance));
+
+            if (joystsickInstance == which)
+            {
+                key = pair.Key;
+                state = pair.Value;
+
+                return true;
+            }
+        }
+
+        key = default;
+        state = default;
+
+        return false;
+    }
+
     public void PollEvents()
     {
         while(SDL.SDL_PollEvent(out var _event) != 0)
@@ -318,6 +349,103 @@ internal class SDL2RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_MOUSEWHEEL:
 
                     Input.MouseScrollCallback(_event.wheel.preciseX, _event.wheel.preciseY);
+
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+
+                    {
+                        var instance = SDL.SDL_GameControllerOpen(_event.cdevice.which);
+
+                        gamepads.Add(_event.cdevice.which, new()
+                        {
+                            instance = instance,
+                        });
+
+                        Input.GamepadConnect(AppEvent.GamepadConnect(_event.cdevice.which, GamepadConnectionState.Connected));
+                    }
+
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+
+                    {
+                        if(TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        {
+                            SDL.SDL_GameControllerClose(state.instance);
+
+                            gamepads.Remove(key);
+
+                            Input.GamepadConnect(AppEvent.GamepadConnect(key, GamepadConnectionState.Disconnected));
+                        }
+                    }
+
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+
+                    {
+                        if (TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        {
+                            Input.GamepadButton(AppEvent.GamepadButton(_event.cdevice.which, (SDL.SDL_GameControllerButton)_event.cbutton.button switch
+                            {
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A => GamepadButton.A,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B => GamepadButton.B,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X => GamepadButton.X,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y => GamepadButton.Y,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK => GamepadButton.Back,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE => GamepadButton.Guide,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START => GamepadButton.Start,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK => GamepadButton.LeftStick,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK => GamepadButton.RightStick,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER => GamepadButton.LeftShoulder,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => GamepadButton.RightShoulder,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP => GamepadButton.DPadUp,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN => GamepadButton.DPadDown,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT => GamepadButton.DPadLeft,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT => GamepadButton.DPadRight,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MISC1 => GamepadButton.Misc1,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE1 => GamepadButton.Paddle1,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE2 => GamepadButton.Paddle2,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE3 => GamepadButton.Paddle3,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE4 => GamepadButton.Paddle4,
+                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_TOUCHPAD => GamepadButton.TouchPad,
+                                _ => GamepadButton.Invalid,
+                            }, _event.cbutton.state switch
+                            {
+                                SDL.SDL_PRESSED => InputState.Press,
+                                _ => InputState.Release,
+                            }));
+                        }
+                    }
+
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
+
+                    {
+                        if (TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        {
+                            var value = _event.caxis.axisValue;
+
+                            if (Math.Abs(value) <= AxisDeadzone)
+                            {
+                                value = 0;
+                            }
+
+                            Input.GamepadMovement(AppEvent.GamepadMovement(_event.cdevice.which, (SDL.SDL_GameControllerAxis)_event.caxis.axis switch
+                            {
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX => GamepadAxis.LeftX,
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY => GamepadAxis.LeftY,
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX => GamepadAxis.RightX,
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY => GamepadAxis.RightY,
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT => GamepadAxis.TriggerLeft,
+                                SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT => GamepadAxis.TriggerRight,
+                                _ => GamepadAxis.Invalid,
+                            }, value / (float)short.MaxValue));
+                        }
+                    }
 
                     break;
 
@@ -371,6 +499,16 @@ internal class SDL2RenderWindow : IRenderWindow
 
     public void Terminate()
     {
+        foreach(var pair in gamepads)
+        {
+            if(pair.Value.instance != nint.Zero)
+            {
+                SDL.SDL_GameControllerClose(pair.Value.instance);
+
+                pair.Value.instance = nint.Zero;
+            }
+        }
+
         SDL.SDL_Quit();
     }
 
