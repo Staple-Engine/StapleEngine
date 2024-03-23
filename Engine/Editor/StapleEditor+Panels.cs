@@ -579,6 +579,8 @@ internal partial class StapleEditor
 
             selectedEntity.IterateComponents((ref IComponent component) =>
             {
+                counter++;
+
                 var localComponent = component;
                 var removed = false;
 

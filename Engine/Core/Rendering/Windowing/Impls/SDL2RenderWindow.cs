@@ -24,10 +24,11 @@ internal class SDL2RenderWindow : IRenderWindow
     private DateTime movedWindowTimer;
     private Vector2Int previousWindowPosition;
     private bool closedWindow = false;
+    private bool windowFocused = true;
 
     public bool ContextLost { get; set; } = false;
 
-    public bool IsFocused => ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(window) & SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) != 0;
+    public bool IsFocused => windowFocused;
 
     public bool ShouldClose => closedWindow;
 
@@ -308,6 +309,18 @@ internal class SDL2RenderWindow : IRenderWindow
         {
             switch(_event.type)
             {
+                case SDL.SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+
+                    windowFocused = false;
+
+                    break;
+
+                case SDL.SDL_EventType.SDL_APP_DIDENTERFOREGROUND:
+
+                    windowFocused = true;
+
+                    break;
+
                 case SDL.SDL_EventType.SDL_KEYDOWN:
                 case SDL.SDL_EventType.SDL_KEYUP:
 

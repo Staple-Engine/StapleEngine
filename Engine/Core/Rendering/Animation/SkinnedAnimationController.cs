@@ -252,8 +252,7 @@ public class SkinnedAnimationController
             {
                 shouldTrigger = AnimationFinished();
             }
-
-            if (shouldTrigger == false && connection.parameters.Count > 0)
+            else if (connection.parameters.Count > 0)
             {
                 if (connection.any)
                 {
