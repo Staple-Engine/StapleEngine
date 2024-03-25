@@ -372,12 +372,15 @@ internal class RenderWindow
             Threading.Update();
         }
 
-        try
+        lock(renderLock)
         {
-            OnCleanup?.Invoke();
-        }
-        catch (Exception)
-        {
+            try
+            {
+                OnCleanup?.Invoke();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         if (renderThread != null)
@@ -393,6 +396,8 @@ internal class RenderWindow
                 {
                     break;
                 }
+
+                Threading.Update();
 
                 Thread.Sleep(25);
             }
@@ -420,7 +425,10 @@ internal class RenderWindow
 
             if (windowReferences == 0)
             {
-                window.Terminate();
+                Threading.Dispatch(() =>
+                {
+                    window.Terminate();
+                });
             }
         }
     }
@@ -709,15 +717,18 @@ internal class RenderWindow
         if (hasCamera == false)
         {
             bgfx.touch(ClearView);
-            bgfx.dbg_text_clear(0, false);
+        }
+
+        _ = bgfx.frame(false);
+
+        bgfx.dbg_text_clear(0, false);
+
+        if(hasCamera == false)
+        {
             bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
         }
 
-        bgfx.touch(ClearView);
-        bgfx.dbg_text_clear(0, false);
         bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
-
-        _ = bgfx.frame(false);
     }
 
     private void RenderThread()

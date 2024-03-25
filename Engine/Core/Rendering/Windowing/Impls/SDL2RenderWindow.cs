@@ -531,6 +531,11 @@ internal class SDL2RenderWindow : IRenderWindow
             }
         }
 
+        if(window != nint.Zero)
+        {
+            SDL.SDL_DestroyWindow(window);
+        }
+
         SDL.SDL_Quit();
     }
 

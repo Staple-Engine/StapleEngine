@@ -114,14 +114,16 @@ internal class ThumbnailCache
 
                     Threading.Dispatch(() =>
                     {
-                        var texture = Texture.CreatePixels(request.path, rawTextureData.data, (ushort)rawTextureData.width, (ushort)rawTextureData.height, new TextureMetadata()
-                        {
-                            filter = TextureFilter.Point,
-                            format = TextureMetadataFormat.RGBA8,
-                            type = TextureType.Texture,
-                            useMipmaps = false,
-                        },
-                        Bgfx.bgfx.TextureFormat.RGBA8);
+                        var texture = Texture.CreatePixels(request.path, rawTextureData.data,
+                            (ushort)rawTextureData.width, (ushort)rawTextureData.height,
+                            new TextureMetadata()
+                            {
+                                filter = TextureFilter.Point,
+                                format = TextureMetadataFormat.RGBA8,
+                                type = TextureType.Texture,
+                                useMipmaps = false,
+                            },
+                            Bgfx.bgfx.TextureFormat.RGBA8);
 
                         if (texture == null)
                         {
@@ -282,7 +284,8 @@ internal class ThumbnailCache
 
                     Threading.Dispatch(() =>
                     {
-                        var texture = Texture.CreatePixels(request.path, rawTextureData.data, (ushort)rawTextureData.width, (ushort)rawTextureData.height,
+                        var texture = Texture.CreatePixels(request.path, rawTextureData.data,
+                            (ushort)rawTextureData.width, (ushort)rawTextureData.height,
                             new TextureMetadata()
                             {
                                 useMipmaps = false,

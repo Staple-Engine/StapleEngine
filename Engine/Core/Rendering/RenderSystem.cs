@@ -229,8 +229,6 @@ internal class RenderSystem : ISubsystem
                 bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
                     (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
 
-                bgfx.touch(viewID);
-
                 Scene.ForEach((Entity entity, ref Transform t) =>
                 {
                     var layer = entity.Layer;
@@ -326,8 +324,6 @@ internal class RenderSystem : ISubsystem
 
                 bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
                     (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
-
-                bgfx.touch(viewID);
 
                 var alpha = accumulator / Time.fixedDeltaTime;
 
