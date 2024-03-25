@@ -218,7 +218,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
         foreach (var pair in transformCache)
         {
             if(nodeCache.TryGetValue(pair.Key, out var node) == false ||
-                Matrix4x4.Decompose(original ? node.originalTransform : node.transform,
+                Matrix4x4.Decompose(original ? node.OriginalTransform : node.Transform,
                     out var scale, out var rotation, out var translation) == false)
             {
                 continue;
@@ -239,7 +239,7 @@ internal class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            pair.Value.transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
+            pair.Value.Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
         }
     }
 }

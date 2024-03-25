@@ -1292,8 +1292,8 @@ internal class ResourceManager
                 var outNode = new MeshAsset.Node()
                 {
                     name = node.name,
-                    transform = transform,
-                    originalTransform = transform,
+                    Transform = transform,
+                    OriginalTransform = transform,
                     parent = parent,
                     meshIndices = node.meshIndices,
                 };
@@ -1304,7 +1304,7 @@ internal class ResourceManager
 
                 if(parent == null)
                 {
-                    Matrix4x4.Invert(outNode.transform, out asset.inverseTransform);
+                    Matrix4x4.Invert(outNode.Transform, out asset.inverseTransform);
                 }
 
                 foreach(var child in node.children)

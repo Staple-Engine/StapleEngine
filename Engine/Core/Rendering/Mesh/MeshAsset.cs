@@ -64,20 +64,56 @@ public class MeshAsset : IGuidAsset
 
         public List<int> meshIndices = new();
 
-        public Matrix4x4 originalTransform;
+        private Matrix4x4 originalTransform;
 
-        public Matrix4x4 transform;
+        private Matrix4x4 transform;
 
-        public Matrix4x4 OriginalGlobalTransform
+        private bool changed = true;
+
+        private Matrix4x4 globalMatrix;
+
+        private Matrix4x4 originalGlobalMatrix;
+
+        private void UpdateTransforms()
         {
-            get
+            if (changed)
             {
+                changed = false;
+
                 if (parent != null)
                 {
-                    return originalTransform * parent.OriginalGlobalTransform;
+                    globalMatrix = transform * parent.GlobalTransform;
+                    originalGlobalMatrix = originalTransform * parent.OriginalGlobalTransform;
                 }
+                else
+                {
+                    globalMatrix = transform;
+                    originalGlobalMatrix = originalTransform;
+                }
+            }
+        }
 
-                return originalTransform;
+        public Matrix4x4 Transform
+        {
+            get => transform;
+
+            set
+            {
+                transform = value;
+
+                changed = true;
+            }
+        }
+
+        public Matrix4x4 OriginalTransform
+        {
+            get => originalTransform;
+
+            set
+            {
+                originalTransform = value;
+
+                changed = true;
             }
         }
 
@@ -85,12 +121,19 @@ public class MeshAsset : IGuidAsset
         {
             get
             {
-                if(parent != null)
-                {
-                    return transform * parent.GlobalTransform;
-                }
+                UpdateTransforms();
 
-                return transform;
+                return globalMatrix;
+            }
+        }
+
+        public Matrix4x4 OriginalGlobalTransform
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return originalGlobalMatrix;
             }
         }
 
@@ -119,10 +162,13 @@ public class MeshAsset : IGuidAsset
             var result = new Node()
             {
                 name = name,
-                originalTransform = originalTransform,
-                transform = transform,
                 parent = parent,
                 meshIndices = meshIndices,
+                changed = changed,
+                transform = transform,
+                globalMatrix = globalMatrix,
+                originalTransform = originalTransform,
+                originalGlobalMatrix = originalGlobalMatrix,
             };
 
             foreach(var child in children)

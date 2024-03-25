@@ -876,7 +876,7 @@ internal class ProjectBrowser
                                     {
                                         void Recursive(MeshAsset.Node current, Transform parent)
                                         {
-                                            if (Matrix4x4.Decompose(current.transform, out var nodeScale, out var nodeRotation, out var nodePosition))
+                                            if (Matrix4x4.Decompose(current.Transform, out var nodeScale, out var nodeRotation, out var nodePosition))
                                             {
                                                 var nodeEntity = Entity.Create(current.name, typeof(Transform));
 
