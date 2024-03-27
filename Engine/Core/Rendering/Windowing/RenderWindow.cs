@@ -703,6 +703,8 @@ internal class RenderWindow
 
         lastTime = current;
 
+        World.Current?.StartFrame();
+
         try
         {
             OnUpdate?.Invoke();

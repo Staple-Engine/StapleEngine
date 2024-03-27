@@ -19,12 +19,11 @@ public partial class World
 
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -59,11 +58,6 @@ public partial class World
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
-
-                if (collectionModified)
-                {
-                    return;
-                }
             }
         }
     }
@@ -87,12 +81,11 @@ public partial class World
 
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -131,11 +124,6 @@ public partial class World
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
-
-                if (collectionModified)
-                {
-                    return;
-                }
             }
         }
     }
@@ -162,12 +150,11 @@ public partial class World
 
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -210,11 +197,6 @@ public partial class World
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
-
-                if (collectionModified)
-                {
-                    return;
-                }
             }
         }
     }
@@ -244,12 +226,11 @@ public partial class World
 
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -296,11 +277,6 @@ public partial class World
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
-
-                if (collectionModified)
-                {
-                    return;
-                }
             }
         }
     }
@@ -333,12 +309,11 @@ public partial class World
 
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false ||
                     (includeDisabled == false && entity.enabled == false))
                 {
@@ -388,11 +363,6 @@ public partial class World
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
-                }
-
-                if (collectionModified)
-                {
-                    return;
                 }
             }
         }
@@ -547,12 +517,11 @@ public partial class World
     {
         lock (lockObject)
         {
-            collectionModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
 
-            foreach (var entity in entities)
+            foreach (var entity in allEntities)
             {
-                entity.componentsModified = false;
-
                 if (entity.alive == false)
                 {
                     continue;
@@ -566,11 +535,6 @@ public partial class World
                         generation = entity.generation,
                     }
                 });
-
-                if (collectionModified)
-                {
-                    return;
-                }
             }
         }
     }
@@ -589,27 +553,31 @@ public partial class World
 
         lock (lockObject)
         {
-            entityInfo.componentsModified = false;
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var cache = entityInfo.components.ToArray();
 
-            collectionModified = false;
-
-            foreach (var index in entityInfo.components)
+            foreach (var index in cache)
             {
+                if(entityInfo.alive == false)
+                {
+                    break;
+                }
+
+                if(entityInfo.removedComponents.Contains(index))
+                {
+                    continue;
+                }
+
                 var component = componentsRepository[index].components[entityInfo.localID];
 
                 callback(ref component);
 
-                if(entityInfo.componentsModified)
+                if (entityInfo.removedComponents.Contains(index))
                 {
-                    return;
+                    continue;
                 }
 
                 componentsRepository[index].components[entityInfo.localID] = component;
-            }
-
-            if (collectionModified)
-            {
-                return;
             }
         }
     }

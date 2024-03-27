@@ -252,8 +252,6 @@ public partial class World
                 catch(Exception)
                 {
                 }
-
-                entityInfo.componentsModified = true;
             }
 
             return info.components[entityInfo.localID];
@@ -290,6 +288,8 @@ public partial class World
             {
                 if (componentsRepository.TryGetValue(componentIndex, out var info))
                 {
+                    entityInfo.removedComponents.Add(componentIndex);
+
                     var component = info.components[entityInfo.localID];
 
                     EmitRemoveComponentEvent(entity, ref component);
@@ -298,8 +298,6 @@ public partial class World
                 }
 
                 entityInfo.components.Remove(componentIndex);
-
-                entityInfo.componentsModified = true;
             }
         }
     }
@@ -501,7 +499,7 @@ public partial class World
 
         lock (globalLockObject)
         {
-            var transform = GetComponent<Transform>(entity);
+            var transform = entity.GetComponent<Transform>();
 
             if (componentAddedCallbacks.TryGetValue(component.GetType(), out var callbacks))
             {
@@ -552,7 +550,7 @@ public partial class World
 
         lock (globalLockObject)
         {
-            var transform = GetComponent<Transform>(entity);
+            var transform = entity.GetComponent<Transform>();
 
             if (componentRemovedCallbacks.TryGetValue(component.GetType(), out var callbacks))
             {

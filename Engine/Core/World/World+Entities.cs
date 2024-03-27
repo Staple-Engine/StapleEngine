@@ -150,8 +150,6 @@ public partial class World
                 pair.Value.AddComponent();
             }
 
-            collectionModified = true;
-
             return new Entity()
             {
                 Identifier = new()
@@ -182,8 +180,6 @@ public partial class World
 
             entityInfo.components.Clear();
             entityInfo.alive = false;
-
-            collectionModified = true;
 
             while(transform.ChildCount > 0)
             {

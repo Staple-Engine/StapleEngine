@@ -5,14 +5,7 @@ namespace Staple;
 
 public partial struct Entity
 {
-    /// <summary>
-    /// Instantiates a new copy of an existing entity
-    /// </summary>
-    /// <param name="source">The entity to instantiate</param>
-    /// <param name="parent">The parent transform, if any</param>
-    /// <param name="keepWorldPosition">Whether to keep the world position</param>
-    /// <returns>The new entity</returns>
-    public static Entity Instantiate(Entity source, Transform parent, bool keepWorldPosition = true)
+    internal static Entity InstantiateInternal(Entity source, Transform parent, bool keepWorldPosition, bool rename)
     {
         if (source.IsValid == false ||
             source.TryGetComponent<Transform>(out var sourceTransform) == false)
@@ -20,7 +13,7 @@ public partial struct Entity
             return default;
         }
 
-        var newEntity = Create($"{source.Name} (Clone)", typeof(Transform));
+        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
 
         var transform = newEntity.GetComponent<Transform>();
 
@@ -32,22 +25,20 @@ public partial struct Entity
             transform.Rotation = sourceTransform.Rotation;
             transform.Scale = sourceTransform.Scale;
         }
+        else
+        {
+            transform.LocalPosition = sourceTransform.LocalPosition;
+            transform.LocalRotation = sourceTransform.LocalRotation;
+            transform.LocalScale = sourceTransform.LocalScale;
+        }
 
         SceneSerialization.InstantiateEntityComponents(source, newEntity);
 
         void Recursive(Transform sourceTransform, Transform targetTransform)
         {
-            foreach(var child in sourceTransform)
+            foreach (var child in sourceTransform)
             {
-                var childEntity = Instantiate(child.entity, targetTransform);
-
-                if(childEntity.IsValid == false ||
-                    childEntity.TryGetComponent<Transform>(out var childTransform))
-                {
-                    continue;
-                }
-
-                Recursive(child, childTransform);
+                InstantiateInternal(child.entity, targetTransform, false, false);
             }
         }
 
@@ -56,15 +47,7 @@ public partial struct Entity
         return newEntity;
     }
 
-    /// <summary>
-    /// Instantiates a new copy of an existing entity
-    /// </summary>
-    /// <param name="source">The entity to instantiate</param>
-    /// <param name="position">The entity's position</param>
-    /// <param name="rotation">The entity's rotation</param>
-    /// <param name="parent">The parent transform, if any</param>
-    /// <returns>The new entity</returns>
-    public static Entity Instantiate(Entity source, Vector3 position, Quaternion rotation, Transform parent = null)
+    internal static Entity InstantiateInternal(Entity source, Vector3 position, Quaternion rotation, Transform parent, bool rename)
     {
         if (source.IsValid == false ||
             source.TryGetComponent<Transform>(out var sourceTransform) == false)
@@ -72,7 +55,7 @@ public partial struct Entity
             return default;
         }
 
-        var newEntity = Create($"{source.Name} (Clone)", typeof(Transform));
+        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
 
         var transform = newEntity.GetComponent<Transform>();
 
@@ -90,15 +73,7 @@ public partial struct Entity
         {
             foreach (var child in sourceTransform)
             {
-                var childEntity = Instantiate(child.entity, targetTransform);
-
-                if (childEntity.IsValid == false ||
-                    childEntity.TryGetComponent<Transform>(out var childTransform))
-                {
-                    continue;
-                }
-
-                Recursive(child, childTransform);
+                InstantiateInternal(child.entity, targetTransform, false, false);
             }
         }
 
@@ -106,6 +81,32 @@ public partial struct Entity
 
         return newEntity;
     }
+
+    /// <summary>
+    /// Instantiates a new copy of an existing entity
+    /// </summary>
+    /// <param name="source">The entity to instantiate</param>
+    /// <param name="parent">The parent transform, if any</param>
+    /// <param name="keepWorldPosition">Whether to keep the world position</param>
+    /// <returns>The new entity</returns>
+    public static Entity Instantiate(Entity source, Transform parent, bool keepWorldPosition = true)
+    {
+        return InstantiateInternal(source, parent, keepWorldPosition, true);
+    }
+
+    /// <summary>
+    /// Instantiates a new copy of an existing entity
+    /// </summary>
+    /// <param name="source">The entity to instantiate</param>
+    /// <param name="position">The entity's position</param>
+    /// <param name="rotation">The entity's rotation</param>
+    /// <param name="parent">The parent transform, if any</param>
+    /// <returns>The new entity</returns>
+    public static Entity Instantiate(Entity source, Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        return InstantiateInternal(source, position, rotation, parent, true);
+    }
+
     /// <summary>
     /// Instantiates a new copy of an existing entity
     /// </summary>

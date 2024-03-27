@@ -73,6 +73,11 @@ public partial class World
         public List<int> components = new();
 
         /// <summary>
+        /// The components that were just removed for the entity
+        /// </summary>
+        public HashSet<int> removedComponents = new();
+
+        /// <summary>
         /// The entity's name
         /// </summary>
         public string name;
@@ -81,11 +86,6 @@ public partial class World
         /// The entity's layer. Defaults to the first layer.
         /// </summary>
         public uint layer;
-
-        /// <summary>
-        /// Whether the components list was just modified
-        /// </summary>
-        public bool componentsModified = false;
     }
 
     /// <summary>
@@ -174,9 +174,27 @@ public partial class World
 
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
-    private bool collectionModified = false;
     private readonly List<EntityInfo> entities = new();
     private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
+
+    internal void StartFrame()
+    {
+        lock(lockObject)
+        {
+            foreach(var info in entities)
+            {
+                if(info.removedComponents.Count > 0)
+                {
+                    foreach (var index in info.removedComponents)
+                    {
+                        info.components.Remove(index);
+                    }
+
+                    info.removedComponents.Clear();
+                }
+            }
+        }
+    }
 
     private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = new();
     private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = new();
