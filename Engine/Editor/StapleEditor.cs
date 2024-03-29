@@ -20,6 +20,8 @@ internal partial class StapleEditor
 {
     public static readonly string StapleVersion = $"{Platform.StapleVersionMajor}.{Platform.StapleVersionMinor}";
 
+    internal const string RenderTargetLayerName = "STAPLE_EDITOR_RENDER_TARGET_LAYER";
+
     enum ViewportType
     {
         Scene,
@@ -1156,6 +1158,6 @@ internal partial class StapleEditor
 
     internal void AddEditorLayers()
     {
-        LayerMask.AllLayers.Add("MeshRender");
+        LayerMask.AllLayers.Add(RenderTargetLayerName);
     }
 }

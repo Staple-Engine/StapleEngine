@@ -541,7 +541,9 @@ public class Editor
                         }
                         else
                         {
-                            layers = LayerMask.AllLayers;
+                            layers = LayerMask.AllLayers
+                                .Where(x => x != StapleEditor.RenderTargetLayerName)
+                                .ToList();
                         }
 
                         var previewValue = "";

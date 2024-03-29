@@ -45,6 +45,11 @@ internal partial class StapleEditor
 
             Scene.ForEach((Entity entity, ref Transform transform) =>
             {
+                if(entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
+                {
+                    return;
+                }
+
                 foreach(var system in renderSystem.renderSystems)
                 {
                     var related = entity.GetComponent(system.RelatedComponent());

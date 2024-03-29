@@ -175,7 +175,7 @@ internal class ThumbnailCache
 
                         var tempEntity = EditorUtils.InstanceMesh("TEMP", mesh);
 
-                        tempEntity.SetLayer((uint)LayerMask.NameToLayer("MeshRender"), true);
+                        tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 
                         var camera = new Camera()
                         {
@@ -184,13 +184,14 @@ internal class ThumbnailCache
                             clearColor = Color.White,
                             nearPlane = 0.001f,
                             farPlane = 1000,
-                            fov = 60,
-                            cullingLayers = new(LayerMask.GetMask("MeshRender")),
+                            fov = 90,
+                            cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                         };
 
-                        var cameraTransform = new Transform();
-
-                        cameraTransform.LocalPosition = new Vector3(0, 0, 3);
+                        var cameraTransform = new Transform
+                        {
+                            LocalPosition = new Vector3(0, 0, 5)
+                        };
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
@@ -227,32 +228,52 @@ internal class ThumbnailCache
                             {
                             }
 
+                            texture = Texture.CreatePixels(request.path, rawTextureData.data,
+                                (ushort)rawTextureData.width, (ushort)rawTextureData.height,
+                                new TextureMetadata()
+                                {
+                                    useMipmaps = false,
+                                },
+                                Bgfx.bgfx.TextureFormat.RGBA8);
+
+                            if (texture != null)
+                            {
+                                lock (renderRequestLock)
+                                {
+                                    cachedThumbnails.AddOrSetKey(request.path, new TextureInfo()
+                                    {
+                                        texture = texture,
+                                        cachePath = cachePath,
+                                    });
+
+                                    cachedTextureData.AddOrSetKey(request.path, rawTextureData);
+                                }
+                            }
+
                             Cleanup();
                         });
 
+                        return;
+                    }
+
+                    try
+                    {
+                        var data = File.ReadAllBytes(thumbnailPath);
+
+                        rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                    }
+                    catch (Exception)
+                    {
+                        Cleanup();
+
                         break;
                     }
-                    else
+
+                    if (rawTextureData == null)
                     {
-                        try
-                        {
-                            var data = File.ReadAllBytes(thumbnailPath);
+                        Cleanup();
 
-                            rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
-                        }
-                        catch (Exception)
-                        {
-                            Cleanup();
-
-                            break;
-                        }
-
-                        if (rawTextureData == null)
-                        {
-                            Cleanup();
-
-                            break;
-                        }
+                        break;
                     }
 
                     var texture = Texture.CreatePixels(request.path, rawTextureData.data,

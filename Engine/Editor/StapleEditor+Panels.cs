@@ -279,7 +279,7 @@ internal partial class StapleEditor
 
             void Recursive(Transform transform)
             {
-                if(skip || transform == null)
+                if(skip || transform == null || transform.entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
                 {
                     return;
                 }
@@ -558,7 +558,9 @@ internal partial class StapleEditor
             }
 
             var currentLayer = selectedEntity.Layer;
-            var layers = LayerMask.AllLayers;
+            var layers = LayerMask.AllLayers
+                .Where(x => x != RenderTargetLayerName)
+                .ToList();
 
             if (ImGui.BeginCombo("Layer", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
             {
