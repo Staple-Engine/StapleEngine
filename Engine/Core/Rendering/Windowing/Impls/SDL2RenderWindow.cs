@@ -25,6 +25,7 @@ internal class SDL2RenderWindow : IRenderWindow
     private Vector2Int previousWindowPosition;
     private bool closedWindow = false;
     private bool windowFocused = true;
+    private bool windowMaximized = false;
 
     public bool ContextLost { get; set; } = false;
 
@@ -34,7 +35,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
     public bool Unavailable => false;
 
-    public bool Maximized => ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(window) & SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) != 0;
+    public bool Maximized => windowMaximized;
 
     public string Title
     {
@@ -124,6 +125,11 @@ internal class SDL2RenderWindow : IRenderWindow
         if (window == nint.Zero)
         {
             return false;
+        }
+
+        if(maximized)
+        {
+            windowMaximized = true;
         }
 
         return true;
@@ -309,15 +315,46 @@ internal class SDL2RenderWindow : IRenderWindow
         {
             switch(_event.type)
             {
-                case SDL.SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+                case SDL.SDL_EventType.SDL_WINDOWEVENT:
 
-                    windowFocused = false;
+                    switch(_event.window.windowEvent)
+                    {
+                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
 
-                    break;
+                            windowFocused = true;
 
-                case SDL.SDL_EventType.SDL_APP_DIDENTERFOREGROUND:
+                            break;
 
-                    windowFocused = true;
+                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+
+                            windowFocused = false;
+
+                            break;
+
+                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
+
+                            windowMaximized = true;
+
+                            AppEventQueue.instance.Add(AppEvent.Maximize(windowMaximized));
+
+                            break;
+
+                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+
+                            windowMaximized = false;
+
+                            AppEventQueue.instance.Add(AppEvent.Maximize(windowMaximized));
+
+                            break;
+
+                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+
+                            SDL.SDL_GetWindowPosition(window, out var winX, out var winY);
+
+                            AppEventQueue.instance.Add(AppEvent.MoveWindow(new Vector2Int(winX, winY)));
+
+                            break;
+                    }
 
                     break;
 
