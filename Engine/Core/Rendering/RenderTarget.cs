@@ -125,54 +125,58 @@ public sealed class RenderTarget
         {
             try
             {
-                var texture = GetTexture(attachment);
-
-                if (texture == null ||
-                    texture.Disposed ||
-                    texture.info.storageSize == 0)
+                //Delay by 1 frame so that the rendering happens
+                Threading.Dispatch(() =>
                 {
-                    completion?.Invoke(null, null);
+                    var texture = GetTexture(attachment);
 
-                    RunQueueItem();
-
-                    return;
-                }
-
-                var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1, texture.info.format,
-                    TextureFlags.BlitDestination | TextureFlags.ReadBack | TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp);
-
-                bgfx.blit(viewID, readBackTexture.handle, 0, 0, 0, 0, texture.handle, 0, 0, 0, 0, texture.info.width, texture.info.height, 0);
-
-                unsafe
-                {
-                    renderPtr = Marshal.AllocHGlobal((int)texture.info.storageSize);
-
-                    var buffer = new byte[texture.info.storageSize];
-
-                    var frame = bgfx.read_texture(readBackTexture.handle, (void*)renderPtr, 0);
-
-                    RenderSystem.Instance.QueueFrameCallback(frame, () =>
+                    if (texture == null ||
+                        texture.Disposed ||
+                        texture.info.storageSize == 0)
                     {
-                        Marshal.Copy(renderPtr, buffer, 0, buffer.Length);
+                        completion?.Invoke(null, null);
 
-                        Marshal.FreeHGlobal(renderPtr);
+                        RunQueueItem();
 
-                        renderPtr = nint.Zero;
+                        return;
+                    }
 
-                        readBackTexture.Destroy();
+                    var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1, texture.info.format,
+                        TextureFlags.BlitDestination | TextureFlags.ReadBack | TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp);
 
-                        completion?.Invoke(texture, buffer);
+                    bgfx.blit(viewID, readBackTexture.handle, 0, 0, 0, 0, texture.handle, 0, 0, 0, 0, texture.info.width, texture.info.height, 0);
 
-                        renderQueue.RemoveAt(0);
+                    unsafe
+                    {
+                        renderPtr = Marshal.AllocHGlobal((int)texture.info.storageSize);
 
-                        if (renderQueue.Count > 0)
+                        var buffer = new byte[texture.info.storageSize];
+
+                        var frame = bgfx.read_texture(readBackTexture.handle, (void*)renderPtr, 0);
+
+                        RenderSystem.Instance.QueueFrameCallback(frame + 1, () =>
                         {
-                            RunQueueItem();
-                        }
-                    });
-                }
+                            Marshal.Copy(renderPtr, buffer, 0, buffer.Length);
+
+                            Marshal.FreeHGlobal(renderPtr);
+
+                            renderPtr = nint.Zero;
+
+                            readBackTexture.Destroy();
+
+                            completion?.Invoke(texture, buffer);
+
+                            renderQueue.RemoveAt(0);
+
+                            if (renderQueue.Count > 0)
+                            {
+                                RunQueueItem();
+                            }
+                        });
+                    }
+                });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Debug($"[RenderTarget] Failed to read data: {e}");
 

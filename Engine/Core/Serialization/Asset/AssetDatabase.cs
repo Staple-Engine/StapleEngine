@@ -187,7 +187,8 @@ public static class AssetDatabase
     /// <returns>The guid or null</returns>
     public static string GetAssetGuid(string path)
     {
-        return assets.FirstOrDefault(x => x.path == path)?.guid;
+        return assets.FirstOrDefault(x => x.path == path)?.guid ??
+            assets.FirstOrDefault(x => x.guid == path)?.guid;
     }
 
     /// <summary>

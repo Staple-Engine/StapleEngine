@@ -1280,6 +1280,10 @@ internal class ResourceManager
                 asset.meshes.Add(newMesh);
             }
 
+            asset.Bounds = asset.meshes.Count == 1 ? asset.meshes[0].bounds :
+                asset.meshes.Count == 0 ? new AABB() :
+                AABB.FromPoints(asset.meshes.Select(x => x.bounds.Size + x.bounds.center).ToArray());
+
             void GatherNodes(MeshAssetNode node, MeshAsset.Node parent)
             {
                 if(node.name == null)

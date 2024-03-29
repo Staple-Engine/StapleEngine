@@ -15,6 +15,8 @@ namespace Staple.Editor;
 /// </summary>
 internal class ThumbnailCache
 {
+    private const int ThumbnailSize = 128;
+
     private class TextureInfo
     {
         public Texture texture;
@@ -171,7 +173,7 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
-                        var renderTarget = RenderTarget.Create(512, 512);
+                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
 
                         var tempEntity = EditorUtils.InstanceMesh("TEMP", mesh);
 
@@ -181,7 +183,7 @@ internal class ThumbnailCache
                         {
                             cameraType = CameraType.Perspective,
                             clearMode = CameraClearMode.SolidColor,
-                            clearColor = Color.White,
+                            clearColor = Color.Clear,
                             nearPlane = 0.001f,
                             farPlane = 1000,
                             fov = 90,
@@ -190,7 +192,8 @@ internal class ThumbnailCache
 
                         var cameraTransform = new Transform
                         {
-                            LocalPosition = new Vector3(0, 0, 5)
+                            LocalPosition = mesh.Bounds.Size,
+                            LocalRotation = Math.FromEulerAngles(new Vector3(-30, 30, 0)),
                         };
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
@@ -478,7 +481,7 @@ internal class ThumbnailCache
 
                         try
                         {
-                            rawTextureData.Resize(64, 64);
+                            rawTextureData.Resize(ThumbnailSize, ThumbnailSize);
 
                             var pngData = rawTextureData.EncodePNG();
 

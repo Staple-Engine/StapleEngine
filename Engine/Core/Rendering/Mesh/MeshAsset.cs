@@ -216,6 +216,7 @@ public class MeshAsset : IGuidAsset
     public Node rootNode;
     public Matrix4x4 inverseTransform;
     public Dictionary<string, Animation> animations = new();
+    public AABB Bounds { get; internal set; }
 
     public string Guid { get; set; }
 
