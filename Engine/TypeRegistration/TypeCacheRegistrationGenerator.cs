@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -13,6 +12,19 @@ namespace Staple
     [Generator]
     public class TypeCacheRegistrationGenerator : ISourceGenerator
     {
+        private readonly string[] blacklistedNamespaces =
+        [
+            "MessagePack",
+            "NAudio",
+            "JoltPhysicsSharp",
+            "NVorbis",
+            "GLFW",
+            "SDL2",
+            "Bgfx",
+            "DrLibs",
+            "OpenAL",
+        ];
+
         public void Initialize(GeneratorInitializationContext context)
         {
             /*
@@ -208,6 +220,28 @@ namespace Staple
 
             foreach(var type in types)
             {
+                if(type.StartsWith("System.") && !type.StartsWith("System.Collections"))
+                {
+                    continue;
+                }
+
+                bool skip = false;
+
+                foreach(var item in blacklistedNamespaces)
+                {
+                    if(type.StartsWith($"{item}."))
+                    {
+                        skip = true;
+
+                        break;
+                    }
+                }
+
+                if(skip)
+                {
+                    continue;
+                }
+
                 //source += $"            Console.WriteLine(\"Registering {type}\");\r\n\r\n";
                 source += $"            TypeCache.RegisterType(typeof({type}));\r\n";
             }

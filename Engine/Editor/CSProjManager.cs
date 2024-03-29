@@ -493,8 +493,8 @@ internal class CSProjManager
 
         if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
         {
-            p.AddItem("Reference", "glfwnet", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "glfwnet.dll"))
+            p.AddItem("Reference", "SDL2-CS", new KeyValuePair<string, string>[] {
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
             });
         }
 
