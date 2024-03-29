@@ -536,28 +536,37 @@ public class Texture : IGuidAsset
         return true;
     }
 
-    //TODO
-    /*
-    public byte[] ReadPixels(byte mipLevel = 0)
+    /// <summary>
+    /// Reads back the pixels for a texture. Requires readback on the texture metadata
+    /// </summary>
+    /// <param name="completion">The completion block when the data is ready. This is an async operation.</param>
+    /// <param name="mipLevel">The mip level to read</param>
+    /// <remarks>Render target textures need to use RenderTarget.ReadTexture instead</remarks>
+    public void ReadPixels(Action<Texture, byte[]> completion, byte mipLevel = 0)
     {
         unsafe
         {
-            if (handle.Valid == false || metadata.readBack == false)
+            if (handle.Valid == false ||
+                metadata.readBack == false ||
+                renderTarget ||
+                info.storageSize == 0)
             {
-                return null;
-            }
+                completion?.Invoke(this, null);
 
-            //TODO: wait for the texture read to be ready
+                return;
+            }
 
             var buffer = new byte[info.storageSize];
 
             fixed (void* ptr = buffer)
             {
-                bgfx.read_texture(handle, ptr, 0);
-            }
+                var targetFrame = bgfx.read_texture(handle, ptr, 0);
 
-            return buffer;
+                RenderSystem.Instance.QueueFrameCallback(targetFrame, () =>
+                {
+                    completion?.Invoke(this, buffer);
+                });
+            }
         }
     }
-    */
 }

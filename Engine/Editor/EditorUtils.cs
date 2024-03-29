@@ -1,6 +1,9 @@
 ﻿using System.Text;
 using System;
 using System.IO;
+using System.Numerics;
+using System.Linq;
+using Staple.Internal;
 
 namespace Staple.Editor;
 
@@ -299,5 +302,96 @@ public static class EditorUtils
 
             return true;
         });
+    }
+
+    internal static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default)
+    {
+        Transform parent = null;
+
+        if (parentEntity.IsValid)
+        {
+            parent = parentEntity.GetComponent<Transform>();
+        }
+
+        var baseEntity = Entity.Create(name, typeof(Transform));
+        var baseTransform = baseEntity.GetComponent<Transform>();
+
+        baseTransform.SetParent(parent);
+
+        if (asset.rootNode != null)
+        {
+            void Recursive(MeshAsset.Node current, Transform parent)
+            {
+                if (Matrix4x4.Decompose(current.Transform, out var nodeScale, out var nodeRotation, out var nodePosition))
+                {
+                    var nodeEntity = Entity.Create(current.name, typeof(Transform));
+
+                    var nodeTransform = nodeEntity.GetComponent<Transform>();
+
+                    nodeTransform.SetParent(parent);
+
+                    nodeTransform.LocalPosition = nodePosition;
+                    nodeTransform.LocalRotation = nodeRotation;
+                    nodeTransform.LocalScale = nodeScale;
+
+                    if (current.meshIndices.Count > 0)
+                    {
+                        var skinningParentEntity = Entity.Create(current.name, typeof(Transform));
+
+                        var skinningParentTransform = skinningParentEntity.GetComponent<Transform>();
+
+                        skinningParentTransform.SetParent(baseTransform);
+
+                        foreach (var index in current.meshIndices)
+                        {
+                            if (index < 0 || index >= asset.meshes.Count)
+                            {
+                                continue;
+                            }
+
+                            var mesh = asset.meshes[index];
+
+                            var meshEntity = Entity.Create(mesh.name, typeof(Transform));
+
+                            var meshTransform = meshEntity.GetComponent<Transform>();
+
+                            var isSkinned = mesh.bones.Any(x => x.Count > 0);
+
+                            meshTransform.SetParent(isSkinned ? skinningParentTransform : nodeTransform);
+
+                            var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", true);
+                            var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
+
+                            if (outMesh != null)
+                            {
+                                if (isSkinned)
+                                {
+                                    var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                                    skinnedRenderer.mesh = outMesh;
+                                    skinnedRenderer.materials = outMaterials;
+                                }
+                                else
+                                {
+                                    var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                                    meshRenderer.mesh = outMesh;
+                                    meshRenderer.materials = outMaterials;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var child in current.children)
+                    {
+                        Recursive(child, nodeTransform);
+                    }
+                }
+            }
+
+            Recursive(asset.rootNode, baseTransform);
+        }
+
+        return baseEntity;
     }
 }

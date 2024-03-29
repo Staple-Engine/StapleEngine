@@ -860,91 +860,7 @@ internal class ProjectBrowser
 
                                     var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                    Transform parent = null;
-
-                                    if (targetEntity.IsValid)
-                                    {
-                                        parent = targetEntity.GetComponent<Transform>();
-                                    }
-
-                                    var baseEntity = Entity.Create(item.name, typeof(Transform));
-                                    var baseTransform = baseEntity.GetComponent<Transform>();
-
-                                    baseTransform.SetParent(parent);
-
-                                    if (asset.rootNode != null)
-                                    {
-                                        void Recursive(MeshAsset.Node current, Transform parent)
-                                        {
-                                            if (Matrix4x4.Decompose(current.Transform, out var nodeScale, out var nodeRotation, out var nodePosition))
-                                            {
-                                                var nodeEntity = Entity.Create(current.name, typeof(Transform));
-
-                                                var nodeTransform = nodeEntity.GetComponent<Transform>();
-
-                                                nodeTransform.SetParent(parent);
-
-                                                nodeTransform.LocalPosition = nodePosition;
-                                                nodeTransform.LocalRotation = nodeRotation;
-                                                nodeTransform.LocalScale = nodeScale;
-
-                                                if (current.meshIndices.Count > 0)
-                                                {
-                                                    var skinningParentEntity = Entity.Create(current.name, typeof(Transform));
-
-                                                    var skinningParentTransform = skinningParentEntity.GetComponent<Transform>();
-
-                                                    skinningParentTransform.SetParent(baseTransform);
-
-                                                    foreach (var index in current.meshIndices)
-                                                    {
-                                                        if (index < 0 || index >= asset.meshes.Count)
-                                                        {
-                                                            continue;
-                                                        }
-
-                                                        var mesh = asset.meshes[index];
-
-                                                        var meshEntity = Entity.Create(mesh.name, typeof(Transform));
-
-                                                        var meshTransform = meshEntity.GetComponent<Transform>();
-
-                                                        var isSkinned = mesh.bones.Any(x => x.Count > 0);
-
-                                                        meshTransform.SetParent(isSkinned ? skinningParentTransform : nodeTransform);
-
-                                                        var outMesh = ResourceManager.instance.LoadMesh($"{guid}:{index}", true);
-                                                        var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
-
-                                                        if (outMesh != null)
-                                                        {
-                                                            if (isSkinned)
-                                                            {
-                                                                var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
-
-                                                                skinnedRenderer.mesh = outMesh;
-                                                                skinnedRenderer.materials = outMaterials;
-                                                            }
-                                                            else
-                                                            {
-                                                                var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
-
-                                                                meshRenderer.mesh = outMesh;
-                                                                meshRenderer.materials = outMaterials;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                foreach (var child in current.children)
-                                                {
-                                                    Recursive(child, nodeTransform);
-                                                }
-                                            }
-                                        }
-
-                                        Recursive(asset.rootNode, baseTransform);
-                                    }
+                                    EditorUtils.InstanceMesh(item.name, asset, targetEntity);
                                 }
 
                                 break;
@@ -963,7 +879,8 @@ internal class ProjectBrowser
                 }
 
                 dropType = ProjectBrowserDropType.None;
-            }, (index, localItem, name) =>
+            },
+            (index, localItem, name) =>
             {
                 var invalidChars = Path.GetInvalidPathChars()
                     .Concat(Path.GetInvalidFileNameChars())

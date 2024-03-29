@@ -1,5 +1,6 @@
 using Bgfx;
 using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -39,6 +40,8 @@ internal class RenderSystem : ISubsystem
 
     public static bool useDrawcallInterpolator = false;
 
+    public static readonly RenderSystem Instance = new();
+
     /// <summary>
     /// Keep the current and previous draw buckets to interpolate around
     /// </summary>
@@ -55,6 +58,10 @@ internal class RenderSystem : ISubsystem
     internal readonly List<IRenderSystem> renderSystems = new();
 
     private readonly Transform stagingTransform = new();
+
+    private ulong currentFrame = 0;
+
+    private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = new();
 
     /// <summary>
     /// Calculates the blending function for blending flags
@@ -138,6 +145,51 @@ internal class RenderSystem : ISubsystem
         return resetFlags;
     }
 
+    public void QueueFrameCallback(uint frame, Action callback)
+    {
+        lock(lockObject)
+        {
+            if(queuedFrameCallbacks.TryGetValue(frame, out var list) == false)
+            {
+                list = new();
+
+                queuedFrameCallbacks.Add(frame, list);
+            }
+
+            list.Add(callback);
+        }
+    }
+
+    public void OnFrame(uint frame)
+    {
+        List<Action> callbacks = null;
+
+        lock (lockObject)
+        {
+            if(queuedFrameCallbacks.TryGetValue(frame, out callbacks) == false)
+            {
+                return;
+            }
+        }
+
+        foreach (var item in callbacks)
+        {
+            try
+            {
+                item?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[RenderSystem] While executing a frame callback at frame {frame}: {e}");
+            }
+        }
+
+        lock (lockObject)
+        {
+            queuedFrameCallbacks.Remove(frame);
+        }
+    }
+
     public void Startup()
     {
         renderSystems.Add(new SpriteRenderSystem());
@@ -178,6 +230,179 @@ internal class RenderSystem : ISubsystem
         }
     }
 
+    internal void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    {
+        foreach (var system in renderSystems)
+        {
+            system.Prepare();
+        }
+
+        unsafe
+        {
+            var projection = Camera.Projection(cameraEntity, camera);
+            var view = cameraTransform.Matrix;
+
+            Matrix4x4.Invert(view, out view);
+
+            bgfx.set_view_transform(viewID, &view, &projection);
+
+            frustumCuller.Update(view, projection);
+        }
+
+        switch (camera.clearMode)
+        {
+            case CameraClearMode.Depth:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.None:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.SolidColor:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
+
+                break;
+        }
+
+        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
+            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+
+        Scene.ForEach((Entity entity, ref Transform t) =>
+        {
+            var layer = entity.Layer;
+
+            if (camera.cullingLayers.HasLayer(layer) == false)
+            {
+                return;
+            }
+
+            foreach (var system in renderSystems)
+            {
+                var related = entity.GetComponent(system.RelatedComponent());
+
+                if (related != null)
+                {
+                    system.Preprocess(entity, t, related, camera, cameraTransform);
+
+                    if (related is Renderable renderable &&
+                        renderable.enabled)
+                    {
+                        renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+
+                        if (renderable.isVisible && renderable.forceRenderingOff == false)
+                        {
+                            system.Process(entity, t, related, camera, cameraTransform, viewID);
+                        }
+                    }
+                    else if (related is not Renderable) //Systems that do not require a renderer
+                    {
+                        system.Process(entity, t, related, camera, cameraTransform, viewID);
+                    }
+                }
+            }
+        });
+
+        foreach (var system in renderSystems)
+        {
+            system.Submit();
+        }
+    }
+
+    internal void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    {
+        foreach (var system in renderSystems)
+        {
+            system.Prepare();
+        }
+
+        unsafe
+        {
+            var projection = Camera.Projection(cameraEntity, camera);
+            var view = cameraTransform.Matrix;
+
+            Matrix4x4.Invert(view, out view);
+
+            bgfx.set_view_transform(viewID, &view, &projection);
+
+            frustumCuller.Update(view, projection);
+        }
+
+        switch (camera.clearMode)
+        {
+            case CameraClearMode.Depth:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.None:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.SolidColor:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
+
+                break;
+        }
+
+        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
+            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+
+        var alpha = accumulator / Time.fixedDeltaTime;
+
+        lock (lockObject)
+        {
+            if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
+            {
+                foreach (var call in drawCalls)
+                {
+                    var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
+
+                    if (call.renderable.enabled)
+                    {
+                        var currentPosition = call.position;
+                        var currentRotation = call.rotation;
+                        var currentScale = call.scale;
+
+                        if (previous == null)
+                        {
+                            stagingTransform.LocalPosition = currentPosition;
+                            stagingTransform.LocalRotation = currentRotation;
+                            stagingTransform.LocalScale = currentScale;
+                        }
+                        else
+                        {
+                            var previousPosition = previous.position;
+                            var previousRotation = previous.rotation;
+                            var previousScale = previous.scale;
+
+                            stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                            stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                            stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                        }
+
+                        foreach (var system in renderSystems)
+                        {
+                            if (call.relatedComponent.GetType() == system.RelatedComponent())
+                            {
+                                system.Process(call.entity, stagingTransform, call.relatedComponent,
+                                    camera, cameraTransform, viewID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (var system in renderSystems)
+        {
+            system.Submit();
+        }
+    }
+
     private void UpdateStandard()
     {
         ushort viewID = 1;
@@ -188,88 +413,7 @@ internal class RenderSystem : ISubsystem
         {
             foreach (var c in cameras)
             {
-                var camera = c.camera;
-                var cameraTransform = c.transform;
-
-                foreach (var system in renderSystems)
-                {
-                    system.Prepare();
-                }
-
-                unsafe
-                {
-                    var projection = Camera.Projection(c.entity, c.camera);
-                    var view = cameraTransform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    bgfx.set_view_transform(viewID, &view, &projection);
-
-                    frustumCuller.Update(view, projection);
-                }
-
-                switch (camera.clearMode)
-                {
-                    case CameraClearMode.Depth:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
-
-                        break;
-
-                    case CameraClearMode.None:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
-
-                        break;
-
-                    case CameraClearMode.SolidColor:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                        break;
-                }
-
-                bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-                    (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
-
-                Scene.ForEach((Entity entity, ref Transform t) =>
-                {
-                    var layer = entity.Layer;
-
-                    if (camera.cullingLayers.HasLayer(layer) == false)
-                    {
-                        return;
-                    }
-
-                    foreach (var system in renderSystems)
-                    {
-                        var related = entity.GetComponent(system.RelatedComponent());
-
-                        if (related != null)
-                        {
-                            system.Preprocess(entity, t, related, camera, cameraTransform);
-
-                            if (related is Renderable renderable &&
-                                renderable.enabled)
-                            {
-                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                                if (renderable.isVisible && renderable.forceRenderingOff == false)
-                                {
-                                    system.Process(entity, t, related, camera, cameraTransform, viewID);
-                                }
-                            }
-                            else if(related is not Renderable) //Systems that do not require a renderer
-                            {
-                                system.Process(entity, t, related, camera, cameraTransform, viewID);
-                            }
-                        }
-                    }
-                });
-
-                foreach (var system in renderSystems)
-                {
-                    system.Submit();
-                }
-
-                viewID++;
+                RenderStandard(c.entity, c.camera, c.transform, viewID++);
             }
         }
     }
@@ -284,99 +428,7 @@ internal class RenderSystem : ISubsystem
         {
             foreach (var c in cameras)
             {
-                var camera = c.camera;
-                var cameraTransform = c.transform;
-
-                foreach (var system in renderSystems)
-                {
-                    system.Prepare();
-                }
-
-                unsafe
-                {
-                    var projection = Camera.Projection(c.entity, c.camera);
-                    var view = cameraTransform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    bgfx.set_view_transform(viewID, &view, &projection);
-
-                    frustumCuller.Update(view, projection);
-                }
-
-                switch (camera.clearMode)
-                {
-                    case CameraClearMode.Depth:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
-
-                        break;
-
-                    case CameraClearMode.None:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
-
-                        break;
-
-                    case CameraClearMode.SolidColor:
-                        bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                        break;
-                }
-
-                bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-                    (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
-
-                var alpha = accumulator / Time.fixedDeltaTime;
-
-                lock (lockObject)
-                {
-                    if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
-                    {
-                        foreach (var call in drawCalls)
-                        {
-                            var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
-
-                            if (call.renderable.enabled)
-                            {
-                                var currentPosition = call.position;
-                                var currentRotation = call.rotation;
-                                var currentScale = call.scale;
-
-                                if (previous == null)
-                                {
-                                    stagingTransform.LocalPosition = currentPosition;
-                                    stagingTransform.LocalRotation = currentRotation;
-                                    stagingTransform.LocalScale = currentScale;
-                                }
-                                else
-                                {
-                                    var previousPosition = previous.position;
-                                    var previousRotation = previous.rotation;
-                                    var previousScale = previous.scale;
-
-                                    stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                                    stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                                    stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                                }
-
-                                foreach (var system in renderSystems)
-                                {
-                                    if (call.relatedComponent.GetType() == system.RelatedComponent())
-                                    {
-                                        system.Process(call.entity, stagingTransform, call.relatedComponent,
-                                            camera, cameraTransform, viewID);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                foreach (var system in renderSystems)
-                {
-                    system.Submit();
-                }
-
-                viewID++;
+                RenderAccumulator(c.entity, c.camera, c.transform, viewID++);
             }
         }
 

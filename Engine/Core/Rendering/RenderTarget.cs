@@ -1,6 +1,8 @@
 ﻿using Bgfx;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -20,6 +22,12 @@ public sealed class RenderTarget
     internal List<Texture> textures = new();
 
     private bool destroyed = false;
+
+    //For some reason using anything other than a static ptr or buffer results in the buffer always being zero'd.
+    //So we're gonna have to do this in an unconventional way...
+    private static nint renderPtr = nint.Zero;
+
+    private static List<Action> renderQueue = new();
 
     ~RenderTarget()
     {
@@ -65,6 +73,39 @@ public sealed class RenderTarget
     }
 
     /// <summary>
+    /// Renders with this render target
+    /// </summary>
+    /// <param name="viewID">The view ID to use</param>
+    /// <param name="renderCallback">A callback with render instrucitons</param>
+    public void Render(ushort viewID, Action renderCallback)
+    {
+        if(destroyed)
+        {
+            return;
+        }
+
+        var screenWidth = Screen.Width;
+        var screenHeight = Screen.Height;
+
+        Screen.Width = width;
+        Screen.Height = height;
+
+        SetActive(viewID);
+
+        try
+        {
+            renderCallback?.Invoke();
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[RenderTarget] While rendering view ID {viewID}: {e}");
+        }
+
+        Screen.Width = screenWidth;
+        Screen.Height = screenHeight;
+    }
+
+    /// <summary>
     /// Sets this framebuffer as active for a view
     /// </summary>
     /// <param name="viewID">The view ID</param>
@@ -76,6 +117,75 @@ public sealed class RenderTarget
         }
 
         bgfx.set_view_frame_buffer(viewID, handle);
+    }
+
+    public void ReadTexture(ushort viewID, byte attachment, Action<Texture, byte[]> completion)
+    {
+        void RunQueueItem()
+        {
+            try
+            {
+                var texture = GetTexture(attachment);
+
+                if (texture == null ||
+                    texture.Disposed ||
+                    texture.info.storageSize == 0)
+                {
+                    completion?.Invoke(null, null);
+
+                    RunQueueItem();
+
+                    return;
+                }
+
+                var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1, texture.info.format,
+                    TextureFlags.BlitDestination | TextureFlags.ReadBack | TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp);
+
+                bgfx.blit(viewID, readBackTexture.handle, 0, 0, 0, 0, texture.handle, 0, 0, 0, 0, texture.info.width, texture.info.height, 0);
+
+                unsafe
+                {
+                    renderPtr = Marshal.AllocHGlobal((int)texture.info.storageSize);
+
+                    var buffer = new byte[texture.info.storageSize];
+
+                    var frame = bgfx.read_texture(readBackTexture.handle, (void*)renderPtr, 0);
+
+                    RenderSystem.Instance.QueueFrameCallback(frame, () =>
+                    {
+                        Marshal.Copy(renderPtr, buffer, 0, buffer.Length);
+
+                        Marshal.FreeHGlobal(renderPtr);
+
+                        renderPtr = nint.Zero;
+
+                        readBackTexture.Destroy();
+
+                        completion?.Invoke(texture, buffer);
+
+                        renderQueue.RemoveAt(0);
+
+                        if (renderQueue.Count > 0)
+                        {
+                            RunQueueItem();
+                        }
+                    });
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Debug($"[RenderTarget] Failed to read data: {e}");
+
+                RunQueueItem();
+            }
+        }
+
+        renderQueue.Add(RunQueueItem);
+
+        if(renderQueue.Count == 1)
+        {
+            RunQueueItem();
+        }
     }
 
     /// <summary>

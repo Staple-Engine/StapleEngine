@@ -721,7 +721,9 @@ internal class RenderWindow
             bgfx.touch(ClearView);
         }
 
-        _ = bgfx.frame(false);
+        var frame = bgfx.frame(false);
+
+        RenderSystem.Instance.OnFrame(frame);
 
         bgfx.dbg_text_clear(0, false);
 

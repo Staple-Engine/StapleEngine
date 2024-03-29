@@ -109,8 +109,10 @@ internal class AppSettingsWindow : EditorWindow
                     }
                 }
 
-                LayerMask.AllLayers = projectAppSettings.layers;
+                LayerMask.AllLayers = new(projectAppSettings.layers);
                 LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
+
+                StapleEditor.instance.AddEditorLayers();
             }
 
             EditorGUI.Label("Layers");

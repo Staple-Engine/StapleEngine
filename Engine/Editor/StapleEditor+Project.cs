@@ -102,8 +102,10 @@ internal partial class StapleEditor
             projectAppSettings = AppSettings.Default;
         }
 
-        LayerMask.AllLayers = projectAppSettings.layers;
+        LayerMask.AllLayers = new(projectAppSettings.layers);
         LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
+
+        AddEditorLayers();
 
         window.appSettings.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
 

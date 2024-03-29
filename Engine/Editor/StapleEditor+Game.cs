@@ -149,13 +149,13 @@ internal partial class StapleEditor
 
             if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                var renderSystems = renderSystem.renderSystems
+                var renderSystems = RenderSystem.Instance.renderSystems
                     .Where(x => x.GetType().Assembly == assembly)
                     .ToList();
 
                 foreach(var r in renderSystems)
                 {
-                    renderSystem.renderSystems.Remove(r);
+                    RenderSystem.Instance.renderSystems.Remove(r);
                 }
 
                 if (Scene.current != null)

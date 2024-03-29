@@ -122,8 +122,6 @@ internal class AppPlayer
 
             Log.Info("Loaded scene list");
 
-            var renderSystem = new RenderSystem();
-
             try
             {
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
@@ -137,7 +135,7 @@ internal class AppPlayer
                 throw new Exception("Failed to initialize physics");
             }
 
-            SubsystemManager.instance.RegisterSubsystem(renderSystem, RenderSystem.Priority);
+            SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
             SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
             SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
             SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);

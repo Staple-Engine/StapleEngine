@@ -19,6 +19,15 @@ public struct LayerMask
     /// </summary>
     public uint value;
 
+    public LayerMask()
+    {
+    }
+
+    public LayerMask(uint value)
+    {
+        this.value = value;
+    }
+
     /// <summary>
     /// Whether this layer mask has a layer
     /// </summary>
@@ -54,10 +63,7 @@ public struct LayerMask
     {
         get
         {
-            return new LayerMask()
-            {
-                value = uint.MaxValue,
-            };
+            return new LayerMask(uint.MaxValue);
         }
     }
 

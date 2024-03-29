@@ -46,6 +46,12 @@ internal class EmptyTextureCreateMethod : ITextureCreateMethod
             {
                 width = width,
                 height = height,
+                format = format,
+                numLayers = layers,
+                numMips = (byte)(hasMips ? 1 : 0),
+                storageSize = (uint)(format == bgfx.TextureFormat.RGBA8 ? 4 * width * height :
+                    format == bgfx.TextureFormat.RGB8 ? 3 * width * height :
+                    0),
             };
 
             return true;

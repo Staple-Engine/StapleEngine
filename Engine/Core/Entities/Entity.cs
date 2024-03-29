@@ -85,6 +85,19 @@ public partial struct Entity
         return $"{nameString} {Identifier.ID}:{Identifier.generation}";
     }
 
+    public void SetLayer(uint layer, bool recursive = false)
+    {
+        Layer = layer;
+
+        if(recursive && TryGetComponent<Transform>(out var transform))
+        {
+            foreach (var child in transform)
+            {
+                child.entity.SetLayer(layer, true);
+            }
+        }
+    }
+
     public static Entity Create(params Type[] componentTypes)
     {
         if (World.Current == null)

@@ -32,6 +32,8 @@ internal partial class StapleEditor
 
         wireframeMaterial.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
+        var renderSystem = RenderSystem.Instance;
+
         foreach (var system in renderSystem.renderSystems)
         {
             system.Prepare();

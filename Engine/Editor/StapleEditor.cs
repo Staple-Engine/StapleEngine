@@ -105,6 +105,7 @@ internal partial class StapleEditor
     internal static string StapleBasePath => Storage.StapleBasePath;
 
     internal const int ClearView = 0;
+    internal const int MeshRenderView = 252;
     internal const int SceneView = 253;
     internal const int WireframeView = 254;
 
@@ -132,8 +133,6 @@ internal partial class StapleEditor
     internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
 
     private RenderTarget gameRenderTarget;
-
-    private readonly RenderSystem renderSystem = new();
 
     private const int TargetFramerate = 30;
 
@@ -442,7 +441,7 @@ internal partial class StapleEditor
 
             wireframeMesh.MeshTopology = MeshTopology.LineStrip;
 
-            renderSystem.Startup();
+            RenderSystem.Instance.Startup();
 
             cameraTransform.Position = new Vector3(0, 0, 5);
 
@@ -524,7 +523,7 @@ internal partial class StapleEditor
                 Screen.Width = gameRenderTarget.width;
                 Screen.Height = gameRenderTarget.height;
 
-                renderSystem.Update();
+                RenderSystem.Instance.Update();
 
                 Screen.Width = window.width;
                 Screen.Height = window.height;
@@ -818,7 +817,7 @@ internal partial class StapleEditor
 
             imgui.Destroy();
 
-            renderSystem.Shutdown();
+            RenderSystem.Instance.Shutdown();
 
             SubsystemManager.instance.Destroy();
 
@@ -1153,5 +1152,10 @@ internal partial class StapleEditor
             {
             }
         }
+    }
+
+    internal void AddEditorLayers()
+    {
+        LayerMask.AllLayers.Add("MeshRender");
     }
 }
