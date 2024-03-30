@@ -1280,9 +1280,50 @@ internal class ResourceManager
                 asset.meshes.Add(newMesh);
             }
 
-            asset.Bounds = asset.meshes.Count == 1 ? asset.meshes[0].bounds :
-                asset.meshes.Count == 0 ? new AABB() :
-                AABB.FromPoints(asset.meshes.Select(x => x.bounds.Size + x.bounds.center).ToArray());
+            if(asset.meshes.Count == 1)
+            {
+                asset.Bounds = asset.meshes[0].bounds;
+            }
+            else if(asset.meshes.Count > 0)
+            {
+                var min = Vector3.One * 999999;
+                var max = Vector3.One * -999999;
+
+                foreach(var m in asset.meshes)
+                {
+                    if(min.X > m.bounds.center.X)
+                    {
+                        min.X = m.bounds.center.X;
+                    }
+
+                    if (min.Y > m.bounds.center.Y)
+                    {
+                        min.Y = m.bounds.center.Y;
+                    }
+
+                    if (min.Z > m.bounds.center.Z)
+                    {
+                        min.Z = m.bounds.center.Z;
+                    }
+
+                    if (max.X < m.bounds.center.X + m.bounds.Size.X)
+                    {
+                        max.X = m.bounds.center.X + m.bounds.Size.X;
+                    }
+
+                    if (max.Y < m.bounds.center.Y + m.bounds.Size.Y)
+                    {
+                        max.Y = m.bounds.center.Y + m.bounds.Size.Y;
+                    }
+
+                    if (max.Z < m.bounds.center.Z + m.bounds.Size.Z)
+                    {
+                        max.Z = m.bounds.center.Z + m.bounds.Size.Z;
+                    }
+                }
+
+                asset.Bounds = AABB.CreateFromMinMax(min, max);
+            }
 
             void GatherNodes(MeshAssetNode node, MeshAsset.Node parent)
             {

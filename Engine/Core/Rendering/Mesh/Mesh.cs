@@ -848,7 +848,7 @@ public partial class Mesh : IGuidAsset
     /// </summary>
     public void UpdateBounds()
     {
-        bounds = AABB.FromPoints(vertices);
+        bounds = AABB.CreateFromPoints(vertices);
     }
 
     /// <summary>

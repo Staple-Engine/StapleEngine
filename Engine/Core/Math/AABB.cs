@@ -94,11 +94,22 @@ public struct AABB
     }
 
     /// <summary>
+    /// Creates an AABB from a min/max vector
+    /// </summary>
+    /// <param name="min">the minimum value</param>
+    /// <param name="max">the maximum value</param>
+    /// <returns>The AABB</returns>
+    public static AABB CreateFromMinMax(Vector3 min, Vector3 max)
+    {
+        return new AABB((min + max) / 2, max - min);
+    }
+
+    /// <summary>
     /// Calculates a AABB from a list of points
     /// </summary>
     /// <param name="points">The points to validate</param>
     /// <returns>The AABB</returns>
-    public static AABB FromPoints(Vector3[] points)
+    public static AABB CreateFromPoints(params Vector3[] points)
     {
         var min = Vector3.One * 999999;
         var max = Vector3.One * -999999;

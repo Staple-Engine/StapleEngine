@@ -119,7 +119,7 @@ internal class ThumbnailCache
 
                     var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
 
-                    if (mesh == null)
+                    if (mesh == null || mesh.meshes.Count == 0)
                     {
                         Cleanup();
 
@@ -173,9 +173,16 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
-                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
-
                         var tempEntity = EditorUtils.InstanceMesh("TEMP", mesh);
+
+                        if(tempEntity.IsValid == false)
+                        {
+                            Cleanup();
+
+                            return;
+                        }
+
+                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
 
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 
@@ -192,8 +199,8 @@ internal class ThumbnailCache
 
                         var cameraTransform = new Transform
                         {
-                            LocalPosition = mesh.Bounds.Size,
-                            LocalRotation = Math.FromEulerAngles(new Vector3(-30, 30, 0)),
+                            LocalPosition = Vector3.One * Math.Max(mesh.Bounds.extents.X, mesh.Bounds.extents.Y, mesh.Bounds.extents.Z) + mesh.Bounds.center,
+                            LocalRotation = Math.FromEulerAngles(new Vector3(-30, 45, 0)),
                         };
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
