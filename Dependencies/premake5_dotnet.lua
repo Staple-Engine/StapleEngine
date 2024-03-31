@@ -85,18 +85,3 @@ project "MessagePack"
 	files {
 		"MessagePack/**.cs"
 	}
-
-project "ImGui.NET"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	dependson { "CrossCopy" }
-
-	files {
-		"ImGui.NET/src/**.cs"
-	}
-	
-	postbuildcommands {
-		'$(SolutionDir)bin/$(Configuration)/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Debug"',
-		'$(SolutionDir)bin/$(Configuration)/net8.0/CrossCopy "$(SolutionDir)../../ImGui.NET/binaries/*.[DLL]" "$(SolutionDir)../native/bin/Release"'
-	}

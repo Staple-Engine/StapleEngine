@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Staple.Internal;
@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 
 namespace Staple.Editor;
@@ -958,7 +957,7 @@ internal class ProjectBrowser
 
             unsafe
             {
-                if (payload.NativePtr != null)
+                if (payload.Handle != null)
                 {
                     StapleEditor.instance.CreatePrefabFromDragged();
                 }

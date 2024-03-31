@@ -1,7 +1,6 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using NfdSharp;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -110,7 +109,7 @@ internal class BuildWindow : EditorWindow
 
                     unsafe
                     {
-                        if (payload.NativePtr != null && StapleEditor.instance.dragDropPayloads.TryGetValue("ASSET", out var p))
+                        if (payload.Handle != null && StapleEditor.instance.dragDropPayloads.TryGetValue("ASSET", out var p))
                         {
                             ProjectBrowser.dropType = ProjectBrowserDropType.SceneList;
 

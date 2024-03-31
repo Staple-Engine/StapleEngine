@@ -1,5 +1,8 @@
 ﻿using Bgfx;
-using ImGuiNET;
+using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
+using Hexa.NET.ImNodes;
+using Hexa.NET.ImPlot;
 using Staple.Internal;
 using System;
 using System.Numerics;
@@ -10,7 +13,9 @@ namespace Staple.Editor;
 internal class ImGuiProxy
 {
     public ushort viewID = 255;
-    public IntPtr ImGuiContext;
+    public ImGuiContextPtr ImGuiContext;
+    public ImNodesContextPtr ImNodesContext;
+    public ImPlotContextPtr ImPlotContext;
     public Shader program;
     public Shader imageProgram;
     public VertexLayout layout;
@@ -32,6 +37,20 @@ internal class ImGuiProxy
 
         ImGui.SetCurrentContext(ImGuiContext);
 
+        ImGuizmo.SetImGuiContext(ImGuiContext);
+        ImGuizmo.AllowAxisFlip(false);
+
+        ImPlot.SetImGuiContext(ImGuiContext);
+        ImNodes.SetImGuiContext(ImGuiContext);
+
+        ImNodesContext = ImNodes.CreateContext();
+        ImNodes.SetCurrentContext(ImNodesContext);
+        ImNodes.StyleColorsDark(ImNodes.GetStyle());
+
+        ImPlotContext = ImPlot.CreateContext();
+        ImPlot.SetCurrentContext(ImPlotContext);
+        ImPlot.StyleColorsDark(ImPlot.GetStyle());
+
         ImGuiIO.Fonts.AddFontDefault();
 
         var bytes = Convert.FromBase64String(FontData.IntelOneMonoRegular);
@@ -40,7 +59,7 @@ internal class ImGuiProxy
         {
             fixed(byte * ptr = bytes)
             {
-                editorFont = ImGuiIO.Fonts.AddFontFromMemoryTTF((IntPtr)ptr, bytes.Length, 18);
+                editorFont = ImGuiIO.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 18);
             }
         }
 
@@ -66,7 +85,11 @@ internal class ImGuiProxy
 
         unsafe
         {
-            ImGuiIO.Fonts.GetTexDataAsRGBA32(out byte* data, out var fontWidth, out var fontHeight);
+            byte *data = null;
+            int fontWidth = 0;
+            int fontHeight = 0;
+
+            ImGuiIO.Fonts.GetTexDataAsRGBA32(&data, ref fontWidth, ref fontHeight);
 
             byte[] fontData = new byte[fontWidth * fontHeight * 4];
 
@@ -141,6 +164,8 @@ internal class ImGuiProxy
 
         ImGui.PushFont(editorFont);
 
+        ImGuizmo.BeginFrame();
+
         frameBegun = true;
     }
 
@@ -187,10 +212,10 @@ internal class ImGuiProxy
                 bgfx.TransientVertexBuffer tvb;
                 bgfx.TransientIndexBuffer tib;
 
-                var cmdList = drawData.CmdListsRange[i];
+                var cmdList = drawData.CmdLists.Data[i];
 
-                var numVertices = cmdList.VtxBuffer.Size;
-                var numIndices = cmdList.IdxBuffer.Size;
+                var numVertices = cmdList->VtxBuffer.Size;
+                var numIndices = cmdList->IdxBuffer.Size;
 
                 if (RenderSystem.CheckAvailableTransientBuffers((uint)numVertices, layout.layout, (uint)numIndices) == false)
                 {
@@ -206,17 +231,17 @@ internal class ImGuiProxy
 
                 var size = numVertices * sizeof(ImDrawVert);
 
-                Buffer.MemoryCopy((void *)cmdList.VtxBuffer.Data, tvb.data, size, size);
+                Buffer.MemoryCopy((void *)cmdList->VtxBuffer.Data, tvb.data, size, size);
 
                 size = numIndices * sizeof(ushort);
 
-                Buffer.MemoryCopy((void *)cmdList.IdxBuffer.Data, tib.data, size, size);
+                Buffer.MemoryCopy((void *)cmdList->IdxBuffer.Data, tib.data, size, size);
 
-                for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
+                for (var j = 0; j < cmdList->CmdBuffer.Size; j++)
                 {
-                    var drawCmd = cmdList.CmdBuffer[j];
+                    var drawCmd = cmdList->CmdBuffer.Data[j];
 
-                    if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != IntPtr.Zero)
+                    if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != (void *)0)
                     {
                         continue;
                     }
@@ -230,7 +255,7 @@ internal class ImGuiProxy
                     {
                         program = imageProgram.program;
 
-                        var index = (ushort)drawCmd.TextureId.ToInt64();
+                        var index = (ushort)drawCmd.TextureId.Handle;
 
                         activeTexture.idx = index;
                     }

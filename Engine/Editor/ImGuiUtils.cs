@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -71,7 +71,15 @@ internal static class ImGuiUtils
                     StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) == false &&
                     ImGui.BeginDragDropSource())
                 {
-                    ImGui.SetDragDropPayload(dragPayload, nint.Zero, 0);
+                    unsafe
+                    {
+                        var buffer = System.Text.Encoding.UTF8.GetBytes(dragPayload);
+
+                        fixed(byte *b = buffer)
+                        {
+                            ImGui.SetDragDropPayload(b, (void *)0, 0);
+                        }
+                    }
 
                     StapleEditor.instance.dragDropPayloads.AddOrSetKey(dragPayload, new StapleEditor.DragDropPayload()
                     {

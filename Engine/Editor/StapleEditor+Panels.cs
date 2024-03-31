@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using MessagePack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace Staple.Editor;
 
@@ -296,7 +297,7 @@ internal partial class StapleEditor
 
                         unsafe
                         {
-                            if (payload.NativePtr != null)
+                            if (payload.Handle != null)
                             {
                                 var t = draggedEntity.GetComponent<Transform>();
 
@@ -310,7 +311,7 @@ internal partial class StapleEditor
 
                         unsafe
                         {
-                            if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
+                            if (payload.Handle != null && dragDropPayloads.TryGetValue("ASSET", out var p))
                             {
                                 Staple.Editor.ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
 
@@ -329,7 +330,15 @@ internal partial class StapleEditor
                     {
                         draggedEntity = transform.entity;
 
-                        ImGui.SetDragDropPayload("ENTITY", nint.Zero, 0);
+                        unsafe
+                        {
+                            byte[] buffer = Encoding.UTF8.GetBytes("ENTITY");
+
+                            fixed(byte *b = buffer)
+                            {
+                                ImGui.SetDragDropPayload(b, (void *)0, 0);
+                            }
+                        }
 
                         ImGui.EndDragDropSource();
 
@@ -441,7 +450,7 @@ internal partial class StapleEditor
 
             unsafe
             {
-                if (payload.NativePtr != null)
+                if (payload.Handle != null)
                 {
                     var t = draggedEntity.GetComponent<Transform>();
 
@@ -453,7 +462,7 @@ internal partial class StapleEditor
 
             unsafe
             {
-                if (payload.NativePtr != null && dragDropPayloads.TryGetValue("ASSET", out var p))
+                if (payload.Handle != null && dragDropPayloads.TryGetValue("ASSET", out var p))
                 {
                     Staple.Editor.ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
 
