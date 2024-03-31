@@ -1,4 +1,8 @@
-# StapleEngine
+![Github top languages](https://img.shields.io/github/languages/top/littlecodingfox/stapleengine)
+[![GitHub version](https://img.shields.io/github/v/release/littlecodingfox/stapleengine?include_prereleases&style=flat-square)](https://github.com/littlecodingfox/stapleengine/releases) 
+[![GitHub license](https://img.shields.io/github/license/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/blob/main/LICENSE) 
+[![GitHub issues](https://img.shields.io/github/issues/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/issues) 
+[![GitHub stars](https://img.shields.io/github/stars/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/stargazers) 
 
 .NET Game Engine "stapled" together
 
@@ -6,23 +10,17 @@ Status: Early state, usable for small demos
 
 # Features
 
-* Basic renderer using bgfx
+* Unity-style Editor app that runs on windows, linux, and mac, that can edit game data and make builds for windows, linux, mac, and android
+* Unity-style custom editor scripting and editor window scripting
+* Custom asset system
 * Entities inspired by both modern ECS and Unity
-* Scenes
-* Input (Keyboard, Mouse, Touch for now)
-* Math classes
-* Materials
-* Sprites
-* Textures
+* Input (Keyboard, Mouse, Touch, Gamepad)
 * Meshes, including some imported formats and skeletal animation
+* Physics (3D: Jolt Physics)
 * Audio (MP3, WAV, OGG) through OpenAL
 * Shader format based on BGFX, in a single file
 * Baking pipeline (Baker) that processes game resources to fast usage in engine
 * Resource Packer that packs multiple files in its own format
-* Unity-style Editor app that runs on windows, linux, and mac, that can edit game data and make builds for windows, linux, mac, and android
-* Unity-style custom editor scripting and editor window scripting
-* Custom asset system
-* Physics support (3D: Jolt Physics)
 
 # Installation
 
