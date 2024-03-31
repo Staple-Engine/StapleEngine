@@ -33,12 +33,11 @@ internal class ImGuiProxy
     {
         ImGuiContext = ImGui.CreateContext();
 
-        var ImGuiIO = ImGui.GetIO();
+        var io = ImGui.GetIO();
 
         ImGui.SetCurrentContext(ImGuiContext);
 
         ImGuizmo.SetImGuiContext(ImGuiContext);
-        ImGuizmo.AllowAxisFlip(false);
 
         ImPlot.SetImGuiContext(ImGuiContext);
         ImNodes.SetImGuiContext(ImGuiContext);
@@ -51,7 +50,9 @@ internal class ImGuiProxy
         ImPlot.SetCurrentContext(ImPlotContext);
         ImPlot.StyleColorsDark(ImPlot.GetStyle());
 
-        ImGuiIO.Fonts.AddFontDefault();
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+
+        io.Fonts.AddFontDefault();
 
         var bytes = Convert.FromBase64String(FontData.IntelOneMonoRegular);
 
@@ -59,11 +60,11 @@ internal class ImGuiProxy
         {
             fixed(byte * ptr = bytes)
             {
-                editorFont = ImGuiIO.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 18);
+                editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 18);
             }
         }
 
-        SetupImGuiKeyMaps(ImGuiIO);
+        SetupImGuiKeyMaps(io);
 
         program = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/ocornut_imgui.stsh");
         imageProgram = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/imgui_image.stsh");
@@ -89,7 +90,7 @@ internal class ImGuiProxy
             int fontWidth = 0;
             int fontHeight = 0;
 
-            ImGuiIO.Fonts.GetTexDataAsRGBA32(&data, ref fontWidth, ref fontHeight);
+            io.Fonts.GetTexDataAsRGBA32(&data, ref fontWidth, ref fontHeight);
 
             byte[] fontData = new byte[fontWidth * fontHeight * 4];
 
@@ -241,7 +242,7 @@ internal class ImGuiProxy
                 {
                     var drawCmd = cmdList->CmdBuffer.Data[j];
 
-                    if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != (void *)0)
+                    if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
                     {
                         continue;
                     }

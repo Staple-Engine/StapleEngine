@@ -187,7 +187,7 @@ static partial class Program
                         textureData.Resize((int)(textureData.width * scale), (int)(textureData.height * scale));
                     }
 
-                    inputFile = GenerateGuid();
+                    inputFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
                     var png = textureData.EncodePNG();
 

@@ -507,28 +507,38 @@ internal partial class StapleEditor
             }
         });
 
-        if (viewportType == ViewportType.Game)
+        switch(viewportType)
         {
-            ImGui.BeginChildFrame(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
+            case ViewportType.Scene:
 
-            var width = (ushort)ImGui.GetContentRegionAvail().X;
-            var height = (ushort)ImGui.GetContentRegionAvail().Y;
+                RenderScene();
 
-            if (gameRenderTarget == null || gameRenderTarget.width != width || gameRenderTarget.height != height)
-            {
-                gameRenderTarget?.Destroy();
+                break;
 
-                gameRenderTarget = RenderTarget.Create(width, height);
-            }
+            case ViewportType.Game:
 
-            var texture = gameRenderTarget.GetTexture();
+                ImGui.BeginChildFrame(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
 
-            if (texture != null)
-            {
-                EditorGUI.Texture(texture, new Vector2(width, height));
-            }
+                var width = (ushort)ImGui.GetContentRegionAvail().X;
+                var height = (ushort)ImGui.GetContentRegionAvail().Y;
 
-            ImGui.End();
+                if (gameRenderTarget == null || gameRenderTarget.width != width || gameRenderTarget.height != height)
+                {
+                    gameRenderTarget?.Destroy();
+
+                    gameRenderTarget = RenderTarget.Create(width, height);
+                }
+
+                var texture = gameRenderTarget.GetTexture();
+
+                if (texture != null)
+                {
+                    EditorGUI.Texture(texture, new Vector2(width, height));
+                }
+
+                ImGui.End();
+
+                break;
         }
 
         ImGui.End();

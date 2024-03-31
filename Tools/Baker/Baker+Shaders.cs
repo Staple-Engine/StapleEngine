@@ -158,7 +158,7 @@ static partial class Program
                     byte[] ProcessShader(string varyingFileName, string shaderFileName, ShaderCompilerType shaderType, Renderer renderer)
                     {
                         var shaderPlatform = "";
-                        var outShaderFileName = GenerateGuid();
+                        var outShaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
                         switch (renderer)
                         {
@@ -359,8 +359,8 @@ static partial class Program
 
                     string code;
 
-                    var varyingFileName = GenerateGuid();
-                    var shaderFileName = GenerateGuid();
+                    var varyingFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                    var shaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
                     switch (shader.type)
                     {

@@ -1,5 +1,6 @@
 using Bgfx;
 using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
 using Staple.Internal;
 using System;
@@ -469,6 +470,10 @@ internal partial class StapleEditor
         {
             var io = ImGui.GetIO();
 
+            ThumbnailCache.OnFrameStart();
+            EditorGUI.OnFrameStart();
+            imgui.BeginFrame();
+
             bgfx.touch(ClearView);
 
             if(window.width == 0 || window.height == 0)
@@ -476,10 +481,11 @@ internal partial class StapleEditor
                 return;
             }
 
-            if(viewportType == ViewportType.Scene)
-            {
-                RenderScene();
+            io.DisplaySize = new Vector2(window.width, window.height);
+            io.DisplayFramebufferScale = new Vector2(1, 1);
 
+            if (viewportType == ViewportType.Scene)
+            {
                 var axis = Vector3.Zero;
 
                 if(Input.GetKey(KeyCode.A))
@@ -515,9 +521,6 @@ internal partial class StapleEditor
                 }
             }
 
-            io.DisplaySize = new Vector2(window.width, window.height);
-            io.DisplayFramebufferScale = new Vector2(1, 1);
-
             if (gameRenderTarget != null && Scene.current != null)
             {
                 RenderTarget.SetActive(1, gameRenderTarget);
@@ -537,10 +540,6 @@ internal partial class StapleEditor
 
                 SetSelectedEntity(selectedEntity);
             }
-
-            ThumbnailCache.OnFrameStart();
-            EditorGUI.OnFrameStart();
-            imgui.BeginFrame();
 
             mouseIsHoveringImGui = true;
             var viewport = ImGui.GetMainViewport();
@@ -743,7 +742,7 @@ internal partial class StapleEditor
 
             imgui.EndFrame();
 
-            if (World.Current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false)
+            if (World.Current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false && ImGuizmo.IsUsingAny() == false)
             {
                 var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 

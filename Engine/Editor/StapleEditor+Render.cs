@@ -1,7 +1,9 @@
 ﻿using Bgfx;
+using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Staple.Editor;
 
@@ -17,6 +19,10 @@ internal partial class StapleEditor
         bgfx.touch(SceneView);
         bgfx.touch(WireframeView);
 
+        ImGuizmo.SetDrawlist();
+        ImGuizmo.SetOrthographic(false);
+        ImGuizmo.SetRect(0, 0, window.width, window.height);
+
         unsafe
         {
             var projection = Camera.Projection(default, camera);
@@ -28,6 +34,40 @@ internal partial class StapleEditor
 
             bgfx.set_view_transform(SceneView, &view, &projection);
             bgfx.set_view_transform(WireframeView, &view, &projection);
+
+            if (selectedEntity.IsValid &&
+                selectedEntity.TryGetComponent<Transform>(out var selectedTransform))
+            {
+                ImGuizmo.Enable(true);
+
+                unsafe
+                {
+                    float* snap = null;
+                    float* localBound = null;
+                    float[] snaps = [1, 1, 1];
+
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        snap = (float*)Unsafe.AsPointer(ref snaps[0]);
+                    }
+
+                    var matrix = Math.TransformationMatrix(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
+
+                    if (ImGuizmo.Manipulate(ref view, ref projection, ImGuizmoOperation.Translate, ImGuizmoMode.World, ref matrix, null, snap, localBound, snap))
+                    {
+                        if (Matrix4x4.Decompose(matrix, out var scale, out var rotation, out var position))
+                        {
+                            selectedTransform.Position = position;
+                            selectedTransform.Scale = scale;
+                            selectedTransform.Rotation = rotation;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                ImGuizmo.Enable(false);
+            }
         }
 
         wireframeMaterial.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
