@@ -12,6 +12,7 @@ Status: Early state, usable for small demos
 
 * Unity-style Editor app that runs on windows, linux, and mac, that can edit game data and make builds for windows, linux, mac, and android
 * Unity-style custom editor scripting and editor window scripting
+* C# game scripting
 * Custom asset system
 * Entities inspired by both modern ECS and Unity
 * Input (Keyboard, Mouse, Touch, Gamepad)
