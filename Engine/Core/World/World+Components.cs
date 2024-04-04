@@ -264,7 +264,7 @@ public partial class World
                 }
             }
 
-            if(t.IsSubclassOf(typeof(CallbackComponent)))
+            if(Platform.IsPlaying && t.IsSubclassOf(typeof(CallbackComponent)))
             {
                 var instance = info.components[entityInfo.localID] as CallbackComponent;
 
@@ -316,7 +316,7 @@ public partial class World
 
                     var component = info.components[entityInfo.localID];
 
-                    if(component is CallbackComponent callable)
+                    if(Platform.IsPlaying && component is CallbackComponent callable)
                     {
                         try
                         {
@@ -621,6 +621,11 @@ public partial class World
 
     internal void IterateCallableComponents(CallableComponentCallback callback)
     {
+        if(Platform.IsPlaying == false)
+        {
+            return;
+        }
+
         lock(lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
