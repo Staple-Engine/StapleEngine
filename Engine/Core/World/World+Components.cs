@@ -163,6 +163,11 @@ public partial class World
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
+        if(t.GetCustomAttribute(typeof(AbstractComponentAttribute)) != null)
+        {
+            return default;
+        }
+
         if(TryGetEntity(entity, out var entityInfo) == false)
         {
             return default;
@@ -202,6 +207,11 @@ public partial class World
                 }
 
                 componentsRepository.Add(infoIndex, info);
+
+                if(t.IsSubclassOf(typeof(CallbackComponent)))
+                {
+                    callableComponentIndices.Add(infoIndex);
+                }
             }
 
             if (entityInfo.components.Contains(infoIndex) == false)
@@ -254,6 +264,20 @@ public partial class World
                 }
             }
 
+            if(t.IsSubclassOf(typeof(CallbackComponent)))
+            {
+                var instance = info.components[entityInfo.localID] as CallbackComponent;
+
+                try
+                {
+                    instance.Awake();
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"{entity.Name} ({instance.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                }
+            }
+
             return info.components[entityInfo.localID];
         }
     }
@@ -291,6 +315,18 @@ public partial class World
                     entityInfo.removedComponents.Add(componentIndex);
 
                     var component = info.components[entityInfo.localID];
+
+                    if(component is CallbackComponent callable)
+                    {
+                        try
+                        {
+                            callable.OnDestroy();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
+                        }
+                    }
 
                     EmitRemoveComponentEvent(entity, ref component);
 
@@ -403,7 +439,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity to update</param>
     /// <param name="component">The component instance to replace</param>
-    public void UpdateComponent(Entity entity, IComponent component)
+    public void SetComponent(Entity entity, IComponent component)
     {
         if (TryGetEntity(entity, out var entityInfo) == false)
         {
@@ -499,8 +535,6 @@ public partial class World
 
         lock (globalLockObject)
         {
-            var transform = entity.GetComponent<Transform>();
-
             if (componentAddedCallbacks.TryGetValue(component.GetType(), out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
@@ -518,7 +552,7 @@ public partial class World
 
                     try
                     {
-                        callback?.Invoke(this, entity, transform, ref component);
+                        callback?.Invoke(this, entity, ref component);
                     }
                     catch (Exception ex)
                     {
@@ -550,8 +584,6 @@ public partial class World
 
         lock (globalLockObject)
         {
-            var transform = entity.GetComponent<Transform>();
-
             if (componentRemovedCallbacks.TryGetValue(component.GetType(), out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
@@ -569,7 +601,7 @@ public partial class World
 
                     try
                     {
-                        callback?.Invoke(this, entity, transform, ref component);
+                        callback?.Invoke(this, entity, ref component);
                     }
                     catch (Exception e)
                     {
@@ -582,6 +614,48 @@ public partial class World
                     var item = removedCallbacks.Pop();
 
                     callbacks.RemoveAt(item);
+                }
+            }
+        }
+    }
+
+    internal void IterateCallableComponents(CallableComponentCallback callback)
+    {
+        lock(lockObject)
+        {
+            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
+            var allEntities = entities.ToArray();
+
+            foreach(var entity in allEntities)
+            {
+                if(entity.alive == false)
+                {
+                    continue;
+                }
+
+                foreach(var component in entity.components)
+                {
+                    if(callableComponentIndices.Contains(component) &&
+                        componentsRepository.TryGetValue(component, out var componentInfo) &&
+                        componentInfo.components[entity.localID] is CallbackComponent callbackComponent)
+                    {
+                        try
+                        {
+                            callback?.Invoke(new Entity()
+                            {
+                                Identifier = new()
+                                {
+                                    ID = entity.ID,
+                                    generation = entity.generation,
+                                }
+                            },
+                            callbackComponent);
+                        }
+                        catch(Exception e)
+                        {
+                            Log.Error($"[World] Failed to handle callable component callback: {e}");
+                        }
+                    }
                 }
             }
         }

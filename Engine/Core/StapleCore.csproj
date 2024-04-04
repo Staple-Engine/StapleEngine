@@ -113,6 +113,7 @@
 		<Compile Include="Audio\Readers\MP3AudioStream.cs" />
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
+		<Compile Include="Entities\CallbackComponent.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />

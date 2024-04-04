@@ -35,7 +35,9 @@ public partial class World
 
     public delegate void IterateComponentCallback(ref IComponent component);
 
-    public delegate void OnComponentChangedCallback(World world, Entity entity, Transform transform, ref IComponent component);
+    public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);
+
+    public delegate void CallableComponentCallback(Entity entity, CallbackComponent component);
 
     /// <summary>
     /// Contains data on an entity
@@ -176,6 +178,7 @@ public partial class World
     private static readonly object globalLockObject = new();
     private readonly List<EntityInfo> entities = new();
     private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
+    private readonly HashSet<int> callableComponentIndices = new();
 
     internal void StartFrame()
     {

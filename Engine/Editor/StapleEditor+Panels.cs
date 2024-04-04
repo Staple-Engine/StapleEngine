@@ -643,7 +643,7 @@ internal partial class StapleEditor
 
                     if (EditorGUI.Changed)
                     {
-                        selectedEntity.UpdateComponent(localComponent);
+                        selectedEntity.SetComponent(localComponent);
                     }
                 },
                 () =>

@@ -364,7 +364,7 @@ internal class Physics3D : ISubsystem
     #region Internal
     public void Startup()
     {
-        World.AddComponentAddedCallback(typeof(RigidBody3D), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentAddedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
         {
             if(Platform.IsPlaying == false)
             {
@@ -376,7 +376,7 @@ internal class Physics3D : ISubsystem
             rigidBody.body = CreateBody(entity, world);
         });
 
-        World.AddComponentRemovedCallback(typeof(RigidBody3D), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentRemovedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
         {
             if (Platform.IsPlaying == false)
             {

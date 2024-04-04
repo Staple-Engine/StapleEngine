@@ -122,7 +122,7 @@ public class Scene
                 }
             }
 
-            entity.UpdateComponent(componentInstance);
+            entity.SetComponent(componentInstance);
         }
 
         if(activate)

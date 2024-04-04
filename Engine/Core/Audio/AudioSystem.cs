@@ -63,9 +63,9 @@ internal class AudioSystem : ISubsystem
             return;
         }
 
-        World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
         {
-            if(Platform.IsPlaying == false)
+            if(Platform.IsPlaying == false || entity.TryGetComponent<Transform>(out var transform) == false)
             {
                 return;
             }
@@ -79,7 +79,7 @@ internal class AudioSystem : ISubsystem
             };
         });
 
-        World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
         {
             if (Platform.IsPlaying == false)
             {
@@ -106,14 +106,14 @@ internal class AudioSystem : ISubsystem
             });
         });
 
-        World.AddComponentRemovedCallback(typeof(AudioListener), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentRemovedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
         {
             var listener = component as AudioListener;
 
             listener.audioListener = null;
         });
 
-        World.AddComponentRemovedCallback(typeof(AudioSource), (World world, Entity entity, Transform transform, ref IComponent component) =>
+        World.AddComponentRemovedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
         {
             var source = component as AudioSource;
 

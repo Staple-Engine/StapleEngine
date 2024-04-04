@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Staple;
@@ -103,6 +104,18 @@ internal class EntitySystemManager : ISubsystem
                 system.FixedUpdate(time);
             }
         }
+
+        World.Current?.IterateCallableComponents((entity, component) =>
+        {
+            try
+            {
+                component.FixedUpdate();
+            }
+            catch(Exception e)
+            {
+                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
+            }
+        });
     }
 
     public void Update()
@@ -121,5 +134,43 @@ internal class EntitySystemManager : ISubsystem
                 system.Update(time);
             }
         }
+
+        World.Current?.IterateCallableComponents((entity, component) =>
+        {
+            if(component.STAPLE_JUST_ADDED)
+            {
+                component.STAPLE_JUST_ADDED = false;
+
+                try
+                {
+                    component.Start();
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                }
+            }
+
+            try
+            {
+                component.Update();
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
+            }
+        });
+
+        World.Current?.IterateCallableComponents((entity, component) =>
+        {
+            try
+            {
+                component.LateUpdate();
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
+            }
+        });
     }
 }

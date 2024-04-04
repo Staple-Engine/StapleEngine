@@ -182,13 +182,13 @@ public partial struct Entity
     /// This is required if the component type is a struct.
     /// </summary>
     /// <param name="component">The component instance to replace</param>
-    public void UpdateComponent(IComponent component)
+    public void SetComponent(IComponent component)
     {
         if (World.Current == null)
         {
             return;
         }
 
-        World.Current.UpdateComponent(this, component);
+        World.Current.SetComponent(this, component);
     }
 }

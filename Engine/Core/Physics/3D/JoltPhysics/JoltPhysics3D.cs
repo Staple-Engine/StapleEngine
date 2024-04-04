@@ -56,8 +56,6 @@ internal class JoltPhysics3D : IPhysics3D
                 Log.Info(outMessage);
 
                 throw new Exception(outMessage);
-
-                return true;
             });
         }
         catch(Exception)
