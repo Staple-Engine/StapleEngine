@@ -14,6 +14,7 @@ cp -Rf DefaultResources dist/StapleEngine/
 cp -Rf Staging/* dist/StapleEngine/Editor/
 cp -Rf Tools/bin/* dist/StapleEngine/Tools/bin/
 cp -Rf Tools/ShaderIncludes/* dist/StapleEngine/Tools/ShaderIncludes/
+cp -Rf Engine/EditorApp/bin/Release/net8.0/runtimes dist/StapleEngine/Editor/runtimes
 cp -Rf Staging/Player\ Backends/Linux/Redist/Debug/* dist/StapleEngine/Editor/
 
 rm -Rf dist/StapleEngine/DefaultResources/Android
