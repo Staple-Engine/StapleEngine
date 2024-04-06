@@ -384,10 +384,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static bool Toggle(string label, bool value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.Checkbox(MakeIdentifier(""), ref value);
-        });
+        Changed |= ImGui.Checkbox(MakeIdentifier(label), ref value);
 
         return value;
     }
