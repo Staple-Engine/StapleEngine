@@ -579,21 +579,13 @@ internal partial class StapleEditor
             var currentLayer = selectedEntity.Layer;
             var layers = LayerMask.AllLayers
                 .Where(x => x != RenderTargetLayerName)
-                .ToList();
+                .ToArray();
 
-            if (ImGui.BeginCombo("Layer", currentLayer < layers.Count ? layers[(int)currentLayer] : ""))
+            var newLayer = EditorGUI.Dropdown("Layer", layers, (int)currentLayer);
+
+            if(newLayer != currentLayer)
             {
-                for (var j = 0; j < layers.Count; j++)
-                {
-                    bool selected = j == currentLayer;
-
-                    if (ImGui.Selectable(layers[j], selected))
-                    {
-                        selectedEntity.Layer = (uint)j;
-                    }
-                }
-
-                ImGui.EndCombo();
+                selectedEntity.Layer = (uint)newLayer;
             }
 
             var counter = 0;

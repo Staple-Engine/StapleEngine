@@ -28,6 +28,27 @@ public static class EditorGUI
         return $"{identifier}##{counter++}";
     }
 
+    private static bool IdentifierColumns(string identifier, Func<bool> callback)
+    {
+        var width = RemainingHorizontalSpace();
+
+        ImGui.Columns(2, false);
+
+        var w = width / 3;
+
+        ImGui.SetColumnWidth(0, w);
+
+        ImGui.Text(identifier);
+
+        ImGui.NextColumn();
+
+        var changed = callback();
+
+        ImGui.Columns(1);
+
+        return changed;
+    }
+
     private static void ExecuteHandler(Action handler, string label)
     {
         try
@@ -155,7 +176,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntField(string label, int value)
     {
-        Changed |= ImGui.InputInt(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputInt(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -168,7 +192,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatField(string label, float value)
     {
-        Changed |= ImGui.InputFloat(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputFloat(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -181,7 +208,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector2 Vector2Field(string label, Vector2 value)
     {
-        Changed |= ImGui.InputFloat2(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputFloat2(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -196,7 +226,10 @@ public static class EditorGUI
     {
         var values = new int[] { value.X, value.Y };
 
-        Changed |= ImGui.InputInt2(MakeIdentifier(label), ref values[0]);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputInt2(MakeIdentifier(""), ref values[0]);
+        });
 
         return new Vector2Int(values[0], values[1]);
     }
@@ -209,7 +242,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector3 Vector3Field(string label, Vector3 value)
     {
-        Changed |= ImGui.InputFloat3(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputFloat3(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -222,7 +258,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector4 Vector4Field(string label, Vector4 value)
     {
-        Changed |= ImGui.InputFloat4(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputFloat4(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -271,7 +310,7 @@ public static class EditorGUI
             .Select(x => x.ToString())
             .ToArray();
 
-        var newValue = values[Dropdown(MakeIdentifier(label), valueStrings, current)];
+        var newValue = values[Dropdown(label, valueStrings, current)];
 
         return newValue;
     }
@@ -285,7 +324,10 @@ public static class EditorGUI
     /// <returns>The index of the selected value</returns>
     public static int Dropdown(string label, string[] options, int current)
     {
-        Changed |= ImGui.Combo(MakeIdentifier(label), ref current, $"{string.Join("\0", options)}\0");
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.Combo(MakeIdentifier(""), ref current, $"{string.Join("\0", options)}\0");
+        });
 
         if(current < 0)
         {
@@ -306,7 +348,10 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= ImGui.InputText(MakeIdentifier(label), ref value, (uint)maxLength);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputText(MakeIdentifier(""), ref value, (uint)maxLength);
+        });
 
         return value;
     }
@@ -323,7 +368,10 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= ImGui.InputTextMultiline(MakeIdentifier(label), ref value, (uint)maxLength, size);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.InputTextMultiline(MakeIdentifier(""), ref value, (uint)maxLength, size);
+        });
 
         return value;
     }
@@ -336,7 +384,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static bool Toggle(string label, bool value)
     {
-        Changed |= ImGui.Checkbox(MakeIdentifier(label), ref value);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.Checkbox(MakeIdentifier(""), ref value);
+        });
 
         return value;
     }
@@ -351,7 +402,10 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorEdit4(MakeIdentifier(label), ref v);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.ColorEdit4(MakeIdentifier(""), ref v);
+        });
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -366,7 +420,10 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorPicker4(MakeIdentifier(label), ref v);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.ColorPicker4(MakeIdentifier(""), ref v);
+        });
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -512,7 +569,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntSlider(string label, int value, int min, int max)
     {
-        Changed |= ImGui.SliderInt(MakeIdentifier(label), ref value, min, max);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.SliderInt(MakeIdentifier(""), ref value, min, max);
+        });
 
         return value;
     }
@@ -525,7 +585,10 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatSlider(string label, float value, float min, float max)
     {
-        Changed |= ImGui.SliderFloat(MakeIdentifier(label), ref value, min, max);
+        Changed |= IdentifierColumns(label, () =>
+        {
+            return ImGui.SliderFloat(MakeIdentifier(""), ref value, min, max);
+        });
 
         return value;
     }
