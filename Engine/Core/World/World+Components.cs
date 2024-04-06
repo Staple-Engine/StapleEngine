@@ -264,7 +264,9 @@ public partial class World
                 }
             }
 
-            if(Platform.IsPlaying && t.IsSubclassOf(typeof(CallbackComponent)))
+            if(Platform.IsPlaying &&
+                callableComponentIndices.Count != 0 &&
+                t.IsSubclassOf(typeof(CallbackComponent)))
             {
                 var instance = info.components[entityInfo.localID] as CallbackComponent;
 
@@ -316,7 +318,9 @@ public partial class World
 
                     var component = info.components[entityInfo.localID];
 
-                    if(Platform.IsPlaying && component is CallbackComponent callable)
+                    if(Platform.IsPlaying &&
+                        callableComponentIndices.Count != 0 &&
+                        component is CallbackComponent callable)
                     {
                         try
                         {
@@ -628,6 +632,11 @@ public partial class World
 
         lock(lockObject)
         {
+            if(callableComponentIndices.Count == 0)
+            {
+                return;
+            }
+
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
 
@@ -640,7 +649,8 @@ public partial class World
 
                 foreach(var component in entity.components)
                 {
-                    if(callableComponentIndices.Contains(component) &&
+                    if(callableComponentIndices.Count != 0 &&
+                        callableComponentIndices.Contains(component) &&
                         componentsRepository.TryGetValue(component, out var componentInfo) &&
                         componentInfo.components[entity.localID] is CallbackComponent callbackComponent)
                     {
