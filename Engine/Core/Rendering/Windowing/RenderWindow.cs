@@ -478,6 +478,8 @@ internal class RenderWindow
             init.platformData.ndt = window.MonitorPointer(currentPlatform).ToPointer();
             init.platformData.nwh = window.WindowPointer(currentPlatform).ToPointer();
 
+            Log.Debug($"[RenderWindow] platformData ndt: {(nint)init.platformData.ndt} nwh {(nint)init.platformData.nwh}");
+
             if (appSettings.renderers.TryGetValue(currentPlatform, out renderers) == false)
             {
                 Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
