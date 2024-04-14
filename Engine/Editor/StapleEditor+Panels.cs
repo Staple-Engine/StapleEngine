@@ -272,7 +272,7 @@ internal partial class StapleEditor
     {
         ImGui.Begin("Entities");
 
-        ImGui.BeginChildFrame(ImGui.GetID("EntityFrame"), new Vector2(0, 0));
+        ImGui.BeginChild(ImGui.GetID("EntityFrame"), new Vector2(0, 0), ImGuiChildFlags.FrameStyle);
 
         if (Scene.current != null)
         {
@@ -442,7 +442,7 @@ internal partial class StapleEditor
             ImGui.EndPopup();
         }
 
-        ImGui.EndChildFrame();
+        ImGui.EndChild();
 
         if (ImGui.BeginDragDropTarget())
         {
@@ -517,7 +517,7 @@ internal partial class StapleEditor
 
             case ViewportType.Game:
 
-                ImGui.BeginChildFrame(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
+                ImGui.BeginChild(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
 
                 var width = (ushort)ImGui.GetContentRegionAvail().X;
                 var height = (ushort)ImGui.GetContentRegionAvail().Y;
@@ -554,7 +554,7 @@ internal partial class StapleEditor
 
         ImGui.Begin("Inspector");
 
-        ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 0));
+        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 0), ImGuiChildFlags.FrameStyle);
 
         if (selectedEntity != null && selectedEntity.IsValid)
         {
@@ -708,7 +708,7 @@ internal partial class StapleEditor
             }
         }
 
-        ImGui.EndChildFrame();
+        ImGui.EndChild();
 
         ImGui.End();
     }
@@ -721,14 +721,14 @@ internal partial class StapleEditor
     {
         ImGui.Begin("BottomPanel");
 
-        ImGui.BeginChildFrame(ImGui.GetID("Toolbar"), new Vector2(0, 32));
+        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.FrameStyle);
 
         EditorGUI.TabBar(["Project", "Log"], (tabIndex) =>
         {
             activeBottomTab = tabIndex;
         });
 
-        ImGui.EndChildFrame();
+        ImGui.EndChild();
 
         switch (activeBottomTab)
         {
