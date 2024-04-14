@@ -604,7 +604,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
             case AppPlatform.MacOSX:
 
-                return info.info.cocoa.window;
+                return StapleSupport.MacWindow(info.info.cocoa.window);
 
             default:
 
