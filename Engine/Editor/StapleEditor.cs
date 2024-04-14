@@ -470,10 +470,6 @@ internal partial class StapleEditor
         {
             var io = ImGui.GetIO();
 
-            ThumbnailCache.OnFrameStart();
-            EditorGUI.OnFrameStart();
-            imgui.BeginFrame();
-
             bgfx.touch(ClearView);
 
             if(window.width == 0 || window.height == 0)
@@ -483,6 +479,10 @@ internal partial class StapleEditor
 
             io.DisplaySize = new Vector2(window.width, window.height);
             io.DisplayFramebufferScale = new Vector2(1, 1);
+
+            ThumbnailCache.OnFrameStart();
+            EditorGUI.OnFrameStart();
+            imgui.BeginFrame();
 
             if (viewportType == ViewportType.Scene)
             {
