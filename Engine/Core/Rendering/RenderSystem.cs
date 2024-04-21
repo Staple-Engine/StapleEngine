@@ -59,8 +59,6 @@ internal class RenderSystem : ISubsystem
 
     private readonly Transform stagingTransform = new();
 
-    private ulong currentFrame = 0;
-
     private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = new();
 
     /// <summary>

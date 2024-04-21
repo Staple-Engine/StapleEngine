@@ -541,8 +541,8 @@ static partial class Program
                 var transformMatrix = metadata.rotation switch
                 {
                     MeshAssetRotation.None => Matrix4x4.Identity,
-                    MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(90)),
-                    MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad(-90)),
+                    MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * 90),
+                    MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * -90),
                     _ => Matrix4x4.Identity
                 };
 

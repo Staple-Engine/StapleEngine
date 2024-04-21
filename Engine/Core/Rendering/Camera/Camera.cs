@@ -83,7 +83,7 @@ public class Camera : IComponent
                     return Matrix4x4.Identity;
                 }
 
-                return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad(camera.fov), camera.Width / camera.Height,
+                return Matrix4x4.CreatePerspectiveFieldOfView(Math.Deg2Rad * camera.fov, camera.Width / camera.Height,
                     camera.nearPlane, camera.farPlane);
 
             case CameraType.Orthographic:

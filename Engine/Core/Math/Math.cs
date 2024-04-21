@@ -8,9 +8,12 @@ namespace Staple;
 /// </summary>
 public static class Math
 {
-    public static readonly float PI = (float)System.Math.PI;
+    public const float PI = (float)System.Math.PI;
 
-    public static readonly float Epsilon = float.Epsilon;
+    public const float Epsilon = float.Epsilon;
+
+    public const float Deg2Rad = PI / 180;
+    public const float Rad2Deg = 180 / PI;
 
     /// <summary>
     /// Rounds a float value
@@ -27,22 +30,6 @@ public static class Math
     /// <returns>The rounded int</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RoundToInt(float value) => value < 0.0f ? (int)(value - 0.5f) : (int)(value + 0.5f);
-
-    /// <summary>
-    /// Converts degrees to radians
-    /// </summary>
-    /// <param name="angle">The angle as degrees</param>
-    /// <returns>The radians</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Deg2Rad(float angle) => angle * PI / 180;
-
-    /// <summary>
-    /// Converts radians to degrees
-    /// </summary>
-    /// <param name="angle">The angle as radians</param>
-    /// <returns>The degrees</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Rad2Deg(float angle) => angle * 180 / PI;
 
     /// <summary>
     /// Gets the absolute value of a float
@@ -275,9 +262,9 @@ public static class Math
 
         Vector3 Normalize()
         {
-            outValue.X = MatchBounds(Rad2Deg(outValue.X));
-            outValue.Y = MatchBounds(Rad2Deg(outValue.Y));
-            outValue.Z = MatchBounds(Rad2Deg(outValue.Z));
+            outValue.X = MatchBounds(Rad2Deg * outValue.X);
+            outValue.Y = MatchBounds(Rad2Deg * outValue.Y);
+            outValue.Z = MatchBounds(Rad2Deg * outValue.Z);
 
             return outValue;
         }
@@ -315,7 +302,7 @@ public static class Math
     /// <returns>The new quaternion</returns>
     public static Quaternion FromEulerAngles(Vector3 angles)
     {
-        return Quaternion.CreateFromYawPitchRoll(Deg2Rad(angles.Y), Deg2Rad(angles.X), Deg2Rad(angles.Z));
+        return Quaternion.CreateFromYawPitchRoll(Deg2Rad * angles.Y, Deg2Rad * angles.X, Deg2Rad * angles.Z);
     }
 
     /// <summary>
