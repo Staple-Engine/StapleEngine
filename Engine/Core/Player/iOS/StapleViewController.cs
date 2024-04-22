@@ -30,7 +30,7 @@ public class StapleViewController : UIViewController
         {
             needsInit = false;
 
-            Threading.Initialize();
+            ThreadHelper.Initialize();
 
             MessagePackInit.Initialize();
 
