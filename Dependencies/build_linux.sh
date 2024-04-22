@@ -2,9 +2,9 @@
 
 set -e
 
-premake5 --os=linux gmake
-premake5 --os=linux --file=NativeFileDialog/build/premake5.lua gmake
-premake5 --os=linux --file=premake5_dotnet.lua vs2022
+./premake.sh --os=linux gmake
+./premake.sh --os=linux --file=NativeFileDialog/build/premake5.lua gmake
+./premake.sh --os=linux --file=premake5_dotnet.lua vs2022
 
 cd build/native
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-premake5 --os=ios --file=premake5-ios.lua xcode4
-premake5 --os=ios --file=NativeFileDialog/build/premake5.lua xcode4
+./premake.sh --os=ios --file=premake5-ios.lua xcode4
+./premake.sh --os=ios --file=NativeFileDialog/build/premake5.lua xcode4
 
 cd build/ios
 
