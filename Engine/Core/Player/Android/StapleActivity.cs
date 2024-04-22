@@ -449,7 +449,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         renderWindow.RenderFrame(ref lastTime);
 
-        Threading.Update();
+        ThreadHelper.Update();
     }
 
     public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
@@ -574,7 +574,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             Window.Attributes = p;
         }
 
-        Threading.Initialize();
+        ThreadHelper.Initialize();
 
         surfaceView = new SurfaceView(this);
 

@@ -27,6 +27,8 @@ internal class JoltPhysics3D : IPhysics3D
     private bool locked = false;
     private object threadLock = new();
 
+    private CallbackGatherer callbackGatherer = new();
+
     public bool Destroyed => destroyed;
 
     public Vector3 Gravity
@@ -171,7 +173,10 @@ internal class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
-            Physics3D.ContactAdded(b1, b2);
+            callbackGatherer.AddCallback(() =>
+            {
+                Physics3D.ContactAdded(b1, b2);
+            });
         }
 
         lock (threadLock)
@@ -189,7 +194,10 @@ internal class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
-            Physics3D.ContactPersisted(b1, b2);
+            callbackGatherer.AddCallback(() =>
+            {
+                Physics3D.ContactPersisted(b1, b2);
+            });
         }
 
         lock (threadLock)
@@ -208,7 +216,10 @@ internal class JoltPhysics3D : IPhysics3D
         if (TryFindBody(subShapePair.Body1ID, out var b1) &&
             TryFindBody(subShapePair.Body2ID, out var b2))
         {
-            Physics3D.ContactRemoved(b1, b2);
+            callbackGatherer.AddCallback(() =>
+            {
+                Physics3D.ContactRemoved(b1, b2);
+            });
         }
 
         lock (threadLock)
@@ -254,7 +265,10 @@ internal class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(bodyID, out var body))
         {
-            Physics3D.BodyActivated(body);
+            callbackGatherer.AddCallback(() =>
+            {
+                Physics3D.BodyActivated(body);
+            });
         }
 
         lock (threadLock)
@@ -272,7 +286,10 @@ internal class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(bodyID, out var body))
         {
-            Physics3D.BodyActivated(body);
+            callbackGatherer.AddCallback(() =>
+            {
+                Physics3D.BodyDeactivated(body);
+            });
         }
 
         lock (threadLock)
@@ -310,6 +327,8 @@ internal class JoltPhysics3D : IPhysics3D
         }
 
         physicsSystem.Step(deltaTime, collisionSteps);
+
+        callbackGatherer.PerformAll();
 
         lock(threadLock)
         {

@@ -7,7 +7,7 @@ namespace Staple;
 /// <summary>
 /// Thread helper for running actions in the main thread
 /// </summary>
-public static class Threading
+public static class ThreadHelper
 {
     private static Thread mainThread;
     private static readonly List<Action> pendingActions = new();

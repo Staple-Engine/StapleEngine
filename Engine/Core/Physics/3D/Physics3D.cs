@@ -417,67 +417,52 @@ internal class Physics3D : ISubsystem
 
     internal static void BodyActivated(IBody3D body)
     {
-        Threading.Dispatch(() =>
-        {
-            var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
-            foreach (var system in systems)
-            {
-                system.OnBodyActivated(body);
-            }
-        });
+        foreach (var system in systems)
+        {
+            system.OnBodyActivated(body);
+        }
     }
 
     internal static void BodyDeactivated(IBody3D body)
     {
-        Threading.Dispatch(() =>
-        {
-            var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
-            foreach (var system in systems)
-            {
-                system.OnBodyDeactivated(body);
-            }
-        });
+        foreach (var system in systems)
+        {
+            system.OnBodyDeactivated(body);
+        }
     }
 
     internal static void ContactAdded(IBody3D A, IBody3D B)
     {
-        Threading.Dispatch(() =>
-        {
-            var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
-            foreach (var system in systems)
-            {
-                system.OnContactAdded(A, B);
-            }
-        });
+        foreach (var system in systems)
+        {
+            system.OnContactAdded(A, B);
+        }
     }
 
     internal static void ContactPersisted(IBody3D A, IBody3D B)
     {
-        Threading.Dispatch(() =>
-        {
-            var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
-            foreach (var system in systems)
-            {
-                system.OnContactPersisted(A, B);
-            }
-        });
+        foreach (var system in systems)
+        {
+            system.OnContactPersisted(A, B);
+        }
     }
 
     internal static void ContactRemoved(IBody3D A, IBody3D B)
     {
-        Threading.Dispatch(() =>
-        {
-            var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
-            foreach (var system in systems)
-            {
-                system.OnContactRemoved(A, B);
-            }
-        });
+        foreach (var system in systems)
+        {
+            system.OnContactRemoved(A, B);
+        }
     }
 
     internal static bool ContactValidate(IBody3D A, IBody3D B)

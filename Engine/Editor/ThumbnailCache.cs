@@ -88,7 +88,7 @@ internal class ThumbnailCache
 
             Task.Delay(25).ContinueWith((_) =>
             {
-                Threading.Dispatch(() =>
+                ThreadHelper.Dispatch(() =>
                 {
                     mayRenderInMainThread = true;
                 });
@@ -354,7 +354,7 @@ internal class ThumbnailCache
                         break;
                     }
 
-                    Threading.Dispatch(() =>
+                    ThreadHelper.Dispatch(() =>
                     {
                         var texture = Texture.CreatePixels(request.path, rawTextureData.data,
                             (ushort)rawTextureData.width, (ushort)rawTextureData.height,
@@ -524,7 +524,7 @@ internal class ThumbnailCache
                         }
                     }
 
-                    Threading.Dispatch(() =>
+                    ThreadHelper.Dispatch(() =>
                     {
                         var texture = Texture.CreatePixels(request.path, rawTextureData.data,
                             (ushort)rawTextureData.width, (ushort)rawTextureData.height,

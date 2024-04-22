@@ -66,7 +66,7 @@ internal class RenderWindow
     /// </summary>
     public void Run()
     {
-        Threading.Initialize();
+        ThreadHelper.Initialize();
 
         if (appSettings.multiThreadedRenderer)
         {
@@ -209,7 +209,7 @@ internal class RenderWindow
 
             RenderFrame(ref last);
 
-            Threading.Update();
+            ThreadHelper.Update();
         }
 
         try
@@ -369,7 +369,7 @@ internal class RenderWindow
 
             last = DateTime.Now;
 
-            Threading.Update();
+            ThreadHelper.Update();
         }
 
         lock(renderLock)
@@ -397,7 +397,7 @@ internal class RenderWindow
                     break;
                 }
 
-                Threading.Update();
+                ThreadHelper.Update();
 
                 Thread.Sleep(25);
             }
@@ -425,7 +425,7 @@ internal class RenderWindow
 
             if (windowReferences == 0)
             {
-                Threading.Dispatch(() =>
+                ThreadHelper.Dispatch(() =>
                 {
                     window.Terminate();
                 });

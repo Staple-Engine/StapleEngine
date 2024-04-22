@@ -126,7 +126,7 @@ public sealed class RenderTarget
             try
             {
                 //Delay by 1 frame so that the rendering happens
-                Threading.Dispatch(() =>
+                ThreadHelper.Dispatch(() =>
                 {
                     var texture = GetTexture(attachment);
 
