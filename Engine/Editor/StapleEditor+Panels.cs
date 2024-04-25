@@ -287,6 +287,13 @@ internal partial class StapleEditor
 
                 var entityName = transform.entity.Name;
 
+                var hasPrefab = transform.entity.TryGetPrefab(out _, out _);
+
+                if(hasPrefab)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(0, 0, 0));
+                }
+
                 EditorGUI.TreeNode(entityName, transform.ChildCount == 0, true, () =>
                 {
                     if (ImGui.BeginDragDropTarget())
@@ -407,6 +414,13 @@ internal partial class StapleEditor
                         {
                             break;
                         }
+                    }
+                },
+                () =>
+                {
+                    if (hasPrefab)
+                    {
+                        ImGui.PopStyleColor();
                     }
                 });
             }

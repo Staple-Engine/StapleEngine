@@ -88,6 +88,16 @@ public partial class World
         /// The entity's layer. Defaults to the first layer.
         /// </summary>
         public uint layer;
+
+        /// <summary>
+        /// The entity's prefab (if any)
+        /// </summary>
+        public string prefabGUID;
+
+        /// <summary>
+        /// The entity's local ID in the prefab (if any)
+        /// </summary>
+        public int prefabLocalID;
     }
 
     /// <summary>

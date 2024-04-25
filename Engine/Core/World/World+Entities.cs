@@ -15,7 +15,7 @@ public partial class World
     {
         var localID = entity.Identifier.ID - 1;
 
-        lock(lockObject)
+        lock (lockObject)
         {
             if (localID >= 0 &&
                 localID < entities.Count &&
@@ -36,7 +36,7 @@ public partial class World
     /// <returns>Whether the entity is enabled</returns>
     public bool IsEntityEnabled(Entity entity, bool checkParent = false)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if (TryGetEntity(entity, out var entityInfo) == false)
         {
             return false;
         }
@@ -55,24 +55,24 @@ public partial class World
 
             var transform = GetComponent<Transform>(entity);
 
-            if(transform == null)
+            if (transform == null)
             {
                 return true;
             }
 
             bool Recursive(Transform t)
             {
-                if(t == null)
+                if (t == null)
                 {
                     return true;
                 }
 
-                if(IsEntityEnabled(t.entity, false) == false)
+                if (IsEntityEnabled(t.entity, false) == false)
                 {
                     return false;
                 }
 
-                if(t.parent != null)
+                if (t.parent != null)
                 {
                     return Recursive(t.parent);
                 }
@@ -91,7 +91,7 @@ public partial class World
     /// <param name="enabled">Whether it should be enabled</param>
     public void SetEntityEnabled(Entity entity, bool enabled)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if (TryGetEntity(entity, out var entityInfo) == false)
         {
             return;
         }
@@ -167,7 +167,7 @@ public partial class World
     /// <param name="entity">The entity to destroy</param>
     public void DestroyEntity(Entity entity)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if (TryGetEntity(entity, out var entityInfo) == false)
         {
             return;
         }
@@ -181,7 +181,7 @@ public partial class World
             entityInfo.components.Clear();
             entityInfo.alive = false;
 
-            while(transform.ChildCount > 0)
+            while (transform.ChildCount > 0)
             {
                 var child = transform.GetChild(0);
 
@@ -197,7 +197,7 @@ public partial class World
     /// <returns>The current name of the entity</returns>
     public string GetEntityName(Entity entity)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if (TryGetEntity(entity, out var entityInfo) == false)
         {
             return default;
         }
@@ -259,6 +259,60 @@ public partial class World
         lock (lockObject)
         {
             entityInfo.layer = layer;
+        }
+    }
+
+    /// <summary>
+    /// Sets an entity's prefab
+    /// </summary>
+    /// <param name="entity">the entity to set the prefab</param>
+    /// <param name="guid">The prefab guid</param>
+    /// <param name="localID">the local entity ID in the prefab</param>
+    public void SetEntityPrefab(Entity entity, string guid, int localID)
+    {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
+        lock (lockObject)
+        {
+            entityInfo.prefabGUID = guid;
+            entityInfo.prefabLocalID = localID;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get an entity's prefab data, if any
+    /// </summary>
+    /// <param name="entity">The entity to check</param>
+    /// <param name="guid">The prefab guid</param>
+    /// <param name="localID">The prefab local ID</param>
+    /// <returns>Whether the prefab data was found</returns>
+    public bool TryGetEntityPrefab(Entity entity, out string guid, out int localID)
+    {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            guid = default;
+            localID = default;
+
+            return false;
+        }
+
+        lock (lockObject)
+        {
+            if((entityInfo.prefabGUID?.Length ?? 0) <= 0)
+            {
+                guid = default;
+                localID = default;
+
+                return false;
+            }
+
+            guid = entityInfo.prefabGUID;
+            localID = entityInfo.prefabLocalID;
+
+            return true;
         }
     }
 }

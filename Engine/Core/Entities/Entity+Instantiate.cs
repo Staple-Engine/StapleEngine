@@ -15,6 +15,8 @@ public partial struct Entity
 
         var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
 
+        newEntity.SetLayer(source.Layer);
+
         var transform = newEntity.GetComponent<Transform>();
 
         transform.SetParent(parent);
@@ -56,6 +58,8 @@ public partial struct Entity
         }
 
         var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
+
+        newEntity.SetLayer(source.Layer);
 
         var transform = newEntity.GetComponent<Transform>();
 
@@ -149,5 +153,34 @@ public partial struct Entity
         }
 
         return newEntity;
+    }
+
+    /// <summary>
+    /// Sets this entity's prefab
+    /// </summary>
+    /// <param name="guid">The prefab guid</param>
+    /// <param name="localID">The local ID for this entity</param>
+    internal void SetPrefab(string guid, int localID)
+    {
+        World.Current?.SetEntityPrefab(this, guid, localID);
+    }
+
+    /// <summary>
+    /// Attempts to get the prefab info of this entity
+    /// </summary>
+    /// <param name="guid">The prefab guid</param>
+    /// <param name="localID">The prefab local ID</param>
+    /// <returns>Whether the entity has a prefab</returns>
+    internal bool TryGetPrefab(out string guid, out int localID)
+    {
+        if(World.Current == null)
+        {
+            guid = default;
+            localID = default;
+
+            return false;
+        }
+
+        return World.Current.TryGetEntityPrefab(this, out guid, out localID);
     }
 }

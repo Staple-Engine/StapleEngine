@@ -861,6 +861,12 @@ internal static class SceneSerialization
         outEntity.parent = parent.IsValid ? parent.Identifier.ID : 0;
         outEntity.transform = transform;
 
+        if(entity.TryGetPrefab(out var prefabGuid, out var localID))
+        {
+            outEntity.prefabGuid = prefabGuid;
+            outEntity.prefabLocalID = localID;
+        }
+
         return outEntity;
     }
 
@@ -888,6 +894,11 @@ internal static class SceneSerialization
         return outValue;
     }
 
+    /// <summary>
+    /// Serializes an entity into a prefab
+    /// </summary>
+    /// <param name="entity">The entity to serialize</param>
+    /// <returns>The prefab data, or null</returns>
     public static SerializablePrefab SerializeIntoPrefab(Entity entity)
     {
         if(entity.IsValid == false ||
@@ -946,6 +957,12 @@ internal static class SceneSerialization
         return outValue;
     }
 
+    /// <summary>
+    /// Instantiates a prefab
+    /// </summary>
+    /// <param name="parent">The parent entity, if any</param>
+    /// <param name="prefab">The prefab to instantiate</param>
+    /// <returns>The new entity, or Invalid</returns>
     public static Entity InstantiatePrefab(Entity parent, SerializablePrefab prefab)
     {
         if(prefab == null ||
@@ -958,6 +975,8 @@ internal static class SceneSerialization
         var parentTransform = parent.GetComponent<Transform>();
 
         var newEntity = Scene.Instantiate(prefab.mainObject, out _, true);
+
+        newEntity.SetPrefab(prefab.guid, prefab.mainObject.ID);
 
         var transform = newEntity.GetComponent<Transform>();
 
@@ -986,7 +1005,9 @@ internal static class SceneSerialization
                     var childTransform = childEntity.GetComponent<Transform>();
                     var targetTransform = Scene.FindEntity(localParentID).GetComponent<Transform>();
 
-                    if(targetTransform != null)
+                    childEntity.SetPrefab(prefab.guid, sceneObject.ID);
+
+                    if (targetTransform != null)
                     {
                         childTransform.SetParent(targetTransform);
                     }

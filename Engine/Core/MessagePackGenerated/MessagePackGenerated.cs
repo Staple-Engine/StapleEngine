@@ -2425,7 +2425,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(8);
+            writer.WriteArrayHeader(10);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>().Serialize(ref writer, value.kind, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.ID);
@@ -2434,6 +2434,8 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>().Serialize(ref writer, value.components, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.layer, options);
             writer.Write(value.enabled);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.prefabGuid, options);
+            writer.Write(value.prefabLocalID);
         }
 
         public global::Staple.Internal.SceneObject Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2475,6 +2477,12 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 7:
                         ____result.enabled = reader.ReadBoolean();
+                        break;
+                    case 8:
+                        ____result.prefabGuid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 9:
+                        ____result.prefabLocalID = reader.ReadInt32();
                         break;
                     default:
                         reader.Skip();

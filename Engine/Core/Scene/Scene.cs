@@ -49,6 +49,11 @@ public class Scene
 
         var entity = Entity.Create(sceneObject.name);
 
+        if((sceneObject.prefabGuid?.Length ?? 0) > 0)
+        {
+            entity.SetPrefab(sceneObject.prefabGuid, sceneObject.prefabLocalID);
+        }
+
         var transform = entity.AddComponent<Transform>();
 
         entity.Enabled = sceneObject.enabled;

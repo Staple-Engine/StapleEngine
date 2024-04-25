@@ -141,6 +141,12 @@ public class SceneObject
 
     [Key(7)]
     public bool enabled;
+
+    [Key(8)]
+    public string prefabGuid;
+
+    [Key(9)]
+    public int prefabLocalID;
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
