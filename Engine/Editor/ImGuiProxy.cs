@@ -420,6 +420,12 @@ internal class ImGuiProxy
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ImGuiRGBA(Color32 color)
+    {
+        return ImGuiRGBA(color.r, color.g, color.b, color.a);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool MouseOverArea()
     {
         return ImGui.IsAnyItemActive() || ImGui.IsAnyItemHovered() || ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);

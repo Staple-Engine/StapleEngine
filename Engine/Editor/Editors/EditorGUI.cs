@@ -21,11 +21,36 @@ public static class EditorGUI
     private static readonly Dictionary<string, object> cachedEnumValues = new();
 
     private static bool changed = false;
-    private static ulong counter = 0;
+
+    private static List<int> counterStack = new();
 
     private static string MakeIdentifier(string identifier)
     {
-        return $"{identifier}##{counter++}";
+        if(counterStack.Count == 0)
+        {
+            counterStack.Add(0);
+        }
+
+        var counter = counterStack[counterStack.Count - 1];
+
+        var outValue = $"{identifier}##{counter++}";
+
+        counterStack[counterStack.Count - 1] = counter;
+
+        return outValue;
+    }
+
+    private static void PushCounterStack()
+    {
+        counterStack.Add(0);
+    }
+
+    private static void PopCounterStack()
+    {
+        if(counterStack.Count > 0)
+        {
+            counterStack.RemoveAt(0);
+        }
     }
 
     private static bool IdentifierColumns(string identifier, Func<bool> callback)
@@ -63,7 +88,7 @@ public static class EditorGUI
 
     internal static void OnFrameStart()
     {
-        counter = 0;
+        counterStack.Clear();
     }
 
     /// <summary>
@@ -625,6 +650,8 @@ public static class EditorGUI
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
         }
 
+        PushCounterStack();
+
         var isOpen = ImGui.TreeNodeEx(MakeIdentifier(label), flags);
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
@@ -638,6 +665,8 @@ public static class EditorGUI
                 ImGui.TreePop();
             }
         }
+
+        PopCounterStack();
     }
 
     /// <summary>

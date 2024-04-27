@@ -291,7 +291,7 @@ internal partial class StapleEditor
 
                 if(hasPrefab)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(0, 0, 0));
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(new Color32("#00CED1")));
                 }
 
                 EditorGUI.TreeNode(entityName, transform.ChildCount == 0, true, () =>
