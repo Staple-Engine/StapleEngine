@@ -979,7 +979,7 @@ internal partial class StapleEditor
                     {
                         try
                         {
-                            var byteData = File.ReadAllBytes(item.path);
+                            var byteData = File.ReadAllBytes(cachePath);
 
                             using var stream = new MemoryStream(byteData);
 

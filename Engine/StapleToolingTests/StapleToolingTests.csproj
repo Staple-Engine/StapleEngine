@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleCore">
+		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleTooling">
+		<HintPath>..\Tooling\bin\Debug\net8.0\StapleTooling.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+
+</Project>

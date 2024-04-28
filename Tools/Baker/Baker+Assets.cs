@@ -1,7 +1,12 @@
-﻿using Staple;
+﻿using MessagePack;
+using Newtonsoft.Json;
+using Staple;
+using Staple.Internal;
+using Staple.Tooling;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Baker;
 
@@ -84,7 +89,18 @@ static partial class Program
 
                 try
                 {
-                    File.Copy(assetFileName, outputFile, true);
+                    var json = File.ReadAllText(assetFileName);
+
+                    var assetData = JsonConvert.DeserializeObject<SerializableStapleAsset>(json);
+
+                    Utilities.ExpandSerializedAsset(assetData);
+
+                    var header = new SerializableStapleAssetHeader();
+
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(assetData));
+
+                    File.WriteAllBytes(outputFile, encoded.ToArray());
                 }
                 catch (Exception e)
                 {

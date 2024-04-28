@@ -17,7 +17,6 @@ namespace Staple
                 );
 
                 var option = MessagePackSerializerOptions.Standard
-                    .WithCompression(MessagePackCompression.Lz4BlockArray)
                     .WithResolver(StaticCompositeResolver.Instance)
                     .WithSecurity(MessagePackSecurity.UntrustedData);
 

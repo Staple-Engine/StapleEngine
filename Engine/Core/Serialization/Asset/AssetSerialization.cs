@@ -471,10 +471,30 @@ internal static partial class AssetSerialization
                                     {
                                         try
                                         {
-                                            if (item is object[] containers &&
+                                            string innerTypeName = null;
+                                            Dictionary<object, object> parameters = null;
+
+                                            if (item is Dictionary<object, object> itemData &&
+                                                itemData.Count == 2 &&
+                                                itemData.ContainsKey("typeName") &&
+                                                itemData.ContainsKey("parameters") &&
+                                                itemData["typeName"] is string &&
+                                                itemData["parameters"] is Dictionary<object, object>)
+                                            {
+                                                innerTypeName = (string)itemData["typeName"];
+                                                parameters = (Dictionary<object, object>)itemData["parameters"];
+                                            }
+                                            //TODO: Check if still usable. Probably not.
+                                            else if (item is object[] containers &&
                                                 containers.Length == 2 &&
-                                                containers[0] is string innerTypeName &&
-                                                containers[1] is Dictionary<object, object> parameters) //Name and parameters
+                                                containers[0] is string &&
+                                                containers[1] is Dictionary<object, object>) //Name and parameters
+                                            {
+                                                innerTypeName = (string)containers[0];
+                                                parameters = (Dictionary<object, object>)containers[1];
+                                            }
+
+                                            if (innerTypeName != null && parameters != null)
                                             {
                                                 var itemContainer = new SerializableStapleAssetContainer()
                                                 {
@@ -485,15 +505,40 @@ internal static partial class AssetSerialization
 
                                                 foreach (var containerPair in parameters)
                                                 {
-                                                    if (containerPair.Key is string containerKey &&
+                                                    string containerKey = null;
+                                                    string parameterTypeName = null;
+                                                    object parameterValue = null;
+
+                                                    if(containerPair.Key is string &&
+                                                        containerPair.Value is Dictionary<object, object> containerData &&
+                                                        containerData.Count == 2 &&
+                                                        containerData.ContainsKey("typeName") &&
+                                                        containerData.ContainsKey("value") &&
+                                                        containerData["typeName"] is string)
+                                                    {
+                                                        containerKey = (string)containerPair.Key;
+                                                        parameterTypeName = (string)containerData["typeName"];
+                                                        parameterValue = containerData["value"];
+                                                    }
+                                                    //TODO: Check if still usable. Probably not.
+                                                    else if (containerPair.Key is string &&
                                                         containerPair.Value is object[] pieces &&
                                                         pieces.Length == 2 &&
-                                                        pieces[0] is string parameterTypeName)
+                                                        pieces[0] is string)
+                                                    {
+                                                        containerKey = (string)containerPair.Key;
+                                                        parameterTypeName = (string)((object[])containerPair.Value)[0];
+                                                        parameterValue = (string)((object[])containerPair.Value)[1];
+                                                    }
+
+                                                    if(containerKey != null &&
+                                                        parameterTypeName != null &&
+                                                        parameterValue != null)
                                                     {
                                                         var tempParameter = new SerializableStapleAssetParameter()
                                                         {
                                                             typeName = parameterTypeName,
-                                                            value = pieces[1]
+                                                            value = parameterValue,
                                                         };
 
                                                         containerParameters.Add(containerKey, tempParameter);
@@ -504,13 +549,13 @@ internal static partial class AssetSerialization
 
                                                 var itemInstance = DeserializeContainer(itemContainer);
 
-                                                if(itemInstance != null)
+                                                if (itemInstance != null)
                                                 {
                                                     list.Add(itemInstance);
                                                 }
                                             }
                                         }
-                                        catch(Exception e)
+                                        catch (Exception e)
                                         {
                                             continue;
                                         }

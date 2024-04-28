@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<TargetFramework>net8.0</TargetFramework>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>pdbonly</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>false</Optimize>
+		<DefineConstants>_DEBUG</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>true</Optimize>
+		<DefineConstants>NDEBUG</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Include="Utilities.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<Reference Include="StapleCore">
+			<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<Reference Include="StapleCore">
+			<HintPath>..\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+</Project>

@@ -411,18 +411,9 @@ internal partial class StapleEditor
             {
                 serialized.guid = guid;
 
-                var header = new SerializableStapleAssetHeader();
+                var json = JsonConvert.SerializeObject(serialized, Formatting.Indented);
 
-                using (var stream = File.OpenWrite(assetPath))
-                {
-                    using (var writer = new BinaryWriter(stream))
-                    {
-                        var encoded = MessagePackSerializer.Serialize(header)
-                            .Concat(MessagePackSerializer.Serialize(serialized));
-
-                        writer.Write(encoded.ToArray());
-                    }
-                }
+                File.WriteAllText(assetPath, json);
 
                 var holder = new AssetHolder()
                 {
@@ -430,7 +421,7 @@ internal partial class StapleEditor
                     typeName = assetInstance.GetType().FullName,
                 };
 
-                var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                json = JsonConvert.SerializeObject(holder, Formatting.Indented);
 
                 File.WriteAllText($"{assetPath}.meta", json);
             }
