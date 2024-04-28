@@ -28,8 +28,15 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeRegistration", "TypeRegistration\TypeRegistration.csproj", "{CAAD8B33-701A-4505-8451-C3F5B76DC596}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleTooling", "Tooling\StapleTooling.csproj", "{947A5870-7477-4B24-8B21-E03CFCEB8708}"
+	ProjectSection(ProjectDependencies) = postProject
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleToolingTests", "StapleToolingTests\StapleToolingTests.csproj", "{98EB2BBC-5782-463F-989F-6473845728E8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{947A5870-7477-4B24-8B21-E03CFCEB8708} = {947A5870-7477-4B24-8B21-E03CFCEB8708}
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
