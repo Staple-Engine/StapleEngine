@@ -115,10 +115,20 @@ static partial class Program
                 {
                 }
 
-                foreach(var sceneObject in prefab.children)
+                foreach(var component in prefab.mainObject.components)
+                {
+                    ConvertComponentDataIntoParameters(component);
+                }
+
+                foreach (var sceneObject in prefab.children)
                 {
                     foreach(var component in sceneObject.components)
                     {
+                        if(component == null || component.data == null)
+                        {
+                            continue;
+                        }
+
                         ConvertComponentDataIntoParameters(component);
                     }
                 }
