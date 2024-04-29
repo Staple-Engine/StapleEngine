@@ -9,6 +9,7 @@ internal partial class StapleEditor
     internal void UpdateCSProj(AppPlatform platform)
     {
         csProjManager.GenerateGameCSProj(platform, false);
+        csProjManager.GenerateGameCSProj(platform, true);
 
         BuildGame();
         LoadGame();

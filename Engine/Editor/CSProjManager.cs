@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Evaluation;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -124,7 +123,7 @@ internal class CSProjManager
     /// </summary>
     public void OpenGameSolution()
     {
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
+        var projectDirectory = basePath;
 
         var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
         {
@@ -143,7 +142,7 @@ internal class CSProjManager
     {
         using var collection = new ProjectCollection();
 
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", (sandbox ? "Sandbox" : "Game"));
+        var projectDirectory = sandbox ? basePath : Path.Combine(basePath, "Cache", "Assembly", "Game");
         var assetsDirectory = Path.Combine(basePath, "Assets");
 
         var projectProperties = new Dictionary<string, string>()
@@ -199,6 +198,26 @@ internal class CSProjManager
         p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
         p.AddItem("Reference", "StapleEditor", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll")) });
 
+        if(sandbox)
+        {
+            string[] elements =
+            [
+                "Compile",
+                "Content",
+                "None"
+            ];
+
+            var removed = p.Xml.AddItemGroup();
+
+            foreach (var element in elements)
+            {
+                var temp = removed.AddItem(element, " ");
+
+                temp.Include = null;
+                temp.Remove = "**";
+            }
+        }
+
         void Recursive(string path)
         {
             try
@@ -207,7 +226,7 @@ internal class CSProjManager
 
                 foreach (var file in files)
                 {
-                    var filePath = Path.GetFullPath(file);
+                    var filePath = Path.GetRelativePath(projectDirectory, file);
 
                     fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
 
@@ -239,15 +258,17 @@ internal class CSProjManager
 
         p.Save(Path.Combine(projectDirectory, "Game.csproj"));
 
+        var fileName = sandbox ? "Sandbox.sln" : "Game.sln";
+
         try
         {
-            File.Delete(Path.Combine(projectDirectory, sandbox ? "Sandbox.sln" : "Game.sln"));
+            File.Delete(Path.Combine(projectDirectory, fileName));
         }
         catch(Exception)
         {
         }
 
-        var startInfo = new ProcessStartInfo("dotnet", "new sln")
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
         {
             WorkingDirectory = projectDirectory
         };
