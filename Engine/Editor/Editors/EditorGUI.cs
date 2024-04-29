@@ -74,7 +74,7 @@ public static class EditorGUI
         return changed;
     }
 
-    private static void ExecuteHandler(Action handler, string label)
+    internal static void ExecuteHandler(Action handler, string label)
     {
         try
         {

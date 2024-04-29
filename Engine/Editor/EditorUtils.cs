@@ -303,6 +303,15 @@ public static class EditorUtils
             return true;
         });
     }
+    public static void ShowMessageBox(string message, string buttonTitle, Action callback)
+    {
+        StapleEditor.instance.ShowMessageBox(message, buttonTitle, callback);
+    }
+
+    public static void ShowMessageBox(string message, string yesTitle, string noTitle, Action onYes, Action onNo)
+    {
+        StapleEditor.instance.ShowMessageBox(message, yesTitle, noTitle, onYes, onNo);
+    }
 
     internal static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default)
     {

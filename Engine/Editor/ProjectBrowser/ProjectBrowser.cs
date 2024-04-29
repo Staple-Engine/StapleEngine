@@ -890,7 +890,6 @@ internal class ProjectBrowser
                     return;
                 }
 
-
                 ProjectBrowserNode item = null;
 
                 if (currentContentNode == null)
@@ -942,6 +941,38 @@ internal class ProjectBrowser
                         }
 
                         break;
+                }
+
+                EditorUtils.RefreshAssets(null);
+            },
+            (index, localItem) =>
+            {
+                ProjectBrowserNode item = null;
+
+                if (currentContentNode == null)
+                {
+                    currentContentNode = projectBrowserNodes[index];
+
+                    item = currentContentNode;
+                }
+                else
+                {
+                    item = currentContentNode.type == ProjectBrowserNodeType.Folder ? (index >= 0 && index < currentContentNode.subnodes.Count ? currentContentNode.subnodes[index] : null) :
+                        currentContentNode;
+                }
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    File.Delete(item.path);
+                    File.Delete($"{item.path}.meta");
+                }
+                catch(Exception)
+                {
                 }
 
                 EditorUtils.RefreshAssets(null);

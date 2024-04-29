@@ -77,6 +77,5 @@ static partial class Program
                 Console.WriteLine($"\tProcessed app settings");
             }
         }
-
     }
 }

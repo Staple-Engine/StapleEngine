@@ -225,6 +225,20 @@ internal partial class StapleEditor
 
     internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
 
+    private bool wasShowingMessageBox = false;
+
+    private bool showingMessageBox = false;
+
+    private string messageBoxMessage;
+
+    private string messageBoxYesTitle;
+
+    private string messageBoxNoTitle;
+
+    private Action messageBoxYesAction;
+
+    private Action messageBoxNoAction;
+
     private static WeakReference<StapleEditor> privInstance;
 
     public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
@@ -717,8 +731,6 @@ internal partial class StapleEditor
                 });
             }
 
-            ProgressPopup(io);
-
             ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
 
             if (World.Current != null)
@@ -739,6 +751,9 @@ internal partial class StapleEditor
             }
 
             ImGui.End();
+
+            ProgressPopup(io);
+            MessageBoxPopup(io);
 
             imgui.EndFrame();
 

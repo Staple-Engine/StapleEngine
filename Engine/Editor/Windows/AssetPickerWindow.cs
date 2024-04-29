@@ -233,6 +233,7 @@ internal class AssetPickerWindow : EditorWindow
                 }
 
                 Close();
-            }, null, null);
+            },
+            null, null, null);
     }
 }

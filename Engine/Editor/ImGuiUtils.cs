@@ -29,7 +29,7 @@ internal static class ImGuiUtils
     /// <param name="onDragDropped">Callback when an item was dropped</param>
     public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload, bool allowRename,
         Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped,
-        Action<int, ContentGridItem, string> onRename)
+        Action<int, ContentGridItem, string> onRename, Action<int, ContentGridItem> onDelete)
     {
         var cellSize = padding + thumbnailSize;
         var width = ImGui.GetContentRegionAvail().X;
@@ -98,10 +98,19 @@ internal static class ImGuiUtils
 
             if (item.selected)
             {
-                if (Input.GetKeyDown(KeyCode.Enter))
+                if (Input.GetKeyUp(KeyCode.Enter))
                 {
                     item.renaming = true;
                     item.renamedName = item.name;
+                }
+                else if(Input.GetKeyUp(KeyCode.Delete))
+                {
+                    EditorUtils.ShowMessageBox($"Are you sure you want to delete {item.name}?", "OK", "Cancel",
+                        () =>
+                        {
+                            onDelete?.Invoke(index, item);
+                        },
+                        null);
                 }
             }
 
@@ -112,7 +121,7 @@ internal static class ImGuiUtils
                 {
                     item.renaming = false;
 
-                    onRename?.Invoke(i, item, item.renamedName);
+                    onRename?.Invoke(index, item, item.renamedName);
                 }
             }
             else
