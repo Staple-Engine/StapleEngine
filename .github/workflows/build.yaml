@@ -75,6 +75,9 @@ jobs:
             - run: 'sh build_linux.sh'
               working-directory: './Dependencies/'
               
+            - run: 'dotnet workload install ios'
+              working-directory: './Engine/'
+              
             - run: 'dotnet workload restore'
               working-directory: './Engine/'
 
