@@ -3,6 +3,8 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.JoltPhysics;
+using Staple.OpenALAudio;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -83,11 +85,11 @@ internal partial class StapleEditor
         public List<MenuItemInfo> children = new();
     }
 
-    class GameAssemblyLoadContext : AssemblyLoadContext
+    public class StapleAssemblyLoadContext : AssemblyLoadContext
     {
         private readonly AssemblyDependencyResolver resolver;
 
-        public GameAssemblyLoadContext(string path) : base(true)
+        public StapleAssemblyLoadContext(string path) : base(true)
         {
             resolver = new AssemblyDependencyResolver(path);
         }
@@ -103,6 +105,13 @@ internal partial class StapleEditor
 
             return null;
         }
+    }
+
+    public class ModuleLoadInfo
+    {
+        public StapleAssemblyLoadContext contextLoader;
+        public ModuleInitializer module;
+        public string moduleName;
     }
 
     internal static string StapleBasePath => Storage.StapleBasePath;
@@ -163,7 +172,7 @@ internal partial class StapleEditor
 
     private readonly Editor defaultEditor = new();
 
-    private GameAssemblyLoadContext gameAssemblyLoadContext;
+    private StapleAssemblyLoadContext gameAssemblyLoadContext;
 
     private WeakReference<Assembly> gameAssembly;
 
@@ -239,6 +248,8 @@ internal partial class StapleEditor
 
     private Action messageBoxNoAction;
 
+    public Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = new();
+
     private static WeakReference<StapleEditor> privInstance;
 
     public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
@@ -246,6 +257,8 @@ internal partial class StapleEditor
     public void Run()
     {
         privInstance = new WeakReference<StapleEditor>(this);
+
+        LoadModules();
 
         ReloadTypeCache();
 
@@ -284,6 +297,11 @@ internal partial class StapleEditor
 
             return;
         }
+
+        AudioSystem.AudioListenerImpl = typeof(OpenALAudioListener);
+        AudioSystem.AudioSourceImpl = typeof(OpenALAudioSource);
+        AudioSystem.AudioClipImpl = typeof(OpenALAudioClip);
+        AudioSystem.AudioDeviceImpl = typeof(OpenALAudioDevice);
 
         SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
@@ -433,30 +451,31 @@ internal partial class StapleEditor
 
             wireframeMaterial.SetVector4("thickness", new Vector4(1, 1, 1, 1));
 
-            wireframeMesh = new Mesh(true, true);
-
-            wireframeMesh.Vertices = new Vector3[]
+            wireframeMesh = new Mesh(true, true)
             {
-                new Vector3(-0.5f, 0.5f, 0.5f),
-                Vector3.One * 0.5f,
-                new Vector3(-0.5f, -0.5f, 0.5f),
-                new Vector3(0.5f, -0.5f, 0.5f),
-                new Vector3(-0.5f, 0.5f, -0.5f),
-                new Vector3(0.5f, 0.5f, -0.5f),
-                Vector3.One * -0.5f,
-                new Vector3(0.5f, -0.5f, -0.5f),
-            };
+                Vertices =
+                [
+                    new Vector3(-0.5f, 0.5f, 0.5f),
+                    Vector3.One * 0.5f,
+                    new Vector3(-0.5f, -0.5f, 0.5f),
+                    new Vector3(0.5f, -0.5f, 0.5f),
+                    new Vector3(-0.5f, 0.5f, -0.5f),
+                    new Vector3(0.5f, 0.5f, -0.5f),
+                    Vector3.One * -0.5f,
+                    new Vector3(0.5f, -0.5f, -0.5f),
+                ],
 
-            wireframeMesh.Indices = new int[]
-            {
-                0, 1, 2,
-                3, 7, 1,
-                5, 0, 4,
-                2, 6, 7,
-                4, 5
-            };
+                Indices =
+                [
+                    0, 1, 2,
+                    3, 7, 1,
+                    5, 0, 4,
+                    2, 6, 7,
+                    4, 5
+                ],
 
-            wireframeMesh.MeshTopology = MeshTopology.LineStrip;
+                MeshTopology = MeshTopology.LineStrip,
+            };
 
             RenderSystem.Instance.Startup();
 
@@ -1173,5 +1192,76 @@ internal partial class StapleEditor
     internal void AddEditorLayers()
     {
         LayerMask.AllLayers.Add(RenderTargetLayerName);
+    }
+
+    private void LoadModules()
+    {
+        try
+        {
+            var basePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules", "Debug");
+
+            var files = Directory.GetFiles(basePath, "*.dll");
+
+            foreach(var file in files)
+            {
+                try
+                {
+                    var loader = new StapleAssemblyLoadContext(AppContext.BaseDirectory);
+
+                    using var stream = new MemoryStream(File.ReadAllBytes(file));
+
+                    var assembly = loader.LoadFromStream(stream);
+
+                    if (assembly != null)
+                    {
+                        var initializers = assembly.GetTypes()
+                            .Where(x => x.IsSubclassOf(typeof(ModuleInitializer)))
+                            .ToArray();
+
+                        if(initializers.Length == 0)
+                        {
+                            loader.Unload();
+
+                            continue;
+                        }
+
+                        foreach(var initializer in initializers)
+                        {
+                            var instance = ObjectCreation.CreateObject<ModuleInitializer>(initializer);
+
+                            if(instance == null)
+                            {
+                                loader.Unload();
+
+                                continue;
+                            }
+
+                            if(modulesList.TryGetValue(instance.Kind(), out var list) == false)
+                            {
+                                list = new();
+
+                                modulesList.Add(instance.Kind(), list);
+                            }
+
+                            list.Add(new()
+                            {
+                                contextLoader = loader,
+                                module = instance,
+                                moduleName = Path.GetFileNameWithoutExtension(file),
+                            });
+
+                            System.Console.WriteLine($"Loaded module {Path.GetFileNameWithoutExtension(file)}");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            System.Console.WriteLine($"Failed to load modules: {e}");
+        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal interface IAudioListener
+public interface IAudioListener
 {
     Vector3 Position { get; set; }
 

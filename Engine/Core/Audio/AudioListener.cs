@@ -1,4 +1,6 @@
-﻿namespace Staple;
+﻿using Staple.Internal;
+
+namespace Staple;
 
 public sealed class AudioListener : IComponent
 {

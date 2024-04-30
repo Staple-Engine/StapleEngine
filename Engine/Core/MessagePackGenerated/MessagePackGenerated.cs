@@ -50,108 +50,110 @@ namespace MessagePack.Resolvers
 
         static GeneratedResolverGetFormatterHelper()
         {
-            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(100)
+            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(102)
             {
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 0 },
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>), 1 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>), 2 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>), 3 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>), 4 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>), 5 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>), 6 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>), 7 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>), 8 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetNode>), 9 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>), 10 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>), 11 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>), 12 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>), 13 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>), 14 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>), 15 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>), 16 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>), 17 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>), 18 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>), 19 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.RendererType>), 20 },
-                { typeof(global::System.Collections.Generic.List<int>), 21 },
-                { typeof(global::System.Collections.Generic.List<string>), 22 },
-                { typeof(global::Staple.AppPlatform), 23 },
-                { typeof(global::Staple.BlendMode), 24 },
-                { typeof(global::Staple.Internal.AudioClipFormat), 25 },
-                { typeof(global::Staple.Internal.MaterialParameterType), 26 },
-                { typeof(global::Staple.Internal.MeshAssetAnimationStateBehaviour), 27 },
-                { typeof(global::Staple.Internal.MeshAssetRotation), 28 },
-                { typeof(global::Staple.Internal.MeshAssetType), 29 },
-                { typeof(global::Staple.Internal.SceneComponentParameterType), 30 },
-                { typeof(global::Staple.Internal.SceneObjectKind), 31 },
-                { typeof(global::Staple.Internal.ShaderType), 32 },
-                { typeof(global::Staple.Internal.ShaderUniformType), 33 },
-                { typeof(global::Staple.Internal.SpriteTextureMethod), 34 },
-                { typeof(global::Staple.Internal.TextureFilter), 35 },
-                { typeof(global::Staple.Internal.TextureMetadataFormat), 36 },
-                { typeof(global::Staple.Internal.TextureMetadataQuality), 37 },
-                { typeof(global::Staple.Internal.TextureSpriteRotation), 38 },
-                { typeof(global::Staple.Internal.TextureType), 39 },
-                { typeof(global::Staple.Internal.TextureWrap), 40 },
-                { typeof(global::Staple.MeshTopology), 41 },
-                { typeof(global::Staple.RendererType), 42 },
-                { typeof(global::Staple.WindowMode), 43 },
-                { typeof(global::Staple.AABB), 44 },
-                { typeof(global::Staple.AppSettings), 45 },
-                { typeof(global::Staple.ColliderMask.Item), 46 },
-                { typeof(global::Staple.Color), 47 },
-                { typeof(global::Staple.Color32), 48 },
-                { typeof(global::Staple.Internal.AppSettingsHeader), 49 },
-                { typeof(global::Staple.Internal.AssetHolder), 50 },
-                { typeof(global::Staple.Internal.AudioClipMetadata), 51 },
-                { typeof(global::Staple.Internal.FolderAsset), 52 },
-                { typeof(global::Staple.Internal.MaterialMetadata), 53 },
-                { typeof(global::Staple.Internal.MaterialParameter), 54 },
-                { typeof(global::Staple.Internal.MeshAssetAnimation), 55 },
-                { typeof(global::Staple.Internal.MeshAssetAnimationChannel), 56 },
-                { typeof(global::Staple.Internal.MeshAssetBone), 57 },
-                { typeof(global::Staple.Internal.MeshAssetMeshInfo), 58 },
-                { typeof(global::Staple.Internal.MeshAssetMetadata), 59 },
-                { typeof(global::Staple.Internal.MeshAssetNode), 60 },
-                { typeof(global::Staple.Internal.MeshAssetQuaternionAnimationKey), 61 },
-                { typeof(global::Staple.Internal.MeshAssetVectorAnimationKey), 62 },
-                { typeof(global::Staple.Internal.ResourcePak.Entry), 63 },
-                { typeof(global::Staple.Internal.ResourcePak.Header), 64 },
-                { typeof(global::Staple.Internal.SceneComponent), 65 },
-                { typeof(global::Staple.Internal.SceneComponentParameter), 66 },
-                { typeof(global::Staple.Internal.SceneList), 67 },
-                { typeof(global::Staple.Internal.SceneListHeader), 68 },
-                { typeof(global::Staple.Internal.SceneObject), 69 },
-                { typeof(global::Staple.Internal.SceneObjectTransform), 70 },
-                { typeof(global::Staple.Internal.SerializableAudioClip), 71 },
-                { typeof(global::Staple.Internal.SerializableAudioClipHeader), 72 },
-                { typeof(global::Staple.Internal.SerializableMaterial), 73 },
-                { typeof(global::Staple.Internal.SerializableMaterialHeader), 74 },
-                { typeof(global::Staple.Internal.SerializableMeshAsset), 75 },
-                { typeof(global::Staple.Internal.SerializableMeshAssetHeader), 76 },
-                { typeof(global::Staple.Internal.SerializablePrefab), 77 },
-                { typeof(global::Staple.Internal.SerializablePrefabHeader), 78 },
-                { typeof(global::Staple.Internal.SerializableScene), 79 },
-                { typeof(global::Staple.Internal.SerializableSceneHeader), 80 },
-                { typeof(global::Staple.Internal.SerializableShader), 81 },
-                { typeof(global::Staple.Internal.SerializableShaderHeader), 82 },
-                { typeof(global::Staple.Internal.SerializableStapleAsset), 83 },
-                { typeof(global::Staple.Internal.SerializableStapleAssetContainer), 84 },
-                { typeof(global::Staple.Internal.SerializableStapleAssetHeader), 85 },
-                { typeof(global::Staple.Internal.SerializableStapleAssetParameter), 86 },
-                { typeof(global::Staple.Internal.SerializableTexture), 87 },
-                { typeof(global::Staple.Internal.SerializableTextureHeader), 88 },
-                { typeof(global::Staple.Internal.ShaderMetadata), 89 },
-                { typeof(global::Staple.Internal.ShaderUniform), 90 },
-                { typeof(global::Staple.Internal.TextureMetadata), 91 },
-                { typeof(global::Staple.Internal.TextureMetadataOverride), 92 },
-                { typeof(global::Staple.Internal.TextureSpriteInfo), 93 },
-                { typeof(global::Staple.Internal.Vector2Holder), 94 },
-                { typeof(global::Staple.Internal.Vector3Holder), 95 },
-                { typeof(global::Staple.Internal.Vector4Holder), 96 },
-                { typeof(global::Staple.Rect), 97 },
-                { typeof(global::Staple.RectFloat), 98 },
-                { typeof(global::Staple.Vector2Int), 99 },
+                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>), 2 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>), 3 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>), 4 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>), 5 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>), 6 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>), 7 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>), 8 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>), 9 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetNode>), 10 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>), 11 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>), 12 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>), 13 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>), 14 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>), 15 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>), 16 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>), 17 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>), 18 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>), 19 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>), 20 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.RendererType>), 21 },
+                { typeof(global::System.Collections.Generic.List<int>), 22 },
+                { typeof(global::System.Collections.Generic.List<string>), 23 },
+                { typeof(global::Staple.AppPlatform), 24 },
+                { typeof(global::Staple.BlendMode), 25 },
+                { typeof(global::Staple.Internal.AudioClipFormat), 26 },
+                { typeof(global::Staple.Internal.MaterialParameterType), 27 },
+                { typeof(global::Staple.Internal.MeshAssetAnimationStateBehaviour), 28 },
+                { typeof(global::Staple.Internal.MeshAssetRotation), 29 },
+                { typeof(global::Staple.Internal.MeshAssetType), 30 },
+                { typeof(global::Staple.Internal.ModuleType), 31 },
+                { typeof(global::Staple.Internal.SceneComponentParameterType), 32 },
+                { typeof(global::Staple.Internal.SceneObjectKind), 33 },
+                { typeof(global::Staple.Internal.ShaderType), 34 },
+                { typeof(global::Staple.Internal.ShaderUniformType), 35 },
+                { typeof(global::Staple.Internal.SpriteTextureMethod), 36 },
+                { typeof(global::Staple.Internal.TextureFilter), 37 },
+                { typeof(global::Staple.Internal.TextureMetadataFormat), 38 },
+                { typeof(global::Staple.Internal.TextureMetadataQuality), 39 },
+                { typeof(global::Staple.Internal.TextureSpriteRotation), 40 },
+                { typeof(global::Staple.Internal.TextureType), 41 },
+                { typeof(global::Staple.Internal.TextureWrap), 42 },
+                { typeof(global::Staple.MeshTopology), 43 },
+                { typeof(global::Staple.RendererType), 44 },
+                { typeof(global::Staple.WindowMode), 45 },
+                { typeof(global::Staple.AABB), 46 },
+                { typeof(global::Staple.AppSettings), 47 },
+                { typeof(global::Staple.ColliderMask.Item), 48 },
+                { typeof(global::Staple.Color), 49 },
+                { typeof(global::Staple.Color32), 50 },
+                { typeof(global::Staple.Internal.AppSettingsHeader), 51 },
+                { typeof(global::Staple.Internal.AssetHolder), 52 },
+                { typeof(global::Staple.Internal.AudioClipMetadata), 53 },
+                { typeof(global::Staple.Internal.FolderAsset), 54 },
+                { typeof(global::Staple.Internal.MaterialMetadata), 55 },
+                { typeof(global::Staple.Internal.MaterialParameter), 56 },
+                { typeof(global::Staple.Internal.MeshAssetAnimation), 57 },
+                { typeof(global::Staple.Internal.MeshAssetAnimationChannel), 58 },
+                { typeof(global::Staple.Internal.MeshAssetBone), 59 },
+                { typeof(global::Staple.Internal.MeshAssetMeshInfo), 60 },
+                { typeof(global::Staple.Internal.MeshAssetMetadata), 61 },
+                { typeof(global::Staple.Internal.MeshAssetNode), 62 },
+                { typeof(global::Staple.Internal.MeshAssetQuaternionAnimationKey), 63 },
+                { typeof(global::Staple.Internal.MeshAssetVectorAnimationKey), 64 },
+                { typeof(global::Staple.Internal.ResourcePak.Entry), 65 },
+                { typeof(global::Staple.Internal.ResourcePak.Header), 66 },
+                { typeof(global::Staple.Internal.SceneComponent), 67 },
+                { typeof(global::Staple.Internal.SceneComponentParameter), 68 },
+                { typeof(global::Staple.Internal.SceneList), 69 },
+                { typeof(global::Staple.Internal.SceneListHeader), 70 },
+                { typeof(global::Staple.Internal.SceneObject), 71 },
+                { typeof(global::Staple.Internal.SceneObjectTransform), 72 },
+                { typeof(global::Staple.Internal.SerializableAudioClip), 73 },
+                { typeof(global::Staple.Internal.SerializableAudioClipHeader), 74 },
+                { typeof(global::Staple.Internal.SerializableMaterial), 75 },
+                { typeof(global::Staple.Internal.SerializableMaterialHeader), 76 },
+                { typeof(global::Staple.Internal.SerializableMeshAsset), 77 },
+                { typeof(global::Staple.Internal.SerializableMeshAssetHeader), 78 },
+                { typeof(global::Staple.Internal.SerializablePrefab), 79 },
+                { typeof(global::Staple.Internal.SerializablePrefabHeader), 80 },
+                { typeof(global::Staple.Internal.SerializableScene), 81 },
+                { typeof(global::Staple.Internal.SerializableSceneHeader), 82 },
+                { typeof(global::Staple.Internal.SerializableShader), 83 },
+                { typeof(global::Staple.Internal.SerializableShaderHeader), 84 },
+                { typeof(global::Staple.Internal.SerializableStapleAsset), 85 },
+                { typeof(global::Staple.Internal.SerializableStapleAssetContainer), 86 },
+                { typeof(global::Staple.Internal.SerializableStapleAssetHeader), 87 },
+                { typeof(global::Staple.Internal.SerializableStapleAssetParameter), 88 },
+                { typeof(global::Staple.Internal.SerializableTexture), 89 },
+                { typeof(global::Staple.Internal.SerializableTextureHeader), 90 },
+                { typeof(global::Staple.Internal.ShaderMetadata), 91 },
+                { typeof(global::Staple.Internal.ShaderUniform), 92 },
+                { typeof(global::Staple.Internal.TextureMetadata), 93 },
+                { typeof(global::Staple.Internal.TextureMetadataOverride), 94 },
+                { typeof(global::Staple.Internal.TextureSpriteInfo), 95 },
+                { typeof(global::Staple.Internal.Vector2Holder), 96 },
+                { typeof(global::Staple.Internal.Vector3Holder), 97 },
+                { typeof(global::Staple.Internal.Vector4Holder), 98 },
+                { typeof(global::Staple.Rect), 99 },
+                { typeof(global::Staple.RectFloat), 100 },
+                { typeof(global::Staple.Vector2Int), 101 },
             };
         }
 
@@ -167,104 +169,106 @@ namespace MessagePack.Resolvers
             {
                 case 0: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>();
                 case 1: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>();
-                case 2: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.MaterialParameter>();
-                case 3: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableStapleAssetParameter>();
-                case 4: return new global::MessagePack.Formatters.ListFormatter<global::Staple.ColliderMask.Item>();
-                case 5: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimation>();
-                case 6: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimationChannel>();
-                case 7: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetBone>();
-                case 8: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetMeshInfo>();
-                case 9: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetNode>();
-                case 10: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetQuaternionAnimationKey>();
-                case 11: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetVectorAnimationKey>();
-                case 12: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponent>();
-                case 13: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponentParameter>();
-                case 14: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneObject>();
-                case 15: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniform>();
-                case 16: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.TextureSpriteInfo>();
-                case 17: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector2Holder>();
-                case 18: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector3Holder>();
-                case 19: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector4Holder>();
-                case 20: return new global::MessagePack.Formatters.ListFormatter<global::Staple.RendererType>();
-                case 21: return new global::MessagePack.Formatters.ListFormatter<int>();
-                case 22: return new global::MessagePack.Formatters.ListFormatter<string>();
-                case 23: return new MessagePack.Formatters.Staple.AppPlatformFormatter();
-                case 24: return new MessagePack.Formatters.Staple.BlendModeFormatter();
-                case 25: return new MessagePack.Formatters.Staple.Internal.AudioClipFormatFormatter();
-                case 26: return new MessagePack.Formatters.Staple.Internal.MaterialParameterTypeFormatter();
-                case 27: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationStateBehaviourFormatter();
-                case 28: return new MessagePack.Formatters.Staple.Internal.MeshAssetRotationFormatter();
-                case 29: return new MessagePack.Formatters.Staple.Internal.MeshAssetTypeFormatter();
-                case 30: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterTypeFormatter();
-                case 31: return new MessagePack.Formatters.Staple.Internal.SceneObjectKindFormatter();
-                case 32: return new MessagePack.Formatters.Staple.Internal.ShaderTypeFormatter();
-                case 33: return new MessagePack.Formatters.Staple.Internal.ShaderUniformTypeFormatter();
-                case 34: return new MessagePack.Formatters.Staple.Internal.SpriteTextureMethodFormatter();
-                case 35: return new MessagePack.Formatters.Staple.Internal.TextureFilterFormatter();
-                case 36: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatFormatter();
-                case 37: return new MessagePack.Formatters.Staple.Internal.TextureMetadataQualityFormatter();
-                case 38: return new MessagePack.Formatters.Staple.Internal.TextureSpriteRotationFormatter();
-                case 39: return new MessagePack.Formatters.Staple.Internal.TextureTypeFormatter();
-                case 40: return new MessagePack.Formatters.Staple.Internal.TextureWrapFormatter();
-                case 41: return new MessagePack.Formatters.Staple.MeshTopologyFormatter();
-                case 42: return new MessagePack.Formatters.Staple.RendererTypeFormatter();
-                case 43: return new MessagePack.Formatters.Staple.WindowModeFormatter();
-                case 44: return new MessagePack.Formatters.Staple.AABBFormatter();
-                case 45: return new MessagePack.Formatters.Staple.AppSettingsFormatter();
-                case 46: return new MessagePack.Formatters.Staple.ColliderMask_ItemFormatter();
-                case 47: return new MessagePack.Formatters.Staple.ColorFormatter();
-                case 48: return new MessagePack.Formatters.Staple.Color32Formatter();
-                case 49: return new MessagePack.Formatters.Staple.Internal.AppSettingsHeaderFormatter();
-                case 50: return new MessagePack.Formatters.Staple.Internal.AssetHolderFormatter();
-                case 51: return new MessagePack.Formatters.Staple.Internal.AudioClipMetadataFormatter();
-                case 52: return new MessagePack.Formatters.Staple.Internal.FolderAssetFormatter();
-                case 53: return new MessagePack.Formatters.Staple.Internal.MaterialMetadataFormatter();
-                case 54: return new MessagePack.Formatters.Staple.Internal.MaterialParameterFormatter();
-                case 55: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationFormatter();
-                case 56: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationChannelFormatter();
-                case 57: return new MessagePack.Formatters.Staple.Internal.MeshAssetBoneFormatter();
-                case 58: return new MessagePack.Formatters.Staple.Internal.MeshAssetMeshInfoFormatter();
-                case 59: return new MessagePack.Formatters.Staple.Internal.MeshAssetMetadataFormatter();
-                case 60: return new MessagePack.Formatters.Staple.Internal.MeshAssetNodeFormatter();
-                case 61: return new MessagePack.Formatters.Staple.Internal.MeshAssetQuaternionAnimationKeyFormatter();
-                case 62: return new MessagePack.Formatters.Staple.Internal.MeshAssetVectorAnimationKeyFormatter();
-                case 63: return new MessagePack.Formatters.Staple.Internal.ResourcePak_EntryFormatter();
-                case 64: return new MessagePack.Formatters.Staple.Internal.ResourcePak_HeaderFormatter();
-                case 65: return new MessagePack.Formatters.Staple.Internal.SceneComponentFormatter();
-                case 66: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterFormatter();
-                case 67: return new MessagePack.Formatters.Staple.Internal.SceneListFormatter();
-                case 68: return new MessagePack.Formatters.Staple.Internal.SceneListHeaderFormatter();
-                case 69: return new MessagePack.Formatters.Staple.Internal.SceneObjectFormatter();
-                case 70: return new MessagePack.Formatters.Staple.Internal.SceneObjectTransformFormatter();
-                case 71: return new MessagePack.Formatters.Staple.Internal.SerializableAudioClipFormatter();
-                case 72: return new MessagePack.Formatters.Staple.Internal.SerializableAudioClipHeaderFormatter();
-                case 73: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialFormatter();
-                case 74: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialHeaderFormatter();
-                case 75: return new MessagePack.Formatters.Staple.Internal.SerializableMeshAssetFormatter();
-                case 76: return new MessagePack.Formatters.Staple.Internal.SerializableMeshAssetHeaderFormatter();
-                case 77: return new MessagePack.Formatters.Staple.Internal.SerializablePrefabFormatter();
-                case 78: return new MessagePack.Formatters.Staple.Internal.SerializablePrefabHeaderFormatter();
-                case 79: return new MessagePack.Formatters.Staple.Internal.SerializableSceneFormatter();
-                case 80: return new MessagePack.Formatters.Staple.Internal.SerializableSceneHeaderFormatter();
-                case 81: return new MessagePack.Formatters.Staple.Internal.SerializableShaderFormatter();
-                case 82: return new MessagePack.Formatters.Staple.Internal.SerializableShaderHeaderFormatter();
-                case 83: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetFormatter();
-                case 84: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetContainerFormatter();
-                case 85: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetHeaderFormatter();
-                case 86: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetParameterFormatter();
-                case 87: return new MessagePack.Formatters.Staple.Internal.SerializableTextureFormatter();
-                case 88: return new MessagePack.Formatters.Staple.Internal.SerializableTextureHeaderFormatter();
-                case 89: return new MessagePack.Formatters.Staple.Internal.ShaderMetadataFormatter();
-                case 90: return new MessagePack.Formatters.Staple.Internal.ShaderUniformFormatter();
-                case 91: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatter();
-                case 92: return new MessagePack.Formatters.Staple.Internal.TextureMetadataOverrideFormatter();
-                case 93: return new MessagePack.Formatters.Staple.Internal.TextureSpriteInfoFormatter();
-                case 94: return new MessagePack.Formatters.Staple.Internal.Vector2HolderFormatter();
-                case 95: return new MessagePack.Formatters.Staple.Internal.Vector3HolderFormatter();
-                case 96: return new MessagePack.Formatters.Staple.Internal.Vector4HolderFormatter();
-                case 97: return new MessagePack.Formatters.Staple.RectFormatter();
-                case 98: return new MessagePack.Formatters.Staple.RectFloatFormatter();
-                case 99: return new MessagePack.Formatters.Staple.Vector2IntFormatter();
+                case 2: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.Internal.ModuleType, string>();
+                case 3: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.MaterialParameter>();
+                case 4: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableStapleAssetParameter>();
+                case 5: return new global::MessagePack.Formatters.ListFormatter<global::Staple.ColliderMask.Item>();
+                case 6: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimation>();
+                case 7: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimationChannel>();
+                case 8: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetBone>();
+                case 9: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetMeshInfo>();
+                case 10: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetNode>();
+                case 11: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetQuaternionAnimationKey>();
+                case 12: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetVectorAnimationKey>();
+                case 13: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponent>();
+                case 14: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponentParameter>();
+                case 15: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneObject>();
+                case 16: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniform>();
+                case 17: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.TextureSpriteInfo>();
+                case 18: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector2Holder>();
+                case 19: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector3Holder>();
+                case 20: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector4Holder>();
+                case 21: return new global::MessagePack.Formatters.ListFormatter<global::Staple.RendererType>();
+                case 22: return new global::MessagePack.Formatters.ListFormatter<int>();
+                case 23: return new global::MessagePack.Formatters.ListFormatter<string>();
+                case 24: return new MessagePack.Formatters.Staple.AppPlatformFormatter();
+                case 25: return new MessagePack.Formatters.Staple.BlendModeFormatter();
+                case 26: return new MessagePack.Formatters.Staple.Internal.AudioClipFormatFormatter();
+                case 27: return new MessagePack.Formatters.Staple.Internal.MaterialParameterTypeFormatter();
+                case 28: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationStateBehaviourFormatter();
+                case 29: return new MessagePack.Formatters.Staple.Internal.MeshAssetRotationFormatter();
+                case 30: return new MessagePack.Formatters.Staple.Internal.MeshAssetTypeFormatter();
+                case 31: return new MessagePack.Formatters.Staple.Internal.ModuleTypeFormatter();
+                case 32: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterTypeFormatter();
+                case 33: return new MessagePack.Formatters.Staple.Internal.SceneObjectKindFormatter();
+                case 34: return new MessagePack.Formatters.Staple.Internal.ShaderTypeFormatter();
+                case 35: return new MessagePack.Formatters.Staple.Internal.ShaderUniformTypeFormatter();
+                case 36: return new MessagePack.Formatters.Staple.Internal.SpriteTextureMethodFormatter();
+                case 37: return new MessagePack.Formatters.Staple.Internal.TextureFilterFormatter();
+                case 38: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatFormatter();
+                case 39: return new MessagePack.Formatters.Staple.Internal.TextureMetadataQualityFormatter();
+                case 40: return new MessagePack.Formatters.Staple.Internal.TextureSpriteRotationFormatter();
+                case 41: return new MessagePack.Formatters.Staple.Internal.TextureTypeFormatter();
+                case 42: return new MessagePack.Formatters.Staple.Internal.TextureWrapFormatter();
+                case 43: return new MessagePack.Formatters.Staple.MeshTopologyFormatter();
+                case 44: return new MessagePack.Formatters.Staple.RendererTypeFormatter();
+                case 45: return new MessagePack.Formatters.Staple.WindowModeFormatter();
+                case 46: return new MessagePack.Formatters.Staple.AABBFormatter();
+                case 47: return new MessagePack.Formatters.Staple.AppSettingsFormatter();
+                case 48: return new MessagePack.Formatters.Staple.ColliderMask_ItemFormatter();
+                case 49: return new MessagePack.Formatters.Staple.ColorFormatter();
+                case 50: return new MessagePack.Formatters.Staple.Color32Formatter();
+                case 51: return new MessagePack.Formatters.Staple.Internal.AppSettingsHeaderFormatter();
+                case 52: return new MessagePack.Formatters.Staple.Internal.AssetHolderFormatter();
+                case 53: return new MessagePack.Formatters.Staple.Internal.AudioClipMetadataFormatter();
+                case 54: return new MessagePack.Formatters.Staple.Internal.FolderAssetFormatter();
+                case 55: return new MessagePack.Formatters.Staple.Internal.MaterialMetadataFormatter();
+                case 56: return new MessagePack.Formatters.Staple.Internal.MaterialParameterFormatter();
+                case 57: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationFormatter();
+                case 58: return new MessagePack.Formatters.Staple.Internal.MeshAssetAnimationChannelFormatter();
+                case 59: return new MessagePack.Formatters.Staple.Internal.MeshAssetBoneFormatter();
+                case 60: return new MessagePack.Formatters.Staple.Internal.MeshAssetMeshInfoFormatter();
+                case 61: return new MessagePack.Formatters.Staple.Internal.MeshAssetMetadataFormatter();
+                case 62: return new MessagePack.Formatters.Staple.Internal.MeshAssetNodeFormatter();
+                case 63: return new MessagePack.Formatters.Staple.Internal.MeshAssetQuaternionAnimationKeyFormatter();
+                case 64: return new MessagePack.Formatters.Staple.Internal.MeshAssetVectorAnimationKeyFormatter();
+                case 65: return new MessagePack.Formatters.Staple.Internal.ResourcePak_EntryFormatter();
+                case 66: return new MessagePack.Formatters.Staple.Internal.ResourcePak_HeaderFormatter();
+                case 67: return new MessagePack.Formatters.Staple.Internal.SceneComponentFormatter();
+                case 68: return new MessagePack.Formatters.Staple.Internal.SceneComponentParameterFormatter();
+                case 69: return new MessagePack.Formatters.Staple.Internal.SceneListFormatter();
+                case 70: return new MessagePack.Formatters.Staple.Internal.SceneListHeaderFormatter();
+                case 71: return new MessagePack.Formatters.Staple.Internal.SceneObjectFormatter();
+                case 72: return new MessagePack.Formatters.Staple.Internal.SceneObjectTransformFormatter();
+                case 73: return new MessagePack.Formatters.Staple.Internal.SerializableAudioClipFormatter();
+                case 74: return new MessagePack.Formatters.Staple.Internal.SerializableAudioClipHeaderFormatter();
+                case 75: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialFormatter();
+                case 76: return new MessagePack.Formatters.Staple.Internal.SerializableMaterialHeaderFormatter();
+                case 77: return new MessagePack.Formatters.Staple.Internal.SerializableMeshAssetFormatter();
+                case 78: return new MessagePack.Formatters.Staple.Internal.SerializableMeshAssetHeaderFormatter();
+                case 79: return new MessagePack.Formatters.Staple.Internal.SerializablePrefabFormatter();
+                case 80: return new MessagePack.Formatters.Staple.Internal.SerializablePrefabHeaderFormatter();
+                case 81: return new MessagePack.Formatters.Staple.Internal.SerializableSceneFormatter();
+                case 82: return new MessagePack.Formatters.Staple.Internal.SerializableSceneHeaderFormatter();
+                case 83: return new MessagePack.Formatters.Staple.Internal.SerializableShaderFormatter();
+                case 84: return new MessagePack.Formatters.Staple.Internal.SerializableShaderHeaderFormatter();
+                case 85: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetFormatter();
+                case 86: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetContainerFormatter();
+                case 87: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetHeaderFormatter();
+                case 88: return new MessagePack.Formatters.Staple.Internal.SerializableStapleAssetParameterFormatter();
+                case 89: return new MessagePack.Formatters.Staple.Internal.SerializableTextureFormatter();
+                case 90: return new MessagePack.Formatters.Staple.Internal.SerializableTextureHeaderFormatter();
+                case 91: return new MessagePack.Formatters.Staple.Internal.ShaderMetadataFormatter();
+                case 92: return new MessagePack.Formatters.Staple.Internal.ShaderUniformFormatter();
+                case 93: return new MessagePack.Formatters.Staple.Internal.TextureMetadataFormatter();
+                case 94: return new MessagePack.Formatters.Staple.Internal.TextureMetadataOverrideFormatter();
+                case 95: return new MessagePack.Formatters.Staple.Internal.TextureSpriteInfoFormatter();
+                case 96: return new MessagePack.Formatters.Staple.Internal.Vector2HolderFormatter();
+                case 97: return new MessagePack.Formatters.Staple.Internal.Vector3HolderFormatter();
+                case 98: return new MessagePack.Formatters.Staple.Internal.Vector4HolderFormatter();
+                case 99: return new MessagePack.Formatters.Staple.RectFormatter();
+                case 100: return new MessagePack.Formatters.Staple.RectFloatFormatter();
+                case 101: return new MessagePack.Formatters.Staple.Vector2IntFormatter();
                 default: return null;
             }
         }
@@ -458,6 +462,19 @@ namespace MessagePack.Formatters.Staple.Internal
         public global::Staple.Internal.MeshAssetType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.MeshAssetType)reader.ReadInt32();
+        }
+    }
+
+    public sealed class ModuleTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.ModuleType>
+    {
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.ModuleType value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.Write((Int32)value);
+        }
+
+        public global::Staple.Internal.ModuleType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            return (global::Staple.Internal.ModuleType)reader.ReadInt32();
         }
     }
 
@@ -696,7 +713,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(21);
+            writer.WriteArrayHeader(22);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -718,6 +735,7 @@ namespace MessagePack.Formatters.Staple
             writer.Write(value.landscapeOrientation);
             writer.Write(value.maximumFixedTimestepTime);
             writer.Write(value.physicsFrameRate);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>>().Serialize(ref writer, value.usedModules, options);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -798,6 +816,9 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 20:
                         ____result.physicsFrameRate = reader.ReadInt32();
+                        break;
+                    case 21:
+                        ____result.usedModules = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

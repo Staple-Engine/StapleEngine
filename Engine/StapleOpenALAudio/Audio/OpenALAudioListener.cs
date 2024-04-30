@@ -1,9 +1,10 @@
 ﻿using OpenAL;
+using Staple.Internal;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.OpenALAudio;
 
-internal class OpenALAudioListener : IAudioListener
+public class OpenALAudioListener : IAudioListener
 {
     private Quaternion rotation = Quaternion.Identity;
 

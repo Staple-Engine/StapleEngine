@@ -16,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+		{A2579EE3-962F-4838-88E8-D5363ECECAF7} = {A2579EE3-962F-4838-88E8-D5363ECECAF7}
+		{B1931566-065A-4ED4-A87D-CF6F9CE3413A} = {B1931566-065A-4ED4-A87D-CF6F9CE3413A}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditorApp", "EditorApp\StapleEditorApp.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
@@ -32,9 +34,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleTooling", "Tooling\St
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleToolingTests", "StapleToolingTests\StapleToolingTests.csproj", "{98EB2BBC-5782-463F-989F-6473845728E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleToolingTests", "StapleToolingTests\StapleToolingTests.csproj", "{98EB2BBC-5782-463F-989F-6473845728E8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{947A5870-7477-4B24-8B21-E03CFCEB8708} = {947A5870-7477-4B24-8B21-E03CFCEB8708}
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleJoltPhysics", "StapleJoltPhysics\StapleJoltPhysics.csproj", "{A2579EE3-962F-4838-88E8-D5363ECECAF7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleOpenALAudio", "StapleOpenALAudio\StapleOpenALAudio.csproj", "{B1931566-065A-4ED4-A87D-CF6F9CE3413A}"
+	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
@@ -76,6 +88,14 @@ Global
 		{98EB2BBC-5782-463F-989F-6473845728E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98EB2BBC-5782-463F-989F-6473845728E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98EB2BBC-5782-463F-989F-6473845728E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2579EE3-962F-4838-88E8-D5363ECECAF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2579EE3-962F-4838-88E8-D5363ECECAF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2579EE3-962F-4838-88E8-D5363ECECAF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2579EE3-962F-4838-88E8-D5363ECECAF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

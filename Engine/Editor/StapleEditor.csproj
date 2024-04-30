@@ -118,6 +118,10 @@
     <PackageReference Include="Hexa.NET.ImNodes" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImPlot" Version="1.0.3" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StapleJoltPhysics\StapleJoltPhysics.csproj" />
+    <ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"

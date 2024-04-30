@@ -1,9 +1,10 @@
 ﻿using OpenAL;
+using Staple.Internal;
 
-namespace Staple;
+namespace Staple.OpenALAudio;
 
 [AdditionalLibrary(AppPlatform.Android, "openal32")]
-internal class OpenALAudioDevice : IAudioDevice
+public class OpenALAudioDevice : IAudioDevice
 {
     public nint Device { get; private set; }
 

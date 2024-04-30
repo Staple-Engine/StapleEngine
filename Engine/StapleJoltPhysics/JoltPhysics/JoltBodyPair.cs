@@ -1,8 +1,9 @@
 ﻿using JoltPhysicsSharp;
+using Staple.Internal;
 using System.Numerics;
 using System;
 
-namespace Staple;
+namespace Staple.JoltPhysics;
 
 /// <summary>
 /// Jolt Physics 3D Body implementation

@@ -34,6 +34,8 @@ internal class AppPlayer
                 Console.WriteLine($"[{type}] {message}");
             };
         }
+
+        ModuleInitializer.LoadAll();
     }
 
     public void ResetRendering(bool hasFocus)
@@ -122,23 +124,44 @@ internal class AppPlayer
 
             Log.Info("Loaded scene list");
 
-            try
+            if(Physics3D.ImplType != null)
             {
-                Physics3D.Instance = new Physics3D(new JoltPhysics3D());
-            }
-            catch(Exception e)
-            {
-                Log.Error(e.ToString());
+                if(Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
+                {
+                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
 
-                renderWindow.shouldStop = true;
+                    renderWindow.shouldStop = true;
 
-                throw new Exception("Failed to initialize physics");
+                    throw new Exception("Failed to initialize physics");
+                }
+
+                var physicsInstance = ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType);
+
+                if (physicsInstance != null)
+                {
+                    try
+                    {
+                        Physics3D.Instance = new Physics3D(physicsInstance);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e.ToString());
+
+                        renderWindow.shouldStop = true;
+
+                        throw new Exception("Failed to initialize physics");
+                    }
+                }
             }
 
             SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
             SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
-            SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
             SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
+
+            if (Physics3D.Instance != null)
+            {
+                SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
+            }
 
             var types = TypeCache.AllTypes()
                 .Where(x => typeof(IEntitySystem).IsAssignableFrom(x) && x != typeof(IEntitySystem))
@@ -223,6 +246,8 @@ internal class AppPlayer
             SubsystemManager.instance.Destroy();
 
             ResourceManager.instance.Destroy(true);
+
+            ModuleInitializer.UnloadAll();
 
             Log.Info("Done");
 

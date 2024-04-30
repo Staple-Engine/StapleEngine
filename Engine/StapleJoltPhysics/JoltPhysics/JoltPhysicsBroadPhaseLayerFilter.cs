@@ -1,6 +1,6 @@
 ﻿using JoltPhysicsSharp;
 
-namespace Staple;
+namespace Staple.JoltPhysics;
 
 internal class JoltPhysicsBroadPhaseLayerFilter : BroadPhaseLayerFilter
 {

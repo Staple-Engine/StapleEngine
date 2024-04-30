@@ -1,6 +1,7 @@
 ﻿using JoltPhysicsSharp;
+using Staple.Internal;
 
-namespace Staple;
+namespace Staple.JoltPhysics;
 
 internal class JoltPhysicsBodyFilter : BodyFilter
 {
@@ -8,7 +9,7 @@ internal class JoltPhysicsBodyFilter : BodyFilter
 
     protected override bool ShouldCollide(BodyID bodyID)
     {
-        if(Physics3D.Instance?.impl is JoltPhysics3D physics)
+        if(Physics3D.Instance?.Impl is JoltPhysics3D physics)
         {
             var localBody = physics.GetBody(bodyID);
 

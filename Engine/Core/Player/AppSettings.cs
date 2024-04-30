@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -139,6 +140,9 @@ public class AppSettings
     [Key(20)]
     public int physicsFrameRate = 50;
 
+    [Key(21)]
+    public Dictionary<ModuleType, string> usedModules = new();
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -197,6 +201,11 @@ public class AppSettings
                         }
                     }
                 },
+                usedModules = new()
+                {
+                    { ModuleType.Audio, "StapleOpenALAudio" },
+                    { ModuleType.Physics, "StapleJoltPhysics" },
+                },
             };
         }
     }
@@ -231,6 +240,7 @@ public class AppSettings
             renderers = newRenderers,
             runInBackground = runInBackground,
             sortingLayers = sortingLayers.Select(x => x).ToList(),
+            usedModules = new(usedModules),
         };
     }
 }

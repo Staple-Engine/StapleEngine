@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Staple;
+namespace Staple.Internal;
 
 internal interface IAudioStream
 {

@@ -135,7 +135,7 @@ internal partial class StapleEditor
 
         if(gameAssemblyLoadContext != null)
         {
-            WeakReference<GameAssemblyLoadContext> game = new(gameAssemblyLoadContext);
+            WeakReference<StapleAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
             var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
 

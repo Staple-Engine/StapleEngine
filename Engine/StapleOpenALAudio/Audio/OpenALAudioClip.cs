@@ -1,9 +1,10 @@
 ﻿using OpenAL;
+using Staple.Internal;
 using System;
 
-namespace Staple;
+namespace Staple.OpenALAudio;
 
-internal class OpenALAudioClip : IAudioClip
+public class OpenALAudioClip : IAudioClip
 {
     public uint buffer;
 

@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 
-namespace Staple;
+namespace Staple.Internal;
 
-using AudioDeviceImpl = OpenALAudioDevice;
-using AudioListenerImpl = OpenALAudioListener;
-using AudioSourceImpl = OpenALAudioSource;
-using AudioClipImpl = OpenALAudioClip;
-
-internal class AudioSystem : ISubsystem
+/// <summary>
+/// Audio system
+/// </summary>
+public class AudioSystem : ISubsystem
 {
     class AudioSourceInfo
     {
@@ -29,10 +27,13 @@ internal class AudioSystem : ISubsystem
 
     public SubsystemType type => SubsystemType.Update;
 
-    internal static readonly Type AudioDeviceType = typeof(AudioDeviceImpl);
-    internal static readonly Type AudioListenerType = typeof(AudioListenerImpl);
-    internal static readonly Type AudioSourceType = typeof(AudioSourceImpl);
-    internal static readonly Type AudioClipType = typeof(AudioClipImpl);
+    public static Type AudioDeviceImpl { get; internal set; }
+
+    public static Type AudioListenerImpl { get; internal set; }
+
+    public static Type AudioSourceImpl { get; internal set; }
+
+    public static Type AudioClipImpl { get; internal set; }
 
     internal IAudioDevice device;
 
@@ -49,9 +50,21 @@ internal class AudioSystem : ISubsystem
 
     public void Startup()
     {
-        device = new AudioDeviceImpl();
+        if(AudioDeviceImpl == null ||
+            AudioDeviceImpl.IsAssignableTo(typeof(IAudioDevice)) == false ||
+            AudioListenerImpl == null ||
+            AudioListenerImpl.IsAssignableTo(typeof(IAudioListener)) == false ||
+            AudioSourceImpl == null ||
+            AudioSourceImpl.IsAssignableTo(typeof(IAudioSource)) == false ||
+            AudioClipImpl == null ||
+            AudioClipImpl.IsAssignableTo(typeof(IAudioClip)) == false)
+        {
+            return;
+        }
 
-        if(device.Init() == false)
+        device = ObjectCreation.CreateObject<IAudioDevice>(AudioDeviceImpl);
+
+        if(device != null && device.Init() == false)
         {
             device = null;
         }
@@ -72,11 +85,13 @@ internal class AudioSystem : ISubsystem
 
             var listener = component as AudioListener;
 
-            listener.audioListener = new AudioListenerImpl
+            listener.audioListener = ObjectCreation.CreateObject<IAudioListener>(AudioListenerImpl);
+
+            if(listener.audioListener != null)
             {
-                Position = transform.Position,
-                Orientation = transform.Rotation
-            };
+                listener.audioListener.Position = transform.Position;
+                listener.audioListener.Orientation = transform.Rotation;
+            }
         });
 
         World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
@@ -88,9 +103,9 @@ internal class AudioSystem : ISubsystem
 
             var source = component as AudioSource;
 
-            source.audioSource = new AudioSourceImpl();
+            source.audioSource = ObjectCreation.CreateObject<IAudioSource>(AudioSourceImpl);
 
-            if(source.audioSource.Init() == false)
+            if(source.audioSource == null || source.audioSource.Init() == false)
             {
                 Log.Debug($"[AudioSystem] Failed to create audio source for entity {entity}");
 
@@ -217,9 +232,9 @@ internal class AudioSystem : ISubsystem
                         return;
                     }
 
-                    var clip = new AudioClipImpl();
+                    var clip = ObjectCreation.CreateObject<IAudioClip>(AudioClipImpl);
 
-                    if (clip.Init(samples, channels, bits, sampleRate))
+                    if (clip != null && clip.Init(samples, channels, bits, sampleRate))
                     {
                         if (source.audioSource.Bind(clip) == false)
                         {
@@ -240,7 +255,7 @@ internal class AudioSystem : ISubsystem
                     }
                     else
                     {
-                        clip.Destroy();
+                        clip?.Destroy();
                     }
                 });
             }

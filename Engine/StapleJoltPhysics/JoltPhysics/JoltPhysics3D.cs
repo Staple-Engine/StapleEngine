@@ -1,15 +1,16 @@
 ﻿using JoltPhysicsSharp;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.JoltPhysics;
 
 /// <summary>
 /// Implements Jolt Physics
 /// </summary>
 [AdditionalLibrary(AppPlatform.Android, "joltc")]
-internal class JoltPhysics3D : IPhysics3D
+public class JoltPhysics3D : IPhysics3D
 {
     public const float MinExtents = 0.2f;
 
@@ -401,7 +402,7 @@ internal class JoltPhysics3D : IPhysics3D
                 b = physicsSystem.BodyInterface.CreateBody(creationSettings);
             }
 
-            if (b != null)
+            if (b.Handle != nint.Zero)
             {
                 if(motionType != MotionType.Static)
                 {
@@ -529,12 +530,12 @@ internal class JoltPhysics3D : IPhysics3D
             throw new ArgumentException("Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
         }
 
-        if((mesh.vertices?.Length ?? 0) == 0)
+        if((mesh.Vertices?.Length ?? 0) == 0)
         {
             throw new ArgumentException("Mesh doesn't have vertices", nameof(mesh));
         }
 
-        if((mesh.indices?.Length ?? 0) == 0)
+        if((mesh.Indices?.Length ?? 0) == 0)
         {
             throw new ArgumentException("Mesh doesn't have indices", nameof(mesh));
         }
@@ -544,7 +545,7 @@ internal class JoltPhysics3D : IPhysics3D
         unsafe
         {
             var triangles = new List<IndexedTriangle>();
-            var indices = mesh.indices;
+            var indices = mesh.Indices;
 
             for (var i = 0; i < mesh.IndexCount; i += 3)
             {
@@ -553,7 +554,7 @@ internal class JoltPhysics3D : IPhysics3D
                     indices[i + 2]));
             }
 
-            settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
+            settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
         }
 
         return CreateBody(entity, settings, position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor, friction, restitution,
@@ -687,12 +688,12 @@ internal class JoltPhysics3D : IPhysics3D
                 throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
             }
 
-            if ((mesh.vertices?.Length ?? 0) == 0)
+            if ((mesh.Vertices?.Length ?? 0) == 0)
             {
                 throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have vertices", nameof(mesh));
             }
 
-            if ((mesh.indices?.Length ?? 0) == 0)
+            if ((mesh.Indices?.Length ?? 0) == 0)
             {
                 throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have indices", nameof(mesh));
             }
@@ -702,7 +703,7 @@ internal class JoltPhysics3D : IPhysics3D
             unsafe
             {
                 var triangles = new List<IndexedTriangle>();
-                var indices = mesh.indices;
+                var indices = mesh.Indices;
 
                 for (var i = 0; i < mesh.IndexCount; i += 3)
                 {
@@ -711,7 +712,7 @@ internal class JoltPhysics3D : IPhysics3D
                         indices[i + 2]));
                 }
 
-                settings = new MeshShapeSettings(mesh.vertices, triangles.ToArray());
+                settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
             }
 
             compound.AddShape(meshCollider.position, meshCollider.rotation, settings);

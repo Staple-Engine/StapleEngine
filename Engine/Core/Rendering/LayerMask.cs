@@ -9,10 +9,10 @@ namespace Staple;
 public struct LayerMask
 {
     [IgnoreMember]
-    internal static List<string> AllLayers = new();
+    public static List<string> AllLayers = new();
 
     [IgnoreMember]
-    internal static List<string> AllSortingLayers = new();
+    public static List<string> AllSortingLayers = new();
 
     /// <summary>
     /// The layer mask's value
@@ -33,7 +33,7 @@ public struct LayerMask
     /// </summary>
     /// <param name="index">The layer's index</param>
     /// <returns>Whether it contains the layer</returns>
-    internal bool HasLayer(uint index)
+    public bool HasLayer(uint index)
     {
         return (value & (1 << (int)index)) == (1 << (int)index);
     }
@@ -42,7 +42,7 @@ public struct LayerMask
     /// Adds a layer to this layer mask
     /// </summary>
     /// <param name="index">The layer index</param>
-    internal void SetLayer(uint index)
+    public void SetLayer(uint index)
     {
         value |= (uint)((1 << (int)index));
     }
@@ -51,7 +51,7 @@ public struct LayerMask
     /// Removes a layer from this layer mask
     /// </summary>
     /// <param name="index">The layer index</param>
-    internal void RemoveLayer(uint index)
+    public void RemoveLayer(uint index)
     {
         value &= (uint)(~(1 << (int)index));
     }

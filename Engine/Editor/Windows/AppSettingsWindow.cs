@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using System.Linq;
+using Staple.Internal;
 
 namespace Staple.Editor;
 
@@ -12,9 +13,21 @@ internal class AppSettingsWindow : EditorWindow
     public string basePath;
     public AppSettings projectAppSettings;
 
+    private List<ModuleType> moduleKinds = new();
+    private Dictionary<ModuleType, string[]> moduleNames = new();
+
     public AppSettingsWindow()
     {
         allowDocking = false;
+
+        moduleKinds = Enum.GetValues<ModuleType>().ToList();
+
+        foreach(var pair in StapleEditor.instance.modulesList)
+        {
+            moduleNames.Add(pair.Key, pair.Value
+                .Select(x => x.moduleName)
+                .ToArray());
+        }
     }
 
     public override void OnGUI()
@@ -205,6 +218,24 @@ internal class AppSettingsWindow : EditorWindow
         });
 
         EditorGUI.Label("* - Shared setting between platforms");
+
+        EditorGUI.TreeNode("Plugins", false, true, () =>
+        {
+            foreach(var kind in moduleKinds)
+            {
+                if (StapleEditor.instance.modulesList.TryGetValue(kind, out var modules))
+                {
+                    projectAppSettings.usedModules.TryGetValue(kind, out var localName);
+
+                    var index = EditorGUI.Dropdown(kind.ToString(), moduleNames[kind], modules.FindIndex(x => x.moduleName == localName));
+
+                    if(index >= 0 && index < modules.Count)
+                    {
+                        projectAppSettings.usedModules.AddOrSetKey(kind, modules[index].moduleName);
+                    }
+                }
+            }
+        });
 
         EditorGUI.Button("Apply Changes", () =>
         {

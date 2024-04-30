@@ -58,11 +58,11 @@ internal class AudioClipEditor : Editor
 
                     lock (lockObject)
                     {
-                        audioSource = (IAudioSource)Activator.CreateInstance(AudioSystem.AudioSourceType);
+                        audioSource = (IAudioSource)Activator.CreateInstance(AudioSystem.AudioSourceImpl);
 
                         if (audioSource.Init())
                         {
-                            audioClip = (IAudioClip)Activator.CreateInstance(AudioSystem.AudioClipType);
+                            audioClip = (IAudioClip)Activator.CreateInstance(AudioSystem.AudioClipImpl);
 
                             if (audioClip.Init(samples, channels, bits, sampleRate))
                             {

@@ -1,9 +1,10 @@
 ﻿using OpenAL;
+using Staple.Internal;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.OpenALAudio;
 
-internal class OpenALAudioSource : IAudioSource
+public class OpenALAudioSource : IAudioSource
 {
     internal uint source;
 

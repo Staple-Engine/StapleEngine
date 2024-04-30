@@ -1,6 +1,6 @@
-﻿namespace Staple;
+﻿namespace Staple.Internal;
 
-internal interface IAudioClip
+public interface IAudioClip
 {
     bool Init(short[] data, int channels, int bitsPerSample, int sampleRate);
 

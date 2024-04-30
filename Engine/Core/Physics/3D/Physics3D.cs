@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
 /// <summary>
 /// Physics 3D management proxy
 /// </summary>
-internal class Physics3D : ISubsystem
+public class Physics3D : ISubsystem
 {
     private static Physics3D instance;
 
@@ -22,15 +22,20 @@ internal class Physics3D : ISubsystem
             return instance;
         }
 
-        set
+        internal set
         {
             instance = value;
         }
     }
 
-    public static readonly byte Priority = 2;
+    /// <summary>
+    /// The implementation type to use for this subsystem
+    /// </summary>
+    internal static Type ImplType;
 
-    internal IPhysics3D impl;
+    internal static readonly byte Priority = 2;
+
+    public IPhysics3D Impl { get; internal set; }
 
     private static readonly Vector3 DefaultGravity = new(0, -9.81f, 0);
 
@@ -47,7 +52,7 @@ internal class Physics3D : ISubsystem
     /// <summary>
     /// Whether this has been destroyed
     /// </summary>
-    public bool Destroyed => impl?.Destroyed ?? true;
+    public bool Destroyed => Impl?.Destroyed ?? true;
 
     public SubsystemType type => SubsystemType.Update;
 
@@ -56,14 +61,14 @@ internal class Physics3D : ISubsystem
     /// </summary>
     public Vector3 Gravity
     {
-        get => impl.Gravity;
+        get => Impl.Gravity;
 
-        set => impl.Gravity = value;
+        set => Impl.Gravity = value;
     }
 
     public Physics3D(IPhysics3D impl)
     {
-        this.impl = impl;
+        this.Impl = impl;
 
         Gravity = DefaultGravity;
     }
@@ -76,7 +81,7 @@ internal class Physics3D : ISubsystem
     /// <returns>The body, or null</returns>
     public IBody3D CreateBody(Entity entity, World world)
     {
-        return impl.CreateBody(entity, world);
+        return Impl.CreateBody(entity, world);
     }
 
     /// <summary>
@@ -103,7 +108,7 @@ internal class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
-        return impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
+        return Impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
@@ -131,7 +136,7 @@ internal class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
-        return impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+        return Impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
@@ -160,7 +165,7 @@ internal class Physics3D : ISubsystem
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
-        return impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+        return Impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
@@ -189,7 +194,7 @@ internal class Physics3D : ISubsystem
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
-        return impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
+        return Impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
@@ -217,7 +222,7 @@ internal class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
-        return impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
+        return Impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
@@ -232,7 +237,7 @@ internal class Physics3D : ISubsystem
             return;
         }
 
-        impl.DestroyBody(body);
+        Impl.DestroyBody(body);
     }
 
     /// <summary>
@@ -242,7 +247,7 @@ internal class Physics3D : ISubsystem
     /// <param name="activated">Whether it's activated</param>
     public void AddBody(IBody3D body, bool activated)
     {
-        impl.AddBody(body, activated);
+        Impl.AddBody(body, activated);
     }
 
     /// <summary>
@@ -251,7 +256,7 @@ internal class Physics3D : ISubsystem
     /// <param name="body">The body to remove</param>
     public void RemoveBody(IBody3D body)
     {
-        impl.RemoveBody(body);
+        Impl.RemoveBody(body);
     }
 
     /// <summary>
@@ -266,7 +271,7 @@ internal class Physics3D : ISubsystem
     /// <returns>Whether we hit something</returns>
     public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
-        return impl.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance);
+        return Impl.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance);
     }
 
     /// <summary>
@@ -276,7 +281,7 @@ internal class Physics3D : ISubsystem
     /// <returns>The gravity factor</returns>
     public float GravityFactor(IBody3D body)
     {
-        return impl.GravityFactor(body);
+        return Impl.GravityFactor(body);
     }
 
     /// <summary>
@@ -286,7 +291,7 @@ internal class Physics3D : ISubsystem
     /// <param name="factor">The gravity factor</param>
     public void SetGravityFactor(IBody3D body, float factor)
     {
-        impl.SetGravityFactor(body, factor);
+        Impl.SetGravityFactor(body, factor);
     }
 
     /// <summary>
@@ -296,7 +301,7 @@ internal class Physics3D : ISubsystem
     /// <param name="newPosition">The new position</param>
     public void SetBodyPosition(IBody3D body, Vector3 newPosition)
     {
-        impl.SetBodyPosition(body, newPosition);
+        Impl.SetBodyPosition(body, newPosition);
     }
 
     /// <summary>
@@ -306,7 +311,7 @@ internal class Physics3D : ISubsystem
     /// <param name="newRotation">The new rotation</param>
     public void SetBodyRotation(IBody3D body, Quaternion newRotation)
     {
-        impl.SetBodyRotation(body, newRotation);
+        Impl.SetBodyRotation(body, newRotation);
     }
 
     /// <summary>
@@ -316,7 +321,7 @@ internal class Physics3D : ISubsystem
     /// <param name="value">Whether it should be a trigger</param>
     public void SetBodyTrigger(IBody3D body, bool value)
     {
-        impl.SetBodyTrigger(body, value);
+        Impl.SetBodyTrigger(body, value);
     }
 
     /// <summary>
@@ -326,7 +331,7 @@ internal class Physics3D : ISubsystem
     /// <returns>The body if available, or null</returns>
     public IBody3D GetBody(Entity entity)
     {
-        return impl.GetBody(entity);
+        return Impl.GetBody(entity);
     }
 
     /// <summary>
@@ -336,7 +341,7 @@ internal class Physics3D : ISubsystem
     /// <param name="force">The force to add</param>
     public void AddForce(IBody3D body, Vector3 force)
     {
-        impl.AddForce(body, force);
+        Impl.AddForce(body, force);
     }
 
     /// <summary>
@@ -346,7 +351,7 @@ internal class Physics3D : ISubsystem
     /// <param name="impulse">The impulse to add</param>
     public void AddImpulse(IBody3D body, Vector3 impulse)
     {
-        impl.AddImpulse(body, impulse);
+        Impl.AddImpulse(body, impulse);
     }
 
     /// <summary>
@@ -356,7 +361,7 @@ internal class Physics3D : ISubsystem
     /// <param name="impulse">The impulse to add</param>
     public void AddAngularImpulse(IBody3D body, Vector3 impulse)
     {
-        impl.AddAngularImpulse(body, impulse);
+        Impl.AddAngularImpulse(body, impulse);
     }
 
     #endregion
@@ -398,9 +403,9 @@ internal class Physics3D : ISubsystem
             DestroyBody(rigidBody.body);
         }, true);
 
-        impl.Destroy();
+        Impl.Destroy();
 
-        impl = null;
+        Impl = null;
     }
 
     public void Update()
@@ -411,11 +416,11 @@ internal class Physics3D : ISubsystem
         {
             deltaTimer -= PhysicsDeltaTime;
 
-            impl.Update(PhysicsDeltaTime);
+            Impl.Update(PhysicsDeltaTime);
         }
     }
 
-    internal static void BodyActivated(IBody3D body)
+    public static void BodyActivated(IBody3D body)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
@@ -425,7 +430,7 @@ internal class Physics3D : ISubsystem
         }
     }
 
-    internal static void BodyDeactivated(IBody3D body)
+    public static void BodyDeactivated(IBody3D body)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
@@ -435,7 +440,7 @@ internal class Physics3D : ISubsystem
         }
     }
 
-    internal static void ContactAdded(IBody3D A, IBody3D B)
+    public static void ContactAdded(IBody3D A, IBody3D B)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
@@ -445,7 +450,7 @@ internal class Physics3D : ISubsystem
         }
     }
 
-    internal static void ContactPersisted(IBody3D A, IBody3D B)
+    public static void ContactPersisted(IBody3D A, IBody3D B)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
@@ -455,7 +460,7 @@ internal class Physics3D : ISubsystem
         }
     }
 
-    internal static void ContactRemoved(IBody3D A, IBody3D B)
+    public static void ContactRemoved(IBody3D A, IBody3D B)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 
@@ -465,7 +470,7 @@ internal class Physics3D : ISubsystem
         }
     }
 
-    internal static bool ContactValidate(IBody3D A, IBody3D B)
+    public static bool ContactValidate(IBody3D A, IBody3D B)
     {
         var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
 

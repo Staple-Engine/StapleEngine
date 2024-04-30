@@ -1,11 +1,11 @@
 ﻿using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
 /// <summary>
 /// 3D Physics interface
 /// </summary>
-internal interface IPhysics3D
+public interface IPhysics3D
 {
     /// <summary>
     /// Whether this has been destroyed

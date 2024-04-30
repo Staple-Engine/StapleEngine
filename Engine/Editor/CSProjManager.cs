@@ -195,8 +195,8 @@ internal class CSProjManager
             p.SetProperty(pair.Key, pair.Value);
         }
 
-        p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll")) });
-        p.AddItem("Reference", "StapleEditor", new KeyValuePair<string, string>[] { new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll")) });
+        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
         if(sandbox)
         {
@@ -489,41 +489,47 @@ internal class CSProjManager
 
         var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 
-        p.AddItem("Reference", "StapleCore", new KeyValuePair<string, string>[]
-        {
-            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
-        });
+        p.AddItem("Reference", "StapleCore",
+            [
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
+            ]);
 
-        p.AddItem("Reference", "MessagePack", new KeyValuePair<string, string>[]
-        {
-            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
-        });
+        p.AddItem("Reference", "MessagePack",
+            [
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
+            ]);
 
-        p.AddItem("Reference", "JoltPhysicsSharp", new KeyValuePair<string, string>[]
-        {
-            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "JoltPhysicsSharp.dll"))
-        });
+        p.AddItem("Reference", "NAudio",
+            [
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
+            ]);
 
-        p.AddItem("Reference", "NAudio", new KeyValuePair<string, string>[] {
-            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
-        });
-
-        p.AddItem("Reference", "NVorbis", new KeyValuePair<string, string>[] {
-            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
-        });
+        p.AddItem("Reference", "NVorbis",
+            [
+                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
+            ]);
 
         if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
         {
-            p.AddItem("Reference", "SDL2-CS", new KeyValuePair<string, string>[] {
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
-            });
+            p.AddItem("Reference", "SDL2-CS",
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
+                ]);
+        }
+
+        foreach(var pair in projectAppSettings.usedModules)
+        {
+            p.AddItem("Reference", pair.Value,
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Modules", configurationName, $"{pair.Value}.dll"))
+                ]);
         }
 
         p.AddItem("ProjectReference", typeRegistrationPath,
-            new KeyValuePair<string, string>[] {
+            [
                 new("OutputItemType", "Analyzer"),
                 new("ReferenceOutputAssembly", "false")
-            });
+            ]);
 
         var trimmerRootAssemblies = p.Xml.AddItemGroup();
 

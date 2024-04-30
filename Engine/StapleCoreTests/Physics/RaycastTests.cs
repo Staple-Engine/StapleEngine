@@ -1,4 +1,6 @@
 ﻿using Staple;
+using Staple.Internal;
+using Staple.JoltPhysics;
 using System.Numerics;
 
 namespace CoreTests

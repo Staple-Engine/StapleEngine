@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal interface IAudioSource
+public interface IAudioSource
 {
     bool Playing { get; }
 
