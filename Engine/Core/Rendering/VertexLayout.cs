@@ -1,13 +1,13 @@
 ﻿using Bgfx;
 
-namespace Staple.Internal;
+namespace Staple;
 
 /// <summary>
 /// Manages a vertex layout
 /// </summary>
-internal class VertexLayout
+public class VertexLayout
 {
-    public bgfx.VertexLayout layout;
+    internal bgfx.VertexLayout layout;
 
     /// <summary>
     /// Whether an attribute is located in this layout

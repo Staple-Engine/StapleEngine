@@ -1,7 +1,7 @@
 ﻿using Staple.Internal;
 using System;
-using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -43,7 +43,7 @@ public partial class Mesh : IGuidAsset
 
             indexFormat = value;
 
-            indices = new int[0];
+            indices = [];
         }
     }
 
@@ -76,17 +76,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if(isReadable == false)
+            if(isReadable == false || meshDataBlob != null)
             {
-                return new Vector3[0];
+                return [];
             }
 
-            return vertices ?? new Vector3[0];
+            return vertices ?? [];
         }
 
         set
         {
-            if(isWritable == false)
+            if(isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -125,17 +125,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector3[0];
+                return [];
             }
 
-            return normals ?? new Vector3[0];
+            return normals ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -159,17 +159,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector3[0];
+                return [];
             }
 
-            return tangents ?? new Vector3[0];
+            return tangents ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -193,17 +193,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector3[0];
+                return [];
             }
 
-            return bitangents ?? new Vector3[0];
+            return bitangents ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -227,17 +227,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Color[0];
+                return [];
             }
 
-            return colors ?? new Color[0];
+            return colors ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -261,17 +261,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Color32[0];
+                return [];
             }
 
-            return colors32 ?? new Color32[0];
+            return colors32 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -295,17 +295,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv ?? new Vector2[0];
+            return uv ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -329,17 +329,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv2 ?? new Vector2[0];
+            return uv2 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -363,17 +363,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv3 ?? new Vector2[0];
+            return uv3 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -397,17 +397,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv4 ?? new Vector2[0];
+            return uv4 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -431,17 +431,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv5 ?? new Vector2[0];
+            return uv5 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -465,17 +465,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv6 ?? new Vector2[0];
+            return uv6 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -499,17 +499,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv7 ?? new Vector2[0];
+            return uv7 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -533,17 +533,17 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector2[0];
+                return [];
             }
 
-            return uv8 ?? new Vector2[0];
+            return uv8 ?? [];
         }
 
         set
         {
-            if (isWritable == false)
+            if (isWritable == false || meshDataBlob != null)
             {
                 return;
             }
@@ -559,34 +559,6 @@ public partial class Mesh : IGuidAsset
     }
 
     /// <summary>
-    /// Sets or gets the geometry indices for the mesh.
-    /// Getting depends on isReadable.
-    /// </summary>
-    public int[] Indices
-    {
-        get
-        {
-            if (isReadable == false)
-            {
-                return new int[0];
-            }
-
-            return indices ?? new int[0];
-        }
-
-        set
-        {
-            if (isWritable == false)
-            {
-                return;
-            }
-
-            indices = value;
-            changed = true;
-        }
-    }
-
-    /// <summary>
     /// Sets or gets the bone indices for the mesh.
     /// Getting depends on isReadable.
     /// </summary>
@@ -594,16 +566,21 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector4[0];
+                return [];
             }
 
-            return boneIndices ?? new Vector4[0];
+            return boneIndices ?? [];
         }
 
         set
         {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
             if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
             {
                 throw new ArgumentException("Array length should match vertices length");
@@ -622,16 +599,21 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (isReadable == false || meshDataBlob != null)
             {
-                return new Vector4[0];
+                return [];
             }
 
-            return boneWeights ?? new Vector4[0];
+            return boneWeights ?? [];
         }
 
         set
         {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
             if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
             {
                 throw new ArgumentException("Array length should match vertices length");
@@ -643,9 +625,48 @@ public partial class Mesh : IGuidAsset
     }
 
     /// <summary>
+    /// Sets or gets the geometry indices for the mesh.
+    /// Getting depends on isReadable.
+    /// </summary>
+    public int[] Indices
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return indices ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false)
+            {
+                return;
+            }
+
+            indices = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
     /// Total amount of vertices
     /// </summary>
-    public int VertexCount => vertices?.Length ?? 0;
+    public int VertexCount
+    {
+        get
+        {
+            if(meshDataBlob != null && meshDataVertexLayout != null)
+            {
+                return meshDataBlob.Length / meshDataVertexLayout.layout.stride;
+            }
+
+            return vertices?.Length ?? 0;
+        }
+    }
 
     /// <summary>
     /// Total amount of indices
@@ -692,6 +713,8 @@ public partial class Mesh : IGuidAsset
         boneWeights = null;
         meshAsset = null;
         meshAssetIndex = 0;
+        meshDataBlob = null;
+        meshDataVertexLayout = null;
 
         submeshes.Clear();
 
@@ -702,6 +725,81 @@ public partial class Mesh : IGuidAsset
 
         vertexBuffer = null;
         indexBuffer = null;
+    }
+
+    /// <summary>
+    /// Sets the mesh data for this mesh all at once. Useful if you have your data formatted through a struct.
+    /// </summary>
+    /// <param name="meshData">The mesh data as bytes</param>
+    /// <param name="vertexLayout">The vertex layout</param>
+    /// <remarks>If the vertex buffer is valid and is dynamic, this will immediately update the vertex buffer</remarks>
+    public void SetMeshData(byte[] meshData, VertexLayout vertexLayout)
+    {
+        if(meshData == null || vertexLayout == null)
+        {
+            throw new Exception("Mesh Data or Vertex Layout are null");
+        }
+
+        if(meshData.Length % vertexLayout.layout.stride != 0)
+        {
+            throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.layout.stride})");
+        }
+
+        meshDataBlob = meshData;
+        meshDataVertexLayout = vertexLayout;
+
+        if(vertexBuffer != null && isDynamic)
+        {
+            vertexBuffer.Update(meshData, 0);
+        }
+        else
+        {
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets the mesh data for this mesh all at once. Useful if you have your data formatted through a struct.
+    /// </summary>
+    /// <param name="meshData">The mesh data vertex elements</param>
+    /// <param name="vertexLayout">The vertex layout</param>
+    /// <remarks>If the vertex buffer is valid and is dynamic, this will immediately update the vertex buffer</remarks>
+    public void SetMeshData<T>(T[] meshData, VertexLayout vertexLayout) where T : unmanaged
+    {
+        if (meshData == null || vertexLayout == null)
+        {
+            throw new Exception("Mesh Data or Vertex Layout are null");
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        if(size != vertexLayout.layout.stride)
+        {
+            throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.layout.stride})");
+        }
+
+        unsafe
+        {
+            fixed(void *ptr = meshData)
+            {
+                var buffer = new byte[meshData.Length * size];
+
+                Marshal.Copy((nint)ptr, buffer, 0, buffer.Length);
+
+                meshDataBlob = buffer;
+            }
+        }
+
+        meshDataVertexLayout = vertexLayout;
+
+        if (vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
+        {
+            vertexBuffer.Update<T>(meshData, 0);
+        }
+        else
+        {
+            changed = true;
+        }
     }
 
     /// <summary>
@@ -722,7 +820,7 @@ public partial class Mesh : IGuidAsset
         vertexBuffer = null;
         indexBuffer = null;
 
-        if (vertices == null || vertices.Length == 0)
+        if (meshDataBlob == null && (vertices == null || vertices.Length == 0))
         {
             throw new InvalidOperationException($"Mesh has no vertices");
         }
@@ -775,7 +873,7 @@ public partial class Mesh : IGuidAsset
                 break;
         }
 
-        var layout = GetVertexLayout(this);
+        var layout = meshDataVertexLayout ?? GetVertexLayout(this);
 
         if(layout == null)
         {
@@ -784,7 +882,14 @@ public partial class Mesh : IGuidAsset
             return;
         }
 
-        var vertexBlob = MakeVertexDataBlob(layout);
+        if(meshDataBlob != null && meshDataBlob.Length % layout.layout.stride != 0)
+        {
+            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.layout.stride})");
+
+            return;
+        }
+
+        var vertexBlob = meshDataBlob ?? MakeVertexDataBlob(layout);
 
         if(vertexBlob == null)
         {

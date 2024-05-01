@@ -42,6 +42,9 @@ public partial class Mesh
     internal VertexBuffer vertexBuffer;
     internal IndexBuffer indexBuffer;
 
+    internal byte[] meshDataBlob = null;
+    internal VertexLayout meshDataVertexLayout = null;
+
     internal MeshAsset meshAsset;
     internal int meshAssetIndex;
 
