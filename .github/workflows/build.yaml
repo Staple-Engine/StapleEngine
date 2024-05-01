@@ -160,6 +160,9 @@ jobs:
             - run: 'sh build_backends.sh'
               working-directory: './Engine/'
 
+            - run: 'sh build_backends_mac.sh'
+              working-directory: './Engine/'
+
             - run: 'sh build_linux.sh'
               working-directory: './Tools/'
 
