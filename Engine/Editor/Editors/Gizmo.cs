@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Staple.Internal;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Editor;

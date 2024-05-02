@@ -124,6 +124,8 @@
 		<Compile Include="Rendering\Animation\SkinnedAnimationPoser.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationPoserSystem.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationStateMachine.cs" />
+		<Compile Include="Rendering\Graphics.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
 		<Compile Include="Utilities\CallbackGatherer.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
@@ -285,7 +287,7 @@
 		<Compile Include="Rendering\LayerMask.cs" />
 		<Compile Include="Rendering\Material.cs" />
 		<Compile Include="Rendering\RenderBufferFlags.cs" />
-		<Compile Include="Rendering\RenderSystem.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderSystem.cs" />
 		<Compile Include="Rendering\RenderTarget.cs" />
 		<Compile Include="Rendering\Windowing\RenderWindow.cs" />
 		<Compile Include="Rendering\RendererType.cs" />

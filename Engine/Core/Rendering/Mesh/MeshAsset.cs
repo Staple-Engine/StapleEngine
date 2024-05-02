@@ -4,8 +4,14 @@ using System.Numerics;
 
 namespace Staple;
 
+/// <summary>
+/// Contains info on a mesh asset's data
+/// </summary>
 public class MeshAsset : IGuidAsset
 {
+    /// <summary>
+    /// Bone info such as name and offset matrix
+    /// </summary>
     public class Bone
     {
         public string name;
@@ -18,6 +24,9 @@ public class MeshAsset : IGuidAsset
         }
     }
 
+    /// <summary>
+    /// Data for drawing a submesh
+    /// </summary>
     public class SubmeshInfo
     {
         public int startVertex;
@@ -26,6 +35,9 @@ public class MeshAsset : IGuidAsset
         public int indexCount;
     }
 
+    /// <summary>
+    /// Data for a mesh
+    /// </summary>
     public class MeshInfo
     {
         public string name;
@@ -54,6 +66,9 @@ public class MeshAsset : IGuidAsset
         public List<string> submeshMaterialGuids = new();
     }
 
+    /// <summary>
+    /// Mesh transform node
+    /// </summary>
     public class Node
     {
         public string name;
@@ -185,12 +200,19 @@ public class MeshAsset : IGuidAsset
         }
     }
 
+    /// <summary>
+    /// Container for an animation key
+    /// </summary>
+    /// <typeparam name="T">The value type</typeparam>
     public class AnimationKey<T>
     {
         public float time;
         public T value;
     }
 
+    /// <summary>
+    /// Animation channel, containing positions, scales, and rotations
+    /// </summary>
     public class AnimationChannel
     {
         public Node node;
@@ -202,6 +224,9 @@ public class MeshAsset : IGuidAsset
         public List<AnimationKey<Quaternion>> rotations = new();
     }
 
+    /// <summary>
+    /// Container for an animation, with its name, duration, and channels
+    /// </summary>
     public class Animation
     {
         public string name;
@@ -212,14 +237,42 @@ public class MeshAsset : IGuidAsset
         public float DurationRealtime => duration / ticksPerSecond;
     }
 
+    /// <summary>
+    /// List of each mesh in the asset
+    /// </summary>
     public List<MeshInfo> meshes = new();
+
+    /// <summary>
+    /// The root node of the transform tree
+    /// </summary>
     public Node rootNode;
+
+    /// <summary>
+    /// The inverse root node transform
+    /// </summary>
     public Matrix4x4 inverseTransform;
+
+    /// <summary>
+    /// List of all animations
+    /// </summary>
     public Dictionary<string, Animation> animations = new();
+
+    /// <summary>
+    /// 3D bounds of the mesh
+    /// </summary>
     public AABB Bounds { get; internal set; }
 
+    /// <summary>
+    /// Asset GUID
+    /// </summary>
     public string Guid { get; set; }
 
+    /// <summary>
+    /// Attempts to find a transform node with a specific name
+    /// </summary>
+    /// <param name="rootNode"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     public static Node GetNode(Node rootNode, string name)
     {
         if (name == null)
@@ -230,6 +283,13 @@ public class MeshAsset : IGuidAsset
         return rootNode.GetNode(name);
     }
 
+    /// <summary>
+    /// Attempts to get a transform node
+    /// </summary>
+    /// <param name="rootNode">The root node to check</param>
+    /// <param name="name">The name of the node</param>
+    /// <param name="node">The node, which is valid if the return is true</param>
+    /// <returns>Whether the node was found</returns>
     public static bool TryGetNode(Node rootNode, string name, out Node node)
     {
         if (name == null)
@@ -244,12 +304,33 @@ public class MeshAsset : IGuidAsset
         return node != null;
     }
 
+    /// <summary>
+    /// Attempts to get a transform node by name
+    /// </summary>
+    /// <param name="name">The name of the node</param>
+    /// <returns>The node, or null</returns>
     public Node GetNode(string name) => GetNode(rootNode, name);
 
+    /// <summary>
+    /// Attempts to get a transform node by name
+    /// </summary>
+    /// <param name="name">The name fo the node</param>
+    /// <param name="node">The node, which is valid if the return is true</param>
+    /// <returns>Whether the node was found</returns>
     public bool TryGetNode(string name, out Node node) => TryGetNode(rootNode, name, out node);
 
+    /// <summary>
+    /// Attempts to get an animation by name
+    /// </summary>
+    /// <param name="name">The name of the animation</param>
+    /// <returns>The animation, if found</returns>
     public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
 
+    /// <summary>
+    /// Loads a Mesh Asset by guid
+    /// </summary>
+    /// <param name="guid">The guid to load</param>
+    /// <returns>The mesh asset, or null</returns>
     public static object Create(string guid)
     {
         return ResourceManager.instance.LoadMeshAsset(guid);

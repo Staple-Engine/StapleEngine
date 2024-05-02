@@ -4,7 +4,7 @@ using System;
 namespace Staple;
 
 [Flags]
-enum RenderBufferFlags
+public enum RenderBufferFlags
 {
     None = bgfx.BufferFlags.None,
     Write = bgfx.BufferFlags.ComputeWrite,

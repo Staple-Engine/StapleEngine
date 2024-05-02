@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal class MeshRenderSystem : IRenderSystem
+public class MeshRenderSystem : IRenderSystem
 {
     private struct RenderInfo
     {

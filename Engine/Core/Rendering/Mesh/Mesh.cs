@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace Staple;
 
 /// <summary>
-/// Mesh Resource
+/// 3D data container (Mesh)
 /// </summary>
 public partial class Mesh : IGuidAsset
 {
@@ -675,6 +675,9 @@ public partial class Mesh : IGuidAsset
 
     internal string guid;
 
+    /// <summary>
+    /// Asset GUID
+    /// </summary>
     public string Guid
     {
         get => guid;
@@ -682,9 +685,14 @@ public partial class Mesh : IGuidAsset
         set => guid = value;
     }
 
-    public static object Create(string path)
+    /// <summary>
+    /// Loads a mesh from a guid
+    /// </summary>
+    /// <param name="guid">The asset's guid</param>
+    /// <returns>The mesh, or null</returns>
+    public static object Create(string guid)
     {
-        return ResourceManager.instance.LoadMesh(path);
+        return ResourceManager.instance.LoadMesh(guid);
     }
 
     public Mesh() { }

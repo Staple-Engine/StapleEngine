@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal class SkinnedMeshRenderSystem : IRenderSystem
+public class SkinnedMeshRenderSystem : IRenderSystem
 {
     private struct RenderInfo
     {

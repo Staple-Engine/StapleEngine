@@ -3,7 +3,7 @@ namespace Staple;
 /// <summary>
 /// Sprite Renderer component
 /// </summary>
-public class SpriteRenderer : Renderable
+public sealed class SpriteRenderer : Renderable
 {
     /// <summary>
     /// The renderer's material

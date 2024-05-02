@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal class SkinnedMeshAnimatorSystem : IRenderSystem
+public class SkinnedMeshAnimatorSystem : IRenderSystem
 {
     public Type RelatedComponent()
     {

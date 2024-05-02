@@ -1,66 +1,14 @@
-using Bgfx;
-using Staple.Internal;
+﻿using Bgfx;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Staple;
+namespace Staple.Internal;
 
-/// <summary>
-/// Base Rendering subsystem
-/// </summary>
-[AdditionalLibrary(AppPlatform.Android, "bgfx")]
-internal class RenderSystem : ISubsystem
+public partial class RenderSystem
 {
-    /// <summary>
-    /// Contains information on a draw call
-    /// </summary>
-    internal class DrawCall
-    {
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 scale;
-        public Entity entity;
-        public Renderable renderable;
-        public IComponent relatedComponent;
-    }
-
-    /// <summary>
-    /// Contains lists of drawcalls per view ID
-    /// </summary>
-    internal class DrawBucket
-    {
-        public Dictionary<ushort, List<DrawCall>> drawCalls = new();
-    }
-
-    public SubsystemType type { get; } = SubsystemType.Update;
-
-    internal static byte Priority = 1;
-
-    public static bool useDrawcallInterpolator = false;
-
-    public static readonly RenderSystem Instance = new();
-
-    /// <summary>
-    /// Keep the current and previous draw buckets to interpolate around
-    /// </summary>
-    private DrawBucket previousDrawBucket = new(), currentDrawBucket = new();
-
-    private readonly object lockObject = new();
-
-    private readonly FrustumCuller frustumCuller = new();
-
-    private bool needsDrawCalls = false;
-
-    private float accumulator = 0.0f;
-
-    internal readonly List<IRenderSystem> renderSystems = new();
-
-    private readonly Transform stagingTransform = new();
-
-    private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = new();
-
+    #region Helpers
     /// <summary>
     /// Calculates the blending function for blending flags
     /// </summary>
@@ -68,7 +16,7 @@ internal class RenderSystem : ISubsystem
     /// <param name="destination">The blending destination flag</param>
     /// <returns>The combined function</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
+    internal static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
     {
         return BlendFunction(source, destination, source, destination);
     }
@@ -82,9 +30,9 @@ internal class RenderSystem : ISubsystem
     /// <param name="destinationAlpha">The destination alpha blending flag</param>
     /// <returns>The combined function</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
+    internal static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
     {
-        return ((ulong)sourceColor | ((ulong)destinationColor << 4)) | (((ulong)sourceAlpha | ((ulong)destinationAlpha << 4)) << 8);
+        return (ulong)sourceColor | (ulong)destinationColor << 4 | ((ulong)sourceAlpha | (ulong)destinationAlpha << 4) << 8;
     }
 
     /// <summary>
@@ -95,7 +43,7 @@ internal class RenderSystem : ISubsystem
     /// <param name="numIndices">The amount of indices to check</param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
+    internal static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
     {
         unsafe
         {
@@ -104,7 +52,12 @@ internal class RenderSystem : ISubsystem
         }
     }
 
-    public static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
+    /// <summary>
+    /// Gets the reset flags for specific video flags
+    /// </summary>
+    /// <param name="videoFlags">The video flags to use</param>
+    /// <returns>The BGFX Reset Flags</returns>
+    internal static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
     {
         var resetFlags = bgfx.ResetFlags.FlushAfterRender | bgfx.ResetFlags.FlipAfterRender; //bgfx.ResetFlags.SrgbBackbuffer;
 
@@ -142,12 +95,14 @@ internal class RenderSystem : ISubsystem
 
         return resetFlags;
     }
+    #endregion
 
-    public void QueueFrameCallback(uint frame, Action callback)
+    #region Frame Callbacks
+    internal void QueueFrameCallback(uint frame, Action callback)
     {
-        lock(lockObject)
+        lock (lockObject)
         {
-            if(queuedFrameCallbacks.TryGetValue(frame, out var list) == false)
+            if (queuedFrameCallbacks.TryGetValue(frame, out var list) == false)
             {
                 list = new();
 
@@ -158,13 +113,13 @@ internal class RenderSystem : ISubsystem
         }
     }
 
-    public void OnFrame(uint frame)
+    internal void OnFrame(uint frame)
     {
         List<Action> callbacks = null;
 
         lock (lockObject)
         {
-            if(queuedFrameCallbacks.TryGetValue(frame, out callbacks) == false)
+            if (queuedFrameCallbacks.TryGetValue(frame, out callbacks) == false)
             {
                 return;
             }
@@ -187,7 +142,9 @@ internal class RenderSystem : ISubsystem
             queuedFrameCallbacks.Remove(frame);
         }
     }
+    #endregion
 
+    #region Lifecycle
     public void Startup()
     {
         renderSystems.Add(new SpriteRenderSystem());
@@ -205,7 +162,7 @@ internal class RenderSystem : ISubsystem
 
     public void Shutdown()
     {
-        foreach(var system in renderSystems)
+        foreach (var system in renderSystems)
         {
             system.Destroy();
         }
@@ -213,12 +170,14 @@ internal class RenderSystem : ISubsystem
 
     public void Update()
     {
-        if(World.Current == null)
+        if (World.Current == null)
         {
             return;
         }
 
-        if(useDrawcallInterpolator)
+        CurrentViewID = 0;
+
+        if (UseDrawcallInterpolator)
         {
             UpdateAccumulator();
         }
@@ -227,46 +186,24 @@ internal class RenderSystem : ISubsystem
             UpdateStandard();
         }
     }
+    #endregion
 
-    internal void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    #region Render Modes
+    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
-        foreach (var system in renderSystems)
+        var systems = new List<IRenderSystem>();
+
+        lock(lockObject)
+        {
+            systems.AddRange(renderSystems);
+        }
+
+        foreach (var system in systems)
         {
             system.Prepare();
         }
 
-        unsafe
-        {
-            var projection = Camera.Projection(cameraEntity, camera);
-            var view = cameraTransform.Matrix;
-
-            Matrix4x4.Invert(view, out view);
-
-            bgfx.set_view_transform(viewID, &view, &projection);
-
-            frustumCuller.Update(view, projection);
-        }
-
-        switch (camera.clearMode)
-        {
-            case CameraClearMode.Depth:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.None:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.SolidColor:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                break;
-        }
-
-        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         Scene.ForEach((Entity entity, ref Transform t) =>
         {
@@ -277,7 +214,7 @@ internal class RenderSystem : ISubsystem
                 return;
             }
 
-            foreach (var system in renderSystems)
+            foreach (var system in systems)
             {
                 var related = entity.GetComponent(system.RelatedComponent());
 
@@ -303,51 +240,27 @@ internal class RenderSystem : ISubsystem
             }
         });
 
-        foreach (var system in renderSystems)
+        foreach (var system in systems)
         {
             system.Submit();
         }
     }
 
-    internal void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
-        foreach (var system in renderSystems)
+        var systems = new List<IRenderSystem>();
+
+        lock(lockObject)
+        {
+            systems.AddRange(renderSystems);
+        }
+
+        foreach (var system in systems)
         {
             system.Prepare();
         }
 
-        unsafe
-        {
-            var projection = Camera.Projection(cameraEntity, camera);
-            var view = cameraTransform.Matrix;
-
-            Matrix4x4.Invert(view, out view);
-
-            bgfx.set_view_transform(viewID, &view, &projection);
-
-            frustumCuller.Update(view, projection);
-        }
-
-        switch (camera.clearMode)
-        {
-            case CameraClearMode.Depth:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Depth), 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.None:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.None), 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.SolidColor:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                break;
-        }
-
-        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         var alpha = accumulator / Time.fixedDeltaTime;
 
@@ -382,7 +295,7 @@ internal class RenderSystem : ISubsystem
                             stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
                         }
 
-                        foreach (var system in renderSystems)
+                        foreach (var system in systems)
                         {
                             if (call.relatedComponent.GetType() == system.RelatedComponent())
                             {
@@ -395,7 +308,7 @@ internal class RenderSystem : ISubsystem
             }
         }
 
-        foreach (var system in renderSystems)
+        foreach (var system in systems)
         {
             system.Submit();
         }
@@ -403,7 +316,7 @@ internal class RenderSystem : ISubsystem
 
     private void UpdateStandard()
     {
-        ushort viewID = 1;
+        CurrentViewID = 1;
 
         var cameras = World.Current.SortedCameras;
 
@@ -411,14 +324,14 @@ internal class RenderSystem : ISubsystem
         {
             foreach (var c in cameras)
             {
-                RenderStandard(c.entity, c.camera, c.transform, viewID++);
+                RenderStandard(c.entity, c.camera, c.transform, CurrentViewID++);
             }
         }
     }
 
     private void UpdateAccumulator()
     {
-        ushort viewID = 1;
+        CurrentViewID = 1;
 
         var cameras = Scene.SortedCameras;
 
@@ -426,13 +339,13 @@ internal class RenderSystem : ISubsystem
         {
             foreach (var c in cameras)
             {
-                RenderAccumulator(c.entity, c.camera, c.transform, viewID++);
+                RenderAccumulator(c.entity, c.camera, c.transform, CurrentViewID++);
             }
         }
 
         if (needsDrawCalls)
         {
-            viewID = 1;
+            CurrentViewID = 1;
 
             lock (lockObject)
             {
@@ -480,14 +393,14 @@ internal class RenderSystem : ISubsystem
 
                                 if (renderable.isVisible && renderable.forceRenderingOff == false)
                                 {
-                                    AddDrawCall(entity, t, related, renderable, viewID);
+                                    AddDrawCall(entity, t, related, renderable, CurrentViewID);
                                 }
                             }
                         }
                     }
                 });
 
-                viewID++;
+                CurrentViewID++;
             }
         }
 
@@ -498,6 +411,45 @@ internal class RenderSystem : ISubsystem
 
         accumulator = Time.Accumulator;
     }
+    #endregion
+
+    #region Render Helpers
+
+    private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
+    {
+        unsafe
+        {
+            var projection = Camera.Projection(entity, camera);
+            var view = cameraTransform.Matrix;
+
+            Matrix4x4.Invert(view, out view);
+
+            bgfx.set_view_transform(viewID, &view, &projection);
+
+            frustumCuller.Update(view, projection);
+        }
+
+        switch (camera.clearMode)
+        {
+            case CameraClearMode.Depth:
+                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.None:
+                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
+
+                break;
+
+            case CameraClearMode.SolidColor:
+                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
+
+                break;
+        }
+
+        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
+            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+    }
 
     /// <summary>
     /// Adds a drawcall to the drawcall list
@@ -507,7 +459,7 @@ internal class RenderSystem : ISubsystem
     /// <param name="relatedComponent">The entity's related component</param>
     /// <param name="renderable">The entity's Renderable</param>
     /// <param name="viewID">The current view ID</param>
-    public void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
+    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
     {
         lock (lockObject)
         {
@@ -529,4 +481,5 @@ internal class RenderSystem : ISubsystem
             });
         }
     }
+    #endregion
 }

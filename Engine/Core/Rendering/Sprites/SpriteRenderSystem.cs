@@ -6,12 +6,12 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Staple;
+namespace Staple.Internal;
 
 /// <summary>
 /// Sprite Render System
 /// </summary>
-internal class SpriteRenderSystem : IRenderSystem
+public class SpriteRenderSystem : IRenderSystem
 {
     /// <summary>
     /// Contains render information for a sprite

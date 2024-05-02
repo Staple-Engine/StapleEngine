@@ -7,7 +7,7 @@ namespace Staple;
 /// Represents a sprite animation
 /// </summary>
 [AssetCategory("2D")]
-public class SpriteAnimation : IStapleAsset, IGuidAsset
+public sealed class SpriteAnimation : IStapleAsset, IGuidAsset
 {
     /// <summary>
     /// The sprite's texture

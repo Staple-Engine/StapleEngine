@@ -2,12 +2,12 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Staple.Internal;
+namespace Staple;
 
 /// <summary>
 /// Vertex Buffer resource
 /// </summary>
-internal class VertexBuffer
+public class VertexBuffer
 {
     public VertexLayout layout;
     public bgfx.VertexBufferHandle handle;
@@ -128,6 +128,40 @@ internal class VertexBuffer
                 }
 
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Updates the vertex buffer's data (if it's dynamic)
+    /// </summary>
+    /// <param name="data">An array of new data</param>
+    /// <param name="lengthInBytes">The amount of bytes for the data</param>
+    /// <param name="startVertex">The starting vertex</param>
+    public void Update(nint data, int lengthInBytes, int startVertex)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        if (type != VertexBufferType.Dynamic)
+        {
+            return;
+        }
+
+        if (dynamicHandle.Valid == false ||
+            data == nint.Zero ||
+            lengthInBytes == 0 ||
+            lengthInBytes % layout.layout.stride != 0)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.Memory* outData = bgfx.copy((void*)data, (uint)lengthInBytes);
+
+            bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
         }
     }
 

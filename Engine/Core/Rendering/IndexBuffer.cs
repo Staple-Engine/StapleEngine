@@ -2,12 +2,12 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Staple.Internal;
+namespace Staple;
 
 /// <summary>
 /// Index Buffer resource
 /// </summary>
-internal class IndexBuffer
+public class IndexBuffer
 {
     /// <summary>
     /// The index buffer's handle

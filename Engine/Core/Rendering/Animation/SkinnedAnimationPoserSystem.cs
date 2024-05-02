@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal class SkinnedAnimationPoserSystem : IRenderSystem
+public class SkinnedAnimationPoserSystem : IRenderSystem
 {
     public void Destroy()
     {

@@ -5,7 +5,7 @@ namespace Staple;
 /// <summary>
 /// Render System Interface
 /// </summary>
-internal interface IRenderSystem
+public interface IRenderSystem
 {
     /// <summary>
     /// The type of the component that this render system uses
