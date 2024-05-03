@@ -453,9 +453,19 @@ public class JoltPhysics3D : IPhysics3D
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
-        if(extents.X < MinExtents || extents.Y < MinExtents || extents.Z < MinExtents)
+        if(extents.X < MinExtents)
         {
-            throw new ArgumentException($"Extents must be bigger or equal to {MinExtents}");
+            extents.X = MinExtents;
+        }
+
+        if (extents.Y < MinExtents)
+        {
+            extents.Y = MinExtents;
+        }
+
+        if (extents.Z < MinExtents)
+        {
+            extents.Z = MinExtents;
         }
 
         return CreateBody(entity, new BoxShapeSettings(extents / 2), position, rotation, GetMotionType(motionType), layer, isTrigger, gravityFactor,
@@ -595,19 +605,19 @@ public class JoltPhysics3D : IPhysics3D
 
             var extents = boxCollider.size * transform.Scale;
 
-            if(extents.X <= 0)
+            if(extents.X <= MinExtents)
             {
-                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents X must be bigger than 0");
+                extents.X = MinExtents;
             }
 
-            if (extents.Y <= 0)
+            if (extents.Y <= MinExtents)
             {
-                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Y must be bigger than 0");
+                extents.Y = MinExtents;
             }
 
-            if (extents.Z <= 0)
+            if (extents.Z <= MinExtents)
             {
-                throw new ArgumentException($"BoxCollider3D {world.GetEntityName(entity)} Extents Z must be bigger than 0");
+                extents.Z = MinExtents;
             }
 
             compound.AddShape(boxCollider.position, boxCollider.rotation, new BoxShapeSettings(extents / 2));
@@ -700,20 +710,17 @@ public class JoltPhysics3D : IPhysics3D
 
             MeshShapeSettings settings;
 
-            unsafe
+            var triangles = new List<IndexedTriangle>();
+            var indices = mesh.Indices;
+
+            for (var i = 0; i < mesh.IndexCount; i += 3)
             {
-                var triangles = new List<IndexedTriangle>();
-                var indices = mesh.Indices;
-
-                for (var i = 0; i < mesh.IndexCount; i += 3)
-                {
-                    triangles.Add(new IndexedTriangle(indices[i],
-                        indices[i + 1],
-                        indices[i + 2]));
-                }
-
-                settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
+                triangles.Add(new IndexedTriangle(indices[i],
+                    indices[i + 1],
+                    indices[i + 2]));
             }
+
+            settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
 
             compound.AddShape(meshCollider.position, meshCollider.rotation, settings);
         }

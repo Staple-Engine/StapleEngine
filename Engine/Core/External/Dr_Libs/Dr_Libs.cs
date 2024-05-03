@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace DrLibs
 {
     [AdditionalLibrary(AppPlatform.Android, "StapleSupport")]
-    public static partial class DrMp3
+    internal static partial class DrMp3
     {
 #if STAPLE_WINDOWS
         const string DllName = "StapleSupport.dll";

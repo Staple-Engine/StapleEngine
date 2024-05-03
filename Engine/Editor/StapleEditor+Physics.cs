@@ -71,28 +71,6 @@ internal partial class StapleEditor
 
         var extents = bounds.extents * transform.Scale * 2;
 
-        var needsBoundsFix = extents.X < JoltPhysics3D.MinExtents ||
-            extents.Y < JoltPhysics3D.MinExtents ||
-            extents.Z < JoltPhysics3D.MinExtents;
-
-        if(needsBoundsFix)
-        {
-            if(extents.X < JoltPhysics3D.MinExtents)
-            {
-                extents.X = JoltPhysics3D.MinExtents;
-            }
-
-            if (extents.Y < JoltPhysics3D.MinExtents)
-            {
-                extents.Y = JoltPhysics3D.MinExtents;
-            }
-
-            if (extents.Z < JoltPhysics3D.MinExtents)
-            {
-                extents.Z = JoltPhysics3D.MinExtents;
-            }
-        }
-
         if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false,
             0, 0, 0, true, true, true, false, 1, out var body))
         {
