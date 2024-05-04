@@ -128,6 +128,7 @@
 		<Compile Include="Rendering\Graphics.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
+		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Utilities\CallbackGatherer.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
