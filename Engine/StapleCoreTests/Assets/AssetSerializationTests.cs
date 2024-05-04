@@ -62,6 +62,19 @@ namespace CoreTests
             public InnerClass container;
         }
 
+        internal class PrimitiveAsset : IStapleAsset
+        {
+            public bool[] flags;
+
+            public int[] values;
+
+            public float[] floatValues;
+
+            public IGuidAsset[] assets;
+
+            public string[] strings;
+        }
+
         [Test]
         public void TestSerialize()
         {
@@ -180,12 +193,12 @@ namespace CoreTests
                 Assert.That(result.parameters.ContainsKey(nameof(SerializableAsset.container)), Is.True);
                 Assert.That(result.parameters[nameof(SerializableAsset.container)].value, Is.TypeOf(typeof(SerializableStapleAssetContainer)));
 
-                if(result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
+                if (result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
                 {
                     Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
                     Assert.That(parameter.value, Is.TypeOf<SerializableStapleAssetContainer>());
 
-                    if(parameter.value is SerializableStapleAssetContainer container)
+                    if (parameter.value is SerializableStapleAssetContainer container)
                     {
                         Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
                         Assert.That(container.parameters, Has.Count.EqualTo(0));
@@ -224,13 +237,13 @@ namespace CoreTests
 
                             Assert.That(innerContainer.parameters.ContainsKey(nameof(SerializableAsset.InnerClass.InnerInnerClass.value)));
 
-                            if(innerContainer.parameters.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
+                            if (innerContainer.parameters.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
                             {
                                 Assert.That(innerParameter.typeName, Is.EqualTo(typeof(int).FullName));
 
                                 Assert.That(innerParameter.value, Is.TypeOf<int>());
 
-                                if(innerParameter.value is int intValue)
+                                if (innerParameter.value is int intValue)
                                 {
                                     Assert.That(intValue, Is.EqualTo(asset.container.container.value));
                                 }
@@ -239,6 +252,44 @@ namespace CoreTests
                     }
                 }
             });
+        }
+
+        [Test]
+        public void TestPrimitiveSerialization()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new PrimitiveAsset
+            {
+                assets = new IGuidAsset[10],
+                flags = [false, true, false],
+                floatValues = [1, 2.5f, 1.5f],
+                strings = ["a", "b", "c"],
+                values = [1, 2, 3]
+            };
+
+            var result = AssetSerialization.Serialize(asset);
+
+            Assert.That(result, Is.Not.Null);
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).FullName));
+
+            Assert.That(result.parameters.Count, Is.EqualTo(5));
+
+            var deserialized = AssetSerialization.Deserialize(result);
+
+            Assert.That(deserialized, Is.Not.Null);
+
+            Assert.That(deserialized, Is.TypeOf<PrimitiveAsset>());
+
+            if(deserialized is PrimitiveAsset newAsset)
+            {
+                Assert.That(newAsset.assets.Length, Is.EqualTo(10));
+                Assert.That(newAsset.flags, Is.EqualTo(new bool[] { false, true, false }));
+                Assert.That(newAsset.floatValues, Is.EqualTo(new float[] { 1, 2.5f, 1.5f }));
+                Assert.That(newAsset.strings, Is.EqualTo(new string[] { "a", "b", "c" }));
+                Assert.That(newAsset.values, Is.EqualTo(new int[] { 1, 2, 3 }));
+            }
         }
     }
 }

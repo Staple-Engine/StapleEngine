@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Reflection;
 using System.Collections;
+using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace Staple.Internal;
 
@@ -36,7 +38,7 @@ internal static class StapleSerializer
     /// <returns>Whether it can be serialized</returns>
     public static bool IsValidType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
     {
-        if(type == null)
+        if (type == null)
         {
             return false;
         }
@@ -61,6 +63,11 @@ internal static class StapleSerializer
             return true;
         }
 
+        if(type.IsArray && IsValidType(type.GetElementType()))
+        {
+            return true;
+        }
+
         if (type.IsGenericType)
         {
             if (type.GetGenericTypeDefinition() == typeof(List<>))
@@ -75,6 +82,71 @@ internal static class StapleSerializer
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Serializes a primitive array
+    /// </summary>
+    /// <param name="array">The array to serialize</param>
+    /// <returns>The serialized bytes</returns>
+    public static byte[] SerializePrimitiveArray(Array array)
+    {
+        if(array.GetType().GetElementType() == typeof(bool))
+        {
+            bool[] boolArray = (bool[])array;
+
+            return boolArray.Select(x => (byte)(x ? 1 : 0)).ToArray();
+        }
+
+        var size = Marshal.SizeOf(array.GetType().GetElementType());
+
+        if(size <= 0)
+        {
+            return null;
+        }
+
+        var buffer = new byte[size * array.Length];
+
+        Buffer.BlockCopy(array, 0, buffer, 0, buffer.Length);
+
+        return buffer;
+    }
+
+    /// <summary>
+    /// Deserializes a buffer of bytes into a primitive array
+    /// </summary>
+    /// <param name="buffer">The buffer</param>
+    /// <param name="target">The target array</param>
+    public static void DeserializePrimitiveArray(byte[] buffer, Array target)
+    {
+        if (target.GetType().GetElementType() == typeof(bool))
+        {
+            if(buffer.Length != target.Length)
+            {
+                return;
+            }
+
+            for(var i = 0; i < buffer.Length; i++)
+            {
+                target.SetValue(buffer[i] == 1, i);
+            }
+
+            return;
+        }
+
+        var size = Marshal.SizeOf(target.GetType().GetElementType());
+
+        if (size <= 0)
+        {
+            return;
+        }
+
+        if(buffer.Length % size != 0)
+        {
+            return;
+        }
+
+        Buffer.BlockCopy(buffer, 0, target, 0, buffer.Length);
     }
 
     /// <summary>
@@ -115,15 +187,103 @@ internal static class StapleSerializer
                 return;
             }
 
-            if (value.GetType().IsGenericType)
+            if(field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
             {
-                if (value.GetType().GetGenericTypeDefinition() == typeof(List<>))
+                var array = (Array)value;
+
+                var elementType = field.FieldType.GetElementType();
+
+                if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                    elementType == typeof(IGuidAsset))
                 {
-                    var listType = value.GetType().GetGenericArguments()[0];
+                    var assetList = new List<string>();
+
+                    foreach(var item in array)
+                    {
+                        if(item is IGuidAsset asset)
+                        {
+                            assetList.Add(asset.Guid);
+                        }
+                        else
+                        {
+                            assetList.Add(null);
+                        }
+                    }
+
+                    container.parameters.Add(field.Name, new()
+                    {
+                        typeName = value.GetType().FullName,
+                        value = assetList.ToArray(),
+                    });
+                }
+                else if(elementType == typeof(string))
+                {
+                    container.parameters.Add(field.Name, new()
+                    {
+                        typeName = value.GetType().FullName,
+                        value = array,
+                    });
+                }
+                else if(elementType.IsPrimitive)
+                {
+                    var buffer = SerializePrimitiveArray(array);
+
+                    //TODO: Support Base64 encoding for raw data
+                    if(buffer != null)
+                    {
+                        container.parameters.Add(field.Name, new()
+                        {
+                            typeName = value.GetType().FullName,
+                            value = buffer,
+                        });
+                    }
+                }
+                else if(elementType.GetCustomAttribute<SerializableAttribute>() != null)
+                {
+                    try
+                    {
+                        var newList = new List<SerializableStapleAssetContainer>();
+
+                        foreach (var item in array)
+                        {
+                            try
+                            {
+                                var innerContainer = SerializeContainer(item);
+
+                                if (innerContainer != null)
+                                {
+                                    newList.Add(innerContainer);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+
+                        container.parameters.Add(field.Name, new()
+                        {
+                            typeName = value.GetType().FullName,
+                            value = newList,
+                        });
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                return;
+            }
+
+            if (field.FieldType.IsGenericType)
+            {
+                if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var listType = field.FieldType.GetGenericArguments()[0];
 
                     if (listType != null)
                     {
-                        if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                        if (listType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                            listType == typeof(IGuidAsset))
                         {
                             var newList = new List<string>();
 
@@ -149,6 +309,15 @@ internal static class StapleSerializer
 
                             return;
                         }
+                        else if (listType == typeof(string))
+                        {
+                            container.parameters.Add(field.Name, new()
+                            {
+                                typeName = value.GetType().FullName,
+                                value = value,
+                            });
+                        }
+                        //TODO: Support primitives somehow
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
                         {
                             try
@@ -191,7 +360,7 @@ internal static class StapleSerializer
 
             //Need to describe the item
             if (IsDirectParameter(value.GetType()) == false &&
-                value.GetType().GetCustomAttribute<SerializableAttribute>() != null)
+                field.FieldType.GetCustomAttribute<SerializableAttribute>() != null)
             {
                 try
                 {
@@ -306,18 +475,116 @@ internal static class StapleSerializer
                         continue;
                     }
 
+                    if (field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
+                    {
+                        Array newValue = null;
+
+                        if(pair.Value.value is Array array)
+                        {
+                            try
+                            {
+                                if(pair.Value.value is not string[] &&
+                                    field.FieldType.GetElementType().IsPrimitive &&
+                                    field.FieldType.GetElementType() != typeof(bool))
+                                {
+                                    var size = Marshal.SizeOf(field.FieldType.GetElementType());
+
+                                    newValue = Array.CreateInstance(field.FieldType.GetElementType(), array.Length / size);
+                                }
+                                else
+                                {
+                                    newValue = Array.CreateInstance(field.FieldType.GetElementType(), array.Length);
+                                }
+
+                                var elementType = field.FieldType.GetElementType();
+
+                                if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                                    elementType == typeof(IGuidAsset))
+                                {
+                                    for(var i = 0; i < array.Length; i++)
+                                    {
+                                        if (array.GetValue(i) is string guid)
+                                        {
+                                            var asset = AssetSerialization.GetGuidAsset(elementType, guid);
+
+                                            newValue.SetValue(asset, i);
+                                        }
+                                    }
+                                }
+                                else if (elementType == typeof(string))
+                                {
+                                    for(var i = 0; i < array.Length; i++)
+                                    {
+                                        newValue.SetValue(array.GetValue(i), i);
+                                    }
+                                }
+                                else if (elementType.IsPrimitive)
+                                {
+                                    if(array is byte[] buffer)
+                                    {
+                                        DeserializePrimitiveArray(buffer, newValue);
+                                    }
+                                }
+                            }
+                            catch(Exception)
+                            {
+                            }
+                        }
+                        else if (field.FieldType.GetElementType().GetCustomAttribute<SerializableAttribute>() != null &&
+                            pair.Value.value is List<SerializableStapleAssetContainer> containers)
+                        {
+                            try
+                            {
+                                newValue = Array.CreateInstance(field.FieldType.GetElementType(), containers.Count);
+
+                                for(var i = 0; i < containers.Count; i++)
+                                {
+                                    try
+                                    {
+                                        var itemValue = DeserializeContainer(containers[i]);
+
+                                        if(itemValue != null)
+                                        {
+                                            newValue.SetValue(itemValue, i);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+
+                        try
+                        {
+                            if (newValue != null)
+                            {
+                                field.SetValue(instance, newValue);
+                            }
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        continue;
+                    }
+
                     if (field.FieldType.IsGenericType)
                     {
                         if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            var o = Activator.CreateInstance(field.FieldType);
+                            IList list = null;
 
-                            if (o == null)
+                            try
                             {
-                                continue;
+                                list = (IList)Activator.CreateInstance(field.FieldType);
                             }
-
-                            var list = (IList)o;
+                            catch(Exception e)
+                            {
+                            }
 
                             if (list == null)
                             {

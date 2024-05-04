@@ -426,7 +426,12 @@ namespace StapleToolingTests
 
             var states = asset.parameters["states"];
 
-            Assert.That(states.value is List<Dictionary<string, object>> stateData);
+            Assert.That(states.value is List<object>);
+
+            if(states.value is List<object> stateData)
+            {
+                Assert.That(stateData[0] is Dictionary<object, object>);
+            }
         }
     }
 }

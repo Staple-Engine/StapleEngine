@@ -23,6 +23,9 @@ namespace Staple
             "Bgfx",
             "DrLibs",
             "OpenAL",
+            "Newtonsoft",
+            "NUnit",
+            "NuGet",
         ];
 
         public void Initialize(GeneratorInitializationContext context)
