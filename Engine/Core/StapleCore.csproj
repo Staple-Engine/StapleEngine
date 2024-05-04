@@ -113,6 +113,7 @@
 		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
+		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />
 		<Compile Include="Input\GamepadAxis.cs" />
 		<Compile Include="Input\GamepadButton.cs" />
 		<Compile Include="Input\GamepadConnectionState.cs" />
