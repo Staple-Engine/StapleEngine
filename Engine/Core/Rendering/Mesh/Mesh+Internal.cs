@@ -488,7 +488,7 @@ public partial class Mesh
 
         if(submeshes.Count == 0)
         {
-            vertexBuffer.SetActive(0, 0, (uint)vertices.Length);
+            vertexBuffer.SetActive(0, 0, (uint)VertexCount);
             indexBuffer.SetActive(0, (uint)indices.Length);
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)

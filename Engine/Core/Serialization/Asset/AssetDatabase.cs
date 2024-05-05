@@ -167,6 +167,11 @@ public static class AssetDatabase
     /// <returns>The name or null</returns>
     public static string GetAssetName(string guid)
     {
+        if(guid == null)
+        {
+            return null;
+        }
+
         if(guid.Contains(":"))
         {
             var parts = guid.Split(':');

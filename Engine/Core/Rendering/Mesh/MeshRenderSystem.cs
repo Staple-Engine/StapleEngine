@@ -54,6 +54,8 @@ public class MeshRenderSystem : IRenderSystem
 
         material.ApplyProperties();
 
+        material.shader.SetFloat("u_isSkinning", 0);
+
         mesh.SetActive();
 
         bgfx.submit(viewID, material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
