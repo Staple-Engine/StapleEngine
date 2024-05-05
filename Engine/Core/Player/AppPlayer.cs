@@ -164,6 +164,35 @@ internal class AppPlayer
             }
 
             var types = TypeCache.AllTypes()
+                .Where(x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem))
+                .ToArray();
+
+            Log.Info($"Loading {types.Length} render systems");
+
+            foreach (var type in types)
+            {
+                try
+                {
+                    var instance = (IRenderSystem)Activator.CreateInstance(type);
+
+                    if (instance != null)
+                    {
+                        RenderSystem.Instance.RegisterSystem(instance);
+
+                        Log.Info($"Created render system {type.FullName}");
+                    }
+                    else
+                    {
+                        Log.Info($"Failed to create render system {type.FullName}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Warning($"Player: Failed to load render system {type.FullName}: {e}");
+                }
+            }
+
+            types = TypeCache.AllTypes()
                 .Where(x => typeof(IEntitySystem).IsAssignableFrom(x) && x != typeof(IEntitySystem))
                 .ToArray();
 

@@ -147,12 +147,12 @@ public partial class RenderSystem
     #region Lifecycle
     public void Startup()
     {
-        renderSystems.Add(new SpriteRenderSystem());
-        renderSystems.Add(new SkinnedAnimationPoserSystem());
-        renderSystems.Add(new SkinnedMeshAnimatorSystem());
-        renderSystems.Add(new SkinnedMeshRenderSystem());
-        renderSystems.Add(new MeshRenderSystem());
-        renderSystems.Add(new TextRenderSystem());
+        RegisterSystem(new SpriteRenderSystem());
+        RegisterSystem(new SkinnedAnimationPoserSystem());
+        RegisterSystem(new SkinnedMeshAnimatorSystem());
+        RegisterSystem(new SkinnedMeshRenderSystem());
+        RegisterSystem(new MeshRenderSystem());
+        RegisterSystem(new TextRenderSystem());
 
         Time.OnAccumulatorFinished += () =>
         {

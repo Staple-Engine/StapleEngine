@@ -480,11 +480,26 @@ internal static class StapleSerializer
                         continue;
                     }
 
-                    if (pair.Value.value != null && field.FieldType == pair.Value.value.GetType())
+                    if (pair.Value.value != null)
                     {
-                        field.SetValue(instance, pair.Value.value);
+                        if (field.FieldType == pair.Value.value.GetType())
+                        {
+                            field.SetValue(instance, pair.Value.value);
 
-                        continue;
+                            continue;
+                        }
+                        else if(field.FieldType.IsPrimitive)
+                        {
+                            try
+                            {
+                                field.SetValue(instance, Convert.ChangeType(pair.Value.value, field.FieldType));
+                            }
+                            catch(Exception)
+                            {
+                            }
+
+                            continue;
+                        }
                     }
 
                     if (field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))

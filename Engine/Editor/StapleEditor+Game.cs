@@ -44,47 +44,6 @@ internal partial class StapleEditor
                     foreach(var type in types)
                     {
                         TypeCache.RegisterType(type);
-
-                        if(type.IsInterface)
-                        {
-                            continue;
-                        }
-
-                        if(typeof(IStapleAsset).IsAssignableFrom(type))
-                        {
-                            registeredAssetTypes.AddOrSetKey(type.FullName, type);
-                        }
-                        else if(typeof(IComponent).IsAssignableFrom(type) &&
-                            type.IsInterface == false &&
-                            type.GetCustomAttribute<AbstractComponentAttribute>() == null)
-                        {
-                            registeredComponents.Add(type);
-                        }
-                        else if (type.IsSubclassOf(typeof(EditorWindow)))
-                        {
-                            foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                            {
-                                var menu = method.GetCustomAttribute<MenuItemAttribute>();
-
-                                if (menu == null)
-                                {
-                                    continue;
-                                }
-
-                                var m = method;
-
-                                AddMenuItem(menu.path, () =>
-                                {
-                                    try
-                                    {
-                                        m.Invoke(null, null);
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-                                });
-                            }
-                        }
                     }
                 }
             }
@@ -92,6 +51,8 @@ internal partial class StapleEditor
         catch(Exception)
         {
         }
+
+        ReloadTypeCache();
 
         Editor.UpdateEditorTypes();
         GizmoEditor.UpdateEditorTypes();
@@ -149,15 +110,6 @@ internal partial class StapleEditor
 
             if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                var renderSystems = RenderSystem.Instance.renderSystems
-                    .Where(x => x.GetType().Assembly == assembly)
-                    .ToList();
-
-                foreach(var r in renderSystems)
-                {
-                    RenderSystem.Instance.renderSystems.Remove(r);
-                }
-
                 if (Scene.current != null)
                 {
                     try
@@ -178,6 +130,8 @@ internal partial class StapleEditor
                     {
                     }
                 }
+
+                RenderSystem.Instance.RemoveAllSubsystems(assembly);
 
                 World.Current?.UnloadComponentsFromAssembly(assembly);
 
@@ -234,6 +188,7 @@ internal partial class StapleEditor
         menuItems.Clear();
         cachedEditors.Clear();
         cachedGizmoEditors.Clear();
+        ResourceManager.instance.cachedAssets.Clear();
 
         var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
 
@@ -245,7 +200,8 @@ internal partial class StapleEditor
 
         if(gameAssembly?.TryGetTarget(out var assembly) ?? false)
         {
-            t = t.Concat(assembly.GetTypes()).ToList();
+            t = t.Concat(assembly.GetTypes())
+                .ToList();
         }
 
         foreach (var v in t)
@@ -278,6 +234,19 @@ internal partial class StapleEditor
                 {
                 }
             }
+            else if(typeof(IRenderSystem).IsAssignableFrom(v) &&
+                v != typeof(IRenderSystem))
+            {
+                try
+                {
+                    var instance = (IRenderSystem)Activator.CreateInstance(v);
+
+                    RenderSystem.Instance.RegisterSystem(instance);
+                }
+                catch (Exception)
+                {
+                }
+            }
             else if(v.IsSubclassOf(typeof(EditorWindow)))
             {
                 foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
@@ -305,6 +274,7 @@ internal partial class StapleEditor
             }
         }
 
+        registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
         registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
     }
 }

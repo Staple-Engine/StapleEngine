@@ -157,7 +157,7 @@ internal class AssetPickerWindow : EditorWindow
                         {
                             var asset = ResourceManager.instance.LoadAsset(i.path);
 
-                            if (asset != null && asset.GetType() == assetPickerType)
+                            if (asset != null && asset.GetType().FullName == assetPickerType.FullName)
                             {
                                 if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
                                 {
