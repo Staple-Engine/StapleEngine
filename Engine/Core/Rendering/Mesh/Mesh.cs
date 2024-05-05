@@ -632,7 +632,7 @@ public partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (isReadable == false)
             {
                 return [];
             }

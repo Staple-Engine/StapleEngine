@@ -68,7 +68,7 @@ public class Physics3D : ISubsystem
 
     public Physics3D(IPhysics3D impl)
     {
-        this.Impl = impl;
+        Impl = impl;
 
         Gravity = DefaultGravity;
     }
@@ -79,7 +79,7 @@ public class Physics3D : ISubsystem
     /// </summary>
     /// <param name="entity">The entity</param>
     /// <returns>The body, or null</returns>
-    public IBody3D CreateBody(Entity entity, World world)
+    internal IBody3D CreateBody(Entity entity, World world)
     {
         return Impl.CreateBody(entity, world);
     }
@@ -104,7 +104,7 @@ public class Physics3D : ISubsystem
     /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
-    public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+    internal bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
@@ -132,7 +132,7 @@ public class Physics3D : ISubsystem
     /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
-    public bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+    internal bool CreateSphere(Entity entity, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
@@ -161,7 +161,7 @@ public class Physics3D : ISubsystem
     /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
-    public bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+    internal bool CreateCapsule(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
@@ -190,7 +190,7 @@ public class Physics3D : ISubsystem
     /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
-    public bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+    internal bool CreateCylinder(Entity entity, float height, float radius, Vector3 position, Quaternion rotation, BodyMotionType motionType,
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
@@ -218,7 +218,7 @@ public class Physics3D : ISubsystem
     /// <param name="mass">The mass of the body</param>
     /// <param name="body">The body, if valid</param>
     /// <returns>Whether the body was created</returns>
-    public bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
+    internal bool CreateMesh(Entity entity, Mesh mesh, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
@@ -230,7 +230,7 @@ public class Physics3D : ISubsystem
     /// Destroys a body
     /// </summary>
     /// <param name="body">The body to destroy</param>
-    public void DestroyBody(IBody3D body)
+    internal void DestroyBody(IBody3D body)
     {
         if(body == null)
         {
@@ -245,7 +245,7 @@ public class Physics3D : ISubsystem
     /// </summary>
     /// <param name="body">The body to add</param>
     /// <param name="activated">Whether it's activated</param>
-    public void AddBody(IBody3D body, bool activated)
+    internal void AddBody(IBody3D body, bool activated)
     {
         Impl.AddBody(body, activated);
     }
@@ -254,7 +254,7 @@ public class Physics3D : ISubsystem
     /// Removes a body from the simulation. This does not destroy it.
     /// </summary>
     /// <param name="body">The body to remove</param>
-    public void RemoveBody(IBody3D body)
+    internal void RemoveBody(IBody3D body)
     {
         Impl.RemoveBody(body);
     }
@@ -362,6 +362,25 @@ public class Physics3D : ISubsystem
     public void AddAngularImpulse(IBody3D body, Vector3 impulse)
     {
         Impl.AddAngularImpulse(body, impulse);
+    }
+
+    /// <summary>
+    /// Recreate an entity's rigid body
+    /// </summary>
+    /// <param name="entity">The entity to recreate the body of (if able)</param>
+    public void RecreateBody(Entity entity)
+    {
+        if (entity.TryGetComponent<RigidBody3D>(out var rigidBody) == false)
+        {
+            return;
+        }
+
+        if (rigidBody.body != null)
+        {
+            DestroyBody(rigidBody.body);
+        }
+
+        rigidBody.body = CreateBody(entity, World.Current);
     }
 
     #endregion
