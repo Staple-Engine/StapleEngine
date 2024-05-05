@@ -155,7 +155,8 @@ internal static class StapleSerializer
     /// <param name="field">The field to serialize</param>
     /// <param name="instance">The instance of the object we're handling</param>
     /// <param name="container">The container to store into</param>
-    public static void SerializeField(FieldInfo field, object instance, SerializableStapleAssetContainer container)
+    /// <param name="targetText">Whether we're targeting a text serializer</param>
+    public static void SerializeField(FieldInfo field, object instance, SerializableStapleAssetContainer container, bool targetText)
     {
         if (field.GetCustomAttribute<NonSerializedAttribute>() != null)
         {
@@ -226,15 +227,25 @@ internal static class StapleSerializer
                 }
                 else if(elementType.IsPrimitive)
                 {
-                    var buffer = SerializePrimitiveArray(array);
+                    if(targetText && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                    {
+                        var buffer = SerializePrimitiveArray(array);
 
-                    //TODO: Support Base64 encoding for raw data
-                    if(buffer != null)
+                        if (buffer != null)
+                        {
+                            container.parameters.Add(field.Name, new()
+                            {
+                                typeName = value.GetType().FullName,
+                                value = Convert.ToBase64String(buffer, Base64FormattingOptions.None),
+                            });
+                        }
+                    }
+                    else
                     {
                         container.parameters.Add(field.Name, new()
                         {
                             typeName = value.GetType().FullName,
-                            value = buffer,
+                            value = value,
                         });
                     }
                 }
@@ -248,7 +259,7 @@ internal static class StapleSerializer
                         {
                             try
                             {
-                                var innerContainer = SerializeContainer(item);
+                                var innerContainer = SerializeContainer(item, targetText);
 
                                 if (innerContainer != null)
                                 {
@@ -330,7 +341,7 @@ internal static class StapleSerializer
                                 {
                                     try
                                     {
-                                        var innerContainer = SerializeContainer(item);
+                                        var innerContainer = SerializeContainer(item, targetText);
 
                                         if (innerContainer != null)
                                         {
@@ -364,7 +375,7 @@ internal static class StapleSerializer
             {
                 try
                 {
-                    var innerContainer = SerializeContainer(value);
+                    var innerContainer = SerializeContainer(value, targetText);
 
                     if (innerContainer != null)
                     {
@@ -394,8 +405,9 @@ internal static class StapleSerializer
     /// Serializes an object into an asset container
     /// </summary>
     /// <param name="instance">The object instance we're handling</param>
+    /// <param name="targetText">Whether we're targeting a text serializer</param>
     /// <returns>The container, or null</returns>
-    public static SerializableStapleAssetContainer SerializeContainer(object instance)
+    public static SerializableStapleAssetContainer SerializeContainer(object instance, bool targetText)
     {
         if (instance == null)
         {
@@ -411,7 +423,7 @@ internal static class StapleSerializer
 
         foreach (var field in fields)
         {
-            SerializeField(field, instance, outValue);
+            SerializeField(field, instance, outValue, targetText);
         }
 
         return outValue;
@@ -479,6 +491,8 @@ internal static class StapleSerializer
                     {
                         Array newValue = null;
 
+                        var elementType = field.FieldType.GetElementType();
+
                         if(pair.Value.value is Array array)
                         {
                             try
@@ -487,16 +501,14 @@ internal static class StapleSerializer
                                     field.FieldType.GetElementType().IsPrimitive &&
                                     field.FieldType.GetElementType() != typeof(bool))
                                 {
-                                    var size = Marshal.SizeOf(field.FieldType.GetElementType());
+                                    var size = Marshal.SizeOf(elementType);
 
-                                    newValue = Array.CreateInstance(field.FieldType.GetElementType(), array.Length / size);
+                                    newValue = Array.CreateInstance(elementType, array.Length / size);
                                 }
                                 else
                                 {
-                                    newValue = Array.CreateInstance(field.FieldType.GetElementType(), array.Length);
+                                    newValue = Array.CreateInstance(elementType, array.Length);
                                 }
-
-                                var elementType = field.FieldType.GetElementType();
 
                                 if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
                                     elementType == typeof(IGuidAsset))
@@ -528,6 +540,35 @@ internal static class StapleSerializer
                             }
                             catch(Exception)
                             {
+                            }
+                        }
+                        else if(pair.Value.value is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                        {
+                            try
+                            {
+                                var bytes = Convert.FromBase64String(base64Encoded);
+
+                                if(bytes != null)
+                                {
+                                    if (pair.Value.value is not string[] &&
+                                        field.FieldType.GetElementType().IsPrimitive &&
+                                        field.FieldType.GetElementType() != typeof(bool))
+                                    {
+                                        var size = Marshal.SizeOf(elementType);
+
+                                        newValue = Array.CreateInstance(elementType, bytes.Length / size);
+                                    }
+                                    else
+                                    {
+                                        newValue = Array.CreateInstance(elementType, bytes.Length);
+                                    }
+
+                                    DeserializePrimitiveArray(bytes, newValue);
+                                }
+                            }
+                            catch(Exception)
+                            {
+                                continue;
                             }
                         }
                         else if (field.FieldType.GetElementType().GetCustomAttribute<SerializableAttribute>() != null &&

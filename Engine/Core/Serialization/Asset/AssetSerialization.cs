@@ -140,8 +140,9 @@ internal static partial class AssetSerialization
     /// Attempts to serialize a Staple Asset into a SerializableStapleAsset
     /// </summary>
     /// <param name="instance">The object's instance. The object must implement IStapleAsset</param>
+    /// <param name="targetText">Whether we're targeting a text serializer</param>
     /// <returns>The SerializableStapleAsset, or null</returns>
-    public static SerializableStapleAsset Serialize(object instance)
+    public static SerializableStapleAsset Serialize(object instance, bool targetText)
     {
         if(instance == null || instance.GetType().GetInterface(typeof(IStapleAsset).FullName) == null)
         {
@@ -150,7 +151,7 @@ internal static partial class AssetSerialization
 
         try
         {
-            var container = StapleSerializer.SerializeContainer(instance);
+            var container = StapleSerializer.SerializeContainer(instance, targetText);
 
             if (container == null)
             {

@@ -440,6 +440,11 @@ internal class ResourceManager
 
                         var transform = entity.GetComponent<Transform>();
 
+                        if(transform == null)
+                        {
+                            continue;
+                        }
+
                         localIDs.Add(localID, transform);
 
                         if(sceneObject.parent >= 0)
@@ -453,7 +458,7 @@ internal class ResourceManager
 
             foreach(var pair in parents)
             {
-                if(localIDs.TryGetValue(pair.Key, out var self) && localIDs.TryGetValue(pair.Value, out var parent))
+                if(localIDs.TryGetValue(pair.Key, out var self) && self != null && localIDs.TryGetValue(pair.Value, out var parent))
                 {
                     self.SetParent(parent);
                 }

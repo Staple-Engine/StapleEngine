@@ -66,6 +66,7 @@ namespace CoreTests
         {
             public bool[] flags;
 
+            [SerializeAsBase64]
             public int[] values;
 
             public float[] floatValues;
@@ -89,7 +90,7 @@ namespace CoreTests
             asset.numbers.Clear();
             asset.numbers.Add(123);
 
-            var result = AssetSerialization.Serialize(asset);
+            var result = AssetSerialization.Serialize(asset, false);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -123,7 +124,7 @@ namespace CoreTests
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
 
-            result = AssetSerialization.Serialize(asset);
+            result = AssetSerialization.Serialize(asset, false);
 
             Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo("valid path"));
         }
@@ -145,7 +146,7 @@ namespace CoreTests
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
 
-            var result = AssetSerialization.Serialize(asset);
+            var result = AssetSerialization.Serialize(asset, false);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -180,7 +181,7 @@ namespace CoreTests
                 }
             };
 
-            var result = AssetSerialization.Serialize(asset);
+            var result = AssetSerialization.Serialize(asset, false);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -208,7 +209,7 @@ namespace CoreTests
 
             asset.container.container = new();
 
-            result = AssetSerialization.Serialize(asset);
+            result = AssetSerialization.Serialize(asset, false);
 
             Assert.Multiple(() =>
             {
@@ -268,7 +269,7 @@ namespace CoreTests
                 values = [1, 2, 3]
             };
 
-            var result = AssetSerialization.Serialize(asset);
+            var result = AssetSerialization.Serialize(asset, false);
 
             Assert.That(result, Is.Not.Null);
 
@@ -283,6 +284,44 @@ namespace CoreTests
             Assert.That(deserialized, Is.TypeOf<PrimitiveAsset>());
 
             if(deserialized is PrimitiveAsset newAsset)
+            {
+                Assert.That(newAsset.assets.Length, Is.EqualTo(10));
+                Assert.That(newAsset.flags, Is.EqualTo(new bool[] { false, true, false }));
+                Assert.That(newAsset.floatValues, Is.EqualTo(new float[] { 1, 2.5f, 1.5f }));
+                Assert.That(newAsset.strings, Is.EqualTo(new string[] { "a", "b", "c" }));
+                Assert.That(newAsset.values, Is.EqualTo(new int[] { 1, 2, 3 }));
+            }
+        }
+
+        [Test]
+        public void TestPrimitiveSerializationText()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new PrimitiveAsset
+            {
+                assets = new IGuidAsset[10],
+                flags = [false, true, false],
+                floatValues = [1, 2.5f, 1.5f],
+                strings = ["a", "b", "c"],
+                values = [1, 2, 3]
+            };
+
+            var result = AssetSerialization.Serialize(asset, true);
+
+            Assert.That(result, Is.Not.Null);
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).FullName));
+
+            Assert.That(result.parameters.Count, Is.EqualTo(5));
+
+            var deserialized = AssetSerialization.Deserialize(result);
+
+            Assert.That(deserialized, Is.Not.Null);
+
+            Assert.That(deserialized, Is.TypeOf<PrimitiveAsset>());
+
+            if (deserialized is PrimitiveAsset newAsset)
             {
                 Assert.That(newAsset.assets.Length, Is.EqualTo(10));
                 Assert.That(newAsset.flags, Is.EqualTo(new bool[] { false, true, false }));
