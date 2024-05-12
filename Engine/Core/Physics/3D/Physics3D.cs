@@ -69,8 +69,6 @@ public class Physics3D : ISubsystem
     public Physics3D(IPhysics3D impl)
     {
         Impl = impl;
-
-        Gravity = DefaultGravity;
     }
 
     #region API
@@ -413,6 +411,10 @@ public class Physics3D : ISubsystem
 
             rigidBody.body = null;
         });
+
+        Impl.Startup();
+
+        Gravity = DefaultGravity;
     }
 
     public void Shutdown()
@@ -422,9 +424,7 @@ public class Physics3D : ISubsystem
             DestroyBody(rigidBody.body);
         }, true);
 
-        Impl.Destroy();
-
-        Impl = null;
+        Impl.Shutdown();
     }
 
     public void Update()

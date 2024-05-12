@@ -15,10 +15,10 @@ public class JoltPhysics3D : IPhysics3D
     public const float MinExtents = 0.2f;
 
     //Dependencies
-    private readonly BroadPhaseLayerInterface broadPhaseLayerInterface;
-    private readonly ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
-    private readonly ObjectLayerPairFilter objectLayerPairFilter;
-    private readonly PhysicsSystem physicsSystem;
+    private BroadPhaseLayerInterface broadPhaseLayerInterface;
+    private ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
+    private ObjectLayerPairFilter objectLayerPairFilter;
+    private PhysicsSystem physicsSystem;
 
     //Tracking live bodies
     private readonly List<JoltBodyPair> bodies = new();
@@ -39,8 +39,10 @@ public class JoltPhysics3D : IPhysics3D
         set => physicsSystem.Gravity = value;
     }
 
-    public JoltPhysics3D()
+    public void Startup()
     {
+        destroyed = false;
+
         if(JoltPhysicsSharp.Foundation.Init() == false)
         {
             throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
@@ -112,7 +114,7 @@ public class JoltPhysics3D : IPhysics3D
         physicsSystem.OnContactValidate += OnContactValidate;
     }
 
-    public void Destroy()
+    public void Shutdown()
     {
         if(destroyed)
         {

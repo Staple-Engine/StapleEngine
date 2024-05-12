@@ -18,9 +18,14 @@ public interface IPhysics3D
     Vector3 Gravity { get; set; }
 
     /// <summary>
-    /// Destroy this immediately
+    /// Initializes this physics implementation
     /// </summary>
-    void Destroy();
+    void Startup();
+
+    /// <summary>
+    /// Deinitializes this physics implementation
+    /// </summary>
+    void Shutdown();
 
     /// <summary>
     /// UPdate with a specific delta time. Typically this is the fixed time step delta time.
