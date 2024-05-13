@@ -541,7 +541,7 @@ internal partial class StapleEditor
                     axis += cameraTransform.Back;
                 }
 
-                cameraTransform.LocalPosition += axis * 10 * Time.deltaTime;
+                cameraTransform.LocalPosition += axis * 10 * Time.unscaledDeltaTime;
 
                 if(Input.GetMouseButton(MouseButton.Right))
                 {

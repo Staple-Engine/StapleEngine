@@ -429,7 +429,7 @@ public class Physics3D : ISubsystem
 
     public void Update()
     {
-        deltaTimer += Time.deltaTime;
+        deltaTimer += Time.unscaledDeltaTime;
 
         if(deltaTimer >= PhysicsDeltaTime)
         {

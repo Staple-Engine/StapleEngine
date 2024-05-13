@@ -8,17 +8,37 @@ namespace Staple;
 public static class Time
 {
     /// <summary>
-    /// The current time in seconds since booting the app
+    /// The scale to apply to time. For example, a value of 2 would speed things up by 100%, while a value of 0.5 would slow things down by 50%
     /// </summary>
-    public static float time { get; internal set; }
+    public static float timeScale = 1.0f;
 
     /// <summary>
-    /// The last frame's delta time
+    /// The current time in seconds since booting the app, scaled by the time scale
     /// </summary>
-    public static float deltaTime { get; internal set; }
+    public static float time => unscaledTime * timeScale;
 
     /// <summary>
-    /// The fixed tick delta time
+    /// The current time in seconds since booting the app, unscaled
+    /// </summary>
+    public static float unscaledTime { get; internal set; }
+
+    /// <summary>
+    /// The maximum value delta time might reach
+    /// </summary>
+    public static float maximumDeltaTime = 1.0f;
+
+    /// <summary>
+    /// The last frame's delta time, scaled by the time scale
+    /// </summary>
+    public static float deltaTime  => unscaledDeltaTime * timeScale;
+
+    /// <summary>
+    /// The last frame's delta time, unscaled
+    /// </summary>
+    public static float unscaledDeltaTime { get; internal set; }
+
+    /// <summary>
+    /// The fixed tick delta time, unscaled
     /// </summary>
     public static float fixedDeltaTime { get; internal set; }
 
@@ -49,17 +69,16 @@ public static class Time
     {
         var delta = (float)(current - last).TotalSeconds;
 
-        time += delta;
+        unscaledTime += delta;
 
-        //If we're larger than 1 we're definitely dealing with suspend or an extremely slow system
-        if (delta > 1)
+        if (delta > maximumDeltaTime)
         {
-            delta = 0;
+            delta = maximumDeltaTime;
         }
 
         Accumulator += delta;
 
-        deltaTime = delta;
+        unscaledDeltaTime = delta;
 
         var previousAccumulator = Accumulator;
 

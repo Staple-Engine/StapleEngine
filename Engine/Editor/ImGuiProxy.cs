@@ -232,7 +232,7 @@ internal class ImGuiProxy
     {
         var io = ImGui.GetIO();
 
-        io.DeltaTime = Time.deltaTime;
+        io.DeltaTime = Time.unscaledDeltaTime;
         io.MouseWheel = Input.MouseDelta.Y;
         io.MouseWheelH = Input.MouseDelta.X;
 

@@ -88,7 +88,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                 asset.frameRate = 1;
             }
 
-            timer += Time.deltaTime;
+            timer += Time.unscaledDeltaTime;
 
             if(currentFrame >= asset.frames.Count)
             {
