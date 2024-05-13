@@ -70,6 +70,8 @@ jobs:
             
             - uses: android-actions/setup-android@v3
 
+            - run: 'sudo apt update'
+
             - run: 'sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev'
 
             - run: 'sh build_linux.sh'
@@ -119,6 +121,8 @@ jobs:
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+
+            - run: 'sudo apt update'
 
             - run: 'sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev'
 
