@@ -15,4 +15,5 @@ internal class UnprocessedShader
     public ShaderPiece vertex;
     public ShaderPiece fragment;
     public ShaderPiece compute;
+    public List<string> variants = new();
 }

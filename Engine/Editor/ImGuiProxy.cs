@@ -5,6 +5,7 @@ using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Staple.Internal;
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -358,11 +359,11 @@ internal class ImGuiProxy
                     var state = (ulong)(bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA) |
                         RenderSystem.BlendFunction(bgfx.StateFlags.BlendSrcAlpha, bgfx.StateFlags.BlendInvSrcAlpha);
 
-                    bgfx.ProgramHandle program = this.program.program;
+                    bgfx.ProgramHandle program = this.program.instances.First().Value.program;
 
                     if (drawCmd.TextureId != IntPtr.Zero)
                     {
-                        program = imageProgram.program;
+                        program = imageProgram.instances.First().Value.program;
 
                         var index = (ushort)drawCmd.TextureId.Handle;
 

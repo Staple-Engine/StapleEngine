@@ -134,15 +134,26 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 bgfx.set_state((ulong)(state | renderer.mesh.PrimitiveFlag() | renderer.materials[i].shader.BlendingFlag()), 0);
 
-                renderer.materials[i].ApplyProperties();
+                var material = renderer.materials[i];
 
-                renderer.materials[i].shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
+                material.ApplyProperties();
 
-                renderer.materials[i].shader.SetFloat("u_isSkinning", 1);
+                material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
 
                 renderer.mesh.SetActive(i);
 
-                bgfx.submit(pair.viewID, renderer.materials[i].shader.program, 0, (byte)bgfx.DiscardFlags.All);
+                material.EnableShaderKeyword(Shader.SkinningKeyword);
+
+                var program = material.ShaderProgram;
+
+                if (program.Valid)
+                {
+                    bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                }
+                else
+                {
+                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+                }
             }
         }
     }

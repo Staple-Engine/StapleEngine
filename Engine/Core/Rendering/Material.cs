@@ -1,4 +1,5 @@
-﻿using Staple.Internal;
+﻿using Bgfx;
+using Staple.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -34,6 +35,8 @@ public sealed class Material : IGuidAsset
     internal string guid;
 
     internal Dictionary<string, ParameterInfo> parameters = new();
+
+    internal HashSet<string> shaderKeywords = new();
 
     /// <summary>
     /// The material's main color
@@ -108,6 +111,29 @@ public sealed class Material : IGuidAsset
         }
     }
 
+    /// <summary>
+    /// Valid shader keywords
+    /// </summary>
+    public IEnumerable<string> Keywords => shader?.metadata?.variants ?? Enumerable.Empty<string>();
+
+    /// <summary>
+    /// Enabled shader keywords
+    /// </summary>
+    public IEnumerable<string> EnabledShaderKeywords => shaderKeywords;
+
+    internal string ShaderVariantKey => string.Join(" ", shaderKeywords);
+
+    /// <summary>
+    /// Gets the current shader program, if valid.
+    /// </summary>
+    public bgfx.ProgramHandle ShaderProgram => shader != null &&
+        shader.Disposed == false &&
+        shader.instances.TryGetValue(ShaderVariantKey, out var instance) ?
+        instance.program : new()
+        {
+            idx = ushort.MaxValue,
+        };
+
     public Material()
     {
         SetColor(MainColorProperty, Color.White);
@@ -150,6 +176,24 @@ public sealed class Material : IGuidAsset
     /// <param name="path">The path to load from</param>
     /// <returns>The material, or null</returns>
     public static object Create(string path) => ResourceManager.instance.LoadMaterial(path);
+
+    /// <summary>
+    /// Enables a shader keyword
+    /// </summary>
+    /// <param name="name">The keyword</param>
+    public void EnableShaderKeyword(string name)
+    {
+        shaderKeywords.Add(name);
+    }
+
+    /// <summary>
+    /// Disables a shader keyword
+    /// </summary>
+    /// <param name="name">The keyword</param>
+    public void DisableShaderKeyword(string name)
+    {
+        shaderKeywords.Remove(name);
+    }
 
     /// <summary>
     /// Sets a color property's value

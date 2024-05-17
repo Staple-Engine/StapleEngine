@@ -4,7 +4,7 @@ using Staple.Tooling;
 
 namespace StapleToolingTests
 {
-    public class Tests
+    public class AssetSerializationTests
     {
         internal static readonly string AssetData = $$"""
 {

@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Numerics;
 
@@ -59,7 +60,18 @@ namespace Staple
 
             material.ApplyProperties();
 
-            bgfx.submit(viewID, material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+            material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+            var program = material.ShaderProgram;
+
+            if(program.Valid)
+            {
+                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+            }
+            else
+            {
+                bgfx.discard((byte)bgfx.DiscardFlags.All);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using System.Collections.Generic;
 
 namespace Staple.Internal;
 
@@ -22,17 +23,24 @@ public class SerializableShaderHeader
 }
 
 [MessagePackObject]
+public class SerializableShaderData
+{
+    [Key(0)]
+    public byte[] vertexShader;
+
+    [Key(1)]
+    public byte[] fragmentShader;
+
+    [Key(2)]
+    public byte[] computeShader;
+}
+
+[MessagePackObject]
 public class SerializableShader
 {
     [Key(0)]
     public ShaderMetadata metadata;
 
     [Key(1)]
-    public byte[] vertexShader;
-
-    [Key(2)]
-    public byte[] fragmentShader;
-
-    [Key(3)]
-    public byte[] computeShader;
+    public Dictionary<string, SerializableShaderData> data = new();
 }

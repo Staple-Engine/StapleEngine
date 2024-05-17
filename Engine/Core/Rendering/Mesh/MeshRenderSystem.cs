@@ -54,11 +54,20 @@ public class MeshRenderSystem : IRenderSystem
 
         material.ApplyProperties();
 
-        material.shader.SetFloat("u_isSkinning", 0);
-
         mesh.SetActive();
 
-        bgfx.submit(viewID, material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+        material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+        var program = material.ShaderProgram;
+
+        if (program.Valid)
+        {
+            bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+        }
+        else
+        {
+            bgfx.discard((byte)bgfx.DiscardFlags.All);
+        }
     }
 
     public void Destroy()
@@ -148,13 +157,24 @@ public class MeshRenderSystem : IRenderSystem
 
                 bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.materials[index].shader.BlendingFlag()), 0);
 
-                pair.renderer.materials[index].ApplyProperties();
+                var material = pair.renderer.materials[index];
 
-                pair.renderer.materials[index].shader.SetFloat("u_isSkinning", 0);
+                material.ApplyProperties();
 
                 pair.renderer.mesh.SetActive(index);
 
-                bgfx.submit(pair.viewID, pair.renderer.materials[index].shader.program, 0, (byte)bgfx.DiscardFlags.All);
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                var program = material.ShaderProgram;
+
+                if (program.Valid)
+                {
+                    bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                }
+                else
+                {
+                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+                }
             }
 
             if (pair.renderer.mesh.submeshes.Count == 0)

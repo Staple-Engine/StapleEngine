@@ -473,6 +473,9 @@ public class MaterialMetadata
     public Dictionary<string, MaterialParameter> parameters = new();
 
     [Key(3)]
+    public List<string> enabledShaderVariants = new();
+
+    [Key(4)]
     public string typeName = typeof(Material).FullName;
 
     public bool ShouldSerializeguid() => false;

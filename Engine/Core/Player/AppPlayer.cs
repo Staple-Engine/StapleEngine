@@ -16,6 +16,8 @@ internal class AppPlayer
 
     internal RenderWindow renderWindow;
 
+    internal const bool printTypeCacheTypes = false;
+
     public AppPlayer(AppSettings settings, string[] args, bool shouldConsoleLog)
     {
         appSettings = settings;
@@ -36,6 +38,18 @@ internal class AppPlayer
         }
 
         ModuleInitializer.LoadAll();
+
+        if(printTypeCacheTypes)
+        {
+            Console.WriteLine($"TypeCache Types:");
+
+            foreach (var type in TypeCache.AllTypes())
+            {
+                Console.WriteLine($"{type.FullName}");
+            }
+
+            Console.WriteLine($"Done");
+        }
     }
 
     public void ResetRendering(bool hasFocus)

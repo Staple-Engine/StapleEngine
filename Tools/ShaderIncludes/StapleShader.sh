@@ -3,10 +3,8 @@
 
 #include <bgfx_shader.sh>
 
-uniform vec4 u_isSkinning_uniform;
+#ifdef SKINNING
 uniform mat4 u_boneMatrices[128];
-
-#define IsSkinning u_isSkinning_uniform.x
 
 mat4 StapleGetSkinningMatrix(vec4 indices, vec4 weights)
 {
@@ -15,5 +13,6 @@ mat4 StapleGetSkinningMatrix(vec4 indices, vec4 weights)
 			weights.z * u_boneMatrices[int(indices.z)] + 
 			weights.w * u_boneMatrices[int(indices.w)]);
 }
+#endif
 
 #endif

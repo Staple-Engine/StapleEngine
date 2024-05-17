@@ -42,14 +42,17 @@ public class ShaderMetadata
     public ShaderType type = ShaderType.VertexFragment;
 
     [Key(2)]
-    public List<ShaderUniform> uniforms = new();
+    public List<string> variants = new();
 
     [Key(3)]
-    public BlendMode sourceBlend = BlendMode.Off;
+    public List<ShaderUniform> uniforms = new();
 
     [Key(4)]
-    public BlendMode destinationBlend = BlendMode.Off;
+    public BlendMode sourceBlend = BlendMode.Off;
 
     [Key(5)]
+    public BlendMode destinationBlend = BlendMode.Off;
+
+    [Key(6)]
     public string typeName = typeof(Shader).FullName;
 }

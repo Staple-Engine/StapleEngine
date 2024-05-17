@@ -319,9 +319,19 @@ public class SpriteRenderSystem : IRenderSystem
 
             s.material.shader.SetColor(Material.MainColorProperty, s.color);
             s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
-            s.material.shader.SetFloat("u_isSkinning", 0);
 
-            bgfx.submit(s.viewID, s.material.shader.program, 0, (byte)bgfx.DiscardFlags.All);
+            s.material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+            var program = s.material.ShaderProgram;
+
+            if (program.Valid)
+            {
+                bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+            }
+            else
+            {
+                bgfx.discard((byte)bgfx.DiscardFlags.All);
+            }
         }
     }
 }

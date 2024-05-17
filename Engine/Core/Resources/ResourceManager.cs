@@ -665,18 +665,24 @@ internal class ResourceManager
             {
                 case ShaderType.Compute:
 
-                    if ((shaderData.computeShader?.Length ?? 0) == 0)
+                    foreach(var pair in shaderData.data)
                     {
-                        return null;
+                        if ((pair.Value.computeShader?.Length ?? 0) == 0)
+                        {
+                            return null;
+                        }
                     }
 
                     break;
 
                 case ShaderType.VertexFragment:
 
-                    if ((shaderData.vertexShader?.Length ?? 0) == 0 || (shaderData.fragmentShader?.Length ?? 0) == 0)
+                    foreach (var pair in shaderData.data)
                     {
-                        return null;
+                        if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
+                        {
+                            return null;
+                        }
                     }
 
                     break;
@@ -776,6 +782,14 @@ internal class ResourceManager
                 shader = shader,
                 guid = guid ?? path
             };
+
+            foreach(var variant in materialData.metadata.enabledShaderVariants)
+            {
+                if(shader.metadata.variants.Contains(variant))
+                {
+                    material.EnableShaderKeyword(variant);
+                }
+            }
 
             foreach(var parameter in materialData.metadata.parameters)
             {

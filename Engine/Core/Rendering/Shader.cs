@@ -11,6 +11,13 @@ namespace Staple.Internal;
 /// </summary>
 internal partial class Shader : IGuidAsset
 {
+    public static readonly string SkinningKeyword = "SKINNING";
+
+    public static readonly string[] DefaultVariants =
+    [
+        SkinningKeyword,
+    ];
+
     internal class UniformInfo<T>
     {
         public ShaderUniform uniform;
@@ -69,16 +76,21 @@ internal partial class Shader : IGuidAsset
         }
     }
 
-    internal bgfx.ShaderHandle vertexShader;
-    internal bgfx.ShaderHandle fragmentShader;
-    internal bgfx.ProgramHandle program;
+    internal class ShaderInstance
+    {
+        public bgfx.ShaderHandle vertexShader;
+        public bgfx.ShaderHandle fragmentShader;
+        public bgfx.ProgramHandle program;
+
+        public byte[] vertexShaderSource;
+        public byte[] fragmentShaderSource;
+    }
 
     internal readonly ShaderMetadata metadata;
     internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
-    internal readonly byte[] vertexShaderSource;
-    internal readonly byte[] fragmentShaderSource;
 
-    internal Dictionary<ShaderUniformType, object> uniforms = new();
+    internal readonly Dictionary<ShaderUniformType, object> uniforms = new();
+    internal readonly Dictionary<string, ShaderInstance> instances = new();
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
@@ -97,11 +109,18 @@ internal partial class Shader : IGuidAsset
         return ResourceManager.instance.LoadShader(path);
     }
 
-    internal Shader(ShaderMetadata metadata, byte[] vertexShaderSource, byte[] fragmentShaderSource)
+    internal Shader(SerializableShader shader)
     {
-        this.vertexShaderSource = vertexShaderSource;
-        this.fragmentShaderSource = fragmentShaderSource;
-        this.metadata = metadata;
+        metadata = shader.metadata;
+
+        foreach(var pair in shader.data)
+        {
+            instances.AddOrSetKey(pair.Key, new()
+            {
+                fragmentShaderSource = pair.Value.fragmentShader,
+                vertexShaderSource = pair.Value.vertexShader,
+            });
+        }
 
         sourceBlend = metadata.sourceBlend;
         destinationBlend = metadata.destinationBlend;
@@ -145,47 +164,70 @@ internal partial class Shader : IGuidAsset
 
     internal unsafe bool Create()
     {
-        bgfx.Memory* vs, fs;
-
-        fixed (void* ptr = vertexShaderSource)
+        foreach(var pair in instances)
         {
-            vs = bgfx.copy(ptr, (uint)vertexShaderSource.Length);
-        }
+            bgfx.Memory* vs, fs;
 
-        fixed (void* ptr = fragmentShaderSource)
-        {
-            fs = bgfx.copy(ptr, (uint)fragmentShaderSource.Length);
-        }
-
-        vertexShader = bgfx.create_shader(vs);
-        fragmentShader = bgfx.create_shader(fs);
-
-        if (vertexShader.Valid == false || fragmentShader.Valid == false)
-        {
-            if(vertexShader.Valid)
+            fixed (void* ptr = pair.Value.vertexShaderSource)
             {
-                bgfx.destroy_shader(vertexShader);
+                vs = bgfx.copy(ptr, (uint)pair.Value.vertexShaderSource.Length);
             }
 
-            if(fragmentShader.Valid)
+            fixed (void* ptr = pair.Value.fragmentShaderSource)
             {
-                bgfx.destroy_shader(vertexShader);
+                fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
             }
 
-            return false;
+            pair.Value.vertexShader = bgfx.create_shader(vs);
+            pair.Value.fragmentShader = bgfx.create_shader(fs);
+
+            if (pair.Value.vertexShader.Valid == false || pair.Value.fragmentShader.Valid == false)
+            {
+                if (pair.Value.vertexShader.Valid)
+                {
+                    bgfx.destroy_shader(pair.Value.vertexShader);
+                }
+
+                if (pair.Value.fragmentShader.Valid)
+                {
+                    bgfx.destroy_shader(pair.Value.vertexShader);
+                }
+
+                pair.Value.vertexShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+
+                pair.Value.fragmentShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+
+                return false;
+            }
+
+            pair.Value.program = bgfx.create_program(pair.Value.vertexShader, pair.Value.fragmentShader, true);
+
+            if (pair.Value.program.Valid == false)
+            {
+                bgfx.destroy_shader(pair.Value.vertexShader);
+                bgfx.destroy_shader(pair.Value.fragmentShader);
+
+                pair.Value.vertexShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+
+                pair.Value.fragmentShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+
+                return false;
+            }
         }
 
-        program = bgfx.create_program(vertexShader, fragmentShader, true);
-
-        if (program.Valid == false)
-        {
-            bgfx.destroy_shader(vertexShader);
-            bgfx.destroy_shader(fragmentShader);
-
-            return false;
-        }
-
-        if(uniforms.Count > 0)
+        if (uniforms.Count > 0)
         {
             void Apply<T>(object value, Action<UniformInfo<T>> callback)
             {
@@ -326,7 +368,6 @@ internal partial class Shader : IGuidAsset
                 }
             }
 
-            EnsureUniform<float>("u_isSkinning", ShaderUniformType.Float);
             EnsureUniform<Matrix4x4>("u_boneMatrices[128]", ShaderUniformType.Matrix4x4);
         }
 
@@ -671,9 +712,37 @@ internal partial class Shader : IGuidAsset
 
         Disposed = true;
 
-        if(program.Valid)
+        foreach(var pair in instances)
         {
-            bgfx.destroy_program(program);
+            if(pair.Value.vertexShader.Valid)
+            {
+                bgfx.destroy_shader(pair.Value.vertexShader);
+
+                pair.Value.vertexShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+            }
+
+            if (pair.Value.fragmentShader.Valid)
+            {
+                bgfx.destroy_shader(pair.Value.fragmentShader);
+
+                pair.Value.fragmentShader = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+            }
+
+            if (pair.Value.program.Valid)
+            {
+                bgfx.destroy_program(pair.Value.program);
+
+                pair.Value.program = new()
+                {
+                    idx = ushort.MaxValue,
+                };
+            }
         }
 
         static void DestroyUniforms<T>(object value)
@@ -736,32 +805,13 @@ internal partial class Shader : IGuidAsset
     /// <returns>The shader if valid</returns>
     internal static Shader Create(SerializableShader data)
     {
-        unsafe
+        var shader = new Shader(data);
+
+        if (shader.Create())
         {
-            switch(data.metadata.type)
-            {
-                case ShaderType.Compute:
-
-                    //TODO
-                    return null;
-
-                case ShaderType.VertexFragment:
-
-                    {
-                        var shader = new Shader(data.metadata, data.vertexShader, data.fragmentShader);
-
-                        if(shader.Create())
-                        {
-                            return shader;
-                        }
-
-                        return null;
-                    }
-
-                default:
-
-                    return null;
-            }
+            return shader;
         }
+
+        return null;
     }
 }
