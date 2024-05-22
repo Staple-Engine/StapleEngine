@@ -13,5 +13,6 @@ internal enum ProjectBrowserResourceType
     Audio,
     Mesh,
     Prefab,
+    Font,
     Other
 }

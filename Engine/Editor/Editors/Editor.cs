@@ -140,19 +140,9 @@ public class Editor
                 case Type t when t.IsEnum:
 
                     {
-                        var values = Enum.GetValues(type)
-                            .OfType<Enum>()
-                            .ToList();
-
                         var value = (Enum)field.GetValue(target);
 
-                        var current = values.IndexOf(value);
-
-                        var valueStrings = values
-                            .Select(x => x.ToString())
-                            .ToArray();
-
-                        var newValue = values[EditorGUI.Dropdown(fieldName, valueStrings, current)];
+                        var newValue = EditorGUI.EnumDropdown(fieldName, value, type);
 
                         field.SetValue(target, newValue);
                     }

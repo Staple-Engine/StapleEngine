@@ -45,6 +45,7 @@
 		<Compile Include="Baker+Assets.cs" />
 		<Compile Include="Baker+Audio.cs" />
 		<Compile Include="Baker+Cleanup.cs" />
+		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />

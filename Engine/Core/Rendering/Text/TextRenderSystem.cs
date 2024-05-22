@@ -13,9 +13,11 @@ internal class TextRenderSystem : IRenderSystem
 
         public int fontSize;
 
-        public Vector3 position;
+        public Matrix4x4 transform;
 
         public ushort viewID;
+
+        public FontAsset fontAsset;
 
         public float scale;
     }
@@ -50,9 +52,9 @@ internal class TextRenderSystem : IRenderSystem
         }
     }
 
-    public void RenderText(string text, TextParameters parameters, Material material, float scale, ushort viewID)
+    public void RenderText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, ushort viewID)
     {
-        textRenderer.DrawText(text, parameters, material, scale, viewID);
+        textRenderer.DrawText(text, transform, parameters, material, scale, viewID);
     }
 
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
@@ -79,8 +81,9 @@ internal class TextRenderSystem : IRenderSystem
         {
             text = text.text,
             fontSize = text.fontSize,
-            position = transform.Position,
+            transform = transform.Matrix,
             viewID = viewId,
+            fontAsset = text.font,
             scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
         });
     }
@@ -94,7 +97,7 @@ internal class TextRenderSystem : IRenderSystem
 
         foreach(var text in texts)
         {
-            RenderText(text.text, new TextParameters().FontSize(text.fontSize).Position(new Vector2(text.position.X, text.position.Y)), material,
+            RenderText(text.text, text.transform, new TextParameters().Font(text.fontAsset?.font).FontSize(text.fontSize), material,
                 text.scale, text.viewID);
         }
     }

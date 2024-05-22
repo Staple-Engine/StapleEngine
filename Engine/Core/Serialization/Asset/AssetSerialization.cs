@@ -62,6 +62,11 @@ internal static partial class AssetSerialization
         "wav",
     ];
 
+    public static readonly string[] FontExtensions =
+    [
+        "ttf",
+    ];
+
     /// <summary>
     /// Gets the asset path for an asset from a cache path
     /// </summary>

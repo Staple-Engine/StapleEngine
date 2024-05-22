@@ -29,6 +29,7 @@ internal class ResourceManager
     internal readonly Dictionary<string, Mesh> cachedMeshes = new();
     internal readonly Dictionary<string, AudioClip> cachedAudioClips = new();
     internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
+    internal readonly Dictionary<string, FontAsset> cachedFonts = new();
     internal readonly Dictionary<string, IStapleAsset> cachedAssets = new();
     internal readonly Dictionary<string, Prefab> cachedPrefabs = new();
     internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
@@ -1611,6 +1612,128 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load prefab at path {path}: {e}");
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load a font
+    /// </summary>
+    /// <param name="path">The path to load from</param>
+    /// <param name="ignoreCache">Whether to ignore the asset cache</param>
+    /// <returns>The font, or null</returns>
+    public FontAsset LoadFont(string path, bool ignoreCache = false)
+    {
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        if (ignoreCache == false &&
+            cachedFonts.TryGetValue(path, out var font) &&
+            font != null)
+        {
+            return font;
+        }
+
+        var data = LoadFile(path);
+
+        if (data == null)
+        {
+            return default;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableFontHeader>(stream);
+
+            if (header == null ||
+                header.header.SequenceEqual(SerializableFontHeader.ValidHeader) == false ||
+                header.version != SerializableFontHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid header");
+
+                return default;
+            }
+
+            var fontData = MessagePackSerializer.Deserialize<SerializableFont>(stream);
+
+            if (fontData == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid font data");
+
+                return default;
+            }
+
+            font = new()
+            {
+                metadata = fontData.metadata,
+                Guid = path,
+            };
+
+            font.font = new()
+            {
+                fontData = fontData.fontData,
+                includedRanges = fontData.metadata.includedCharacterSets,
+                textureSize = fontData.metadata.textureSize,
+            };
+
+            foreach(var piece in fontData.sizes)
+            {
+                if(piece.textureData == null || piece.textureData.Length != font.metadata.textureSize * font.metadata.textureSize * 4)
+                {
+                    continue;
+                }
+
+                var atlas = Texture.CreatePixels($"FNT:{path}:{piece.fontSize}", piece.textureData,
+                    (ushort)font.metadata.textureSize, (ushort)font.metadata.textureSize, new()
+                    {
+                        filter = TextureFilter.Point,
+                        type = TextureType.Texture,
+                        useMipmaps = false,
+                    }, Bgfx.bgfx.TextureFormat.RGBA8);
+
+                if (atlas == null)
+                {
+                    continue;
+                }
+
+                var outValue = new TextFont.FontAtlasInfo()
+                {
+                    ascent = piece.ascent,
+                    descent = piece.descent,
+                    fontSize = piece.fontSize,
+                    lineGap = piece.lineGap,
+                    ranges = fontData.metadata.includedCharacterSets,
+                    atlas = atlas,
+                };
+
+                foreach (var glyph in piece.glyphs)
+                {
+                    outValue.glyphs.Add(glyph.codepoint, new()
+                    {
+                        xAdvance = glyph.xAdvance,
+                        xOffset = glyph.xOffset,
+                        yOffset = glyph.yOffset,
+                        bounds = new((int)glyph.bounds.x, (int)glyph.bounds.y, (int)glyph.bounds.z, (int)glyph.bounds.w),
+                    });
+                }
+
+                font.font.atlas.Add(piece.fontSize, outValue);
+            }
+
+            if (ignoreCache == false)
+            {
+                cachedFonts.AddOrSetKey(path, font);
+            }
+
+            return font;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load font at path {path}: {e}");
 
             return default;
         }

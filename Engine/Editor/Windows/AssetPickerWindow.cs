@@ -230,6 +230,26 @@ internal class AssetPickerWindow : EditorWindow
                         }
 
                         break;
+
+                    case ProjectBrowserResourceType.Font:
+
+                        try
+                        {
+                            var font = ResourceManager.instance.LoadFont(cachePath.Replace(".meta", ""));
+
+                            if (font != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = font;
+                                }
+                            }
+                        }
+                        catch (System.Exception)
+                        {
+                        }
+
+                        break;
                 }
 
                 Close();

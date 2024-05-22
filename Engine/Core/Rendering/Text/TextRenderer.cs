@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
 internal class TextRenderer
 {
-    internal class TextResourceInfo
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    private struct PosTexVertex
     {
-        public char character;
-        public TextParameters parameters;
-        public Glyph info;
-
-        public Texture sourceTexture;
-
-        public int references;
+        public Vector2 position;
+        public Vector2 uv;
     }
 
-    private readonly Dictionary<int, TextResourceInfo> textResources = new();
     private TextFont defaultFont;
+
+    private Lazy<VertexLayout> vertexLayout = new(() => new VertexLayoutBuilder()
+        .Add(Bgfx.bgfx.Attrib.Position, 2, Bgfx.bgfx.AttribType.Float)
+        .Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float)
+        .Build());
 
     public void LoadDefaultFont()
     {
@@ -32,99 +33,10 @@ internal class TextRenderer
         }
     }
 
-    public void ClearUnusedResources()
-    {
-        for(; ; )
-        {
-            var found = false;
-
-            foreach(var pair in textResources)
-            {
-                if(pair.Value.references == 0)
-                {
-                    pair.Value.sourceTexture?.Destroy();
-
-                    textResources.Remove(pair.Key);
-
-                    found = true;
-
-                    break;
-                }
-            }
-
-            if(found == false)
-            {
-                break;
-            }
-        }
-
-        foreach(var pair in textResources)
-        {
-            pair.Value.references = 0;
-        }
-    }
-
-    public void GetText(string text, TextParameters parameters)
-    {
-        if(text == null || text.Length == 0)
-        {
-            return;
-        }
-
-        var font = parameters.font.TryGetTarget(out var f) ? f : defaultFont;
-
-        if(font == null)
-        {
-            return;
-        }
-
-        for(var i = 0; i < text.Length; i++)
-        {
-            if (char.IsWhiteSpace(text[i]) || text[i] == '\n' || text[i] == '\r')
-            {
-                continue;
-            }
-
-            var key = parameters.GetHashCode() ^ text[i].GetHashCode();
-
-            if(textResources.TryGetValue(key, out var resource))
-            {
-                resource.references++;
-            }
-            else
-            {
-                resource = new()
-                {
-                    character = text[i],
-                    parameters = parameters.Clone(),
-                    references = 1
-                };
-
-                resource.info = font.LoadGlyph(resource.character, parameters);
-
-                if((resource.info?.pixels?.Length ?? 0) > 0)
-                {
-                    resource.sourceTexture = Texture.CreatePixels("", resource.info.pixels,
-                        (ushort)resource.info.bounds.Width, (ushort)resource.info.bounds.Height,
-                        new TextureMetadata()
-                        {
-                            filter = TextureFilter.Linear,
-                            format = TextureMetadataFormat.RGBA8,
-                            type = TextureType.Texture,
-                            useMipmaps = false,
-                            spritePixelsPerUnit = 100,
-                        },
-                        Bgfx.bgfx.TextureFormat.RGBA8);
-                }
-
-                textResources.Add(key, resource);
-            }
-        }
-    }
-
     public Rect MeasureTextSimple(string str, TextParameters parameters)
     {
-        if(str == null || str.Length == 0)
+        //TODO: Update to new logic
+        if (str == null || str.Length == 0)
         {
             return default;
         }
@@ -137,7 +49,7 @@ internal class TextRenderer
         }
 
         var lineSpacing = font.LineSpacing(parameters);
-        var spaceSize = font.LoadGlyph(' ', parameters).advance;
+        var spaceSize = font.GetGlyph(' ').xAdvance;
 
         var position = new Vector2Int(0, parameters.fontSize);
 
@@ -151,7 +63,7 @@ internal class TextRenderer
         {
             for(var j = 0; j < lines[i].Length; j++)
             {
-                var glyph = font.LoadGlyph(lines[i][j], parameters);
+                var glyph = font.GetGlyph(lines[i][j]);
 
                 if(glyph == null)
                 {
@@ -186,7 +98,7 @@ internal class TextRenderer
                             position.X += font.Kerning(lines[i][j - 1], lines[i][j], parameters);
                         }
 
-                        position.X += glyph.advance;
+                        position.X += glyph.xAdvance;
 
                         break;
                 }
@@ -240,6 +152,7 @@ internal class TextRenderer
 
     public Rect MeasureTextLines(IEnumerable<string> lines, TextParameters parameters)
     {
+        //TODO: Update to new logic
         var outValue = new Rect();
 
         var additionalBottom = 0;
@@ -293,7 +206,7 @@ internal class TextRenderer
         return outValue;
     }
 
-    public void DrawText(string text, TextParameters parameters, Material material, float scale, ushort viewID)
+    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, ushort viewID)
     {
         if(text == null)
         {
@@ -327,13 +240,11 @@ internal class TextRenderer
         }
 
         var lineSpace = font.LineSpacing(actualParams);
-        var spaceSize = font.LoadGlyph(' ', actualParams).advance;
+        var spaceSize = font.GetGlyph(' ').xAdvance;
 
         var position = new Vector2(actualParams.position.X, actualParams.position.Y + actualParams.fontSize * scale);
 
         var initialPosition = position;
-
-        GetText(text, actualParams);
 
         var lines = text.Replace("\r", "").Split("\n".ToCharArray());
 
@@ -356,20 +267,82 @@ internal class TextRenderer
                             position.X += font.Kerning(line[j - 1], line[j], actualParams) * scale;
                         }
 
-                        if(textResources.TryGetValue(actualParams.GetHashCode() ^ line[j].GetHashCode(), out var resource))
-                        {
-                            var p = position + new Vector2(resource.info.bounds.left + resource.info.bounds.Width / 2,
-                                resource.info.bounds.top - resource.info.bounds.Height / 2) * scale;
+                        var glyph = font.GetGlyph(line[j]);
 
-                            if(resource.sourceTexture != null)
+                        if(glyph != null)
+                        {
+                            var size = new Vector2(glyph.bounds.Width * scale, glyph.bounds.Height * scale);
+
+                            var advance = (glyph.xAdvance + glyph.bounds.Width / 2) * scale;
+
+                            var p = position + new Vector2(glyph.xOffset * scale, -glyph.yOffset * scale);
+
+                            PosTexVertex[] vertices = [
+
+                                new()
+                                {
+                                    position = p - size / 2,
+                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
+                                },
+                                new()
+                                {
+                                    position = p + new Vector2(-size.X / 2, size.Y / 2),
+                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
+                                },
+                                new()
+                                {
+                                    position = p + size / 2,
+                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
+                                },
+                                new()
+                                {
+                                    position = p + size / 2,
+                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
+                                },
+                                new()
+                                {
+                                    position = p + new Vector2(size.X / 2, -size.Y / 2),
+                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
+                                },
+                                new()
+                                {
+                                    position = p - size / 2,
+                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
+                                },
+                            ];
+
+                            material.MainTexture = font.Texture;
+
+                            var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), vertexLayout.Value,
+                                VertexBuffer.TransientBufferHasSpace(vertices.Length, vertexLayout.Value));
+
+                            if(vertexBuffer == null)
                             {
-                                material.MainTexture = resource.sourceTexture;
+                                position.X += advance;
+
+                                continue;
                             }
 
-                            MeshRenderSystem.DrawMesh(mesh, new Vector3(p, 0), Quaternion.Identity,
-                                new Vector3(resource.info.bounds.Width * scale, resource.info.bounds.Height * scale, 1), material, viewID);
+                            ushort[] indices = [0, 1, 2, 3, 4, 5];
 
-                            position.X += resource.info.advance * scale;
+                            var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.Write, IndexBuffer.TransientBufferHasSpace(6, false));
+
+                            if(indexBuffer == null)
+                            {
+                                vertexBuffer.Destroy();
+
+                                position.X += advance;
+
+                                continue;
+                            }
+
+                            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
+                                material, transform, MeshTopology.Triangles, viewID);
+
+                            position.X += advance;
+
+                            vertexBuffer.Destroy();
+                            indexBuffer.Destroy();
                         }
                         else
                         {

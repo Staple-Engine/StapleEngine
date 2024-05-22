@@ -1,21 +1,61 @@
-﻿using System;
+﻿using StbTrueTypeSharp;
+using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple.Internal;
 
 internal class TextFont : IDisposable
 {
-    public Dictionary<int, Glyph> glyphs = new();
+    public class FontAtlasInfo
+    {
+        public int fontSize;
+        public FontCharacterSet ranges;
+        public Texture atlas;
+        public int ascent, descent, lineGap;
 
-    public int fontSize;
-    public int lineSpacing;
+        public Dictionary<int, Glyph> glyphs = new();
 
-    //TODO: Reimplement this natively
-    /*
-    public SharpFont.Library library;
-    public SharpFont.Face face;
-    */
+        public Dictionary<Vector2Int, int> kerning = new();
+    }
+
+    internal static readonly Dictionary<FontCharacterSet, (int, int)> characterRanges = new()
+    {
+        { FontCharacterSet.BasicLatin, (0x0020, 0x007F) },
+        { FontCharacterSet.Latin1Supplement, (0x00A0, 0x00FF) },
+        { FontCharacterSet.LatinExtendedA, (0x0100, 0x017F) },
+        { FontCharacterSet.LatinExtendedB, (0x0180, 0x024F) },
+        { FontCharacterSet.Cyrillic, (0x0400, 0x04FF) },
+        { FontCharacterSet.CyrillicSupplement, (0x0500, 0x052F) },
+        { FontCharacterSet.Hiragana, (0x3040, 0x309F) },
+        { FontCharacterSet.Katakana, (0x30A0, 0x30FF) },
+        { FontCharacterSet.Greek, (0x0370, 0x03FF) },
+        { FontCharacterSet.CjkSymbolsAndPunctuation, (0x3000, 0x303F) },
+        { FontCharacterSet.CjkUnifiedIdeographs, (0x4E00, 0x9FFF) },
+        { FontCharacterSet.HangulCompatibilityJamo, (0x3130, 0x318F) },
+        { FontCharacterSet.HangulSyllables, (0xAC00, 0xD7AF) },
+    };
+
+    internal const FontCharacterSet AllCharacterSets = FontCharacterSet.BasicLatin |
+        FontCharacterSet.CjkSymbolsAndPunctuation |
+        FontCharacterSet.CjkUnifiedIdeographs |
+        FontCharacterSet.Cyrillic |
+        FontCharacterSet.CyrillicSupplement |
+        FontCharacterSet.Greek |
+        FontCharacterSet.HangulCompatibilityJamo |
+        FontCharacterSet.HangulSyllables |
+        FontCharacterSet.Hiragana |
+        FontCharacterSet.Katakana |
+        FontCharacterSet.Latin1Supplement |
+        FontCharacterSet.LatinExtendedA |
+        FontCharacterSet.LatinExtendedB;
+
+    internal int fontSize;
+    internal int textureSize;
+    internal byte[] fontData;
+
+    internal FontCharacterSet includedRanges;
+
+    internal Dictionary<int, FontAtlasInfo> atlas = new();
 
     public int FontSize
     {
@@ -23,233 +63,219 @@ internal class TextFont : IDisposable
 
         set
         {
-            /*
-            if(value <= 0 || face == null || library == null)
+            if(value <= 0)
             {
                 return;
             }
-            */
-
-            //face.SetPixelSizes(0, (uint)value);
 
             fontSize = value;
+
+            GenerateTextureAtlas();
         }
+    }
+
+    public Texture Texture => atlas.TryGetValue(fontSize, out var info) ? info.atlas : null;
+
+    public bool MakePixelData(int fontSize, int textureSize, out byte[] bitmapData, out int ascent, out int descent,
+        out int lineGap, out Dictionary<int, Glyph> glyphs)
+    {
+        using var font = StbTrueType.CreateFont(fontData, 0);
+
+        if (font == null || fontSize <= 0 || textureSize <= 0)
+        {
+            bitmapData = default;
+            glyphs = default;
+            ascent = default;
+            descent = default;
+            lineGap = default;
+
+            return false;
+        }
+
+        var monoBitmap = new byte[textureSize * textureSize];
+
+        var context = new StbTrueType.stbtt_pack_context();
+
+        unsafe
+        {
+            fixed (byte* ptr = monoBitmap)
+            {
+                StbTrueType.stbtt_PackBegin(context, ptr, textureSize, textureSize, textureSize, 1, null);
+            }
+        }
+
+        var scaleFactor = StbTrueType.stbtt_ScaleForPixelHeight(font, fontSize);
+
+        int a, b, c;
+
+        unsafe
+        {
+            StbTrueType.stbtt_GetFontVMetrics(font, &a, &b, &c);
+        }
+
+        ascent = a;
+        descent = b;
+        lineGap = c;
+
+        StbTrueType.stbtt_PackSetOversampling(context, 2, 2);
+
+        glyphs = new Dictionary<int, Glyph>();
+
+        var values = Enum.GetValues<FontCharacterSet>();
+
+        foreach (var value in values)
+        {
+            if (includedRanges.HasFlag(value) == false ||
+                characterRanges.TryGetValue(value, out var range) == false ||
+                range.Item1 > range.Item2)
+            {
+                continue;
+            }
+
+            var chars = new StbTrueType.stbtt_packedchar[range.Item2 - range.Item1 + 1];
+
+            unsafe
+            {
+                fixed (StbTrueType.stbtt_packedchar* charPtr = chars)
+                {
+                    StbTrueType.stbtt_PackFontRange(context, font.data, 0, fontSize, range.Item1, chars.Length, charPtr);
+                }
+            }
+
+            for (var i = 0; i < chars.Length; i++)
+            {
+                var chr = chars[i];
+
+                var yOffset = chr.yoff;
+
+                yOffset += ascent * scaleFactor;
+
+                var glyph = new Glyph()
+                {
+                    bounds = new Rect(chr.x0, chr.x1, chr.y0, chr.y1),
+                    xOffset = (int)chr.xoff,
+                    yOffset = Math.RoundToInt(yOffset),
+                    xAdvance = Math.RoundToInt(chr.xadvance),
+                };
+
+                glyphs.Add(range.Item1 + i, glyph);
+            }
+        }
+
+        StbTrueType.stbtt_PackEnd(context);
+
+        var rgbBitmap = new byte[textureSize * textureSize * 4];
+
+        for (int i = 0, localIndex = 0; i < monoBitmap.Length; i++, localIndex += 4)
+        {
+            rgbBitmap[localIndex] = monoBitmap[i];
+            rgbBitmap[localIndex + 1] = monoBitmap[i];
+            rgbBitmap[localIndex + 2] = monoBitmap[i];
+            rgbBitmap[localIndex + 3] = monoBitmap[i];
+        }
+
+        bitmapData = rgbBitmap;
+
+        return true;
+    }
+
+    public void GenerateTextureAtlas()
+    {
+        if(atlas.ContainsKey(FontSize))
+        {
+            return;
+        }
+
+        if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var ascent, out var descent, out var lineGap, out var glyphs) == false)
+        {
+            return;
+        }
+
+        var texture = Texture.CreatePixels("", rgbBitmap, (ushort)textureSize, (ushort)textureSize, new()
+        {
+            filter = TextureFilter.Point,
+            type = TextureType.Texture,
+            useMipmaps = false,
+        }, Bgfx.bgfx.TextureFormat.RGBA8);
+
+        if(texture == null)
+        {
+            return;
+        }
+
+        atlas.Add(FontSize, new()
+        {
+            ascent = ascent,
+            atlas = texture,
+            descent = descent,
+            fontSize = fontSize,
+            glyphs = glyphs,
+            lineGap = lineGap,
+            ranges = includedRanges,
+        });
     }
 
     public void Clear()
     {
-        /*
-        face?.Dispose();
-
-        face = null;
-
-        library?.Dispose();
-
-        library = null;
-        */
-    }
-
-    public static TextFont FromData(byte[] data)
-    {
-        return null;
-
-        /*
-        var font = new TextFont();
-
-        try
+        foreach(var pair in atlas)
         {
-            font.library = new SharpFont.Library();
-        }
-        catch(Exception)
-        {
-            return null;
+            pair.Value.atlas.Destroy();
         }
 
-        font.face = font.library.NewMemoryFace(data, 0);
-
-        if(font.face == null)
-        {
-            font.Clear();
-
-            return null;
-        }
-
-        font.face.SelectCharmap(SharpFont.Encoding.Unicode);
-
-        return font;
-        */
+        atlas.Clear();
     }
 
     public int LineSpacing(TextParameters parameters)
     {
         FontSize = parameters.fontSize;
 
-        /*
-        unsafe
+        if (atlas.TryGetValue(fontSize, out var info) == false)
         {
-            return face.Size.Metrics.Height.Value >> 6;
+            return FontSize;
         }
-        */
 
-        return FontSize;
+        return info.lineGap;
     }
 
     public int Kerning(char from, char to, TextParameters parameters)
     {
-        /*
-        if(face.HasKerning == false)
+        if(atlas.TryGetValue(fontSize, out var info) == false ||
+            info.kerning.TryGetValue(new(from, to), out var kerning) == false)
         {
             return 0;
         }
 
-        FontSize = parameters.fontSize;
-
-        var fromIndex = face.GetCharIndex(from);
-        var toIndex = face.GetCharIndex(to);
-
-        var kerning = face.GetKerning(fromIndex, toIndex, SharpFont.KerningMode.Default);
-
-        return kerning.X.Value >> 6;
-        */
-
-        return 0;
-    }
-
-    public Glyph LoadGlyph(char character, TextParameters parameters)
-    {
-        return null;
-
-        /*
-        var key = parameters.GetHashCode() ^ character.GetHashCode();
-
-        if (glyphs.TryGetValue(key, out var glyph))
-        {
-            return glyph;
-        }
-
-        glyph = new();
-
-        FontSize = parameters.fontSize;
-
-        face.LoadChar(character, SharpFont.LoadFlags.ForceAutohint, SharpFont.LoadTarget.Normal);
-
-        glyph.advance = face.Glyph.Metrics.HorizontalAdvance.ToInt32();
-
-        var desc = face.Glyph.GetGlyph();
-
-        var origin = new SharpFont.FTVector26Dot6();
-
-        desc.ToBitmap(SharpFont.RenderMode.Normal, origin, true);
-
-        var bitmapGlyph = desc.ToBitmapGlyph();
-
-        var bitmap = bitmapGlyph.Bitmap;
-
-        var glyphWidth = face.Glyph.Metrics.Width.ToInt32();
-        var glyphHeight = face.Glyph.Metrics.Height.ToInt32();
-
-        var xOffset = bitmapGlyph.Left;
-        var yOffset = bitmapGlyph.Top;
-
-        glyph.bounds = new Rect(new Vector2Int(xOffset, yOffset), new Vector2Int(glyphWidth, glyphHeight));
-
-        var width = bitmap.Width;
-        var height = bitmap.Rows;
-
-        if(width > 0 && height > 0)
-        {
-            var pixelBuffer = new byte[width * height * 4];
-            var bufferOffset = 0;
-
-            switch(bitmap.PixelMode)
-            {
-                case SharpFont.PixelMode.Mono:
-
-                    {
-                        for(var y = 0; y < height; y++)
-                        {
-                            for(var x = 0; x < width; x++)
-                            {
-                                var index = (x + y * width) * 4 + 3;
-
-                                pixelBuffer[index] = (byte)((((bitmap.BufferData[bufferOffset + x / 8]) & (1 << (7 - (x % 8)))) != 0) ? 255 : 0);
-                            }
-
-                            bufferOffset += bitmap.Pitch;
-                        }
-                    }
-
-                    break;
-
-                default:
-
-                    //TODO: Other modes
-
-                    {
-                        for(var y = 0; y < height; y++)
-                        {
-                            for(var x = 0; x < width; x++)
-                            {
-                                var index = (x + y * width) * 4 + 3;
-
-                                pixelBuffer[index] = bitmap.BufferData[bufferOffset + x];
-                            }
-
-                            bufferOffset += bitmap.Pitch;
-                        }
-                    }
-
-                    break;
-            }
-
-            var byteColor = parameters.textColor * 255;
-            var secondaryByteColor = parameters.secondaryTextColor * 255;
-
-            var diff = new Vector3(Math.Clamp01(parameters.secondaryTextColor.r - parameters.textColor.r) * 255,
-                Math.Clamp01(parameters.secondaryTextColor.g - parameters.textColor.g) * 255,
-                Math.Clamp01(parameters.secondaryTextColor.b - parameters.textColor.b) * 255);
-
-            for(var y = 0; y < height; y++)
-            {
-                for(var x = 0; x < width; x++)
-                {
-                    var index = (x + y * width) * 4;
-
-                    if(parameters.textColor == parameters.secondaryTextColor)
-                    {
-                        pixelBuffer[index] = (byte)byteColor.r;
-                        pixelBuffer[index + 1] = (byte)byteColor.g;
-                        pixelBuffer[index + 2] = (byte)byteColor.b;
-                    }
-                    else
-                    {
-                        var percent = y / (float)(height - 1);
-
-                        pixelBuffer[index] = (byte)(byteColor.r + diff.X * percent);
-                        pixelBuffer[index + 1] = (byte)(byteColor.g + diff.Y * percent);
-                        pixelBuffer[index + 2] = (byte)(byteColor.b + diff.X * percent);
-                    }
-                }
-            }
-
-            glyph.pixels = pixelBuffer;
-        }
-        else
-        {
-            glyph.pixels = Array.Empty<byte>();
-        }
-
-        desc.Dispose();
-        bitmapGlyph.Dispose();
-
-        glyphs.Add(key, glyph);
-
-        return glyph;
-        */
+        return kerning;
     }
 
     public void Dispose()
     {
         Clear();
+    }
+
+    public Glyph GetGlyph(int codepoint)
+    {
+        return atlas.TryGetValue(fontSize, out var info) && info.glyphs.TryGetValue(codepoint, out var glyph) ? glyph : new();
+    }
+
+    public static TextFont FromData(byte[] data, int textureSize = 1024, FontCharacterSet ranges = AllCharacterSets)
+    {
+        using var font = StbTrueType.CreateFont(data, 0);
+
+        if(font == null)
+        {
+            return null;
+        }
+
+        var outValue = new TextFont()
+        {
+            fontData = data,
+            textureSize = textureSize,
+            includedRanges = ranges,
+        };
+
+        outValue.FontSize = 32;
+
+        return outValue;
     }
 }

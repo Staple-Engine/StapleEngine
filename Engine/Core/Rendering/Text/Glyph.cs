@@ -2,7 +2,8 @@
 
 internal class Glyph
 {
-    public int advance;
+    public int xAdvance;
+    public int xOffset;
+    public int yOffset;
     public Rect bounds;
-    public byte[] pixels;
 }

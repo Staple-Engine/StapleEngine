@@ -317,6 +317,10 @@ static partial class Program
 
         WorkScheduler.WaitForTasks();
 
+        ProcessFonts(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         Console.WriteLine($"Cleaning up moved and deleted files in the output folder");
 
         CleanupUnusedFiles(platform, inputPath, outputPath);

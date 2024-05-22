@@ -30,7 +30,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <summary>
     /// Gets the transform's Transformation Matrix
     /// </summary>
-    internal Matrix4x4 Matrix
+    public Matrix4x4 Matrix
     {
         get
         {

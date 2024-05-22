@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace Staple.Editor;
 
@@ -309,13 +310,51 @@ public static class EditorGUI
 
         var values = v as List<T>;
 
-        var current = values.IndexOf(value);
+        var isFlags = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+
+        var current = isFlags ? 0 : values.IndexOf(value);
 
         var valueStrings = values
-            .Select(x => x.ToString())
+            .Select(x =>
+            {
+                var prefix = isFlags ? (value.HasFlag(x) ? "*" : " ") : "";
+
+                return $"{prefix}{x}";
+            })
             .ToArray();
 
+        var prevChanged = Changed;
+
+        Changed = false;
+
         var newValue = values[Dropdown(label, valueStrings, current)];
+
+        if (isFlags)
+        {
+            if (Changed)
+            {
+                if (value.HasFlag(newValue))
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (T)Enum.ToObject(typeof(T), a & ~b);
+                }
+                else
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (T)Enum.ToObject(typeof(T), a | b);
+                }
+            }
+            else
+            {
+                newValue = value;
+            }
+        }
+
+        Changed = prevChanged;
 
         return newValue;
     }
@@ -329,13 +368,117 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, T value, List<T> values) where T : struct, Enum
     {
-        var current = values.IndexOf(value);
+        var isFlags = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+
+        var current = isFlags ? 0 : values.IndexOf(value);
 
         var valueStrings = values
-            .Select(x => x.ToString())
+            .Select(x =>
+            {
+                var prefix = isFlags ? (value.HasFlag(x) ? "*" : " ") : "";
+
+                return $"{prefix}{x}";
+            })
             .ToArray();
 
+        var prevChanged = Changed;
+
+        Changed = false;
+
         var newValue = values[Dropdown(label, valueStrings, current)];
+
+        if (isFlags)
+        {
+            if (Changed)
+            {
+                if (value.HasFlag(newValue))
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (T)Enum.ToObject(typeof(T), a & ~b);
+                }
+                else
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (T)Enum.ToObject(typeof(T), a | b);
+                }
+            }
+            else
+            {
+                newValue = value;
+            }
+        }
+
+        Changed = prevChanged;
+
+        return newValue;
+    }
+
+    /// <summary>
+    /// Shows a dropdown field for an enum
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static Enum EnumDropdown(string label, Enum value, Type enumType)
+    {
+        var v = Enum.GetValues(enumType);
+
+        var values = new List<object>();
+
+        foreach(var t in v)
+        {
+            values.Add(t);
+        }
+
+        var isFlags = enumType.GetCustomAttribute<FlagsAttribute>() != null;
+
+        var current = isFlags ? 0 : values.IndexOf(value);
+
+        var valueStrings = values
+            .Select(x =>
+            {
+                var prefix = isFlags ? (value.HasFlag((Enum)x) ? "* " : "  ") : "";
+
+                return $"{prefix}{x}";
+            })
+            .ToArray();
+
+        var prevChanged = Changed;
+
+        Changed = false;
+
+        var newValue = (Enum)values[Dropdown(label, valueStrings, current)];
+
+        if (isFlags)
+        {
+            if(Changed)
+            {
+                if (value.HasFlag(newValue))
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (Enum)Enum.ToObject(enumType, a & ~b);
+                }
+                else
+                {
+                    var a = Convert.ToInt64(value);
+                    var b = Convert.ToInt64(newValue);
+
+                    newValue = (Enum)Enum.ToObject(enumType, a | b);
+                }
+            }
+            else
+            {
+                newValue = value;
+            }
+        }
+
+        Changed = prevChanged;
 
         return newValue;
     }

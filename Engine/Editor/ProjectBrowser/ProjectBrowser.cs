@@ -40,6 +40,7 @@ internal class ProjectBrowser
         AddAll(AssetSerialization.TextureExtensions, ProjectBrowserResourceType.Texture);
         AddAll(AssetSerialization.AudioExtensions, ProjectBrowserResourceType.Audio);
         AddAll(AssetSerialization.MeshExtensions, ProjectBrowserResourceType.Mesh);
+        AddAll(AssetSerialization.FontExtensions, ProjectBrowserResourceType.Font);
     }
 
     public const float contentPanelThumbnailSize = 64;
@@ -250,6 +251,12 @@ internal class ProjectBrowser
                         case ProjectBrowserResourceType.Audio:
 
                             node.typeName = typeof(AudioClip).FullName;
+
+                            break;
+
+                        case ProjectBrowserResourceType.Font:
+
+                            node.typeName = typeof(FontAsset).FullName;
 
                             break;
 
@@ -538,6 +545,34 @@ internal class ProjectBrowser
                                         {
                                             guid = Hash(),
                                             typeName = typeof(AudioClip).FullName,
+                                        },
+                                        Formatting.Indented, new JsonSerializerSettings()
+                                        {
+                                            Converters =
+                                            {
+                                                new StringEnumConverter(),
+                                            }
+                                        });
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Font:
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = typeof(FontAsset).FullName,
                                         },
                                         Formatting.Indented, new JsonSerializerSettings()
                                         {

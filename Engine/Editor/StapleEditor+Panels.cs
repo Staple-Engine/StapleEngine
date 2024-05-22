@@ -971,6 +971,30 @@ internal partial class StapleEditor
                     {
                     }
                 }
+                else if (item.typeName == typeof(FontAsset).FullName)
+                {
+                    try
+                    {
+                        original = JsonConvert.DeserializeObject<FontMetadata>(data);
+                        selectedProjectNodeData = JsonConvert.DeserializeObject<FontMetadata>(data);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    if (original != null && selectedProjectNodeData != null)
+                    {
+                        var editor = new FontAssetEditor()
+                        {
+                            original = original as FontMetadata,
+                            path = $"{item.path}.meta",
+                            cachePath = cachePath,
+                            target = selectedProjectNodeData,
+                        };
+
+                        cachedEditors.Add("", editor);
+                    }
+                }
                 else
                 {
                     var type = TypeCache.GetType(item.typeName);
