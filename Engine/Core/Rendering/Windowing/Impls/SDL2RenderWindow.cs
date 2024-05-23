@@ -101,6 +101,10 @@ internal class SDL2RenderWindow : IRenderWindow
                 {
                     windowPosition = position.Value;
                 }
+                else
+                {
+                    windowPosition = new Vector2Int(displayBounds.x, displayBounds.y);
+                }
 
                 break;
 
@@ -108,11 +112,15 @@ internal class SDL2RenderWindow : IRenderWindow
 
                 windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
+                windowPosition = new Vector2Int(SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor), SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor));
+
                 break;
 
             case WindowMode.Borderless:
 
                 windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
+
+                windowPosition = new Vector2Int(SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor), SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor));
 
                 width = displayBounds.w;
                 height = displayBounds.h;
@@ -120,7 +128,7 @@ internal class SDL2RenderWindow : IRenderWindow
                 break;
         }
 
-        window = SDL.SDL_CreateWindow(title, windowPosition.X + displayBounds.x, windowPosition.Y + displayBounds.y, width, height, windowFlags);
+        window = SDL.SDL_CreateWindow(title, windowPosition.X, windowPosition.Y, width, height, windowFlags);
 
         if (window == nint.Zero)
         {
@@ -689,6 +697,32 @@ internal class SDL2RenderWindow : IRenderWindow
         }
 
         pinnedArray.Free();
+    }
+
+    public bool SetWindowMode(WindowMode windowMode)
+    {
+        switch(windowMode)
+        {
+            case WindowMode.Windowed:
+
+                SDL.SDL_SetWindowFullscreen(window, 0);
+
+                break;
+
+            case WindowMode.Fullscreen:
+
+                SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+
+                break;
+
+            case WindowMode.Borderless:
+
+                SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+                break;
+        }
+
+        return true;
     }
 }
 #endif

@@ -777,6 +777,11 @@ internal class RenderWindow
         Cleanup();
     }
 
+    public bool SetWindowMode(WindowMode windowMode)
+    {
+        return window.SetWindowMode(windowMode);
+    }
+
     /// <summary>
     /// Creates a render window
     /// </summary>

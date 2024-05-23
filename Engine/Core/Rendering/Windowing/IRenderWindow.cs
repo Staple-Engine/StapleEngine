@@ -44,4 +44,6 @@ internal interface IRenderWindow
     void HideCursor();
 
     void SetIcon(RawTextureData icon);
+
+    bool SetWindowMode(WindowMode windowMode);
 }

@@ -829,6 +829,9 @@ internal partial class StapleEditor
         {
             playerSettings.windowPosition = position;
 
+            playerSettings.monitorIndex = window.MonitorIndex;
+            playerSettings.maximized = window.Maximized;
+
             PlayerSettings.Save(playerSettings);
         };
 

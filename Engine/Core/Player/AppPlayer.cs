@@ -10,7 +10,7 @@ internal class AppPlayer
 {
     public readonly AppSettings appSettings;
 
-    private PlayerSettings playerSettings;
+    internal PlayerSettings playerSettings;
 
     public static AppPlayer instance;
 
@@ -267,6 +267,8 @@ internal class AppPlayer
 
         renderWindow.OnMove = (position) =>
         {
+            playerSettings.monitorIndex = renderWindow.MonitorIndex;
+            playerSettings.maximized = renderWindow.Maximized;
             playerSettings.windowPosition = position;
 
             PlayerSettings.Save(playerSettings);
@@ -276,6 +278,9 @@ internal class AppPlayer
         {
             Screen.Width = playerSettings.screenWidth = renderWindow.width;
             Screen.Height = playerSettings.screenHeight = renderWindow.height;
+
+            playerSettings.monitorIndex = renderWindow.MonitorIndex;
+            playerSettings.maximized = renderWindow.Maximized;
 
             ResetRendering(focus);
 

@@ -169,5 +169,10 @@ internal class iOSRenderWindow : IRenderWindow
     public void SetIcon(RawTextureData icon)
     {
     }
+
+    public bool SetWindowMode(WindowMode windowMode)
+    {
+        return false;
+    }
 }
 #endif
