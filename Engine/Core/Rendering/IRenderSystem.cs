@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple;
 
 /// <summary>
 /// Render System Interface
 /// </summary>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public interface IRenderSystem
 {
     /// <summary>

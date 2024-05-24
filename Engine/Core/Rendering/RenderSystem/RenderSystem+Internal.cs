@@ -153,6 +153,7 @@ public partial class RenderSystem
         RegisterSystem(new SkinnedMeshRenderSystem());
         RegisterSystem(new MeshRenderSystem());
         RegisterSystem(new TextRenderSystem());
+        RegisterSystem(new UICanvasSystem());
 
         Time.OnAccumulatorFinished += () =>
         {

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
-internal class TextRenderer
+public class TextRenderer
 {
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     private struct PosTexVertex
@@ -16,10 +16,25 @@ internal class TextRenderer
 
     private TextFont defaultFont;
 
+    private TextFont DefaultFont
+    {
+        get
+        {
+            if(defaultFont == null)
+            {
+                LoadDefaultFont();
+            }
+
+            return defaultFont;
+        }
+    }
+
     private Lazy<VertexLayout> vertexLayout = new(() => new VertexLayoutBuilder()
         .Add(Bgfx.bgfx.Attrib.Position, 2, Bgfx.bgfx.AttribType.Float)
         .Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float)
         .Build());
+
+    public static readonly TextRenderer instance = new();
 
     public void LoadDefaultFont()
     {
@@ -41,7 +56,7 @@ internal class TextRenderer
             return default;
         }
 
-        var font = parameters.font.TryGetTarget(out var f) ? f : defaultFont;
+        var font = (parameters.font?.TryGetTarget(out var f) ?? false) ? f?.font : DefaultFont;
 
         if (font == null)
         {
@@ -230,19 +245,17 @@ internal class TextRenderer
             mesh.UploadMeshData();
         }
 
-        var actualParams = parameters.font != null && parameters.font.TryGetTarget(out _) ? parameters : parameters.Font(defaultFont);
-
-        var font = parameters.font.TryGetTarget(out var textFont) ? textFont : defaultFont;
+        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
 
         if(font == null)
         {
             return;
         }
 
-        var lineSpace = font.LineSpacing(actualParams);
+        var lineSpace = font.LineSpacing(parameters);
         var spaceSize = font.GetGlyph(' ').xAdvance;
 
-        var position = new Vector2(actualParams.position.X, actualParams.position.Y + actualParams.fontSize * scale);
+        var position = new Vector2(parameters.position.X, parameters.position.Y + parameters.fontSize * scale);
 
         var initialPosition = position;
 
@@ -264,7 +277,7 @@ internal class TextRenderer
 
                         if(j > 0)
                         {
-                            position.X += font.Kerning(line[j - 1], line[j], actualParams) * scale;
+                            position.X += font.Kerning(line[j - 1], line[j], parameters) * scale;
                         }
 
                         var glyph = font.GetGlyph(line[j]);

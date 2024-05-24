@@ -26,6 +26,8 @@ namespace Staple
             "Newtonsoft",
             "NUnit",
             "NuGet",
+            "Hexa",
+            "ImGui",
         ];
 
         public void Initialize(GeneratorInitializationContext context)

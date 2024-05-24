@@ -61,7 +61,6 @@
     <Compile Include="CSProjManager.cs" />
     <Compile Include="Editors\Assets\FontAssetEditor.cs" />
     <Compile Include="Editors\Assets\SkinnedAnimationStateMachineEditor.cs" />
-    <Compile Include="Editors\Assets\TileMapAssetEditor.cs" />
     <Compile Include="Editors\Assets\AudioClipEditor.cs" />
     <Compile Include="Editors\Default\BoxCollider3DGizmoEditor.cs" />
     <Compile Include="Editors\Assets\FolderAssetEditor.cs" />

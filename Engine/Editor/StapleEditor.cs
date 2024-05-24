@@ -557,6 +557,7 @@ internal partial class StapleEditor
             if (gameRenderTarget != null && Scene.current != null)
             {
                 RenderTarget.SetActive(1, gameRenderTarget);
+                RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
 
                 Screen.Width = gameRenderTarget.width;
                 Screen.Height = gameRenderTarget.height;

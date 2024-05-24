@@ -1,11 +1,10 @@
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
-internal class TextRenderSystem : IRenderSystem
+public class TextRenderSystem : IRenderSystem
 {
     private class TextInfo
     {
@@ -22,8 +21,6 @@ internal class TextRenderSystem : IRenderSystem
         public float scale;
     }
 
-    private TextRenderer textRenderer;
-
     private Material material;
 
     private readonly List<TextInfo> texts = new();
@@ -34,13 +31,6 @@ internal class TextRenderSystem : IRenderSystem
     {
         texts.Clear();
 
-        if(textRenderer == null)
-        {
-            textRenderer = new();
-
-            textRenderer.LoadDefaultFont();
-        }
-
         if(material == null)
         {
             var resource = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
@@ -50,11 +40,6 @@ internal class TextRenderSystem : IRenderSystem
                 material = new Material(resource);
             }
         }
-    }
-
-    public void RenderText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, ushort viewID)
-    {
-        textRenderer.DrawText(text, transform, parameters, material, scale, viewID);
     }
 
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
@@ -97,8 +82,8 @@ internal class TextRenderSystem : IRenderSystem
 
         foreach(var text in texts)
         {
-            RenderText(text.text, text.transform, new TextParameters().Font(text.fontAsset?.font).FontSize(text.fontSize), material,
-                text.scale, text.viewID);
+            TextRenderer.instance.DrawText(text.text, text.transform, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
+                material, text.scale, text.viewID);
         }
     }
 

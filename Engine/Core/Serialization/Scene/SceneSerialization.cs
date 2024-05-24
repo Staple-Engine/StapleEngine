@@ -143,6 +143,20 @@ internal static class SceneSerialization
                 return;
             }
         }
+        else if (field.FieldType == typeof(Vector2Int) && element.ValueKind == JsonValueKind.Object)
+        {
+            try
+            {
+                var x = element.GetProperty("x").GetDouble();
+                var y = element.GetProperty("y").GetDouble();
+
+                field.SetValue(componentInstance, new Vector2Int((int)x, (int)y));
+            }
+            catch (Exception e)
+            {
+                return;
+            }
+        }
         else if ((field.FieldType == typeof(Color32) || field.FieldType == typeof(Color)))
         {
             var color = Color32.White;
@@ -309,6 +323,12 @@ internal static class SceneSerialization
                 if (field.FieldType == typeof(Vector2))
                 {
                     field.SetValue(componentInstance, parameter.vector2Value.ToVector2());
+                }
+                else if(field.FieldType == typeof(Vector2Int))
+                {
+                    var value = parameter.vector2Value.ToVector2();
+
+                    field.SetValue(componentInstance, new Vector2Int((int)value.X, (int)value.Y));
                 }
                 else if (field.FieldType == typeof(Vector3))
                 {
@@ -743,6 +763,32 @@ internal static class SceneSerialization
                         });
                     }
                 }
+                else if (field.FieldType == typeof(Vector2Int))
+                {
+                    var value = (Vector2Int)field.GetValue(component);
+
+                    if (parameters)
+                    {
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = field.Name,
+                            type = SceneComponentParameterType.Vector2,
+                            vector2Value = new Vector2Holder()
+                            {
+                                x = value.X,
+                                y = value.Y,
+                            },
+                        });
+                    }
+                    else
+                    {
+                        sceneComponent.data.Add(field.Name, new Vector2Holder()
+                        {
+                            x = value.X,
+                            y = value.Y,
+                        });
+                    }
+                }
                 else if (field.FieldType == typeof(Color32))
                 {
                     var color = (Color32)field.GetValue(component);
@@ -764,7 +810,6 @@ internal static class SceneSerialization
                 else if (field.FieldType == typeof(Color))
                 {
                     var color = (Color)field.GetValue(component);
-
 
                     if (parameters)
                     {

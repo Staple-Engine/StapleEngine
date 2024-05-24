@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using Staple.Internal;
 
 namespace Staple;
 
@@ -14,7 +13,7 @@ public class TextParameters
     public float rotation;
     public int fontSize = 12;
 
-    internal WeakReference<TextFont> font;
+    internal WeakReference<FontAsset> font;
 
     public override int GetHashCode()
     {
@@ -91,9 +90,16 @@ public class TextParameters
         return this;
     }
 
-    internal TextParameters Font(TextFont font)
+    internal TextParameters Font(FontAsset font)
     {
-        this.font = new WeakReference<TextFont>(font);
+        if(font == null)
+        {
+            this.font = null;
+
+            return this;
+        }
+
+        this.font = new WeakReference<FontAsset>(font);
 
         return this;
     }

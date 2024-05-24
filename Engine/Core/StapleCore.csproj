@@ -143,6 +143,10 @@
 		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Serialization\Text\FontMetadata.cs" />
 		<Compile Include="Serialization\Text\SerializableFontAsset.cs" />
+		<Compile Include="UI\UICanvas.cs" />
+		<Compile Include="UI\UICanvasSystem.cs" />
+		<Compile Include="UI\IUIElement.cs" />
+		<Compile Include="UI\UIText.cs" />
 		<Compile Include="Utilities\CallbackGatherer.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
@@ -152,7 +156,6 @@
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderer.cs" />
 		<Compile Include="Rendering\Mesh\SkinnedMeshRenderSystem.cs" />
 		<Compile Include="Rendering\Screen.cs" />
-		<Compile Include="Rendering\Tilemap\TileMapAsset.cs" />
 		<Compile Include="Resources\Resources.cs" />
 		<Compile Include="Serialization\Asset\AssetDatabase.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
