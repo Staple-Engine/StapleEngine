@@ -1142,7 +1142,7 @@ internal partial class StapleEditor
                 ImGuiWindowFlags.NoResize |
                 ImGuiWindowFlags.NoMove);
 
-            ImGui.Text(messageBoxMessage);
+            ImGui.TextWrapped(messageBoxMessage);
 
             if(messageBoxYesTitle != null && messageBoxNoTitle != null)
             {

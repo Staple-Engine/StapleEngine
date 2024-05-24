@@ -108,7 +108,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
                 break;
 
-            case WindowMode.Fullscreen:
+            case WindowMode.ExclusiveFullscreen:
 
                 windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
@@ -116,7 +116,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
                 break;
 
-            case WindowMode.Borderless:
+            case WindowMode.BorderlessFullscreen:
 
                 windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
 
@@ -699,25 +699,38 @@ internal class SDL2RenderWindow : IRenderWindow
         pinnedArray.Free();
     }
 
-    public bool SetWindowMode(WindowMode windowMode)
+    public bool SetResolution(int width, int height, WindowMode windowMode)
     {
-        switch(windowMode)
+        switch (windowMode)
         {
             case WindowMode.Windowed:
 
-                SDL.SDL_SetWindowFullscreen(window, 0);
+                if(SDL.SDL_SetWindowFullscreen(window, 0) < 0)
+                {
+                    return false;
+                }
+
+                SDL.SDL_SetWindowSize(window, width, height);
 
                 break;
 
-            case WindowMode.Fullscreen:
+            case WindowMode.ExclusiveFullscreen:
 
-                SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                SDL.SDL_SetWindowSize(window, width, height);
+
+                if(SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) < 0)
+                {
+                    return false;
+                }
 
                 break;
 
-            case WindowMode.Borderless:
+            case WindowMode.BorderlessFullscreen:
 
-                SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                if(SDL.SDL_SetWindowFullscreen(window, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) < 0)
+                {
+                    return false;
+                }
 
                 break;
         }

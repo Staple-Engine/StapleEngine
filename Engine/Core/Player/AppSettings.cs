@@ -66,7 +66,7 @@ public class AppSettings
     /// Default mode for the game window
     /// </summary>
     [Key(8)]
-    public WindowMode defaultWindowMode = WindowMode.Borderless;
+    public WindowMode defaultWindowMode = WindowMode.BorderlessFullscreen;
 
     /// <summary>
     /// Default width of the game window

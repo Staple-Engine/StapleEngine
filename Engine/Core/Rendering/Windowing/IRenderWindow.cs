@@ -45,5 +45,5 @@ internal interface IRenderWindow
 
     void SetIcon(RawTextureData icon);
 
-    bool SetWindowMode(WindowMode windowMode);
+    bool SetResolution(int width, int height, WindowMode windowMode);
 }

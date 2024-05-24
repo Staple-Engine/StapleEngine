@@ -22,6 +22,11 @@ internal partial class StapleEditor
             progressFraction = 0;
         }
 
+        void ShowFailureMessage()
+        {
+            ShowMessageBox("Failed to build player, please check the build log", "OK", null);
+        }
+
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", backend.platform.ToString());
         var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", backend.platform.ToString());
         var projectPath = Path.Combine(projectDirectory, "Player.csproj");
@@ -73,6 +78,8 @@ internal partial class StapleEditor
             {
                 Log.Error($"Failed to execute Build Preprocessor {processor.FullName}: {e}");
 
+                ShowFailureMessage();
+
                 return;
             }
         }
@@ -112,6 +119,8 @@ internal partial class StapleEditor
             {
                 Log.Error($"Failed to build player: Missing DefaultResources-{backend.platform} pak file");
 
+                ShowFailureMessage();
+
                 return;
             }
 
@@ -123,12 +132,16 @@ internal partial class StapleEditor
             {
                 Log.Error($"Failed to build player: {e}");
 
+                ShowFailureMessage();
+
                 return;
             }
         }
         catch (Exception e)
         {
             Log.Error($"Failed to build player: {e}");
+
+            ShowFailureMessage();
 
             return;
         }
@@ -138,6 +151,8 @@ internal partial class StapleEditor
             if(EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
             {
                 Log.Error($"Failed to build player: Failed to copy redistributable files");
+
+                ShowFailureMessage();
 
                 return;
             }
@@ -179,6 +194,8 @@ internal partial class StapleEditor
         if ((process.HasExited && process.ExitCode == 0) == false)
         {
             Log.Error($"Failed to build player: Unable to pack resources");
+
+            ShowFailureMessage();
 
             return;
         }
@@ -229,6 +246,8 @@ internal partial class StapleEditor
         {
             Log.Error($"Failed to build player: Unable to complete build");
 
+            ShowFailureMessage();
+
             return;
         }
 
@@ -274,6 +293,8 @@ internal partial class StapleEditor
             catch (Exception e)
             {
                 Log.Error($"Failed to execute Build Postprocessor {processor.FullName}: {e}");
+
+                ShowFailureMessage();
             }
         }
 
@@ -281,6 +302,8 @@ internal partial class StapleEditor
         {
             progressFraction = 1;
         }
+
+        ShowMessageBox("Player built successfully!", "OK", null);
     }
 
     /// <summary>

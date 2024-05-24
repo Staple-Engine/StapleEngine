@@ -777,9 +777,16 @@ internal class RenderWindow
         Cleanup();
     }
 
-    public bool SetWindowMode(WindowMode windowMode)
+    /// <summary>
+    /// Changes the window's resolution and window mode
+    /// </summary>
+    /// <param name="width">The new screen width</param>
+    /// <param name="height">The new screen height</param>
+    /// <param name="windowMode">The new window mode</param>
+    /// <returns>Whether it was set</returns>
+    public bool SetResolution(int width, int height, WindowMode windowMode)
     {
-        return window.SetWindowMode(windowMode);
+        return window.SetResolution(width, height, windowMode);
     }
 
     /// <summary>

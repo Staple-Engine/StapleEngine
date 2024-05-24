@@ -170,7 +170,7 @@ internal class iOSRenderWindow : IRenderWindow
     {
     }
 
-    public bool SetWindowMode(WindowMode windowMode)
+    public bool SetResolution(int width, int height, WindowMode windowMode)
     {
         return false;
     }
