@@ -195,6 +195,8 @@ internal partial class StapleEditor
 
         SaveLastProjects();
 
+        csProjManager.CollectGameScriptModifyStates();
+
         window.Title = $"Staple Editor - {Path.GetFileName(path)}";
     }
 
