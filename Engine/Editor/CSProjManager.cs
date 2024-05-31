@@ -531,12 +531,15 @@ internal class CSProjManager
                 new("ReferenceOutputAssembly", "false")
             ]);
 
+        //TODO: Consider re-enabling this at some point if necessary
+        /*
         var trimmerRootAssemblies = p.Xml.AddItemGroup();
 
         trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player")
             .AddMetadata("RootMode", "library");
         trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore")
             .AddMetadata("RootMode", "library");
+        */
 
         switch (platform)
         {
