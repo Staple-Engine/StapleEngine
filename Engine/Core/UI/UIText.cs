@@ -13,7 +13,7 @@ public class UIText : IUIElement
     public void Render(Vector2Int position, ushort viewID)
     {
         var parameters = new TextParameters()
-            .Position(new Vector2(position.X, position.Y))
+            .Position(new Vector2(position.X + font.FontSize, position.Y - font.FontSize))
             .Font(font)
             .FontSize(fontSize);
 

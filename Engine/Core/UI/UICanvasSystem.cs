@@ -46,7 +46,7 @@ public class UICanvasSystem : IRenderSystem
         {
             canvas = canvas,
             canvasTransform = transform,
-            projection = Matrix4x4.CreateOrthographic(Screen.Width, Screen.Height, -1, 1),
+            projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, 0, Screen.Height, -1, 1),
         });
     }
 
@@ -61,6 +61,8 @@ public class UICanvasSystem : IRenderSystem
 
             unsafe
             {
+                Matrix4x4.Invert(view, out view);
+
                 bgfx.set_view_transform(UIViewID, &view, &projection);
                 bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
                 bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
@@ -74,7 +76,7 @@ public class UICanvasSystem : IRenderSystem
                     var localPosition = child.LocalPosition;
 
                     p.X += (int)localPosition.X;
-                    p.Y += (int)localPosition.Y;
+                    p.Y -= (int)localPosition.Y;
 
                     if(child.entity.TryGetComponent<IUIElement>(out var element))
                     {
@@ -85,7 +87,7 @@ public class UICanvasSystem : IRenderSystem
                 }
             }
 
-            Recursive(render.canvasTransform, Vector2Int.Zero);
+            Recursive(render.canvasTransform, new Vector2Int(0, Screen.Height));
         }
     }
 }
