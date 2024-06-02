@@ -24,9 +24,7 @@ cd ../Release
 
 make -j $(nproc)
 
-cd ../../../../
-
-cd ../../build/dotnet
+cd ../../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net7.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net7.0
