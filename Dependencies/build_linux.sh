@@ -10,19 +10,19 @@ cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIB
 
 cmake -B build/native/freetype/Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=true -S freetype -G "Unix Makefiles"
 
-cd build/native
-
-make -j $(nproc)
-
-make config=debug -j $(nproc)
-
-cd freetype/Debug
+cd build/native/freetype/Debug
 
 make -j $(nproc)
 
 cd ../Release
 
 make -j $(nproc)
+
+cd ../../
+
+make -j $(nproc)
+
+make config=debug -j $(nproc)
 
 cd ../../dotnet
 

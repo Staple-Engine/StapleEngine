@@ -10,7 +10,15 @@ cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIB
 
 cmake -B build/native/freetype/Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=true -S freetype -G "Xcode"
 
-cd build/native
+cd build/native/freetype/Debug
+
+xcodebuild -scheme freetype -configuration Release build -workspace freetype.xcworkspace
+
+cd ../Release
+
+xcodebuild -scheme freetype -configuration Release build -workspace freetype.xcworkspace
+
+cd ../../
 
 xcodebuild -scheme bx -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme bx -configuration Release build -workspace Dependencies.xcworkspace
@@ -23,14 +31,6 @@ xcodebuild -scheme bgfx -configuration Release build -workspace Dependencies.xcw
 
 xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
-
-cd freetype/Debug
-
-xcodebuild -scheme freetype -configuration Release build -workspace freetype.xcworkspace
-
-cd ../Release
-
-xcodebuild -scheme freetype -configuration Release build -workspace freetype.xcworkspace
 
 cd ../../dotnet
 
