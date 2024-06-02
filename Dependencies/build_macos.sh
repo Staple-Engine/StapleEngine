@@ -32,7 +32,7 @@ xcodebuild -scheme bgfx -configuration Release build -workspace Dependencies.xcw
 xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
 
-cd ../../dotnet
+cd ../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net8.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net8.0

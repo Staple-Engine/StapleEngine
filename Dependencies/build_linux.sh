@@ -24,7 +24,7 @@ make -j $(nproc)
 
 make config=debug -j $(nproc)
 
-cd ../../dotnet
+cd ../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net7.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net7.0
