@@ -1,5 +1,4 @@
-﻿using StbTrueTypeSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Staple.Internal;
@@ -11,7 +10,7 @@ internal class TextFont : IDisposable
         public int fontSize;
         public FontCharacterSet ranges;
         public Texture atlas;
-        public int ascent, descent, lineGap;
+        public int lineSpacing;
 
         public Dictionary<int, Glyph> glyphs = new();
 
@@ -49,17 +48,17 @@ internal class TextFont : IDisposable
         FontCharacterSet.LatinExtendedA |
         FontCharacterSet.LatinExtendedB;
 
-    internal int fontSize;
     internal int textureSize;
-    internal byte[] fontData;
+
+    internal ITextFontSource fontSource;
 
     internal FontCharacterSet includedRanges;
 
-    internal Dictionary<int, FontAtlasInfo> atlas = new();
+    internal Dictionary<string, FontAtlasInfo> atlas = new();
 
     public int FontSize
     {
-        get => fontSize;
+        get => fontSource.FontSize;
 
         set
         {
@@ -68,56 +67,42 @@ internal class TextFont : IDisposable
                 return;
             }
 
-            fontSize = value;
+            fontSource.FontSize = value;
 
             GenerateTextureAtlas();
         }
     }
 
-    public Texture Texture => atlas.TryGetValue(fontSize, out var info) ? info.atlas : null;
+    public Color TextColor { get; set; } = Color.White;
 
-    public bool MakePixelData(int fontSize, int textureSize, out byte[] bitmapData, out int ascent, out int descent,
-        out int lineGap, out Dictionary<int, Glyph> glyphs)
+    public Color SecondaryTextColor { get; set; } = Color.White;
+
+    public Color BorderColor { get; set; } = Color.White;
+
+    public int BorderSize { get; set; }
+
+    internal string Key
     {
-        using var font = StbTrueType.CreateFont(fontData, 0);
+        get
+        {
+            return $"{FontSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
+                $"{SecondaryTextColor.r},{SecondaryTextColor.g},{SecondaryTextColor.b},{SecondaryTextColor.a}:" + 
+                $"{BorderSize}:{BorderColor.r},{BorderColor.g},{BorderColor.b},{BorderColor.a}";
+        }
+    }
 
-        if (font == null || fontSize <= 0 || textureSize <= 0)
+    public Texture Texture => atlas.TryGetValue(Key, out var info) ? info.atlas : null;
+
+    public bool MakePixelData(int fontSize, int textureSize, out byte[] bitmapData, out int lineSpacing, out Dictionary<int, Glyph> glyphs)
+    {
+        if (fontSize <= 0 || textureSize <= 0)
         {
             bitmapData = default;
             glyphs = default;
-            ascent = default;
-            descent = default;
-            lineGap = default;
+            lineSpacing = default;
 
             return false;
         }
-
-        var monoBitmap = new byte[textureSize * textureSize];
-
-        var context = new StbTrueType.stbtt_pack_context();
-
-        unsafe
-        {
-            fixed (byte* ptr = monoBitmap)
-            {
-                StbTrueType.stbtt_PackBegin(context, ptr, textureSize, textureSize, textureSize, 1, null);
-            }
-        }
-
-        var scaleFactor = StbTrueType.stbtt_ScaleForPixelHeight(font, fontSize);
-
-        int a, b, c;
-
-        unsafe
-        {
-            StbTrueType.stbtt_GetFontVMetrics(font, &a, &b, &c);
-        }
-
-        ascent = a;
-        descent = b;
-        lineGap = c;
-
-        StbTrueType.stbtt_PackSetOversampling(context, 2, 2);
 
         glyphs = new Dictionary<int, Glyph>();
 
@@ -132,61 +117,65 @@ internal class TextFont : IDisposable
                 continue;
             }
 
-            var chars = new StbTrueType.stbtt_packedchar[range.Item2 - range.Item1 + 1];
-
-            unsafe
+            for(var c = range.Item1; c <= range.Item2; c++)
             {
-                fixed (StbTrueType.stbtt_packedchar* charPtr = chars)
+                var glyph = fontSource.LoadGlyph((uint)c, fontSize, TextColor, SecondaryTextColor, BorderSize, BorderColor);
+
+                if(glyph == null || glyph.bitmap == null)
                 {
-                    StbTrueType.stbtt_PackFontRange(context, font.data, 0, fontSize, range.Item1, chars.Length, charPtr);
+                    continue;
                 }
-            }
 
-            for (var i = 0; i < chars.Length; i++)
-            {
-                var chr = chars[i];
-
-                var yOffset = chr.yoff;
-
-                yOffset += ascent * scaleFactor;
-
-                var glyph = new Glyph()
-                {
-                    bounds = new Rect(chr.x0, chr.x1, chr.y0, chr.y1),
-                    xOffset = (int)chr.xoff,
-                    yOffset = Math.RoundToInt(yOffset),
-                    xAdvance = Math.RoundToInt(chr.xadvance),
-                };
-
-                glyphs.Add(range.Item1 + i, glyph);
+                glyphs.Add(c, glyph);
             }
         }
 
-        StbTrueType.stbtt_PackEnd(context);
+        var bitmaps = new RawTextureData[glyphs.Count];
 
-        var rgbBitmap = new byte[textureSize * textureSize * 4];
+        var counter = 0;
 
-        for (int i = 0, localIndex = 0; i < monoBitmap.Length; i++, localIndex += 4)
+        foreach(var pair in glyphs)
         {
-            rgbBitmap[localIndex] = monoBitmap[i];
-            rgbBitmap[localIndex + 1] = monoBitmap[i];
-            rgbBitmap[localIndex + 2] = monoBitmap[i];
-            rgbBitmap[localIndex + 3] = monoBitmap[i];
+            bitmaps[counter++] = new()
+            {
+                colorComponents = StandardTextureColorComponents.RGBA,
+                data = pair.Value.bitmap,
+                height = pair.Value.bounds.Height,
+                width = pair.Value.bounds.Width,
+            };
         }
 
-        bitmapData = rgbBitmap;
+        if(Texture.PackTextures(bitmaps, textureSize, textureSize, textureSize, 1, out var rects, out var main))
+        {
+            bitmapData = main.data;
+            lineSpacing = fontSize;
 
-        return true;
+            counter = 0;
+
+            foreach(var pair in glyphs)
+            {
+                var rect = rects[counter++];
+
+                pair.Value.bounds = rect;
+            }
+
+            return true;
+        }
+
+        bitmapData = null;
+        lineSpacing = default;
+
+        return false;
     }
 
     public void GenerateTextureAtlas()
     {
-        if(atlas.ContainsKey(FontSize))
+        if(atlas.ContainsKey(Key))
         {
             return;
         }
 
-        if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var ascent, out var descent, out var lineGap, out var glyphs) == false)
+        if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var lineGap, out var glyphs) == false)
         {
             return;
         }
@@ -203,14 +192,12 @@ internal class TextFont : IDisposable
             return;
         }
 
-        atlas.Add(FontSize, new()
+        atlas.Add(Key, new()
         {
-            ascent = ascent,
             atlas = texture,
-            descent = descent,
-            fontSize = fontSize,
+            fontSize = FontSize,
             glyphs = glyphs,
-            lineGap = lineGap,
+            lineSpacing = lineGap,
             ranges = includedRanges,
         });
     }
@@ -229,17 +216,17 @@ internal class TextFont : IDisposable
     {
         FontSize = parameters.fontSize;
 
-        if (atlas.TryGetValue(fontSize, out var info) == false)
+        if (atlas.TryGetValue(Key, out var info) == false)
         {
             return FontSize;
         }
 
-        return info.lineGap;
+        return info.lineSpacing;
     }
 
     public int Kerning(char from, char to, TextParameters parameters)
     {
-        if(atlas.TryGetValue(fontSize, out var info) == false ||
+        if(atlas.TryGetValue(Key, out var info) == false ||
             info.kerning.TryGetValue(new(from, to), out var kerning) == false)
         {
             return 0;
@@ -255,21 +242,21 @@ internal class TextFont : IDisposable
 
     public Glyph GetGlyph(int codepoint)
     {
-        return atlas.TryGetValue(fontSize, out var info) && info.glyphs.TryGetValue(codepoint, out var glyph) ? glyph : new();
+        return atlas.TryGetValue(Key, out var info) && info.glyphs.TryGetValue(codepoint, out var glyph) ? glyph : new();
     }
 
     public static TextFont FromData(byte[] data, int textureSize = 1024, FontCharacterSet ranges = AllCharacterSets)
     {
-        using var font = StbTrueType.CreateFont(data, 0);
+        var fontSource = new FreeTypeFontSource();
 
-        if(font == null)
+        if(fontSource.Initialize(data) == false)
         {
             return null;
         }
 
         var outValue = new TextFont()
         {
-            fontData = data,
+            fontSource = fontSource,
             textureSize = textureSize,
             includedRanges = ranges,
         };

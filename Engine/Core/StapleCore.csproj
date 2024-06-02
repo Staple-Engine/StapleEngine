@@ -115,6 +115,7 @@
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />
+		<Compile Include="External\FreeType\FreeType.cs" />
 		<Compile Include="External\StbTruetypeSharp\src\CRuntime.cs" />
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.cs" />
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Bitmap.cs" />
@@ -139,6 +140,9 @@
 		<Compile Include="Rendering\Graphics.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
+		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
+		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
+		<Compile Include="Rendering\Text\ITextFontSource.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
 		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Serialization\Text\FontMetadata.cs" />

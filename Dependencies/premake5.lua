@@ -214,6 +214,14 @@ project "bx"
 project "StapleSupport"
 	kind "SharedLib"
 	language "C"
+	
+	includedirs {
+		"freetype/include"
+	}
+	
+	libdirs { "build/native/freetype/Release/Release" }
+	
+	links { "freetype" }
 
 	files {
 

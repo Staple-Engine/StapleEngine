@@ -61,31 +61,6 @@ public class FontGlyphInfo
 }
 
 [MessagePackObject]
-public class FontSizePiece
-{
-    [Key(0)]
-    public int fontSize;
-
-    [Key(1)]
-    public byte[] textureData;
-
-    [Key(2)]
-    public int ascent;
-
-    [Key(3)]
-    public int descent;
-
-    [Key(4)]
-    public int lineGap;
-
-    [Key(5)]
-    public List<FontGlyphInfo> glyphs = new();
-
-    [Key(6)]
-    public Dictionary<KeyValuePair<int, int>, int> kerning = new();
-}
-
-[MessagePackObject]
 public class SerializableFont
 {
     [Key(0)]
@@ -93,7 +68,4 @@ public class SerializableFont
 
     [Key(1)]
     public byte[] fontData;
-
-    [Key(2)]
-    public List<FontSizePiece> sizes = new();
 }

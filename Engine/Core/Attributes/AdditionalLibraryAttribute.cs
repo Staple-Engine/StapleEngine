@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class AdditionalLibraryAttribute : Attribute
 {
     public AppPlatform platform;

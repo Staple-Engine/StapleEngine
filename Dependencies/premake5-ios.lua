@@ -231,10 +231,27 @@ project "bx"
 
 	setBxCompat()
 
-project "dr_libs"
+project "StapleSupport"
 	kind "SharedLib"
 	language "C"
 	
-	files {
-		"dr_libs/*.c"
+	includedirs {
+		"freetype/include"
 	}
+	
+	libdirs { "build/native/freetype/Release/Release" }
+	
+	links { "freetype" }
+
+	files {
+
+		path.join(SUPPORT_DIR, "*.c");
+		path.join(SUPPORT_DIR, "*.cpp");
+		path.join(SUPPORT_DIR, "*.h");
+		path.join(SUPPORT_DIR, "*.hpp");
+	}
+
+	filter "system:macosx"
+		files { path.join(SUPPORT_DIR, "*.m") }
+
+		links { "QuartzCore.framework" }

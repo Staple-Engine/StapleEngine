@@ -15,12 +15,15 @@ public class FontMetadata
     public List<int> bakedSizes = new();
 
     [Key(2)]
-    public FontCharacterSet includedCharacterSets = TextFont.AllCharacterSets;
+    public FontCharacterSet includedCharacterSets = FontCharacterSet.BasicLatin;
 
     [Key(3)]
     public int textureSize = 512;
 
     [Key(4)]
+    public bool useAntiAliasing = true;
+
+    [Key(5)]
     public string typeName = typeof(FontAsset).FullName;
 
     public static bool operator ==(FontMetadata lhs, FontMetadata rhs)
@@ -39,6 +42,7 @@ public class FontMetadata
             lhs.bakedSizes.SequenceEqual(rhs.bakedSizes) &&
             lhs.includedCharacterSets == rhs.includedCharacterSets &&
             lhs.textureSize == rhs.textureSize &&
+            lhs.useAntiAliasing == rhs.useAntiAliasing &&
             lhs.typeName == rhs.typeName;
     }
 
@@ -58,6 +62,7 @@ public class FontMetadata
             lhs.bakedSizes.SequenceEqual(rhs.bakedSizes) == false ||
             lhs.includedCharacterSets != rhs.includedCharacterSets ||
             lhs.textureSize != rhs.textureSize ||
+            lhs.useAntiAliasing != rhs.useAntiAliasing ||
             lhs.typeName != rhs.typeName;
     }
 

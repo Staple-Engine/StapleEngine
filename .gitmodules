@@ -10,3 +10,6 @@
 [submodule "Dependencies/GENie"]
 	path = Dependencies/GENie
 	url = https://github.com/bkaradzic/GENie.git
+[submodule "Dependencies/freetype"]
+	path = Dependencies/freetype
+	url = https://github.com/freetype/freetype.git

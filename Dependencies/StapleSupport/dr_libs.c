@@ -1,11 +1,6 @@
 #define DR_MP3_IMPLEMENTATION
 #include "../dr_libs/Original/dr_mp3.h"
-
-#ifdef _WIN32
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
+#include "common.h"
 
 void Free(void *ptr, void *userdata)
 {
@@ -34,7 +29,7 @@ typedef struct
 	short* buffer;
 }MP3Data;
 
-EXPORT void* LoadMP3(void* ptr, int length, int* channels, int *bitsPerChannel, int* sampleRate, float *duration, int* requiredSize)
+EXPORT void* DrLibsLoadMP3(void* ptr, int length, int* channels, int *bitsPerChannel, int* sampleRate, float *duration, int* requiredSize)
 {
 	drmp3_config config;
 
@@ -69,14 +64,14 @@ EXPORT void* LoadMP3(void* ptr, int length, int* channels, int *bitsPerChannel, 
 	return data;
 }
 
-EXPORT short* GetMP3Buffer(void* ptr)
+EXPORT short* DrLibsGetMP3Buffer(void* ptr)
 {
 	MP3Data* data = (MP3Data*)ptr;
 
 	return data->buffer;
 }
 
-EXPORT void FreeMP3(void* ptr)
+EXPORT void DrLibsFreeMP3(void* ptr)
 {
 	MP3Data* data = (MP3Data*)ptr;
 

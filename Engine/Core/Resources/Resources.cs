@@ -69,6 +69,10 @@ public static class Resources
 
                 return ResourceManager.instance.LoadMeshAsset(guid);
 
+            case Type t when t == typeof(FontAsset):
+
+                return ResourceManager.instance.LoadFont(guid);
+
             case Type t when t.GetInterface(typeof(IStapleAsset).FullName) != null:
 
                 return ResourceManager.instance.LoadAsset(guid);
@@ -89,7 +93,7 @@ public static class Resources
     {
         var result = Load(pathOrGuid);
 
-        if(result == null || result.GetType() != typeof(T))
+        if(result == null || result.GetType().IsAssignableTo(typeof(T)) == false)
         {
             return null;
         }

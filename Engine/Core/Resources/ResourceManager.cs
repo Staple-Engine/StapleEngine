@@ -1673,56 +1673,7 @@ internal class ResourceManager
                 Guid = path,
             };
 
-            font.font = new()
-            {
-                fontData = fontData.fontData,
-                includedRanges = fontData.metadata.includedCharacterSets,
-                textureSize = fontData.metadata.textureSize,
-            };
-
-            foreach(var piece in fontData.sizes)
-            {
-                if(piece.textureData == null || piece.textureData.Length != font.metadata.textureSize * font.metadata.textureSize * 4)
-                {
-                    continue;
-                }
-
-                var atlas = Texture.CreatePixels($"FNT:{path}:{piece.fontSize}", piece.textureData,
-                    (ushort)font.metadata.textureSize, (ushort)font.metadata.textureSize, new()
-                    {
-                        filter = TextureFilter.Point,
-                        type = TextureType.Texture,
-                        useMipmaps = false,
-                    }, Bgfx.bgfx.TextureFormat.RGBA8);
-
-                if (atlas == null)
-                {
-                    continue;
-                }
-
-                var outValue = new TextFont.FontAtlasInfo()
-                {
-                    ascent = piece.ascent,
-                    descent = piece.descent,
-                    fontSize = piece.fontSize,
-                    lineGap = piece.lineGap,
-                    ranges = fontData.metadata.includedCharacterSets,
-                    atlas = atlas,
-                };
-
-                foreach (var glyph in piece.glyphs)
-                {
-                    outValue.glyphs.Add(glyph.codepoint, new()
-                    {
-                        xAdvance = glyph.xAdvance,
-                        xOffset = glyph.xOffset,
-                        yOffset = glyph.yOffset,
-                        bounds = new((int)glyph.bounds.x, (int)glyph.bounds.y, (int)glyph.bounds.z, (int)glyph.bounds.w),
-                    });
-                }
-
-                font.font.atlas.Add(piece.fontSize, outValue);
-            }
+            font.font = TextFont.FromData(fontData.fontData, fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
             if (ignoreCache == false)
             {

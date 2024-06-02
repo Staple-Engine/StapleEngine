@@ -24,15 +24,15 @@ namespace DrLibs
         const string DllName = "invalid";
 #endif
 
-        [LibraryImport(DllName, EntryPoint = "LoadMP3")]
+        [LibraryImport(DllName, EntryPoint = "DrLibsLoadMP3")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static unsafe partial nint LoadMP3(byte *ptr, int size, int* channels, int* bitsPerChannel, int* sampleRate, float* duration, int* requiredSize);
 
-        [LibraryImport(DllName, EntryPoint = "GetMP3Buffer")]
+        [LibraryImport(DllName, EntryPoint = "DrLibsGetMP3Buffer")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static unsafe partial nint GetMP3Buffer(nint ptr);
 
-        [LibraryImport(DllName, EntryPoint = "FreeMP3")]
+        [LibraryImport(DllName, EntryPoint = "DrLibsFreeMP3")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static unsafe partial void FreeMP3(nint ptr);
     }

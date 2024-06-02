@@ -110,45 +110,6 @@ static partial class Program
                         fontData = fileData,
                     };
 
-                    var textFont = new TextFont()
-                    {
-                        fontData = fileData,
-                        includedRanges = metadata.includedCharacterSets,
-                    };
-
-                    foreach(var size in metadata.bakedSizes)
-                    {
-                        if(font.sizes.Any(x => x.fontSize == size) ||
-                            textFont.MakePixelData(size, metadata.textureSize, out var textureData,
-                                out var ascent, out var descent, out var lineGap, out var glyphs) == false)
-                        {
-                            continue;
-                        }
-
-                        var piece = new FontSizePiece()
-                        {
-                            ascent = ascent,
-                            descent = descent,
-                            fontSize = size,
-                            lineGap = lineGap,
-                            textureData = textureData,
-                        };
-
-                        foreach(var pair in glyphs)
-                        {
-                            piece.glyphs.Add(new()
-                            {
-                                codepoint = pair.Key,
-                                xAdvance = pair.Value.xAdvance,
-                                xOffset = pair.Value.xOffset,
-                                yOffset = pair.Value.yOffset,
-                                bounds = new Vector4Holder(new Vector4(pair.Value.bounds.left, pair.Value.bounds.right, pair.Value.bounds.top, pair.Value.bounds.bottom))
-                            });
-                        }
-
-                        font.sizes.Add(piece);
-                    }
-
                     var header = new SerializableFontHeader();
 
                     using var stream = File.OpenWrite(outputFile);
