@@ -5,6 +5,7 @@ namespace Staple;
 
 public class UIText : IUIElement
 {
+    [Multiline]
     public string text = "New Text";
     public int fontSize = 14;
     public Color textColor = Color.White;

@@ -222,7 +222,16 @@ public class Editor
                 {
                     var value = (string)getValue();
 
-                    var newValue = EditorGUI.TextField(name, value);
+                    string newValue;
+
+                    if(getCustomAttribute(typeof(MultilineAttribute)) != null)
+                    {
+                        newValue = EditorGUI.TextFieldMultiline(name, value, new Vector2(200, value.Split("\n").Length * 30));
+                    }
+                    else
+                    {
+                        newValue = EditorGUI.TextField(name, value);
+                    }
 
                     if (newValue != value)
                     {
