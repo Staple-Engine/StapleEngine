@@ -162,7 +162,10 @@ internal class TextFont : IDisposable
             {
                 var rect = rects[counter++];
 
-                pair.Value.bounds = rect;
+                pair.Value.uvBounds = new RectFloat(rect.left / (float)textureSize,
+                    rect.right / (float)textureSize,
+                    rect.top / (float)textureSize,
+                    rect.bottom / (float)textureSize);
             }
 
             return true;

@@ -252,15 +252,15 @@ public class TextRenderer
             return;
         }
 
-        var lineSpace = font.LineSpacing(parameters);
-        var spaceSize = font.GetGlyph(' ').xAdvance;
+        var lineSpace = font.LineSpacing(parameters) * scale;
+        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
 
         font.TextColor = parameters.textColor;
         font.SecondaryTextColor = parameters.secondaryTextColor;
         font.BorderSize = parameters.borderSize;
         font.BorderColor = parameters.borderColor;
 
-        var position = new Vector2(parameters.position.X, parameters.position.Y + parameters.fontSize * scale);
+        var position = new Vector2(parameters.position.X, parameters.position.Y);
 
         var initialPosition = position;
 
@@ -274,7 +274,7 @@ public class TextRenderer
                 {
                     case ' ':
 
-                        position.X += spaceSize * scale;
+                        position.X += spaceSize;
 
                         break;
 
@@ -291,41 +291,31 @@ public class TextRenderer
                         {
                             var size = new Vector2(glyph.bounds.Width * scale, glyph.bounds.Height * scale);
 
-                            var advance = (glyph.xAdvance + glyph.bounds.Width / 2) * scale;
+                            var advance = glyph.xAdvance * scale;
 
-                            var p = position + new Vector2(glyph.xOffset * scale, -glyph.yOffset * scale);
+                            var p = position + new Vector2(glyph.xOffset * scale, (-glyph.yOffset + font.FontSize) * scale);
 
                             PosTexVertex[] vertices = [
 
                                 new()
                                 {
-                                    position = p - size / 2,
-                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
+                                    position = p + new Vector2(0, size.Y),
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
                                 },
                                 new()
                                 {
-                                    position = p + new Vector2(-size.X / 2, size.Y / 2),
-                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
+                                    position = p,
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
                                 },
                                 new()
                                 {
-                                    position = p + size / 2,
-                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
+                                    position = p + new Vector2(size.X, 0),
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
                                 },
                                 new()
                                 {
-                                    position = p + size / 2,
-                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.top / (float)font.textureSize)
-                                },
-                                new()
-                                {
-                                    position = p + new Vector2(size.X / 2, -size.Y / 2),
-                                    uv = new Vector2(glyph.bounds.right / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
-                                },
-                                new()
-                                {
-                                    position = p - size / 2,
-                                    uv = new Vector2(glyph.bounds.left / (float)font.textureSize, glyph.bounds.bottom / (float)font.textureSize)
+                                    position = p + size,
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
                                 },
                             ];
 
@@ -341,7 +331,7 @@ public class TextRenderer
                                 continue;
                             }
 
-                            ushort[] indices = [0, 1, 2, 3, 4, 5];
+                            ushort[] indices = [0, 1, 2, 2, 3, 0];
 
                             var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.Write, IndexBuffer.TransientBufferHasSpace(6, false));
 
@@ -364,7 +354,7 @@ public class TextRenderer
                         }
                         else
                         {
-                            position.X += spaceSize * scale;
+                            position.X += spaceSize;
                         }
 
                         break;
@@ -372,7 +362,7 @@ public class TextRenderer
             }
 
             position.X = initialPosition.X;
-            position.Y += lineSpace * scale;
+            position.Y += lineSpace;
         }
     }
 }

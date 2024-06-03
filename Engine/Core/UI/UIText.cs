@@ -21,7 +21,7 @@ public class UIText : IUIElement
     public void Render(Vector2Int position, ushort viewID)
     {
         var parameters = new TextParameters()
-            .Position(new Vector2(position.X + (font?.FontSize ?? 0), position.Y - (font?.FontSize ?? 0)))
+            .Position(new Vector2(position.X, position.Y))
             .Font(font)
             .FontSize(fontSize)
             .TextColor(textColor)

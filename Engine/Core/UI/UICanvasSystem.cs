@@ -46,7 +46,7 @@ public class UICanvasSystem : IRenderSystem
         {
             canvas = canvas,
             canvasTransform = transform,
-            projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, 0, Screen.Height, -1, 1),
+            projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1),
         });
     }
 
@@ -76,7 +76,7 @@ public class UICanvasSystem : IRenderSystem
                     var localPosition = child.LocalPosition;
 
                     p.X += (int)localPosition.X;
-                    p.Y -= (int)localPosition.Y;
+                    p.Y += (int)localPosition.Y;
 
                     if(child.entity.TryGetComponent<IUIElement>(out var element))
                     {
@@ -87,7 +87,7 @@ public class UICanvasSystem : IRenderSystem
                 }
             }
 
-            Recursive(render.canvasTransform, new Vector2Int(0, Screen.Height));
+            Recursive(render.canvasTransform, Vector2Int.Zero);
         }
     }
 }
