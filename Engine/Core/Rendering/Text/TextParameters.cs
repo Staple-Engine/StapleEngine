@@ -9,7 +9,7 @@ public class TextParameters
     public Color secondaryTextColor = Color.White;
     public Color borderColor = Color.Clear;
     public Vector2 position;
-    public float borderSize;
+    public int borderSize;
     public float rotation;
     public int fontSize = 12;
 
@@ -76,7 +76,7 @@ public class TextParameters
         return this;
     }
 
-    public TextParameters BorderSize(float borderSize)
+    public TextParameters BorderSize(int borderSize)
     {
         this.borderSize = borderSize;
 

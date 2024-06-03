@@ -216,6 +216,35 @@ static class PackerUtils
                 return null;
             }
         }
+        else if (AssetSerialization.FontExtensions.Any(x => path.EndsWith($".{x}")))
+        {
+            typeName = typeof(FontAsset).FullName;
+
+            try
+            {
+                var data = File.ReadAllBytes(path);
+
+                using var stream = new MemoryStream(data);
+
+                var header = MessagePackSerializer.Deserialize<SerializableFontHeader>(stream);
+
+                if (header.header.SequenceEqual(SerializableFontHeader.ValidHeader) == false ||
+                    header.version != SerializableFontHeader.ValidVersion)
+                {
+                    return null;
+                }
+
+                var value = MessagePackSerializer.Deserialize<SerializableFont>(stream);
+
+                return value.metadata.guid;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                return null;
+            }
+        }
         else
         {
             return null;

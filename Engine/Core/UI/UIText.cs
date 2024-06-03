@@ -7,6 +7,14 @@ public class UIText : IUIElement
 {
     public string text = "New Text";
     public int fontSize = 14;
+    public Color textColor = Color.White;
+    public Color secondaryTextColor = Color.White;
+
+    [Min(0)]
+    public int borderSize = 0;
+
+    public Color borderColor = Color.Clear;
+
     public FontAsset font;
     public Material material;
 
@@ -15,7 +23,11 @@ public class UIText : IUIElement
         var parameters = new TextParameters()
             .Position(new Vector2(position.X + (font?.FontSize ?? 0), position.Y - (font?.FontSize ?? 0)))
             .Font(font)
-            .FontSize(fontSize);
+            .FontSize(fontSize)
+            .TextColor(textColor)
+            .SecondaryTextColor(secondaryTextColor)
+            .BorderSize(borderSize)
+            .BorderColor(borderColor);
 
         material ??= ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
 

@@ -1673,7 +1673,7 @@ internal class ResourceManager
                 Guid = path,
             };
 
-            font.font = TextFont.FromData(fontData.fontData, path, fontData.metadata.useAntiAliasing,
+            font.font = TextFont.FromData(fontData.fontData, font.Guid, fontData.metadata.useAntiAliasing,
                 fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
             if (ignoreCache == false)

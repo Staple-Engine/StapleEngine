@@ -255,6 +255,11 @@ public class TextRenderer
         var lineSpace = font.LineSpacing(parameters);
         var spaceSize = font.GetGlyph(' ').xAdvance;
 
+        font.TextColor = parameters.textColor;
+        font.SecondaryTextColor = parameters.secondaryTextColor;
+        font.BorderSize = parameters.borderSize;
+        font.BorderColor = parameters.borderColor;
+
         var position = new Vector2(parameters.position.X, parameters.position.Y + parameters.fontSize * scale);
 
         var initialPosition = position;

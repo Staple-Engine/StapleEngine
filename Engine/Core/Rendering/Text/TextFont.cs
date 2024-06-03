@@ -189,7 +189,7 @@ internal class TextFont : IDisposable
             {
                 failedLoads.Add(key);
 
-                Log.Debug($"[TextFont] Failed to make font atlas for {AssetDatabase.GetAssetName(guid)} due to texture being too small");
+                Log.Debug($"[TextFont] Failed to make font atlas for {guid} with font size {FontSize} and texture size {textureSize} due to texture being too small");
             }
 
             return;
@@ -278,7 +278,7 @@ internal class TextFont : IDisposable
             includedRanges = ranges,
         };
 
-        outValue.FontSize = 32;
+        outValue.FontSize = 14;
 
         return outValue;
     }
