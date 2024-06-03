@@ -103,7 +103,7 @@ internal class SDL2RenderWindow : IRenderWindow
                 }
                 else
                 {
-                    windowPosition = new Vector2Int(displayBounds.x, displayBounds.y);
+                    windowPosition = new Vector2Int(SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(monitor), SDL.SDL_WINDOWPOS_CENTERED_DISPLAY(monitor));
                 }
 
                 break;
