@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -6,14 +7,14 @@ namespace Staple.Editor;
 [CustomEditor(typeof(SkinnedMeshAnimator))]
 internal class SkinnedMeshAnimatorEditor : Editor
 {
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
-        if(target is not SkinnedMeshAnimator renderer)
+        if (target is not SkinnedMeshAnimator renderer)
         {
-            return base.RenderField(field);
+            return false;
         }
 
-        if(field.Name == nameof(SkinnedMeshAnimator.animation))
+        if(name == nameof(SkinnedMeshAnimator.animation))
         {
             if(renderer.mesh?.meshAsset != null)
             {
@@ -28,7 +29,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
                     current = 0;
                 }
 
-                current = EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), animationNames.ToArray(), current);
+                current = EditorGUI.Dropdown(name.ExpandCamelCaseName(), animationNames.ToArray(), current);
 
                 if(current < 0)
                 {
@@ -37,14 +38,14 @@ internal class SkinnedMeshAnimatorEditor : Editor
 
                 if(current >= 0 && current < animationNames.Count)
                 {
-                    field.SetValue(target, animationNames[current]);
+                    setter(animationNames[current]);
                 }
             }
 
             return true;
         }
 
-        return base.RenderField(field);
+        return false;
     }
 
     public override void OnInspectorGUI()

@@ -49,6 +49,7 @@ public class SerializableMeshAssetHeader
 [MessagePackObject]
 public class MeshAssetMetadata
 {
+    [HideInInspector]
     [Key(0)]
     public string guid;
 
@@ -76,6 +77,7 @@ public class MeshAssetMetadata
     [Key(8)]
     public bool debone;
 
+    [HideInInspector]
     [Key(9)]
     public string typeName = typeof(Mesh).FullName;
 

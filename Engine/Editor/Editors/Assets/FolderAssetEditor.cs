@@ -10,17 +10,6 @@ namespace Staple.Editor;
 [CustomEditor(typeof(FolderAsset))]
 internal class FolderAssetEditor : Editor
 {
-    public override bool RenderField(FieldInfo field)
-    {
-        if (field.Name == nameof(FolderAsset.guid) ||
-            field.Name == nameof(FolderAsset.typeName))
-        {
-            return true;
-        }
-
-        return base.RenderField(field);
-    }
-
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();

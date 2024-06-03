@@ -14,11 +14,11 @@ internal class MaterialEditor : Editor
     private Dictionary<string, Shader> cachedShaders = new();
     private Dictionary<string, Texture> cachedTextures = new();
 
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var material = target as MaterialMetadata;
 
-        switch(field.Name)
+        switch(name)
         {
             case nameof(MaterialMetadata.guid):
             case nameof(MaterialMetadata.typeName):
@@ -206,7 +206,7 @@ internal class MaterialEditor : Editor
                 return true;
         }
 
-        return base.RenderField(field);
+        return false;
     }
 
     public override void OnInspectorGUI()

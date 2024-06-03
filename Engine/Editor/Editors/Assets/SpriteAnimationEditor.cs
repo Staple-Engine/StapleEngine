@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -11,11 +12,11 @@ internal class SpriteAnimationEditor : StapleAssetEditor
     private int currentFrame = 0;
     private float timer = 0.0f;
 
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var asset = (SpriteAnimation)target;
 
-        if(field.Name == nameof(SpriteAnimation.frames))
+        if(name == nameof(SpriteAnimation.frames))
         {
             if(asset.texture != null)
             {
@@ -72,7 +73,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
             return true;
         }
 
-        return base.RenderField(field);
+        return false;
     }
 
     public override void OnInspectorGUI()

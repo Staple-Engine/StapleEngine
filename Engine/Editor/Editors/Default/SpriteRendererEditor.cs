@@ -1,27 +1,27 @@
 ﻿using Staple.Internal;
+using System;
 using System.IO;
 using System.Numerics;
-using System.Reflection;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(SpriteRenderer))]
 internal class SpriteRendererEditor : Editor
 {
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var renderer = target as SpriteRenderer;
 
-        switch(field.Name)
+        switch(name)
         {
             case nameof(SpriteRenderer.texture):
 
                 {
-                    var value = (Texture)field.GetValue(target);
+                    var value = (Texture)getter();
 
-                    value = (Texture)EditorGUI.ObjectPicker(field.FieldType, field.Name.ExpandCamelCaseName(), value);
+                    value = (Texture)EditorGUI.ObjectPicker(fieldType, name.ExpandCamelCaseName(), value);
 
-                    field.SetValue(target, value);
+                    setter(value);
 
                     if (value != null)
                     {

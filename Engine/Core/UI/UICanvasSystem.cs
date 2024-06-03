@@ -68,26 +68,98 @@ public class UICanvasSystem : IRenderSystem
                 bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
             }
 
-            void Recursive(Transform parent, Vector2Int position)
+            void Recursive(Transform parent, Vector2Int position, Vector2Int containerSize)
             {
                 foreach(var child in parent)
                 {
                     var p = position;
-                    var localPosition = child.LocalPosition;
+                    Vector2Int localPosition;
+                    Vector2Int localSize = containerSize;
+                    UIElement element = default;
 
-                    p.X += (int)localPosition.X;
-                    p.Y += (int)localPosition.Y;
-
-                    if(child.entity.TryGetComponent<IUIElement>(out var element))
+                    if(child.entity.TryGetComponent(out element))
                     {
-                        element.Render(p, UIViewID);
+                        if (element.adjustToIntrinsicSize)
+                        {
+                            element.size = element.IntrinsicSize();
+                        }
+
+                        localPosition = element.position;
+                        localSize = element.size;
+
+                        switch(element.alignment)
+                        {
+                            case UIElementAlignment.TopLeft:
+
+                                //Do nothing
+
+                                break;
+
+                            case UIElementAlignment.TopRight:
+
+                                localPosition = new Vector2Int(containerSize.X - localSize.X, 0) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.Top:
+
+                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, 0) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.Bottom:
+
+                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, containerSize.Y - localSize.Y) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.Left:
+
+                                localPosition = new Vector2Int(0, (containerSize.Y - localSize.Y) / 2) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.Right:
+
+                                localPosition = new Vector2Int(containerSize.X - localSize.X, (containerSize.Y - localSize.Y) / 2) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.Center:
+
+                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, (containerSize.Y - localSize.Y) / 2) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.BottomLeft:
+
+                                localPosition = new Vector2Int(0, containerSize.Y - localSize.Y) + localPosition;
+
+                                break;
+
+                            case UIElementAlignment.BottomRight:
+
+                                localPosition = new Vector2Int(containerSize.X - localSize.X, containerSize.Y - localSize.Y) + localPosition;
+
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        localPosition = new Vector2Int((int)child.LocalPosition.X, (int)child.LocalPosition.Y);
+                        localSize = containerSize;
                     }
 
-                    Recursive(child, p);
+                    p.X += localPosition.X;
+                    p.Y += localPosition.Y;
+
+                    element?.Render(p, UIViewID);
+
+                    Recursive(child, p, localSize);
                 }
             }
 
-            Recursive(render.canvasTransform, Vector2Int.Zero);
+            Recursive(render.canvasTransform, Vector2Int.Zero, new Vector2Int(Screen.Width, Screen.Height));
         }
     }
 }

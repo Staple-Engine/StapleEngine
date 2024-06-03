@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -6,14 +7,14 @@ namespace Staple.Editor;
 [CustomEditor(typeof(SkinnedAnimationStateMachine))]
 internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 {
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
-        if(target is not SkinnedAnimationStateMachine stateMachine)
+        if (target is not SkinnedAnimationStateMachine stateMachine)
         {
-            return base.RenderField(field);
+            return false;
         }
 
-        switch(field.Name)
+        switch(name)
         {
             case nameof(SkinnedAnimationStateMachine.states):
 
@@ -26,7 +27,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                 var allAnimations = stateMachine.mesh.meshAsset.animations.Select(x => x.Key).ToList();
 
-                EditorGUI.Label(field.Name.ExpandCamelCaseName());
+                EditorGUI.Label(name.ExpandCamelCaseName());
 
                 EditorGUI.TreeNode("Parameters", false, true, () =>
                 {
@@ -191,6 +192,6 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                 break;
         }
 
-        return base.RenderField(field);
+        return false;
     }
 }

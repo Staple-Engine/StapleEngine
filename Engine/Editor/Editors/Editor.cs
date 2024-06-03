@@ -41,13 +41,17 @@ public class Editor
     public object[] targets;
 
     /// <summary>
-    /// Attempts to render a field.
-    /// Override this to change how a field appears.
-    /// Return true if you rendered the field or false if you want to use default rendering
+    /// Attempts to draw a property.
+    /// Override this to change how a property appears.
+    /// Return true if you rendered the property or false if you want to use default rendering
     /// </summary>
-    /// <param name="field">The field to render</param>
-    /// <returns>Whether the field was rendered, or to use default rendering</returns>
-    public virtual bool RenderField(FieldInfo field)
+    /// <param name="type">The type of the property</param>
+    /// <param name="name">The property name</param>
+    /// <param name="getter">Call this to get the current value</param>
+    /// <param name="setter">Call this to set a new value</param>
+    /// <param name="attributes">Call this to find specific attributes in the property</param>
+    /// <returns>Whether the property was rendered, or to use default rendering</returns>
+    public virtual bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         return false;
     }
@@ -67,15 +71,21 @@ public class Editor
                 continue;
             }
 
-            if(RenderField(field))
+            if(DrawProperty(field.FieldType, field.Name,
+                () => field.GetValue(target),
+                (value) => field.SetValue(target, value),
+                field.GetCustomAttribute))
             {
                 continue;
             }
 
             var type = field.FieldType;
-            var fieldName = field.Name.ExpandCamelCaseName();
+            var name = field.Name.ExpandCamelCaseName();
 
-            FieldInspector(type, fieldName, () => field.GetValue(target), (value) => field.SetValue(target, value), field.GetCustomAttribute);
+            PropertyInspector(type, name,
+                () => field.GetValue(target),
+                (value) => field.SetValue(target, value),
+                field.GetCustomAttribute);
 
             var tooltip = field.GetCustomAttribute<TooltipAttribute>();
 
@@ -84,13 +94,50 @@ public class Editor
                 ImGui.SetTooltip(tooltip.caption);
             }
         }
+
+        /*
+        var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var property in properties)
+        {
+            if (property.CanWrite == false ||
+                property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
+                property.GetCustomAttribute<NonSerializedAttribute>() != null)
+            {
+                continue;
+            }
+
+            if (DrawProperty(property.PropertyType, property.Name,
+                () => property.GetValue(target),
+                (value) => property.SetValue(target, value),
+                property.GetCustomAttribute))
+            {
+                continue;
+            }
+
+            var type = property.PropertyType;
+            var name = property.Name.ExpandCamelCaseName();
+
+            PropertyInspector(type, name,
+                () => property.GetValue(target),
+                (value) => property.SetValue(target, value),
+                property.GetCustomAttribute);
+
+            var tooltip = property.GetCustomAttribute<TooltipAttribute>();
+
+            if (tooltip != null && ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(tooltip.caption);
+            }
+        }
+        */
     }
 
     public virtual void Destroy()
     {
     }
 
-    private void FieldInspector(Type type, string name, Func<object> getValue, Action<object> setValue, Func<Type, Attribute> getCustomAttribute)
+    private void PropertyInspector(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         switch (type)
         {
@@ -102,7 +149,7 @@ public class Editor
 
                     if (listType.GetInterface(typeof(IGuidAsset).FullName) != null)
                     {
-                        if (getValue() is IList list)
+                        if (getter() is IList list)
                         {
                             EditorGUI.Label(name);
 
@@ -146,13 +193,13 @@ public class Editor
 
                             if (changed)
                             {
-                                setValue(list);
+                                setter(list);
                             }
                         }
                     }
                     else if (listType.IsPrimitive)
                     {
-                        if (getValue() is IList list)
+                        if (getter() is IList list)
                         {
                             EditorGUI.Label(name);
 
@@ -173,7 +220,7 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                FieldInspector(listType, "", () => entry, (value) =>
+                                PropertyInspector(listType, "", () => entry, (value) =>
                                 {
                                     if (value != entry)
                                     {
@@ -181,7 +228,7 @@ public class Editor
 
                                         list[i] = value;
                                     }
-                                }, getCustomAttribute);
+                                }, attributes);
 
                                 EditorGUI.SameLine();
 
@@ -197,7 +244,7 @@ public class Editor
 
                             if (changed)
                             {
-                                setValue(list);
+                                setter(list);
                             }
                         }
                     }
@@ -208,11 +255,11 @@ public class Editor
             case Type t when t.IsEnum:
 
                 {
-                    var value = (Enum)getValue();
+                    var value = (Enum)getter();
 
                     var newValue = EditorGUI.EnumDropdown(name, value, type);
 
-                    setValue(newValue);
+                    setter(newValue);
                 }
 
                 break;
@@ -220,11 +267,11 @@ public class Editor
             case Type t when t == typeof(string):
 
                 {
-                    var value = (string)getValue();
+                    var value = (string)getter();
 
                     string newValue;
 
-                    if(getCustomAttribute(typeof(MultilineAttribute)) != null)
+                    if(attributes(typeof(MultilineAttribute)) != null)
                     {
                         newValue = EditorGUI.TextFieldMultiline(name, value, new Vector2(200, value.Split("\n").Length * 30));
                     }
@@ -235,7 +282,7 @@ public class Editor
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -244,13 +291,13 @@ public class Editor
             case Type t when t == typeof(Vector2):
 
                 {
-                    var value = (Vector2)getValue();
+                    var value = (Vector2)getter();
 
                     var newValue = EditorGUI.Vector2Field(name, value);
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -259,13 +306,13 @@ public class Editor
             case Type t when t == typeof(Vector2Int):
 
                 {
-                    var value = (Vector2Int)getValue();
+                    var value = (Vector2Int)getter();
 
                     var newValue = EditorGUI.Vector2IntField(name, value);
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -274,13 +321,13 @@ public class Editor
             case Type t when t == typeof(Vector3):
 
                 {
-                    var value = (Vector3)getValue();
+                    var value = (Vector3)getter();
 
                     var newValue = EditorGUI.Vector3Field(name, value);
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -289,13 +336,13 @@ public class Editor
             case Type t when t == typeof(Vector4):
 
                 {
-                    var value = (Vector4)getValue();
+                    var value = (Vector4)getter();
 
                     var newValue = EditorGUI.Vector4Field(name, value);
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -304,7 +351,7 @@ public class Editor
             case Type t when t == typeof(Quaternion):
 
                 {
-                    var quaternion = (Quaternion)getValue();
+                    var quaternion = (Quaternion)getter();
 
                     var value = quaternion.ToEulerAngles();
 
@@ -314,7 +361,7 @@ public class Editor
                     {
                         quaternion = Math.FromEulerAngles(newValue);
 
-                        setValue(quaternion);
+                        setter(quaternion);
                     }
                 }
 
@@ -323,14 +370,14 @@ public class Editor
             case Type t when t == typeof(uint):
 
                 {
-                    var value = (int)(uint)getValue();
+                    var value = (int)(uint)getter();
 
                     var newValue = (uint)value;
 
-                    var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
-                    var range = getCustomAttribute(typeof(RangeAttribute)) as RangeAttribute;
+                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
+                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
 
-                    if (getCustomAttribute(typeof(SortingLayerAttribute)) != null)
+                    if (attributes(typeof(SortingLayerAttribute)) != null)
                     {
                         newValue = (uint)EditorGUI.Dropdown(name, LayerMask.AllSortingLayers.ToArray(), value);
                     }
@@ -353,7 +400,7 @@ public class Editor
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -362,10 +409,10 @@ public class Editor
             case Type t when t == typeof(int):
 
                 {
-                    var value = (int)getValue();
+                    var value = (int)getter();
 
-                    var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
-                    var range = getCustomAttribute(typeof(RangeAttribute)) as RangeAttribute;
+                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
+                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
 
                     var newValue = value;
 
@@ -385,7 +432,7 @@ public class Editor
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -394,13 +441,13 @@ public class Editor
             case Type t when t == typeof(bool):
 
                 {
-                    var value = (bool)getValue();
+                    var value = (bool)getter();
 
                     var newValue = EditorGUI.Toggle(name, value);
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -409,10 +456,10 @@ public class Editor
             case Type t when t == typeof(float):
 
                 {
-                    var value = (float)getValue();
+                    var value = (float)getter();
 
-                    var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
-                    var range = getCustomAttribute(typeof(RangeAttribute)) as RangeAttribute;
+                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
+                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
 
                     var newValue = value;
 
@@ -432,7 +479,7 @@ public class Editor
 
                     if (newValue != value)
                     {
-                        setValue(newValue);
+                        setter(newValue);
                     }
                 }
 
@@ -441,18 +488,18 @@ public class Editor
             case Type t when t == typeof(double):
 
                 {
-                    var value = (double)getValue();
+                    var value = (double)getter();
 
                     if (ImGui.InputDouble(name, ref value))
                     {
-                        var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
+                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
                         if (min != null && value < min.minValue)
                         {
                             value = min.minValue;
                         }
 
-                        setValue(value);
+                        setter(value);
                     }
                 }
 
@@ -461,7 +508,7 @@ public class Editor
             case Type t when t == typeof(byte):
 
                 {
-                    var current = (byte)getValue();
+                    var current = (byte)getter();
                     var value = (int)current;
 
                     if (ImGui.InputInt(name, ref value))
@@ -476,14 +523,14 @@ public class Editor
                             value = byte.MaxValue;
                         }
 
-                        var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
+                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
                         if (min != null && value < min.minValue)
                         {
                             value = (byte)min.minValue;
                         }
 
-                        setValue((byte)value);
+                        setter((byte)value);
                     }
                 }
 
@@ -492,7 +539,7 @@ public class Editor
             case Type t when t == typeof(short):
 
                 {
-                    var current = (short)getValue();
+                    var current = (short)getter();
                     var value = (int)current;
 
                     if (ImGui.InputInt(name, ref value))
@@ -507,14 +554,14 @@ public class Editor
                             value = short.MaxValue;
                         }
 
-                        var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
+                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
                         if (min != null && value < min.minValue)
                         {
                             value = (short)min.minValue;
                         }
 
-                        setValue((short)value);
+                        setter((short)value);
                     }
                 }
 
@@ -523,7 +570,7 @@ public class Editor
             case Type t when t == typeof(ushort):
 
                 {
-                    var current = (ushort)getValue();
+                    var current = (ushort)getter();
                     var value = (int)current;
 
                     if (ImGui.InputInt(name, ref value))
@@ -538,14 +585,14 @@ public class Editor
                             value = ushort.MaxValue;
                         }
 
-                        var min = getCustomAttribute(typeof(MinAttribute)) as MinAttribute;
+                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
                         if (min != null && value < min.minValue)
                         {
                             value = (ushort)min.minValue;
                         }
 
-                        setValue((ushort)value);
+                        setter((ushort)value);
                     }
                 }
 
@@ -558,11 +605,11 @@ public class Editor
 
                     if (type == typeof(Color))
                     {
-                        c = (Color)getValue();
+                        c = (Color)getter();
                     }
                     else
                     {
-                        c = (Color)((Color32)getValue());
+                        c = (Color)((Color32)getter());
                     }
 
                     var newValue = EditorGUI.ColorField(name, c);
@@ -571,13 +618,13 @@ public class Editor
                     {
                         if (type == typeof(Color))
                         {
-                            setValue(newValue);
+                            setter(newValue);
                         }
                         else
                         {
                             var c2 = (Color32)newValue;
 
-                            setValue(c2);
+                            setter(c2);
                         }
                     }
                 }
@@ -587,11 +634,11 @@ public class Editor
             case Type t when typeof(IGuidAsset).IsAssignableFrom(t):
 
                 {
-                    var value = (IGuidAsset)getValue();
+                    var value = (IGuidAsset)getter();
 
                     var newValue = EditorGUI.ObjectPicker(t, name, value);
 
-                    setValue(newValue);
+                    setter(newValue);
                 }
 
                 break;
@@ -599,10 +646,10 @@ public class Editor
             case Type t when t == typeof(LayerMask):
 
                 {
-                    var value = (LayerMask)getValue();
+                    var value = (LayerMask)getter();
                     List<string> layers;
 
-                    if (getCustomAttribute(typeof(SortingLayerAttribute)) != null)
+                    if (attributes(typeof(SortingLayerAttribute)) != null)
                     {
                         layers = LayerMask.AllSortingLayers;
                     }
@@ -661,7 +708,7 @@ public class Editor
 
                         ImGui.EndCombo();
 
-                        setValue(value);
+                        setter(value);
                     }
                 }
 

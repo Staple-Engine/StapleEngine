@@ -50,7 +50,6 @@ public class TextRenderer
 
     public Rect MeasureTextSimple(string str, TextParameters parameters)
     {
-        //TODO: Update to new logic
         if (str == null || str.Length == 0)
         {
             return default;
@@ -64,7 +63,7 @@ public class TextRenderer
         }
 
         var lineSpacing = font.LineSpacing(parameters);
-        var spaceSize = font.GetGlyph(' ').xAdvance;
+        var spaceSize = (int)(parameters.fontSize * (2 / 3.0f));
 
         var position = new Vector2Int(0, parameters.fontSize);
 
@@ -143,7 +142,7 @@ public class TextRenderer
             position.Y += lineSpacing;
         }
 
-        return new Rect(min.X, min.Y, max.X - min.X, max.Y - max.X);
+        return new Rect(min.X, max.X, min.Y, max.Y);
     }
 
     public void FitTextAroundLength(string str, TextParameters parameters, float lengthInPixels, out int fontSize)

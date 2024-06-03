@@ -14,17 +14,6 @@ internal class MeshAssetEditor : Editor
     private MeshAsset meshAsset;
     private bool needsLoad = true;
 
-    public override bool RenderField(FieldInfo field)
-    {
-        if(field.Name == nameof(MeshAssetMetadata.typeName) ||
-            field.Name == nameof(MeshAssetMetadata.guid))
-        {
-            return true;
-        }
-
-        return base.RenderField(field);
-    }
-
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();

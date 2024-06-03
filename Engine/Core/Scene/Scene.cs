@@ -1,7 +1,6 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Text.Json;
 
 namespace Staple;
@@ -93,12 +92,26 @@ public class Scene
             {
                 foreach (var pair in component.data)
                 {
+                    if(pair.Value == null || pair.Value is not JsonElement element)
+                    {
+                        continue;
+                    }
+
                     var field = type.GetField(pair.Key);
 
-                    if (field != null && pair.Value != null && pair.Value is JsonElement element)
+                    if (field != null)
                     {
-                        SceneSerialization.DeserializeField(field, ref componentInstance, element);
+                        SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), element);
                     }
+
+                    /*
+                    var property = type.GetProperty(pair.Key);
+
+                    if(property != null && property.CanWrite)
+                    {
+                        SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), element);
+                    }
+                    */
                 }
             }
 
@@ -117,8 +130,17 @@ public class Scene
 
                         if (field != null)
                         {
-                            SceneSerialization.DeserializeField(field, ref componentInstance, parameter);
+                            SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), parameter);
                         }
+
+                        /*
+                        var property = type.GetProperty(parameter.name);
+
+                        if (property != null && property.CanWrite)
+                        {
+                            SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), parameter);
+                        }
+                        */
                     }
                     catch (Exception e)
                     {

@@ -53,16 +53,16 @@ internal class TextureAssetEditor : Editor
         originalVRAMSize = originalTexture?.info.storageSize ?? 0;
     }
 
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var metadata = target as TextureMetadata;
 
-        if (field.Name.StartsWith("sprite") && metadata.type != TextureType.Sprite)
+        if (name.StartsWith("sprite") && metadata.type != TextureType.Sprite)
         {
             return true;
         }
 
-        switch (field.Name)
+        switch (name)
         {
             case nameof(TextureMetadata.padding):
             case nameof(TextureMetadata.trimDuplicates):
@@ -72,7 +72,7 @@ internal class TextureAssetEditor : Editor
             case nameof(TextureMetadata.maxSize):
 
                 {
-                    var current = (int)field.GetValue(target);
+                    var current = (int)getter();
 
                     var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, current);
 
@@ -81,11 +81,11 @@ internal class TextureAssetEditor : Editor
                         textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                     }
 
-                    var newIndex = EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), textureMaxSizes, index);
+                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), textureMaxSizes, index);
 
                     if (index != newIndex)
                     {
-                        field.SetValue(target, TextureMetadata.TextureMaxSizes[newIndex]);
+                        setter(TextureMetadata.TextureMaxSizes[newIndex]);
                     }
 
                     return true;
@@ -154,7 +154,7 @@ internal class TextureAssetEditor : Editor
                 return true;
         }
 
-        return base.RenderField(field);
+        return false;
     }
 
     public override void OnInspectorGUI()

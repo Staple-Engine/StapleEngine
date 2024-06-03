@@ -16,11 +16,11 @@ internal class FontAssetEditor : Editor
 
     private string[] textureMaxSizes = Array.Empty<string>();
 
-    public override bool RenderField(FieldInfo field)
+    public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var metadata = target as FontMetadata;
 
-        switch (field.Name)
+        switch (name)
         {
             case nameof(FontMetadata.typeName):
             case nameof(FontMetadata.guid):
@@ -30,7 +30,7 @@ internal class FontAssetEditor : Editor
             case nameof(FontMetadata.textureSize):
 
                 {
-                    var current = (int)field.GetValue(target);
+                    var current = (int)getter();
 
                     var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, current);
 
@@ -39,18 +39,18 @@ internal class FontAssetEditor : Editor
                         textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                     }
 
-                    var newIndex = EditorGUI.Dropdown(field.Name.ExpandCamelCaseName(), textureMaxSizes, index);
+                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), textureMaxSizes, index);
 
                     if (index != newIndex)
                     {
-                        field.SetValue(target, TextureMetadata.TextureMaxSizes[newIndex]);
+                        setter(TextureMetadata.TextureMaxSizes[newIndex]);
                     }
 
                     return true;
                 }
         }
 
-        return base.RenderField(field);
+        return false;
     }
 
     public override void OnInspectorGUI()
