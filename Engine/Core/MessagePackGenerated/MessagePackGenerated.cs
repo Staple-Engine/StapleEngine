@@ -1489,7 +1489,7 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.bakedSizes, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.expectedSizes, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>().Serialize(ref writer, value.includedCharacterSets, options);
             writer.Write(value.textureSize);
             writer.Write(value.useAntiAliasing);
@@ -1516,7 +1516,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.bakedSizes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
+                        ____result.expectedSizes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.includedCharacterSets = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>().Deserialize(ref reader, options);

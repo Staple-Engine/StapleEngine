@@ -56,6 +56,12 @@ internal class TextFont : IDisposable
 
     internal Dictionary<string, FontAtlasInfo> atlas = new();
 
+    internal string guid;
+
+    private bool useAntiAliasing = true;
+
+    private HashSet<string> failedLoads = new();
+
     public int FontSize
     {
         get => fontSource.FontSize;
@@ -170,19 +176,28 @@ internal class TextFont : IDisposable
 
     public void GenerateTextureAtlas()
     {
-        if(atlas.ContainsKey(Key))
+        var key = Key;
+
+        if(atlas.ContainsKey(key) || failedLoads.Contains(key))
         {
             return;
         }
 
         if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var lineGap, out var glyphs) == false)
         {
+            if(Platform.IsPlaying)
+            {
+                failedLoads.Add(key);
+
+                Log.Debug($"[TextFont] Failed to make font atlas for {AssetDatabase.GetAssetName(guid)} due to texture being too small");
+            }
+
             return;
         }
 
         var texture = Texture.CreatePixels("", rgbBitmap, (ushort)textureSize, (ushort)textureSize, new()
         {
-            filter = TextureFilter.Point,
+            filter = useAntiAliasing ? TextureFilter.Linear : TextureFilter.Point,
             type = TextureType.Texture,
             useMipmaps = false,
         }, Bgfx.bgfx.TextureFormat.RGBA8);
@@ -192,7 +207,7 @@ internal class TextFont : IDisposable
             return;
         }
 
-        atlas.Add(Key, new()
+        atlas.Add(key, new()
         {
             atlas = texture,
             fontSize = FontSize,
@@ -245,7 +260,7 @@ internal class TextFont : IDisposable
         return atlas.TryGetValue(Key, out var info) && info.glyphs.TryGetValue(codepoint, out var glyph) ? glyph : new();
     }
 
-    public static TextFont FromData(byte[] data, int textureSize = 1024, FontCharacterSet ranges = AllCharacterSets)
+    public static TextFont FromData(byte[] data, string guid, bool useAntiAliasing, int textureSize = 1024, FontCharacterSet ranges = AllCharacterSets)
     {
         var fontSource = new FreeTypeFontSource();
 
@@ -256,6 +271,8 @@ internal class TextFont : IDisposable
 
         var outValue = new TextFont()
         {
+            guid = guid,
+            useAntiAliasing = useAntiAliasing,
             fontSource = fontSource,
             textureSize = textureSize,
             includedRanges = ranges,

@@ -40,7 +40,7 @@ public class TextRenderer
     {
         var data = Convert.FromBase64String(FontData.IntelOneMonoRegular);
 
-        defaultFont = TextFont.FromData(data);
+        defaultFont = TextFont.FromData(data, "DEFAULT", true);
 
         if(defaultFont != null)
         {

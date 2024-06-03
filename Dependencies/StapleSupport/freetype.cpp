@@ -37,6 +37,7 @@ struct FontData
 {
 	FT_Library library;
 	FT_Face face;
+	uint8_t* buffer;
 };
 
 void RasterCallback(const int32_t y, const int32_t count, const FT_Span* const spans, void* const user)
@@ -60,7 +61,11 @@ CEXPORT FontData * FreeTypeLoadFont(const void* ptr, long byteSize)
 		return nullptr;
 	}
 
-	if (FT_New_Memory_Face(outValue->library, (const FT_Byte *)ptr, byteSize, 0, &outValue->face) != 0)
+	outValue->buffer = new uint8_t[byteSize];
+
+	memcpy(outValue->buffer, ptr, byteSize);
+
+	if (FT_New_Memory_Face(outValue->library, (const FT_Byte *)outValue->buffer, byteSize, 0, &outValue->face) != 0)
 	{
 		FT_Done_FreeType(outValue->library);
 
@@ -137,7 +142,7 @@ CEXPORT Glyph *FreeTypeLoadGlyph(FontData* ptr, uint32_t character, uint32_t fon
 
 	FT_Glyph glyphDescriptor;
 
-	if (FT_Load_Char(ptr->face, character, FT_LOAD_TARGET_LIGHT | FT_LOAD_FORCE_AUTOHINT) != FT_Err_Ok)
+	if (FT_Load_Char(ptr->face, character, FT_LOAD_TARGET_NORMAL | FT_LOAD_FORCE_AUTOHINT) != FT_Err_Ok)
 	{
 		return nullptr;
 	}
@@ -396,6 +401,8 @@ CEXPORT void FreeTypeFreeFont(FontData* ptr)
 
 	FT_Done_Face(ptr->face);
 	FT_Done_FreeType(ptr->library);
+
+	delete[] ptr->buffer;
 
 	delete ptr;
 }

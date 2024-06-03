@@ -1,19 +1,19 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Reflection;
-using System.Threading;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(FontMetadata))]
 internal class FontAssetEditor : Editor
 {
+    private int characterCount = 0;
+    private bool isValid = false;
+    private bool needsUpdate = true;
+
     private string[] textureMaxSizes = Array.Empty<string>();
 
     public override bool RenderField(FieldInfo field)
@@ -60,6 +60,35 @@ internal class FontAssetEditor : Editor
         var metadata = (FontMetadata)target;
         var originalMetadata = (FontMetadata)original;
 
+        if(EditorGUI.Changed)
+        {
+            needsUpdate = true;
+        }
+
+        if(needsUpdate)
+        {
+            needsUpdate = false;
+
+            characterCount = 0;
+
+            foreach(var value in Enum.GetValues<FontCharacterSet>())
+            {
+                if(metadata.includedCharacterSets.HasFlag(value) && TextFont.characterRanges.TryGetValue(value, out var range))
+                {
+                    characterCount += (range.Item2 - range.Item1) + 1;
+                }
+            }
+
+            isValid = FontAsset.IsValid(cachePath, metadata);
+        }
+
+        EditorGUI.Label($"Character Count: {characterCount}");
+
+        if(isValid == false)
+        {
+            EditorGUI.Label("Warning: Texture size is not large enough!");
+        }
+
         var hasChanges = metadata != originalMetadata;
 
         if (hasChanges)
@@ -83,7 +112,10 @@ internal class FontAssetEditor : Editor
                     field.SetValue(original, field.GetValue(metadata));
                 }
 
-                EditorUtils.RefreshAssets(false, null);
+                EditorUtils.RefreshAssets(false, () =>
+                {
+                    needsUpdate = true;
+                });
             });
 
             EditorGUI.SameLine();

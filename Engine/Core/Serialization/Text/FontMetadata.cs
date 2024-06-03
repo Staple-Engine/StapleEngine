@@ -12,7 +12,8 @@ public class FontMetadata
     public string guid = Guid.NewGuid().ToString();
 
     [Key(1)]
-    public List<int> bakedSizes = new();
+    [Tooltip("Expected font sizes used by this font.\nUsed to validate the texture size in the asset importer.")]
+    public List<int> expectedSizes = new();
 
     [Key(2)]
     public FontCharacterSet includedCharacterSets = FontCharacterSet.BasicLatin;
@@ -39,7 +40,7 @@ public class FontMetadata
         }
 
         return lhs.guid == rhs.guid &&
-            lhs.bakedSizes.SequenceEqual(rhs.bakedSizes) &&
+            lhs.expectedSizes.SequenceEqual(rhs.expectedSizes) &&
             lhs.includedCharacterSets == rhs.includedCharacterSets &&
             lhs.textureSize == rhs.textureSize &&
             lhs.useAntiAliasing == rhs.useAntiAliasing &&
@@ -59,7 +60,7 @@ public class FontMetadata
         }
 
         return lhs.guid != rhs.guid ||
-            lhs.bakedSizes.SequenceEqual(rhs.bakedSizes) == false ||
+            lhs.expectedSizes.SequenceEqual(rhs.expectedSizes) == false ||
             lhs.includedCharacterSets != rhs.includedCharacterSets ||
             lhs.textureSize != rhs.textureSize ||
             lhs.useAntiAliasing != rhs.useAntiAliasing ||
