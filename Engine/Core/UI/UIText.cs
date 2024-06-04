@@ -1,10 +1,10 @@
 ﻿using Staple.Internal;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.UI;
 
 /// <summary>
-/// UI element that renders text. This element has an intrinsic content size you can use.
+/// UI component that renders text. This component has an intrinsic content size.
 /// </summary>
 public class UIText : UIElement
 {

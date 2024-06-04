@@ -1,4 +1,4 @@
-﻿namespace Staple;
+﻿namespace Staple.UI;
 
 /// <summary>
 /// UI Element base class

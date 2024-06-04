@@ -28,13 +28,19 @@ public class SpriteRenderSystem : IRenderSystem
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    struct SpriteVertex
+    internal struct SpriteVertex
     {
         public Vector3 position;
         public Vector2 uv;
     }
 
-    private static VertexLayout vertexLayout;
+    internal static Lazy<VertexLayout> vertexLayout = new(() =>
+    {
+        return new VertexLayoutBuilder()
+            .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
+            .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
+            .Build();
+    });
 
     private static readonly Vector3[] vertices = new Vector3[]
     {
@@ -265,11 +271,6 @@ public class SpriteRenderSystem : IRenderSystem
             return;
         }
 
-        vertexLayout ??= new VertexLayoutBuilder()
-            .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-            .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
-            .Build();
-
         var state = bgfx.StateFlags.WriteRgb |
             bgfx.StateFlags.WriteA |
             bgfx.StateFlags.DepthTestLequal;
@@ -295,7 +296,7 @@ public class SpriteRenderSystem : IRenderSystem
             spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
             spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
 
-            var vertexBuffer = VertexBuffer.Create(spriteVertices.AsSpan(), vertexLayout, true);
+            var vertexBuffer = VertexBuffer.Create(spriteVertices.AsSpan(), vertexLayout.Value, true);
 
             var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None, true);
 

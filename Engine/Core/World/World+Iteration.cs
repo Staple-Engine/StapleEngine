@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Staple;
 
@@ -12,7 +13,7 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     public void ForEach<T>(ForEachCallback<T> callback, bool includeDisabled) where T : IComponent
     {
-        if (ComponentIndex(typeof(T)) == -1)
+        if (ComponentIndices(typeof(T)).Any() == false)
         {
             return;
         }
@@ -30,7 +31,7 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndex(entity, typeof(T));
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
 
                 if (index < 0)
                 {
@@ -73,8 +74,8 @@ public partial class World
         where T : IComponent
         where T2 : IComponent
     {
-        if (ComponentIndex(typeof(T)) == -1 ||
-            ComponentIndex(typeof(T2)) == -1)
+        if (ComponentIndices(typeof(T)).Any() == false ||
+            ComponentIndices(typeof(T2)).Any() == false)
         {
             return;
         }
@@ -92,8 +93,8 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndex(entity, typeof(T));
-                var index2 = ComponentIndex(entity, typeof(T2));
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0)
@@ -141,9 +142,9 @@ public partial class World
         where T2 : IComponent
         where T3 : IComponent
     {
-        if (ComponentIndex(typeof(T)) == -1 ||
-            ComponentIndex(typeof(T2)) == -1 ||
-            ComponentIndex(typeof(T3)) == -1)
+        if (ComponentIndices(typeof(T)).Any() == false ||
+            ComponentIndices(typeof(T2)).Any() == false ||
+            ComponentIndices(typeof(T3)).Any() == false)
         {
             return;
         }
@@ -161,9 +162,9 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndex(entity, typeof(T));
-                var index2 = ComponentIndex(entity, typeof(T2));
-                var index3 = ComponentIndex(entity, typeof(T3));
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
@@ -216,10 +217,10 @@ public partial class World
         where T3 : IComponent
         where T4 : IComponent
     {
-        if (ComponentIndex(typeof(T)) == -1 ||
-            ComponentIndex(typeof(T2)) == -1 ||
-            ComponentIndex(typeof(T3)) == -1 ||
-            ComponentIndex(typeof(T4)) == -1)
+        if (ComponentIndices(typeof(T)).Any() == false ||
+            ComponentIndices(typeof(T2)).Any() == false ||
+            ComponentIndices(typeof(T3)).Any() == false ||
+            ComponentIndices(typeof(T4)).Any() == false)
         {
             return;
         }
@@ -237,10 +238,10 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndex(entity, typeof(T));
-                var index2 = ComponentIndex(entity, typeof(T2));
-                var index3 = ComponentIndex(entity, typeof(T3));
-                var index4 = ComponentIndex(entity, typeof(T4));
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.components.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
@@ -298,11 +299,11 @@ public partial class World
         where T4 : IComponent
         where T5 : IComponent
     {
-        if (ComponentIndex(typeof(T)) == -1 ||
-            ComponentIndex(typeof(T2)) == -1 ||
-            ComponentIndex(typeof(T3)) == -1 ||
-            ComponentIndex(typeof(T4)) == -1 ||
-            ComponentIndex(typeof(T5)) == -1)
+        if (ComponentIndices(typeof(T)).Any() ||
+            ComponentIndices(typeof(T2)).Any() ||
+            ComponentIndices(typeof(T3)).Any() ||
+            ComponentIndices(typeof(T4)).Any() ||
+            ComponentIndices(typeof(T5)).Any())
         {
             return;
         }
@@ -320,11 +321,11 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndex(entity, typeof(T));
-                var index2 = ComponentIndex(entity, typeof(T2));
-                var index3 = ComponentIndex(entity, typeof(T3));
-                var index4 = ComponentIndex(entity, typeof(T4));
-                var index5 = ComponentIndex(entity, typeof(T5));
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index5 = ComponentIndices(entity, typeof(T5)).FirstOrDefault(x => entity.components.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
@@ -387,19 +388,18 @@ public partial class World
     {
         lock (lockObject)
         {
-            var componentIndex = ComponentIndex(t);
-
-            if (componentIndex == -1)
-            {
-                return 0;
-            }
-
             var counter = 0;
 
             foreach (var entity in entities)
             {
-                if (entity.alive == false ||
-                    entity.components.Contains(componentIndex) == false)
+                if (entity.alive == false)
+                {
+                    continue;
+                }
+
+                var componentIndex = ComponentIndices(t).FirstOrDefault(x => entity.components.Contains(x), -1);
+
+                if (componentIndex < 0)
                 {
                     continue;
                 }

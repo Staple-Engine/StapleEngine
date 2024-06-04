@@ -1,14 +1,14 @@
-﻿namespace Staple;
+﻿namespace Staple.UI;
 
 public enum UIElementAlignment
 {
-    Left,
-    Right,
-    Center,
-    Top,
-    Bottom,
     TopLeft,
+    Top,
     TopRight,
+    Left,
+    Center,
+    Right,
     BottomLeft,
+    Bottom,
     BottomRight,
 }

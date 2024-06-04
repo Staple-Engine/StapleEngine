@@ -23,9 +23,10 @@ namespace Staple
         /// <param name="transform">The transform for the model</param>
         /// <param name="topology">The geometry topology</param>
         /// <param name="viewID">The bgfx view ID to render to</param>
+        /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
             int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
-            Matrix4x4 transform, MeshTopology topology, ushort viewID)
+            Matrix4x4 transform, MeshTopology topology, ushort viewID, Action materialSetupCallback = null)
         {
             if(vertex == null ||
                 vertex.Disposed ||
@@ -58,9 +59,16 @@ namespace Staple
             vertex.SetActive(0, (uint)startVertex, (uint)vertexCount);
             index.SetActive((uint)startIndex, (uint)indexCount);
 
-            material.ApplyProperties();
+            if(materialSetupCallback != null)
+            {
+                materialSetupCallback();
+            }
+            else
+            {
+                material.ApplyProperties();
 
-            material.DisableShaderKeyword(Shader.SkinningKeyword);
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+            }
 
             var program = material.ShaderProgram;
 

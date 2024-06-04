@@ -1,4 +1,4 @@
-﻿namespace Staple;
+﻿namespace Staple.UI;
 
 public class UICanvas : IComponent
 {

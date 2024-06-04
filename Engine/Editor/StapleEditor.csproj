@@ -73,6 +73,7 @@
     <Compile Include="Editors\CustomEditorAttribute.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
+    <Compile Include="Editors\Default\UIImageEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="Editors\EditorWindow.cs" />
