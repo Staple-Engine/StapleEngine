@@ -150,6 +150,7 @@
 		<Compile Include="Serialization\Text\SerializableFontAsset.cs" />
 		<Compile Include="UI\UICanvas.cs" />
 		<Compile Include="UI\UICanvasSystem.cs" />
+		<Compile Include="UI\UIContainer.cs" />
 		<Compile Include="UI\UIElement.cs" />
 		<Compile Include="UI\UIElementAlignment.cs" />
 		<Compile Include="UI\UIImage.cs" />
