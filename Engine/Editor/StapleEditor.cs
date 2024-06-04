@@ -479,6 +479,32 @@ internal partial class StapleEditor
 
             RenderSystem.Instance.Startup();
 
+            var canvasSystem = RenderSystem.Instance.Get<UICanvasSystem>();
+
+            if(canvasSystem != null)
+            {
+                var vertexLayout = new VertexLayoutBuilder()
+                    .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
+                    .Build();
+
+                canvasSystem.observer = (p, s, e) =>
+                {
+                    p.X++;
+                    p.Y++;
+
+                    var vertices = new Vector3[]
+                    {
+                        new(p.X, p.Y, 0),
+                        new(p.X, p.Y + s.Y, 0),
+                        new(p.X + s.X, p.Y + s.Y, 0),
+                        new(p.X + s.X, p.Y, 0),
+                    };
+
+                    Graphics.RenderSimple(vertices.AsSpan(), vertexLayout, [0, 1, 2, 2, 3, 0], SpriteRenderSystem.DefaultMaterial.Value, Matrix4x4.Identity,
+                        MeshTopology.LineStrip, UICanvasSystem.UIViewID);
+                };
+            }
+
             cameraTransform.Position = new Vector3(0, 0, 5);
 
             try

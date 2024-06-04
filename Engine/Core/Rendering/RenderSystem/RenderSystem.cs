@@ -82,6 +82,27 @@ public partial class RenderSystem : ISubsystem
     }
 
     /// <summary>
+    /// Gets a registered render system. This render system must have been registered previously.
+    /// </summary>
+    /// <typeparam name="T">The render system type</typeparam>
+    /// <returns>The system, or default</returns>
+    public T Get<T>() where T: IRenderSystem
+    {
+        lock(lockObject)
+        {
+            foreach(var s in renderSystems)
+            {
+                if(s is T instance)
+                {
+                    return instance;
+                }
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
     /// Removes all subsystems belonging to an assembly
     /// </summary>
     /// <param name="assembly">The assembly to check</param>

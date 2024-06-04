@@ -42,6 +42,11 @@ public class SpriteRenderSystem : IRenderSystem
             .Build();
     });
 
+    public static Lazy<Material> DefaultMaterial = new(() =>
+    {
+        return ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
+    });
+
     private static readonly Vector3[] vertices = new Vector3[]
     {
         new Vector3(-0.5f, -0.5f, 0),

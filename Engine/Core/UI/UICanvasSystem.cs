@@ -20,6 +20,10 @@ public class UICanvasSystem : IRenderSystem
 
     private List<RenderInfo> renders = new();
 
+    public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
+
+    public ObserverCallback observer;
+
     public void Destroy()
     {
     }
@@ -76,9 +80,8 @@ public class UICanvasSystem : IRenderSystem
                     var p = position;
                     Vector2Int localPosition;
                     Vector2Int localSize = containerSize;
-                    UIElement element = default;
 
-                    if(child.entity.TryGetComponent(out element))
+                    if (child.entity.TryGetComponent<UIElement>(out var element))
                     {
                         if (element.adjustToIntrinsicSize)
                         {
@@ -88,7 +91,7 @@ public class UICanvasSystem : IRenderSystem
                         localPosition = element.position;
                         localSize = element.size;
 
-                        switch(element.alignment)
+                        switch (element.alignment)
                         {
                             case UIElementAlignment.TopLeft:
 
@@ -155,6 +158,8 @@ public class UICanvasSystem : IRenderSystem
                     p.Y += localPosition.Y;
 
                     element?.Render(p, UIViewID);
+
+                    observer?.Invoke(p, localSize, element);
 
                     Recursive(child, p, localSize);
                 }
