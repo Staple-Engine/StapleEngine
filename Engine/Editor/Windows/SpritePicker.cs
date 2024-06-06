@@ -39,6 +39,16 @@ internal class SpritePicker: EditorWindow
 
         var scale = width / texture.Width;
 
+        if(sprites.Count == 0)
+        {
+            sprites.Add(new()
+            {
+                originalRect = new Rect(0, texture.Width, 0, texture.Height),
+                rect = new Rect(0, texture.Width, 0, texture.Height),
+                rotation = TextureSpriteRotation.None,
+            });
+        }
+
         for (var i = 0; i < sprites.Count; i++)
         {
             var sprite = sprites[i];
