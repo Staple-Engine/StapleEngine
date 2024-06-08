@@ -8,7 +8,7 @@ namespace Staple.Internal;
 public class TextRenderer
 {
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    private struct PosTexVertex
+    public struct PosTexVertex
     {
         public Vector2 position;
         public Vector2 uv;
@@ -29,12 +29,32 @@ public class TextRenderer
         }
     }
 
-    private Lazy<VertexLayout> vertexLayout = new(() => new VertexLayoutBuilder()
+    public static Lazy<VertexLayout> VertexLayout = new(() => new VertexLayoutBuilder()
         .Add(Bgfx.bgfx.Attrib.Position, 2, Bgfx.bgfx.AttribType.Float)
         .Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float)
         .Build());
 
     public static readonly TextRenderer instance = new();
+
+    public Texture FontTexture(TextParameters parameters)
+    {
+        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
+
+        if (font == null)
+        {
+            return null;
+        }
+
+        font.TextColor = parameters.textColor;
+        font.SecondaryTextColor = parameters.secondaryTextColor;
+        font.BorderSize = parameters.borderSize;
+        font.BorderColor = parameters.borderColor;
+
+        //Trigger texture generation
+        font.FontSize = parameters.fontSize;
+
+        return font.Texture;
+    }
 
     public void LoadDefaultFont()
     {
@@ -237,18 +257,62 @@ public class TextRenderer
             throw new ArgumentNullException("material");
         }
 
-        var mesh = Mesh.Quad;
-
-        if(mesh.changed)
-        {
-            mesh.UploadMeshData();
-        }
-
         var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
 
         if(font == null)
         {
             return;
+        }
+
+        var lineSpace = font.LineSpacing(parameters) * scale;
+        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
+
+        font.TextColor = parameters.textColor;
+        font.SecondaryTextColor = parameters.secondaryTextColor;
+        font.BorderSize = parameters.borderSize;
+        font.BorderColor = parameters.borderColor;
+
+        if(MakeTextGeometry(text, parameters, scale, out var vertices, out var indices))
+        {
+            if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
+                IndexBuffer.TransientBufferHasSpace(indices.Length, false))
+            {
+                var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), VertexLayout.Value, true);
+                var indexBuffer = IndexBuffer.Create(indices.AsSpan(), RenderBufferFlags.Read, true);
+
+                if(vertexBuffer == null || indexBuffer == null)
+                {
+                    return;
+                }
+
+                material.MainTexture = font.Texture;
+
+                Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
+                    material, transform, MeshTopology.Triangles, viewID);
+            }
+        }
+    }
+
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, out PosTexVertex[] vertices, out ushort[] indices)
+    {
+        if (text == null)
+        {
+            throw new ArgumentNullException("text");
+        }
+
+        if (parameters == null)
+        {
+            throw new ArgumentNullException("parameters");
+        }
+
+        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
+
+        if (font == null)
+        {
+            vertices = default;
+            indices = default;
+
+            return false;
         }
 
         var lineSpace = font.LineSpacing(parameters) * scale;
@@ -265,11 +329,14 @@ public class TextRenderer
 
         var lines = text.Replace("\r", "").Split("\n".ToCharArray());
 
-        foreach(var line in lines)
+        var outVertices = new List<PosTexVertex>();
+        var outIndices = new List<ushort>();
+
+        foreach (var line in lines)
         {
-            for(var j = 0; j < line.Length; j++)
+            for (var j = 0; j < line.Length; j++)
             {
-                switch(line[j])
+                switch (line[j])
                 {
                     case ' ':
 
@@ -279,14 +346,14 @@ public class TextRenderer
 
                     default:
 
-                        if(j > 0)
+                        if (j > 0)
                         {
                             position.X += font.Kerning(line[j - 1], line[j], parameters) * scale;
                         }
 
                         var glyph = font.GetGlyph(line[j]);
 
-                        if(glyph != null)
+                        if (glyph != null)
                         {
                             var size = new Vector2(glyph.bounds.Width * scale, glyph.bounds.Height * scale);
 
@@ -294,7 +361,10 @@ public class TextRenderer
 
                             var p = position + new Vector2(glyph.xOffset * scale, (-glyph.yOffset + font.FontSize) * scale);
 
-                            PosTexVertex[] vertices = [
+                            outIndices.AddRange([(ushort)outVertices.Count, (ushort)(outVertices.Count + 1), (ushort)(outVertices.Count + 2),
+                                (ushort)(outVertices.Count + 2), (ushort)(outVertices.Count + 3), (ushort)outVertices.Count]);
+
+                            outVertices.AddRange([
 
                                 new()
                                 {
@@ -316,40 +386,9 @@ public class TextRenderer
                                     position = p + size,
                                     uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
                                 },
-                            ];
-
-                            material.MainTexture = font.Texture;
-
-                            var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), vertexLayout.Value,
-                                VertexBuffer.TransientBufferHasSpace(vertices.Length, vertexLayout.Value));
-
-                            if(vertexBuffer == null)
-                            {
-                                position.X += advance;
-
-                                continue;
-                            }
-
-                            ushort[] indices = [0, 1, 2, 2, 3, 0];
-
-                            var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.Write, IndexBuffer.TransientBufferHasSpace(6, false));
-
-                            if(indexBuffer == null)
-                            {
-                                vertexBuffer.Destroy();
-
-                                position.X += advance;
-
-                                continue;
-                            }
-
-                            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
-                                material, transform, MeshTopology.Triangles, viewID);
+                            ]);
 
                             position.X += advance;
-
-                            vertexBuffer.Destroy();
-                            indexBuffer.Destroy();
                         }
                         else
                         {
@@ -363,5 +402,10 @@ public class TextRenderer
             position.X = initialPosition.X;
             position.Y += lineSpace;
         }
+
+        vertices = outVertices.ToArray();
+        indices = outIndices.ToArray();
+
+        return true;
     }
 }

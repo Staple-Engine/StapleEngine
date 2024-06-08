@@ -564,16 +564,13 @@ static partial class Program
 
                     var header = new SerializableTextureHeader();
 
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(texture));
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
 
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(texture));
+
+                    writer.Write(encoded.ToArray());
                 }
                 catch (Exception e)
                 {
