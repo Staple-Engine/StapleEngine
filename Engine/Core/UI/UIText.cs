@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Numerics;
 
 namespace Staple.UI;
@@ -67,6 +68,49 @@ public class UIText : UIElement
 
     private int currentFontSize = 0;
 
+    private string previousText;
+    private int previousFontSize;
+    private bool previousAutoSizeText;
+    private int previousMinFontSize;
+    private int previousMaxFontSize;
+    private Color previousTextColor;
+    private Color previousSecondaryTextColor;
+    private int previousBorderSize;
+    private Color previousBorderColor;
+    private VertexBuffer vertexBuffer;
+    private IndexBuffer indexBuffer;
+    private int vertexCount;
+    private int indexCount;
+
+    private bool IsDirty
+    {
+        get
+        {
+            return previousText != text ||
+                previousFontSize != fontSize ||
+                previousAutoSizeText != autoSizeText ||
+                previousMinFontSize != minFontSize ||
+                previousMaxFontSize != maxFontSize ||
+                previousTextColor != textColor ||
+                previousSecondaryTextColor != secondaryTextColor ||
+                previousBorderSize != borderSize ||
+                previousBorderColor != borderColor;
+        }
+
+        set
+        {
+            previousText = text;
+            previousFontSize = fontSize;
+            previousAutoSizeText = autoSizeText;
+            previousMinFontSize = minFontSize;
+            previousMaxFontSize = maxFontSize;
+            previousTextColor = textColor;
+            previousSecondaryTextColor = secondaryTextColor;
+            previousBorderSize = borderSize;
+            previousBorderColor = borderColor;
+        }
+    }
+
     public UIText()
     {
         adjustToIntrinsicSize = true;
@@ -76,15 +120,14 @@ public class UIText : UIElement
     {
         UpdateFontSize();
 
-        var rect = TextRenderer.instance.MeasureTextSimple(text, Parameters(Vector2Int.Zero));
+        var rect = TextRenderer.instance.MeasureTextSimple(text, Parameters());
 
         return new Vector2Int(rect.left + rect.Width, rect.top + rect.Height);
     }
 
-    private TextParameters Parameters(Vector2Int position)
+    private TextParameters Parameters()
     {
         return new TextParameters()
-            .Position(new Vector2(position.X, position.Y))
             .Font(font)
             .FontSize(currentFontSize)
             .TextColor(textColor)
@@ -95,7 +138,7 @@ public class UIText : UIElement
 
     private void UpdateFontSize()
     {
-        var parameters = Parameters(Vector2Int.Zero)
+        var parameters = Parameters()
             .FontSize(fontSize);
 
         if(autoSizeText)
@@ -125,12 +168,55 @@ public class UIText : UIElement
 
     public override void Render(Vector2Int position, ushort viewID)
     {
-        UpdateFontSize();
-
-        var parameters = Parameters(position);
-
         material ??= ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
 
-        TextRenderer.instance.DrawText(text, Matrix4x4.Identity, parameters, material, 1, viewID);
+        UpdateFontSize();
+
+        var parameters = Parameters();
+
+        if (IsDirty ||
+            (vertexBuffer?.Disposed ?? true) ||
+            (indexBuffer?.Disposed ?? true))
+        {
+            IsDirty = false;
+
+            vertexBuffer?.Destroy();
+            indexBuffer?.Destroy();
+
+            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, out var vertices, out var indices))
+            {
+                vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), TextRenderer.VertexLayout.Value);
+
+                indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
+
+                if(vertexBuffer == null || indexBuffer == null)
+                {
+                    vertexBuffer?.Destroy();
+                    indexBuffer?.Destroy();
+
+                    vertexBuffer = null;
+                    indexBuffer = null;
+                    vertexCount = 0;
+                    indexCount = 0;
+
+                    return;
+                }
+
+                vertexCount = vertices.Length;
+                indexCount = indices.Length;
+            }
+        }
+
+        if(vertexBuffer != null &&
+            indexBuffer != null &&
+            vertexBuffer.Disposed == false &&
+            indexBuffer.Disposed == false &&
+            material != null)
+        {
+            material.MainTexture = TextRenderer.instance.FontTexture(parameters);
+
+            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material,
+                Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, viewID);
+        }
     }
 }

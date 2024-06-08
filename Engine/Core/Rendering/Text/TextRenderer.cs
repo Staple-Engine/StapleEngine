@@ -264,21 +264,19 @@ public class TextRenderer
             return;
         }
 
-        var lineSpace = font.LineSpacing(parameters) * scale;
-        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
-
         font.TextColor = parameters.textColor;
         font.SecondaryTextColor = parameters.secondaryTextColor;
         font.BorderSize = parameters.borderSize;
         font.BorderColor = parameters.borderColor;
+        font.FontSize = parameters.fontSize;
 
-        if(MakeTextGeometry(text, parameters, scale, out var vertices, out var indices))
+        if (MakeTextGeometry(text, parameters, scale, out var vertices, out var indices))
         {
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
             {
                 var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), VertexLayout.Value, true);
-                var indexBuffer = IndexBuffer.Create(indices.AsSpan(), RenderBufferFlags.Read, true);
+                var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None, true);
 
                 if(vertexBuffer == null || indexBuffer == null)
                 {
@@ -322,6 +320,7 @@ public class TextRenderer
         font.SecondaryTextColor = parameters.secondaryTextColor;
         font.BorderSize = parameters.borderSize;
         font.BorderColor = parameters.borderColor;
+        font.FontSize = parameters.fontSize;
 
         var position = new Vector2(parameters.position.X, parameters.position.Y);
 
