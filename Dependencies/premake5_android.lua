@@ -227,7 +227,7 @@ project "StapleSupport"
 		"freetype/include"
 	}
 	
-	libdirs { "build/native/freetype/Release/Release" }
+	libdirs { "build/native/freetype/Release" }
 	
 	links { "freetype" }
 
@@ -238,8 +238,3 @@ project "StapleSupport"
 		path.join(SUPPORT_DIR, "*.h");
 		path.join(SUPPORT_DIR, "*.hpp");
 	}
-
-	filter "system:macosx"
-		files { path.join(SUPPORT_DIR, "*.m") }
-
-		links { "QuartzCore.framework" }
