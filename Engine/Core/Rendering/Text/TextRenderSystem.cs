@@ -33,7 +33,7 @@ public class TextRenderSystem : IRenderSystem
 
         if(material == null)
         {
-            var resource = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
+            var resource = SpriteRenderSystem.DefaultMaterial.Value;
 
             if(resource != null)
             {

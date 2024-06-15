@@ -273,6 +273,11 @@ public class VertexBuffer
     /// <returns>Whether we have enough space</returns>
     public static bool TransientBufferHasSpace(int vertexCount, VertexLayout layout)
     {
+        if(vertexCount <= 0)
+        {
+            return false;
+        }
+
         unsafe
         {
             fixed(bgfx.VertexLayout *l = &layout.layout)

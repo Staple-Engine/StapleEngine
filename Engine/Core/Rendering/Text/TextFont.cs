@@ -91,7 +91,7 @@ internal class TextFont : IDisposable
     {
         get
         {
-            return $"{FontSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
+            return $"{FontSize}:{textureSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
                 $"{SecondaryTextColor.r},{SecondaryTextColor.g},{SecondaryTextColor.b},{SecondaryTextColor.a}:" + 
                 $"{BorderSize}:{BorderColor.r},{BorderColor.g},{BorderColor.b},{BorderColor.a}";
         }
@@ -188,10 +188,10 @@ internal class TextFont : IDisposable
 
         if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var lineGap, out var glyphs) == false)
         {
-            if(Platform.IsPlaying)
-            {
-                failedLoads.Add(key);
+            failedLoads.Add(key);
 
+            if (Platform.IsPlaying)
+            {
                 Log.Debug($"[TextFont] Failed to make font atlas for {guid} with font size {FontSize} and texture size {textureSize} due to texture being too small");
             }
 
@@ -263,7 +263,7 @@ internal class TextFont : IDisposable
         return atlas.TryGetValue(Key, out var info) && info.glyphs.TryGetValue(codepoint, out var glyph) ? glyph : new();
     }
 
-    public static TextFont FromData(byte[] data, string guid, bool useAntiAliasing, int textureSize = 1024, FontCharacterSet ranges = AllCharacterSets)
+    public static TextFont FromData(byte[] data, string guid, bool useAntiAliasing, int textureSize, FontCharacterSet ranges)
     {
         var fontSource = new FreeTypeFontSource();
 

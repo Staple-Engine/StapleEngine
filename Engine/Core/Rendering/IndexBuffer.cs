@@ -106,6 +106,11 @@ public class IndexBuffer
     /// <returns>Whether we have enough space</returns>
     public static bool TransientBufferHasSpace(int indexCount, bool isInt32)
     {
+        if(indexCount <= 0)
+        {
+            return false;
+        }
+
         return bgfx.get_avail_transient_index_buffer((uint)indexCount, isInt32) >= indexCount;
     }
 
