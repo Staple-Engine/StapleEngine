@@ -22,6 +22,7 @@ Status: Early state, usable for small demos
 * Shader format based on BGFX, in a single file
 * Baking pipeline (Baker) that processes game resources to fast usage in engine
 * Resource Packer that packs multiple files in its own format
+* Text Rendering using FreeType supporting optional gradients and outlines
 
 # Installation
 
