@@ -133,7 +133,8 @@ public class UIText : UIElement
             .TextColor(textColor)
             .SecondaryTextColor(secondaryTextColor)
             .BorderSize(borderSize)
-            .BorderColor(borderColor);
+            .BorderColor(borderColor)
+            .Position(new Vector2(0, currentFontSize));
     }
 
     private void UpdateFontSize()
@@ -183,7 +184,7 @@ public class UIText : UIElement
             vertexBuffer?.Destroy();
             indexBuffer?.Destroy();
 
-            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, out var vertices, out var indices))
+            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, true, out var vertices, out var indices))
             {
                 vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), TextRenderer.VertexLayout.Value);
 

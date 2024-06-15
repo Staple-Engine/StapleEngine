@@ -83,7 +83,7 @@ public class TextRenderSystem : IRenderSystem
         foreach(var text in texts)
         {
             TextRenderer.instance.DrawText(text.text, text.transform, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
-                material, text.scale, text.viewID);
+                material, text.scale, false, text.viewID);
         }
     }
 

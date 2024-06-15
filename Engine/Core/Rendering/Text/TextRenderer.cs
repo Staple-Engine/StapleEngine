@@ -243,7 +243,7 @@ public class TextRenderer
         return outValue;
     }
 
-    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, ushort viewID)
+    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY, ushort viewID)
     {
         if(text == null)
         {
@@ -273,7 +273,7 @@ public class TextRenderer
         font.BorderColor = parameters.borderColor;
         font.FontSize = parameters.fontSize;
 
-        if (MakeTextGeometry(text, parameters, scale, out var vertices, out var indices))
+        if (MakeTextGeometry(text, parameters, scale, flipY, out var vertices, out var indices))
         {
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
@@ -294,7 +294,7 @@ public class TextRenderer
         }
     }
 
-    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, out PosTexVertex[] vertices, out ushort[] indices)
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out PosTexVertex[] vertices, out ushort[] indices)
     {
         if (text == null)
         {
@@ -316,14 +316,14 @@ public class TextRenderer
             return false;
         }
 
-        var lineSpace = font.LineSpacing(parameters) * scale;
-        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
-
         font.TextColor = parameters.textColor;
         font.SecondaryTextColor = parameters.secondaryTextColor;
         font.BorderSize = parameters.borderSize;
         font.BorderColor = parameters.borderColor;
         font.FontSize = parameters.fontSize;
+
+        var lineSpace = font.LineSpacing(parameters) * scale;
+        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
 
         var position = new Vector2(parameters.position.X, parameters.position.Y);
 
@@ -361,34 +361,65 @@ public class TextRenderer
 
                             var advance = glyph.xAdvance * scale;
 
-                            var p = position + new Vector2(glyph.xOffset * scale, (-glyph.yOffset + font.FontSize) * scale);
+                            var yOffset = flipY ? -glyph.yOffset : (glyph.yOffset - glyph.bounds.Height);
+
+                            var p = position + new Vector2(glyph.xOffset * scale, yOffset * scale);
 
                             outIndices.AddRange([(ushort)outVertices.Count, (ushort)(outVertices.Count + 1), (ushort)(outVertices.Count + 2),
                                 (ushort)(outVertices.Count + 2), (ushort)(outVertices.Count + 3), (ushort)outVertices.Count]);
 
-                            outVertices.AddRange([
+                            if(flipY)
+                            {
+                                outVertices.AddRange([
 
-                                new()
-                                {
-                                    position = p + new Vector2(0, size.Y),
-                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
-                                },
-                                new()
-                                {
-                                    position = p,
-                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
-                                },
-                                new()
-                                {
-                                    position = p + new Vector2(size.X, 0),
-                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
-                                },
-                                new()
-                                {
-                                    position = p + size,
-                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
-                                },
-                            ]);
+                                    new()
+                                    {
+                                        position = p + new Vector2(0, size.Y),
+                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                    },
+                                    new()
+                                    {
+                                        position = p,
+                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                    },
+                                    new()
+                                    {
+                                        position = p + new Vector2(size.X, 0),
+                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                    },
+                                    new()
+                                    {
+                                        position = p + size,
+                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                    },
+                                ]);
+                            }
+                            else
+                            {
+                                outVertices.AddRange([
+
+                                    new()
+                                    {
+                                        position = p,
+                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                    },
+                                    new()
+                                    {
+                                        position = p + new Vector2(0, size.Y),
+                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                    },
+                                    new()
+                                    {
+                                        position = p + size,
+                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                    },
+                                    new()
+                                    {
+                                        position = p + new Vector2(size.X, 0),
+                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                    },
+                                ]);
+                            }
 
                             position.X += advance;
                         }
