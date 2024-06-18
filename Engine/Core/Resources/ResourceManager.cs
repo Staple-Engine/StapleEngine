@@ -608,7 +608,7 @@ internal class ResourceManager
     public Shader LoadShader(string path, bool ignoreCache = false)
     {
         var prefix = ShaderPrefix;
-        var guid = path;
+        var guid = AssetDatabase.GetAssetGuid(path);
 
         if (path.StartsWith(prefix) == false)
         {

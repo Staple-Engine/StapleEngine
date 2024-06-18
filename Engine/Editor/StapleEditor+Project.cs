@@ -65,6 +65,9 @@ internal partial class StapleEditor
         AssetDatabase.assetDirectories.Clear();
         AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
 
+        ResourceManager.instance.resourcePaths.Clear();
+        ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString()));
+
         csProjManager.stapleBasePath = StapleBasePath;
 
         Log.Info($"Project Path: {basePath}");

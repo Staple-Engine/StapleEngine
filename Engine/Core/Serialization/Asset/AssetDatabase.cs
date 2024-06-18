@@ -104,13 +104,26 @@ public static class AssetDatabase
                             continue;
                         }
 
-                        assets.Add(new AssetInfo()
+                        var asset = new AssetInfo()
                         {
                             guid = holder.guid,
                             name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
                             path = file.Replace($"{pair.Key}{Path.DirectorySeparatorChar}", "").Replace("\\", "/").Replace(".meta", ""),
                             typeName = holder.typeName,
-                        });
+                        };
+
+                        assets.Add(asset);
+
+                        if(holder.typeName == typeof(Shader).FullName)
+                        {
+                            assets.Add(new()
+                            {
+                                guid = holder.guid,
+                                name = asset.name,
+                                path = ResourceManager.ShaderPrefix + asset.path,
+                                typeName = holder.typeName,
+                            });
+                        }
                     }
                 }
                 catch (Exception e)
