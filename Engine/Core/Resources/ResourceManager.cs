@@ -781,7 +781,8 @@ internal class ResourceManager
             material = new Material
             {
                 shader = shader,
-                guid = guid ?? path
+                guid = guid ?? path,
+                CullingMode = materialData.metadata.cullingMode,
             };
 
             foreach(var variant in materialData.metadata.enabledShaderVariants)

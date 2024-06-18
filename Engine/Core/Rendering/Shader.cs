@@ -409,14 +409,17 @@ internal partial class Shader : IGuidAsset
         }
     }
 
-    internal bgfx.StateFlags BlendingFlag()
+    internal bgfx.StateFlags BlendingFlag
     {
-        if(sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
+        get
         {
-            return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
-        }
+            if (sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
+            {
+                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
+            }
 
-        return 0;
+            return 0;
+        }
     }
 
     internal UniformInfo<T> GetUniform<T>(string name, ShaderUniformType type)

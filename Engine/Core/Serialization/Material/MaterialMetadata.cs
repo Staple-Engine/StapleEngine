@@ -476,6 +476,9 @@ public class MaterialMetadata
     public List<string> enabledShaderVariants = new();
 
     [Key(4)]
+    public CullingMode cullingMode = CullingMode.Back;
+
+    [Key(5)]
     public string typeName = typeof(Material).FullName;
 
     public bool ShouldSerializeguid() => false;

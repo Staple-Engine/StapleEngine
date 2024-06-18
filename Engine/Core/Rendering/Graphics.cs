@@ -52,7 +52,8 @@ namespace Staple
                 bgfx.StateFlags.WriteZ |
                 bgfx.StateFlags.DepthTestLequal |
                 (bgfx.StateFlags)topology |
-                material.shader.BlendingFlag();
+                material.shader.BlendingFlag |
+                material.CullingFlag;
 
             bgfx.set_state((ulong)state, 0);
 
@@ -110,7 +111,8 @@ namespace Staple
                 bgfx.StateFlags.WriteZ |
                 bgfx.StateFlags.DepthTestLequal |
                 (bgfx.StateFlags)topology |
-                material.shader.BlendingFlag();
+                material.shader.BlendingFlag |
+                material.CullingFlag;
 
             bgfx.set_state((ulong)state, 0);
 

@@ -43,7 +43,8 @@ public class MeshRenderSystem : IRenderSystem
             bgfx.StateFlags.WriteZ |
             bgfx.StateFlags.DepthTestLequal |
             mesh.PrimitiveFlag() |
-            material.shader.BlendingFlag();
+            material.shader.BlendingFlag |
+            material.CullingFlag;
 
         unsafe
         {
@@ -155,7 +156,10 @@ public class MeshRenderSystem : IRenderSystem
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                bgfx.set_state((ulong)(state | pair.renderer.mesh.PrimitiveFlag() | pair.renderer.materials[index].shader.BlendingFlag()), 0);
+                bgfx.set_state((ulong)(state |
+                    pair.renderer.mesh.PrimitiveFlag() |
+                    pair.renderer.materials[index].shader.BlendingFlag |
+                    pair.renderer.materials[index].CullingFlag), 0);
 
                 var material = pair.renderer.materials[index];
 

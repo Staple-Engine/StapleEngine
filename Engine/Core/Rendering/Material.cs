@@ -87,6 +87,24 @@ public sealed class Material : IGuidAsset
     }
 
     /// <summary>
+    /// Culling mode for this material
+    /// </summary>
+    public CullingMode CullingMode { get; set; } = CullingMode.Back;
+
+    internal bgfx.StateFlags CullingFlag
+    {
+        get
+        {
+            return CullingMode switch
+            {
+                Staple.CullingMode.Back => bgfx.StateFlags.CullCcw,
+                Staple.CullingMode.Front => bgfx.StateFlags.CullCw,
+                _ => 0,
+            };
+        }
+    }
+
+    /// <summary>
     /// The asset's guid (if any)
     /// </summary>
     public string Guid
@@ -148,6 +166,7 @@ public sealed class Material : IGuidAsset
 
         guid = sourceMaterial.guid;
         shader = sourceMaterial.shader;
+        CullingMode = sourceMaterial.CullingMode;
     }
 
     ~Material()

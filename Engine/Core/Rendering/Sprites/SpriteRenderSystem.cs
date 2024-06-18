@@ -320,7 +320,8 @@ public class SpriteRenderSystem : IRenderSystem
                 _ = bgfx.set_transform(&transform, 1);
             }
 
-            bgfx.set_state((ulong)(state | s.material.shader.BlendingFlag()), 0);
+            //Don't use culling for sprites
+            bgfx.set_state((ulong)(state | s.material.shader.BlendingFlag), 0);
 
             s.material.shader.SetColor(Material.MainColorProperty, s.color);
             s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);

@@ -132,7 +132,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                bgfx.set_state((ulong)(state | renderer.mesh.PrimitiveFlag() | renderer.materials[i].shader.BlendingFlag()), 0);
+                bgfx.set_state((ulong)(state |
+                    renderer.mesh.PrimitiveFlag() |
+                    renderer.materials[i].shader.BlendingFlag |
+                    renderer.materials[i].CullingFlag), 0);
 
                 var material = renderer.materials[i];
 
