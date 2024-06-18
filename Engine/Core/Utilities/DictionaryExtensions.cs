@@ -4,7 +4,7 @@ namespace Staple;
 
 internal static class DictionaryExtensions
 {
-    public static void AddOrSetKey<K, T>(this IDictionary<K, T> dictionary, K key, T value)
+    public static void AddOrSetKey<K, V>(this IDictionary<K, V> dictionary, K key, V value)
     {
         if(dictionary.ContainsKey(key))
         {

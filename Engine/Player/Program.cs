@@ -1,4 +1,5 @@
 using System;
+using Staple.Internal;
 
 namespace Staple
 {

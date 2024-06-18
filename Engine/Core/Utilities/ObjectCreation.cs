@@ -1,10 +1,20 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Safely creates an object without needing to deal with exceptions
+/// </summary>
 public static class ObjectCreation
 {
-    public static T CreateObject<T>(Type type)
+    /// <summary>
+    /// Safely creates an object for an expected object type
+    /// </summary>
+    /// <typeparam name="T">The expected object type</typeparam>
+    /// <param name="type">The type to create</param>
+    /// <returns>The object, or null</returns>
+    public static T CreateObject<T>([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         if(type.IsAssignableTo(typeof(T)) == false)
         {

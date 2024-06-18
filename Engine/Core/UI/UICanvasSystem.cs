@@ -7,6 +7,9 @@ using Staple.UI;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Canvas Render System. Used to render UI.
+/// </summary>
 public class UICanvasSystem : IRenderSystem
 {
     public const ushort UIViewID = 200;
@@ -40,8 +43,6 @@ public class UICanvasSystem : IRenderSystem
     public void Process(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
         if(relatedComponent is not UICanvas canvas ||
-            canvas.resolution.X <= 0 ||
-            canvas.resolution.Y <= 0 ||
             renders.Any(x => x.canvas == canvas))
         {
             return;

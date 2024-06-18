@@ -10,10 +10,6 @@ internal class UICanvasTemplate : IEntityTemplate
     {
         var entity = Entity.Create(Name, typeof(Transform), typeof(UICanvas));
 
-        var canvas = entity.GetComponent<UICanvas>();
-
-        canvas.resolution = new Vector2Int(1920, 1080);
-
         return entity;
     }
 }

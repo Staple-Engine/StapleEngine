@@ -1,8 +1,10 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Support library for some internal things.
+/// </summary>
 internal static class StapleSupport
 {
 #if STAPLE_WINDOWS
@@ -23,6 +25,11 @@ internal static class StapleSupport
     const string DllName = "invalid";
 #endif
 
+    /// <summary>
+    /// Gets the native handle for a window on macOS
+    /// </summary>
+    /// <param name="windowHandle">The window handle</param>
+    /// <returns>The native handle</returns>
     [DllImport(DllName, EntryPoint = "MacWindow", CallingConvention = CallingConvention.Cdecl)]
     public static extern nint MacWindow(nint windowHandle);
 }

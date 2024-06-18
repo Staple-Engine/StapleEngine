@@ -1006,4 +1006,96 @@ public partial class Mesh : IGuidAsset
             topology = topology,
         });
     }
+
+    /// <summary>
+    /// Generates normals for a list of vertices. Expects triangles.
+    /// </summary>
+    /// <remarks>Positions are expected to be triangles</remarks>
+    /// <returns>An array of normals. Might be empty if the positions aren't a multiple of 3.</returns>
+    public static Vector3[] GenerateNormals(Vector3[] positions)
+    {
+        if(positions.Length % 3 != 0)
+        {
+            return Array.Empty<Vector3>();
+        }
+
+        var indices = new int[positions.Length];
+
+        for(var i = 0; i < indices.Length; i++)
+        {
+            indices[i] = i;
+        }
+
+        return GenerateNormals(positions, indices);
+    }
+
+    /// <summary>
+    /// Generates normals for a list of vertices
+    /// </summary>
+    /// <remarks>Positions are expected to be triangles</remarks>
+    /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
+    public static Vector3[] GenerateNormals(Vector3[] positions, ushort[] indices)
+    {
+        if(indices.Length % 3 != 0)
+        {
+            return [];
+        }
+
+        for (var i = 0; i < indices.Length; i++)
+        {
+            if (indices[i] < 0 ||
+                indices[i] >= positions.Length)
+            {
+                return [];
+            }
+        }
+
+        var normals = new Vector3[positions.Length];
+
+        for (int i = 0, normalIndex = 0; i < indices.Length; i += 3, normalIndex++)
+        {
+            var p0 = positions[indices[i]];
+            var p1 = positions[indices[i + 1]];
+            var p2 = positions[indices[i + 2]];
+
+            normals[normalIndex] = Vector3.Normalize(Vector3.Cross(p2 - p0, p1 - p0));
+        }
+
+        return normals;
+    }
+
+    /// <summary>
+    /// Generates normals for a list of vertices
+    /// </summary>
+    /// <remarks>Positions are expected to be triangles</remarks>
+    /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
+    public static Vector3[] GenerateNormals(Vector3[] positions, int[] indices)
+    {
+        if (indices.Length % 3 != 0)
+        {
+            return [];
+        }
+
+        for (var i = 0; i < indices.Length; i++)
+        {
+            if (indices[i] < 0 ||
+                indices[i] >= positions.Length)
+            {
+                return [];
+            }
+        }
+
+        var normals = new Vector3[positions.Length];
+
+        for (int i = 0, normalIndex = 0; i < indices.Length; i += 3, normalIndex++)
+        {
+            var p0 = positions[indices[i]];
+            var p1 = positions[indices[i + 1]];
+            var p2 = positions[indices[i + 2]];
+
+            normals[normalIndex] = Vector3.Normalize(Vector3.Cross(p2 - p0, p1 - p0));
+        }
+
+        return normals;
+    }
 }

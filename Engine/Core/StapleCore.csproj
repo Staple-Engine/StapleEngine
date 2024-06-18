@@ -336,7 +336,7 @@
 		<Compile Include="Serialization\Texture\SerializableTexture.cs" />
 		<Compile Include="Serialization\Texture\TextureMetadata.cs" />
 		<Compile Include="Scene\Scene.cs" />
-		<Compile Include="Scene\SceneList.cs" />
+		<Compile Include="Serialization\Scene\SceneList.cs" />
 		<Compile Include="Entities\Transform.cs" />
 		<Compile Include="Utilities\Log\ConsoleLog.cs" />
 		<Compile Include="Utilities\Log\FSLog.cs" />

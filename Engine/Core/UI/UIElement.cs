@@ -28,7 +28,7 @@ public abstract class UIElement : IComponent
     /// <summary>
     /// The intrinsic size of the element. Some elements will have a size that fits all their content, which is calculated here, but not all.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The intrinsic size or Vector2Int.Zero</returns>
     public abstract Vector2Int IntrinsicSize();
 
     /// <summary>

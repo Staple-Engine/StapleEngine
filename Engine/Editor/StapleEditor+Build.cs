@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Staple.Internal;
 
 namespace Staple.Editor;
 
