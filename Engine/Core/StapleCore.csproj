@@ -150,6 +150,8 @@
 		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Serialization\Text\FontMetadata.cs" />
 		<Compile Include="Serialization\Text\SerializableFontAsset.cs" />
+		<Compile Include="UI\UIInteractible.cs" />
+		<Compile Include="UI\UIButton.cs" />
 		<Compile Include="UI\UICanvas.cs" />
 		<Compile Include="UI\UICanvasSystem.cs" />
 		<Compile Include="UI\UIContainer.cs" />

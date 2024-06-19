@@ -166,12 +166,12 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
                 var inputState = (e.Action & MotionEventActions.Mask) switch
                 {
-                    MotionEventActions.Down => InputState.Press,
-                    MotionEventActions.Up => InputState.Release,
-                    _ => InputState.Repeat
+                    MotionEventActions.Down => AppEventInputState.Press,
+                    MotionEventActions.Up => AppEventInputState.Release,
+                    _ => AppEventInputState.Repeat
                 };
 
-                if(inputState == InputState.Repeat)
+                if(inputState == AppEventInputState.Repeat)
                 {
                     continue;
                 }
@@ -187,28 +187,28 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
     {
         public bool OnKey(View? v, [GeneratedEnum] Keycode keyCode, KeyEvent? e)
         {
-            ModifierKeys Modifiers()
+            AppEventModifierKeys Modifiers()
             {
-                var modifiers = (ModifierKeys)0;
+                var modifiers = (AppEventModifierKeys)0;
 
                 if(e.Modifiers.HasFlag(MetaKeyStates.AltOn))
                 {
-                    modifiers |= ModifierKeys.Alt;
+                    modifiers |= AppEventModifierKeys.Alt;
                 }
 
                 if (e.Modifiers.HasFlag(MetaKeyStates.ShiftOn))
                 {
-                    modifiers |= ModifierKeys.Shift;
+                    modifiers |= AppEventModifierKeys.Shift;
                 }
 
                 if (e.Modifiers.HasFlag(MetaKeyStates.CtrlOn))
                 {
-                    modifiers |= ModifierKeys.Control;
+                    modifiers |= AppEventModifierKeys.Control;
                 }
 
                 if (e.Modifiers.HasFlag(MetaKeyStates.CapsLockOn))
                 {
-                    modifiers |= ModifierKeys.CapsLock;
+                    modifiers |= AppEventModifierKeys.CapsLock;
                 }
 
                 return modifiers;
@@ -222,13 +222,13 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             {
                 case KeyEventActions.Down:
 
-                    AppEventQueue.instance.Add(AppEvent.Key(code, 0, InputState.Press, modifiers));
+                    AppEventQueue.instance.Add(AppEvent.Key(code, 0, AppEventInputState.Press, modifiers));
 
                     break;
 
                 case KeyEventActions.Up:
 
-                    AppEventQueue.instance.Add(AppEvent.Key(code, 0, InputState.Release, modifiers));
+                    AppEventQueue.instance.Add(AppEvent.Key(code, 0, AppEventInputState.Release, modifiers));
 
                     break;
 

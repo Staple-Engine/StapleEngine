@@ -264,33 +264,33 @@ internal class SDL2RenderWindow : IRenderWindow
         };
     }
 
-    private ModifierKeys GetModifiers(SDL.SDL_Keymod mod)
+    private AppEventModifierKeys GetModifiers(SDL.SDL_Keymod mod)
     {
-        ModifierKeys modifiers = 0;
+        AppEventModifierKeys modifiers = 0;
 
         if (mod.HasFlag(SDL.SDL_Keymod.KMOD_CAPS))
         {
-            modifiers |= ModifierKeys.CapsLock;
+            modifiers |= AppEventModifierKeys.CapsLock;
         }
 
         if(mod.HasFlag(SDL.SDL_Keymod.KMOD_ALT))
         {
-            modifiers |= ModifierKeys.Alt;
+            modifiers |= AppEventModifierKeys.Alt;
         }
 
         if (mod.HasFlag(SDL.SDL_Keymod.KMOD_CTRL))
         {
-            modifiers |= ModifierKeys.Control;
+            modifiers |= AppEventModifierKeys.Control;
         }
 
         if (mod.HasFlag(SDL.SDL_Keymod.KMOD_SHIFT))
         {
-            modifiers |= ModifierKeys.Shift;
+            modifiers |= AppEventModifierKeys.Shift;
         }
 
         if (mod.HasFlag(SDL.SDL_Keymod.KMOD_NUM))
         {
-            modifiers |= ModifierKeys.NumLock;
+            modifiers |= AppEventModifierKeys.NumLock;
         }
 
         return modifiers;
@@ -372,8 +372,8 @@ internal class SDL2RenderWindow : IRenderWindow
                     AppEventQueue.instance.Add(AppEvent.Key(MapSDLKey(_event.key.keysym.sym), (int)_event.key.keysym.scancode,
                         _event.key.state switch
                         {
-                            SDL.SDL_PRESSED => InputState.Press,
-                            _ => InputState.Release,
+                            SDL.SDL_PRESSED => AppEventInputState.Press,
+                            _ => AppEventInputState.Release,
                         }, GetModifiers(_event.key.keysym.mod)));
 
                     break;
@@ -383,17 +383,17 @@ internal class SDL2RenderWindow : IRenderWindow
 
                     AppEventQueue.instance.Add(AppEvent.Mouse((uint)_event.button.button switch
                         {
-                            SDL.SDL_BUTTON_LEFT => MouseButton.Left,
-                            SDL.SDL_BUTTON_MIDDLE => MouseButton.Middle,
-                            SDL.SDL_BUTTON_RIGHT => MouseButton.Right,
-                            SDL.SDL_BUTTON_X1 => MouseButton.Button1,
-                            SDL.SDL_BUTTON_X2 => MouseButton.Button2,
+                            SDL.SDL_BUTTON_LEFT => AppEventMouseButton.Left,
+                            SDL.SDL_BUTTON_MIDDLE => AppEventMouseButton.Middle,
+                            SDL.SDL_BUTTON_RIGHT => AppEventMouseButton.Right,
+                            SDL.SDL_BUTTON_X1 => AppEventMouseButton.Button1,
+                            SDL.SDL_BUTTON_X2 => AppEventMouseButton.Button2,
                             _ => 0,
                         },
                         _event.button.state switch
                         {
-                            SDL.SDL_PRESSED => InputState.Press,
-                            _ => InputState.Release,
+                            SDL.SDL_PRESSED => AppEventInputState.Press,
+                            _ => AppEventInputState.Release,
                         }, GetModifiers(SDL.SDL_GetModState())));
 
                     break;
@@ -472,8 +472,8 @@ internal class SDL2RenderWindow : IRenderWindow
                                 _ => GamepadButton.Invalid,
                             }, _event.cbutton.state switch
                             {
-                                SDL.SDL_PRESSED => InputState.Press,
-                                _ => InputState.Release,
+                                SDL.SDL_PRESSED => AppEventInputState.Press,
+                                _ => AppEventInputState.Release,
                             }));
                         }
                     }

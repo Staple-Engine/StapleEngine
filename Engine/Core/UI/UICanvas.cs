@@ -5,4 +5,5 @@
 /// </summary>
 public class UICanvas : IComponent
 {
+    public UIInteractible focusedElement { get; internal set; }
 }

@@ -21,6 +21,8 @@ public class UICanvasSystem : IRenderSystem
         public Matrix4x4 projection;
     }
 
+    private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
+
     private List<RenderInfo> renders = new();
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
@@ -74,86 +76,136 @@ public class UICanvasSystem : IRenderSystem
                 bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
             }
 
+            Vector2Int GetElementPosition(UIElementAlignment alignment, Vector2Int localPosition, Vector2Int localSize, Vector2Int containerSize)
+            {
+                return alignment switch
+                {
+                    UIElementAlignment.TopRight => new Vector2Int(containerSize.X - localSize.X, 0) + localPosition,
+                    UIElementAlignment.Top => new Vector2Int((containerSize.X - localSize.X) / 2, 0) + localPosition,
+                    UIElementAlignment.Bottom => new Vector2Int((containerSize.X - localSize.X) / 2, containerSize.Y - localSize.Y) + localPosition,
+                    UIElementAlignment.Left => new Vector2Int(0, (containerSize.Y - localSize.Y) / 2) + localPosition,
+                    UIElementAlignment.Right => new Vector2Int(containerSize.X - localSize.X, (containerSize.Y - localSize.Y) / 2) + localPosition,
+                    UIElementAlignment.Center => new Vector2Int((containerSize.X - localSize.X) / 2, (containerSize.Y - localSize.Y) / 2) + localPosition,
+                    UIElementAlignment.BottomLeft => new Vector2Int(0, containerSize.Y - localSize.Y) + localPosition,
+                    UIElementAlignment.BottomRight => new Vector2Int(containerSize.X - localSize.X, containerSize.Y - localSize.Y) + localPosition,
+                    _ => localPosition,
+                };
+            }
+
+            void RecursiveFindFocusedElement(Vector2Int position, Vector2Int containerSize, Transform current, UIElement element,
+                UIInteractible interactible, ref UIInteractible foundElement)
+            {
+                if(current.entity.Enabled == false)
+                {
+                    return;
+                }
+
+                if (element.adjustToIntrinsicSize)
+                {
+                    element.size = element.IntrinsicSize();
+                }
+
+                var p = position + GetElementPosition(element.alignment, element.position, element.size, containerSize);
+
+                var aabb = new AABB(new Vector3(p.X, p.Y, 0), new Vector3(element.size.X, element.size.Y, 0.1f));
+
+                if(aabb.Contains(Input.MousePosition.ToVector3()) == false)
+                {
+                    return;
+                }
+
+                foundElement = interactible;
+
+                foreach(var child in current)
+                {
+                    if(child.entity.Enabled &&
+                        child.entity.TryGetComponent<UIElement>(out var e))
+                    {
+                        RecursiveFindFocusedElement(p, element.size, child, e, child.entity.GetComponent<UIInteractible>(), ref foundElement);
+                    }
+                }
+            }
+
+            var inputPressed = false;
+
+            foreach(var button in MouseButtons)
+            {
+                if(Input.GetMouseButtonDown(button))
+                {
+                    inputPressed = true;
+
+                    break;
+                }
+            }
+
+            var lastFocusedElement = render.canvas.focusedElement;
+
+            void Clear(Transform current)
+            {
+                if(current.entity.TryGetComponent<UIInteractible>(out var element))
+                {
+                    element.Clicked = false;
+                    element.Hovered = false;
+
+                    foreach(var child in current)
+                    {
+                        Clear(child);
+                    }
+                }
+            }
+
+            if(Platform.IsPlaying)
+            {
+                Clear(render.canvasTransform);
+
+                UIInteractible foundElement = null;
+
+                foreach (var child in render.canvasTransform)
+                {
+                    if (child.entity.TryGetComponent<UIElement>(out var element))
+                    {
+                        RecursiveFindFocusedElement(Vector2Int.Zero, new Vector2Int(Screen.Width, Screen.Height), child, element,
+                            child.entity.GetComponent<UIInteractible>(), ref foundElement);
+                    }
+                }
+
+                render.canvas.focusedElement = foundElement;
+
+                if(foundElement != null)
+                {
+                    foundElement.Hovered = true;
+                    foundElement.Focused = inputPressed;
+                    foundElement.Clicked = inputPressed;
+                }
+
+                if(foundElement != lastFocusedElement && inputPressed)
+                {
+                    if(lastFocusedElement != null)
+                    {
+                        lastFocusedElement.Focused = false;
+                    }
+                }
+            }
+
             void Recursive(Transform parent, Vector2Int position, Vector2Int containerSize)
             {
                 foreach(var child in parent)
                 {
+                    if(child.entity.Enabled == false ||
+                        child.entity.TryGetComponent<UIElement>(out var element) == false)
+                    {
+                        continue;
+                    }
+
                     var p = position;
-                    Vector2Int localPosition;
-                    Vector2Int localSize = containerSize;
 
-                    if (child.entity.TryGetComponent<UIElement>(out var element))
+                    if (element.adjustToIntrinsicSize)
                     {
-                        if (element.adjustToIntrinsicSize)
-                        {
-                            element.size = element.IntrinsicSize();
-                        }
-
-                        localPosition = element.position;
-                        localSize = element.size;
-
-                        switch (element.alignment)
-                        {
-                            case UIElementAlignment.TopLeft:
-
-                                //Do nothing
-
-                                break;
-
-                            case UIElementAlignment.TopRight:
-
-                                localPosition = new Vector2Int(containerSize.X - localSize.X, 0) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.Top:
-
-                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, 0) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.Bottom:
-
-                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, containerSize.Y - localSize.Y) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.Left:
-
-                                localPosition = new Vector2Int(0, (containerSize.Y - localSize.Y) / 2) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.Right:
-
-                                localPosition = new Vector2Int(containerSize.X - localSize.X, (containerSize.Y - localSize.Y) / 2) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.Center:
-
-                                localPosition = new Vector2Int((containerSize.X - localSize.X) / 2, (containerSize.Y - localSize.Y) / 2) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.BottomLeft:
-
-                                localPosition = new Vector2Int(0, containerSize.Y - localSize.Y) + localPosition;
-
-                                break;
-
-                            case UIElementAlignment.BottomRight:
-
-                                localPosition = new Vector2Int(containerSize.X - localSize.X, containerSize.Y - localSize.Y) + localPosition;
-
-                                break;
-                        }
+                        element.size = element.IntrinsicSize();
                     }
-                    else
-                    {
-                        localPosition = new Vector2Int((int)child.LocalPosition.X, (int)child.LocalPosition.Y);
-                        localSize = containerSize;
-                    }
+
+                    var localPosition = GetElementPosition(element.alignment, element.position, element.size, containerSize);
+                    var localSize = element.size;
 
                     p.X += localPosition.X;
                     p.Y += localPosition.Y;
@@ -167,6 +219,11 @@ public class UICanvasSystem : IRenderSystem
             }
 
             Recursive(render.canvasTransform, Vector2Int.Zero, new Vector2Int(Screen.Width, Screen.Height));
+
+            if(Platform.IsPlaying)
+            {
+                render.canvas.focusedElement?.Interact();
+            }
         }
     }
 }

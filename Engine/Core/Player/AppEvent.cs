@@ -21,14 +21,14 @@ internal enum AppEventType
     GamepadButton,
 }
 
-internal enum InputState
+internal enum AppEventInputState
 {
     Release,
     Press,
     Repeat,
 }
 
-internal enum MouseButton
+internal enum AppEventMouseButton
 {
     Button1,
     Button2,
@@ -47,7 +47,7 @@ internal enum MouseButton
 }
 
 [Flags]
-internal enum ModifierKeys
+internal enum AppEventModifierKeys
 {
     Shift = 0x0001,
 
@@ -64,17 +64,17 @@ internal enum ModifierKeys
 
 internal struct MouseEvent
 {
-    public MouseButton button;
-    public InputState state;
-    public ModifierKeys modifiers;
+    public AppEventMouseButton button;
+    public AppEventInputState state;
+    public AppEventModifierKeys modifiers;
 }
 
 internal struct KeyboardEvent
 {
     public KeyCode key;
     public int scancode;
-    public InputState state;
-    public ModifierKeys mods;
+    public AppEventInputState state;
+    public AppEventModifierKeys mods;
 }
 
 internal struct ResetEvent
@@ -101,7 +101,7 @@ internal struct TouchEvent
 {
     public int touchID;
     public Vector2 position;
-    public InputState state;
+    public AppEventInputState state;
 }
 
 internal struct GamepadConnectEvent
@@ -114,7 +114,7 @@ internal struct GamepadButtonEvent
 {
     public int index;
     public GamepadButton button;
-    public InputState state;
+    public AppEventInputState state;
 }
 
 internal struct GamepadMovement
@@ -142,7 +142,7 @@ internal class AppEvent
     public GamepadButtonEvent gamepadButton;
     public GamepadMovement gamepadMovement;
 
-    public static AppEvent Touch(int touchID, Vector2 position, InputState state)
+    public static AppEvent Touch(int touchID, Vector2 position, AppEventInputState state)
     {
         return new()
         {
@@ -201,7 +201,7 @@ internal class AppEvent
         };
     }
 
-    public static AppEvent Key(KeyCode key, int scancode, InputState state, ModifierKeys mods)
+    public static AppEvent Key(KeyCode key, int scancode, AppEventInputState state, AppEventModifierKeys mods)
     {
         var keyEvent = new KeyboardEvent()
         {
@@ -213,12 +213,12 @@ internal class AppEvent
 
         return new()
         {
-            type = state != InputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
+            type = state != AppEventInputState.Release ? AppEventType.KeyDown : AppEventType.KeyUp,
             key = keyEvent,
         };
     }
 
-    public static AppEvent Mouse(MouseButton button, InputState state, ModifierKeys modifiers)
+    public static AppEvent Mouse(AppEventMouseButton button, AppEventInputState state, AppEventModifierKeys modifiers)
     {
         var mouseEvent = new MouseEvent()
         {
@@ -229,7 +229,7 @@ internal class AppEvent
 
         return new()
         {
-            type = state == InputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
+            type = state == AppEventInputState.Press ? AppEventType.MouseDown : AppEventType.MouseUp,
             mouse = mouseEvent,
         };
     }
@@ -259,7 +259,7 @@ internal class AppEvent
         };
     }
 
-    public static AppEvent GamepadButton(int index, GamepadButton button, InputState state)
+    public static AppEvent GamepadButton(int index, GamepadButton button, AppEventInputState state)
     {
         return new()
         {

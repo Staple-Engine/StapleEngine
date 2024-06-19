@@ -105,9 +105,9 @@ public static class Input
         previousMousePosition = MousePosition;
     }
 
-    private static void HandleInputStateChange<Key>(Key key, Internal.InputState state, Dictionary<Key, InputState> states)
+    private static void HandleInputStateChange<Key>(Key key, Internal.AppEventInputState state, Dictionary<Key, InputState> states)
     {
-        bool pressed = state == Internal.InputState.Press;
+        bool pressed = state == Internal.AppEventInputState.Press;
 
         var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
@@ -201,7 +201,7 @@ public static class Input
             touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
         }
 
-        if (appEvent.touch.state == Internal.InputState.Repeat)
+        if (appEvent.touch.state == Internal.AppEventInputState.Repeat)
         {
             return;
         }
@@ -213,7 +213,7 @@ public static class Input
     {
         var mouseButton = (MouseButton)appEvent.mouse.button;
 
-        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? Internal.InputState.Press : Internal.InputState.Release,
+        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? Internal.AppEventInputState.Press : Internal.AppEventInputState.Release,
             mouseButtonStates);
     }
 
@@ -221,7 +221,7 @@ public static class Input
     {
         var code = appEvent.key.key;
 
-        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? Internal.InputState.Press : Internal.InputState.Release,
+        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? Internal.AppEventInputState.Press : Internal.AppEventInputState.Release,
             keyStates);
     }
 
