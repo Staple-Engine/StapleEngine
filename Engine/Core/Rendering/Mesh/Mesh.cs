@@ -1029,7 +1029,7 @@ public partial class Mesh : IGuidAsset
             indices[i] = i;
         }
 
-        return GenerateNormals(positions, indices);
+        return GenerateNormals(positions, indices, averageNormals);
     }
 
     /// <summary>
