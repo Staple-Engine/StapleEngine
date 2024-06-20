@@ -206,6 +206,44 @@ internal static class SceneSerialization
 
             setter(mask);
         }
+        else if(fieldType == typeof(EntityCallback) && element.ValueKind == JsonValueKind.Object)
+        {
+            var persistentCallbacks = element.GetProperty("persistentCallbacks");
+
+            if(persistentCallbacks.ValueKind != JsonValueKind.Array)
+            {
+                return;
+            }
+
+            var value = new EntityCallback();
+
+            foreach(var e in element.EnumerateArray())
+            {
+                if(e.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var id = e.GetProperty("entityID").GetInt32();
+                    var className = e.GetProperty("className").GetString();
+                    var methodName = e.GetProperty("methodName").GetString();
+
+                    value.AddPersistentCallback(new()
+                    {
+                        entityID = id,
+                        className = className,
+                        methodName = methodName,
+                    });
+                }
+                catch(Exception)
+                {
+                }
+            }
+
+            setter(value);
+        }
     }
 
     /// <summary>
@@ -424,6 +462,35 @@ internal static class SceneSerialization
                     {
                         setter(value);
                     }
+                }
+                else if(fieldType == typeof(EntityCallback))
+                {
+                    var pieces = parameter.stringValue.Split(":");
+
+                    var value = new EntityCallback();
+
+                    foreach(var piece in pieces)
+                    {
+                        var parts = piece.Split("|");
+
+                        if(parts.Length != 3 ||
+                            int.TryParse(parts[0], out var id) == false)
+                        {
+                            continue;
+                        }
+
+                        var className = parts[1];
+                        var methodName = parts[2];
+
+                        value.AddPersistentCallback(new()
+                        {
+                            entityID = id,
+                            className = className,
+                            methodName = methodName,
+                        });
+                    }
+
+                    setter(value);
                 }
 
                 break;
@@ -796,6 +863,38 @@ internal static class SceneSerialization
             else
             {
                 sceneComponent.data.Add(name, mask.value);
+            }
+        }
+        else if(fieldType == typeof(EntityCallback))
+        {
+            var callback = (EntityCallback)getter();
+
+            if(callback == null)
+            {
+                return;
+            }
+
+            var pieces = new List<string>();
+
+            foreach(var c in callback.PersistentCallbacks())
+            {
+                pieces.Add($"{c.entityID}|{c.className}|{c.methodName}");
+            }
+
+            var compacted = string.Join(":", pieces);
+
+            if(parameters)
+            {
+                sceneComponent.parameters.Add(new SceneComponentParameter()
+                {
+                    name = name,
+                    type = SceneComponentParameterType.String,
+                    stringValue = compacted,
+                });
+            }
+            else
+            {
+                sceneComponent.data.Add(name, compacted);
             }
         }
     }

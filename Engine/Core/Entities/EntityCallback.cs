@@ -18,6 +18,7 @@ public class EntityCallbackEntry
 [Serializable]
 public class EntityCallback
 {
+    [Serializable]
     private class EntityCallbackEntryCache
     {
         public Entity entity;
@@ -61,9 +62,9 @@ public class EntityCallback
         persistentCallbacks.Remove(entry);
     }
 
-    internal IEnumerator<EntityCallbackEntry> PersistentCallbacks()
+    internal IEnumerable<EntityCallbackEntry> PersistentCallbacks()
     {
-        return persistentCallbacks.GetEnumerator();
+        return persistentCallbacks;
     }
 
     internal void UpdateCache()

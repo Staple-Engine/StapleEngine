@@ -4,7 +4,7 @@ namespace Staple.UI;
 
 public class UIButton : UIInteractible
 {
-    public Action onClick;
+    public EntityCallback onClick = new();
 
     public override void Interact()
     {
@@ -12,7 +12,7 @@ public class UIButton : UIInteractible
         {
             try
             {
-                onClick?.Invoke();
+                onClick.Invoke();
             }
             catch(Exception e)
             {
