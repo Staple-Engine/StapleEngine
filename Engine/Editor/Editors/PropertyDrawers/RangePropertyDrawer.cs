@@ -3,7 +3,7 @@
 namespace Staple.Editor;
 
 [CustomPropertyDrawer(typeof(RangeAttribute))]
-public class RangePropertyDrawer : PropertyDrawer
+internal class RangePropertyDrawer : PropertyDrawer
 {
     public override void OnGUI(string name, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
     {

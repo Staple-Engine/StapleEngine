@@ -83,6 +83,7 @@
     <Compile Include="Editors\PropertyAttribute.cs" />
     <Compile Include="Editors\PropertyDrawer.cs" />
     <Compile Include="Editors\CustomPropertyDrawerAttribute.cs" />
+    <Compile Include="Editors\PropertyDrawers\EntityCallbackPropertyDrawer.cs" />
     <Compile Include="Editors\PropertyDrawers\RangePropertyDrawer.cs" />
     <Compile Include="EditorUtils.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
