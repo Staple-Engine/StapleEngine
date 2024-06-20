@@ -724,7 +724,7 @@ internal static class StapleSerializer
                                     {
                                         list.Add(item);
                                     }
-                                    if (fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                                    else if (fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                                     {
                                         if (item is string guid)
                                         {
