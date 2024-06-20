@@ -1,17 +1,9 @@
-﻿using System;
-
-namespace Staple;
+﻿namespace Staple;
 
 /// <summary>
 /// Used to specify the minimum value for a variable in the inspector
 /// </summary>
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public class MinAttribute : Attribute
+public class MinAttribute(float minValue) : PropertyAttribute
 {
-    public float minValue;
-
-    public MinAttribute(float minValue)
-    {
-        this.minValue = minValue;
-    }
+    public float minValue = minValue;
 }

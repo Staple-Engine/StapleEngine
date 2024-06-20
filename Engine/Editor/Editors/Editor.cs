@@ -15,6 +15,7 @@ namespace Staple.Editor;
 public class Editor
 {
     private static Type[] editorTypes;
+    private static Type[] propertyDrawerTypes;
 
     /// <summary>
     /// The original object that is being edited, if any
@@ -40,6 +41,11 @@ public class Editor
     /// All targets to edit (if supports multiple objects)
     /// </summary>
     public object[] targets;
+
+    /// <summary>
+    /// Keeps track of the cached property drawers for this editor
+    /// </summary>
+    private Dictionary<string, PropertyDrawer> cachedPropertyDrawers = new();
 
     /// <summary>
     /// Attempts to draw a property.
@@ -140,6 +146,48 @@ public class Editor
 
     private void PropertyInspector(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
+        foreach(var t in propertyDrawerTypes)
+        {
+            var a = t.GetCustomAttribute<CustomPropertyDrawerAttribute>();
+
+            if(a == null)
+            {
+                continue;
+            }
+
+            if (a.targetType == type ||
+                attributes(a.targetType) != null)
+            {
+                if(cachedPropertyDrawers.TryGetValue(a.targetType.FullName, out var drawer) == false)
+                {
+                    try
+                    {
+                        drawer = (PropertyDrawer)Activator.CreateInstance(t);
+
+                        cachedPropertyDrawers.Add(a.targetType.FullName, drawer);
+                    }
+                    catch(Exception e)
+                    {
+                        continue;
+                    }
+                }
+
+                if(drawer != null)
+                {
+                    try
+                    {
+                        drawer.OnGUI(name, getter, setter, attributes);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"[{t.FullName}] Exception: {e}");
+                    }
+
+                    return;
+                }
+            }
+        }
+
         switch (type)
         {
             case Type t when t.IsGenericType:
@@ -725,6 +773,13 @@ public class Editor
                 .Where(x => x.IsSubclassOf(typeof(Editor)))
                 .Distinct()
                 .ToArray();
+
+        propertyDrawerTypes = Assembly.GetCallingAssembly().GetTypes()
+                .Concat(Assembly.GetExecutingAssembly().GetTypes())
+                .Concat(TypeCache.types.Select(x => x.Value))
+                .Where(x => x.IsSubclassOf(typeof(PropertyDrawer)))
+                .Distinct()
+                .ToArray();
     }
 
     public static Editor CreateEditor(object target, Type editorType = null)
@@ -763,7 +818,7 @@ public class Editor
             var instance = (Editor)Activator.CreateInstance(editorType);
 
             instance.target = target;
-            instance.targets = new object[] { target };
+            instance.targets = [ target ];
 
             return instance;
         }

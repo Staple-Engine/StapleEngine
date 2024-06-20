@@ -8,12 +8,7 @@ namespace Staple.Editor;
 /// [CustomEditor(typeof(SpriteAsset))]
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public class CustomEditorAttribute : Attribute
+public class CustomEditorAttribute(Type target) : Attribute
 {
-    public Type target;
-
-    public CustomEditorAttribute(Type target)
-    {
-        this.target = target;
-    }
+    public Type target = target;
 }
