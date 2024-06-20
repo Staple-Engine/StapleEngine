@@ -92,7 +92,15 @@ public class Editor
             PropertyInspector(type, name,
                 () => field.GetValue(target),
                 (value) => field.SetValue(target, value),
-                field.GetCustomAttribute);
+                (attribute) =>
+                {
+                    if (attribute.IsSubclassOf(typeof(Attribute)))
+                    {
+                        return field.GetCustomAttribute(attribute);
+                    }
+
+                    return null;
+                });
 
             var tooltip = field.GetCustomAttribute<TooltipAttribute>();
 
@@ -206,7 +214,7 @@ public class Editor
 
                             var changed = false;
 
-                            EditorGUI.Button("+", () =>
+                            EditorGUI.Button("+", $"{name}Add", () =>
                             {
                                 changed = true;
 
@@ -230,7 +238,7 @@ public class Editor
 
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", () =>
+                                EditorGUI.Button("-", $"{name}Remove", () =>
                                 {
                                     changed = true;
 
@@ -256,7 +264,7 @@ public class Editor
 
                             var changed = false;
 
-                            EditorGUI.Button("+", () =>
+                            EditorGUI.Button("+", $"{name}Add", () =>
                             {
                                 changed = true;
 
@@ -281,7 +289,7 @@ public class Editor
 
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", () =>
+                                EditorGUI.Button("-", $"{name}Remove", () =>
                                 {
                                     changed = true;
 
@@ -306,7 +314,7 @@ public class Editor
                 {
                     var value = (Enum)getter();
 
-                    var newValue = EditorGUI.EnumDropdown(name, value, type);
+                    var newValue = EditorGUI.EnumDropdown(name, $"{name}Dropdown", value, type);
 
                     setter(newValue);
                 }
@@ -322,11 +330,11 @@ public class Editor
 
                     if(attributes(typeof(MultilineAttribute)) != null)
                     {
-                        newValue = EditorGUI.TextFieldMultiline(name, value, new Vector2(200, value.Split("\n").Length * 30));
+                        newValue = EditorGUI.TextFieldMultiline(name, $"{name}TextMultiline", value, new Vector2(200, value.Split("\n").Length * 30));
                     }
                     else
                     {
-                        newValue = EditorGUI.TextField(name, value);
+                        newValue = EditorGUI.TextField(name, $"{name}Text", value);
                     }
 
                     if (newValue != value)
@@ -342,7 +350,7 @@ public class Editor
                 {
                     var value = (Vector2)getter();
 
-                    var newValue = EditorGUI.Vector2Field(name, value);
+                    var newValue = EditorGUI.Vector2Field(name, $"{name}Vector2", value);
 
                     if (newValue != value)
                     {
@@ -357,7 +365,7 @@ public class Editor
                 {
                     var value = (Vector2Int)getter();
 
-                    var newValue = EditorGUI.Vector2IntField(name, value);
+                    var newValue = EditorGUI.Vector2IntField(name, $"{name}Vector2Int", value);
 
                     if (newValue != value)
                     {
@@ -372,7 +380,7 @@ public class Editor
                 {
                     var value = (Vector3)getter();
 
-                    var newValue = EditorGUI.Vector3Field(name, value);
+                    var newValue = EditorGUI.Vector3Field(name, $"{name}Vector3", value);
 
                     if (newValue != value)
                     {
@@ -387,7 +395,7 @@ public class Editor
                 {
                     var value = (Vector4)getter();
 
-                    var newValue = EditorGUI.Vector4Field(name, value);
+                    var newValue = EditorGUI.Vector4Field(name, $"{name}Vector4", value);
 
                     if (newValue != value)
                     {
@@ -404,7 +412,7 @@ public class Editor
 
                     var value = quaternion.ToEulerAngles();
 
-                    var newValue = EditorGUI.Vector3Field(name, value);
+                    var newValue = EditorGUI.Vector3Field(name, $"{name}Quaternion", value);
 
                     if (newValue != value)
                     {
@@ -428,17 +436,17 @@ public class Editor
 
                     if (attributes(typeof(SortingLayerAttribute)) != null)
                     {
-                        newValue = (uint)EditorGUI.Dropdown(name, LayerMask.AllSortingLayers.ToArray(), value);
+                        newValue = (uint)EditorGUI.Dropdown(name, $"{name}SortingLayer", LayerMask.AllSortingLayers.ToArray(), value);
                     }
                     else
                     {
                         if (range != null)
                         {
-                            newValue = (uint)EditorGUI.IntSlider(name, value, (int)range.minValue, (int)range.maxValue);
+                            newValue = (uint)EditorGUI.IntSlider(name, $"{name}IntSlider", value, (int)range.minValue, (int)range.maxValue);
                         }
                         else
                         {
-                            newValue = (uint)EditorGUI.IntField(name, value);
+                            newValue = (uint)EditorGUI.IntField(name, $"{name}IntField", value);
                         }
                     }
 
@@ -467,11 +475,11 @@ public class Editor
 
                     if (range != null)
                     {
-                        newValue = EditorGUI.IntSlider(name, value, (int)range.minValue, (int)range.maxValue);
+                        newValue = EditorGUI.IntSlider(name, $"{name}IntSlider", value, (int)range.minValue, (int)range.maxValue);
                     }
                     else
                     {
-                        newValue = EditorGUI.IntField(name, value);
+                        newValue = EditorGUI.IntField(name, $"{name}IntField", value);
                     }
 
                     if (min != null && newValue < min.minValue)
@@ -492,7 +500,7 @@ public class Editor
                 {
                     var value = (bool)getter();
 
-                    var newValue = EditorGUI.Toggle(name, value);
+                    var newValue = EditorGUI.Toggle(name, $"{name}Toggle", value);
 
                     if (newValue != value)
                     {
@@ -514,11 +522,11 @@ public class Editor
 
                     if (range != null)
                     {
-                        newValue = EditorGUI.FloatSlider(name, value, range.minValue, range.maxValue);
+                        newValue = EditorGUI.FloatSlider(name, $"{name}FloatSlider", value, range.minValue, range.maxValue);
                     }
                     else
                     {
-                        newValue = EditorGUI.FloatField(name, value);
+                        newValue = EditorGUI.FloatField(name, $"{name}FloatField", value);
                     }
 
                     if (min != null && newValue < min.minValue)
@@ -539,7 +547,7 @@ public class Editor
                 {
                     var value = (double)getter();
 
-                    if (ImGui.InputDouble(name, ref value))
+                    if (ImGui.InputDouble($"{name}##{name}Double", ref value))
                     {
                         var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
@@ -560,7 +568,7 @@ public class Editor
                     var current = (byte)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt(name, ref value))
+                    if (ImGui.InputInt($"{name}##{name}Byte", ref value))
                     {
                         if (value < byte.MinValue)
                         {
@@ -591,7 +599,7 @@ public class Editor
                     var current = (short)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt(name, ref value))
+                    if (ImGui.InputInt($"{name}##{name}Short", ref value))
                     {
                         if (value < short.MinValue)
                         {
@@ -622,7 +630,7 @@ public class Editor
                     var current = (ushort)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt(name, ref value))
+                    if (ImGui.InputInt($"{name}##{name}UShort", ref value))
                     {
                         if (value < ushort.MinValue)
                         {
@@ -661,7 +669,7 @@ public class Editor
                         c = (Color)((Color32)getter());
                     }
 
-                    var newValue = EditorGUI.ColorField(name, c);
+                    var newValue = EditorGUI.ColorField(name, $"{name}Color", c);
 
                     if (newValue != c)
                     {

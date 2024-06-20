@@ -29,11 +29,11 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                 EditorGUI.Label(name.ExpandCamelCaseName());
 
-                EditorGUI.TreeNode("Parameters", false, true, () =>
+                EditorGUI.TreeNode("Parameters", "SkinnedAnimationParameters", false, true, () =>
                 {
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("+", () =>
+                    EditorGUI.Button("+", "SkinnedAnimationParametersAdd", () =>
                     {
                         stateMachine.parameters.Add(new());
                     });
@@ -44,25 +44,25 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                         {
                             var parameter = stateMachine.parameters[i];
 
-                            parameter.name = EditorGUI.TextField("Name", parameter.name);
+                            parameter.name = EditorGUI.TextField("Name", $"SkinnedAnimationParameters{i}Name", parameter.name);
 
                             EditorGUI.SameLine();
 
-                            EditorGUI.Button("-", () =>
+                            EditorGUI.Button("-", $"SkinnedAnimationParameters{i}Remove", () =>
                             {
                                 stateMachine.parameters.RemoveAt(i);
                             });
 
-                            parameter.parameterType = EditorGUI.EnumDropdown("Type", parameter.parameterType);
+                            parameter.parameterType = EditorGUI.EnumDropdown("Type", $"SkinnedAnimationParameters{i}Type", parameter.parameterType);
                         }
                     });
                 });
 
-                EditorGUI.TreeNode("States", false, true, () =>
+                EditorGUI.TreeNode("States", $"SkinnedAnimationStates", false, true, () =>
                 {
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("+", () =>
+                    EditorGUI.Button("+", $"SkinnedAnimationStatesAdd", () =>
                     {
                         stateMachine.states.Add(new());
                     });
@@ -83,31 +83,32 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                                 .Where(x => x != null && x != state.name)
                                 .ToList();
 
-                            state.name = EditorGUI.TextField("Name", state.name);
+                            state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStates{i}Name", state.name);
 
                             EditorGUI.SameLine();
 
-                            EditorGUI.Button("-", () =>
+                            EditorGUI.Button("-", $"SkinnedAnimationStates{i}Remove", () =>
                             {
                                 stateMachine.states.RemoveAt(i);
                             });
 
                             var currentAnimationIndex = allAnimations.IndexOf(state.animation);
 
-                            var newAnimationIndex = EditorGUI.Dropdown("Animation", allAnimations.ToArray(), currentAnimationIndex);
+                            var newAnimationIndex = EditorGUI.Dropdown("Animation", $"SkinnedAnimationStates{i}Animation",
+                                allAnimations.ToArray(), currentAnimationIndex);
 
                             if (newAnimationIndex != currentAnimationIndex && newAnimationIndex >= 0)
                             {
                                 state.animation = allAnimations[newAnimationIndex];
                             }
 
-                            state.repeat = EditorGUI.Toggle("Repeat", state.repeat);
+                            state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStates{i}Repeat", state.repeat);
 
-                            EditorGUI.TreeNode("Connections", false, false, () =>
+                            EditorGUI.TreeNode("Connections", $"SkinnedAnimationStates{i}Connections", false, false, () =>
                             {
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("+", () =>
+                                EditorGUI.Button("+", $"SkinnedAnimationStates{i}ConnectionsAdd", () =>
                                 {
                                     state.connections.Add(new());
                                 });
@@ -120,22 +121,23 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                                         var currentStateIndex = allAvailableStates.IndexOf(connection.name);
 
-                                        var newStateIndex = EditorGUI.Dropdown("Transition to", allAvailableStates.ToArray(), currentStateIndex);
+                                        var newStateIndex = EditorGUI.Dropdown("Transition to", $"SkinnedAnimationStates{i}Transition{j}",
+                                            allAvailableStates.ToArray(), currentStateIndex);
 
                                         if (newStateIndex != currentStateIndex && newStateIndex >= 0 && newStateIndex < allAvailableStates.Count)
                                         {
                                             connection.name = allAvailableStates[newStateIndex];
                                         }
 
-                                        connection.any = EditorGUI.Toggle("Trigger on any", connection.any);
+                                        connection.any = EditorGUI.Toggle("Trigger on any", $"SkinnedAnimationStates{i}Any{j}", connection.any);
 
-                                        connection.onFinish = EditorGUI.Toggle("Trigger on finish", connection.onFinish);
+                                        connection.onFinish = EditorGUI.Toggle("Trigger on finish", $"SkinnedAnimationStates{i}Trigger{j}", connection.onFinish);
 
-                                        EditorGUI.TreeNode("Conditions", false, false, () =>
+                                        EditorGUI.TreeNode("Conditions", $"SkinnedAnimationStates{i}Conditions{j}", false, false, () =>
                                         {
                                             EditorGUI.SameLine();
 
-                                            EditorGUI.Button("+", () =>
+                                            EditorGUI.Button("+", $"SkinnedAnimationStates{i}Conditions{j}Add", () =>
                                             {
                                                 connection.parameters.Add(new());
                                             });
@@ -146,14 +148,16 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                                                 var currentNameIndex = allAvailableParameters.IndexOf(parameter.name);
 
-                                                var newNameIndex = EditorGUI.Dropdown("Name", allAvailableParameters.ToArray(), currentNameIndex);
+                                                var newNameIndex = EditorGUI.Dropdown("Name", $"SkinnedAnimationStates{i}Conditions{j}Name{k}",
+                                                    allAvailableParameters.ToArray(), currentNameIndex);
 
                                                 if (newNameIndex != currentNameIndex && newNameIndex >= 0 && newNameIndex < allAvailableParameters.Count)
                                                 {
                                                     parameter.name = allAvailableParameters[newNameIndex];
                                                 }
 
-                                                parameter.condition = EditorGUI.EnumDropdown("Condition", parameter.condition);
+                                                parameter.condition = EditorGUI.EnumDropdown("Condition", $"SkinnedAnimationStates{i}Conditions{j}Condition{k}",
+                                                    parameter.condition);
 
                                                 var existingParameter = stateMachine.parameters.FirstOrDefault(x => x.name == parameter.name);
 
@@ -163,19 +167,22 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                                                     {
                                                         case SkinnedAnimationStateMachine.AnimationParameterType.Bool:
 
-                                                            parameter.boolValue = EditorGUI.Toggle("Value", parameter.boolValue);
+                                                            parameter.boolValue = EditorGUI.Toggle("Value", $"SkinnedAnimationStates{i}Conditions{j}Value{k}",
+                                                                parameter.boolValue);
 
                                                             break;
 
                                                         case SkinnedAnimationStateMachine.AnimationParameterType.Float:
 
-                                                            parameter.floatValue = EditorGUI.FloatField("Value", parameter.floatValue);
+                                                            parameter.floatValue = EditorGUI.FloatField("Value", $"SkinnedAnimationStates{i}Conditions{j}Value{k}",
+                                                                parameter.floatValue);
 
                                                             break;
 
                                                         case SkinnedAnimationStateMachine.AnimationParameterType.Int:
 
-                                                            parameter.intValue = EditorGUI.IntField("Value", parameter.intValue);
+                                                            parameter.intValue = EditorGUI.IntField("Value", $"SkinnedAnimationStates{i}Conditions{j}Value{k}",
+                                                                parameter.intValue);
 
                                                             break;
                                                     }

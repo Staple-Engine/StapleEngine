@@ -10,11 +10,14 @@ internal partial class StapleEditor
     /// <summary>
     /// Resets the scene physics
     /// </summary>
-    public void ResetScenePhysics()
+    public void ResetScenePhysics(bool cleanup)
     {
-        foreach(var pair in pickEntityBodies)
+        if(cleanup)
         {
-            Physics3D.Instance.DestroyBody(pair.Value.body);
+            foreach (var pair in pickEntityBodies)
+            {
+                Physics3D.Instance.DestroyBody(pair.Value.body);
+            }
         }
 
         pickEntityBodies.Clear();

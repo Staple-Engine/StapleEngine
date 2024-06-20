@@ -81,7 +81,7 @@ internal class TextureAssetEditor : Editor
                         textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                     }
 
-                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), textureMaxSizes, index);
+                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), "TextureMetadataMaxSize", textureMaxSizes, index);
 
                     if (index != newIndex)
                     {
@@ -96,7 +96,7 @@ internal class TextureAssetEditor : Editor
                 {
                     var platformTypes = Enum.GetValues<AppPlatform>();
 
-                    EditorGUI.TabBar(platformTypes.Select(x => x.ToString()).ToArray(), (tabIndex) =>
+                    EditorGUI.TabBar(platformTypes.Select(x => x.ToString()).ToArray(), "TextureMetadataOverrides", (tabIndex) =>
                     {
                         var platform = platformTypes[tabIndex];
                         var overrides = metadata.overrides;
@@ -108,7 +108,7 @@ internal class TextureAssetEditor : Editor
                             overrides.Add(platform, item);
                         }
 
-                        item.shouldOverride = EditorGUI.Toggle("Override", item.shouldOverride);
+                        item.shouldOverride = EditorGUI.Toggle("Override", $"TextureMetadataOverride{tabIndex}Override", item.shouldOverride);
 
                         EditorGUI.Disabled(item.shouldOverride == false, () =>
                         {
@@ -120,9 +120,9 @@ internal class TextureAssetEditor : Editor
 
                             var premultiplyAlpha = item.shouldOverride ? item.premultiplyAlpha : metadata.premultiplyAlpha;
 
-                            format = EditorGUI.EnumDropdown("Format", format);
+                            format = EditorGUI.EnumDropdown("Format", $"TextureMetadataOverride{tabIndex}Format", format);
 
-                            quality = EditorGUI.EnumDropdown("Quality", quality);
+                            quality = EditorGUI.EnumDropdown("Quality", $"TextureMetadataOverride{tabIndex}Quality", quality);
 
                             var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, maxSize);
 
@@ -131,14 +131,14 @@ internal class TextureAssetEditor : Editor
                                 textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                             }
 
-                            var newIndex = EditorGUI.Dropdown("Max Size", textureMaxSizes, index);
+                            var newIndex = EditorGUI.Dropdown("Max Size", $"TextureMetadataOverride{tabIndex}MaxSize", textureMaxSizes, index);
 
                             if (index != newIndex)
                             {
                                 maxSize = TextureMetadata.TextureMaxSizes[newIndex];
                             }
 
-                            premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", premultiplyAlpha);
+                            premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", $"TextureMetadataOverride{tabIndex}PremultiplyAlpha", premultiplyAlpha);
 
                             if (item.shouldOverride)
                             {
@@ -168,7 +168,7 @@ internal class TextureAssetEditor : Editor
 
         if (hasChanges)
         {
-            EditorGUI.Button("Apply", () =>
+            EditorGUI.Button("Apply", "TextureMetadataApply", () =>
             {
                 try
                 {
@@ -198,7 +198,7 @@ internal class TextureAssetEditor : Editor
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("Revert", () =>
+            EditorGUI.Button("Revert", "TextureMetadataRevert", () =>
             {
                 var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -210,14 +210,14 @@ internal class TextureAssetEditor : Editor
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply", null);
+            EditorGUI.ButtonDisabled("Apply", "TextureMetadataApply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert", null);
+            EditorGUI.ButtonDisabled("Revert", "TextureMetadataRevert", null);
         }
 
-        EditorGUI.Button("Apply to all in folder", () =>
+        EditorGUI.Button("Apply to all in folder", "TextureMetadataApplyAll", () =>
         {
             try
             {
@@ -355,7 +355,7 @@ internal class TextureAssetEditor : Editor
             if (previewTexture != null && previewTexture.Disposed == false &&
                 originalTexture != null && originalTexture.Disposed == false)
             {
-                EditorGUI.TabBar(["Preview", "Processed"], (tabIndex) =>
+                EditorGUI.TabBar(["Preview", "Processed"], "TextureMetadataPreview", (tabIndex) =>
                 {
                     switch(tabIndex)
                     {

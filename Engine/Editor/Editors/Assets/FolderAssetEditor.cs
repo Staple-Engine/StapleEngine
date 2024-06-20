@@ -21,7 +21,7 @@ internal class FolderAssetEditor : Editor
 
         if (hasChanges)
         {
-            EditorGUI.Button("Apply", () =>
+            EditorGUI.Button("Apply", "FolderApply", () =>
             {
                 try
                 {
@@ -49,7 +49,7 @@ internal class FolderAssetEditor : Editor
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("Revert", () =>
+            EditorGUI.Button("Revert", "FolderRevert", () =>
             {
                 var fields = asset.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -61,11 +61,11 @@ internal class FolderAssetEditor : Editor
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply", null);
+            EditorGUI.ButtonDisabled("Apply", "FolderApply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert", null);
+            EditorGUI.ButtonDisabled("Revert", "FolderRevert", null);
         }
     }
 }

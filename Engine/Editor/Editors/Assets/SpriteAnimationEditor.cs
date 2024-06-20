@@ -20,7 +20,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
         {
             if(asset.texture != null)
             {
-                EditorGUI.Button("+", () =>
+                EditorGUI.Button("+", $"SpriteAnimationFramesAdd", () =>
                 {
                     asset.frames.Add(0);
                 });
@@ -32,7 +32,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                         var frame = asset.frames[i];
                         var frameIndex = i;
 
-                        EditorGUI.Button("-", () =>
+                        EditorGUI.Button("-", $"SpriteAnimationFrames{i}Remove", () =>
                         {
                             asset.frames.RemoveAt(i);
                         });
@@ -52,7 +52,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
 
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("O", () =>
+                        EditorGUI.Button("O", $"SpriteAnimationFrames{i}Browse", () =>
                         {
                             var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));

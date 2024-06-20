@@ -39,7 +39,7 @@ internal class FontAssetEditor : Editor
                         textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
                     }
 
-                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), textureMaxSizes, index);
+                    var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), "FontAssetTextureSize", textureMaxSizes, index);
 
                     if (index != newIndex)
                     {
@@ -93,7 +93,7 @@ internal class FontAssetEditor : Editor
 
         if (hasChanges)
         {
-            EditorGUI.Button("Apply", () =>
+            EditorGUI.Button("Apply", "FontAssetApply", () =>
             {
                 try
                 {
@@ -120,7 +120,7 @@ internal class FontAssetEditor : Editor
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("Revert", () =>
+            EditorGUI.Button("Revert", "FontAssetRevert", () =>
             {
                 var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -132,11 +132,11 @@ internal class FontAssetEditor : Editor
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply", null);
+            EditorGUI.ButtonDisabled("Apply", "FontAssetApply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert", null);
+            EditorGUI.ButtonDisabled("Revert", "FontAssetRevert", null);
         }
     }
 }

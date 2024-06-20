@@ -84,7 +84,7 @@ internal class MaterialEditor : Editor
 
                                 var current = parameter.Value.vec2Value.ToVector2();
 
-                                var newValue = EditorGUI.Vector2Field(label, current);
+                                var newValue = EditorGUI.Vector2Field(label, parameter.Key, current);
 
                                 if (newValue != current)
                                 {
@@ -105,7 +105,7 @@ internal class MaterialEditor : Editor
 
                                 var current = parameter.Value.vec3Value.ToVector3();
 
-                                var newValue = EditorGUI.Vector3Field(label, current);
+                                var newValue = EditorGUI.Vector3Field(label, parameter.Key, current);
 
                                 if (newValue != current)
                                 {
@@ -127,7 +127,7 @@ internal class MaterialEditor : Editor
 
                                 var current = parameter.Value.vec4Value.ToVector4();
 
-                                var newValue = EditorGUI.Vector4Field(label, current);
+                                var newValue = EditorGUI.Vector4Field(label, parameter.Key, current);
 
                                 if (newValue != current)
                                 {
@@ -142,19 +142,19 @@ internal class MaterialEditor : Editor
 
                         case MaterialParameterType.Color:
 
-                            parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Value.colorValue);
+                            parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Key, parameter.Value.colorValue);
 
                             break;
 
                         case MaterialParameterType.Float:
 
-                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Value.floatValue);
+                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
 
                             break;
 
                         case MaterialParameterType.TextureWrap:
 
-                            parameter.Value.textureWrapValue = EditorGUI.EnumDropdown(label, parameter.Value.textureWrapValue);
+                            parameter.Value.textureWrapValue = EditorGUI.EnumDropdown(label, parameter.Key, parameter.Value.textureWrapValue);
 
                             break;
                     }
@@ -220,7 +220,7 @@ internal class MaterialEditor : Editor
 
         if (hasChanges)
         {
-            EditorGUI.Button("Apply", () =>
+            EditorGUI.Button("Apply", "MaterialApply", () =>
             {
                 try
                 {
@@ -250,7 +250,7 @@ internal class MaterialEditor : Editor
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("Revert", () =>
+            EditorGUI.Button("Revert", "MaterialRevert", () =>
             {
                 metadata.shader = originalMetadata.shader;
                 metadata.parameters.Clear();
@@ -265,11 +265,11 @@ internal class MaterialEditor : Editor
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply", null);
+            EditorGUI.ButtonDisabled("Apply", "MaterialApply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert", null);
+            EditorGUI.ButtonDisabled("Revert", "MaterialRevert", null);
         }
     }
 }

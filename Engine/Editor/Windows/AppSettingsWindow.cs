@@ -34,29 +34,29 @@ internal class AppSettingsWindow : EditorWindow
     {
         base.OnGUI();
 
-        EditorGUI.TreeNode("General", false, true, () =>
+        EditorGUI.TreeNode("General", "APPSETTINGSGENERAL", false, true, () =>
         {
-            projectAppSettings.appName = EditorGUI.TextField("App Name", projectAppSettings.appName ?? "");
+            projectAppSettings.appName = EditorGUI.TextField("App Name", "APPSETTINGSGENERALNAME", projectAppSettings.appName ?? "");
 
-            projectAppSettings.companyName = EditorGUI.TextField("Company Name", projectAppSettings.companyName ?? "");
+            projectAppSettings.companyName = EditorGUI.TextField("Company Name", "APPSETTINGSGENERALCOMPANYNAME", projectAppSettings.companyName ?? "");
 
-            projectAppSettings.appBundleID = EditorGUI.TextField("App Bundle ID", projectAppSettings.appBundleID ?? "");
+            projectAppSettings.appBundleID = EditorGUI.TextField("App Bundle ID", "APPSETTINGSGENERALBUNDLEID", projectAppSettings.appBundleID ?? "");
 
-            projectAppSettings.appDisplayVersion = EditorGUI.TextField("App Display Version", projectAppSettings.appDisplayVersion ?? "");
+            projectAppSettings.appDisplayVersion = EditorGUI.TextField("App Display Version", "APPSETTINGSGENERALDISPLAYVERSION", projectAppSettings.appDisplayVersion ?? "");
 
-            projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", projectAppSettings.appVersion);
+            projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", "APPSETTINGSGENERALVERSION", projectAppSettings.appVersion);
         });
 
-        EditorGUI.TreeNode("Timing", false, true, () =>
+        EditorGUI.TreeNode("Timing", "APPSETTINGSTIMING", false, true, () =>
         {
-            projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", projectAppSettings.fixedTimeFrameRate);
+            projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", "APPSETTINGSTIMINGFIXEDTIMEFRAMERATE", projectAppSettings.fixedTimeFrameRate);
 
             if (projectAppSettings.fixedTimeFrameRate <= 0)
             {
                 projectAppSettings.fixedTimeFrameRate = 1;
             }
 
-            projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps", projectAppSettings.maximumFixedTimestepTime);
+            projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps", "APPSETTINGSTIMINGMAXIMUMTIME", projectAppSettings.maximumFixedTimestepTime);
 
             if (projectAppSettings.maximumFixedTimestepTime <= 0)
             {
@@ -64,9 +64,9 @@ internal class AppSettingsWindow : EditorWindow
             }
         });
 
-        EditorGUI.TreeNode("Physics", false, true, () =>
+        EditorGUI.TreeNode("Physics", "APPSETTINGSPHYSICS", false, true, () =>
         {
-            projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", projectAppSettings.physicsFrameRate);
+            projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", "APPSETTINGSPHYSICSFRAMERATE", projectAppSettings.physicsFrameRate);
 
             if (projectAppSettings.physicsFrameRate <= 0)
             {
@@ -74,27 +74,27 @@ internal class AppSettingsWindow : EditorWindow
             }
         });
 
-        EditorGUI.TreeNode("Layers", false, true, () =>
+        EditorGUI.TreeNode("Layers", "APPSETTINGSLAYERS", false, true, () =>
         {
             void Handle(List<string> layers)
             {
                 EditorGUI.SameLine();
 
-                EditorGUI.Button("+", () =>
+                EditorGUI.Button("+", "APPSETTINGSLAYERSADD", () =>
                 {
                     layers.Add("Layer");
                 });
 
                 for (var i = 0; i < layers.Count; i++)
                 {
-                    layers[i] = EditorGUI.TextField($"Layer {i + 1}", layers[i]);
+                    layers[i] = EditorGUI.TextField($"Layer {i + 1}", $"APPSETTINGSLAYERS{i}", layers[i]);
 
                     //Can't remove default layer
                     if (i > 1)
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("Up", () =>
+                        EditorGUI.Button("Up", $"APPSETTINGSLAYERS{i}UP", () =>
                         {
                             (layers[i], layers[i - 1]) = (layers[i - 1], layers[i]);
                         });
@@ -104,7 +104,7 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("Down", () =>
+                        EditorGUI.Button("Down", $"APPSETTINGSLAYERS{i}DOWN", () =>
                         {
                             (layers[i], layers[i + 1]) = (layers[i + 1], layers[i]);
                         });
@@ -115,7 +115,7 @@ internal class AppSettingsWindow : EditorWindow
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("X", () =>
+                        EditorGUI.Button("X", $"APPSETTINGSLAYERS{i}REMOVE", () =>
                         {
                             layers.RemoveAt(i);
                         });
@@ -137,13 +137,32 @@ internal class AppSettingsWindow : EditorWindow
             Handle(projectAppSettings.sortingLayers);
         });
 
-        EditorGUI.TreeNode("Rendering and Presentation", false, true, () =>
+        EditorGUI.TreeNode("Plugins", "APPSETTINGSPLUGINS", false, true, () =>
         {
-            projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", projectAppSettings.runInBackground);
+            foreach (var kind in moduleKinds)
+            {
+                if (StapleEditor.instance.modulesList.TryGetValue(kind, out var modules))
+                {
+                    projectAppSettings.usedModules.TryGetValue(kind, out var localName);
 
-            projectAppSettings.multiThreadedRenderer = EditorGUI.Toggle("Multithreaded Renderer (experimental)", projectAppSettings.multiThreadedRenderer);
+                    var index = EditorGUI.Dropdown(kind.ToString(), $"APPSETTINGSPLUGINS{kind}", moduleNames[kind], modules.FindIndex(x => x.moduleName == localName));
 
-            EditorGUI.TabBar(PlayerBackendManager.BackendNames, (index) =>
+                    if (index >= 0 && index < modules.Count)
+                    {
+                        projectAppSettings.usedModules.AddOrSetKey(kind, modules[index].moduleName);
+                    }
+                }
+            }
+        });
+
+        EditorGUI.TreeNode("Rendering and Presentation", $"APPSETTINGSRENDERING", false, true, () =>
+        {
+            projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", $"APPSETTINGSRENDERINGBACKGROUND", projectAppSettings.runInBackground);
+
+            projectAppSettings.multiThreadedRenderer = EditorGUI.Toggle("Multithreaded Renderer (experimental)", $"APPSETTINGSRENDERINGMULTITHREAD",
+                projectAppSettings.multiThreadedRenderer);
+
+            EditorGUI.TabBar(PlayerBackendManager.BackendNames, "APPSETTINGSRENDERINGBACKENDS", (index) =>
             {
                 var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
 
@@ -151,22 +170,28 @@ internal class AppSettingsWindow : EditorWindow
                     backend.platform == AppPlatform.Linux ||
                     backend.platform == AppPlatform.MacOSX)
                 {
-                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window Mode *", projectAppSettings.defaultWindowMode);
+                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window Mode *", $"APPSETTINGSRENDERINGBACKEND{index}WINDOWMODE",
+                        projectAppSettings.defaultWindowMode);
 
-                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window Width *", projectAppSettings.defaultWindowWidth);
+                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window Width *", $"APPSETTINGSRENDERINGBACKEND{index}WINDOWWIDTH",
+                        projectAppSettings.defaultWindowWidth);
 
-                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window Height *", projectAppSettings.defaultWindowHeight);
+                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window Height *", $"APPSETTINGSRENDERINGBACKEND{index}WINDOWHEIGHT",
+                        projectAppSettings.defaultWindowHeight);
                 }
                 else if (backend.platform == AppPlatform.Android ||
                     backend.platform == AppPlatform.iOS)
                 {
-                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait Orientation *", projectAppSettings.portraitOrientation);
+                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait Orientation *", $"APPSETTINGSRENDERINGBACKEND{index}PORTRAIT",
+                        projectAppSettings.portraitOrientation);
 
-                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape Orientation *", projectAppSettings.landscapeOrientation);
+                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape Orientation *", $"APPSETTINGSRENDERINGBACKEND{index}LANDSCAPE",
+                        projectAppSettings.landscapeOrientation);
 
                     if (backend.platform == AppPlatform.Android)
                     {
-                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Android Min SDK", projectAppSettings.androidMinSDK);
+                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Android Min SDK", $"APPSETTINGSRENDERINGBACKEND{index}ANDROIDSDK",
+                            projectAppSettings.androidMinSDK);
 
                         if (projectAppSettings.androidMinSDK < 26)
                         {
@@ -175,7 +200,8 @@ internal class AppSettingsWindow : EditorWindow
                     }
                     else if (backend.platform == AppPlatform.iOS)
                     {
-                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS Deployment Target", projectAppSettings.iOSDeploymentTarget);
+                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS Deployment Target", $"APPSETTINGSRENDERINGBACKEND{index}IOSDEPLOYMENT",
+                            projectAppSettings.iOSDeploymentTarget);
 
                         if (projectAppSettings.iOSDeploymentTarget < 13)
                         {
@@ -195,7 +221,7 @@ internal class AppSettingsWindow : EditorWindow
 
                 for (var i = 0; i < renderers.Count; i++)
                 {
-                    var result = EditorGUI.EnumDropdown("Renderer", renderers[i], backend.renderers);
+                    var result = EditorGUI.EnumDropdown("Renderer", $"APPSETTINGSRENDERINGRENDERER{index}{i}", renderers[i], backend.renderers);
 
                     if (result != renderers[i] && renderers.All(x => x != result))
                     {
@@ -204,13 +230,13 @@ internal class AppSettingsWindow : EditorWindow
 
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("-", () =>
+                    EditorGUI.Button("-", $"APPSETTINGSRENDERINGRENDERER{index}{i}REMOVE", () =>
                     {
                         renderers.RemoveAt(i);
                     });
                 }
 
-                EditorGUI.Button("+", () =>
+                EditorGUI.Button("+", $"APPSETTINGSRENDERINGRENDERER{index}ADD", () =>
                 {
                     renderers.Add(backend.renderers.FirstOrDefault());
                 });
@@ -219,25 +245,7 @@ internal class AppSettingsWindow : EditorWindow
 
         EditorGUI.Label("* - Shared setting between platforms");
 
-        EditorGUI.TreeNode("Plugins", false, true, () =>
-        {
-            foreach(var kind in moduleKinds)
-            {
-                if (StapleEditor.instance.modulesList.TryGetValue(kind, out var modules))
-                {
-                    projectAppSettings.usedModules.TryGetValue(kind, out var localName);
-
-                    var index = EditorGUI.Dropdown(kind.ToString(), moduleNames[kind], modules.FindIndex(x => x.moduleName == localName));
-
-                    if(index >= 0 && index < modules.Count)
-                    {
-                        projectAppSettings.usedModules.AddOrSetKey(kind, modules[index].moduleName);
-                    }
-                }
-            }
-        });
-
-        EditorGUI.Button("Apply Changes", () =>
+        EditorGUI.Button("Apply Changes", "APPSETTINGSAPPLYCHANGES", () =>
         {
             try
             {
@@ -258,7 +266,7 @@ internal class AppSettingsWindow : EditorWindow
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("Close", () =>
+        EditorGUI.Button("Close", "APPSETTINGSCLOSE", () =>
         {
             Close();
         });

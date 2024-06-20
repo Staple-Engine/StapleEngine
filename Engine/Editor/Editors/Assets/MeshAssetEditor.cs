@@ -32,7 +32,7 @@ internal class MeshAssetEditor : Editor
 
         if (hasChanges)
         {
-            EditorGUI.Button("Apply", () =>
+            EditorGUI.Button("Apply", "MeshAssetApply", () =>
             {
                 try
                 {
@@ -66,7 +66,7 @@ internal class MeshAssetEditor : Editor
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("Revert", () =>
+            EditorGUI.Button("Revert", "MeshAssetRevert", () =>
             {
                 var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -78,16 +78,16 @@ internal class MeshAssetEditor : Editor
         }
         else
         {
-            EditorGUI.ButtonDisabled("Apply", null);
+            EditorGUI.ButtonDisabled("Apply", "MeshAssetApply", null);
 
             EditorGUI.SameLine();
 
-            EditorGUI.ButtonDisabled("Revert", null);
+            EditorGUI.ButtonDisabled("Revert", "MeshAssetRevert", null);
         }
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("Recreate Materials", () =>
+        EditorGUI.Button("Recreate Materials", "MeshAssetRecreateMaterials", () =>
         {
             try
             {

@@ -1,3 +1,4 @@
+using Staple;
 using Staple.Editor;
 
 namespace TestGame
@@ -10,15 +11,17 @@ namespace TestGame
 			var window = GetWindow<TestWindow>();
 			
 			window.title = "Test Window from game!";
+
+			window.size = new Vector2Int(300, 300);
 		}
-		
+		 
 		public override void OnGUI()
 		{
-			if(EditorGUI.Button("X"))
+			EditorGUI.Button("X", "Close", () =>
 			{
 				Close();
-			}
-
+			});
+			
 			EditorGUI.Label("Test Window from game!");
 		}
 	}

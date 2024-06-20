@@ -17,11 +17,11 @@ internal partial class StapleEditor
     {
         var result = false;
 
-        EditorGUI.Menu("Create", () =>
+        EditorGUI.Menu("Create", $"{parent.entity}Create", () =>
         {
             foreach (var t in registeredEntityTemplates)
             {
-                EditorGUI.MenuItem(t.Name, () =>
+                EditorGUI.MenuItem(t.Name, $"{parent.entity}Create{t.Name}", () =>
                 {
                     var e = t.Create();
 
@@ -80,7 +80,7 @@ internal partial class StapleEditor
             var fileName = Path.GetFileNameWithoutExtension(name);
             var extension = Path.GetExtension(name).Substring(1);
 
-            EditorGUI.MenuItem(fileName, () =>
+            EditorGUI.MenuItem(fileName, $"{pair.Key}Create", () =>
             {
                 var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
                 var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
@@ -102,7 +102,7 @@ internal partial class StapleEditor
         {
             var name = pair.Value.Name;
 
-            EditorGUI.MenuItem(name, () =>
+            EditorGUI.MenuItem(name, $"{pair.Key}Create", () =>
             {
                 var fileName = name;
                 var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
@@ -143,19 +143,19 @@ internal partial class StapleEditor
 
         if (ImGui.BeginMainMenuBar())
         {
-            EditorGUI.Menu("File", () =>
+            EditorGUI.Menu("File", "FILE", () =>
             {
-                EditorGUI.MenuItem("New Project", () =>
+                EditorGUI.MenuItem("New Project", "NEWPROJECT", () =>
                 {
                     ImGuiNewProject();
                 });
 
-                EditorGUI.MenuItem("Open Project", () =>
+                EditorGUI.MenuItem("Open Project", "OPENPROJECT", () =>
                 {
                     ImGuiOpenProject();
                 });
 
-                EditorGUI.MenuItem("Project Settings", () =>
+                EditorGUI.MenuItem("Project Settings", "PROJECTSETTINGS", () =>
                 {
                     var window = EditorWindow.GetWindow<AppSettingsWindow>();
 
@@ -163,13 +163,13 @@ internal partial class StapleEditor
                     window.basePath = basePath;
                 });
 
-                EditorGUI.MenuItem("Open Solution", () =>
+                EditorGUI.MenuItem("Open Solution", "OPENSOLUTION", () =>
                 {
                     csProjManager.GenerateGameCSProj(currentPlatform, true);
                     csProjManager.OpenGameSolution();
                 });
 
-                EditorGUI.MenuItem("Save", () =>
+                EditorGUI.MenuItem("Save", "SAVE", () =>
                 {
                     if (Scene.current != null && lastOpenScene != null)
                     {
@@ -195,7 +195,7 @@ internal partial class StapleEditor
 
                 EditorGUI.Separator();
 
-                EditorGUI.MenuItem("Build", () =>
+                EditorGUI.MenuItem("Build", "BUILD", () =>
                 {
                     var window = EditorWindow.GetWindow<BuildWindow>();
 
@@ -204,23 +204,23 @@ internal partial class StapleEditor
 
                 EditorGUI.Separator();
 
-                EditorGUI.MenuItem("Exit", () =>
+                EditorGUI.MenuItem("Exit", "EXIT", () =>
                 {
                     window.shouldStop = true;
                 });
             });
 
-            EditorGUI.Menu("Edit", () =>
+            EditorGUI.Menu("Edit", "EDIT", () =>
             {
-                EditorGUI.MenuItem("Recreate render device", () =>
+                EditorGUI.MenuItem("Recreate render device", "RESETDEVICE", () =>
                 {
                     window.forceContextLoss = true;
                 });
             });
 
-            EditorGUI.Menu("Assets", () =>
+            EditorGUI.Menu("Assets", "ASSETS", () =>
             {
-                EditorGUI.Menu("Create", () =>
+                EditorGUI.Menu("Create", "ASSETSCREATE", () =>
                 {
                     CreateAssetMenu();
                 });
@@ -228,29 +228,58 @@ internal partial class StapleEditor
 
             void Recursive(MenuItemInfo parent)
             {
-                EditorGUI.MenuItem(parent.name, () =>
+                if(parent.children.Count > 0)
                 {
-                    if (parent.children.Count == 0)
+                    EditorGUI.Menu(parent.name, $"{parent.name}{parent.children.Count}", () =>
                     {
-                        if (parent.onClick != null)
+                        if (parent.children.Count == 0)
                         {
-                            try
+                            if (parent.onClick != null)
                             {
-                                parent.onClick();
-                            }
-                            catch (Exception)
-                            {
+                                try
+                                {
+                                    parent.onClick();
+                                }
+                                catch (Exception)
+                                {
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        foreach (var child in parent.children)
+                        else
                         {
-                            Recursive(child);
+                            foreach (var child in parent.children)
+                            {
+                                Recursive(child);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+                else
+                {
+                    EditorGUI.MenuItem(parent.name, $"{parent.name}{parent.children.Count}", () =>
+                    {
+                        if (parent.children.Count == 0)
+                        {
+                            if (parent.onClick != null)
+                            {
+                                try
+                                {
+                                    parent.onClick();
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var child in parent.children)
+                            {
+                                Recursive(child);
+                            }
+                        }
+                    });
+                }
             }
 
             foreach(var item in menuItems)
@@ -294,7 +323,7 @@ internal partial class StapleEditor
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(new Color32("#00CED1")));
                 }
 
-                EditorGUI.TreeNode(entityName, transform.ChildCount == 0, true, () =>
+                EditorGUI.TreeNode(entityName, $"{transform.entity}", transform.ChildCount == 0, true, () =>
                 {
                     if (ImGui.BeginDragDropTarget())
                     {
@@ -503,7 +532,7 @@ internal partial class StapleEditor
 
         mouseIsHoveringImGui = (viewportType == ViewportType.Scene && ImGui.IsItemActive()) == false;
 
-        EditorGUI.TabBar(["Scene", "Game"], (tabIndex) =>
+        EditorGUI.TabBar(["Scene", "Game"], "SCENEGAME", (tabIndex) =>
         {
             switch (tabIndex)
             {
@@ -574,7 +603,7 @@ internal partial class StapleEditor
         {
             var name = selectedEntity.Name;
 
-            var newName = EditorGUI.TextField("Name", name);
+            var newName = EditorGUI.TextField("Name", "SELECTEDNAME", name);
 
             if(name != newName)
             {
@@ -583,7 +612,7 @@ internal partial class StapleEditor
 
             var enabled = selectedEntity.Enabled;
 
-            var newValue = EditorGUI.Toggle("Enabled", enabled);
+            var newValue = EditorGUI.Toggle("Enabled", "SELECTEDENABLED", enabled);
 
             if(newValue != enabled)
             {
@@ -595,7 +624,7 @@ internal partial class StapleEditor
                 .Where(x => x != RenderTargetLayerName)
                 .ToArray();
 
-            var newLayer = EditorGUI.Dropdown("Layer", layers, (int)currentLayer);
+            var newLayer = EditorGUI.Dropdown("Layer", "SELECTEDLAYER", layers, (int)currentLayer);
 
             if(newLayer != currentLayer)
             {
@@ -611,7 +640,7 @@ internal partial class StapleEditor
                 var localComponent = component;
                 var removed = false;
 
-                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), false, false, () =>
+                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), $"SELECTED{component.GetType().FullName}", false, false, () =>
                 {
                     if(removed)
                     {
@@ -620,18 +649,18 @@ internal partial class StapleEditor
 
                     if (localComponent is Transform transform)
                     {
-                        transform.LocalPosition = EditorGUI.Vector3Field("Position", transform.LocalPosition);
+                        transform.LocalPosition = EditorGUI.Vector3Field("Position", $"SELECTED{localComponent.GetType().FullName}POSITION", transform.LocalPosition);
 
                         var rotation = transform.LocalRotation.ToEulerAngles();
 
-                        var newRotation = EditorGUI.Vector3Field("Rotation", rotation);
+                        var newRotation = EditorGUI.Vector3Field("Rotation", $"SELECTED{localComponent.GetType().FullName}ROTATION", rotation);
 
                         if (rotation != newRotation)
                         {
                             transform.LocalRotation = Math.FromEulerAngles(newRotation);
                         }
 
-                        transform.LocalScale = EditorGUI.Vector3Field("Scale", transform.LocalScale);
+                        transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE", transform.LocalScale);
                     }
                     else
                     {
@@ -656,7 +685,7 @@ internal partial class StapleEditor
                 {
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("X", () =>
+                    EditorGUI.Button("X", $"ENTITYREMOVE{localComponent.GetType()}", () =>
                     {
                         selectedEntity.RemoveComponent(localComponent.GetType());
 
@@ -737,7 +766,7 @@ internal partial class StapleEditor
 
         ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.FrameStyle);
 
-        EditorGUI.TabBar(["Project", "Log"], (tabIndex) =>
+        EditorGUI.TabBar(["Project", "Log"], "PROJECT", (tabIndex) =>
         {
             activeBottomTab = tabIndex;
         });
@@ -1066,7 +1095,7 @@ internal partial class StapleEditor
                     {
                         lastOpenScene = item.path;
 
-                        ResetScenePhysics();
+                        ResetScenePhysics(true);
 
                         UpdateLastSession();
                     }

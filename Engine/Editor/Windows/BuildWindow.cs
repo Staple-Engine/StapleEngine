@@ -128,15 +128,15 @@ internal class BuildWindow : EditorWindow
 
         var current = Array.IndexOf(PlayerBackendManager.BackendNames, StapleEditor.instance.buildBackend);
 
-        current = EditorGUI.Dropdown("Platform", PlayerBackendManager.BackendNames, current);
+        current = EditorGUI.Dropdown("Platform", "BuildWindowPlatform", PlayerBackendManager.BackendNames, current);
 
         if (current >= 0 && current < PlayerBackendManager.BackendNames.Length)
         {
             StapleEditor.instance.buildBackend = PlayerBackendManager.BackendNames[current];
         }
 
-        StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug Build", StapleEditor.instance.buildPlayerDebug);
-        StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", StapleEditor.instance.buildPlayerNativeAOT);
+        StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug Build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
+        StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
 
         var backend = PlayerBackendManager.Instance.GetBackend(StapleEditor.instance.buildBackend);
 
@@ -145,7 +145,7 @@ internal class BuildWindow : EditorWindow
             return;
         }
 
-        EditorGUI.Button("Build", () =>
+        EditorGUI.Button("Build", "BuildWindowBuild", () =>
         {
             var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
                 out var path);
@@ -176,7 +176,7 @@ internal class BuildWindow : EditorWindow
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("Build (Assets Only)", () =>
+        EditorGUI.Button("Build (Assets Only)", "BuildWindowBuildAssets", () =>
         {
             var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
                 out var path);
@@ -207,7 +207,7 @@ internal class BuildWindow : EditorWindow
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("Close", () =>
+        EditorGUI.Button("Close", "BuildWindowClose", () =>
         {
             Close();
         });

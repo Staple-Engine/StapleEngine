@@ -28,7 +28,7 @@ internal class AssetPickerWindow : EditorWindow
 
         string newValue = assetPickerSearch;
 
-        assetPickerSearch = EditorGUI.TextField("Search", newValue);
+        assetPickerSearch = EditorGUI.TextField("Search", "AssetPickerSearch", newValue);
 
         var validItems = new List<ProjectBrowserNode>
         {

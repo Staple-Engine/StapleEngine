@@ -18,16 +18,18 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("+", () =>
+        EditorGUI.Button("+", $"{name}Add", () =>
         {
             value.AddPersistentCallback(new());
         });
 
         var skip = false;
 
+        var counter = 0;
+
         foreach(var callback in value.PersistentCallbacks())
         {
-            callback.entityID = EditorGUI.IntField("Entity", callback.entityID);
+            callback.entityID = EditorGUI.IntField("Entity", $"{name}Entity{counter}", callback.entityID);
 
             var entity = Scene.FindEntity(callback.entityID);
 
@@ -35,8 +37,10 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
             {
                 EditorGUI.SameLine();
 
-                EditorGUI.Button("-", () =>
+                EditorGUI.Button("-", $"{name}CallbackRemove{counter}", () =>
                 {
+                    counter++;
+
                     value.RemovePersistentCallback(callback);
 
                     skip = true;
@@ -59,7 +63,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
             var index = componentTypes.FindIndex(x => x.FullName == callback.className);
 
-            var newIndex = EditorGUI.Dropdown("Component", componentTypes.Select(x => x.Name).ToArray(), index);
+            var newIndex = EditorGUI.Dropdown("Component", $"{name}Component{counter}", componentTypes.Select(x => x.Name).ToArray(), index);
 
             if(newIndex != index && newIndex < componentTypes.Count)
             {
@@ -72,8 +76,10 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
             {
                 EditorGUI.SameLine();
 
-                EditorGUI.Button("-", () =>
+                EditorGUI.Button("-", $"{name}CallbackRemove2{counter}", () =>
                 {
+                    counter++;
+
                     value.RemovePersistentCallback(callback);
 
                     skip = true;
@@ -99,12 +105,30 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
             index = methodNames.IndexOf(callback.methodName);
 
-            newIndex = EditorGUI.Dropdown("Method", methodNames.ToArray(), index);
+            newIndex = EditorGUI.Dropdown("Method", $"{name}CallbackRemove3{counter}", methodNames.ToArray(), index);
 
             if(newIndex != index && newIndex < methods.Length)
             {
                 callback.methodName = methodNames[newIndex];
             }
+
+            EditorGUI.SameLine();
+
+            EditorGUI.Button("-", $"{name}CallbackRemove4{counter}", () =>
+            {
+                counter++;
+
+                value.RemovePersistentCallback(callback);
+
+                skip = true;
+            });
+
+            if(skip)
+            {
+                break;
+            }
+
+            counter++;
         }
 
         if(EditorGUI.Changed)

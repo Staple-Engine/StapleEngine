@@ -432,7 +432,7 @@ public static class EditorUtils
 
             EditorGUI.SameLine();
 
-            EditorGUI.Button("O", () =>
+            EditorGUI.Button("O", $"{name}Picker", () =>
             {
                 var editor = StapleEditor.instance;
                 var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(v.Guid));

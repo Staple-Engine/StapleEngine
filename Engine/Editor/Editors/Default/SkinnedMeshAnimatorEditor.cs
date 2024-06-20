@@ -29,7 +29,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
                     current = 0;
                 }
 
-                current = EditorGUI.Dropdown(name.ExpandCamelCaseName(), animationNames.ToArray(), current);
+                current = EditorGUI.Dropdown(name.ExpandCamelCaseName(), "SkinnedMeshAnimatorNames", animationNames.ToArray(), current);
 
                 if(current < 0)
                 {
@@ -57,7 +57,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
             return;
         }
 
-        animator.playInEditMode = EditorGUI.Toggle("Play on edit mode", animator.playInEditMode);
+        animator.playInEditMode = EditorGUI.Toggle("Play on edit mode", "SkinnedMeshAnimatorPlay", animator.playInEditMode);
 
         if(animator.animation != null &&
             animator.mesh != null &&
@@ -66,7 +66,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
             animator.mesh.meshAssetIndex < animator.mesh.meshAsset.meshes.Count &&
             animator.mesh.meshAsset.animations.TryGetValue(animator.animation, out var animation))
         {
-            var newPlaytime = EditorGUI.FloatField("Play Time (seconds)", animator.playTime);
+            var newPlaytime = EditorGUI.FloatField("Play Time (seconds)", "SkinnedMeshAnimatorPlayTime", animator.playTime);
 
             string TimeString(float time)
             {

@@ -172,10 +172,7 @@ internal partial class StapleEditor
 
             Scene.SetActiveScene(scene);
 
-            if (scene != null)
-            {
-                ResetScenePhysics();
-            }
+            ResetScenePhysics(false);
         }
 
         lastProjects.lastOpenProject = path;

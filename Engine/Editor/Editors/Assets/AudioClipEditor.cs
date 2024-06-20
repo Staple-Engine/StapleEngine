@@ -124,7 +124,7 @@ internal class AudioClipEditor : Editor
 
             if (audioSource != null)
             {
-                EditorGUI.Button("Play", () =>
+                EditorGUI.Button("Play", "AudioSourcePlay", () =>
                 {
                     audioSource.Play();
                 });
@@ -133,35 +133,35 @@ internal class AudioClipEditor : Editor
 
                 if (audioSource.Playing)
                 {
-                    EditorGUI.Button("Pause", () =>
+                    EditorGUI.Button("Pause", "AudioSourcePause", () =>
                     {
                         audioSource.Pause();
                     });
                 }
                 else if (audioSource.Paused)
                 {
-                    EditorGUI.Button("Resume", () =>
+                    EditorGUI.Button("Resume", "AudioSourceResume", () =>
                     {
                         audioSource.Play();
                     });
                 }
                 else
                 {
-                    EditorGUI.ButtonDisabled("Pause", null);
+                    EditorGUI.ButtonDisabled("Pause", "AudioSourcePause", null);
                 }
 
                 EditorGUI.SameLine();
 
                 if (audioSource.Playing)
                 {
-                    EditorGUI.Button("Stop", () =>
+                    EditorGUI.Button("Stop", "AudioSourceStop", () =>
                     {
                         audioSource.Stop();
                     });
                 }
                 else
                 {
-                    EditorGUI.ButtonDisabled("Stop", null);
+                    EditorGUI.ButtonDisabled("Stop", "AudioSourceStop", null);
                 }
             }
 
@@ -169,7 +169,7 @@ internal class AudioClipEditor : Editor
 
             if (hasChanges)
             {
-                EditorGUI.Button("Apply", () =>
+                EditorGUI.Button("Apply", "AudioSourceApply", () =>
                 {
                     try
                     {
@@ -199,7 +199,7 @@ internal class AudioClipEditor : Editor
 
                 EditorGUI.SameLine();
 
-                EditorGUI.Button("Revert", () =>
+                EditorGUI.Button("Revert", "AudioSourceRevert", () =>
                 {
                     var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 
@@ -211,11 +211,11 @@ internal class AudioClipEditor : Editor
             }
             else
             {
-                EditorGUI.ButtonDisabled("Apply", null);
+                EditorGUI.ButtonDisabled("Apply", "AudioSourceApply", null);
 
                 EditorGUI.SameLine();
 
-                EditorGUI.ButtonDisabled("Revert", null);
+                EditorGUI.ButtonDisabled("Revert", "AudioSourceRevert", null);
             }
         }
     }

@@ -23,8 +23,8 @@ namespace TestGame
                 }
                 else
                 {
-                    transform.LocalPosition = new Vector3(Math.Cos(Math.Deg2Rad(movement.t)) * movement.distance,
-                        Math.Sin(Math.Deg2Rad(movement.t)) * movement.distance,
+                    transform.LocalPosition = new Vector3(Math.Cos(movement.t * Math.Deg2Rad) * movement.distance,
+                        Math.Sin(movement.t * Math.Deg2Rad) * movement.distance,
                         0);
                 }
             });
