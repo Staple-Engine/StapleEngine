@@ -1076,11 +1076,11 @@ internal partial class StapleEditor
     {
         var cachePath = path;
 
-        var pathIndex = path.IndexOf("Assets");
+        var pathIndex = path.IndexOf("/Assets/");
 
         if (pathIndex >= 0)
         {
-            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "Assets\\".Length));
+            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "/Assets/".Length));
         }
 
         return cachePath;

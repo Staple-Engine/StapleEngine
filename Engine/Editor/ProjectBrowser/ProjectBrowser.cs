@@ -171,7 +171,7 @@ internal class ProjectBrowser
                     {
                         name = Path.GetFileName(directory),
                         extension = "",
-                        path = directory,
+                        path = directory.Replace("\\", "/"),
                         type = ProjectBrowserNodeType.Folder,
                         subnodes = subnodes,
                         typeName = typeof(FolderAsset).FullName,
@@ -193,7 +193,7 @@ internal class ProjectBrowser
                     {
                         name = Path.GetFileNameWithoutExtension(file),
                         extension = Path.GetExtension(file),
-                        path = file,
+                        path = file.Replace("\\", "/"),
                         subnodes = new(),
                         type = ProjectBrowserNodeType.File
                     };
@@ -848,9 +848,9 @@ internal class ProjectBrowser
 
                 var cachePath = item.path;
 
-                var cacheIndex = cachePath.IndexOf("Assets");
+                var cacheIndex = cachePath.IndexOf("/Assets/");
 
-                cachePath = cachePath.Substring(cacheIndex + "Assets0".Length).Replace("\\", "/");
+                cachePath = cachePath.Substring(cacheIndex + "/Assets/".Length).Replace("\\", "/");
 
                 var guid = AssetDatabase.GetAssetGuid(cachePath);
 
@@ -944,7 +944,7 @@ internal class ProjectBrowser
                     return;
                 }
 
-                var normalizedPath = Path.Combine(Path.GetDirectoryName(item.path), $"{name}{Path.GetExtension(item.path) ?? ""}");
+                var normalizedPath = Path.Combine(Path.GetDirectoryName(item.path), $"{name}{Path.GetExtension(item.path) ?? ""}").Replace("\\", "/");
 
                 switch(item.type)
                 {

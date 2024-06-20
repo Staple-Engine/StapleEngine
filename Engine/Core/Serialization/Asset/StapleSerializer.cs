@@ -150,6 +150,47 @@ internal static class StapleSerializer
     }
 
     /// <summary>
+    /// Serializes a primitive enumerable
+    /// </summary>
+    /// <param name="list">The array to serialize</param>
+    /// <param name="elementType">The element type</param>
+    /// <returns>The serialized bytes</returns>
+    public static byte[] SerializePrimitiveList(IList list, Type elementType)
+    {
+        if (elementType == typeof(bool))
+        {
+            var boolArray = new List<byte>();
+
+            foreach(bool value in list)
+            {
+                boolArray.Add((byte)(value ? 1 : 0));
+            }
+
+            return boolArray.ToArray();
+        }
+
+        var size = Marshal.SizeOf(elementType);
+
+        if (size <= 0)
+        {
+            return null;
+        }
+
+        var objects = new List<object>();
+
+        foreach(object o in list)
+        {
+            objects.Add(o);
+        }
+
+        var buffer = new byte[size * objects.Count];
+
+        Buffer.BlockCopy(objects.ToArray(), 0, buffer, 0, buffer.Length);
+
+        return buffer;
+    }
+
+    /// <summary>
     /// Serializes a field into an asset container
     /// </summary>
     /// <param name="field">The field to serialize</param>
@@ -328,7 +369,32 @@ internal static class StapleSerializer
                                 value = value,
                             });
                         }
-                        //TODO: Support primitives somehow
+                        else if (listType.IsPrimitive)
+                        {
+                            if (targetText && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                            {
+                                var list = (IList)value;
+
+                                var buffer = SerializePrimitiveList(list, listType);
+
+                                if (buffer != null)
+                                {
+                                    container.parameters.Add(field.Name, new()
+                                    {
+                                        typeName = value.GetType().FullName,
+                                        value = Convert.ToBase64String(buffer, Base64FormattingOptions.None),
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                container.parameters.Add(field.Name, new()
+                                {
+                                    typeName = value.GetType().FullName,
+                                    value = value,
+                                });
+                            }
+                        }
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
                         {
                             try
@@ -648,13 +714,16 @@ internal static class StapleSerializer
                             }
 
                             var fail = false;
+                            var fieldType = field.FieldType.GenericTypeArguments[0];
 
                             if (pair.Value.value is object[] array)
                             {
                                 foreach (var item in array)
                                 {
-                                    var fieldType = field.FieldType.GenericTypeArguments[0];
-
+                                    if (fieldType.IsPrimitive)
+                                    {
+                                        list.Add(item);
+                                    }
                                     if (fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
                                     {
                                         if (item is string guid)
@@ -783,6 +852,45 @@ internal static class StapleSerializer
                                 }
 
                                 field.SetValue(instance, list);
+                            }
+                            else if (pair.Value.value is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                            {
+                                Array newValue = null;
+
+                                try
+                                {
+                                    var bytes = Convert.FromBase64String(base64Encoded);
+
+                                    if (bytes != null)
+                                    {
+                                        if (pair.Value.value is not string[] &&
+                                            field.FieldType.GetElementType().IsPrimitive &&
+                                            field.FieldType.GetElementType() != typeof(bool))
+                                        {
+                                            var size = Marshal.SizeOf(fieldType);
+
+                                            newValue = Array.CreateInstance(fieldType, bytes.Length / size);
+                                        }
+                                        else
+                                        {
+                                            newValue = Array.CreateInstance(fieldType, bytes.Length);
+                                        }
+
+                                        DeserializePrimitiveArray(bytes, newValue);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    continue;
+                                }
+
+                                if (newValue != null)
+                                {
+                                    foreach (var element in newValue)
+                                    {
+                                        list.Add(element);
+                                    }
+                                }
                             }
 
                             continue;

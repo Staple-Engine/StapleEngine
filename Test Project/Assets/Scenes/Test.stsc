@@ -49,7 +49,9 @@
       }
     ],
     "layer": "Default",
-    "enabled": false
+    "enabled": false,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -83,7 +85,7 @@
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
-          "animation": "b9585ff8-f4f2-4214-9701-065f32127def",
+          "animation": "2cb79246-de34-4a18-9bdb-87b3f1f0ef67",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -145,12 +147,15 @@
           "gravityFactor": 0.0,
           "isTrigger": false,
           "friction": 0.0,
-          "restitution": 0.0
+          "restitution": 0.0,
+          "mass": 1.0
         }
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -184,7 +189,7 @@
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
-          "animation": "a20c9e5c-a5c9-4802-b185-69d9f6a50477",
+          "animation": "a2b3fb16-c445-4e44-b3bc-e7db88ccc9c6",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -239,12 +244,15 @@
           "gravityFactor": 0.0,
           "isTrigger": false,
           "friction": 0.0,
-          "restitution": 0.0
+          "restitution": 0.0,
+          "mass": 1.0
         }
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -290,7 +298,9 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -328,6 +338,8 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   }
 ]

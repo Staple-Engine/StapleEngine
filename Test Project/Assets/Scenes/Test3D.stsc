@@ -50,7 +50,9 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -79,7 +81,7 @@
         "type": "Staple.MeshRenderer",
         "data": {
           "mesh": "Internal/Cube",
-          "material": "db3c6e30-0fce-4b1b-a9e7-9bf7dcbfec30",
+          "materials": [],
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -89,7 +91,9 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
@@ -98,7 +102,7 @@
     "parent": 0,
     "transform": {
       "position": {
-        "x": 2.0,
+        "x": 0.0,
         "y": 0.0,
         "z": 0.0
       },
@@ -115,11 +119,13 @@
     },
     "components": [],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
-    "name": "concrete_cat_statue",
+    "name": "RootNode",
     "ID": 4,
     "parent": 3,
     "transform": {
@@ -129,8 +135,36 @@
         "z": 0.0
       },
       "rotation": {
+        "x": 90.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 2.0,
+        "y": 1.9999998,
+        "z": 1.9999998
+      }
+    },
+    "components": [],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "concrete_cat_statue",
+    "ID": 5,
+    "parent": 4,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
         "x": -90.0,
-        "y": -1.0017911E-05,
+        "y": 359.99997,
         "z": 0.0
       },
       "scale": {
@@ -141,13 +175,43 @@
     },
     "components": [],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "concrete_cat_statue",
+    "ID": 6,
+    "parent": 3,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   },
   {
     "kind": "Entity",
     "name": "Retopo_Node 300000_008.002",
-    "ID": 5,
-    "parent": 3,
+    "ID": 7,
+    "parent": 5,
     "transform": {
       "position": {
         "x": 0.0,
@@ -170,7 +234,9 @@
         "type": "Staple.MeshRenderer",
         "data": {
           "mesh": "3be47127-20fa-4c4d-b743-1ba03765ee89:0",
-          "material": "20f18b69-3013-4ae1-a3c9-afac0b387c77",
+          "materials": [
+            "c6873eeb-4473-4eb1-922b-c786d5c3a581"
+          ],
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
@@ -180,6 +246,8 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   }
 ]

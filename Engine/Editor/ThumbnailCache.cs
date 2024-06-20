@@ -110,11 +110,11 @@ internal class ThumbnailCache
 
                     var cachePath = request.path;
 
-                    var index = request.path.IndexOf("Assets");
+                    var index = request.path.IndexOf("/Assets/");
 
                     if (index >= 0)
                     {
-                        cachePath = request.path.Substring(index + "Assets\\".Length).Replace("\\", "/");
+                        cachePath = request.path.Substring(index + "/Assets/".Length).Replace("\\", "/");
                     }
 
                     var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
@@ -324,7 +324,10 @@ internal class ThumbnailCache
 
         void Cleanup()
         {
-            pendingRenderRequests.Remove(request.path);
+            lock(renderRequestLock)
+            {
+                pendingRenderRequests.Remove(request.path);
+            }
         }
 
         switch (request.type)
@@ -412,11 +415,11 @@ internal class ThumbnailCache
 
                     var cachePath = request.path;
 
-                    var index = request.path.IndexOf("Assets");
+                    var index = request.path.IndexOf("/Assets/");
 
                     if (index >= 0)
                     {
-                        cachePath = Path.Combine(basePath, "Cache", "Staging", platform.Value.ToString(), request.path.Substring(index + "Assets\\".Length));
+                        cachePath = Path.Combine(basePath, "Cache", "Staging", platform.Value.ToString(), request.path.Substring(index + "/Assets/".Length));
                     }
 
                     var thumbnailPath = Path.Combine(basePath, "Cache", "Thumbnails");
