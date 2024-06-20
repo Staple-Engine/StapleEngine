@@ -324,7 +324,7 @@ internal static class StapleSerializer
             return;
         }
 
-        if (field.IsPublic == false && field.GetCustomAttribute<SerializableAttribute>() == null)
+        if (field.IsPublic == false && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
         {
             return;
         }
@@ -639,7 +639,7 @@ internal static class StapleSerializer
             {
                 try
                 {
-                    var field = type.GetField(pair.Key);
+                    var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                     var valueType = TypeCache.GetType(pair.Value.typeName);
 
                     if (valueType == null ||

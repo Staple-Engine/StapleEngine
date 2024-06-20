@@ -95,6 +95,7 @@
 		<Compile Include="Attributes\MultilineAttribute.cs" />
 		<Compile Include="Attributes\RangeAttribute.cs" />
 		<Compile Include="Attributes\SerializeAsBase64Attribute.cs" />
+		<Compile Include="Attributes\SerializeFieldAttribute.cs" />
 		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
@@ -112,6 +113,7 @@
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />
+		<Compile Include="Entities\EntityCallback.cs" />
 		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />

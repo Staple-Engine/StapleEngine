@@ -82,6 +82,28 @@ namespace CoreTests
             public string[] strings;
         }
 
+        internal class SerializeFieldAsset : IStapleAsset
+        {
+            private int hiddenField;
+
+            [SerializeField]
+            private int serializedField;
+
+            public void SetHiddenField(int value)
+            {
+                hiddenField = value;
+            }
+
+            public void SetSerializedField(int value)
+            {
+                serializedField = value;
+            }
+
+            public int GetHiddenField() => hiddenField;
+
+            public int GetSerializedField() => serializedField;
+        }
+
         [Test]
         public void TestSerialize()
         {
@@ -402,6 +424,37 @@ namespace CoreTests
                 Assert.That(newAsset.values[0], Is.EqualTo(1));
                 Assert.That(newAsset.values[1], Is.EqualTo(2));
                 Assert.That(newAsset.values[2], Is.EqualTo(3));
+            }
+        }
+
+        [Test]
+        public void TestSerializeField()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new SerializeFieldAsset();
+
+            asset.SetSerializedField(2);
+            asset.SetHiddenField(1);
+
+            var result = AssetSerialization.Serialize(asset, false);
+
+            Assert.That(result, Is.Not.Null);
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(SerializeFieldAsset).FullName));
+
+            Assert.That(result.parameters.Count, Is.EqualTo(1));
+
+            var deserialized = AssetSerialization.Deserialize(result);
+
+            Assert.That(deserialized, Is.Not.Null);
+
+            Assert.That(deserialized, Is.TypeOf<SerializeFieldAsset>());
+
+            if (deserialized is SerializeFieldAsset newAsset)
+            {
+                Assert.That(newAsset.GetHiddenField(), Is.EqualTo(0));
+                Assert.That(newAsset.GetSerializedField(), Is.EqualTo(2));
             }
         }
     }
