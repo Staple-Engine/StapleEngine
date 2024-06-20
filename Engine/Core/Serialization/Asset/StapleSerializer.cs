@@ -176,18 +176,138 @@ internal static class StapleSerializer
             return null;
         }
 
-        var objects = new List<object>();
-
-        foreach(object o in list)
+        switch (elementType)
         {
-            objects.Add(o);
+            case Type t when t == typeof(byte):
+
+                {
+                    var l = (List<byte>)list;
+
+                    return l.ToArray();
+                }
+
+            case Type t when t == typeof(sbyte):
+
+                {
+                    var l = (List<sbyte>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(ushort):
+
+                {
+                    var l = (List<ushort>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(short):
+
+                {
+                    var l = (List<short>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(uint):
+
+                {
+                    var l = (List<uint>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(int):
+
+                {
+                    var l = (List<int>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(ulong):
+
+                {
+                    var l = (List<ulong>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(long):
+
+                {
+                    var l = (List<long>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(char):
+
+                {
+                    var l = (List<char>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(float):
+
+                {
+                    var l = (List<float>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
+
+            case Type t when t == typeof(double):
+
+                {
+                    var l = (List<double>)list;
+
+                    var buffer = new byte[size * l.Count];
+
+                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
+
+                    return buffer;
+                }
         }
 
-        var buffer = new byte[size * objects.Count];
-
-        Buffer.BlockCopy(objects.ToArray(), 0, buffer, 0, buffer.Length);
-
-        return buffer;
+        return null;
     }
 
     /// <summary>
@@ -864,8 +984,8 @@ internal static class StapleSerializer
                                     if (bytes != null)
                                     {
                                         if (pair.Value.value is not string[] &&
-                                            field.FieldType.GetElementType().IsPrimitive &&
-                                            field.FieldType.GetElementType() != typeof(bool))
+                                            fieldType.IsPrimitive &&
+                                            fieldType != typeof(bool))
                                         {
                                             var size = Marshal.SizeOf(fieldType);
 
@@ -890,6 +1010,8 @@ internal static class StapleSerializer
                                     {
                                         list.Add(element);
                                     }
+
+                                    field.SetValue(instance, list);
                                 }
                             }
 

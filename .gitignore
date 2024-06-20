@@ -16,3 +16,5 @@ Test Project/Cache
 DefaultResources
 .DS_Store
 dist
+Test Project/Game.csproj
+Test Project/Sandbox.sln

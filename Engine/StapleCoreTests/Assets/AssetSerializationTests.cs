@@ -45,6 +45,12 @@ namespace CoreTests
             public int notSerialized2 = 0;
         }
 
+        internal class Base64ListAsset : IStapleAsset
+        {
+            [SerializeAsBase64]
+            public List<int> values = new();
+        }
+
         internal class SerializableAsset : IStapleAsset
         {
             [Serializable]
@@ -328,6 +334,74 @@ namespace CoreTests
                 Assert.That(newAsset.floatValues, Is.EqualTo(new float[] { 1, 2.5f, 1.5f }));
                 Assert.That(newAsset.strings, Is.EqualTo(new string[] { "a", "b", "c" }));
                 Assert.That(newAsset.values, Is.EqualTo(new int[] { 1, 2, 3 }));
+            }
+        }
+
+        [Test]
+        public void TestPrimitiveListSerializationText()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new Base64ListAsset
+            {
+                values = [1, 2, 3]
+            };
+
+            var result = AssetSerialization.Serialize(asset, true);
+
+            Assert.That(result, Is.Not.Null);
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(Base64ListAsset).FullName));
+
+            Assert.That(result.parameters.Count, Is.EqualTo(1));
+
+            var deserialized = AssetSerialization.Deserialize(result);
+
+            Assert.That(deserialized, Is.Not.Null);
+
+            Assert.That(deserialized, Is.TypeOf<Base64ListAsset>());
+
+            if (deserialized is Base64ListAsset newAsset)
+            {
+                Assert.That(newAsset.values, Is.Not.Null);
+                Assert.That(newAsset.values.Count, Is.EqualTo(3));
+                Assert.That(newAsset.values[0], Is.EqualTo(1));
+                Assert.That(newAsset.values[1], Is.EqualTo(2));
+                Assert.That(newAsset.values[2], Is.EqualTo(3));
+            }
+        }
+
+        [Test]
+        public void TestPrimitiveListSerialization()
+        {
+            TypeCacheRegistration.RegisterAll();
+
+            var asset = new Base64ListAsset
+            {
+                values = [1, 2, 3]
+            };
+
+            var result = AssetSerialization.Serialize(asset, false);
+
+            Assert.That(result, Is.Not.Null);
+
+            Assert.That(result.typeName, Is.EqualTo(typeof(Base64ListAsset).FullName));
+
+            Assert.That(result.parameters.Count, Is.EqualTo(1));
+
+            var deserialized = AssetSerialization.Deserialize(result);
+
+            Assert.That(deserialized, Is.Not.Null);
+
+            Assert.That(deserialized, Is.TypeOf<Base64ListAsset>());
+
+            if (deserialized is Base64ListAsset newAsset)
+            {
+                Assert.That(newAsset.values, Is.Not.Null);
+                Assert.That(newAsset.values.Count, Is.EqualTo(3));
+                Assert.That(newAsset.values[0], Is.EqualTo(1));
+                Assert.That(newAsset.values[1], Is.EqualTo(2));
+                Assert.That(newAsset.values[2], Is.EqualTo(3));
             }
         }
     }
