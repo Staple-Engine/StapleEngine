@@ -297,6 +297,7 @@ public class CubicMeshBuilder
         {
             indexFormat = MeshIndexFormat.UInt32,
             vertices = vertices.ToArray(),
+            normals = Mesh.GenerateNormals(vertices.ToArray()),
             indices = indices.ToArray(),
             meshTopology = MeshTopology.Triangles,
             changed = true,
