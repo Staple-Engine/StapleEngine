@@ -99,7 +99,7 @@ namespace Staple
 
                     foreach (var type in t.GetTypeMembers())
                     {
-                        HandleNamedSymbol(type, $"{baseTypeName}.{t.Name}");
+                        HandleNamedSymbol(type, baseTypeName.Length == 0 ? t.Name : $"{baseTypeName}.{t.Name}");
                     }
                 }
 

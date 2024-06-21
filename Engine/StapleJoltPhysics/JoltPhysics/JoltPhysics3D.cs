@@ -452,6 +452,30 @@ public class JoltPhysics3D : IPhysics3D
         };
     }
 
+    public bool CreateHeightMap(Entity entity, float[] heights, Vector3 offset, Vector3 scale, Vector3 position, Quaternion rotation,
+        ushort layer, float friction, float restitution, float mass, out IBody3D body)
+    {
+        if(heights != null &&
+            heights.Length % 2 == 0 &&
+            Math.Sqrt(heights.Length) > 0 &&
+            heights.Length > 0)
+        {
+            unsafe
+            {
+                fixed(float *ptr = heights)
+                {
+                    return CreateBody(entity, new HeightFieldShapeSettings(ptr, offset, scale, (int)Math.Sqrt(heights.Length)),
+                        position, rotation, MotionType.Static, layer, false, 0, friction, restitution, true, true, true, false,
+                        mass, out body);
+                }
+            }
+        }
+
+        body = default;
+
+        return false;
+    }
+
     public bool CreateBox(Entity entity, Vector3 extents, Vector3 position, Quaternion rotation, BodyMotionType motionType, ushort layer,
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
@@ -601,6 +625,24 @@ public class JoltPhysics3D : IPhysics3D
         var compound = new MutableCompoundShapeSettings();
 
         var any = false;
+
+        if(world.TryGetComponent<HeightMapCollider3D>(entity, out var heightMap) &&
+            heightMap.heights != null &&
+            heightMap.heights.Length % 2 == 0 &&
+            Math.Sqrt(heightMap.heights.Length) > 0 &&
+            heightMap.heights.Length > 0)
+        {
+            any = true;
+
+            unsafe
+            {
+                fixed(float *ptr = heightMap.heights)
+                {
+                    compound.AddShape(heightMap.position, heightMap.rotation,
+                        new HeightFieldShapeSettings(ptr, heightMap.offset, heightMap.scale, (int)Math.Sqrt(heightMap.heights.Length)));
+                }
+            }
+        }
 
         if(world.TryGetComponent<BoxCollider3D>(entity, out var boxCollider))
         {

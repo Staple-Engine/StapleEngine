@@ -164,6 +164,24 @@ public interface IPhysics3D
         float mass, out IBody3D body);
 
     /// <summary>
+    /// Creates a height map body
+    /// </summary>
+    /// <param name="entity">The entity this belongs to</param>
+    /// <param name="heights">The heights for the heightmap</param>
+    /// <param name="offset">The offset of the heightmap</param>
+    /// <param name="scale">The scale of the heightmap</param>
+    /// <param name="position">The position of the body</param>
+    /// <param name="rotation">The rotation of the body</param>
+    /// <param name="layer">The layer this body belongs to</param>
+    /// <param name="friction">The friction factor of the rigid body</param>
+    /// <param name="restitution">The restitution factor of the rigid body</param>
+    /// <param name="mass">The mass of the body</param>
+    /// <param name="body">The body, if valid</param>
+    /// <returns>Whether the body was created</returns>
+    bool CreateHeightMap(Entity entity, float[] heights, Vector3 offset, Vector3 scale, Vector3 position, Quaternion rotation,
+        ushort layer, float friction, float restitution, float mass, out IBody3D body);
+
+    /// <summary>
     /// Destroys a body
     /// </summary>
     /// <param name="body">The body to destroy</param>
