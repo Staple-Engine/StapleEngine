@@ -10,6 +10,10 @@ cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIB
 
 cmake -B build/native/freetype/Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=true -S freetype -G "Unix Makefiles"
 
+mkdir -p build/native/bin/Debug
+
+mkdir -p build/native/bin/Release
+
 cd build/native/freetype/Debug
 
 make -j $(nproc)
