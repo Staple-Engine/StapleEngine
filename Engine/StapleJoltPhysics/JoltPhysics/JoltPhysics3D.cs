@@ -168,7 +168,7 @@ public class JoltPhysics3D : IPhysics3D
         return false;
     }
 
-    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2)
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
     {
         lock (threadLock)
         {
@@ -189,7 +189,7 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2)
+    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
     {
         lock (threadLock)
         {
@@ -875,12 +875,12 @@ public class JoltPhysics3D : IPhysics3D
         {
             if(locked)
             {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit,
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(ray.position, ray.direction * maxDistance, out hit,
                     broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
             else
             {
-                result = physicsSystem.NarrowPhaseQuery.CastRay((Double3)ray.position, ray.direction * maxDistance, ref hit,
+                result = physicsSystem.NarrowPhaseQuery.CastRay(ray.position, ray.direction * maxDistance, out hit,
                     broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
         }
@@ -947,11 +947,11 @@ public class JoltPhysics3D : IPhysics3D
             {
                 if (locked)
                 {
-                    physicsSystem.BodyInterfaceNoLock.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterfaceNoLock.SetPosition(pair.body.ID, newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
                 }
                 else
                 {
-                    physicsSystem.BodyInterface.SetPosition(pair.body.ID, (Double3)newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterface.SetPosition(pair.body.ID, newPosition, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
                 }
             }
         }
