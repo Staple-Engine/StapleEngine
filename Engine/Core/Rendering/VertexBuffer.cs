@@ -199,7 +199,7 @@ public class VertexBuffer
 
             fixed (void* dataPtr = data)
             {
-                outData = bgfx.copy(dataPtr, (uint)data.Length);
+                outData = bgfx.copy(dataPtr, (uint)(data.Length * size));
             }
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);

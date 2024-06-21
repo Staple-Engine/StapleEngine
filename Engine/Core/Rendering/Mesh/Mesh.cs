@@ -757,7 +757,7 @@ public partial class Mesh : IGuidAsset
         meshDataBlob = meshData;
         meshDataVertexLayout = vertexLayout;
 
-        if(vertexBuffer != null && isDynamic)
+        if(vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
         {
             vertexBuffer.Update(meshData, 0);
         }
@@ -905,11 +905,16 @@ public partial class Mesh : IGuidAsset
             return;
         }
 
-        vertexBuffer = VertexBuffer.Create(vertexBlob, layout);
+        vertexBuffer = isDynamic ? VertexBuffer.CreateDynamic(layout) : VertexBuffer.Create(vertexBlob, layout);
 
         if(vertexBuffer == null)
         {
             return;
+        }
+
+        if(vertexBuffer.type == VertexBufferType.Dynamic)
+        {
+            vertexBuffer.Update(vertexBlob, 0);
         }
 
         switch (indexFormat)
