@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using Staple.Internal;
+using System;
 
 namespace Staple;
 
@@ -142,6 +142,41 @@ public partial struct Entity
         }
 
         return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity for a geometry primitive
+    /// </summary>
+    /// <param name="type">The type of primitive</param>
+    /// <returns>The entity</returns>
+    public static Entity CreatePrimitive(EntityPrimitiveType type)
+    {
+        var e = Create(type.ToString(), typeof(Transform), typeof(MeshRenderer));
+
+        var r = e.GetComponent<MeshRenderer>();
+
+        switch(type)
+        {
+            case EntityPrimitiveType.Cube:
+
+                r.mesh = Mesh.Cube;
+
+                e.AddComponent<BoxCollider3D>();
+
+                break;
+
+            case EntityPrimitiveType.Quad:
+
+                r.mesh = Mesh.Quad;
+
+                e.AddComponent<MeshCollider3D>().mesh = r.mesh;
+
+                break;
+        }
+
+        r.materials = [ResourceManager.instance.LoadMaterial("Hidden/Materials/Checkerboard.mat")];
+
+        return e;
     }
 
     public void Destroy()

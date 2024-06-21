@@ -1012,10 +1012,9 @@ public partial class Mesh : IGuidAsset
     /// Generates normals for a list of vertices. Expects triangles.
     /// </summary>
     /// <param name="positions">The vertex positions</param>
-    /// <param name="averageNormals">Whether to generate average normals (heavier)</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the positions aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(Vector3[] positions, bool averageNormals = false)
+    public static Vector3[] GenerateNormals(Vector3[] positions)
     {
         if(positions.Length % 3 != 0)
         {
@@ -1029,7 +1028,7 @@ public partial class Mesh : IGuidAsset
             indices[i] = i;
         }
 
-        return GenerateNormals(positions, indices, averageNormals);
+        return GenerateNormals(positions, indices);
     }
 
     /// <summary>
@@ -1037,10 +1036,9 @@ public partial class Mesh : IGuidAsset
     /// </summary>
     /// <param name="positions">The vertex positions</param>
     /// <param name="indices">The vertex indices</param>
-    /// <param name="averageNormals">Whether to generate average normals (heavier)</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(Vector3[] positions, ushort[] indices, bool averageNormals = false)
+    public static Vector3[] GenerateNormals(Vector3[] positions, ushort[] indices)
     {
         if(indices.Length % 3 != 0)
         {
@@ -1071,47 +1069,6 @@ public partial class Mesh : IGuidAsset
             normals[indices[i + 2]] += normal;
         }
 
-        if (averageNormals)
-        {
-            var normalCache = new Vector3[normals.Length];
-            var positionHashes = new Dictionary<int, List<int>>();
-
-            for (var i = 0; i < positions.Length; i++)
-            {
-                var position = positions[i];
-
-                var hash = position.GetHashCode();
-
-                if (positionHashes.TryGetValue(hash, out var list) == false)
-                {
-                    list = new();
-
-                    positionHashes.Add(hash, list);
-                }
-
-                list.Add(i);
-            }
-
-            foreach (var pair in positionHashes)
-            {
-                var normal = Vector3.Zero;
-
-                foreach (var index in pair.Value)
-                {
-                    normal += normals[index];
-                }
-
-                normal /= pair.Value.Count;
-
-                foreach (var index in pair.Value)
-                {
-                    normalCache[index] = normal;
-                }
-            }
-
-            normals = normalCache;
-        }
-
         for (var i = 0; i < normals.Length; i++)
         {
             normals[i] = Vector3.Normalize(normals[i]);
@@ -1125,10 +1082,9 @@ public partial class Mesh : IGuidAsset
     /// </summary>
     /// <param name="positions">The vertex positions</param>
     /// <param name="indices">The vertex indices</param>
-    /// <param name="averageNormals">Whether to generate average normals (heavier)</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(Vector3[] positions, int[] indices, bool averageNormals = false)
+    public static Vector3[] GenerateNormals(Vector3[] positions, int[] indices)
     {
         if (indices.Length % 3 != 0)
         {
@@ -1157,47 +1113,6 @@ public partial class Mesh : IGuidAsset
             normals[indices[i]] += normal;
             normals[indices[i + 1]] += normal;
             normals[indices[i + 2]] += normal;
-        }
-
-        if(averageNormals)
-        {
-            var normalCache = new Vector3[normals.Length];
-            var positionHashes = new Dictionary<int, List<int>>();
-
-            for(var i = 0; i < positions.Length; i++)
-            {
-                var position = positions[i];
-
-                var hash = position.GetHashCode();
-
-                if(positionHashes.TryGetValue(hash, out var list) == false)
-                {
-                    list = new();
-
-                    positionHashes.Add(hash, list);
-                }
-
-                list.Add(i);
-            }
-
-            foreach(var pair in positionHashes)
-            {
-                var normal = Vector3.Zero;
-
-                foreach(var index in pair.Value)
-                {
-                    normal += normals[index];
-                }
-
-                normal /= pair.Value.Count;
-
-                foreach (var index in pair.Value)
-                {
-                    normalCache[index] = normal;
-                }
-            }
-
-            normals = normalCache;
         }
 
         for (var i = 0; i < normals.Length; i++)
