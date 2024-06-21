@@ -139,7 +139,10 @@ static partial class Program
 
                     try
                     {
-                        text = File.ReadAllText(currentShader);
+                        text = string.Join("\n", File.ReadAllText(currentShader)
+                            .Replace("\r\n", "\n")
+                            .Split("\n")
+                            .Where(x => x.StartsWith("//") == false));
                         shader = JsonConvert.DeserializeObject<UnprocessedShader>(text);
                     }
                     catch (Exception e)

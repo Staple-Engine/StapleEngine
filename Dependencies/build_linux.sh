@@ -14,9 +14,13 @@ cd build/native/freetype/Debug
 
 make -j $(nproc)
 
+cp Release/*.so ../../bin/Debug
+
 cd ../Release
 
 make -j $(nproc)
+
+cp Release/*.so ../../bin/Release
 
 cd ../../
 
