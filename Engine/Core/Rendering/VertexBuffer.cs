@@ -159,7 +159,12 @@ public class VertexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.copy((void*)data, (uint)lengthInBytes);
+            bgfx.Memory* outData = bgfx.alloc((uint)lengthInBytes);
+
+            var source = new Span<byte>((void *)data, lengthInBytes);
+            var target = new Span<byte>(outData->data, lengthInBytes);
+
+            source.CopyTo(target);
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
         }
@@ -195,12 +200,11 @@ public class VertexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData;
+            bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
 
-            fixed (void* dataPtr = data)
-            {
-                outData = bgfx.copy(dataPtr, (uint)(data.Length * size));
-            }
+            var target = new Span<T>(outData->data, data.Length);
+
+            data.CopyTo(target);
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
         }
@@ -232,12 +236,11 @@ public class VertexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData;
+            bgfx.Memory* outData = bgfx.alloc((uint)data.Length);
 
-            fixed (void* dataPtr = data)
-            {
-                outData = bgfx.copy(dataPtr, (uint)data.Length);
-            }
+            var target = new Span<byte>(outData->data, data.Length);
+
+            data.CopyTo(target);
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
         }
@@ -319,21 +322,19 @@ public class VertexBuffer
 
                     bgfx.alloc_transient_vertex_buffer(&buffer, (uint)data.Length, vertexLayout);
 
-                    fixed (void* dataPtr = data)
-                    {
-                        Buffer.MemoryCopy(dataPtr, buffer.data, data.Length * size, data.Length * size);
-                    }
+                    var target = new Span<T>(buffer.data, data.Length);
+
+                    data.CopyTo(target);
 
                     return new VertexBuffer(layout, buffer);
                 }
                 else
                 {
-                    bgfx.Memory* outData;
+                    bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
 
-                    fixed (void* dataPtr = data)
-                    {
-                        outData = bgfx.copy(dataPtr, (uint)(data.Length * size));
-                    }
+                    var target = new Span<T>(outData->data, data.Length);
+
+                    data.CopyTo(target);
 
                     var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
 
@@ -381,21 +382,19 @@ public class VertexBuffer
 
                     bgfx.alloc_transient_vertex_buffer(&buffer, vertexCount, vertexLayout);
 
-                    fixed(void *dataPtr = data)
-                    {
-                        Buffer.MemoryCopy(dataPtr, buffer.data, data.Length, data.Length);
-                    }
+                    var target = new Span<byte>(buffer.data, data.Length);
+
+                    data.CopyTo(target);
 
                     return new VertexBuffer(layout, buffer);
                 }
                 else
                 {
-                    bgfx.Memory* outData;
+                    bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
 
-                    fixed (void* dataPtr = data)
-                    {
-                        outData = bgfx.copy(dataPtr, (uint)data.Length);
-                    }
+                    var target = new Span<byte>(outData->data, data.Length);
+
+                    data.CopyTo(target);
 
                     var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
 

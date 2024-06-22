@@ -138,28 +138,19 @@ public class IndexBuffer
 
                 bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, false);
 
-                try
-                {
-                    fixed (void* dataPtr = data)
-                    {
-                        Buffer.MemoryCopy(dataPtr, handle.data, data.Length * size, data.Length * size);
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                var target = new Span<ushort>(handle.data, data.Length);
+
+                data.CopyTo(target);
 
                 return new IndexBuffer(handle);
             }
             else
             {
-                bgfx.Memory* outData;
+                bgfx.Memory* outData = bgfx.alloc((uint)(size * data.Length));
 
-                fixed (void* dataPtr = data)
-                {
-                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
-                }
+                var target = new Span<ushort>(outData->data, data.Length);
+
+                data.CopyTo(target);
 
                 var handle = bgfx.create_index_buffer(outData, (ushort)flags);
 
@@ -187,28 +178,19 @@ public class IndexBuffer
 
                 bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, true);
 
-                try
-                {
-                    fixed (void* dataPtr = data)
-                    {
-                        Buffer.MemoryCopy(dataPtr, handle.data, data.Length * size, data.Length * size);
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                var target = new Span<uint>(handle.data, data.Length);
+
+                data.CopyTo(target);
 
                 return new IndexBuffer(handle);
             }
             else
             {
-                bgfx.Memory* outData;
+                bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
 
-                fixed (void* dataPtr = data)
-                {
-                    outData = bgfx.copy(dataPtr, (uint)(size * data.Length));
-                }
+                var target = new Span<uint>(outData->data, data.Length);
+
+                data.CopyTo(target);
 
                 var handle = bgfx.create_index_buffer(outData, (ushort)(flags | RenderBufferFlags.Index32));
 

@@ -2,24 +2,14 @@
 
 namespace Staple.Internal;
 
-internal class EmptyTextureCreateMethod : ITextureCreateMethod
+internal class EmptyTextureCreateMethod(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags) : ITextureCreateMethod
 {
-    public ushort width;
-    public ushort height;
-    public bool hasMips;
-    public ushort layers;
-    public bgfx.TextureFormat format;
-    public TextureFlags flags;
-
-    public EmptyTextureCreateMethod(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags)
-    {
-        this.width = width;
-        this.height = height;
-        this.hasMips = hasMips;
-        this.layers = layers;
-        this.format = format;
-        this.flags = flags;
-    }
+    public ushort width = width;
+    public ushort height = height;
+    public bool hasMips = hasMips;
+    public ushort layers = layers;
+    public bgfx.TextureFormat format = format;
+    public TextureFlags flags = flags;
 
     public bool Create(Texture texture)
     {
