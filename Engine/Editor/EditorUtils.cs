@@ -450,4 +450,23 @@ public static class EditorUtils
             spriteIndex = si;
         }
     }
+
+    public static void SaveAsset(IStapleAsset asset)
+    {
+        if(asset == null ||
+            asset is not IGuidAsset guid ||
+            guid.Guid == null)
+        {
+            return;
+        }
+
+        var entry = AssetDatabase.GetAssetEntry(guid.Guid);
+
+        if(entry == null)
+        {
+            return;
+        }
+
+        StapleEditor.SaveAsset(entry.path, asset);
+    }
 }

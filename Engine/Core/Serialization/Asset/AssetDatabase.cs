@@ -139,6 +139,16 @@ public static class AssetDatabase
     }
 
     /// <summary>
+    /// Gets the asset entry for a specific asset.
+    /// </summary>
+    /// <param name="guid">The asset guid</param>
+    /// <returns>The entry or null</returns>
+    internal static AssetInfo GetAssetEntry(string guid)
+    {
+        return assets.FirstOrDefault(x => x.guid == guid);
+    }
+
+    /// <summary>
     /// Gets the path to an asset by guid
     /// </summary>
     /// <param name="guid">The asset guid</param>

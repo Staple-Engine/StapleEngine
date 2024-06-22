@@ -391,6 +391,11 @@ internal partial class StapleEditor
     /// <returns></returns>
     public static bool SaveAsset(string assetPath, IStapleAsset assetInstance)
     {
+        if(Path.IsPathRooted(assetPath) == false)
+        {
+            assetPath = Path.Combine(instance.basePath, "Assets", assetPath);
+        }
+
         var existed = false;
 
         try
