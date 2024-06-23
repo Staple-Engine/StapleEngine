@@ -48,6 +48,8 @@ internal partial class StapleEditor
 
             if (projectInfo.stapleVersion != StapleVersion)
             {
+                ShowMessageBox($"Project version is not compatible\nGot {projectInfo.stapleVersion}, expected: {StapleVersion}", "OK", null);
+
                 return;
             }
         }
@@ -137,6 +139,14 @@ internal partial class StapleEditor
             buildPlayerDebug = lastSession.debugBuild;
             buildPlayerNativeAOT = lastSession.nativeBuild;
         }
+        else
+        {
+            currentPlatform = Platform.CurrentPlatform.Value;
+            lastOpenScene = null;
+            lastPickedBuildDirectories.Clear();
+            buildPlayerDebug = true;
+            buildPlayerNativeAOT = false;
+        }
 
         if(fileSystemWatcher != null)
         {
@@ -171,6 +181,12 @@ internal partial class StapleEditor
             var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
 
             Scene.SetActiveScene(scene);
+
+            ResetScenePhysics(false);
+        }
+        else
+        {
+            Scene.SetActiveScene(null);
 
             ResetScenePhysics(false);
         }

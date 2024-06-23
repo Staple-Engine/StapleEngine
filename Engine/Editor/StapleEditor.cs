@@ -640,7 +640,30 @@ internal partial class StapleEditor
 
                 if(ImGui.BeginListBox("##ProjectList"))
                 {
-                    //TODO
+                    for(var i = 0; i < lastProjects.items.Count; i++)
+                    {
+                        try
+                        {
+                            if (Directory.Exists(lastProjects.items[i].path) == false)
+                            {
+                                continue;
+                            }
+                        }
+                        catch(Exception)
+                        {
+                            continue;
+                        }
+
+                        ImGui.Selectable($"{lastProjects.items[i].name}##PL{i}");
+
+                        if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                        {
+                            LoadProject(lastProjects.items[i].path);
+
+                            break;
+                        }
+                    }
+
                     ImGui.EndListBox();
                 }
 
@@ -777,6 +800,7 @@ internal partial class StapleEditor
                 });
             }
 
+            /*
             ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
 
             if (World.Current != null)
@@ -797,6 +821,7 @@ internal partial class StapleEditor
             }
 
             ImGui.End();
+            */
 
             ProgressPopup(io);
             MessageBoxPopup(io);
