@@ -448,6 +448,17 @@ public partial class RenderSystem
                 break;
         }
 
+        var viewMode = camera.viewMode switch
+        {
+            CameraViewMode.Default => bgfx.ViewMode.Default,
+            CameraViewMode.Sequential => bgfx.ViewMode.Sequential,
+            CameraViewMode.DepthAscending => bgfx.ViewMode.DepthAscending,
+            CameraViewMode.DepthDescending => bgfx.ViewMode.DepthDescending,
+            _ => bgfx.ViewMode.Default,
+        };
+
+        bgfx.set_view_mode(viewID, viewMode);
+
         bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
             (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
     }

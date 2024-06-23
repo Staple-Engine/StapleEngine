@@ -9,6 +9,11 @@ namespace Staple;
 public class Camera : IComponent
 {
     /// <summary>
+    /// How to render elements of the camera
+    /// </summary>
+    public CameraViewMode viewMode = CameraViewMode.Default;
+
+    /// <summary>
     /// How to clear the camera
     /// </summary>
     public CameraClearMode clearMode = CameraClearMode.SolidColor;
