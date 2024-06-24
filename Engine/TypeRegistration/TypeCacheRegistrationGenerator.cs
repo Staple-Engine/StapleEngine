@@ -28,6 +28,13 @@ namespace Staple
             "NuGet",
             "Hexa",
             "ImGui",
+            "Android",
+            "Java",
+            "Javax",
+            "Org",
+            "Xamarin",
+            "_Microsoft",
+            "Dalvik",
         ];
 
         public void Initialize(GeneratorInitializationContext context)
