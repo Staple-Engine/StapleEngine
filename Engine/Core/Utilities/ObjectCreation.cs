@@ -32,4 +32,23 @@ public static class ObjectCreation
 
         return default;
     }
+
+    /// <summary>
+    /// Safely creates an object for an expected object type
+    /// </summary>
+    /// <param name="type">The type to create</param>
+    /// <returns>The object, or null</returns>
+    public static object CreateObject([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
+    {
+        try
+        {
+            return Activator.CreateInstance(type);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e.ToString());
+        }
+
+        return default;
+    }
 }

@@ -14,7 +14,8 @@ internal class EntitySystemManager : ISubsystem
 
     public SubsystemType type => SubsystemType.Update;
 
-    private readonly HashSet<IEntitySystem> systems = new();
+    private readonly HashSet<IEntitySystemUpdate> updateSystems = new();
+    private readonly HashSet<IEntitySystemFixedUpdate> fixedUpdateSystems = new();
 
     public static readonly EntitySystemManager Instance = new();
 
@@ -27,9 +28,18 @@ internal class EntitySystemManager : ISubsystem
     {
         var outValue = new List<T>();
 
-        foreach(var system in systems)
+        foreach(var system in updateSystems)
         {
             if(system.GetType().IsSubclassOf(typeof(T)) ||
+                system.GetType().IsAssignableTo(typeof(T)))
+            {
+                outValue.Add((T)system);
+            }
+        }
+
+        foreach (var system in fixedUpdateSystems)
+        {
+            if (system.GetType().IsSubclassOf(typeof(T)) ||
                 system.GetType().IsAssignableTo(typeof(T)))
             {
                 outValue.Add((T)system);
@@ -45,21 +55,54 @@ internal class EntitySystemManager : ISubsystem
     /// <param name="assembly">The assembly to unload from</param>
     internal void UnloadSystemsFromAssembly(Assembly assembly)
     {
-        var unloaded = new List<IEntitySystem>();
+        var unloadedUpdate = new List<IEntitySystemUpdate>();
+        var unloadedFixedUpdate = new List<IEntitySystemFixedUpdate>();
 
-        foreach(var system in systems)
+        foreach (var system in updateSystems)
         {
             if(system.GetType().Assembly == assembly)
             {
-                unloaded.Add(system);
+                unloadedUpdate.Add(system);
             }
         }
 
-        foreach(var system in unloaded)
+        foreach (var system in fixedUpdateSystems)
         {
-            system.Shutdown();
+            if (system.GetType().Assembly == assembly)
+            {
+                unloadedFixedUpdate.Add(system);
+            }
+        }
 
-            systems.Remove(system);
+        foreach (var system in unloadedUpdate)
+        {
+            updateSystems.Remove(system);
+
+            system.Shutdown();
+        }
+
+        foreach(var system in unloadedFixedUpdate)
+        {
+            fixedUpdateSystems.Remove(system);
+
+            var skip = false;
+
+            foreach(var o in unloadedUpdate)
+            {
+                if(o == system)
+                {
+                    skip = true;
+
+                    break;
+                }
+            }
+
+            if (skip)
+            {
+                continue;
+            }
+
+            system.Shutdown();
         }
     }
 
@@ -67,21 +110,44 @@ internal class EntitySystemManager : ISubsystem
     /// Registers an entity system.
     /// </summary>
     /// <param name="system">The system to register</param>
-    public void RegisterSystem(IEntitySystem system)
+    public void RegisterSystem(object system)
     {
-        systems.Add(system);
+        var ranStartup = false;
 
-        system.Startup();
+        if(system is IEntitySystemFixedUpdate fixedUpdate)
+        {
+            fixedUpdateSystems.Add(fixedUpdate);
+
+            ranStartup = true;
+
+            fixedUpdate.Startup();
+        }
+
+        if(system is IEntitySystemUpdate update)
+        {
+            updateSystems.Add(update);
+
+            if(ranStartup == false)
+            {
+                update.Startup();
+            }
+        }
     }
 
     public void Shutdown()
     {
-        foreach(var system in systems)
+        foreach(var system in updateSystems)
         {
             system.Shutdown();
         }
 
-        systems.Clear();
+        foreach (var system in fixedUpdateSystems)
+        {
+            system.Shutdown();
+        }
+
+        updateSystems.Clear();
+        fixedUpdateSystems.Clear();
     }
 
     public void Startup()
@@ -97,12 +163,9 @@ internal class EntitySystemManager : ISubsystem
 
         var time = Time.fixedDeltaTime;
 
-        foreach (var system in systems)
+        foreach (var system in fixedUpdateSystems)
         {
-            if (system.UpdateType == EntitySubsystemType.FixedUpdate || system.UpdateType == EntitySubsystemType.Both)
-            {
-                system.FixedUpdate(time);
-            }
+            system.FixedUpdate(time);
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>
@@ -127,12 +190,9 @@ internal class EntitySystemManager : ISubsystem
 
         var time = Time.deltaTime;
 
-        foreach (var system in systems)
+        foreach (var system in updateSystems)
         {
-            if(system.UpdateType == EntitySubsystemType.Update || system.UpdateType == EntitySubsystemType.Both)
-            {
-                system.Update(time);
-            }
+            system.Update(time);
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>

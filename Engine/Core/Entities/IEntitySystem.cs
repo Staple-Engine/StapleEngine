@@ -3,40 +3,29 @@
 namespace Staple;
 
 /// <summary>
-/// The type of entity subsystem
+/// Update-based Entity system.
+/// You can implement this interface in order to modify entities on a per-frame basis.
 /// </summary>
-public enum EntitySubsystemType
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+public interface IEntitySystemUpdate
 {
-    /// <summary>
-    /// Runs at the fixed tick rate
-    /// </summary>
-    FixedUpdate,
+    void Startup();
 
-    /// <summary>
-    /// Runs every frame
-    /// </summary>
-    Update,
+    void Shutdown();
 
-    /// <summary>
-    /// Handles both kinds of updates
-    /// </summary>
-    Both,
+    void Update(float deltaTime);
 }
 
 /// <summary>
-/// Entity system.
-/// You can implement this interface in order to modify entities.
+/// Fixed Update-based Entity system.
+/// You can implement this interface in order to modify entities in a fixed time step.
 /// </summary>
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-public interface IEntitySystem
+public interface IEntitySystemFixedUpdate
 {
-    EntitySubsystemType UpdateType { get; }
-
     void Startup();
 
-    void Update(float deltaTime);
+    void Shutdown();
 
     void FixedUpdate(float deltaTime);
-
-    void Shutdown();
 }

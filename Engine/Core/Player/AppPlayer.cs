@@ -207,7 +207,8 @@ internal class AppPlayer
             }
 
             types = TypeCache.AllTypes()
-                .Where(x => typeof(IEntitySystem).IsAssignableFrom(x) && x != typeof(IEntitySystem))
+                .Where(x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
+                (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate)))
                 .ToArray();
 
             Log.Info($"Loading {types.Length} entity systems");
@@ -216,7 +217,7 @@ internal class AppPlayer
             {
                 try
                 {
-                    var instance = (IEntitySystem)Activator.CreateInstance(type);
+                    var instance = Activator.CreateInstance(type);
 
                     if (instance != null)
                     {

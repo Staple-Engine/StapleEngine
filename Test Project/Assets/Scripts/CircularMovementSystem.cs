@@ -3,10 +3,8 @@ using System.Numerics;
 
 namespace TestGame
 {
-    public class CircularMovementSystem : IEntitySystem
+    public class CircularMovementSystem : IEntitySystemFixedUpdate
     {
-        public EntitySubsystemType UpdateType => EntitySubsystemType.FixedUpdate;
-
         public void Startup()
         {
         }
@@ -28,10 +26,6 @@ namespace TestGame
                         0);
                 }
             });
-        }
-
-        public void Update(float deltaTime)
-        {
         }
 
         public void Shutdown()

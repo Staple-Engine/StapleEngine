@@ -4,15 +4,9 @@ using System.Numerics;
 
 namespace TestGame
 {
-    public class HighlightableSystem : IEntitySystem
+    public class HighlightableSystem : IEntitySystemUpdate
     {
-        public EntitySubsystemType UpdateType => EntitySubsystemType.Update;
-
         public void Startup()
-        {
-        }
-
-        public void FixedUpdate(float deltaTime)
         {
         }
 

@@ -12,12 +12,15 @@ public static class TypeCache
 {
     internal static Dictionary<string, Type> types = new();
 
+    private static Dictionary<string, Type[]> subclassCaches = new();
+
     /// <summary>
     /// Clears the type cache
     /// </summary>
     public static void Clear()
     {
         types.Clear();
+        subclassCaches.Clear();
     }
 
     /// <summary>
@@ -41,6 +44,11 @@ public static class TypeCache
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type type)
     {
+        if(subclassCaches.TryGetValue(type.FullName, out var cache))
+        {
+            return cache;
+        }
+
         var outValue = new List<Type>();
 
         foreach(var pair in types)
@@ -52,7 +60,11 @@ public static class TypeCache
             }
         }
 
-        return outValue.ToArray();
+        var v = outValue.ToArray();
+
+        subclassCaches.Add(type.FullName, v);
+
+        return v;
     }
 
     /// <summary>
