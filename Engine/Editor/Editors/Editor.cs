@@ -770,6 +770,96 @@ public class Editor
                 }
 
                 break;
+
+            case Type t when t == typeof(Entity):
+
+                {
+                    var value = (Entity)getter();
+
+                    EditorGUI.Label($"{name} ({t.Name})");
+
+                    EditorGUI.SameLine();
+
+                    if(value.IsValid)
+                    {
+                        EditorGUI.Label(value.Name);
+                    }
+                    else
+                    {
+                        EditorGUI.Label("(None)");
+                    }
+
+                    EditorGUI.DragDropTarget(t, (v) =>
+                    {
+                        if(v is Entity e)
+                        {
+                            setter(e);
+                        }
+                    });
+
+                    if (value.IsValid)
+                    {
+                        EditorGUI.SameLine();
+
+                        EditorGUI.Button("X", $"{name}_CLEAR", () =>
+                        {
+                            try
+                            {
+                                setter(new Entity());
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                    }
+                }
+
+                break;
+
+            case Type t when t.IsAssignableTo(typeof(IComponent)):
+
+                {
+                    var value = (IComponent)getter();
+
+                    EditorGUI.Label($"{name} ({t.Name})");
+
+                    EditorGUI.SameLine();
+
+                    if(World.Current.TryGetComponentEntity(value, out var target))
+                    {
+                        EditorGUI.Label($"{target.Name} ({value.GetType().Name})");
+                    }
+                    else
+                    {
+                        EditorGUI.Label("(None)");
+                    }
+
+                    EditorGUI.DragDropTarget(t, (v) =>
+                    {
+                        if (v is IComponent c)
+                        {
+                            setter(c);
+                        }
+                    });
+
+                    if(value != null)
+                    {
+                        EditorGUI.SameLine();
+
+                        EditorGUI.Button("X", $"{name}_CLEAR", () =>
+                        {
+                            try
+                            {
+                                setter(null);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                    }
+                }
+
+                break;
         }
     }
 

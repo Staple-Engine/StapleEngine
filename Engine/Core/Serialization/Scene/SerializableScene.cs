@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 namespace Staple.Internal;
@@ -95,7 +96,7 @@ public class SceneComponent
     public List<SceneComponentParameter> parameters = new();
 
     [IgnoreMember]
-    public Dictionary<string, object> data;
+    public Dictionary<string, object> data = new();
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -116,6 +117,7 @@ internal partial class SceneComponentSerializationContext : JsonSerializerContex
 
 [Serializable]
 [MessagePackObject]
+[DebuggerDisplay("SceneObject {name}")]
 public class SceneObject
 {
     [Key(0)]

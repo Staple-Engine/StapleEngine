@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -423,9 +424,12 @@ internal class ResourceManager
             var sceneObjects = JsonSerializer.Deserialize(data, SceneObjectSerializationContext.Default.ListSceneObject);
             var localIDs = new Dictionary<int, Transform>();
             var parents = new Dictionary<int, int>();
+            var localSceneObjects = new Dictionary<int, int>();
 
-            foreach(var sceneObject in sceneObjects)
+            for(var i = 0; i < sceneObjects.Count; i++)
             {
+                var sceneObject = sceneObjects[i];
+
                 var entity = new Entity();
 
                 switch (sceneObject.kind)
@@ -447,6 +451,7 @@ internal class ResourceManager
                         }
 
                         localIDs.Add(localID, transform);
+                        localSceneObjects.Add(localID, i);
 
                         if(sceneObject.parent >= 0)
                         {
@@ -462,6 +467,79 @@ internal class ResourceManager
                 if(localIDs.TryGetValue(pair.Key, out var self) && self != null && localIDs.TryGetValue(pair.Value, out var parent))
                 {
                     self.SetParent(parent);
+                }
+            }
+
+            foreach(var pair in localIDs)
+            {
+                var entity = pair.Value.entity;
+                var sceneObject = sceneObjects[localSceneObjects[pair.Key]];
+
+                foreach(var component in sceneObject.components)
+                {
+                    var componentType = TypeCache.GetType(component.type);
+
+                    if(componentType == null ||
+                        entity.TryGetComponent(out var componentInstance, componentType) == false)
+                    {
+                        continue;
+                    }
+
+                    foreach(var parameter in component.data)
+                    {
+                        try
+                        {
+                            var field = componentType.GetField(parameter.Key, BindingFlags.Public | BindingFlags.Instance);
+
+                            if (field == null)
+                            {
+                                continue;
+                            }
+
+                            var element = (JsonElement)parameter.Value;
+
+                            if (field.FieldType == typeof(Entity) && element.ValueKind == JsonValueKind.Number)
+                            {
+                                var targetEntity = Scene.FindEntity(element.GetInt32());
+
+                                if (targetEntity.IsValid)
+                                {
+                                    field.SetValue(componentInstance, targetEntity);
+                                }
+                            }
+                            else if ((field.FieldType == typeof(IComponent) ||
+                                field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                                element.ValueKind == JsonValueKind.String)
+                            {
+                                var pieces = element.GetString().Split(":");
+
+                                if (pieces.Length == 2 &&
+                                    int.TryParse(pieces[0], out var entityID))
+                                {
+                                    var targetComponentType = TypeCache.GetType(pieces[1]);
+
+                                    if (targetComponentType == null ||
+                                        targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    var targetEntity = Scene.FindEntity(entityID);
+
+                                    if (targetEntity.IsValid == false ||
+                                        targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    field.SetValue(componentInstance, targetComponent);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
                 }
             }
 
@@ -522,17 +600,19 @@ internal class ResourceManager
             }
 
             var localIDs = new Dictionary<int, Transform>();
+            var localSceneObjects = new Dictionary<int, int>();
             var parents = new Dictionary<int, int>();
 
-            foreach (var sceneObject in sceneData.objects)
+            for(var i = 0; i < sceneData.objects.Count; i++)
             {
+                var sceneObject = sceneData.objects[i];
                 var entity = new Entity();
 
                 switch (sceneObject.kind)
                 {
                     case SceneObjectKind.Entity:
 
-                        entity = Scene.Instantiate(sceneObject, out var localID, true);
+                        entity = Scene.Instantiate(sceneObject, out var localID, false);
 
                         if (entity == default)
                         {
@@ -542,6 +622,7 @@ internal class ResourceManager
                         var transform = entity.GetComponent<Transform>();
 
                         localIDs.Add(localID, transform);
+                        localSceneObjects.Add(localID, i);
 
                         if (sceneObject.parent >= 0)
                         {
@@ -558,6 +639,87 @@ internal class ResourceManager
                 {
                     self.SetParent(parent);
                 }
+            }
+
+            foreach (var pair in localIDs)
+            {
+                var entity = pair.Value.entity;
+                var sceneObject = sceneData.objects[localSceneObjects[pair.Key]];
+
+                foreach (var component in sceneObject.components)
+                {
+                    var componentType = TypeCache.GetType(component.type);
+
+                    if (componentType == null ||
+                        entity.TryGetComponent(out var componentInstance, componentType) == false)
+                    {
+                        continue;
+                    }
+
+                    foreach (var parameter in component.parameters)
+                    {
+                        try
+                        {
+                            var field = componentType.GetField(parameter.name, BindingFlags.Public | BindingFlags.Instance);
+
+                            if (field == null)
+                            {
+                                continue;
+                            }
+
+                            if (field.FieldType == typeof(Entity) && parameter.type == SceneComponentParameterType.Int)
+                            {
+                                var targetEntity = Scene.FindEntity(parameter.intValue);
+
+                                if (targetEntity.IsValid)
+                                {
+                                    field.SetValue(componentInstance, targetEntity);
+                                }
+                            }
+                            else if ((field.FieldType == typeof(IComponent) ||
+                                field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                                parameter.type == SceneComponentParameterType.String)
+                            {
+                                var pieces = parameter.stringValue.Split(":");
+
+                                if (pieces.Length == 2 &&
+                                    int.TryParse(pieces[0], out var entityID))
+                                {
+                                    var targetComponentType = TypeCache.GetType(pieces[1]);
+
+                                    if (targetComponentType == null ||
+                                        targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    var targetEntity = Scene.FindEntity(entityID);
+
+                                    if (targetEntity.IsValid == false ||
+                                        targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    field.SetValue(componentInstance, targetComponent);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                }
+            }
+
+            foreach(var pair in localIDs)
+            {
+                var entity = pair.Value.entity;
+
+                entity.IterateComponents((ref IComponent c) =>
+                {
+                    World.Current?.EmitAddComponentEvent(entity, ref c);
+                });
             }
 
             return scene;

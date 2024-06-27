@@ -17,11 +17,11 @@ internal partial class StapleEditor
     {
         var result = false;
 
-        EditorGUI.Menu("Create", $"{parent.entity}Create", () =>
+        EditorGUI.Menu("Create", $"{parent?.entity}Create", () =>
         {
             foreach (var t in registeredEntityTemplates)
             {
-                EditorGUI.MenuItem(t.Name, $"{parent.entity}Create{t.Name}", () =>
+                EditorGUI.MenuItem(t.Name, $"{parent?.entity}Create{t.Name}", () =>
                 {
                     var e = t.Create();
 
@@ -383,11 +383,11 @@ internal partial class StapleEditor
 
                     if (ImGui.IsItemHovered())
                     {
-                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Right))
                         {
                             ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                         }
-                        else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        else if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                         {
                             SetSelectedEntity(transform.entity);
                         }

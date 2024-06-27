@@ -930,4 +930,49 @@ public static class EditorGUI
     {
         ImGui.Separator();
     }
+
+    public static void DragDropTarget(Type type, Action<object> callback)
+    {
+        if (ImGui.BeginDragDropTarget())
+        {
+            if(type == typeof(Entity))
+            {
+                var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+                unsafe
+                {
+                    if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid)
+                    {
+                        var e = StapleEditor.instance.draggedEntity;
+
+                        Changed = true;
+
+                        StapleEditor.instance.draggedEntity = default;
+
+                        callback(e);
+                    }
+                }
+            }
+            else if(type == typeof(IComponent) ||
+                type.IsAssignableTo(typeof(IComponent)))
+            {
+                var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+                unsafe
+                {
+                    if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid &&
+                        StapleEditor.instance.draggedEntity.TryGetComponent(out var component, type))
+                    {
+                        StapleEditor.instance.draggedEntity = default;
+
+                        Changed = true;
+
+                        callback(component);
+                    }
+                }
+            }
+
+            ImGui.EndDragDropTarget();
+        }
+    }
 }

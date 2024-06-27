@@ -634,6 +634,49 @@ internal static class SceneSerialization
                 sceneComponent.data.Add(name, getter());
             }
         }
+        else if(fieldType == typeof(Entity))
+        {
+            var value = getter();
+
+            if(value is Entity entity && entity.IsValid)
+            {
+                if(parameters)
+                {
+                    sceneComponent.parameters.Add(new()
+                    {
+                        name = name,
+                        type = SceneComponentParameterType.Int,
+                        intValue = entity.Identifier.ID,
+                    });
+                }
+                else
+                {
+                    sceneComponent.data.Add(name, entity.Identifier.ID);
+                }
+            }
+        }
+        else if(fieldType == typeof(IComponent) ||
+            fieldType.GetInterface(typeof(IComponent).FullName) != null)
+        {
+            var value = getter();
+
+            if(value is IComponent component && World.Current.TryGetComponentEntity(component, out var entity))
+            {
+                if (parameters)
+                {
+                    sceneComponent.parameters.Add(new()
+                    {
+                        name = name,
+                        type = SceneComponentParameterType.String,
+                        stringValue = $"{entity.Identifier.ID}:{component.GetType().FullName}",
+                    });
+                }
+                else
+                {
+                    sceneComponent.data.Add(name, $"{entity.Identifier.ID}:{component.GetType().FullName}");
+                }
+            }
+        }
         else if (fieldType.IsEnum)
         {
             if (parameters)
@@ -980,7 +1023,6 @@ internal static class SceneSerialization
             var sceneComponent = new SceneComponent()
             {
                 type = component.GetType().FullName,
-                data = new Dictionary<string, object>(),
             };
 
             var fields = component.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
@@ -1206,12 +1248,15 @@ internal static class SceneSerialization
 
         var counter = 1;
 
+        var localEntities = new Dictionary<int, Entity>();
+
         foreach(var sceneObject in prefab.children)
         {
             var childEntity = Scene.Instantiate(sceneObject, out _, true);
 
             if(childEntity.IsValid)
             {
+                localEntities.Add(counter, childEntity);
                 localIDs.Add(counter++, childEntity.Identifier.ID);
 
                 if(localIDs.TryGetValue(sceneObject.parent, out var localParentID))
@@ -1226,6 +1271,95 @@ internal static class SceneSerialization
                         childTransform.SetParent(targetTransform);
                     }
                 }
+            }
+        }
+
+        void HandleReferences(Entity entity, SceneObject sceneObject)
+        {
+            foreach(var component in sceneObject.components)
+            {
+                var componentType = TypeCache.GetType(component.type);
+
+                if(componentType == null || entity.TryGetComponent(out var componentInstance, componentType) == false)
+                {
+                    continue;
+                }
+
+                foreach(var parameter in component.parameters)
+                {
+                    try
+                    {
+                        var field = componentType.GetField(parameter.name, BindingFlags.Public | BindingFlags.Instance);
+
+                        if (field == null)
+                        {
+                            continue;
+                        }
+
+                        if(field.FieldType == typeof(Entity) && parameter.type == SceneComponentParameterType.Int)
+                        {
+                            Entity targetEntity = default;
+
+                            if (localIDs.TryGetValue(parameter.intValue, out var localEntityID))
+                            {
+                                targetEntity = Scene.FindEntity(localEntityID);
+                            }
+
+                            if(targetEntity.IsValid)
+                            {
+                                field.SetValue(componentInstance, targetEntity);
+                            }
+                        }
+                        else if((field.FieldType == typeof(IComponent) ||
+                            field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                            parameter.type == SceneComponentParameterType.String)
+                        {
+                            var pieces = parameter.stringValue.Split(":");
+
+                            if(pieces.Length == 2 &&
+                                int.TryParse(pieces[0], out var entityID))
+                            {
+                                var targetComponentType = TypeCache.GetType(pieces[1]);
+
+                                if(targetComponentType == null ||
+                                    targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                {
+                                    continue;
+                                }
+
+                                Entity targetEntity = default;
+
+                                if(localIDs.TryGetValue(entityID, out var localEntityID))
+                                {
+                                    targetEntity = Scene.FindEntity(localEntityID);
+                                }
+
+                                if(targetEntity.IsValid == false ||
+                                    targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                {
+                                    continue;
+                                }
+
+                                field.SetValue(componentInstance, targetComponent);
+                            }
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                    }
+                }
+            }
+        }
+
+        HandleReferences(newEntity, prefab.mainObject);
+
+        for(var i = 0; i < prefab.children.Count; i++)
+        {
+            var sceneObject = prefab.children[i];
+
+            if(localEntities.TryGetValue(i + 1, out var entity) && entity.IsValid)
+            {
+                HandleReferences(entity, sceneObject);
             }
         }
 

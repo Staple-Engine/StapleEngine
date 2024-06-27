@@ -30,6 +30,33 @@ public partial class World
     }
 
     /// <summary>
+    /// Gets an entity's internal data if valid
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <returns>The entity info, or null</returns>
+    internal bool TryGetEntity(Entity entity, out EntityInfo info)
+    {
+        var localID = entity.Identifier.ID - 1;
+
+        lock (lockObject)
+        {
+            if (localID < 0 ||
+                localID >= entities.Count ||
+                entities[localID].alive == false ||
+                entities[localID].generation != entity.Identifier.generation)
+            {
+                info = default;
+
+                return false;
+            }
+
+            info = entities[localID];
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Checks whether an enity is enabled
     /// </summary>
     /// <param name="entity">The entity to check</param>

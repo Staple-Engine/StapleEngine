@@ -9,33 +9,6 @@ namespace Staple;
 public partial class World
 {
     /// <summary>
-    /// Gets an entity's internal data if valid
-    /// </summary>
-    /// <param name="entity">The entity</param>
-    /// <returns>The entity info, or null</returns>
-    internal bool TryGetEntity(Entity entity, out EntityInfo info)
-    {
-        var localID = entity.Identifier.ID - 1;
-
-        lock (lockObject)
-        {
-            if (localID < 0 ||
-                localID >= entities.Count ||
-                entities[localID].alive == false ||
-                entities[localID].generation != entity.Identifier.generation)
-            {
-                info = default;
-
-                return false;
-            }
-
-            info = entities[localID];
-
-            return true;
-        }
-    }
-
-    /// <summary>
     /// Unloads all components from an assembly (Used for editor purposes)
     /// </summary>
     /// <param name="assembly">The assembly to unload from</param>
@@ -669,5 +642,56 @@ public partial class World
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Attempts to find the entity for a component. Mostly works with classes, since it compares each.
+    /// </summary>
+    /// <param name="component">The component to check</param>
+    /// <returns>The entity, if valid</returns>
+    public Entity GetComponentEntity(IComponent component)
+    {
+        if(component == null)
+        {
+            return default;
+        }
+
+        lock (lockObject)
+        {
+            foreach (var componentIndex in ComponentIndices(component.GetType()))
+            {
+                foreach(var entity in entities)
+                {
+                    if (entity.components.Contains(componentIndex) &&
+                        componentsRepository.TryGetValue(componentIndex, out var info) &&
+                        info.components[entity.localID] == component)
+                    {
+                        return new Entity()
+                        {
+                            Identifier = new()
+                            {
+                                ID = entity.ID,
+                                generation = entity.generation,
+                            }
+                        };
+                    }
+                }
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the entity for a component. Mostly works with classes, since it compares each.
+    /// </summary>
+    /// <param name="component">The component to check</param>
+    /// <param name="entity">The entity, if valid</param>
+    /// <returns>Whether the entity was found</returns>
+    public bool TryGetComponentEntity(IComponent component, out Entity entity)
+    {
+        entity = GetComponentEntity(component);
+
+        return entity.IsValid;
     }
 }

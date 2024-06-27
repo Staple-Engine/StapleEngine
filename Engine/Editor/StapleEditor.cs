@@ -224,7 +224,7 @@ internal partial class StapleEditor
 
     private bool resetSelection = false;
 
-    private Entity draggedEntity;
+    internal Entity draggedEntity;
 
     internal Entity dropTargetEntity;
 
