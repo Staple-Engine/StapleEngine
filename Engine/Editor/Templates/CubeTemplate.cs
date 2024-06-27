@@ -6,12 +6,9 @@ internal class CubeTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.Create(Name, typeof(Transform), typeof(MeshRenderer));
+        var entity = Entity.CreatePrimitive(EntityPrimitiveType.Cube);
 
-        var renderer = entity.GetComponent<MeshRenderer>();
-
-        renderer.mesh = Mesh.Cube;
-        renderer.materials = new([ Resources.Load<Material>("Hidden/Materials/Checkerboard.mat") ]);
+        entity.Name = Name;
 
         return entity;
     }

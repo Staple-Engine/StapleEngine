@@ -6,12 +6,9 @@ internal class QuadTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.Create(Name, typeof(Transform), typeof(MeshRenderer));
+        var entity = Entity.CreatePrimitive(EntityPrimitiveType.Quad);
 
-        var renderer = entity.GetComponent<MeshRenderer>();
-
-        renderer.mesh = Mesh.Quad;
-        renderer.materials = new([Resources.Load<Material>("Hidden/Materials/Checkerboard.mat")]);
+        entity.Name = Name;
 
         return entity;
     }
