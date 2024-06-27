@@ -383,7 +383,7 @@ internal partial class StapleEditor
 
                     if (ImGui.IsItemHovered())
                     {
-                        if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Right))
+                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
                         {
                             ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                         }

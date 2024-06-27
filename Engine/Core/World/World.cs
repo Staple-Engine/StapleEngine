@@ -189,6 +189,7 @@ public partial class World
     private readonly List<EntityInfo> entities = new();
     private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
     private readonly HashSet<int> callableComponentIndices = new();
+    private readonly List<Entity> destroyedEntities = new();
 
     internal void StartFrame()
     {
@@ -206,6 +207,38 @@ public partial class World
                     info.removedComponents.Clear();
                 }
             }
+
+            void Destroy(Entity e)
+            {
+                if (TryGetEntity(e, out var info) == false)
+                {
+                    return;
+                }
+
+                lock (lockObject)
+                {
+                    var transform = GetComponent<Transform>(e);
+
+                    transform?.SetParent(null);
+
+                    info.components.Clear();
+                    info.alive = false;
+
+                    while (transform.ChildCount > 0)
+                    {
+                        var child = transform.GetChild(0);
+
+                        Destroy(child.entity);
+                    }
+                }
+            }
+
+            foreach (var e in destroyedEntities)
+            {
+                Destroy(e);
+            }
+
+            destroyedEntities.Clear();
         }
     }
 

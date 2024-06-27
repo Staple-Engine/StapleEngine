@@ -194,26 +194,9 @@ public partial class World
     /// <param name="entity">The entity to destroy</param>
     public void DestroyEntity(Entity entity)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        lock(lockObject)
         {
-            return;
-        }
-
-        lock (lockObject)
-        {
-            var transform = GetComponent<Transform>(entity);
-
-            transform?.SetParent(null);
-
-            entityInfo.components.Clear();
-            entityInfo.alive = false;
-
-            while (transform.ChildCount > 0)
-            {
-                var child = transform.GetChild(0);
-
-                DestroyEntity(child.entity);
-            }
+            destroyedEntities.Add(entity);
         }
     }
 
