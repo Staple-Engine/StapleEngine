@@ -17,6 +17,8 @@ internal class EntitySystemManager : ISubsystem
     private readonly HashSet<IEntitySystemUpdate> updateSystems = new();
     private readonly HashSet<IEntitySystemFixedUpdate> fixedUpdateSystems = new();
 
+    private readonly Dictionary<string, object> cachedSubclasses = new();
+
     public static readonly EntitySystemManager Instance = new();
 
     /// <summary>
@@ -26,6 +28,11 @@ internal class EntitySystemManager : ISubsystem
     /// <returns>All entity systems currently loaded of that type</returns>
     public T[] FindEntitySystemsSubclassing<T>()
     {
+        if(cachedSubclasses.TryGetValue(typeof(T).FullName, out var subclasses))
+        {
+            return (T[])subclasses;
+        }
+
         var outValue = new List<T>();
 
         foreach(var system in updateSystems)
@@ -46,7 +53,11 @@ internal class EntitySystemManager : ISubsystem
             }
         }
 
-        return outValue.ToArray();
+        var v = outValue.ToArray();
+
+        cachedSubclasses.Add(typeof(T).FullName, v);
+
+        return v;
     }
 
     /// <summary>
@@ -104,6 +115,8 @@ internal class EntitySystemManager : ISubsystem
 
             system.Shutdown();
         }
+
+        cachedSubclasses.Clear();
     }
 
     /// <summary>
@@ -132,6 +145,8 @@ internal class EntitySystemManager : ISubsystem
                 update.Startup();
             }
         }
+
+        cachedSubclasses.Clear();
     }
 
     public void Shutdown()
