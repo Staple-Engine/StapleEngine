@@ -92,15 +92,17 @@ public partial class World
         {
             var pieces = new List<CameraInfo>();
 
-            ForEach((Entity entity, ref Camera camera, ref Transform transform) =>
+            var cameras = ForEach<Camera, Transform>(false);
+
+            foreach((Entity e, Camera c, Transform t) in cameras)
             {
-                pieces.Add(new CameraInfo()
+                pieces.Add(new()
                 {
-                    entity = entity,
-                    camera = camera,
-                    transform = transform
+                    camera = c,
+                    entity = e,
+                    transform = t,
                 });
-            }, false);
+            }
 
             pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
 

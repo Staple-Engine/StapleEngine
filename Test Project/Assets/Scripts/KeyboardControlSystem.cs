@@ -11,7 +11,9 @@ namespace TestGame
 
         public void Update(float deltaTime)
         {
-            Scene.ForEach((Entity entity, ref KeyboardControlComponent component, ref Transform transform) =>
+            var keyboards = Scene.ForEach<KeyboardControlComponent, Transform>();
+
+            foreach((Entity entity, KeyboardControlComponent component, Transform transform) in keyboards)
             {
                 var targetRotation = Quaternion.Identity;
                 var targetDirection = Vector3.Zero;
@@ -76,7 +78,7 @@ namespace TestGame
                     transform.LocalPosition += targetDirection * deltaTime;
                     transform.LocalRotation = targetRotation;
                 }
-            });
+            }
         }
 
         public void Shutdown()

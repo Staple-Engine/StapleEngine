@@ -206,7 +206,9 @@ public partial class RenderSystem
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
-        Scene.ForEach((Entity entity, ref Transform t) =>
+        var transforms = Scene.ForEach<Transform>();
+
+        foreach((Entity entity, Transform t) in transforms)
         {
             var layer = entity.Layer;
 
@@ -239,7 +241,7 @@ public partial class RenderSystem
                     }
                 }
             }
-        });
+        }
 
         foreach (var system in systems)
         {
@@ -370,7 +372,9 @@ public partial class RenderSystem
                     frustumCuller.Update(view, projection);
                 }
 
-                Scene.ForEach((Entity entity, ref Transform t) =>
+                var transforms = Scene.ForEach<Transform>();
+
+                foreach((Entity entity, Transform t) in transforms)
                 {
                     var layer = entity.Layer;
 
@@ -399,7 +403,7 @@ public partial class RenderSystem
                             }
                         }
                     }
-                });
+                }
 
                 CurrentViewID++;
             }

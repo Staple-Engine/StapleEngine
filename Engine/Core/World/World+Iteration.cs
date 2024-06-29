@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Staple;
@@ -9,19 +10,20 @@ public partial class World
     /// Iterates through entities, querying for components.
     /// </summary>
     /// <typeparam name="T">The type of the first component</typeparam>
-    /// <param name="callback">The callback when handling an entity</param>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
-    public void ForEach<T>(ForEachCallback<T> callback, bool includeDisabled) where T : IComponent
+    /// <returns>An array of a tuple with each entity and the requested components</returns>
+    public (Entity, T)[] ForEach<T>(bool includeDisabled) where T : IComponent
     {
         if (ComponentIndices(typeof(T)).Any() == false)
         {
-            return;
+            return [];
         }
 
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
+            var outValue = new List<(Entity, T)>();
 
             foreach (var entity in allEntities)
             {
@@ -51,15 +53,15 @@ public partial class World
                         },
                     };
 
-                    callback(e, ref t);
-
-                    componentsRepository[index].components[entity.localID] = t;
+                    outValue.Add((e, t));
                 }
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
             }
+
+            return outValue.ToArray();
         }
     }
 
@@ -68,22 +70,23 @@ public partial class World
     /// </summary>
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <typeparam name="T2">The type of the second component</typeparam>
-    /// <param name="callback">The callback when handling an entity</param>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
-    public void ForEach<T, T2>(ForEachCallback<T, T2> callback, bool includeDisabled)
+    /// <returns>An array of a tuple with each entity and the requested components</returns>
+    public (Entity, T, T2)[] ForEach<T, T2>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
     {
         if (ComponentIndices(typeof(T)).Any() == false ||
             ComponentIndices(typeof(T2)).Any() == false)
         {
-            return;
+            return [];
         }
 
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
+            var outValue = new List<(Entity, T, T2)>();
 
             foreach (var entity in allEntities)
             {
@@ -116,16 +119,15 @@ public partial class World
                         },
                     };
 
-                    callback(e, ref t, ref t2);
-
-                    componentsRepository[index].components[entity.localID] = t;
-                    componentsRepository[index2].components[entity.localID] = t2;
+                    outValue.Add((e, t, t2));
                 }
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
             }
+
+            return outValue.ToArray();
         }
     }
 
@@ -135,9 +137,9 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <typeparam name="T3">The type of the third component</typeparam>
-    /// <param name="callback">The callback when handling an entity</param>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
-    public void ForEach<T, T2, T3>(ForEachCallback<T, T2, T3> callback, bool includeDisabled)
+    /// <returns>An array of a tuple with each entity and the requested components</returns>
+    public (Entity, T, T2, T3)[] ForEach<T, T2, T3>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -146,13 +148,14 @@ public partial class World
             ComponentIndices(typeof(T2)).Any() == false ||
             ComponentIndices(typeof(T3)).Any() == false)
         {
-            return;
+            return [];
         }
 
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
+            var outValue = new List<(Entity, T, T2, T3)>();
 
             foreach (var entity in allEntities)
             {
@@ -188,17 +191,15 @@ public partial class World
                         },
                     };
 
-                    callback(e, ref t, ref t2, ref t3);
-
-                    componentsRepository[index].components[entity.localID] = t;
-                    componentsRepository[index2].components[entity.localID] = t2;
-                    componentsRepository[index3].components[entity.localID] = t3;
+                    outValue.Add((e, t, t2, t3));
                 }
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
             }
+
+            return outValue.ToArray();
         }
     }
 
@@ -209,9 +210,9 @@ public partial class World
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <typeparam name="T4">The type of the fourth component</typeparam>
-    /// <param name="callback">The callback when handling an entity</param>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
-    public void ForEach<T, T2, T3, T4>(ForEachCallback<T, T2, T3, T4> callback, bool includeDisabled)
+    /// <returns>An array of a tuple with each entity and the requested components</returns>
+    public (Entity, T, T2, T3, T4)[] ForEach<T, T2, T3, T4>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -222,13 +223,14 @@ public partial class World
             ComponentIndices(typeof(T3)).Any() == false ||
             ComponentIndices(typeof(T4)).Any() == false)
         {
-            return;
+            return [];
         }
 
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
+            var outValue = new List<(Entity, T, T2, T3, T4)>();
 
             foreach (var entity in allEntities)
             {
@@ -267,18 +269,15 @@ public partial class World
                         },
                     };
 
-                    callback(e, ref t, ref t2, ref t3, ref t4);
-
-                    componentsRepository[index].components[entity.localID] = t;
-                    componentsRepository[index2].components[entity.localID] = t2;
-                    componentsRepository[index3].components[entity.localID] = t3;
-                    componentsRepository[index4].components[entity.localID] = t4;
+                    outValue.Add((e, t, t2, t3, t4));
                 }
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
             }
+
+            return outValue.ToArray();
         }
     }
 
@@ -290,9 +289,9 @@ public partial class World
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <typeparam name="T5">The type of the fifth component</typeparam>
-    /// <param name="callback">The callback when handling an entity</param>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
-    public void ForEach<T, T2, T3, T4, T5>(ForEachCallback<T, T2, T3, T4, T5> callback, bool includeDisabled)
+    /// <returns>An array of a tuple with each entity and the requested components</returns>
+    public (Entity, T, T2, T3, T4, T5)[] ForEach<T, T2, T3, T4, T5>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -305,13 +304,14 @@ public partial class World
             ComponentIndices(typeof(T4)).Any() ||
             ComponentIndices(typeof(T5)).Any())
         {
-            return;
+            return [];
         }
 
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
             var allEntities = entities.ToArray();
+            var outValue = new List<(Entity, T, T2, T3, T4, T5)>();
 
             foreach (var entity in allEntities)
             {
@@ -353,19 +353,15 @@ public partial class World
                         },
                     };
 
-                    callback(e, ref t, ref t2, ref t3, ref t4, ref t5);
-
-                    componentsRepository[index].components[entity.localID] = t;
-                    componentsRepository[index2].components[entity.localID] = t2;
-                    componentsRepository[index3].components[entity.localID] = t3;
-                    componentsRepository[index4].components[entity.localID] = t4;
-                    componentsRepository[index5].components[entity.localID] = t5;
+                    outValue.Add((e, t, t2, t3, t4, t5));
                 }
                 catch (Exception e)
                 {
                     Log.Error($"Failed to process entity {entity.ID}: {e}");
                 }
             }
+
+            return outValue.ToArray();
         }
     }
 

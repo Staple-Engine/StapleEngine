@@ -440,10 +440,12 @@ public class Physics3D : ISubsystem
 
     public void Shutdown()
     {
-        World.Current.ForEach((Entity entity, ref RigidBody3D rigidBody) =>
+        var rigidBodies = World.Current.ForEach<RigidBody3D>(true);
+        
+        foreach((Entity _, RigidBody3D rigidBody) in rigidBodies)
         {
             DestroyBody(rigidBody.body);
-        }, true);
+        };
 
         Impl.Shutdown();
     }

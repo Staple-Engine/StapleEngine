@@ -39,10 +39,12 @@ namespace TestGame
 
             var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
 
-            Scene.ForEach((Entity entity, ref HighlightableComponent component, ref SpriteRenderer renderer) =>
+            var highlightables = Scene.ForEach<HighlightableComponent, SpriteRenderer>();
+
+            foreach((Entity entity, HighlightableComponent component, SpriteRenderer renderer) in highlightables)
             {
                 renderer.color = Color.White;
-            });
+            }
 
             if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out var fraction, LayerMask.Everything, maxDistance: 5))
             {

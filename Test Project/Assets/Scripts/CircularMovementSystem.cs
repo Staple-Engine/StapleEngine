@@ -11,7 +11,9 @@ namespace TestGame
 
         public void FixedUpdate(float deltaTime)
         {
-            Scene.ForEach((Entity entity, ref CircularMovementComponent movement, ref Transform transform) =>
+            var movements = Scene.ForEach<CircularMovementComponent, Transform>();
+
+            foreach((Entity entity, CircularMovementComponent movement, Transform transform) in movements)
             {
                 movement.t += deltaTime * movement.speed;
 
@@ -25,7 +27,7 @@ namespace TestGame
                         Math.Sin(movement.t * Math.Deg2Rad) * movement.distance,
                         0);
                 }
-            });
+            }
         }
 
         public void Shutdown()

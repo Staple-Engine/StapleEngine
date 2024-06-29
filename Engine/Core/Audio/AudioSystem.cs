@@ -185,7 +185,9 @@ public class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
 
-        Scene.ForEach((Entity entity, ref Transform transform, ref AudioListener listener) =>
+        var listeners = Scene.ForEach<Transform, AudioListener>();
+        
+        foreach((Entity _, Transform transform, AudioListener listener) in listeners)
         {
             listenerTransform ??= transform;
 
@@ -199,7 +201,7 @@ public class AudioSystem : ISubsystem
                 listener.audioListener.Position = Vector3.Zero;
                 listener.audioListener.Orientation = Quaternion.Identity;
             }
-        });
+        }
 
         var removed = new List<AudioSourceInfo>();
 

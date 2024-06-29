@@ -83,7 +83,9 @@ internal partial class StapleEditor
         {
             var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
 
-            Scene.ForEach((Entity entity, ref Transform transform) =>
+            var transforms = Scene.ForEach<Transform>();
+
+            foreach((Entity entity, Transform transform) in transforms)
             {
                 if(entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
                 {
@@ -116,7 +118,7 @@ internal partial class StapleEditor
                         }
                     }
                 }
-            });
+            }
 
             if (cachedGizmoEditors.Count > 0)
             {
