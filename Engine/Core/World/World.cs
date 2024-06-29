@@ -31,11 +31,6 @@ public partial class World
         public int generation;
 
         /// <summary>
-        /// The normalized entity info, which is the actual index
-        /// </summary>
-        public int localID;
-
-        /// <summary>
         /// Whether this entity is alive. If it's not, queries on it will fail.
         /// </summary>
         public bool alive;
@@ -46,9 +41,14 @@ public partial class World
         public bool enabled;
 
         /// <summary>
-        /// The active components for the entity
+        /// List of components for the entity
         /// </summary>
-        public List<int> components = new();
+        public List<IComponent> components = new();
+
+        /// <summary>
+        /// List of component indices for the entity
+        /// </summary>
+        public List<int> componentIndices = new();
 
         /// <summary>
         /// The components that were just removed for the entity
@@ -74,76 +74,12 @@ public partial class World
         /// The entity's local ID in the prefab (if any)
         /// </summary>
         public int prefabLocalID;
-    }
 
-    /// <summary>
-    /// Contains info on a component and its type
-    /// </summary>
-    private class ComponentInfo
-    {
-        /// <summary>
-        /// The type to instantiate
-        /// </summary>
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-        public Type type;
-
-        /// <summary>
-        /// The list of components per entity
-        /// </summary>
-        public List<IComponent> components = new();
-
-        /// <summary>
-        /// Attempts to add a component to the list
-        /// </summary>
-        /// <returns>Whether successful</returns>
-        public bool AddComponent()
+        public bool TryGetComponentIndex(int index, out int value)
         {
-            try
-            {
-                var t = (IComponent)Activator.CreateInstance(type);
+            value = componentIndices.IndexOf(index);
 
-                if (t != null)
-                {
-                    components.Add(t);
-
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to add component {type.FullName}: {e}");
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Creates an instance of the component
-        /// </summary>
-        /// <param name="component">The component (or default)</param>
-        /// <returns>Whether successful</returns>
-        public bool Create(out IComponent component)
-        {
-            try
-            {
-                var t = (IComponent)Activator.CreateInstance(type);
-
-                if (t != null)
-                {
-                    component = t;
-
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to create component {type.FullName}: {e}");
-            }
-
-            component = default;
-
-            return false;
+            return value >= 0;
         }
     }
 
@@ -163,7 +99,7 @@ public partial class World
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
     private readonly List<EntityInfo> entities = new();
-    private readonly Dictionary<int, ComponentInfo> componentsRepository = new();
+    private readonly Dictionary<int, Type> componentsRepository = new();
     private readonly HashSet<int> callableComponentIndices = new();
     private readonly List<Entity> destroyedEntities = new();
 
@@ -177,7 +113,12 @@ public partial class World
                 {
                     foreach (var index in info.removedComponents)
                     {
-                        info.components.Remove(index);
+                        if(info.TryGetComponentIndex(index, out var i))
+                        {
+                            info.components.RemoveAt(i);
+                        }
+
+                        info.componentIndices.Remove(index);
                     }
 
                     info.removedComponents.Clear();

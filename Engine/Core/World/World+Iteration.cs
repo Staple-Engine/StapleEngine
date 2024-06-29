@@ -33,14 +33,15 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
-                if (index < 0)
+                if (index < 0 ||
+                    entity.TryGetComponentIndex(index, out var tIndex) == false)
                 {
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.localID];
+                T t = (T)entity.components[tIndex];
 
                 try
                 {
@@ -96,17 +97,19 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
                 if (index < 0 ||
-                    index2 < 0)
+                    index2 < 0 ||
+                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
+                    entity.TryGetComponentIndex(index2, out var tIndex2) == false)
                 {
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.localID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
+                T t = (T)entity.components[tIndex];
+                T2 t2 = (T2)entity.components[tIndex2];
 
                 try
                 {
@@ -165,20 +168,23 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
-                    index3 < 0)
+                    index3 < 0 ||
+                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
+                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
+                    entity.TryGetComponentIndex(index3, out var tIndex3) == false)
                 {
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.localID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
+                T t = (T)entity.components[tIndex];
+                T2 t2 = (T2)entity.components[tIndex2];
+                T3 t3 = (T3)entity.components[tIndex3];
 
                 try
                 {
@@ -240,23 +246,27 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
                     index3 < 0 ||
-                    index4 < 0)
+                    index4 < 0 ||
+                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
+                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
+                    entity.TryGetComponentIndex(index3, out var tIndex3) == false ||
+                    entity.TryGetComponentIndex(index4, out var tIndex4) == false)
                 {
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.localID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
-                T4 t4 = (T4)componentsRepository[index4].components[entity.localID];
+                T t = (T)entity.components[tIndex];
+                T2 t2 = (T2)entity.components[tIndex2];
+                T3 t3 = (T3)entity.components[tIndex3];
+                T4 t4 = (T4)entity.components[tIndex4];
 
                 try
                 {
@@ -321,26 +331,31 @@ public partial class World
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.components.Contains(x), -1);
-                var index5 = ComponentIndices(entity, typeof(T5)).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
+                var index5 = ComponentIndices(entity, typeof(T5)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
                 if (index < 0 ||
                     index2 < 0 ||
                     index3 < 0 ||
                     index4 < 0 ||
-                    index5 < 0)
+                    index5 < 0 ||
+                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
+                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
+                    entity.TryGetComponentIndex(index3, out var tIndex3) == false ||
+                    entity.TryGetComponentIndex(index4, out var tIndex4) == false ||
+                    entity.TryGetComponentIndex(index5, out var tIndex5) == false)
                 {
                     continue;
                 }
 
-                T t = (T)componentsRepository[index].components[entity.localID];
-                T2 t2 = (T2)componentsRepository[index2].components[entity.localID];
-                T3 t3 = (T3)componentsRepository[index3].components[entity.localID];
-                T4 t4 = (T4)componentsRepository[index4].components[entity.localID];
-                T5 t5 = (T5)componentsRepository[index5].components[entity.localID];
+                T t = (T)entity.components[tIndex];
+                T2 t2 = (T2)entity.components[tIndex2];
+                T3 t3 = (T3)entity.components[tIndex3];
+                T4 t4 = (T4)entity.components[tIndex4];
+                T5 t5 = (T5)entity.components[tIndex5];
 
                 try
                 {
@@ -393,7 +408,7 @@ public partial class World
                     continue;
                 }
 
-                var componentIndex = ComponentIndices(t).FirstOrDefault(x => entity.components.Contains(x), -1);
+                var componentIndex = ComponentIndices(t).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
 
                 if (componentIndex < 0)
                 {
@@ -550,7 +565,7 @@ public partial class World
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var cache = entityInfo.components.ToArray();
+            var cache = entityInfo.componentIndices.ToArray();
 
             foreach (var index in cache)
             {
@@ -559,12 +574,13 @@ public partial class World
                     break;
                 }
 
-                if(entityInfo.removedComponents.Contains(index))
+                if(entityInfo.removedComponents.Contains(index) ||
+                    entityInfo.TryGetComponentIndex(index, out var tIndex) == false)
                 {
                     continue;
                 }
 
-                var component = componentsRepository[index].components[entityInfo.localID];
+                var component = entityInfo.components[tIndex];
 
                 callback(ref component);
 
@@ -573,7 +589,7 @@ public partial class World
                     continue;
                 }
 
-                componentsRepository[index].components[entityInfo.localID] = component;
+                entityInfo.components[tIndex] = component;
             }
         }
     }

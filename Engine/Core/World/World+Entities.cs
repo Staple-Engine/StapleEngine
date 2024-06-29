@@ -164,18 +164,12 @@ public partial class World
             var newEntity = new EntityInfo()
             {
                 ID = entities.Count + 1,
-                localID = entities.Count,
                 alive = true,
                 enabled = true,
                 name = DefaultEntityName,
             };
 
             entities.Add(newEntity);
-
-            foreach (var pair in componentsRepository)
-            {
-                pair.Value.AddComponent();
-            }
 
             return new Entity()
             {

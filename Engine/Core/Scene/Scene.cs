@@ -97,21 +97,28 @@ public class Scene
                         continue;
                     }
 
-                    var field = type.GetField(pair.Key);
-
-                    if (field != null)
+                    try
                     {
-                        SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), element);
+                        var field = type.GetField(pair.Key);
+
+                        if (field != null)
+                        {
+                            SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), element);
+                        }
+
+                        /*
+                        var property = type.GetProperty(pair.Key);
+
+                        if(property != null && property.CanWrite)
+                        {
+                            SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), element);
+                        }
+                        */
                     }
-
-                    /*
-                    var property = type.GetProperty(pair.Key);
-
-                    if(property != null && property.CanWrite)
+                    catch (Exception e)
                     {
-                        SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), element);
+                        return default;
                     }
-                    */
                 }
             }
 
