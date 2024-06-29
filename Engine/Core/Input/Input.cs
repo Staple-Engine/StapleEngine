@@ -1,7 +1,9 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace Staple;
 
@@ -25,6 +27,15 @@ public static class Input
         public readonly Dictionary<GamepadAxis, float> axis = new();
     }
 
+    private class InputCallback
+    {
+        public InputAction action;
+        public Action<InputActionContext> onPress;
+        public Action<InputActionContext, float> onAxis;
+        public Action<InputActionContext, Vector2> onDualAxis;
+        public Assembly assembly;
+    }
+
     private static readonly Dictionary<KeyCode, InputState> keyStates = new();
 
     private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = new();
@@ -36,6 +47,10 @@ public static class Input
     private static readonly HashSet<int> touchKeysToRemove = new();
 
     private static readonly Dictionary<int, GamepadState> gamepads = new();
+
+    private static readonly Dictionary<int, InputCallback> inputCallbacks = new();
+
+    private static int inputCallbackCounter = 0;
 
     /// <summary>
     /// Last input character
@@ -63,6 +78,298 @@ public static class Input
 
     internal static void UpdateState()
     {
+        static void ExecuteSafely(Action<InputActionContext> action, InputActionContext context)
+        {
+            try
+            {
+                action?.Invoke(context);
+            }
+            catch(Exception e)
+            {
+                Log.Debug(e.ToString());
+            }
+        }
+
+        static void ExecuteSafelyAxis(Action<InputActionContext, float> action, InputActionContext context, float value)
+        {
+            try
+            {
+                action?.Invoke(context, value);
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e.ToString());
+            }
+        }
+
+        static void ExecuteSafelyDualAxis(Action<InputActionContext, Vector2> action, InputActionContext context, Vector2 value)
+        {
+            try
+            {
+                action?.Invoke(context, value);
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e.ToString());
+            }
+        }
+
+        foreach (var pair in inputCallbacks)
+        {
+            switch(pair.Value.action.type)
+            {
+                case InputActionType.Press:
+
+                    foreach(var device in pair.Value.action.devices)
+                    {
+                        switch(device.device)
+                        {
+                            case InputDevice.Gamepad:
+
+                                if (GetGamepadButtonDown(device.deviceIndex, device.gamepad.button))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Keyboard:
+
+                                if (GetKeyDown(device.keys.firstPositive))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Mouse:
+
+                                if(GetMouseButtonDown(device.mouse.button))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Touch:
+
+                                if(GetTouchDown(device.deviceIndex))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+                        }
+                    }
+
+                    break;
+
+                case InputActionType.ContinousPress:
+
+                    foreach (var device in pair.Value.action.devices)
+                    {
+                        switch (device.device)
+                        {
+                            case InputDevice.Gamepad:
+
+                                if (GetGamepadButton(device.deviceIndex, device.gamepad.button))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Keyboard:
+
+                                if (GetKey(device.keys.firstPositive))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Mouse:
+
+                                if (GetMouseButton(device.mouse.button))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+
+                            case InputDevice.Touch:
+
+                                if (GetTouch(device.deviceIndex))
+                                {
+                                    ExecuteSafely(pair.Value.onPress, new()
+                                    {
+                                        device = device.device,
+                                        deviceIndex = device.deviceIndex,
+                                    });
+                                }
+
+                                break;
+                        }
+                    }
+
+                    break;
+
+                case InputActionType.Axis:
+
+                    foreach (var device in pair.Value.action.devices)
+                    {
+                        var axis = 0.0f;
+
+                        switch (device.device)
+                        {
+                            case InputDevice.Gamepad:
+
+                                axis = GetGamepadAxis(device.deviceIndex, device.gamepad.firstAxis);
+
+                                break;
+
+                            case InputDevice.Keyboard:
+
+                                axis += GetKey(device.keys.firstPositive) ? 1 : 0;
+                                axis -= GetKey(device.keys.firstNegative) ? 1 : 0;
+
+                                break;
+
+                            case InputDevice.Mouse:
+
+                                if(device.mouse.scroll)
+                                {
+                                    axis = MouseDelta.Y;
+                                }
+                                else if(device.mouse.horizontal)
+                                {
+                                    axis = MouseRelativePosition.Y;
+                                }
+                                else if(device.mouse.vertical)
+                                {
+                                    axis = MouseRelativePosition.X;
+                                }
+
+                                break;
+
+                            case InputDevice.Touch:
+
+                                //Not valid
+
+                                break;
+                        }
+
+                        if(axis != 0)
+                        {
+                            ExecuteSafelyAxis(pair.Value.onAxis, new()
+                            {
+                                device = device.device,
+                                deviceIndex = device.deviceIndex,
+                            }, axis);
+                        }
+                    }
+
+                    break;
+
+                case InputActionType.DualAxis:
+
+                    foreach (var device in pair.Value.action.devices)
+                    {
+                        var axis = Vector2.Zero;
+
+                        switch (device.device)
+                        {
+                            case InputDevice.Gamepad:
+
+                                axis.X = GetGamepadAxis(device.deviceIndex, device.gamepad.firstAxis);
+                                axis.Y = GetGamepadAxis(device.deviceIndex, device.gamepad.secondAxis);
+
+                                break;
+
+                            case InputDevice.Keyboard:
+
+                                axis.X += GetKey(device.keys.firstPositive) ? 1 : 0;
+                                axis.X -= GetKey(device.keys.firstNegative) ? 1 : 0;
+
+                                if(device.keys.secondPositive.HasValue && device.keys.secondNegative.HasValue)
+                                {
+                                    axis.Y += GetKey(device.keys.secondPositive.Value) ? 1 : 0;
+                                    axis.Y -= GetKey(device.keys.secondNegative.Value) ? 1 : 0;
+                                }
+
+                                break;
+
+                            case InputDevice.Mouse:
+
+                                if (device.mouse.scroll)
+                                {
+                                    axis.X = MouseDelta.Y;
+                                    axis.Y = MouseDelta.X;
+                                }
+                                else
+                                {
+                                    if (device.mouse.horizontal)
+                                    {
+                                        axis.X = MouseRelativePosition.Y;
+                                    }
+
+                                    if (device.mouse.vertical)
+                                    {
+                                        axis.Y = MouseRelativePosition.X;
+                                    }
+                                }
+
+                                break;
+
+                            case InputDevice.Touch:
+
+                                //Not valid
+
+                                break;
+                        }
+
+                        if (axis != Vector2.Zero)
+                        {
+                            ExecuteSafelyDualAxis(pair.Value.onDualAxis, new()
+                            {
+                                device = device.device,
+                                deviceIndex = device.deviceIndex,
+                            }, axis);
+                        }
+                    }
+
+                    break;
+            }
+        }
+
         static void Handle<T>(Dictionary<T, InputState> dict)
         {
             foreach (var key in dict.Keys)
@@ -105,9 +412,9 @@ public static class Input
         previousMousePosition = MousePosition;
     }
 
-    private static void HandleInputStateChange<Key>(Key key, Internal.AppEventInputState state, Dictionary<Key, InputState> states)
+    private static void HandleInputStateChange<Key>(Key key, AppEventInputState state, Dictionary<Key, InputState> states)
     {
-        bool pressed = state == Internal.AppEventInputState.Press;
+        bool pressed = state == AppEventInputState.Press;
 
         var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
@@ -201,7 +508,7 @@ public static class Input
             touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
         }
 
-        if (appEvent.touch.state == Internal.AppEventInputState.Repeat)
+        if (appEvent.touch.state == AppEventInputState.Repeat)
         {
             return;
         }
@@ -213,7 +520,7 @@ public static class Input
     {
         var mouseButton = (MouseButton)appEvent.mouse.button;
 
-        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? Internal.AppEventInputState.Press : Internal.AppEventInputState.Release,
+        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? AppEventInputState.Press : AppEventInputState.Release,
             mouseButtonStates);
     }
 
@@ -221,7 +528,7 @@ public static class Input
     {
         var code = appEvent.key.key;
 
-        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? Internal.AppEventInputState.Press : Internal.AppEventInputState.Release,
+        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? AppEventInputState.Press : AppEventInputState.Release,
             keyStates);
     }
 
@@ -502,5 +809,90 @@ public static class Input
     public static void ShowCursor()
     {
         window.ShowCursor();
+    }
+
+    /// <summary>
+    /// Registers an input action for being pressed
+    /// </summary>
+    /// <param name="action">The action</param>
+    /// <param name="callback">The callback</param>
+    /// <returns>An ID for the action to be used for removing the action later</returns>
+    public static int AddAction(InputAction action, Action<InputActionContext> callback)
+    {
+        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        {
+            assembly = callback.Target.GetType().Assembly,
+            action = action,
+            onPress = callback,
+        });
+
+        return inputCallbackCounter++;
+    }
+
+    /// <summary>
+    /// Registers an input action for a single axis
+    /// </summary>
+    /// <param name="action">The action</param>
+    /// <param name="callback">The callback</param>
+    /// <returns>An ID for the action to be used for removing the action later</returns>
+    public static int AddAction(InputAction action, Action<InputActionContext, float> callback)
+    {
+        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        {
+            assembly = callback.Target.GetType().Assembly,
+            action = action,
+            onAxis = callback,
+        });
+
+        return inputCallbackCounter++;
+    }
+
+    /// <summary>
+    /// Registers an input action for two axis
+    /// </summary>
+    /// <param name="action">The action</param>
+    /// <param name="callback">The callback</param>
+    /// <returns>An ID for the action to be used for removing the action later</returns>
+    public static int AddAction(InputAction action, Action<InputActionContext, Vector2> callback)
+    {
+        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        {
+            assembly = callback.Target.GetType().Assembly,
+            action = action,
+            onDualAxis = callback,
+        });
+
+        return inputCallbackCounter++;
+    }
+
+    /// <summary>
+    /// Clears an input action
+    /// </summary>
+    /// <param name="ID">The action ID to clear</param>
+    public static void ClearAction(int ID)
+    {
+        inputCallbacks.Remove(ID);
+    }
+
+    /// <summary>
+    /// Clears all actions belonging to a specific assembly
+    /// </summary>
+    /// <param name="assembly">The assembly to clear</param>
+    internal static void ClearAssemblyActions(Assembly assembly)
+    {
+        var cleared = new HashSet<int>();
+
+        foreach(var pair in inputCallbacks)
+        {
+            if(pair.Value.assembly == assembly)
+            {
+                cleared.Add(pair.Key);
+            }
+        }
+
+        foreach(var key in cleared)
+        {
+            inputCallbacks.Remove(key);
+        }
     }
 }

@@ -133,6 +133,8 @@ internal partial class StapleEditor
 
                 RenderSystem.Instance.RemoveAllSubsystems(assembly);
 
+                Input.ClearAssemblyActions(assembly);
+
                 World.Current?.UnloadComponentsFromAssembly(assembly);
 
                 EntitySystemManager.Instance.UnloadSystemsFromAssembly(assembly);
