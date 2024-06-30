@@ -72,8 +72,52 @@ internal partial class StapleEditor
         }
     }
 
+    internal static string GetProperFolderName(string current, string name, string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                var counter = 1;
+
+                for (; ; )
+                {
+                    path = Path.Combine(current, $"{name}{counter++}");
+
+                    if (Directory.Exists(path) == false)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return path;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private void CreateAssetMenu()
     {
+        EditorGUI.MenuItem("Folder", "FOLDER", () =>
+        {
+            try
+            {
+                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                var path = GetProperFolderName(currentPath, "New Folder", Path.Combine(currentPath, "New Folder"));
+
+                Directory.CreateDirectory(path);
+
+                RefreshAssets(false);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to create folder: {e}");
+            }
+        });
+
         foreach (var pair in registeredAssetTemplates)
         {
             var name = pair.Key;

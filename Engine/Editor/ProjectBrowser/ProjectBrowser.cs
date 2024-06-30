@@ -1003,7 +1003,15 @@ internal class ProjectBrowser
 
                 try
                 {
-                    File.Delete(item.path);
+                    if(File.Exists(item.path))
+                    {
+                        File.Delete(item.path);
+                    }
+                    else if(Directory.Exists(item.path))
+                    {
+                        Directory.Delete(item.path, true);
+                    }
+
                     File.Delete($"{item.path}.meta");
                 }
                 catch(Exception)
