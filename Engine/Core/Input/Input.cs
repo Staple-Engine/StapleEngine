@@ -271,11 +271,11 @@ public static class Input
                                 }
                                 else if(device.mouse.horizontal)
                                 {
-                                    axis = MouseRelativePosition.Y;
+                                    axis = MouseRelativePosition.X;
                                 }
                                 else if(device.mouse.vertical)
                                 {
-                                    axis = MouseRelativePosition.X;
+                                    axis = -MouseRelativePosition.Y;
                                 }
 
                                 break;
@@ -338,12 +338,12 @@ public static class Input
                                 {
                                     if (device.mouse.horizontal)
                                     {
-                                        axis.X = MouseRelativePosition.Y;
+                                        axis.X = MouseRelativePosition.X;
                                     }
 
                                     if (device.mouse.vertical)
                                     {
-                                        axis.Y = MouseRelativePosition.X;
+                                        axis.Y = -MouseRelativePosition.Y;
                                     }
                                 }
 
@@ -543,7 +543,7 @@ public static class Input
 
         MousePosition = newPos;
 
-        MouseRelativePosition = previousMousePosition - newPos;
+        MouseRelativePosition = newPos - previousMousePosition;
     }
 
     internal static void HandleTextEvent(AppEvent appEvent)
