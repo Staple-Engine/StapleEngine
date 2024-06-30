@@ -177,64 +177,46 @@ internal class AppPlayer
                 SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
             }
 
-            var types = TypeCache.AllTypes()
-                .Where(x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem))
-                .ToArray();
-
-            Log.Info($"Loading {types.Length} render systems");
-
-            foreach (var type in types)
+            void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
             {
-                try
-                {
-                    var instance = (IRenderSystem)Activator.CreateInstance(type);
+                var types = TypeCache.AllTypes()
+                    .Where(x => check(x))
+                    .ToArray();
 
-                    if (instance != null)
-                    {
-                        RenderSystem.Instance.RegisterSystem(instance);
+                Log.Info($"Loading {types.Length} {caption}s");
 
-                        Log.Info($"Created render system {type.FullName}");
-                    }
-                    else
-                    {
-                        Log.Info($"Failed to create render system {type.FullName}");
-                    }
-                }
-                catch (Exception e)
+                foreach(var type in types)
                 {
-                    Log.Warning($"Player: Failed to load render system {type.FullName}: {e}");
+                    try
+                    {
+                        var instance = (T)Activator.CreateInstance(type);
+
+                        if (instance != null)
+                        {
+                            callback(instance);
+
+                            Log.Info($"Created {caption} {type.FullName}");
+                        }
+                        else
+                        {
+                            Log.Info($"Failed to create {caption} {type.FullName}");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warning($"Player: Failed to load {caption} {type.FullName}: {e}");
+                    }
                 }
             }
 
-            types = TypeCache.AllTypes()
-                .Where(x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
-                (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate)))
-                .ToArray();
+            HandleTypes<IRenderSystem>("render system",
+                (x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem)),
+                (instance => RenderSystem.Instance.RegisterSystem(instance)));
 
-            Log.Info($"Loading {types.Length} entity systems");
-
-            foreach(var type in types)
-            {
-                try
-                {
-                    var instance = Activator.CreateInstance(type);
-
-                    if (instance != null)
-                    {
-                        EntitySystemManager.Instance.RegisterSystem(instance);
-
-                        Log.Info($"Created entity system {type.FullName}");
-                    }
-                    else
-                    {
-                        Log.Info($"Failed to create entity system {type.FullName}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Warning($"Player: Failed to load entity system {type.FullName}: {e}");
-                }
-            }
+            HandleTypes<object>("entity system",
+                (x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
+                    (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
+                (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
 
             var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 

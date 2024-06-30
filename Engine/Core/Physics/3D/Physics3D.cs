@@ -12,15 +12,7 @@ public class Physics3D : ISubsystem
 
     public static Physics3D Instance
     {
-        get
-        {
-            if (instance == null)
-            {
-                throw new InvalidOperationException("Physics3D was not initialized");
-            }
-
-            return instance;
-        }
+        get => instance;
 
         internal set
         {

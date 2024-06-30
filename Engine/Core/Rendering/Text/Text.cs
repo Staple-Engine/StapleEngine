@@ -1,6 +1,6 @@
 namespace Staple;
 
-public class TextComponent : Renderable
+public class Text : Renderable
 {
     public string text = "";
 

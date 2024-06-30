@@ -25,7 +25,7 @@ public class TextRenderSystem : IRenderSystem
 
     private readonly List<TextInfo> texts = new();
 
-    public Type RelatedComponent() => typeof(TextComponent);
+    public Type RelatedComponent() => typeof(Text);
 
     public void Prepare()
     {
@@ -50,7 +50,7 @@ public class TextRenderSystem : IRenderSystem
     public void Process(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if(relatedComponent is not TextComponent text)
+        if(relatedComponent is not Text text)
         {
             return;
         }

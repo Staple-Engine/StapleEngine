@@ -519,10 +519,13 @@ internal class CSProjManager
 
         foreach(var pair in projectAppSettings.usedModules)
         {
-            p.AddItem("Reference", pair.Value,
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Modules", configurationName, $"{pair.Value}.dll"))
-                ]);
+            if(pair.Value.Length > 0)
+            {
+                p.AddItem("Reference", pair.Value,
+                    [
+                        new("HintPath", Path.Combine(backend.basePath, "Modules", configurationName, $"{pair.Value}.dll"))
+                    ]);
+            }
         }
 
         p.AddItem("ProjectReference", typeRegistrationPath,

@@ -24,9 +24,13 @@ internal class AppSettingsWindow : EditorWindow
 
         foreach(var pair in StapleEditor.instance.modulesList)
         {
-            moduleNames.Add(pair.Key, pair.Value
+            var names = pair.Value
                 .Select(x => x.moduleName)
-                .ToArray());
+                .ToList();
+
+            names.Insert(0, "(None)");
+
+            moduleNames.Add(pair.Key, names.ToArray());
         }
     }
 
@@ -137,7 +141,7 @@ internal class AppSettingsWindow : EditorWindow
             Handle(projectAppSettings.sortingLayers);
         });
 
-        EditorGUI.TreeNode("Plugins", "APPSETTINGSPLUGINS", false, true, () =>
+        EditorGUI.TreeNode("Modules", "APPSETTINGSMODULES", false, true, () =>
         {
             foreach (var kind in moduleKinds)
             {
@@ -145,11 +149,15 @@ internal class AppSettingsWindow : EditorWindow
                 {
                     projectAppSettings.usedModules.TryGetValue(kind, out var localName);
 
-                    var index = EditorGUI.Dropdown(kind.ToString(), $"APPSETTINGSPLUGINS{kind}", moduleNames[kind], modules.FindIndex(x => x.moduleName == localName));
+                    var index = EditorGUI.Dropdown(kind.ToString(), $"APPSETTINGSMODULES{kind}", moduleNames[kind], modules.FindIndex(x => x.moduleName == localName) + 1);
 
-                    if (index >= 0 && index < modules.Count)
+                    if (index > 0 && index <= modules.Count)
                     {
-                        projectAppSettings.usedModules.AddOrSetKey(kind, modules[index].moduleName);
+                        projectAppSettings.usedModules.AddOrSetKey(kind, modules[index - 1].moduleName);
+                    }
+                    else
+                    {
+                        projectAppSettings.usedModules.AddOrSetKey(kind, "");
                     }
                 }
             }
