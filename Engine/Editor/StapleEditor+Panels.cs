@@ -904,7 +904,7 @@ internal partial class StapleEditor
             {
                 object original = null;
 
-                var cachePath = ProjectNodeCachePath(item.path);
+                var cachePath = EditorUtils.GetAssetCachePath(basePath, item.path, currentPlatform);
 
                 if (item.typeName == typeof(Texture).FullName)
                 {

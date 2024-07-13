@@ -755,7 +755,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(22);
+            writer.WriteArrayHeader(23);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -778,6 +778,7 @@ namespace MessagePack.Formatters.Staple
             writer.Write(value.maximumFixedTimestepTime);
             writer.Write(value.physicsFrameRate);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>>().Serialize(ref writer, value.usedModules, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Serialize(ref writer, value.ambientLight, options);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -861,6 +862,9 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 21:
                         ____result.usedModules = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>>().Deserialize(ref reader, options);
+                        break;
+                    case 22:
+                        ____result.ambientLight = formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

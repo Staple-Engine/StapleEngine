@@ -148,7 +148,9 @@ internal partial class StapleEditor
             buildPlayerNativeAOT = false;
         }
 
-        if(fileSystemWatcher != null)
+        projectBrowser.currentPlatform = currentPlatform;
+
+        if (fileSystemWatcher != null)
         {
             fileSystemWatcher.Dispose();
 

@@ -108,14 +108,7 @@ internal class ThumbnailCache
                         break;
                     }
 
-                    var cachePath = request.path;
-
-                    var index = request.path.IndexOf("/Assets/");
-
-                    if (index >= 0)
-                    {
-                        cachePath = request.path.Substring(index + "/Assets/".Length).Replace("\\", "/");
-                    }
+                    var cachePath = EditorUtils.GetAssetCachePath(basePath, request.path, platform.Value);
 
                     var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
 
@@ -136,7 +129,7 @@ internal class ThumbnailCache
                     {
                     }
 
-                    thumbnailPath = Path.Combine(thumbnailPath, request.path.Substring(index + "Assets\\".Length));
+                    thumbnailPath = Path.Combine(thumbnailPath, EditorUtils.GetLocalPath(request.path));
 
                     try
                     {
@@ -413,14 +406,7 @@ internal class ThumbnailCache
                         break;
                     }
 
-                    var cachePath = request.path;
-
-                    var index = request.path.IndexOf("/Assets/");
-
-                    if (index >= 0)
-                    {
-                        cachePath = Path.Combine(basePath, "Cache", "Staging", platform.Value.ToString(), request.path.Substring(index + "/Assets/".Length));
-                    }
+                    var cachePath = EditorUtils.GetAssetCachePath(basePath, request.path, platform.Value);
 
                     var thumbnailPath = Path.Combine(basePath, "Cache", "Thumbnails");
 
@@ -432,7 +418,7 @@ internal class ThumbnailCache
                     {
                     }
 
-                    thumbnailPath = Path.Combine(thumbnailPath, request.path.Substring(index + "Assets\\".Length));
+                    thumbnailPath = Path.Combine(thumbnailPath, EditorUtils.GetLocalPath(request.path));
 
                     try
                     {

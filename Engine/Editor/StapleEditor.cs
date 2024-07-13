@@ -1097,20 +1097,6 @@ internal partial class StapleEditor
         }
     }
 
-    internal string ProjectNodeCachePath(string path)
-    {
-        var cachePath = path;
-
-        var pathIndex = path.IndexOf("/Assets/");
-
-        if (pathIndex >= 0)
-        {
-            cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path.Substring(pathIndex + "/Assets/".Length));
-        }
-
-        return cachePath;
-    }
-
     private string CachePathResolver(string path)
     {
         if(basePath == null)

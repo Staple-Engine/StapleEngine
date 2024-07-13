@@ -53,6 +53,11 @@ internal class ProjectBrowser
     public string basePath;
 
     /// <summary>
+    /// The current platform we're using
+    /// </summary>
+    public AppPlatform currentPlatform;
+
+    /// <summary>
     /// Which drag and drop operation we're doing right now
     /// </summary>
     public static ProjectBrowserDropType dropType = ProjectBrowserDropType.None;
@@ -846,11 +851,7 @@ internal class ProjectBrowser
                     return;
                 }
 
-                var cachePath = item.path;
-
-                var cacheIndex = cachePath.IndexOf("/Assets/");
-
-                cachePath = cachePath.Substring(cacheIndex + "/Assets/".Length).Replace("\\", "/");
+                var cachePath = EditorUtils.GetAssetCachePath(basePath, item.path, currentPlatform);
 
                 var guid = AssetDatabase.GetAssetGuid(cachePath);
 

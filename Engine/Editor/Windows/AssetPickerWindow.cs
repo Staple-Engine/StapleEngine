@@ -98,14 +98,7 @@ internal class AssetPickerWindow : EditorWindow
                     return;
                 }
 
-                var cachePath = i.path;
-
-                var cacheIndex = i.path.IndexOf("/Assets/");
-
-                if (cacheIndex >= 0)
-                {
-                    cachePath = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), i.path.Substring(cacheIndex + "/Assets/".Length)).Replace("\\", "/");
-                }
+                var cachePath = EditorUtils.GetAssetCachePath(basePath, i.path, currentPlatform);
 
                 var type = ProjectBrowser.ResourceTypeForExtension(i.extension);
 

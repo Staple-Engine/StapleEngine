@@ -140,8 +140,17 @@ public class AppSettings
     [Key(20)]
     public int physicsFrameRate = 50;
 
+    /// <summary>
+    /// Used modules for the player
+    /// </summary>
     [Key(21)]
     public Dictionary<ModuleType, string> usedModules = new();
+
+    /// <summary>
+    /// What color to use for ambient lighting
+    /// </summary>
+    [Key(22)]
+    public Color ambientLight = Color.Black;
 
     [IgnoreMember]
     public static AppSettings Default

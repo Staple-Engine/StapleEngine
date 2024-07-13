@@ -469,4 +469,32 @@ public static class EditorUtils
 
         StapleEditor.SaveAsset(entry.path, asset);
     }
+
+    internal static string GetAssetCachePath(string basePath, string path, AppPlatform platform)
+    {
+        var cachePath = path;
+
+        var index = Path.IsPathRooted(path) ? path.IndexOf("/Assets/") : -1;
+
+        if (index >= 0)
+        {
+            cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), path.Substring(index + "/Assets/".Length));
+        }
+
+        return cachePath;
+    }
+
+    internal static string GetLocalPath(string path)
+    {
+        var cachePath = path;
+
+        var index = Path.IsPathRooted(path) ? path.IndexOf("/Assets/") : -1;
+
+        if (index >= 0)
+        {
+            cachePath = path.Substring(index + "/Assets/".Length);
+        }
+
+        return cachePath;
+    }
 }
