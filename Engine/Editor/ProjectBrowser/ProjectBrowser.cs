@@ -851,7 +851,7 @@ internal class ProjectBrowser
                     return;
                 }
 
-                var cachePath = EditorUtils.GetAssetCachePath(basePath, item.path, currentPlatform);
+                var cachePath = EditorUtils.GetLocalPath(item.path);
 
                 var guid = AssetDatabase.GetAssetGuid(cachePath);
 

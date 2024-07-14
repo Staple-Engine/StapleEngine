@@ -183,14 +183,14 @@ public partial class World
 
             if (index < 0)
             {
-                entityInfo.componentIndices.Add(componentIndex);
-
                 var component = ObjectCreation.CreateObject<IComponent>(t);
 
-                if(component == default)
+                if (component == default)
                 {
                     return default;
                 }
+
+                entityInfo.componentIndices.Add(componentIndex);
 
                 if(Scene.InstancingComponent == false)
                 {

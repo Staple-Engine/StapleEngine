@@ -116,7 +116,7 @@ public partial class World
                         if(info.TryGetComponentIndex(index, out var i))
                         {
                             info.components.RemoveAt(i);
-                            info.componentIndices.Remove(i);
+                            info.componentIndices.RemoveAt(i);
                         }
                     }
 

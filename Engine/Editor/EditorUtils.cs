@@ -472,13 +472,13 @@ public static class EditorUtils
 
     internal static string GetAssetCachePath(string basePath, string path, AppPlatform platform)
     {
-        var cachePath = path;
+        var cachePath = path.Replace("\\", "/");
 
-        var index = Path.IsPathRooted(path) ? path.IndexOf("/Assets/") : -1;
+        var index = Path.IsPathRooted(cachePath) ? cachePath.IndexOf("/Assets/") : -1;
 
         if (index >= 0)
         {
-            cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), path.Substring(index + "/Assets/".Length));
+            cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), cachePath.Substring(index + "/Assets/".Length)).Replace("\\", "/");
         }
 
         return cachePath;
@@ -486,13 +486,13 @@ public static class EditorUtils
 
     internal static string GetLocalPath(string path)
     {
-        var cachePath = path;
+        var cachePath = path.Replace("\\", "/");
 
-        var index = Path.IsPathRooted(path) ? path.IndexOf("/Assets/") : -1;
+        var index = Path.IsPathRooted(cachePath) ? cachePath.IndexOf("/Assets/") : -1;
 
         if (index >= 0)
         {
-            cachePath = path.Substring(index + "/Assets/".Length);
+            cachePath = cachePath.Substring(index + "/Assets/".Length);
         }
 
         return cachePath;
