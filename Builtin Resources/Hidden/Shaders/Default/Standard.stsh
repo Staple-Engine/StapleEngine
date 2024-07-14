@@ -1,215 +1,78 @@
+Type VertexFragment
+
+Begin Parameters
+
+varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
+varying vec3 a_position : POSITION
+varying vec2 a_texcoord0 : TEXCOORD0
+varying vec4 a_weight : BLENDWEIGHT
+varying vec4 a_indices : BLENDINDICES
+
+uniform color ambientColor
+uniform texture ambientTexture
+uniform float ambientTextureSet
+uniform texture ambientOcclusionTexture
+uniform float ambientOcclusionTextureSet
+uniform color diffuseColor
+uniform texture diffuseTexture
+uniform float diffuseTextureSet
+uniform texture displacementTexture
+uniform float displacementTextureSet
+uniform color emissiveColor
+uniform texture emissiveTexture
+uniform float emissiveTextureSet
+uniform texture heightTexture
+uniform float heightTextureSet
+uniform texture normalTexture
+uniform float normalTextureSet
+uniform texture opacityTexture
+uniform float opacityTextureSet
+uniform texture reflectionTexture
+uniform float reflectionTextureSet
+uniform color specularColor
+uniform texture specularTexture
+uniform float specularTextureSet
+uniform color transparentColor
+
+End Parameters
+
+Begin Vertex
+
+$input a_position, a_texcoord0
+$output v_texcoord0
+
+void main()
 {
-	"type": "VertexFragment",
-	"parameters": [
-		{
-			"name": "v_texcoord0",
-			"semantic": "Varying",
-			"type": "Vector2",
-			"attribute": "TEXCOORD0",
-			"defaultValue": "vec2(0.0, 0.0)"
-		},
-		{
-			"name": "a_position",
-			"semantic": "Varying",
-			"type": "Vector3",
-			"attribute": "POSITION"
-		},
-		{
-			"name": "a_texcoord0",
-			"semantic": "Varying",
-			"type": "Vector2",
-			"attribute": "TEXCOORD0"
-		},
-		{
-			"name": "a_weight",
-			"semantic": "Varying",
-			"type": "Vector4",
-			"attribute": "BLENDWEIGHT"
-		},
-		{
-			"name": "a_indices",
-			"semantic": "Varying",
-			"type": "Vector4",
-			"attribute": "BLENDINDICES"
-		},
-		{
-			"name": "ambientColor",
-			"semantic": "Uniform",
-			"type": "Color"
-		},
-		{
-			"name": "ambientTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "ambientTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "ambientOcclusionTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "ambientOcclusionTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "diffuseColor",
-			"semantic": "Uniform",
-			"type": "Color"
-		},
-		{
-			"name": "diffuseTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "diffuseTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "displacementTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "displacementTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "emissiveColor",
-			"semantic": "Uniform",
-			"type": "Color"
-		},
-		{
-			"name": "emissiveTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "emissiveTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "heightTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "heightTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "lightmapTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "lightmapTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "normalTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "normalTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "opacityTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "opacityTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "reflectionTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "reflectionTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "specularColor",
-			"semantic": "Uniform",
-			"type": "Color"
-		},
-		{
-			"name": "specularTexture",
-			"semantic": "Uniform",
-			"type": "Texture"
-		},
-		{
-			"name": "specularTextureSet",
-			"semantic": "Uniform",
-			"type": "Float"
-		},
-		{
-			"name": "transparentColor",
-			"semantic": "Uniform",
-			"type": "Color"
-		}
-	],
-	"vertex": {
-		"inputs": [
-			"a_position", "a_texcoord0"
-		],
-		"outputs": [
-			"v_texcoord0"
-		],
-		"code": [
-			"void main()",
-			"{",
-			"	mat4 model = u_model[0];",
-			"",
-			"   #ifdef SKINNING",
-			"   model = StapleGetSkinningMatrix(a_indices, a_weight);",
-			"	#endif",
-			"",
-			"	mat4 projViewWorld = mul(mul(u_proj, u_view), model);",
-			"",
-			"	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));",
-			"",
-			"	gl_Position = v_pos;",
-			"",
-			"	v_texcoord0 = a_texcoord0;",
-			"}"
-		]
-	},
-	"fragment": {
-		"inputs": [
-			"v_texcoord0"
-		],
-		"code": [
-			"void main()",
-			"{",
-			"   if(diffuseTextureSet != 0.0)",
-			"   {",
-			"      gl_FragColor = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;",
-			"   }",
-			"   else",
-			"   {",
-			"      gl_FragColor = diffuseColor;",
-			"   }",
-			"}"
-		]
-	}
+	mat4 model = u_model[0];
+
+	#ifdef SKINNING
+	model = StapleGetSkinningMatrix(a_indices, a_weight);
+	#endif
+
+	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
+
+	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+
+	gl_Position = v_pos;
+
+	v_texcoord0 = a_texcoord0;
 }
+End Vertex
+
+Begin Fragment
+
+$input v_texcoord0
+
+void main()
+{
+   if(diffuseTextureSet != 0.0)
+   {
+      gl_FragColor = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;
+   }
+   else
+   {
+      gl_FragColor = diffuseColor;
+   }
+}
+
+End Fragment

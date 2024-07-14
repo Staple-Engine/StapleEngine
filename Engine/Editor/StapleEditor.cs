@@ -445,11 +445,7 @@ internal partial class StapleEditor
 
             Physics3D.Instance.Startup();
 
-            wireframeMaterial = ResourceManager.instance.LoadMaterial("Hidden/Materials/Wireframe.mat");
-
-            wireframeMaterial.SetVector4("opacity", new Vector4(1, 1, 1, 1));
-
-            wireframeMaterial.SetVector4("thickness", new Vector4(1, 1, 1, 1));
+            wireframeMaterial = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
 
             wireframeMesh = new Mesh(true, true)
             {

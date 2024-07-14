@@ -2,11 +2,11 @@ using Newtonsoft.Json;
 using Staple.Internal;
 using Staple.Tooling;
 
-namespace StapleToolingTests
+namespace StapleToolingTests;
+
+public class AssetSerializationTests
 {
-    public class AssetSerializationTests
-    {
-        internal static readonly string AssetData = $$"""
+    internal static readonly string AssetData = $$"""
 {
   "guid": "dd8767a6-62bc-440b-9d7a-d087211be124",
   "typeName": "Staple.SkinnedAnimationStateMachine",
@@ -399,39 +399,38 @@ namespace StapleToolingTests
 }
 """;
 
-        [Test]
-        public void TestAssetExpansion()
+    [Test]
+    public void TestAssetExpansion()
+    {
+        var asset = JsonConvert.DeserializeObject<SerializableStapleAsset>(AssetData);
+
+        Assert.IsNotNull(asset);
+
+        Utilities.ExpandSerializedAsset(asset);
+
+        Assert.Multiple(() =>
         {
-            var asset = JsonConvert.DeserializeObject<SerializableStapleAsset>(AssetData);
+            Assert.That(asset.typeName, Is.EqualTo("Staple.SkinnedAnimationStateMachine"));
 
-            Assert.IsNotNull(asset);
+            Assert.That(asset.parameters.Count, Is.EqualTo(3));
 
-            Utilities.ExpandSerializedAsset(asset);
+            Assert.That(asset.parameters.ContainsKey("mesh"));
+            Assert.That(asset.parameters.ContainsKey("states"));
+            Assert.That(asset.parameters.ContainsKey("parameters"));
+        });
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(asset.typeName, Is.EqualTo("Staple.SkinnedAnimationStateMachine"));
+        var mesh = asset.parameters["mesh"];
 
-                Assert.That(asset.parameters.Count, Is.EqualTo(3));
+        Assert.That(mesh.typeName, Is.EqualTo("Staple.Mesh"));
+        Assert.That(mesh.value, Is.EqualTo("a0b56adb-c2b1-4f89-9ba2-06586936916f:0"));
 
-                Assert.That(asset.parameters.ContainsKey("mesh"));
-                Assert.That(asset.parameters.ContainsKey("states"));
-                Assert.That(asset.parameters.ContainsKey("parameters"));
-            });
+        var states = asset.parameters["states"];
 
-            var mesh = asset.parameters["mesh"];
+        Assert.That(states.value is List<object>);
 
-            Assert.That(mesh.typeName, Is.EqualTo("Staple.Mesh"));
-            Assert.That(mesh.value, Is.EqualTo("a0b56adb-c2b1-4f89-9ba2-06586936916f:0"));
-
-            var states = asset.parameters["states"];
-
-            Assert.That(states.value is List<object>);
-
-            if(states.value is List<object> stateData)
-            {
-                Assert.That(stateData[0] is Dictionary<object, object>);
-            }
+        if(states.value is List<object> stateData)
+        {
+            Assert.That(stateData[0] is Dictionary<object, object>);
         }
     }
 }

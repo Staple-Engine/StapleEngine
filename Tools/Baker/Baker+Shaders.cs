@@ -1,5 +1,4 @@
 ﻿using MessagePack;
-using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
 using Staple.Tooling;
@@ -135,28 +134,103 @@ static partial class Program
                     }
 
                     string text;
-                    UnprocessedShader shader;
+                    UnprocessedShader shader = new();
 
                     try
                     {
-                        text = string.Join("\n", File.ReadAllText(currentShader)
-                            .Replace("\r\n", "\n")
-                            .Split("\n")
-                            .Where(x => x.StartsWith("//") == false));
-                        shader = JsonConvert.DeserializeObject<UnprocessedShader>(text);
+                        text = File.ReadAllText(currentShader.Replace(".meta", ""));
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("\t\tError: Unable to read file");
+                        Console.WriteLine($"\t\tError: Unable to read file: {e}");
 
                         return;
                     }
 
-                    if (shader == null)
+                    if(ShaderParser.Parse(text, out shader.type, out var blendMode, out var shaderParameters, out var vertex, out var fragment, out var compute) == false)
                     {
-                        Console.WriteLine("\t\tError: Unable to read file");
+                        Console.WriteLine("\t\tError: File has invalid format");
 
                         return;
+                    }
+
+                    if(blendMode.HasValue)
+                    {
+                        shader.sourceBlend = blendMode.Value.Item1;
+                        shader.destinationBlend = blendMode.Value.Item2;
+                    }
+
+                    foreach(var parameter in shaderParameters)
+                    {
+                        var p = new ShaderParameter
+                        {
+                            name = parameter.name,
+                            attribute = parameter.attribute,
+                            defaultValue = parameter.initializer,
+                        };
+
+                        p.semantic = parameter.type switch
+                        {
+                            "varying" => ShaderParameterSemantic.Varying,
+                            "uniform" => ShaderParameterSemantic.Uniform,
+                            _ => ShaderParameterSemantic.Uniform,
+                        };
+
+                        var typeValue = parameter.dataType switch
+                        {
+                            "float" => (int)ShaderUniformType.Float,
+                            "vec2" => (int)ShaderUniformType.Vector2,
+                            "vec3" => (int)ShaderUniformType.Vector3,
+                            "vec4" => (int)ShaderUniformType.Vector4,
+                            "color" => (int)ShaderUniformType.Color,
+                            "texture" => (int)ShaderUniformType.Texture,
+                            "mat3" => (int)ShaderUniformType.Matrix3x3,
+                            "mat4" => (int)ShaderUniformType.Matrix4x4,
+                            _ => -1
+                        };
+
+                        if(typeValue < 0)
+                        {
+                            Console.WriteLine($"\t\tError: Parameter has invalid type: {parameter.name} {parameter.dataType}");
+
+                            return;
+                        }
+
+                        p.type = (ShaderUniformType)typeValue;
+
+                        shader.parameters.Add(p);
+                    }
+
+                    switch(shader.type)
+                    {
+                        case ShaderType.Compute:
+
+                            shader.compute = new()
+                            {
+                                code = compute.content,
+                                inputs = compute.inputs,
+                                outputs = compute.outputs,
+                            };
+
+                            break;
+
+                        case ShaderType.VertexFragment:
+
+                            shader.vertex = new()
+                            {
+                                code = vertex.content,
+                                inputs = vertex.inputs,
+                                outputs = vertex.outputs,
+                            };
+
+                            shader.fragment = new()
+                            {
+                                code = fragment.content,
+                                inputs = fragment.inputs,
+                                outputs = fragment.outputs,
+                            };
+
+                            break;
                     }
 
                     var variants = Utilities.Combinations(shader.variants.Concat(Shader.DefaultVariants).ToList());
@@ -392,14 +466,14 @@ static partial class Program
                         {
                             case ShaderType.Compute:
 
-                                if (shader.compute == null || (shader.compute.code?.Count ?? 0) == 0)
+                                if (shader.compute == null || (shader.compute.code?.Length ?? 0) == 0)
                                 {
                                     Console.WriteLine("\t\tError: Compute Shader missing Compute section");
 
                                     return;
                                 }
 
-                                code = string.Join("\n", shader.compute.code);
+                                code = shader.compute.code;
 
                                 try
                                 {
@@ -427,8 +501,8 @@ static partial class Program
 
                             case ShaderType.VertexFragment:
 
-                                if (shader.vertex == null || (shader.vertex.code?.Count ?? 0) == 0 ||
-                                    shader.fragment == null || (shader.fragment.code?.Count ?? 0) == 0)
+                                if (shader.vertex == null || (shader.vertex.code?.Length ?? 0) == 0 ||
+                                    shader.fragment == null || (shader.fragment.code?.Length ?? 0) == 0)
                                 {
                                     Console.WriteLine("\t\tError: Shader missing vertex or fragment section");
 
@@ -553,7 +627,7 @@ vec4 a_indices : BLENDINDICES;
                                         }
                                     }
 
-                                    code += string.Join("\n", piece.code);
+                                    code += piece.code;
 
                                     try
                                     {
