@@ -14,15 +14,16 @@ Status: Early state, usable for small demos
 * Unity-style custom editor scripting and editor window scripting
 * C# game scripting
 * Custom asset system
+* Graphics API using BGFX as the base
 * Entities inspired by both modern ECS and Unity
-* Input (Keyboard, Mouse, Touch, Gamepad)
+* Input (Keyboard, Mouse, Touch, Gamepad) and Input Actions
 * Meshes, including some imported formats and skeletal animation
 * Physics (3D: Jolt Physics)
 * Audio (MP3, WAV, OGG) through OpenAL
-* Shader format based on BGFX, in a single file
-* Baking pipeline (Baker) that processes game resources to fast usage in engine
-* Resource Packer that packs multiple files in its own format
+* Baking pipeline (Baker) that processes game assets into engine-ready formats
+* Resource Packer that packs multiple files into a single file
 * Text Rendering using FreeType supporting optional gradients and outlines
+* Module system to enable/disable specific engine features such as physics and audio
 
 # Installation
 
@@ -34,13 +35,7 @@ You need [premake](https://premake.github.io/) to generate some project files, a
 
 ## Windows
 
-You also need visual studio 2022.
-
-## MacOS
-
-You also need xcode.
-
-## Windows
+You need visual studio 2022.
 
 To compile dependencies, open the visual studio dev terminal, go to the `Dependencies` directory, and run `build_windows`.
 
@@ -51,6 +46,20 @@ After building the engine, you must build the tools, so go to `Tools` and run `b
 After building the tools, go to the main folder of the repo and run `builddefaultresources.cmd` to prepare the default assets.
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the windows DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
+
+## MacOS
+
+You need xcode.
+
+To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
+
+After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh` and then run `build_backends.sh`.
+
+After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
+
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
+
+Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
 
 ## Linux
 
@@ -69,19 +78,5 @@ After that, you will need to compile the engine, so go to `Engine` and run `buil
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
 After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
-
-Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
-
-## MacOS
-
-### Instructions
-
-To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
-
-After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh` and then run `build_backends.sh`.
-
-After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
-
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
