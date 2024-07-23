@@ -141,7 +141,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 material.ApplyProperties();
 
-                material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices, boneMatrices.Length);
+                material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices);
 
                 renderer.mesh.SetActive(i);
 
@@ -151,6 +151,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
+                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material);
+
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }
                 else

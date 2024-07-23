@@ -332,6 +332,8 @@ public class SpriteRenderSystem : IRenderSystem
 
             if (program.Valid)
             {
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(s.transform, s.material);
+
                 bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
             else

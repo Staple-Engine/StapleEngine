@@ -89,6 +89,10 @@ internal partial class Shader : IGuidAsset
     internal readonly ShaderMetadata metadata;
     internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
+    internal static readonly List<(string, ShaderUniformType)> defaultUniforms = [
+        ("u_boneMatrices[128]", ShaderUniformType.Matrix4x4),
+    ];
+
     internal readonly Dictionary<ShaderUniformType, object> uniforms = new();
     internal readonly Dictionary<string, ShaderInstance> instances = new();
 
@@ -368,7 +372,59 @@ internal partial class Shader : IGuidAsset
                 }
             }
 
-            EnsureUniform<Matrix4x4>("u_boneMatrices[128]", ShaderUniformType.Matrix4x4);
+            foreach(var uniform in defaultUniforms)
+            {
+                switch(uniform.Item2)
+                {
+                    case ShaderUniformType.Texture:
+
+                        EnsureUniform<Texture>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Matrix3x3:
+
+                        EnsureUniform<Matrix3x3>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Matrix4x4:
+
+                        EnsureUniform<Matrix4x4>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Vector4:
+
+                        EnsureUniform<Vector4>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Color:
+
+                        EnsureUniform<Color>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Vector3:
+
+                        EnsureUniform<Vector3>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Vector2:
+
+                        EnsureUniform<Vector2>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Float:
+
+                        EnsureUniform<float>(uniform.Item1, uniform.Item2);
+
+                        break;
+                }
+            }
         }
 
         Disposed = false;
@@ -478,7 +534,7 @@ internal partial class Shader : IGuidAsset
     }
 
     /// <summary>
-    /// Sets a Vector3 uniform's value
+    /// Sets a Vector2 uniform's value
     /// </summary>
     /// <param name="name">The uniform's name</param>
     /// <param name="value">The value</param>
@@ -503,6 +559,41 @@ internal partial class Shader : IGuidAsset
             var temp = new Vector4(value, 0, 0);
 
             bgfx.set_uniform(uniform.handle, &temp, 1);
+        }
+    }
+
+    /// <summary>
+    /// Sets a Vector2 uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetVector2(string name, ReadOnlySpan<Vector2> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Vector2>(name, ShaderUniformType.Vector2);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4[value.Length];
+
+            for(var i = 0; i < value.Length; i++)
+            {
+                temp[i] = value[i].ToVector4();
+            }
+
+            fixed(void *ptr = temp)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
         }
     }
 
@@ -536,6 +627,41 @@ internal partial class Shader : IGuidAsset
     }
 
     /// <summary>
+    /// Sets a Vector3 uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetVector3(string name, ReadOnlySpan<Vector3> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Vector3>(name, ShaderUniformType.Vector3);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4[value.Length];
+
+            for(var i = 0; i < value.Length; i++)
+            {
+                temp[i] = value[i].ToVector4();
+            }
+
+            fixed(void *ptr = temp)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+    /// <summary>
     /// Sets a Vector4 uniform's value
     /// </summary>
     /// <param name="name">The uniform's name</param>
@@ -563,6 +689,34 @@ internal partial class Shader : IGuidAsset
     }
 
     /// <summary>
+    /// Sets a Vector4 uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetVector4(string name, ReadOnlySpan<Vector4> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Vector4>(name, ShaderUniformType.Vector4);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed(void *ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+    /// <summary>
     /// Sets a Color uniform's value
     /// </summary>
     /// <param name="name">The uniform's name</param>
@@ -573,7 +727,6 @@ internal partial class Shader : IGuidAsset
         {
             return;
         }
-
 
         var uniform = GetUniform<Color>(name, ShaderUniformType.Color);
 
@@ -589,6 +742,34 @@ internal partial class Shader : IGuidAsset
         unsafe
         {
             bgfx.set_uniform(uniform.handle, &colorValue, 1);
+        }
+    }
+
+    /// <summary>
+    /// Sets a Color uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetColor(string name, ReadOnlySpan<Color> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Color>(name, ShaderUniformType.Color);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed(void *ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
         }
     }
 
@@ -617,6 +798,61 @@ internal partial class Shader : IGuidAsset
         unsafe
         {
             value.SetActive(uniform.stage, uniform.handle, overrideFlags);
+        }
+    }
+
+    /// <summary>
+    /// Sets a Matrix3x3 uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix3x3(string name, Matrix3x3 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Matrix3x3>(name, ShaderUniformType.Matrix3x3);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        uniform.value = value;
+
+        unsafe
+        {
+            bgfx.set_uniform(uniform.handle, &value, 1);
+        }
+    }
+
+    /// <summary>
+    /// Sets a Matrix3x3 uniform's value
+    /// </summary>
+    /// <param name="name">The uniform's name</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix3x3(string name, ReadOnlySpan<Matrix3x3> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = GetUniform<Matrix3x3>(name, ShaderUniformType.Matrix3x3);
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed(void *ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
         }
     }
 
@@ -652,8 +888,7 @@ internal partial class Shader : IGuidAsset
     /// </summary>
     /// <param name="name">The uniform's name</param>
     /// <param name="value">The value</param>
-    /// <param name="count">The amount of elements</param>
-    public void SetMatrix4x4(string name, Matrix4x4[] value, int count)
+    public void SetMatrix4x4(string name, ReadOnlySpan<Matrix4x4> value)
     {
         if (Disposed)
         {
@@ -671,35 +906,8 @@ internal partial class Shader : IGuidAsset
         {
             fixed(void *ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)count);
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
-        }
-    }
-
-    /// <summary>
-    /// Sets a Matrix3x3 uniform's value
-    /// </summary>
-    /// <param name="name">The uniform's name</param>
-    /// <param name="value">The value</param>
-    public void SetMatrix3x3(string name, Matrix3x3 value)
-    {
-        if (Disposed)
-        {
-            return;
-        }
-
-        var uniform = GetUniform<Matrix3x3>(name, ShaderUniformType.Matrix3x3);
-
-        if (uniform == null)
-        {
-            return;
-        }
-
-        uniform.value = value;
-
-        unsafe
-        {
-            bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 

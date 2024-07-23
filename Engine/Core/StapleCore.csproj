@@ -152,6 +152,7 @@
 		<Compile Include="Rendering\CullingMode.cs" />
 		<Compile Include="Rendering\Graphics.cs" />
 		<Compile Include="Rendering\Lighting\Light.cs" />
+		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />

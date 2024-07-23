@@ -147,6 +147,7 @@ public partial class RenderSystem
     #region Lifecycle
     public void Startup()
     {
+        RegisterSystem(new LightSystem());
         RegisterSystem(new SpriteRenderSystem());
         RegisterSystem(new SkinnedAnimationPoserSystem());
         RegisterSystem(new SkinnedMeshAnimatorSystem());
