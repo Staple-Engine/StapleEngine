@@ -33,7 +33,6 @@ internal class RenderWindow
     public Action OnCleanup;
     public Action<bool> OnScreenSizeChange;
     public Action<Vector2Int> OnMove;
-    public AppSettings appSettings;
 
     public int Width => width;
 
@@ -57,7 +56,7 @@ internal class RenderWindow
     private bgfx.Init init = new bgfx.Init();
     private AppPlatform currentPlatform;
 
-    public bool Paused => hasFocus == false && appSettings.runInBackground == false;
+    public bool Paused => hasFocus == false && AppSettings.Current.runInBackground == false;
 
     public static RendererType CurrentRenderer { get; internal set; }
 
@@ -68,7 +67,7 @@ internal class RenderWindow
     {
         ThreadHelper.Initialize();
 
-        if (appSettings.multiThreadedRenderer)
+        if (AppSettings.Current.multiThreadedRenderer)
         {
             MultiThreadedLoop();
         }
@@ -133,7 +132,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (appSettings.runInBackground == true || window.IsFocused == true);
+                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
             }
 
             if (window.Unavailable)
@@ -192,7 +191,7 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < appSettings.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -201,7 +200,7 @@ internal class RenderWindow
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if(currentFixedTime >= appSettings.maximumFixedTimestepTime)
+                if(currentFixedTime >= AppSettings.Current.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }
@@ -295,7 +294,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (appSettings.runInBackground == true || window.IsFocused == true);
+                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
             }
 
             if (window.Unavailable)
@@ -352,7 +351,7 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < appSettings.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -361,7 +360,7 @@ internal class RenderWindow
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if (currentFixedTime >= appSettings.maximumFixedTimestepTime)
+                if (currentFixedTime >= AppSettings.Current.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }
@@ -480,7 +479,7 @@ internal class RenderWindow
 
             Log.Debug($"[RenderWindow] platformData ndt: {(nint)init.platformData.ndt} nwh {(nint)init.platformData.nwh}");
 
-            if (appSettings.renderers.TryGetValue(currentPlatform, out renderers) == false)
+            if (AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers) == false)
             {
                 Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
 
@@ -803,13 +802,13 @@ internal class RenderWindow
     /// <param name="resetFlags">The starting reset flags</param>
     /// <returns>The window, or null</returns>
     public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
-        AppSettings appSettings, Vector2Int? position, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
+        Vector2Int? position, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
     {
         var resizableString = resizable ? "Resizable" : "Not resizable";
         var maximizedString = maximized ? "Maximized" : "Normal";
         var positionString = position.HasValue ? position.Value.ToString() : "(default)";
 
-        Log.Info($"[RenderWindow] Creating {windowMode} window {appSettings.appName} with size {width}x{height} at {positionString} " +
+        Log.Info($"[RenderWindow] Creating {windowMode} window {AppSettings.Current.appName} with size {width}x{height} at {positionString} " +
             $"({resizableString}, {maximizedString}) for monitor {monitorIndex}");
 
         if (windowReferences > 0)
@@ -821,7 +820,6 @@ internal class RenderWindow
 
         var renderWindow = new RenderWindow()
         {
-            appSettings = appSettings,
             resetFlags = resetFlags,
         };
 
@@ -855,9 +853,9 @@ internal class RenderWindow
         var originalWidth = width;
         var originalHeight = height;
 
-        if (renderWindow.window.Create(ref width, ref height, appSettings.appName, resizable, windowMode, position, maximized, monitorIndex) == false)
+        if (renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized, monitorIndex) == false)
         {
-            Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{appSettings.appName}\" with size {originalWidth}x{originalHeight}");
+            Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Current.appName}\" with size {originalWidth}x{originalHeight}");
 
             windowReferences--;
 
@@ -874,13 +872,13 @@ internal class RenderWindow
         //Issue with Metal
         if(Platform.IsMacOS)
         {
-            appSettings.multiThreadedRenderer = false;
+            AppSettings.Current.multiThreadedRenderer = false;
         }
 
 #if !ANDROID
         bgfxReferences++;
 
-        if (appSettings.multiThreadedRenderer == false)
+        if (AppSettings.Current.multiThreadedRenderer == false)
         {
             renderWindow.InitBGFX();
         }

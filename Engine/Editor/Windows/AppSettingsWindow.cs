@@ -163,6 +163,11 @@ internal class AppSettingsWindow : EditorWindow
             }
         });
 
+        EditorGUI.TreeNode("Lighting", $"APPSETTINGSLIGHTING", false, true, () =>
+        {
+            projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient Color", "APPSETTINGSLIGHTINGAMBIENTCOLOR", projectAppSettings.ambientLight);
+        });
+
         EditorGUI.TreeNode("Rendering and Presentation", $"APPSETTINGSRENDERING", false, true, () =>
         {
             projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", $"APPSETTINGSRENDERINGBACKGROUND", projectAppSettings.runInBackground);

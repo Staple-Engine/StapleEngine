@@ -272,6 +272,8 @@ internal partial class StapleEditor
         LayerMask.AllLayers = editorSettings.layers;
         LayerMask.AllSortingLayers = editorSettings.sortingLayers;
 
+        AppSettings.Current = editorSettings;
+
         AssetDatabase.assetPathResolver = CachePathResolver;
 
         Storage.Update(editorSettings.appName, editorSettings.companyName);
@@ -317,7 +319,7 @@ internal partial class StapleEditor
             playerSettings.windowPosition = Vector2Int.Zero;
         }
 
-        window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed, editorSettings,
+        window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
             playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 

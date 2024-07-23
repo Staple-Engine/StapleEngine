@@ -540,7 +540,12 @@ vec4 a_indices : BLENDINDICES;
 
                                             counters.AddOrSetKey(parameter.type, counter + 1);
 
-                                            varying += $"\n{GetNativeShaderType(parameter.type, parameter.name, counter, false)} : {parameter.attribute}";
+                                            varying += $"\n{GetNativeShaderType(parameter.type, parameter.name, counter, false)}";
+
+                                            if((parameter.attribute?.Length ?? 0) > 0)
+                                            {
+                                                varying += $" : {parameter.attribute}";
+                                            }
 
                                             if ((parameter.defaultValue?.Length ?? 0) > 0)
                                             {

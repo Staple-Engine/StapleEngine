@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Staple;
@@ -31,11 +32,15 @@ public struct Color32
     public readonly uint UIntValue => (uint)(r << 24) + (uint)(g << 16) + (uint)(b << 8) + a;
 
     [IgnoreMember]
-    public readonly string HexValue => $"{r.ToString("X2")}{g.ToString("X2")}{b.ToString("X2")}{a.ToString("X2")}";
+    public readonly string HexValue => $"{r:X2}{g:X2}{b:X2}{a:X2}";
 
     public static readonly Color32 White = new(255, 255, 255, 255);
     public static readonly Color32 Black = new(0, 0, 0, 255);
     public static readonly Color32 Clear = new(0, 0, 0, 0);
+    public static readonly Color32 Red = new(255, 0, 0, 255);
+    public static readonly Color32 Green = new(0, 255, 0, 255);
+    public static readonly Color32 Blue = new(0, 0, 255, 255);
+    public static readonly Color32 LightBlue = new(173, 216, 230, 255);
 
     public Color32(byte R, byte G, byte B, byte A)
     {
@@ -77,6 +82,8 @@ public struct Color32
     public bool ShouldSerializeUIntValue() => false;
 
     public static implicit operator Color(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
+
+    public static implicit operator Vector4(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
     public static Color32 operator +(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),
         (byte)Math.Clamp(a.g + b.g, 0, 255),

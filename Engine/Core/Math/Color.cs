@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Staple;
@@ -36,6 +37,10 @@ public struct Color
     public static readonly Color White = new(1, 1, 1, 1);
     public static readonly Color Black = new(0, 0, 0, 1);
     public static readonly Color Clear = new(0, 0, 0, 0);
+    public static readonly Color Red = new(1, 0, 0, 1);
+    public static readonly Color Green = new(0, 1, 0, 1);
+    public static readonly Color Blue = new(0, 0, 1, 1);
+    public static readonly Color LightBlue = new(0.678f, 0.847f, 0.902f, 1);
 
     public Color(float R, float G, float B, float A)
     {
@@ -46,6 +51,8 @@ public struct Color
     }
 
     public static implicit operator Color32(Color v) => new((byte)(v.r * 255.0f), (byte)(v.g * 255.0f), (byte)(v.b * 255.0f), (byte)(v.a * 255.0f));
+
+    public static implicit operator Vector4(Color v) => new(v.r, v.g, v.b, v.a);
 
     public static Color operator +(Color a, Color b) => new(a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a);
 

@@ -122,7 +122,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         { Keycode.AltRight, KeyCode.RightAlt },
     };
 
-    private AppSettings? appSettings;
     private SurfaceView? surfaceView;
     private DateTime lastTime;
     private float fixedTimer = 0.0f;
@@ -271,7 +270,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
     {
         if (AppPlayer.instance?.renderWindow == null)
         {
-            new AppPlayer(appSettings, Array.Empty<string>(), false);
+            new AppPlayer(Array.Empty<string>(), false);
 
             Log.Instance.onLog += (type, message) =>
             {
@@ -373,7 +372,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         lock (renderWindow.renderLock)
         {
-            renderWindow.shouldRender = renderWindow.window.Unavailable == false && (appSettings.runInBackground == true || renderWindow.window.IsFocused == true);
+            renderWindow.shouldRender = renderWindow.window.Unavailable == false && (AppSettings.Current.runInBackground == true || renderWindow.window.IsFocused == true);
         }
 
         if (renderWindow.window.Unavailable)
@@ -399,7 +398,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         renderWindow.CheckContextLost();
 
-        if (appSettings.runInBackground == false && renderWindow.window.IsFocused != renderWindow.hasFocus)
+        if (AppSettings.Current.runInBackground == false && renderWindow.window.IsFocused != renderWindow.hasFocus)
         {
             renderWindow.hasFocus = renderWindow.window.IsFocused;
 
@@ -622,15 +621,15 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 throw new Exception("Invalid app settings header");
             }
 
-            appSettings = MessagePackSerializer.Deserialize<AppSettings>(stream);
+            AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream);
 
-            if (appSettings == null)
+            if (AppSettings.Current == null)
             {
                 throw new Exception("Failed to deserialize app settings");
             }
 
-            LayerMask.AllLayers = appSettings.layers;
-            LayerMask.AllSortingLayers = appSettings.sortingLayers;
+            LayerMask.AllLayers = AppSettings.Current.layers;
+            LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
         }
         catch (Exception e)
         {

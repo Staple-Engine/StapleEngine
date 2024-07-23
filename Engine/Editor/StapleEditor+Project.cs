@@ -116,7 +116,7 @@ internal partial class StapleEditor
 
         Physics3D.Instance.Startup();
 
-        window.appSettings.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
+        AppSettings.Current.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
 
         foreach(var pair in projectAppSettings.renderers)
         {

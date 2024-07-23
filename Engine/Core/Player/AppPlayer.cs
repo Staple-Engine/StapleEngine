@@ -8,8 +8,6 @@ namespace Staple;
 
 internal class AppPlayer
 {
-    public readonly AppSettings appSettings;
-
     internal PlayerSettings playerSettings;
 
     public static AppPlayer instance;
@@ -18,12 +16,11 @@ internal class AppPlayer
 
     internal const bool printTypeCacheTypes = false;
 
-    public AppPlayer(AppSettings settings, string[] args, bool shouldConsoleLog)
+    public AppPlayer(string[] args, bool shouldConsoleLog)
     {
-        appSettings = settings;
         instance = this;
 
-        Storage.Update(appSettings.appName, appSettings.companyName);
+        Storage.Update(AppSettings.Current.appName, AppSettings.Current.companyName);
 
         var path = Path.Combine(Storage.PersistentDataPath, "Player.log");
 
@@ -56,7 +53,7 @@ internal class AppPlayer
     {
         var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
 
-        if(hasFocus == false && appSettings.runInBackground == false)
+        if(hasFocus == false && AppSettings.Current.runInBackground == false)
         {
             flags |= bgfx.ResetFlags.Suspend;
         }
@@ -66,19 +63,19 @@ internal class AppPlayer
 
     public void Create()
     {
-        playerSettings = PlayerSettings.Load(appSettings);
+        playerSettings = PlayerSettings.Load(AppSettings.Current);
 
         if(playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
         {
-            playerSettings.screenWidth = appSettings.defaultWindowWidth;
-            playerSettings.screenHeight = appSettings.defaultWindowHeight;
+            playerSettings.screenWidth = AppSettings.Current.defaultWindowWidth;
+            playerSettings.screenHeight = AppSettings.Current.defaultWindowHeight;
 
             playerSettings.windowPosition = Vector2Int.Zero;
         }
 
         PlayerSettings.Save(playerSettings);
 
-        renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode, appSettings,
+        renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
             playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
@@ -115,12 +112,12 @@ internal class AppPlayer
             {
             }
 
-            Time.fixedDeltaTime = 1 / (float)appSettings.fixedTimeFrameRate;
-            Physics3D.PhysicsDeltaTime = 1 / (float)appSettings.physicsFrameRate;
+            Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
+            Physics3D.PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
 
             bool hasFocus = renderWindow.window.IsFocused;
 
-            if (appSettings.runInBackground == false && hasFocus == false)
+            if (AppSettings.Current.runInBackground == false && hasFocus == false)
             {
                 ResetRendering(hasFocus);
             }

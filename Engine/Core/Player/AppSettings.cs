@@ -150,7 +150,7 @@ public class AppSettings
     /// What color to use for ambient lighting
     /// </summary>
     [Key(22)]
-    public Color ambientLight = Color.Black;
+    public Color ambientLight = Color.LightBlue;
 
     [IgnoreMember]
     public static AppSettings Default
@@ -164,14 +164,14 @@ public class AppSettings
                 appBundleID = "com.companyname.TestApp",
                 appVersion = 1,
                 appDisplayVersion = "1.0",
-                layers = new()
-                {
+                layers =
+                [
                     "Default",
-                },
-                sortingLayers = new()
-                {
+                ],
+                sortingLayers =
+                [
                     "Default",
-                },
+                ],
                 renderers = new()
                 {
                     {
@@ -218,6 +218,9 @@ public class AppSettings
             };
         }
     }
+
+    [IgnoreMember]
+    internal static AppSettings Current;
 
     internal AppSettings Clone()
     {

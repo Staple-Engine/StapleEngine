@@ -12,8 +12,6 @@ public static class StaplePlayer
     {
         MessagePackInit.Initialize();
 
-        AppSettings settings = null;
-
         var baseDirectory = AppContext.BaseDirectory;
 
 #if _DEBUG
@@ -42,15 +40,15 @@ public static class StaplePlayer
                 throw new Exception($"Invalid app settings header");
             }
 
-            settings = MessagePackSerializer.Deserialize<AppSettings>(stream);
+            AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream);
 
-            if(settings == null)
+            if(AppSettings.Current == null)
             {
                 throw new Exception("Failed to deserialize app settings");
             }
 
-            LayerMask.AllLayers = settings.layers;
-            LayerMask.AllSortingLayers = settings.sortingLayers;
+            LayerMask.AllLayers = AppSettings.Current.layers;
+            LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
         }
         catch (Exception e)
         {
@@ -61,6 +59,6 @@ public static class StaplePlayer
             return;
         }
 
-        new AppPlayer(settings, args, true).Run();
+        new AppPlayer(args, true).Run();
     }
 }
