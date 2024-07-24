@@ -22,6 +22,7 @@ internal class TextureAssetEditor : Editor
     private long originalDiskSize = 0;
     private uint VRAMSize = 0;
     private uint originalVRAMSize = 0;
+    private bool initialized = false;
 
     public void UpdatePreview()
     {
@@ -163,6 +164,13 @@ internal class TextureAssetEditor : Editor
 
         var metadata = (TextureMetadata)target;
         var originalMetadata = (TextureMetadata)original;
+
+        if(initialized == false)
+        {
+            initialized = true;
+
+            UpdatePreview();
+        }
 
         var hasChanges = metadata != originalMetadata;
 

@@ -11,6 +11,8 @@ public class ShaderParserTests
         var shader = $$"""
 Type VertexFragment
 
+Variants A, B, C
+
 Begin Parameters
 varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
 varying vec2 v_texcoord1 : TEXCOORD1
@@ -35,10 +37,17 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var vertex, out var fragment, out var compute));
+        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants,
+            out var vertex, out var fragment, out var compute));
 
         Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
 
+        Assert.That(variants.Count, Is.EqualTo(3));
+
+        Assert.That(variants[0], Is.EqualTo("A"));
+        Assert.That(variants[1], Is.EqualTo("B"));
+        Assert.That(variants[2], Is.EqualTo("C"));
+    
         Assert.That(blend, Is.Null);
 
         Assert.That(parameters.Count, Is.EqualTo(3));

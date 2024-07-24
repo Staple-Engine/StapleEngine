@@ -69,16 +69,30 @@ public class Editor
     /// </summary>
     public virtual void OnInspectorGUI()
     {
+        FieldInspector(target);
+    }
+
+    public virtual void Destroy()
+    {
+    }
+
+    private void FieldInspector(object target, string IDSuffix = "")
+    {
+        if(target == null)
+        {
+            return;
+        }
+
         var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var field in fields)
         {
-            if(field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
+            if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
             {
                 continue;
             }
 
-            if(DrawProperty(field.FieldType, field.Name,
+            if (DrawProperty(field.FieldType, field.Name,
                 () => field.GetValue(target),
                 (value) => field.SetValue(target, value),
                 field.GetCustomAttribute))
@@ -89,7 +103,7 @@ public class Editor
             var type = field.FieldType;
             var name = field.Name.ExpandCamelCaseName();
 
-            PropertyInspector(type, name,
+            PropertyInspector(type, name, IDSuffix,
                 () => field.GetValue(target),
                 (value) => field.SetValue(target, value),
                 (attribute) =>
@@ -104,7 +118,7 @@ public class Editor
 
             var tooltip = field.GetCustomAttribute<TooltipAttribute>();
 
-            if(tooltip != null && ImGui.IsItemHovered())
+            if (tooltip != null && ImGui.IsItemHovered())
             {
                 ImGui.SetTooltip(tooltip.caption);
             }
@@ -148,11 +162,7 @@ public class Editor
         */
     }
 
-    public virtual void Destroy()
-    {
-    }
-
-    private void PropertyInspector(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
+    private void PropertyInspector(Type type, string name, string IDSuffix, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         foreach(var t in propertyDrawerTypes)
         {
@@ -214,7 +224,7 @@ public class Editor
 
                             var changed = false;
 
-                            EditorGUI.Button("+", $"{name}Add", () =>
+                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                             {
                                 changed = true;
 
@@ -238,7 +248,7 @@ public class Editor
 
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", $"{name}Remove", () =>
+                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
                                 {
                                     changed = true;
 
@@ -254,7 +264,7 @@ public class Editor
                             }
                         }
                     }
-                    else if (listType.IsPrimitive)
+                    else if (listType.IsPrimitive || listType == typeof(string))
                     {
                         if (getter() is IList list)
                         {
@@ -264,7 +274,7 @@ public class Editor
 
                             var changed = false;
 
-                            EditorGUI.Button("+", $"{name}Add", () =>
+                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                             {
                                 changed = true;
 
@@ -277,7 +287,7 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                PropertyInspector(listType, "", () => entry, (value) =>
+                                PropertyInspector(listType, "", $"{i}{IDSuffix}", () => entry, (value) =>
                                 {
                                     if (value != entry)
                                     {
@@ -289,7 +299,52 @@ public class Editor
 
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", $"{name}Remove", () =>
+                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                {
+                                    changed = true;
+
+                                    list.RemoveAt(i);
+                                });
+                            }
+
+                            ImGui.EndGroup();
+
+                            if (changed)
+                            {
+                                setter(list);
+                            }
+                        }
+                    }
+                    else if(listType.GetCustomAttribute<SerializableAttribute>() != null)
+                    {
+                        if (getter() is IList list)
+                        {
+                            EditorGUI.Label(name);
+
+                            EditorGUI.SameLine();
+
+                            var changed = false;
+
+                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
+                            {
+                                changed = true;
+
+                                list.Add(Activator.CreateInstance(listType));
+                            });
+
+                            ImGui.BeginGroup();
+
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                var entry = list[i];
+
+                                FieldInspector(entry, $"{i}{IDSuffix}");
+
+                                list[i] = entry;
+
+                                EditorGUI.SameLine();
+
+                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
                                 {
                                     changed = true;
 
@@ -314,7 +369,7 @@ public class Editor
                 {
                     var value = (Enum)getter();
 
-                    var newValue = EditorGUI.EnumDropdown(name, $"{name}Dropdown", value, type);
+                    var newValue = EditorGUI.EnumDropdown(name, $"{name}Dropdown{IDSuffix}", value, type);
 
                     setter(newValue);
                 }
@@ -330,11 +385,11 @@ public class Editor
 
                     if(attributes(typeof(MultilineAttribute)) != null)
                     {
-                        newValue = EditorGUI.TextFieldMultiline(name, $"{name}TextMultiline", value, new Vector2(200, value.Split("\n").Length * 30));
+                        newValue = EditorGUI.TextFieldMultiline(name, $"{name}TextMultiline{IDSuffix}", value, new Vector2(200, value.Split("\n").Length * 30));
                     }
                     else
                     {
-                        newValue = EditorGUI.TextField(name, $"{name}Text", value);
+                        newValue = EditorGUI.TextField(name, $"{name}Text{IDSuffix}", value);
                     }
 
                     if (newValue != value)
@@ -350,7 +405,7 @@ public class Editor
                 {
                     var value = (Vector2)getter();
 
-                    var newValue = EditorGUI.Vector2Field(name, $"{name}Vector2", value);
+                    var newValue = EditorGUI.Vector2Field(name, $"{name}Vector2{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -365,7 +420,7 @@ public class Editor
                 {
                     var value = (Vector2Int)getter();
 
-                    var newValue = EditorGUI.Vector2IntField(name, $"{name}Vector2Int", value);
+                    var newValue = EditorGUI.Vector2IntField(name, $"{name}Vector2Int{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -380,7 +435,7 @@ public class Editor
                 {
                     var value = (Vector3)getter();
 
-                    var newValue = EditorGUI.Vector3Field(name, $"{name}Vector3", value);
+                    var newValue = EditorGUI.Vector3Field(name, $"{name}Vector3{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -395,7 +450,7 @@ public class Editor
                 {
                     var value = (Vector4)getter();
 
-                    var newValue = EditorGUI.Vector4Field(name, $"{name}Vector4", value);
+                    var newValue = EditorGUI.Vector4Field(name, $"{name}Vector4{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -412,7 +467,7 @@ public class Editor
 
                     var value = quaternion.ToEulerAngles();
 
-                    var newValue = EditorGUI.Vector3Field(name, $"{name}Quaternion", value);
+                    var newValue = EditorGUI.Vector3Field(name, $"{name}Quaternion{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -436,17 +491,17 @@ public class Editor
 
                     if (attributes(typeof(SortingLayerAttribute)) != null)
                     {
-                        newValue = (uint)EditorGUI.Dropdown(name, $"{name}SortingLayer", LayerMask.AllSortingLayers.ToArray(), value);
+                        newValue = (uint)EditorGUI.Dropdown(name, $"{name}SortingLayer{IDSuffix}", LayerMask.AllSortingLayers.ToArray(), value);
                     }
                     else
                     {
                         if (range != null)
                         {
-                            newValue = (uint)EditorGUI.IntSlider(name, $"{name}IntSlider", value, (int)range.minValue, (int)range.maxValue);
+                            newValue = (uint)EditorGUI.IntSlider(name, $"{name}IntSlider{IDSuffix}", value, (int)range.minValue, (int)range.maxValue);
                         }
                         else
                         {
-                            newValue = (uint)EditorGUI.IntField(name, $"{name}IntField", value);
+                            newValue = (uint)EditorGUI.IntField(name, $"{name}IntField{IDSuffix}", value);
                         }
                     }
 
@@ -475,11 +530,11 @@ public class Editor
 
                     if (range != null)
                     {
-                        newValue = EditorGUI.IntSlider(name, $"{name}IntSlider", value, (int)range.minValue, (int)range.maxValue);
+                        newValue = EditorGUI.IntSlider(name, $"{name}IntSlider{IDSuffix}", value, (int)range.minValue, (int)range.maxValue);
                     }
                     else
                     {
-                        newValue = EditorGUI.IntField(name, $"{name}IntField", value);
+                        newValue = EditorGUI.IntField(name, $"{name}IntField{IDSuffix}", value);
                     }
 
                     if (min != null && newValue < min.minValue)
@@ -500,7 +555,7 @@ public class Editor
                 {
                     var value = (bool)getter();
 
-                    var newValue = EditorGUI.Toggle(name, $"{name}Toggle", value);
+                    var newValue = EditorGUI.Toggle(name, $"{name}Toggle{IDSuffix}", value);
 
                     if (newValue != value)
                     {
@@ -522,11 +577,11 @@ public class Editor
 
                     if (range != null)
                     {
-                        newValue = EditorGUI.FloatSlider(name, $"{name}FloatSlider", value, range.minValue, range.maxValue);
+                        newValue = EditorGUI.FloatSlider(name, $"{name}FloatSlider{IDSuffix}", value, range.minValue, range.maxValue);
                     }
                     else
                     {
-                        newValue = EditorGUI.FloatField(name, $"{name}FloatField", value);
+                        newValue = EditorGUI.FloatField(name, $"{name}FloatField{IDSuffix}", value);
                     }
 
                     if (min != null && newValue < min.minValue)
@@ -547,7 +602,7 @@ public class Editor
                 {
                     var value = (double)getter();
 
-                    if (ImGui.InputDouble($"{name}##{name}Double", ref value))
+                    if (ImGui.InputDouble($"{name}##{name}Double{IDSuffix}", ref value))
                     {
                         var min = attributes(typeof(MinAttribute)) as MinAttribute;
 
@@ -568,7 +623,7 @@ public class Editor
                     var current = (byte)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt($"{name}##{name}Byte", ref value))
+                    if (ImGui.InputInt($"{name}##{name}Byte{IDSuffix}", ref value))
                     {
                         if (value < byte.MinValue)
                         {
@@ -599,7 +654,7 @@ public class Editor
                     var current = (short)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt($"{name}##{name}Short", ref value))
+                    if (ImGui.InputInt($"{name}##{name}Short{IDSuffix}", ref value))
                     {
                         if (value < short.MinValue)
                         {
@@ -630,7 +685,7 @@ public class Editor
                     var current = (ushort)getter();
                     var value = (int)current;
 
-                    if (ImGui.InputInt($"{name}##{name}UShort", ref value))
+                    if (ImGui.InputInt($"{name}##{name}UShort{IDSuffix}", ref value))
                     {
                         if (value < ushort.MinValue)
                         {
@@ -669,7 +724,7 @@ public class Editor
                         c = (Color)((Color32)getter());
                     }
 
-                    var newValue = EditorGUI.ColorField(name, $"{name}Color", c);
+                    var newValue = EditorGUI.ColorField(name, $"{name}Color{IDSuffix}", c);
 
                     if (newValue != c)
                     {
@@ -750,7 +805,7 @@ public class Editor
 
                             var selectedString = selected ? "* " : "  ";
 
-                            if (ImGui.Selectable($"{selectedString}{layers[i]}##{value.GetHashCode()}", selected))
+                            if (ImGui.Selectable($"{selectedString}{layers[i]}##{value.GetHashCode()}{IDSuffix}", selected))
                             {
                                 if (selected)
                                 {
@@ -801,7 +856,7 @@ public class Editor
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("X", $"{name}_CLEAR", () =>
+                        EditorGUI.Button("X", $"{name}_CLEAR{IDSuffix}", () =>
                         {
                             try
                             {
@@ -846,7 +901,7 @@ public class Editor
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("X", $"{name}_CLEAR", () =>
+                        EditorGUI.Button("X", $"{name}_CLEAR{IDSuffix}", () =>
                         {
                             try
                             {

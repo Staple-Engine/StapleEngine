@@ -147,14 +147,15 @@ static partial class Program
                         return;
                     }
 
-                    if(ShaderParser.Parse(text, out shader.type, out var blendMode, out var shaderParameters, out var vertex, out var fragment, out var compute) == false)
+                    if(ShaderParser.Parse(text, out shader.type, out var blendMode, out var shaderParameters, out shader.variants,
+                        out var vertex, out var fragment, out var compute) == false)
                     {
                         Console.WriteLine("\t\tError: File has invalid format");
 
                         return;
                     }
 
-                    if(blendMode.HasValue)
+                    if (blendMode.HasValue)
                     {
                         shader.sourceBlend = blendMode.Value.Item1;
                         shader.destinationBlend = blendMode.Value.Item2;
@@ -244,6 +245,7 @@ static partial class Program
                             guid = guid,
                             sourceBlend = shader.sourceBlend,
                             destinationBlend = shader.destinationBlend,
+                            variants = shader.variants,
                         }
                     };
 
@@ -365,13 +367,9 @@ static partial class Program
 
                         if(extraDefines.Count > 0)
                         {
-                            if(defineString.Length == 0)
+                            foreach(var define in extraDefines)
                             {
-                                defineString = $"--define {string.Join(",", extraDefines)}";
-                            }
-                            else
-                            {
-                                defineString += $",{string.Join(",", extraDefines)}";
+                                defineString += $" --define {define}";
                             }
                         }
 

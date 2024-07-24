@@ -122,6 +122,8 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
+            outputFile = outputFile.Replace("\\", "/").Replace("/./", "/");
+
             if (ShouldProcessFile(meshFileName, outputFile) == false &&
                 ShouldProcessFile(meshFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
             {
@@ -242,15 +244,6 @@ static partial class Program
                 {
                     metadata = metadata,
                 };
-
-                Matrix4x4 ToMatrix4x4(Assimp.Matrix4x4 matrix)
-                {
-                    matrix.Decompose(out var scale, out var rotation, out var position);
-
-                    return Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, scale.Z)) *
-                        Matrix4x4.CreateFromQuaternion(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)) *
-                        Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
-                }
 
                 var globalInverseTransform = scene.RootNode.Transform;
 
@@ -679,6 +672,7 @@ static partial class Program
 
                     m.vertices = mesh.Vertices.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
                     m.normals = mesh.Normals.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
+                    m.colors = mesh.HasVertexColors(0) ? mesh.VertexColorChannels[0].Select(x => new Vector4Holder(new Vector4(x.R, x.G, x.B, x.A))).ToList() : [];
                     m.tangents = mesh.Tangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
                     m.bitangents = mesh.BiTangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
                     m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
@@ -782,16 +776,13 @@ static partial class Program
                 {
                     var header = new SerializableMeshAssetHeader();
 
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(meshData));
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
 
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(meshData));
+
+                    writer.Write(encoded.ToArray());
                 }
                 catch (Exception e)
                 {

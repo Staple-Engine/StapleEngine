@@ -110,6 +110,8 @@ public partial class Mesh
                     ],
                 };
 
+                _quad.normals = GenerateNormals(_quad.vertices);
+
                 _quad.UpdateBounds();
             }
 

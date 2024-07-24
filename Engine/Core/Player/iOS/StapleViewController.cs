@@ -14,7 +14,6 @@ namespace Staple;
 public class StapleViewController : UIViewController
 {
     private bool needsInit = true;
-    private AppSettings? appSettings;
     private DateTime lastTime;
     private float fixedTimer = 0.0f;
 
@@ -58,15 +57,15 @@ public class StapleViewController : UIViewController
                     throw new Exception("Invalid app settings header");
                 }
 
-                appSettings = MessagePackSerializer.Deserialize<AppSettings>(stream);
+                AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream);
 
-                if (appSettings == null)
+                if (AppSettings.Current == null)
                 {
                     throw new Exception("Failed to deserialize app settings");
                 }
 
-                LayerMask.AllLayers = appSettings.layers;
-                LayerMask.AllSortingLayers = appSettings.sortingLayers;
+                LayerMask.AllLayers = AppSettings.Current.layers;
+                LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
             }
             catch (Exception e)
             {
@@ -81,7 +80,7 @@ public class StapleViewController : UIViewController
 
             if (AppPlayer.instance?.renderWindow == null)
             {
-                new AppPlayer(appSettings, Array.Empty<string>(), false);
+                new AppPlayer(Array.Empty<string>(), false);
 
                 Log.Instance.onLog += (type, message) =>
                 {

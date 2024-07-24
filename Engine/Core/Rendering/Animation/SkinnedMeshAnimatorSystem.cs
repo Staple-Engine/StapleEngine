@@ -55,6 +55,8 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator);
 
                 SkinnedMeshRenderSystem.GatherNodes(transform, animator.nodeCache, animator.evaluator.rootNode);
+
+                animator.playTime = 0;
             }
 
             animator.evaluator.Evaluate();

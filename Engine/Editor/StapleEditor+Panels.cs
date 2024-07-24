@@ -919,17 +919,16 @@ internal partial class StapleEditor
 
                     if (original != null && selectedProjectNodeData != null)
                     {
-                        var editor = new TextureAssetEditor()
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                        if (editor != null)
                         {
-                            original = original as TextureMetadata,
-                            path = $"{item.path}.meta",
-                            cachePath = cachePath,
-                            target = selectedProjectNodeData,
+                            editor.original = original;
+                            editor.path = $"{item.path}.meta";
+                            editor.cachePath = cachePath;
                         };
 
                         cachedEditors.Add("", editor);
-
-                        editor.UpdatePreview();
                     }
                 }
                 else if (item.typeName == typeof(Mesh).FullName)
@@ -945,12 +944,13 @@ internal partial class StapleEditor
 
                     if (original != null && selectedProjectNodeData != null)
                     {
-                        var editor = new MeshAssetEditor()
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                        if (editor != null)
                         {
-                            original = original as MeshAssetMetadata,
-                            path = $"{item.path}.meta",
-                            cachePath = cachePath,
-                            target = selectedProjectNodeData,
+                            editor.original = original;
+                            editor.path = $"{item.path}.meta";
+                            editor.cachePath = cachePath;
                         };
 
                         cachedEditors.Add("", editor);
@@ -967,19 +967,13 @@ internal partial class StapleEditor
 
                         if (original != null && selectedProjectNodeData != null)
                         {
-                            var guid = AssetDatabase.GetAssetGuid(item.path);
+                            var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                            var o = original as MaterialMetadata;
-                            var t = selectedProjectNodeData as MaterialMetadata;
-
-                            o.guid = t.guid = guid;
-
-                            var editor = new MaterialEditor()
+                            if (editor != null)
                             {
-                                original = original as MaterialMetadata,
-                                path = item.path,
-                                cachePath = cachePath,
-                                target = selectedProjectNodeData,
+                                editor.original = original;
+                                editor.path = item.path;
+                                editor.cachePath = cachePath;
                             };
 
                             cachedEditors.Add("", editor);

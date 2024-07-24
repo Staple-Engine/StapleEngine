@@ -1,5 +1,7 @@
 Type VertexFragment
 
+Variants VERTEX_COLORS
+
 Begin Parameters
 
 varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
@@ -10,6 +12,8 @@ varying vec4 a_weight : BLENDWEIGHT
 varying vec4 a_indices : BLENDINDICES
 varying vec3 v_fragPos : TEXCOORD1
 varying vec3 v_normal : NORMAL
+varying vec4 a_color0 : COLOR
+varying vec4 v_color : COLOR
 
 uniform color ambientColor
 uniform texture ambientTexture
@@ -41,8 +45,8 @@ End Parameters
 
 Begin Vertex
 
-$input a_position, a_texcoord0, a_normal
-$output v_texcoord0, v_fragPos, v_normal
+$input a_position, a_texcoord0, a_normal, a_color0
+$output v_texcoord0, v_fragPos, v_normal, v_color
 
 #include "StapleLighting.sh"
 
@@ -63,22 +67,27 @@ void main()
 	v_texcoord0 = a_texcoord0;
 	v_fragPos = mul(mul(u_view, model), vec4(a_position, 1.0)).xyz;
 	v_normal = StapleLightNormal(a_normal);
+	v_color = a_color0;
 }
 End Vertex
 
 Begin Fragment
 
-$input v_texcoord0, v_fragPos, v_normal
+$input v_texcoord0, v_fragPos, v_normal, v_color
 
 #include "StapleLighting.sh"
 
 void main()
 {
+	#if VERTEX_COLORS
+	vec4 diffuse = v_color * diffuseColor;
+	#else
 	vec4 diffuse = diffuseColor;
+	#endif
 	
 	if(diffuseTextureSet != 0.0)
 	{
-		diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;
+		diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuse;
 	}
 	
 	vec4 light = StapleProcessLights(v_fragPos, v_normal);

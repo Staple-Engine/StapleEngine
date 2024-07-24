@@ -48,7 +48,7 @@ vec3 StapleLightDirection(int index, vec3 fragPos)
 	}
 	else if(lightType == 1) //Directional
 	{
-		return typePosition.yzw;
+		return normalize(typePosition.yzw);
 	}
 	else if(lightType == 2) //Point
 	{

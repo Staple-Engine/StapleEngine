@@ -13,6 +13,7 @@ internal class MaterialEditor : Editor
 {
     private Dictionary<string, Shader> cachedShaders = new();
     private Dictionary<string, Texture> cachedTextures = new();
+    private Shader activeShader;
 
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
@@ -182,6 +183,8 @@ internal class MaterialEditor : Editor
                                 {
                                     material.shader = shader.Guid;
                                 }
+
+                                activeShader = shader;
                             }
                         }
                     }
@@ -195,10 +198,57 @@ internal class MaterialEditor : Editor
                             cachedShaders.AddOrSetKey(s.metadata.guid, s);
 
                             material.shader = s.Guid;
+
+                            activeShader = s;
                         }
                         else
                         {
                             material.shader = "";
+
+                            activeShader = null;
+                        }
+                    }
+                }
+
+                return true;
+
+            case nameof(MaterialMetadata.enabledShaderVariants):
+
+                if(activeShader != null && activeShader.metadata.variants.Count > 0)
+                {
+                    EditorGUI.Label("Enabled Variants");
+
+                    EditorGUI.SameLine();
+
+                    EditorGUI.Button("+", "MaterialVariantAdd", () =>
+                    {
+                        material.enabledShaderVariants.Add("");
+                    });
+
+                    var skip = false;
+
+                    for(var i = 0; i < material.enabledShaderVariants.Count; i++)
+                    {
+                        var currentIndex = activeShader.metadata.variants.IndexOf(material.enabledShaderVariants[i]);
+                        var index = EditorGUI.Dropdown("", $"MaterialVariant{i}", activeShader.metadata.variants.ToArray(), currentIndex);
+
+                        if(currentIndex != index && index >= 0)
+                        {
+                            material.enabledShaderVariants[i] = activeShader.metadata.variants[index];
+                        }
+
+                        EditorGUI.SameLine();
+
+                        EditorGUI.Button("-", $"MaterialVariantRemove{i}", () =>
+                        {
+                            skip = true;
+
+                            material.enabledShaderVariants.RemoveAt(i);
+                        });
+
+                        if(skip)
+                        {
+                            break;
                         }
                     }
                 }

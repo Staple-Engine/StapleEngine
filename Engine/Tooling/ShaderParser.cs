@@ -33,6 +33,7 @@ public static partial class ShaderParser
     private static Regex inputRegex = InputRegex();
     private static Regex outputRegex = OutputRegex();
     private static Regex blendRegex = BlendRegex();
+    private static Regex variantsRegex = VariantsRegex();
 
     [GeneratedRegex("(varying|uniform) (\\w+) (\\w+)( \\: (\\w+))?( \\= (.*))?")]
     private static partial Regex ParameterRegex();
@@ -61,8 +62,11 @@ public static partial class ShaderParser
     [GeneratedRegex("Blend (.*) (.*)")]
     private static partial Regex BlendRegex();
 
+    [GeneratedRegex("Variants (.*)")]
+    private static partial Regex VariantsRegex();
+
     public static bool Parse(string source, out ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out List<string> variants, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
         var typeMatch = typeRegex.Match(source);
 
@@ -71,12 +75,24 @@ public static partial class ShaderParser
         {
             type = default;
             parameters = default;
+            variants = [];
             vertex = default;
             fragment = default;
             compute = default;
             blendMode = default;
 
             return false;
+        }
+
+        var variantsMatch = variantsRegex.Match(source);
+
+        if (variantsMatch != null && variantsMatch.Length > 0)
+        {
+            variants = variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
+        }
+        else
+        {
+            variants = [];
         }
 
         var blendMatch = blendRegex.Match(source);
