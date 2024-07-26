@@ -31,7 +31,7 @@ vec3 StapleLightNormal(vec3 normal)
 
 float StapleLightDiffuseFactor(vec3 normal, vec3 lightDir)
 {
-	return max(dot(normal, lightDir), 0.0);
+	return max(dot(lightDir, normal), 0.0);
 }
 
 vec3 StapleLightDirection(int index, vec3 fragPos)

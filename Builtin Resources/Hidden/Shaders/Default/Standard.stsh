@@ -59,13 +59,14 @@ void main()
 	#endif
 
 	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
+	mat4 viewWorld = mul(u_view, model);
 
 	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
 
 	gl_Position = v_pos;
 
 	v_texcoord0 = a_texcoord0;
-	v_fragPos = mul(mul(u_view, model), vec4(a_position, 1.0)).xyz;
+	v_fragPos = mul(viewWorld, vec4(a_position, 1.0)).xyz;
 	v_normal = StapleLightNormal(a_normal);
 	v_color = a_color0;
 }
