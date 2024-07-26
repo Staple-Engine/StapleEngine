@@ -185,8 +185,6 @@ public sealed class Material : IGuidAsset
         }
 
         Disposed = true;
-
-        shader?.Destroy();
     }
 
     /// <summary>

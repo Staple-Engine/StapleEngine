@@ -99,7 +99,7 @@ internal partial class Shader : IGuidAsset
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
 
-    private static Regex uniformCountRegex = UniformCountRegex();
+    private static readonly Regex uniformCountRegex = UniformCountRegex();
 
     public string Guid { get; set; }
 

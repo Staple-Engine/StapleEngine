@@ -367,9 +367,13 @@ static partial class Program
 
                         if(extraDefines.Count > 0)
                         {
-                            foreach(var define in extraDefines)
+                            if(defineString.Length > 0)
                             {
-                                defineString += $" --define {define}";
+                                defineString += $";{string.Join(";", extraDefines)}";
+                            }
+                            else
+                            {
+                                defineString = $"--define {string.Join(";", extraDefines)}";
                             }
                         }
 

@@ -30,11 +30,11 @@ public partial class World
 
                     foreach(var entity in entities)
                     {
-                        if(entity.componentIndices.Contains(i))
+                        if(entity.componentIndices.Contains(key))
                         {
-                            entity.componentIndices.Remove(i);
+                            entity.componentIndices.Remove(key);
 
-                            for(var j = 0; j < entity.components.Count; j++)
+                            for(var j = entity.components.Count - 1; j >= 0; j--)
                             {
                                 if (entity.components[j].GetType() == value)
                                 {
@@ -192,12 +192,12 @@ public partial class World
 
                 entityInfo.componentIndices.Add(componentIndex);
 
-                if(Scene.InstancingComponent == false)
+                entityInfo.components.Add(component);
+
+                if (Scene.InstancingComponent == false)
                 {
                     EmitAddComponentEvent(entity, ref component);
                 }
-
-                entityInfo.components.Add(component);
 
                 index = entityInfo.componentIndices.Count - 1;
             }
