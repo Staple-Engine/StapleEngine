@@ -10,6 +10,6 @@
   "debone": false,
   "typeName": "Staple.Mesh",
   "convertUnits": true,
-  "rotation": "NinetyNegative",
+  "rotation": "NinetyPositive",
   "scale": 2.0
 }

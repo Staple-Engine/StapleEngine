@@ -11,9 +11,9 @@ namespace TestGame
 
         public void FixedUpdate(float deltaTime)
         {
-            var movements = Scene.ForEach<CircularMovementComponent, Transform>();
+            var movements = Scene.Query<CircularMovementComponent, Transform>();
 
-            foreach((Entity entity, CircularMovementComponent movement, Transform transform) in movements)
+            foreach ((_, CircularMovementComponent movement, Transform transform) in movements)
             {
                 movement.t += deltaTime * movement.speed;
 

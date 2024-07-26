@@ -11,7 +11,7 @@ namespace TestGame
 
         public void Update(float deltaTime)
         {
-            var keyboards = Scene.ForEach<KeyboardControlComponent, Transform>();
+            var keyboards = Scene.Query<KeyboardControlComponent, Transform>();
 
             foreach((Entity entity, KeyboardControlComponent component, Transform transform) in keyboards)
             {
