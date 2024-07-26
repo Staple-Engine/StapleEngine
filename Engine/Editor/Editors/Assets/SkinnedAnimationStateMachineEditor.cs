@@ -16,18 +16,14 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
         switch(name)
         {
-            case nameof(SkinnedAnimationStateMachine.states):
+            case nameof(SkinnedAnimationStateMachine.parameters):
 
-                if(stateMachine.mesh == null ||
+                if (stateMachine.mesh == null ||
                     stateMachine.mesh.meshAsset == null ||
                     stateMachine.mesh.meshAsset.animations.Count == 0)
                 {
                     return true;
                 }
-
-                var allAnimations = stateMachine.mesh.meshAsset.animations.Select(x => x.Key).ToList();
-
-                EditorGUI.Label(name.ExpandCamelCaseName());
 
                 EditorGUI.TreeNode("Parameters", "SkinnedAnimationParameters", false, true, () =>
                 {
@@ -58,6 +54,19 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                     });
                 });
 
+                return true;
+
+            case nameof(SkinnedAnimationStateMachine.states):
+
+                if(stateMachine.mesh == null ||
+                    stateMachine.mesh.meshAsset == null ||
+                    stateMachine.mesh.meshAsset.animations.Count == 0)
+                {
+                    return true;
+                }
+
+                var allAnimations = stateMachine.mesh.meshAsset.animations.Select(x => x.Key).ToList();
+
                 EditorGUI.TreeNode("States", $"SkinnedAnimationStates", false, true, () =>
                 {
                     EditorGUI.SameLine();
@@ -74,6 +83,8 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                     EditorGUI.Group(() =>
                     {
+                        var skip = false;
+
                         for (var i = 0; i < stateMachine.states.Count; i++)
                         {
                             var state = stateMachine.states[i];
@@ -90,7 +101,14 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                             EditorGUI.Button("-", $"SkinnedAnimationStates{i}Remove", () =>
                             {
                                 stateMachine.states.RemoveAt(i);
+
+                                skip = true;
                             });
+
+                            if(skip)
+                            {
+                                break;
+                            }
 
                             var currentAnimationIndex = allAnimations.IndexOf(state.animation);
 
@@ -129,6 +147,20 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                                             connection.name = allAvailableStates[newStateIndex];
                                         }
 
+                                        EditorGUI.SameLine();
+
+                                        EditorGUI.Button("-", $"SkinnedAnimationStates{i}Transition{j}Remove", () =>
+                                        {
+                                            state.connections.RemoveAt(j);
+
+                                            skip = true;
+                                        });
+
+                                        if (skip)
+                                        {
+                                            break;
+                                        }
+
                                         connection.any = EditorGUI.Toggle("Trigger on any", $"SkinnedAnimationStates{i}Any{j}", connection.any);
 
                                         connection.onFinish = EditorGUI.Toggle("Trigger on finish", $"SkinnedAnimationStates{i}Trigger{j}", connection.onFinish);
@@ -154,6 +186,20 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                                                 if (newNameIndex != currentNameIndex && newNameIndex >= 0 && newNameIndex < allAvailableParameters.Count)
                                                 {
                                                     parameter.name = allAvailableParameters[newNameIndex];
+                                                }
+
+                                                EditorGUI.SameLine();
+
+                                                EditorGUI.Button("-", $"SkinnedAnimationStates{i}Conditions{j}Remove{k}", () =>
+                                                {
+                                                    connection.parameters.RemoveAt(k);
+
+                                                    skip = true;
+                                                });
+
+                                                if (skip)
+                                                {
+                                                    break;
                                                 }
 
                                                 parameter.condition = EditorGUI.EnumDropdown("Condition", $"SkinnedAnimationStates{i}Conditions{j}Condition{k}",
@@ -196,7 +242,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                     });
                 });
 
-                break;
+                return true;
         }
 
         return false;

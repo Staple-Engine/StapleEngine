@@ -207,7 +207,7 @@ public partial class RenderSystem
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
-        var transforms = Scene.ForEach<Transform>();
+        var transforms = Scene.Query<Transform>();
 
         foreach((Entity entity, Transform t) in transforms)
         {
@@ -373,7 +373,7 @@ public partial class RenderSystem
                     frustumCuller.Update(view, projection);
                 }
 
-                var transforms = Scene.ForEach<Transform>();
+                var transforms = Scene.Query<Transform>();
 
                 foreach((Entity entity, Transform t) in transforms)
                 {

@@ -50,7 +50,7 @@ internal class AssetPickerWindow : EditorWindow
                     path = asset.path,
                     name = asset.name,
                     typeName = asset.typeName,
-                    extension = Path.GetExtension(asset.path.Replace(".meta", "")),
+                    extension = Path.GetExtension(asset.path.Replace(".meta", "")).ToLowerInvariant(),
                 });
             }
         }
@@ -98,7 +98,16 @@ internal class AssetPickerWindow : EditorWindow
                     return;
                 }
 
-                var cachePath = EditorUtils.GetAssetCachePath(basePath, i.path, currentPlatform);
+                var cachePath = EditorUtils.GetLocalPath(i.path);
+
+                var guid = AssetDatabase.GetAssetGuid(cachePath);
+
+                if(guid == null)
+                {
+                    Close();
+
+                    return;
+                }
 
                 var type = ProjectBrowser.ResourceTypeForExtension(i.extension);
 
@@ -108,7 +117,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            texture = ResourceManager.instance.LoadTexture(cachePath);
+                            texture = ResourceManager.instance.LoadTexture(guid);
                         }
                         catch (System.Exception)
                         {
@@ -128,7 +137,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var mesh = ResourceManager.instance.LoadMesh(cachePath);
+                            var mesh = ResourceManager.instance.LoadMesh(guid);
 
                             if (mesh != null)
                             {
@@ -148,7 +157,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var asset = ResourceManager.instance.LoadAsset(i.path);
+                            var asset = ResourceManager.instance.LoadAsset(guid);
 
                             if (asset != null && asset.GetType().FullName == assetPickerType.FullName)
                             {
@@ -168,7 +177,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var material = ResourceManager.instance.LoadMaterial(cachePath);
+                            var material = ResourceManager.instance.LoadMaterial(guid);
 
                             if (material != null)
                             {
@@ -188,7 +197,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var shader = ResourceManager.instance.LoadShader(cachePath);
+                            var shader = ResourceManager.instance.LoadShader(guid);
 
                             if (shader != null)
                             {
@@ -208,7 +217,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var audioClip = ResourceManager.instance.LoadAudioClip(cachePath.Replace(".meta", ""));
+                            var audioClip = ResourceManager.instance.LoadAudioClip(guid);
 
                             if (audioClip != null)
                             {
@@ -228,7 +237,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var font = ResourceManager.instance.LoadFont(cachePath.Replace(".meta", ""));
+                            var font = ResourceManager.instance.LoadFont(guid);
 
                             if (font != null)
                             {

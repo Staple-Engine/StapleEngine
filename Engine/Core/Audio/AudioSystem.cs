@@ -185,7 +185,7 @@ public class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
 
-        var listeners = Scene.ForEach<Transform, AudioListener>();
+        var listeners = Scene.Query<Transform, AudioListener>();
         
         foreach((Entity _, Transform transform, AudioListener listener) in listeners)
         {

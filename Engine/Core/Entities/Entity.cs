@@ -16,7 +16,7 @@ public partial struct Entity
     /// <summary>
     /// Whether this entity is enabled
     /// </summary>
-    public bool Enabled
+    public readonly bool Enabled
     {
         get => World.Current?.IsEntityEnabled(this) ?? false;
 
@@ -24,9 +24,14 @@ public partial struct Entity
     }
 
     /// <summary>
+    /// Whether this entity is enabled in its hierarchy
+    /// </summary>
+    public readonly bool EnabledInHierarchy => World.Current?.IsEntityEnabled(this, true) ?? false;
+
+    /// <summary>
     /// The entity's name
     /// </summary>
-    public string Name
+    public readonly string Name
     {
         get => World.Current?.GetEntityName(this);
 
@@ -36,7 +41,7 @@ public partial struct Entity
     /// <summary>
     /// The entity's layer
     /// </summary>
-    public uint Layer
+    public readonly uint Layer
     {
         get => World.Current?.GetEntityLayer(this) ?? 0;
 
@@ -46,7 +51,7 @@ public partial struct Entity
     /// <summary>
     /// Checks if this entity is valid
     /// </summary>
-    public bool IsValid => World.Current?.IsValidEntity(this) ?? false;
+    public readonly bool IsValid => World.Current?.IsValidEntity(this) ?? false;
 
     public static bool operator==(Entity a, Entity b)
     {
@@ -85,6 +90,11 @@ public partial struct Entity
         return $"{nameString} {Identifier.ID}:{Identifier.generation}";
     }
 
+    /// <summary>
+    /// Sets this entity's layer
+    /// </summary>
+    /// <param name="layer">The layer</param>
+    /// <param name="recursive">Whether to apply to children</param>
     public void SetLayer(uint layer, bool recursive = false)
     {
         Layer = layer;
@@ -98,6 +108,11 @@ public partial struct Entity
         }
     }
 
+    /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary>
+    /// <param name="componentTypes">The components to add</param>
+    /// <returns>The entity, or default</returns>
     public static Entity Create(params Type[] componentTypes)
     {
         if (World.Current == null)
@@ -112,14 +127,20 @@ public partial struct Entity
             return default;
         }
 
-        foreach(var component in componentTypes)
+        for(var i = 0; i < componentTypes.Length; i++)
         {
-            entity.AddComponent(component);
+            entity.AddComponent(componentTypes[i]);
         }
 
         return entity;
     }
 
+    /// <summary>
+    /// Creates an entity with a name and specific component types
+    /// </summary>
+    /// <param name="name">The entity name</param>
+    /// <param name="componentTypes">The components to add</param>
+    /// <returns>The entity, or default</returns>
     public static Entity Create(string name, params Type[] componentTypes)
     {
         if(World.Current == null)
@@ -136,9 +157,9 @@ public partial struct Entity
 
         entity.Name = name;
 
-        foreach (var component in componentTypes)
+        for(var i = 0; i < componentTypes.Length; i++)
         {
-            entity.AddComponent(component);
+            entity.AddComponent(componentTypes[i]);
         }
 
         return entity;
@@ -179,7 +200,10 @@ public partial struct Entity
         return e;
     }
 
-    public void Destroy()
+    /// <summary>
+    /// Destroys this entity. The destruction will happen in the next frame.
+    /// </summary>
+    public readonly void Destroy()
     {
         if(World.Current == null)
         {

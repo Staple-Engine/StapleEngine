@@ -95,7 +95,7 @@ public class UICanvasSystem : IRenderSystem
             void RecursiveFindFocusedElement(Vector2Int position, Vector2Int containerSize, Transform current, UIElement element,
                 UIInteractible interactible, ref UIInteractible foundElement)
             {
-                if(current.entity.Enabled == false)
+                if(current.entity.EnabledInHierarchy == false)
                 {
                     return;
                 }
@@ -191,7 +191,7 @@ public class UICanvasSystem : IRenderSystem
             {
                 foreach(var child in parent)
                 {
-                    if(child.entity.Enabled == false ||
+                    if(child.entity.EnabledInHierarchy == false ||
                         child.entity.TryGetComponent<UIElement>(out var element) == false)
                     {
                         continue;

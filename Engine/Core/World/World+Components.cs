@@ -101,7 +101,7 @@ public partial class World
         {
             var pieces = new List<CameraInfo>();
 
-            var cameras = ForEach<Camera, Transform>(false);
+            var cameras = Query<Camera, Transform>(false);
 
             foreach((Entity e, Camera c, Transform t) in cameras)
             {
@@ -659,7 +659,8 @@ public partial class World
             {
                 foreach(var entity in entities)
                 {
-                    if (entity.TryGetComponentIndex(componentIndex, out var index) &&
+                    if (entity.alive &&
+                        entity.TryGetComponentIndex(componentIndex, out var index) &&
                         entity.components[index] == component)
                     {
                         return new Entity()

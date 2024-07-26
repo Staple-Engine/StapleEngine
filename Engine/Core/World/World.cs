@@ -80,6 +80,18 @@ public partial class World
 
             return value >= 0;
         }
+
+        public Entity ToEntity()
+        {
+            return new()
+            {
+                Identifier = new()
+                {
+                    generation = generation,
+                    ID = ID,
+                }
+            };
+        }
     }
 
     /// <summary>
@@ -137,6 +149,7 @@ public partial class World
                     transform?.SetParent(null);
 
                     info.components.Clear();
+                    info.componentIndices.Clear();
                     info.alive = false;
 
                     while (transform.ChildCount > 0)

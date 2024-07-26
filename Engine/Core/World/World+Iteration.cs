@@ -12,7 +12,7 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T)[] ForEach<T>(bool includeDisabled) where T : IComponent
+    public (Entity, T)[] Query<T>(bool includeDisabled) where T : IComponent
     {
         if (ComponentIndices(typeof(T)).Any() == false)
         {
@@ -28,7 +28,7 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && entity.enabled == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
@@ -45,16 +45,7 @@ public partial class World
 
                 try
                 {
-                    var e = new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = entity.ID,
-                            generation = entity.generation,
-                        },
-                    };
-
-                    outValue.Add((e, t));
+                    outValue.Add((entity.ToEntity(), t));
                 }
                 catch (Exception e)
                 {
@@ -73,7 +64,7 @@ public partial class World
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2)[] ForEach<T, T2>(bool includeDisabled)
+    public (Entity, T, T2)[] Query<T, T2>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
     {
@@ -92,7 +83,7 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && entity.enabled == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
@@ -113,16 +104,7 @@ public partial class World
 
                 try
                 {
-                    var e = new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = entity.ID,
-                            generation = entity.generation,
-                        },
-                    };
-
-                    outValue.Add((e, t, t2));
+                    outValue.Add((entity.ToEntity(), t, t2));
                 }
                 catch (Exception e)
                 {
@@ -142,7 +124,7 @@ public partial class World
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3)[] ForEach<T, T2, T3>(bool includeDisabled)
+    public (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -163,7 +145,7 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && entity.enabled == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
@@ -188,16 +170,7 @@ public partial class World
 
                 try
                 {
-                    var e = new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = entity.ID,
-                            generation = entity.generation,
-                        },
-                    };
-
-                    outValue.Add((e, t, t2, t3));
+                    outValue.Add((entity.ToEntity(), t, t2, t3));
                 }
                 catch (Exception e)
                 {
@@ -218,7 +191,7 @@ public partial class World
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3, T4)[] ForEach<T, T2, T3, T4>(bool includeDisabled)
+    public (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -241,7 +214,7 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && entity.enabled == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
@@ -270,16 +243,7 @@ public partial class World
 
                 try
                 {
-                    var e = new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = entity.ID,
-                            generation = entity.generation,
-                        },
-                    };
-
-                    outValue.Add((e, t, t2, t3, t4));
+                    outValue.Add((entity.ToEntity(), t, t2, t3, t4));
                 }
                 catch (Exception e)
                 {
@@ -301,7 +265,7 @@ public partial class World
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3, T4, T5)[] ForEach<T, T2, T3, T4, T5>(bool includeDisabled)
+    public (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
@@ -326,7 +290,7 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && entity.enabled == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
@@ -359,16 +323,7 @@ public partial class World
 
                 try
                 {
-                    var e = new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = entity.ID,
-                            generation = entity.generation,
-                        },
-                    };
-
-                    outValue.Add((e, t, t2, t3, t4, t5));
+                    outValue.Add((entity.ToEntity(), t, t2, t3, t4, t5));
                 }
                 catch (Exception e)
                 {

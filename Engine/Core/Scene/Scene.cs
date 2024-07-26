@@ -178,9 +178,9 @@ public class Scene
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T)[] ForEach<T>(bool includeDisabled = false) where T : IComponent
+    public static (Entity, T)[] Query<T>(bool includeDisabled = false) where T : IComponent
     {
-        return World.Current?.ForEach<T>(includeDisabled);
+        return World.Current?.Query<T>(includeDisabled);
     }
 
     /// <summary>
@@ -190,11 +190,11 @@ public class Scene
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2)[] ForEach<T, T2>(bool includeDisabled = false)
+    public static (Entity, T, T2)[] Query<T, T2>(bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
     {
-        return World.Current?.ForEach<T, T2>(includeDisabled);
+        return World.Current?.Query<T, T2>(includeDisabled);
     }
 
     /// <summary>
@@ -205,12 +205,12 @@ public class Scene
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3)[] ForEach<T, T2, T3>(bool includeDisabled = false)
+    public static (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
     {
-        return World.Current?.ForEach<T, T2, T3>(includeDisabled);
+        return World.Current?.Query<T, T2, T3>(includeDisabled);
     }
 
     /// <summary>
@@ -222,13 +222,13 @@ public class Scene
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3, T4)[] ForEach<T, T2, T3, T4>(bool includeDisabled = false)
+    public static (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
         where T4 : IComponent
     {
-        return World.Current?.ForEach<T, T2, T3, T4>(includeDisabled);
+        return World.Current?.Query<T, T2, T3, T4>(includeDisabled);
     }
 
     /// <summary>
@@ -241,14 +241,14 @@ public class Scene
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3, T4, T5)[] ForEach<T, T2, T3, T4, T5>(bool includeDisabled = false)
+    public static (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled = false)
         where T : IComponent
         where T2 : IComponent
         where T3 : IComponent
         where T4 : IComponent
         where T5 : IComponent
     {
-        return World.Current?.ForEach<T, T2, T3, T4, T5>(includeDisabled);
+        return World.Current?.Query<T, T2, T3, T4, T5>(includeDisabled);
     }
 
     /// <summary>

@@ -432,7 +432,7 @@ public class Physics3D : ISubsystem
 
     public void Shutdown()
     {
-        var rigidBodies = World.Current.ForEach<RigidBody3D>(true);
+        var rigidBodies = World.Current.Query<RigidBody3D>(true);
         
         foreach((Entity _, RigidBody3D rigidBody) in rigidBodies)
         {

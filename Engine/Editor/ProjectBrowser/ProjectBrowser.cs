@@ -197,7 +197,7 @@ internal class ProjectBrowser
                     var node = new ProjectBrowserNode()
                     {
                         name = Path.GetFileNameWithoutExtension(file),
-                        extension = Path.GetExtension(file),
+                        extension = Path.GetExtension(file).ToLowerInvariant(),
                         path = file.Replace("\\", "/"),
                         subnodes = new(),
                         type = ProjectBrowserNodeType.File

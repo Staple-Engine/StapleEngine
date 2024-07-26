@@ -83,7 +83,7 @@ internal partial class StapleEditor
         {
             var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
 
-            var transforms = Scene.ForEach<Transform>();
+            var transforms = Scene.Query<Transform>();
 
             foreach((Entity entity, Transform transform) in transforms)
             {

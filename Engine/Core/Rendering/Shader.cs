@@ -274,15 +274,9 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Vector4:
+                    case ShaderUniformType.Vector2:
 
-                        Apply<Vector4>(pair.Value, (uniform) => SetVector4(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        Apply<Color>(pair.Value, (uniform) => SetColor(uniform.uniform.name, uniform.value));
+                        Apply<Vector2>(pair.Value, (uniform) => SetVector2(uniform.uniform.name, uniform.value));
 
                         break;
 
@@ -292,9 +286,15 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Vector2:
+                    case ShaderUniformType.Vector4:
 
-                        Apply<Vector2>(pair.Value, (uniform) => SetVector2(uniform.uniform.name, uniform.value));
+                        Apply<Vector4>(pair.Value, (uniform) => SetVector4(uniform.uniform.name, uniform.value));
+
+                        break;
+
+                    case ShaderUniformType.Color:
+
+                        Apply<Color>(pair.Value, (uniform) => SetColor(uniform.uniform.name, uniform.value));
 
                         break;
 
@@ -330,15 +330,9 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Vector4:
+                    case ShaderUniformType.Vector2:
 
-                        AddUniform<Vector4>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        AddUniform<Color>(uniform.name, uniform.type);
+                        AddUniform<Vector2>(uniform.name, uniform.type);
 
                         break;
 
@@ -348,9 +342,15 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Vector2:
+                    case ShaderUniformType.Vector4:
 
-                        AddUniform<Vector2>(uniform.name, uniform.type);
+                        AddUniform<Vector4>(uniform.name, uniform.type);
+
+                        break;
+
+                    case ShaderUniformType.Color:
+
+                        AddUniform<Color>(uniform.name, uniform.type);
 
                         break;
 
@@ -394,21 +394,9 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Vector4:
+                    case ShaderUniformType.Float:
 
-                        EnsureUniform<Vector4>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        EnsureUniform<Color>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Vector3:
-
-                        EnsureUniform<Vector3>(uniform.Item1, uniform.Item2);
+                        EnsureUniform<float>(uniform.Item1, uniform.Item2);
 
                         break;
 
@@ -418,9 +406,21 @@ internal partial class Shader : IGuidAsset
 
                         break;
 
-                    case ShaderUniformType.Float:
+                    case ShaderUniformType.Vector3:
 
-                        EnsureUniform<float>(uniform.Item1, uniform.Item2);
+                        EnsureUniform<Vector3>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Vector4:
+
+                        EnsureUniform<Vector4>(uniform.Item1, uniform.Item2);
+
+                        break;
+
+                    case ShaderUniformType.Color:
+
+                        EnsureUniform<Color>(uniform.Item1, uniform.Item2);
 
                         break;
                 }
@@ -974,11 +974,23 @@ internal partial class Shader : IGuidAsset
 
         foreach (var pair in uniforms)
         {
-            switch(pair.Key)
+            switch (pair.Key)
             {
                 case ShaderUniformType.Texture:
 
                     DestroyUniforms<Texture>(pair.Value);
+
+                    break;
+
+                case ShaderUniformType.Vector2:
+
+                    DestroyUniforms<Vector2>(pair.Value);
+
+                    break;
+
+                case ShaderUniformType.Vector3:
+
+                    DestroyUniforms<Vector3>(pair.Value);
 
                     break;
 
@@ -1003,6 +1015,12 @@ internal partial class Shader : IGuidAsset
                 case ShaderUniformType.Color:
 
                     DestroyUniforms<Color>(pair.Value);
+
+                    break;
+
+                case ShaderUniformType.Float:
+
+                    DestroyUniforms<float>(pair.Value);
 
                     break;
             }

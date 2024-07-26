@@ -108,7 +108,16 @@ internal class ThumbnailCache
                         break;
                     }
 
-                    var cachePath = EditorUtils.GetAssetCachePath(basePath, request.path, platform.Value);
+                    var cachePath = EditorUtils.GetLocalPath(request.path);
+
+                    var guid = AssetDatabase.GetAssetGuid(cachePath);
+
+                    if (guid == null)
+                    {
+                        Cleanup();
+
+                        break;
+                    }
 
                     var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
 

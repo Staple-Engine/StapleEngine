@@ -316,7 +316,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             foreach (var pair in bodies)
             {
-                if (pair.entity.Enabled == false)
+                if (pair.entity.EnabledInHierarchy == false)
                 {
                     if (pair.body.IsActive)
                     {
