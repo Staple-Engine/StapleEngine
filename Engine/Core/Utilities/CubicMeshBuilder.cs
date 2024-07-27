@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Utilities;
@@ -21,9 +22,27 @@ public class CubicMeshBuilder
         Down,
     }
 
-    public List<Vector3> vertices = new();
-    public List<Vector2> uvs = new();
-    public List<int> indices = new();
+    /// <summary>
+    /// List of all directions
+    /// </summary>
+    public static readonly Direction[] Directions = Enum.GetValues<Direction>();
+
+    /// <summary>
+    /// List of all direction offsets
+    /// </summary>
+    public static readonly Vector3[] Offsets =
+        [
+            new(0, 0, 1),
+            new(0, 0, -1),
+            new(-1, 0, 0),
+            new(1, 0, 0),
+            new(0, 1, 0),
+            new(0, -1, 0),
+        ];
+
+    public List<Vector3> vertices = [];
+    public List<Vector2> uvs = [];
+    public List<int> indices = [];
 
     /// <summary>
     /// Adds quad vertices
@@ -191,13 +210,13 @@ public class CubicMeshBuilder
     /// <remarks>Works for quad as well</remarks>
     public void CubeFaces()
     {
-        indices.Add(vertices.Count - 4);
+        indices.Add(vertices.Count - 2);
         indices.Add(vertices.Count - 3);
-        indices.Add(vertices.Count - 2);
-
         indices.Add(vertices.Count - 4);
-        indices.Add(vertices.Count - 2);
+
         indices.Add(vertices.Count - 1);
+        indices.Add(vertices.Count - 2);
+        indices.Add(vertices.Count - 4);
     }
 
     /// <summary>
@@ -297,7 +316,7 @@ public class CubicMeshBuilder
         {
             indexFormat = MeshIndexFormat.UInt32,
             vertices = vertices.ToArray(),
-            normals = Mesh.GenerateNormals(vertices.ToArray()),
+            normals = Mesh.GenerateNormals(vertices.ToArray(), indices.ToArray()),
             indices = indices.ToArray(),
             meshTopology = MeshTopology.Triangles,
             changed = true,

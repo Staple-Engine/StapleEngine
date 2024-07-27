@@ -746,38 +746,25 @@ internal partial class StapleEditor
 
             if(ImGui.BeginPopup("SelectedEntityComponentList"))
             {
-                ImGui.SetNextWindowPos(new Vector2(ImGui.GetItemRectMin().X, ImGui.GetItemRectMax().Y));
-                ImGui.SetNextWindowSize(new Vector2(ImGui.GetContentRegionAvail().X, 0));
-
-                if(ImGui.Begin("##ComponentsList", ImGuiWindowFlags.NoTitleBar |
-                    ImGuiWindowFlags.NoMove |
-                    ImGuiWindowFlags.NoResize |
-                    ImGuiWindowFlags.Tooltip |
-                    ImGuiWindowFlags.NoFocusOnAppearing |
-                    ImGuiWindowFlags.ChildWindow))
+                foreach(var component in registeredComponents)
                 {
-                    foreach(var component in registeredComponents)
+                    if(selectedEntity.GetComponent(component) != null)
                     {
-                        if(selectedEntity.GetComponent(component) != null)
-                        {
-                            continue;
-                        }
-
-                        ImGui.Selectable($"{component.Name}##0");
-
-                        if (ImGui.IsItemClicked())
-                        {
-                            selectedEntity.AddComponent(component);
-
-                            resetSelection = true;
-
-                            ImGui.CloseCurrentPopup();
-
-                            break;
-                        }
+                        continue;
                     }
 
-                    ImGui.End();
+                    ImGui.Selectable($"{component.Name}##0");
+
+                    if (ImGui.IsItemClicked())
+                    {
+                        selectedEntity.AddComponent(component);
+
+                        resetSelection = true;
+
+                        ImGui.CloseCurrentPopup();
+
+                        break;
+                    }
                 }
 
                 ImGui.EndPopup();

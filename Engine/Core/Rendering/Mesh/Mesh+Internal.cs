@@ -83,34 +83,15 @@ public partial class Mesh
         {
             if(_quad == null)
             {
-                _quad = new Mesh(false, false)
-                {
-                    guid = "Internal/Quad",
-                    changed = true,
+                var builder = new CubicMeshBuilder();
 
-                    vertices =
-                    [
-                        new Vector3(-0.5f, -0.5f, 0),
-                        new Vector3(-0.5f, 0.5f, 0),
-                        new Vector3(0.5f, 0.5f, 0),
-                        new Vector3(0.5f, -0.5f, 0),
-                    ],
+                builder.QuadVertices(Vector3.Zero, 1);
+                builder.CubeTexture(new(0, 1, 0, 1));
+                builder.CubeFaces();
 
-                    uv = 
-                    [
-                        new Vector2(0, 1),
-                        Vector2.Zero,
-                        new Vector2(1, 0),
-                        Vector2.One,
-                    ],
+                _quad = builder.BuildMesh(true);
 
-                    indices = 
-                    [
-                        0, 1, 2, 3, 0, 2
-                    ],
-                };
-
-                _quad.normals = GenerateNormals(_quad.vertices);
+                _quad.guid = "Internal/Quad";
 
                 _quad.UpdateBounds();
             }
