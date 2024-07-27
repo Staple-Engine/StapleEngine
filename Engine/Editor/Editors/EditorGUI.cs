@@ -586,8 +586,9 @@ public static class EditorGUI
     /// <param name="type">The type to choose</param>
     /// <param name="name">The name to show for the field</param>
     /// <param name="current">The current value</param>
+    /// <param name="identifier">Extra identifier if needed</param>
     /// <returns>The new value</returns>
-    public static object ObjectPicker(Type type, string name, object current)
+    public static object ObjectPicker(Type type, string name, object current, string identifier = "")
     {
         ImGui.Text(name);
 
@@ -624,7 +625,7 @@ public static class EditorGUI
 
         ImGui.SameLine();
 
-        var key = $"{type.FullName}{name}{current}";
+        var key = $"{type.FullName}{name}{current}{identifier}";
 
         if (ImGui.SmallButton(MakeIdentifier("O", key)))
         {
