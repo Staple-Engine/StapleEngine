@@ -6,6 +6,7 @@
 /// Just remember, it's less effective than using a system if there's a lot of entities doing things!
 /// </summary>
 [AbstractComponent]
+[AutoAssignEntity]
 public class CallbackComponent : IComponent
 {
     /// <summary>
@@ -13,6 +14,8 @@ public class CallbackComponent : IComponent
     /// There are better ways to do this, but for now this works!
     /// </summary>
     internal bool STAPLE_JUST_ADDED = true;
+
+    public Entity entity { get; internal set; }
 
     public virtual void Awake()
     {

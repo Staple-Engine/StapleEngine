@@ -214,23 +214,28 @@ public partial class World
 
                     var field = t.GetField("entity");
 
-                    if (field != null)
-                    {
-                        field.SetValue(outValue, entity);
-                    }
+                    field?.SetValue(outValue, entity);
 
                     var property = t.GetProperty("entity");
 
-                    if (property != null)
+                    if(property != null)
                     {
-                        property.SetValue(outValue, entity);
+                        if(property.CanWrite)
+                        {
+                            property.SetValue(outValue, entity);
+                        }
+                        else
+                        {
+                            Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
+                        }
                     }
 
                     //Assign in case it's a value type
                     entityInfo.components[index] = outValue;
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
+                    Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
                 }
             }
 

@@ -91,4 +91,16 @@ public struct Color
 
         return false;
     }
+
+    public static Color Lerp(Color a, Color b, float t)
+    {
+        t = Math.Clamp01(t);
+
+        var vA = new Vector4(a.r, a.g, a.b, a.a);
+        var vB = new Vector4(b.r, b.g, b.b, b.a);
+
+        var i = Vector4.Lerp(vA, vB, t);
+
+        return new Color(i.X, i.Y, i.Z, i.W);
+    }
 }

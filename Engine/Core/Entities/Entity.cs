@@ -85,9 +85,16 @@ public partial struct Entity
 
     public override string ToString()
     {
-        var nameString = Name ?? "Unnamed Entity";
+        if(IsValid)
+        {
+            var nameString = Name ?? "Unnamed Entity";
 
-        return $"{nameString} {Identifier.ID}:{Identifier.generation}";
+            return $"{nameString} {Identifier.ID}:{Identifier.generation}";
+        }
+        else
+        {
+            return "Invalid Entity";
+        }
     }
 
     /// <summary>

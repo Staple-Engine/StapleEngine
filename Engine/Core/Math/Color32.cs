@@ -125,4 +125,6 @@ public struct Color32
 
         return false;
     }
+
+    public static Color32 Lerp(Color32 a, Color32 b, float t) => Color.Lerp(a, b, t);
 }
