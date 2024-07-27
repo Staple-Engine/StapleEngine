@@ -63,7 +63,7 @@ public class MeshRenderSystem : IRenderSystem
 
         if (program.Valid)
         {
-            RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(matrix, material);
+            RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position);
 
             bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
         }
@@ -175,7 +175,7 @@ public class MeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material);
+                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

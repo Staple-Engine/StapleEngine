@@ -193,6 +193,8 @@ public partial class RenderSystem
     #region Render Modes
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
+        CurrentCamera = (camera, cameraTransform);
+
         var systems = new List<IRenderSystem>();
 
         lock(lockObject)
@@ -252,6 +254,8 @@ public partial class RenderSystem
 
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
+        CurrentCamera = (camera, cameraTransform);
+
         var systems = new List<IRenderSystem>();
 
         lock(lockObject)

@@ -40,6 +40,8 @@ public partial class RenderSystem : ISubsystem
 
     public static ushort CurrentViewID { get; private set; }
 
+    public static (Camera, Transform) CurrentCamera { get; internal set; }
+
     public static readonly RenderSystem Instance = new();
 
     /// <summary>

@@ -79,6 +79,8 @@ internal partial class StapleEditor
             system.Prepare();
         }
 
+        RenderSystem.CurrentCamera = (camera, cameraTransform);
+
         if (World.Current != null)
         {
             var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;

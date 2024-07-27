@@ -75,7 +75,7 @@ namespace Staple
 
             if(program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material);
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
@@ -136,7 +136,7 @@ namespace Staple
 
             if (program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material);
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

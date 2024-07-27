@@ -17,6 +17,7 @@ public class LightSystem : IRenderSystem
     private static readonly string LightSpotDirectionKey = "u_lightSpotDirection";
     private static readonly string LightSpotValuesKey = "u_lightSpotValues";
     private static readonly string NormalMatrixKey = "u_normalMatrix";
+    private static readonly string ViewPosKey = "u_viewPos";
 
     private readonly List<(Transform, Light)> lights = [];
 
@@ -30,6 +31,7 @@ public class LightSystem : IRenderSystem
         Shader.defaultUniforms.Add(($"{LightSpotDirectionKey}[{MaxLights}]", ShaderUniformType.Vector4));
         Shader.defaultUniforms.Add(($"{LightSpotValuesKey}[{MaxLights}]", ShaderUniformType.Vector4));
         Shader.defaultUniforms.Add((NormalMatrixKey, ShaderUniformType.Matrix3x3));
+        Shader.defaultUniforms.Add((ViewPosKey, ShaderUniformType.Vector3));
     }
 
     public void Destroy()
@@ -62,7 +64,7 @@ public class LightSystem : IRenderSystem
     {
     }
 
-    public void ApplyLightProperties(Matrix4x4 transform, Material material)
+    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)
     {
         if ((material?.IsValid ?? false) == false)
         {
@@ -116,6 +118,7 @@ public class LightSystem : IRenderSystem
             lightSpotDirection[i] = forward.ToVector4();
         }
 
+        material.shader.SetVector3(ViewPosKey, cameraPosition);
         material.shader.SetMatrix3x3(NormalMatrixKey, normalMatrix);
         material.shader.SetColor(LightAmbientKey, lightAmbient);
         material.shader.SetVector4(LightCountKey, lightCount);

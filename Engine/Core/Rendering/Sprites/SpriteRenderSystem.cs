@@ -332,7 +332,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             if (program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(s.transform, s.material);
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(s.transform, s.material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
