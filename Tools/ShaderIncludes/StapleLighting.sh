@@ -18,6 +18,7 @@ uniform vec3 u_lightSpotDirection[STAPLE_MAX_LIGHTS];
 uniform vec3 u_lightSpotValues[STAPLE_MAX_LIGHTS];
 
 uniform mat3 u_normalMatrix;
+uniform vec3 u_viewPos;
 
 #define StapleLightDiffuse u_lightDiffuse
 #define StapleLightSpecular u_lightSpecular
@@ -32,6 +33,14 @@ vec3 StapleLightNormal(vec3 normal)
 float StapleLightDiffuseFactor(vec3 normal, vec3 lightDir)
 {
 	return max(dot(lightDir, normal), 0.0);
+}
+
+float StapleLightSpecularFactor(vec3 viewPos, vec3 fragPos, vec3 lightDir, vec3 normal, float shininess)
+{
+	vec3 viewDir = normalize(viewPos - fragPos);
+	vec3 reflectDir = reflect(-lightDir, normal);
+	
+	return pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 }
 
 vec3 StapleLightDirection(int index, vec3 fragPos)
@@ -58,12 +67,13 @@ vec3 StapleLightDirection(int index, vec3 fragPos)
 	return normalize(typePosition.yzw - fragPos);
 }
 
-vec4 StapleProcessLights(vec3 fragPos, vec3 normal)
+vec3 StapleProcessLights(vec3 viewPos, vec3 fragPos, vec3 normal)
 {
-	vec4 ambient = StapleLightAmbient;
+	vec3 ambient = StapleLightAmbient.rgb;
 	
 	vec3 lightNormal = StapleLightNormal(normal);
-	vec4 diffuse = vec4(1, 1, 1, 1);
+	vec3 diffuse = vec3(1, 1, 1);
+	vec3 specular = vec3(1, 1, 1);
 	
 	for(int i = 0; i < StapleLightCount; i++)
 	{
@@ -71,10 +81,21 @@ vec4 StapleProcessLights(vec3 fragPos, vec3 normal)
 		
 		float diffuseFactor = StapleLightDiffuseFactor(lightNormal, lightDir);
 		
-		diffuse *= diffuseFactor * StapleLightDiffuse[i];
+		diffuse *= diffuseFactor * StapleLightDiffuse[i].rgb;
+		
+		float shininess = StapleLightSpecular[i].a;
+		
+		float specularFactor = StapleLightSpecularFactor(viewPos, fragPos, lightDir, lightNormal, shininess);
+		
+		specular *= specularFactor * StapleLightDiffuse[i].rgb;
 	}
 	
-	return ambient + diffuse;
+	if(StapleLightCount == 0)
+	{
+		return ambient;
+	}
+	
+	return ambient + diffuse + specular;
 }
 
 #endif

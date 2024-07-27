@@ -68,6 +68,7 @@
     <Compile Include="Editors\Assets\StapleAssetEditor.cs" />
     <Compile Include="Editors\Assets\MaterialEditor.cs" />
     <Compile Include="Editors\Assets\MeshAssetEditor.cs" />
+    <Compile Include="Editors\Default\LightGizmoEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshAnimatorEditor.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />

@@ -66,7 +66,7 @@ void main()
 	gl_Position = v_pos;
 
 	v_texcoord0 = a_texcoord0;
-	v_fragPos = mul(viewWorld, vec4(a_position, 1.0)).xyz;
+	v_fragPos = mul(model, vec4(a_position, 1.0)).xyz;
 	v_normal = StapleLightNormal(a_normal);
 	v_color = a_color0;
 }
@@ -91,9 +91,9 @@ void main()
 		diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuse;
 	}
 	
-	vec4 light = StapleProcessLights(v_fragPos, v_normal);
+	vec3 light = StapleProcessLights(u_viewPos, v_fragPos, v_normal);
 	
-	gl_FragColor = light * diffuse;
+	gl_FragColor = vec4(light, 1) * diffuse;
 }
 
 End Fragment

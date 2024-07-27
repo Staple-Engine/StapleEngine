@@ -11,6 +11,7 @@ public static class Gizmo
 {
     private static Material meshMaterial;
     private static Mesh wireCube = null;
+    private static VertexLayout lineLayout = null;
 
     /// <summary>
     /// Shows a box
@@ -91,5 +92,18 @@ public static class Gizmo
         }
 
         MeshRenderSystem.DrawMesh(wireCube, position, rotation, scale, meshMaterial, StapleEditor.WireframeView);
+    }
+
+    public static void Line(Vector3 from, Vector3 to, Color color)
+    {
+        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+
+        meshMaterial.MainColor = color;
+
+        lineLayout ??= new VertexLayoutBuilder()
+            .Add(Bgfx.bgfx.Attrib.Position, 3, Bgfx.bgfx.AttribType.Float)
+            .Build();
+
+        Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Matrix4x4.Identity, MeshTopology.Lines, StapleEditor.WireframeView);
     }
 }
