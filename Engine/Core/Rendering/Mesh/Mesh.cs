@@ -1017,7 +1017,7 @@ public partial class Mesh : IGuidAsset
     /// Generates normals for a list of vertices. Expects triangles.
     /// </summary>
     /// <param name="positions">The vertex positions</param>
-    /// <param name="smooth">Whether to generate smooth normals</param>
+    /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the positions aren't a multiple of 3.</returns>
     public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, bool smooth = false)
@@ -1042,7 +1042,7 @@ public partial class Mesh : IGuidAsset
     /// </summary>
     /// <param name="positions">The vertex positions</param>
     /// <param name="indices">The vertex indices</param>
-    /// <param name="smooth">Whether to generate smooth normals</param>
+    /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
     public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, ushort[] indices, bool smooth = false)
@@ -1054,8 +1054,7 @@ public partial class Mesh : IGuidAsset
 
         for (var i = 0; i < indices.Length; i++)
         {
-            if (indices[i] < 0 ||
-                indices[i] >= positions.Length)
+            if (indices[i] >= positions.Length)
             {
                 return [];
             }
@@ -1069,17 +1068,45 @@ public partial class Mesh : IGuidAsset
             var p1 = positions[indices[i + 1]];
             var p2 = positions[indices[i + 2]];
 
-            var normal = Vector3.Normalize(Vector3.Cross(p2 - p0, p1 - p0));
+            var normal = Vector3.Cross(p2 - p0, p1 - p0);
 
-            if (smooth)
+            normals[indices[i]] += normal;
+            normals[indices[i + 1]] += normal;
+            normals[indices[i + 2]] += normal;
+        }
+
+        if (smooth)
+        {
+            var uniquePositions = new HashSet<Vector3>();
+
+            foreach (var p in positions)
             {
-                normals[indices[i]] += normal;
-                normals[indices[i + 1]] += normal;
-                normals[indices[i + 2]] += normal;
+                uniquePositions.Add(p);
             }
-            else
+
+            var handled = new Dictionary<Vector3, Vector3>();
+
+            foreach (var p in uniquePositions)
             {
-                normals[indices[i]] = normals[indices[i + 1]] = normals[indices[i + 2]] = normal;
+                var n = Vector3.Zero;
+
+                for (var j = 0; j < positions.Length; j++)
+                {
+                    if (p == positions[j])
+                    {
+                        n += normals[j];
+                    }
+                }
+
+                handled.Add(p, n);
+            }
+
+            for (var i = 0; i < positions.Length; i++)
+            {
+                if (handled.TryGetValue(positions[i], out var n))
+                {
+                    normals[i] = n;
+                }
             }
         }
 
@@ -1096,7 +1123,7 @@ public partial class Mesh : IGuidAsset
     /// </summary>
     /// <param name="positions">The vertex positions</param>
     /// <param name="indices">The vertex indices</param>
-    /// <param name="smooth">Whether to generate smooth normals</param>
+    /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
     public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, int[] indices, bool smooth = false)
@@ -1123,21 +1150,49 @@ public partial class Mesh : IGuidAsset
             var p1 = positions[indices[i + 1]];
             var p2 = positions[indices[i + 2]];
 
-            var normal = Vector3.Normalize(Vector3.Cross(p2 - p0, p1 - p0));
+            var normal = Vector3.Cross(p2 - p0, p1 - p0);
 
-            if (smooth)
+            normals[indices[i]] += normal;
+            normals[indices[i + 1]] += normal;
+            normals[indices[i + 2]] += normal;
+        }
+
+        if(smooth)
+        {
+            var uniquePositions = new HashSet<Vector3>();
+
+            foreach(var p in positions)
             {
-                normals[indices[i]] += normal;
-                normals[indices[i + 1]] += normal;
-                normals[indices[i + 2]] += normal;
+                uniquePositions.Add(p);
             }
-            else
+
+            var handled = new Dictionary<Vector3, Vector3>();
+
+            foreach(var p in uniquePositions)
             {
-                normals[indices[i]] = normals[indices[i + 1]] = normals[indices[i + 2]] = normal;
+                var n = Vector3.Zero;
+
+                for (var j = 0; j < positions.Length; j++)
+                {
+                    if (p == positions[j])
+                    {
+                        n += normals[j];
+                    }
+                }
+
+                handled.Add(p, n);
+            }
+
+            for (var i = 0; i < positions.Length; i++)
+            {
+                if (handled.TryGetValue(positions[i], out var n))
+                {
+                    normals[i] = n;
+                }
             }
         }
 
-        for (var i = 0; i < normals.Length; i++)
+        for (var i = 0; i < positions.Length; i++)
         {
             normals[i] = Vector3.Normalize(normals[i]);
         }
