@@ -1077,28 +1077,33 @@ public partial class Mesh : IGuidAsset
 
         if (smooth)
         {
-            var uniquePositions = new HashSet<Vector3>();
-
-            foreach (var p in positions)
-            {
-                uniquePositions.Add(p);
-            }
-
+            var uniquePositions = new Dictionary<Vector3, List<int>>();
             var handled = new Dictionary<Vector3, Vector3>();
+
+            for (var i = 0; i < positions.Length; i++)
+            {
+                var p = positions[i];
+
+                if (uniquePositions.TryGetValue(p, out var list) == false)
+                {
+                    list = [];
+
+                    uniquePositions.Add(p, list);
+                }
+
+                list.Add(i);
+            }
 
             foreach (var p in uniquePositions)
             {
                 var n = Vector3.Zero;
 
-                for (var j = 0; j < positions.Length; j++)
+                foreach (var index in p.Value)
                 {
-                    if (p == positions[j])
-                    {
-                        n += normals[j];
-                    }
+                    n += normals[index];
                 }
 
-                handled.Add(p, n);
+                handled.Add(p.Key, n);
             }
 
             for (var i = 0; i < positions.Length; i++)
@@ -1157,30 +1162,35 @@ public partial class Mesh : IGuidAsset
             normals[indices[i + 2]] += normal;
         }
 
-        if(smooth)
+        if (smooth)
         {
-            var uniquePositions = new HashSet<Vector3>();
-
-            foreach(var p in positions)
-            {
-                uniquePositions.Add(p);
-            }
-
+            var uniquePositions = new Dictionary<Vector3, List<int>>();
             var handled = new Dictionary<Vector3, Vector3>();
 
-            foreach(var p in uniquePositions)
+            for (var i = 0; i < positions.Length; i++)
+            {
+                var p = positions[i];
+
+                if (uniquePositions.TryGetValue(p, out var list) == false)
+                {
+                    list = [];
+
+                    uniquePositions.Add(p, list);
+                }
+
+                list.Add(i);
+            }
+
+            foreach (var p in uniquePositions)
             {
                 var n = Vector3.Zero;
 
-                for (var j = 0; j < positions.Length; j++)
+                foreach (var index in p.Value)
                 {
-                    if (p == positions[j])
-                    {
-                        n += normals[j];
-                    }
+                    n += normals[index];
                 }
 
-                handled.Add(p, n);
+                handled.Add(p.Key, n);
             }
 
             for (var i = 0; i < positions.Length; i++)
