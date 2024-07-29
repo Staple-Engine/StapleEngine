@@ -35,6 +35,7 @@ public class ShaderUniform
 [MessagePackObject]
 public class ShaderMetadata
 {
+    [HideInInspector]
     [Key(0)]
     public string guid = Guid.NewGuid().ToString();
 
@@ -42,10 +43,10 @@ public class ShaderMetadata
     public ShaderType type = ShaderType.VertexFragment;
 
     [Key(2)]
-    public List<string> variants = new();
+    public List<string> variants = [];
 
     [Key(3)]
-    public List<ShaderUniform> uniforms = new();
+    public List<ShaderUniform> uniforms = [];
 
     [Key(4)]
     public BlendMode sourceBlend = BlendMode.Off;
@@ -53,6 +54,7 @@ public class ShaderMetadata
     [Key(5)]
     public BlendMode destinationBlend = BlendMode.Off;
 
+    [HideInInspector]
     [Key(6)]
     public string typeName = typeof(Shader).FullName;
 }

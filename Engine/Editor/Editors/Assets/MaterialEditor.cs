@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Staple.Editor;
 
@@ -189,6 +190,48 @@ internal class MaterialEditor : AssetEditor
                             cachedShaders.AddOrSetKey(s.metadata.guid, s);
 
                             material.shader = s.Guid;
+
+                            material.parameters = [];
+
+                            static MaterialParameterType ParameterType(ShaderUniformType type)
+                            {
+                                return type switch
+                                {
+                                    ShaderUniformType.Texture => MaterialParameterType.Texture,
+                                    ShaderUniformType.Float => MaterialParameterType.Float,
+                                    ShaderUniformType.Vector2 => MaterialParameterType.Vector2,
+                                    ShaderUniformType.Vector3 => MaterialParameterType.Vector3,
+                                    ShaderUniformType.Vector4 => MaterialParameterType.Vector4,
+                                    ShaderUniformType.Color => MaterialParameterType.Color,
+                                    ShaderUniformType.Matrix3x3 => MaterialParameterType.Matrix3x3,
+                                    ShaderUniformType.Matrix4x4 => MaterialParameterType.Matrix4x4,
+                                    _ => (MaterialParameterType)(-1),
+                                };
+                            }
+
+                            foreach(var parameter in s.metadata.uniforms)
+                            {
+                                if(parameter.type == ShaderUniformType.Float &&
+                                    parameter.name.EndsWith("Set") && s.metadata.uniforms.Any(x => x.type == ShaderUniformType.Texture &&
+                                    x.name == parameter.name[..^"Set".Length]))
+                                {
+                                    continue;
+                                }
+
+                                var type = ParameterType(parameter.type);
+
+                                if(type == (MaterialParameterType)(-1))
+                                {
+                                    continue;
+                                }
+
+                                var p = new MaterialParameter()
+                                {
+                                    type = type,
+                                };
+
+                                material.parameters.Add(parameter.name, p);
+                            }
 
                             activeShader = s;
                         }
