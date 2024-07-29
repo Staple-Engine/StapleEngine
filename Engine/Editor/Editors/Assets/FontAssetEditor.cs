@@ -1,14 +1,11 @@
-﻿using Newtonsoft.Json;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(FontMetadata))]
-internal class FontAssetEditor : Editor
+internal class FontAssetEditor : AssetEditor
 {
     private int characterCount = 0;
     private bool isValid = false;
@@ -22,11 +19,6 @@ internal class FontAssetEditor : Editor
 
         switch (name)
         {
-            case nameof(FontMetadata.typeName):
-            case nameof(FontMetadata.guid):
-
-                return true;
-
             case nameof(FontMetadata.textureSize):
 
                 {
@@ -89,54 +81,6 @@ internal class FontAssetEditor : Editor
             EditorGUI.Label("Warning: Texture size is not large enough!");
         }
 
-        var hasChanges = metadata != originalMetadata;
-
-        if (hasChanges)
-        {
-            EditorGUI.Button("Apply", "FontAssetApply", () =>
-            {
-                try
-                {
-                    var text = JsonConvert.SerializeObject(metadata, Formatting.Indented);
-
-                    File.WriteAllText(path, text);
-                }
-                catch (Exception)
-                {
-                }
-
-                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    field.SetValue(original, field.GetValue(metadata));
-                }
-
-                EditorUtils.RefreshAssets(false, () =>
-                {
-                    needsUpdate = true;
-                });
-            });
-
-            EditorGUI.SameLine();
-
-            EditorGUI.Button("Revert", "FontAssetRevert", () =>
-            {
-                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    field.SetValue(metadata, field.GetValue(original));
-                }
-            });
-        }
-        else
-        {
-            EditorGUI.ButtonDisabled("Apply", "FontAssetApply", null);
-
-            EditorGUI.SameLine();
-
-            EditorGUI.ButtonDisabled("Revert", "FontAssetRevert", null);
-        }
+        ShowAssetUI(() => needsUpdate = true);
     }
 }

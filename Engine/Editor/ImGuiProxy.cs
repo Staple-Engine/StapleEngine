@@ -305,7 +305,7 @@ internal class ImGuiProxy
                 return;
             }
 
-            bgfx.set_view_name(viewID, "ImGui");
+            bgfx.set_view_name(viewID, "ImGui", int.MaxValue);
             bgfx.set_view_mode(viewID, bgfx.ViewMode.Sequential);
 
             var ortho = Matrix4x4.CreateOrthographicOffCenter(drawData.DisplayPos.X, drawData.DisplayPos.X + drawData.DisplaySize.X,

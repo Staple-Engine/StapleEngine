@@ -919,7 +919,7 @@ internal partial class StapleEditor
     {
         try
         {
-            var json = JsonConvert.SerializeObject(lastProjects);
+            var json = JsonConvert.SerializeObject(lastProjects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
             File.WriteAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"), json);
         }
@@ -953,7 +953,7 @@ internal partial class StapleEditor
             var json = JsonConvert.SerializeObject(new ProjectInfo()
             {
                 stapleVersion = StapleVersion,
-            });
+            }, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
             File.WriteAllText(Path.Combine(path, "ProjectInfo.json"), json);
         }
@@ -1086,7 +1086,7 @@ internal partial class StapleEditor
 
         try
         {
-            var text = JsonConvert.SerializeObject(info, Formatting.Indented);
+            var text = JsonConvert.SerializeObject(info, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
             File.WriteAllText(path, text);
         }

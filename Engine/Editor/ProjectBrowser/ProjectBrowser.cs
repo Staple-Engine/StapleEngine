@@ -385,7 +385,7 @@ internal class ProjectBrowser
                                 typeName = typeof(FolderAsset).FullName,
                             };
 
-                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                             File.WriteAllText($"{node.path}.meta", json);
                         }
@@ -412,13 +412,7 @@ internal class ProjectBrowser
                                         {
                                             guid = Hash(),
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -440,13 +434,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(Material).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -468,13 +456,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(Shader).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -496,13 +478,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(Scene).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -523,13 +499,7 @@ internal class ProjectBrowser
                                         {
                                             guid = Hash(),
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -551,13 +521,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(AudioClip).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -579,13 +543,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(FontAsset).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -607,7 +565,7 @@ internal class ProjectBrowser
 
                                         if (holder != null)
                                         {
-                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                                            var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                             File.WriteAllText($"{node.path}.meta", json);
                                         }
@@ -618,13 +576,7 @@ internal class ProjectBrowser
                                                 guid = Hash(),
                                                 typeName = "Unknown",
                                             },
-                                            Formatting.Indented, new JsonSerializerSettings()
-                                            {
-                                                Converters =
-                                                {
-                                                    new StringEnumConverter(),
-                                                }
-                                            });
+                                            Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                             File.WriteAllText($"{node.path}.meta", jsonData);
                                         }
@@ -647,13 +599,7 @@ internal class ProjectBrowser
                                             guid = Hash(),
                                             typeName = typeof(Prefab).FullName,
                                         },
-                                        Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            Converters =
-                                            {
-                                                new StringEnumConverter(),
-                                            }
-                                        });
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }
@@ -679,7 +625,7 @@ internal class ProjectBrowser
                                         typeName = "Unknown",
                                     };
 
-                                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                     File.WriteAllText($"{node.path}.meta", json);
                                 }

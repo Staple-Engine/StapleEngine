@@ -440,7 +440,7 @@ internal partial class StapleEditor
             {
                 serialized.guid = guid;
 
-                var json = JsonConvert.SerializeObject(serialized, Formatting.Indented);
+                var json = JsonConvert.SerializeObject(serialized, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                 File.WriteAllText(assetPath, json);
 
@@ -450,7 +450,7 @@ internal partial class StapleEditor
                     typeName = assetInstance.GetType().FullName,
                 };
 
-                json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+                json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                 File.WriteAllText($"{assetPath}.meta", json);
             }

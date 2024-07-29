@@ -1,7 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using MessagePack;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Staple.Internal;
 using System;
 using System.IO;
@@ -219,13 +218,7 @@ internal partial class StapleEditor
                     {
                         var serializableScene = Scene.current.Serialize();
 
-                        var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, new JsonSerializerSettings()
-                        {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                        var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                         try
                         {
@@ -776,8 +769,6 @@ internal partial class StapleEditor
             {
                 var editor = cachedEditors.First().Value;
 
-                editor.target = selectedProjectNodeData;
-
                 editor.OnInspectorGUI();
             }
         }
@@ -908,12 +899,13 @@ internal partial class StapleEditor
                     {
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if (editor != null)
+                        if (editor is AssetEditor e)
                         {
-                            editor.original = original;
-                            editor.path = $"{item.path}.meta";
-                            editor.cachePath = cachePath;
-                        };
+                            e.original = original;
+                            e.path = $"{item.path}.meta";
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<TextureMetadata>(File.ReadAllText($"{item.path}.meta"));
+                        }
 
                         cachedEditors.Add("", editor);
                     }
@@ -933,12 +925,13 @@ internal partial class StapleEditor
                     {
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if (editor != null)
+                        if (editor is AssetEditor e)
                         {
-                            editor.original = original;
-                            editor.path = $"{item.path}.meta";
-                            editor.cachePath = cachePath;
-                        };
+                            e.original = original;
+                            e.path = $"{item.path}.meta";
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<MeshAssetMetadata>(File.ReadAllText($"{item.path}.meta"));
+                        }
 
                         cachedEditors.Add("", editor);
                     }
@@ -952,16 +945,32 @@ internal partial class StapleEditor
                         original = JsonConvert.DeserializeObject<MaterialMetadata>(d);
                         selectedProjectNodeData = JsonConvert.DeserializeObject<MaterialMetadata>(d);
 
-                        if (original != null && selectedProjectNodeData != null)
+                        if (original != null && selectedProjectNodeData != null &&
+                            original is MaterialMetadata originalMetadata &&
+                            selectedProjectNodeData is MaterialMetadata targetMetadata)
                         {
+                            var assetHolder = JsonConvert.DeserializeObject<AssetHolder>(File.ReadAllText($"{item.path}.meta"));
+
+                            originalMetadata.guid = targetMetadata.guid = assetHolder.guid;
+
                             var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                            if (editor != null)
+                            if (editor is AssetEditor e)
                             {
-                                editor.original = original;
-                                editor.path = item.path;
-                                editor.cachePath = cachePath;
-                            };
+                                e.original = original;
+                                e.path = item.path;
+                                e.cachePath = cachePath;
+                                e.recreateOriginal = () =>
+                                {
+                                    var assetHolder = JsonConvert.DeserializeObject<AssetHolder>(File.ReadAllText($"{item.path}.meta"));
+
+                                    var o = JsonConvert.DeserializeObject<MaterialMetadata>(File.ReadAllText(item.path));
+
+                                    o.guid = assetHolder.guid;
+
+                                    return o;
+                                };
+                            }
 
                             cachedEditors.Add("", editor);
                         }
@@ -990,14 +999,15 @@ internal partial class StapleEditor
 
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if (editor != null)
+                        if (editor is AssetEditor e)
                         {
-                            editor.original = original;
-                            editor.path = $"{item.path}.meta";
-                            editor.cachePath = cachePath;
-
-                            cachedEditors.Add("", editor);
+                            e.original = original;
+                            e.path = $"{item.path}.meta";
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<AudioClipMetadata>(File.ReadAllText($"{item.path}.meta"));
                         }
+
+                        cachedEditors.Add("", editor);
                     }
                     catch (Exception)
                     {
@@ -1012,14 +1022,15 @@ internal partial class StapleEditor
 
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if(editor != null)
+                        if(editor is AssetEditor e)
                         {
-                            editor.original = original;
-                            editor.path = $"{item.path}.meta";
-                            editor.cachePath = $"{cachePath}.meta";
-
-                            cachedEditors.Add("", editor);
+                            e.original = original;
+                            e.path = $"{item.path}.meta";
+                            e.cachePath = $"{cachePath}.meta";
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<FolderAsset>(File.ReadAllText($"{item.path}.meta"));
                         }
+
+                        cachedEditors.Add("", editor);
                     }
                     catch (Exception)
                     {
@@ -1038,15 +1049,17 @@ internal partial class StapleEditor
 
                     if (original != null && selectedProjectNodeData != null)
                     {
-                        var editor = new FontAssetEditor()
-                        {
-                            original = original as FontMetadata,
-                            path = $"{item.path}.meta",
-                            cachePath = cachePath,
-                            target = selectedProjectNodeData,
-                        };
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        cachedEditors.Add("", editor);
+                        if(editor is AssetEditor e)
+                        {
+                            e.original = original;
+                            e.path = $"{item.path}.meta";
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<FontMetadata>(File.ReadAllText($"{item.path}.meta"));
+
+                            cachedEditors.Add("", editor);
+                        }
                     }
                 }
                 else
@@ -1088,6 +1101,31 @@ internal partial class StapleEditor
                                         editor.original = original;
                                         editor.path = item.path;
                                         editor.cachePath = cachePath;
+
+                                        if(editor is AssetEditor e)
+                                        {
+                                            e.recreateOriginal = () =>
+                                            {
+                                                var byteData = File.ReadAllBytes(cachePath);
+
+                                                using var stream = new MemoryStream(byteData);
+
+                                                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+
+                                                if (header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
+                                                    header.version == SerializableStapleAssetHeader.ValidVersion)
+                                                {
+                                                    var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+
+                                                    if(asset != null)
+                                                    {
+                                                        return AssetSerialization.Deserialize(asset);
+                                                    }
+                                                }
+
+                                                return default;
+                                            };
+                                        }
 
                                         cachedEditors.Add("", editor);
                                     }

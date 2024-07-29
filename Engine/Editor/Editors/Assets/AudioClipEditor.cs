@@ -1,15 +1,11 @@
-﻿using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
-using System.Reflection;
-using System.IO;
 using System.Threading;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(AudioClipMetadata))]
-internal class AudioClipEditor : Editor
+internal class AudioClipEditor : AssetEditor
 {
     private AudioClip clip;
     private bool triedLoad = false;
@@ -165,58 +161,7 @@ internal class AudioClipEditor : Editor
                 }
             }
 
-            var hasChanges = metadata != originalMetadata;
-
-            if (hasChanges)
-            {
-                EditorGUI.Button("Apply", "AudioSourceApply", () =>
-                {
-                    try
-                    {
-                        var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
-                        {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
-
-                        File.WriteAllText(path, text);
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(original, field.GetValue(metadata));
-                    }
-
-                    EditorUtils.RefreshAssets(false, null);
-                });
-
-                EditorGUI.SameLine();
-
-                EditorGUI.Button("Revert", "AudioSourceRevert", () =>
-                {
-                    var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                    foreach (var field in fields)
-                    {
-                        field.SetValue(metadata, field.GetValue(original));
-                    }
-                });
-            }
-            else
-            {
-                EditorGUI.ButtonDisabled("Apply", "AudioSourceApply", null);
-
-                EditorGUI.SameLine();
-
-                EditorGUI.ButtonDisabled("Revert", "AudioSourceRevert", null);
-            }
+            ShowAssetUI(null);
         }
     }
 }

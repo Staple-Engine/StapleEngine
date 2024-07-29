@@ -112,12 +112,7 @@ internal class RenderWindow
         {
             Log.Error($"RenderWindow Init Exception: {e}");
 
-            return;
-        }
-
-        if (shouldStop)
-        {
-            return;
+            shouldStop = true;
         }
 
         var last = DateTime.Now;

@@ -116,13 +116,7 @@ internal partial class StapleEditor
                     {
                         var scene = Scene.current.Serialize();
 
-                        var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, new JsonSerializerSettings()
-                        {
-                            Converters =
-                            {
-                                new StringEnumConverter(),
-                            }
-                        });
+                        var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                         File.WriteAllText(scenePath, json);
                     }

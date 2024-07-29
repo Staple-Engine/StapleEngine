@@ -1,5 +1,8 @@
 {
 	"shader": "5f967016-cde4-45b4-b639-a469f2940aec",
+	"enabledShaderVariants": [
+		"LIT"
+	],
 	"parameters": {
 		"mainColor":  {
 			"type": "Color",

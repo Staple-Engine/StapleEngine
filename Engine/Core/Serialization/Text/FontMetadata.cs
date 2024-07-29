@@ -8,6 +8,7 @@ namespace Staple.Internal;
 [MessagePackObject]
 public class FontMetadata
 {
+    [HideInInspector]
     [Key(0)]
     public string guid = Guid.NewGuid().ToString();
 
@@ -24,6 +25,7 @@ public class FontMetadata
     [Key(4)]
     public bool useAntiAliasing = true;
 
+    [HideInInspector]
     [Key(5)]
     public string typeName = typeof(FontAsset).FullName;
 

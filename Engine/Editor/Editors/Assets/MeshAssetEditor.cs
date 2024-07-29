@@ -1,15 +1,12 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(MeshAssetMetadata))]
-internal class MeshAssetEditor : Editor
+internal class MeshAssetEditor : AssetEditor
 {
     private MeshAsset meshAsset;
     private bool needsLoad = true;
@@ -28,62 +25,11 @@ internal class MeshAssetEditor : Editor
             meshAsset = ResourceManager.instance.LoadMeshAsset(metadata.guid, true);
         }
 
-        var hasChanges = metadata != originalMetadata;
-
-        if (hasChanges)
+        ShowAssetUI(() =>
         {
-            EditorGUI.Button("Apply", "MeshAssetApply", () =>
-            {
-                try
-                {
-                    var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
-                    {
-                        Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
-                    });
-
-                    File.WriteAllText(path, text);
-                }
-                catch (Exception)
-                {
-                }
-
-                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    field.SetValue(original, field.GetValue(metadata));
-                }
-
-                EditorUtils.RefreshAssets(false, () =>
-                {
-                    meshAsset = null;
-                    needsLoad = true;
-                });
-            });
-
-            EditorGUI.SameLine();
-
-            EditorGUI.Button("Revert", "MeshAssetRevert", () =>
-            {
-                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    field.SetValue(metadata, field.GetValue(original));
-                }
-            });
-        }
-        else
-        {
-            EditorGUI.ButtonDisabled("Apply", "MeshAssetApply", null);
-
-            EditorGUI.SameLine();
-
-            EditorGUI.ButtonDisabled("Revert", "MeshAssetRevert", null);
-        }
+            meshAsset = null;
+            needsLoad = true;
+        });
 
         EditorGUI.SameLine();
 

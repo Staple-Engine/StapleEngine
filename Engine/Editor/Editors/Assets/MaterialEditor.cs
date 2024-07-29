@@ -1,15 +1,11 @@
-﻿using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.IO;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(MaterialMetadata))]
-internal class MaterialEditor : Editor
+internal class MaterialEditor : AssetEditor
 {
     private Dictionary<string, Shader> cachedShaders = new();
     private Dictionary<string, Texture> cachedTextures = new();
@@ -21,11 +17,6 @@ internal class MaterialEditor : Editor
 
         switch(name)
         {
-            case nameof(MaterialMetadata.guid):
-            case nameof(MaterialMetadata.typeName):
-
-                return true;
-
             case nameof(MaterialMetadata.parameters):
 
                 foreach (var parameter in material.parameters)
@@ -263,63 +254,6 @@ internal class MaterialEditor : Editor
     {
         base.OnInspectorGUI();
 
-        var metadata = (MaterialMetadata)target;
-        var originalMetadata = (MaterialMetadata)original;
-
-        var hasChanges = metadata != originalMetadata;
-
-        if (hasChanges)
-        {
-            EditorGUI.Button("Apply", "MaterialApply", () =>
-            {
-                try
-                {
-                    var text = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings()
-                    {
-                        Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
-                    });
-
-                    File.WriteAllText(path, text);
-                }
-                catch (Exception)
-                {
-                }
-
-                var fields = metadata.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    field.SetValue(original, field.GetValue(metadata));
-                }
-
-                EditorUtils.RefreshAssets(false, null);
-            });
-
-            EditorGUI.SameLine();
-
-            EditorGUI.Button("Revert", "MaterialRevert", () =>
-            {
-                metadata.shader = originalMetadata.shader;
-                metadata.parameters.Clear();
-
-                foreach (var parameter in originalMetadata.parameters)
-                {
-                    metadata.parameters.Add(parameter.Key, parameter.Value.Clone());
-                }
-
-                EditorGUI.pendingObjectPickers.Clear();
-            });
-        }
-        else
-        {
-            EditorGUI.ButtonDisabled("Apply", "MaterialApply", null);
-
-            EditorGUI.SameLine();
-
-            EditorGUI.ButtonDisabled("Revert", "MaterialRevert", null);
-        }
+        ShowAssetUI(null);
     }
 }

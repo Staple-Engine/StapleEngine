@@ -53,6 +53,35 @@ static partial class Program
         {
         }
 
+        if(from.EndsWith(".stsh"))
+        {
+            try
+            {
+                var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+                while (pieces.Count > 0 && pieces.LastOrDefault() != "StapleEngine")
+                {
+                    pieces.RemoveAt(pieces.Count - 1);
+                }
+
+                var files = Directory.GetFiles(Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Tools", "ShaderIncludes")),
+                    "*.sh", SearchOption.AllDirectories);
+
+                foreach(var file in files)
+                {
+                    var writeTime = File.GetLastWriteTime(file);
+
+                    if(lastFromWrite < writeTime)
+                    {
+                        lastFromWrite = writeTime;
+                    }
+                }
+            }
+            catch(Exception)
+            {
+            }
+        }
+
         try
         {
             lastToWrite = File.GetLastWriteTime(to);
@@ -371,7 +400,7 @@ static partial class Program
                 typeName = typeof(T).FullName,
             };
 
-            var json = JsonConvert.SerializeObject(holder, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
             File.WriteAllText(meta, json);
 

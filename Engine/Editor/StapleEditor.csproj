@@ -39,10 +39,16 @@
 	<Reference Include="StapleCore">
 		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
 	</Reference>
+	<Reference Include="StapleCore">
+		<HintPath>..\Tooling\bin\Debug\net8.0\StapleTooling.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 	<Reference Include="StapleCore">
 		<HintPath>..\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleCore">
+		<HintPath>..\Tooling\bin\Release\net8.0\StapleTooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +65,7 @@
     <Compile Include="Backends\PlayerBackendManager.cs" />
     <Compile Include="Backends\WindowsBuildProcessor.cs" />
     <Compile Include="CSProjManager.cs" />
+    <Compile Include="Editors\AssetEditor.cs" />
     <Compile Include="Editors\Assets\FontAssetEditor.cs" />
     <Compile Include="Editors\Assets\SkinnedAnimationStateMachineEditor.cs" />
     <Compile Include="Editors\Assets\AudioClipEditor.cs" />

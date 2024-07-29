@@ -48,7 +48,7 @@ internal class BuildWindow : EditorWindow
 
         try
         {
-            var json = JsonConvert.SerializeObject(scenes);
+            var json = JsonConvert.SerializeObject(scenes, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
             File.WriteAllText(Path.Combine(basePath, "Settings", "SceneList.json"), json);
         }

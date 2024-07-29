@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 
 namespace Staple.Editor;
 
@@ -246,5 +245,12 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
         }
 
         return false;
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        ShowAssetUI(null);
     }
 }

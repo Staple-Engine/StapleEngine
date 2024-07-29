@@ -110,7 +110,7 @@ public class LightSystem : IRenderSystem
 
             if (targets[i].Item2.type == LightType.Directional)
             {
-                (lightTypePositions[i].Y, lightTypePositions[i].Z, lightTypePositions[i].W) = (forward.X, forward.Y, forward.Z);
+                (lightTypePositions[i].Y, lightTypePositions[i].Z, lightTypePositions[i].W) = (-forward.X, -forward.Y, -forward.Z);
             }
 
             lightDiffuse[i] = targets[i].Item2.color;

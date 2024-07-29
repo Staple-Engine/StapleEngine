@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +10,33 @@ namespace Staple.Tooling;
 
 public class Utilities
 {
+    private static readonly Dictionary<Type, string[]> JsonIgnoredProperties = new()
+    {
+        { typeof(Color), [nameof(Color.HexValue), nameof(Color.UIntValue)] },
+        { typeof(Color32), [nameof(Color32.HexValue), nameof(Color32.UIntValue)] },
+    };
+
+    public static readonly Lazy<IgnorableSerializerContractResolver> JsonIgnorableResolver = new(() =>
+    {
+        var resolver = new IgnorableSerializerContractResolver();
+
+        foreach(var pair in JsonIgnoredProperties)
+        {
+            resolver.Ignore(pair.Key, pair.Value);
+        }
+
+        return resolver;
+    });
+
+    public static readonly JsonSerializerSettings JsonSettings = new()
+    {
+        Converters =
+        {
+            new StringEnumConverter(),
+        },
+        ContractResolver = JsonIgnorableResolver.Value,
+    };
+
     public static List<List<T>> Combinations<T>(List<T> items)
     {
         static List<T> Prepend(List<T> items, T first)

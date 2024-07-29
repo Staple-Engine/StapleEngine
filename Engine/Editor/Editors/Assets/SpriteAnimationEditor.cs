@@ -80,6 +80,8 @@ internal class SpriteAnimationEditor : StapleAssetEditor
     {
         base.OnInspectorGUI();
 
+        ShowAssetUI(null);
+
         var asset = (SpriteAnimation)target;
 
         if(asset.texture != null && asset.frames.Count > 0)

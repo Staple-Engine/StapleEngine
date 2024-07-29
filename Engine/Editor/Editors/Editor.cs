@@ -45,7 +45,7 @@ public class Editor
     /// <summary>
     /// Keeps track of the cached property drawers for this editor
     /// </summary>
-    private Dictionary<string, PropertyDrawer> cachedPropertyDrawers = new();
+    private readonly Dictionary<string, PropertyDrawer> cachedPropertyDrawers = [];
 
     /// <summary>
     /// Attempts to draw a property.

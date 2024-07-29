@@ -262,13 +262,7 @@ internal class AppSettingsWindow : EditorWindow
         {
             try
             {
-                var json = JsonConvert.SerializeObject(projectAppSettings, Formatting.Indented, new JsonSerializerSettings()
-                {
-                    Converters =
-                    {
-                        new StringEnumConverter(),
-                    }
-                });
+                var json = JsonConvert.SerializeObject(projectAppSettings, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                 File.WriteAllText(Path.Combine(basePath, "Settings", "AppSettings.json"), json);
             }

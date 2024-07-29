@@ -463,6 +463,7 @@ internal partial class MaterialParameterSerializationContext : JsonSerializerCon
 [MessagePackObject]
 public class MaterialMetadata
 {
+    [HideInInspector]
     [Key(0)]
     public string guid = Guid.NewGuid().ToString();
 
@@ -478,6 +479,7 @@ public class MaterialMetadata
     [Key(4)]
     public CullingMode cullingMode = CullingMode.Back;
 
+    [HideInInspector]
     [Key(5)]
     public string typeName = typeof(Material).FullName;
 
@@ -501,6 +503,9 @@ public class MaterialMetadata
             lhs.shader == rhs.shader &&
             lhs.parameters.Count == rhs.parameters.Count &&
             lhs.parameters.Keys.All(x => rhs.parameters.ContainsKey(x) && lhs.parameters[x] == rhs.parameters[x]) &&
+            lhs.enabledShaderVariants.Count == rhs.enabledShaderVariants.Count &&
+            lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) &&
+            lhs.cullingMode == rhs.cullingMode &&
             lhs.typeName == rhs.typeName;
     }
 
@@ -520,6 +525,9 @@ public class MaterialMetadata
             lhs.shader != rhs.shader ||
             lhs.parameters.Count != rhs.parameters.Count ||
             lhs.parameters.Keys.Any(x => rhs.parameters.ContainsKey(x) == false || lhs.parameters[x] != rhs.parameters[x]) ||
+            lhs.enabledShaderVariants.Count != rhs.enabledShaderVariants.Count ||
+            lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) == false ||
+            lhs.cullingMode != rhs.cullingMode ||
             lhs.typeName != rhs.typeName;
     }
 

@@ -497,13 +497,7 @@ static partial class Program
 
                         try
                         {
-                            var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, new JsonSerializerSettings()
-                            {
-                                Converters =
-                                {
-                                    new StringEnumConverter(),
-                                }
-                            });
+                            var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                             File.WriteAllText(target, json);
                         }
@@ -519,7 +513,7 @@ static partial class Program
                                 typeName = typeof(Material).FullName,
                             };
 
-                            var json = JsonConvert.SerializeObject(assetHolder, Formatting.Indented);
+                            var json = JsonConvert.SerializeObject(assetHolder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                             File.WriteAllText($"{target}.meta", json);
                         }

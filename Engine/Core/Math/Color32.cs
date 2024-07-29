@@ -79,8 +79,6 @@ public struct Color32
         a = (byte)(value & 0x000000FF);
     }
 
-    public bool ShouldSerializeUIntValue() => false;
-
     public static implicit operator Color(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
     public static implicit operator Vector4(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);

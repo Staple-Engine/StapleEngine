@@ -22,13 +22,7 @@ partial class StapleEditor
             {
                 try
                 {
-                    var json = JsonConvert.SerializeObject(prefab, Formatting.Indented, new JsonSerializerSettings()
-                    {
-                        Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
-                    });
+                    var json = JsonConvert.SerializeObject(prefab, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                     var currentPath = projectBrowser.currentContentNode?.path ??
                         Path.Combine(projectBrowser.basePath, "Assets");
@@ -42,13 +36,7 @@ partial class StapleEditor
                         guid = prefab.guid,
                         typeName = typeof(Prefab).FullName,
                     },
-                    Formatting.Indented, new JsonSerializerSettings()
-                    {
-                        Converters =
-                        {
-                            new StringEnumConverter(),
-                        }
-                    });
+                    Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                     File.WriteAllText($"{fileName}.meta", json);
                 }

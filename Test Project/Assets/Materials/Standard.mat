@@ -14,5 +14,10 @@
       "type": "Texture",
       "textureValue": "fe19196d-0c54-413a-a0fd-6ef91124007a"
     }
-  }
+  },
+  "enabledShaderVariants": [
+    "LIT",
+    "HALF_LAMBERT"
+  ],
+  "cullingMode": "Back"
 }

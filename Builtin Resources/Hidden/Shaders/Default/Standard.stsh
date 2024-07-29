@@ -1,6 +1,6 @@
 Type VertexFragment
 
-Variants VERTEX_COLORS
+Variants VERTEX_COLORS, LIT, HALF_LAMBERT
 
 Begin Parameters
 
@@ -67,7 +67,7 @@ void main()
 
 	v_texcoord0 = a_texcoord0;
 	v_fragPos = mul(model, vec4(a_position, 1.0)).xyz;
-	v_normal = StapleLightNormal(a_normal);
+	v_normal = a_normal;
 	v_color = a_color0;
 }
 End Vertex
@@ -91,7 +91,11 @@ void main()
 		diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuse;
 	}
 	
+#if LIT
 	vec3 light = StapleProcessLights(u_viewPos, v_fragPos, v_normal);
+#else
+	vec3 light = vec3(1, 1, 1);
+#endif
 	
 	gl_FragColor = vec4(light, 1) * diffuse;
 }
