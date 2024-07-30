@@ -165,7 +165,14 @@ internal class AppSettingsWindow : EditorWindow
 
         EditorGUI.TreeNode("Lighting", $"APPSETTINGSLIGHTING", false, true, () =>
         {
+            var current = projectAppSettings.ambientLight;
+
             projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient Color", "APPSETTINGSLIGHTINGAMBIENTCOLOR", projectAppSettings.ambientLight);
+
+            if (projectAppSettings.ambientLight != current)
+            {
+                AppSettings.Current.ambientLight = current;
+            }
         });
 
         EditorGUI.TreeNode("Rendering and Presentation", $"APPSETTINGSRENDERING", false, true, () =>

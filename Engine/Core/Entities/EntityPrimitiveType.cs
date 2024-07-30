@@ -4,4 +4,5 @@ public enum EntityPrimitiveType
 {
     Quad,
     Cube,
+    Sphere,
 }

@@ -74,6 +74,7 @@ public partial class Mesh
     {
         { "Internal/Quad", Quad },
         { "Internal/Cube", Cube },
+        { "Internal/Sphere", Sphere },
     };
 
     private static Mesh _quad;
@@ -125,6 +126,98 @@ public partial class Mesh
 
             return _cube;
         }
+    }
+
+    private static Mesh _sphere;
+    internal static Mesh Sphere
+    {
+        get
+        {
+            if (_sphere == null)
+            {
+                _sphere = GenerateSphere(36, 18, 0.5f);
+
+                _sphere.guid = "Internal/Sphere";
+
+                _sphere.UpdateBounds();
+            }
+
+            return _sphere;
+        }
+    }
+
+    internal static Mesh GenerateSphere(int sectorCount, int stackCount, float radius)
+    {
+        //Based on https://www.songho.ca/opengl/gl_sphere.html
+        var outValue = new Mesh(false, false)
+        {
+            meshTopology = MeshTopology.Triangles,
+            indexFormat = MeshIndexFormat.UInt32,
+            changed = true,
+        };
+
+        var vertices = new List<Vector3>();
+        var normals = new List<Vector3>();
+        var texCoords = new List<Vector2>();
+        var indices = new List<int>();
+
+        var sectorStep = 2 * Math.PI / sectorCount;
+        var stackStep = Math.PI / stackCount;
+        var lengthInv = 1.0f / radius;
+
+        for(var i = 0; i <= stackCount; i++)
+        {
+            var stackAngle = Math.PI / 2 - i * stackStep;
+            var xy = radius * Math.Cos(stackAngle);
+            var z = radius * Math.Sin(stackAngle);
+
+            for(var j = 0; j <= sectorCount; j++)
+            {
+                var sectorAngle = j * sectorStep;
+
+                var x = xy * Math.Cos(sectorAngle);
+                var y = xy * Math.Sin(sectorAngle);
+
+                vertices.Add(new(x, y, z));
+
+                normals.Add(new(x * lengthInv, y * lengthInv, z * lengthInv));
+
+                var s = (float)j / sectorCount;
+                var t = (float)i / stackCount;
+
+                texCoords.Add(new(s, t));
+            }
+        }
+
+        for(var i = 0; i < stackCount; i++)
+        {
+            var k1 = i * (sectorCount + 1);
+            var k2 = k1 + sectorCount + 1;
+
+            for(var j = 0; j < sectorCount; j++, k1++, k2++)
+            {
+                if(i != 0)
+                {
+                    indices.Add(k1 + 1);
+                    indices.Add(k2);
+                    indices.Add(k1);
+                }
+
+                if (i != (stackCount - 1))
+                {
+                    indices.Add(k2 + 1);
+                    indices.Add(k2);
+                    indices.Add(k1 + 1);
+                }
+            }
+        }
+
+        outValue.vertices = vertices.ToArray();
+        outValue.normals = normals.ToArray();
+        outValue.uv = texCoords.ToArray();
+        outValue.indices = indices.ToArray();
+
+        return outValue;
     }
 
     internal bool isDynamic = false;

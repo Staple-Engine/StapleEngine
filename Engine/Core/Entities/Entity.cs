@@ -200,6 +200,14 @@ public partial struct Entity
                 e.AddComponent<MeshCollider3D>().mesh = r.mesh;
 
                 break;
+
+            case EntityPrimitiveType.Sphere:
+
+                r.mesh = Mesh.Sphere;
+
+                e.AddComponent<SphereCollider3D>();
+
+                break;
         }
 
         r.materials = [ResourceManager.instance.LoadMaterial("Hidden/Materials/Checkerboard.mat")];

@@ -8,5 +8,5 @@ public sealed class SphereCollider3D : Collider3D
     /// <summary>
     /// The radius of the sphere
     /// </summary>
-    public float radius = 1;
+    public float radius = 0.5f;
 }
