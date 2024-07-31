@@ -109,7 +109,8 @@
     <Compile Include="Templates\CubeTemplate.cs" />
     <Compile Include="Templates\EntityTemplate.cs" />
     <Compile Include="Templates\IEntityTemplate.cs" />
-    <Compile Include="Templates\LightTemplate.cs" />
+    <Compile Include="Templates\DirectionalLightTemplate.cs" />
+    <Compile Include="Templates\PointLightTemplate.cs" />
     <Compile Include="Templates\QuadTemplate.cs" />
     <Compile Include="Templates\SphereTemplate.cs" />
     <Compile Include="Templates\SpriteTemplate.cs" />

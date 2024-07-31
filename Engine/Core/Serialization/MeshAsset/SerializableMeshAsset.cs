@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -63,32 +64,32 @@ public class MeshAssetMetadata
     public bool preTransformVertices;
 
     [Key(4)]
-    public bool limitBoneWeights;
-
-    [Key(5)]
     public bool flipUVs = true;
 
-    [Key(6)]
+    [Key(5)]
     public bool flipWindingOrder = true;
 
-    [Key(7)]
+    [Key(6)]
     public bool splitByBoneCount;
 
-    [Key(8)]
+    [Key(7)]
     public bool debone;
 
-    [HideInInspector]
-    [Key(9)]
-    public string typeName = typeof(Mesh).FullName;
-
-    [Key(10)]
+    [Key(8)]
     public bool convertUnits = true;
 
-    [Key(11)]
+    [Key(9)]
     public MeshAssetRotation rotation = MeshAssetRotation.None;
 
-    [Key(12)]
+    [Key(10)]
     public float scale = 1.0f;
+
+    [Key(11)]
+    public List<string> defaultShaderVariants = [];
+
+    [HideInInspector]
+    [Key(12)]
+    public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
@@ -96,7 +97,6 @@ public class MeshAssetMetadata
             lhs.makeLeftHanded == rhs.makeLeftHanded &&
             lhs.splitLargeMeshes == rhs.splitLargeMeshes &&
             lhs.preTransformVertices == rhs.preTransformVertices &&
-            lhs.limitBoneWeights == rhs.limitBoneWeights &&
             lhs.flipUVs == rhs.flipUVs &&
             lhs.flipWindingOrder == rhs.flipWindingOrder &&
             lhs.splitByBoneCount == rhs.splitByBoneCount &&
@@ -104,7 +104,8 @@ public class MeshAssetMetadata
             lhs.typeName == rhs.typeName &&
             lhs.convertUnits == rhs.convertUnits &&
             lhs.rotation == rhs.rotation &&
-            lhs.scale == rhs.scale;
+            lhs.scale == rhs.scale &&
+            lhs.defaultShaderVariants.SequenceEqual(rhs.defaultShaderVariants);
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -113,7 +114,6 @@ public class MeshAssetMetadata
             lhs.makeLeftHanded != rhs.makeLeftHanded ||
             lhs.splitLargeMeshes != rhs.splitLargeMeshes ||
             lhs.preTransformVertices != rhs.preTransformVertices ||
-            lhs.limitBoneWeights != rhs.limitBoneWeights ||
             lhs.flipUVs != rhs.flipUVs ||
             lhs.flipWindingOrder != rhs.flipWindingOrder ||
             lhs.splitByBoneCount != rhs.splitByBoneCount ||
@@ -121,7 +121,8 @@ public class MeshAssetMetadata
             lhs.typeName != rhs.typeName ||
             lhs.convertUnits != rhs.convertUnits ||
             lhs.rotation != rhs.rotation ||
-            lhs.scale != rhs.scale;
+            lhs.scale != rhs.scale ||
+            lhs.defaultShaderVariants.SequenceEqual(rhs.defaultShaderVariants) == false;
     }
 
     public override bool Equals(object obj)

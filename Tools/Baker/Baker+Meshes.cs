@@ -309,7 +309,13 @@ static partial class Program
                         var materialMetadata = new MaterialMetadata()
                         {
                             shader = "Hidden/Shaders/Default/Standard.stsh",
+                            enabledShaderVariants = metadata.defaultShaderVariants ?? [],
                         };
+
+                        if(material.IsTwoSided)
+                        {
+                            materialMetadata.cullingMode = CullingMode.None;
+                        }
 
                         var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "").Substring(1);
 
@@ -348,9 +354,115 @@ static partial class Program
 
                             if (has)
                             {
-                                var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
-                                texturePath = slot.FilePath;
+                                if (slot.FilePath.StartsWith('*'))
+                                {
+                                    var texture = scene.GetEmbeddedTexture(slot.FilePath);
 
+                                    if (texture != null)
+                                    {
+                                        if (texture.IsCompressed)
+                                        {
+                                            texturePath = $"{texture.Filename}.{texture.CompressedFormatHint}";
+
+                                            try
+                                            {
+                                                var t = Path.Combine(Path.GetDirectoryName(meshFileName), texturePath);
+
+                                                if (File.Exists(t) == false)
+                                                {
+                                                    File.WriteAllBytes(t, texture.CompressedData);
+                                                }
+                                            }
+                                            catch (Exception)
+                                            {
+                                            }
+
+                                            texturePath = Path.Combine(basePath, texturePath).Replace("\\", "/");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
+                                    texturePath = slot.FilePath;
+
+                                    while (pieces.Count > 0)
+                                    {
+                                        try
+                                        {
+                                            var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
+
+                                            var directories = Directory.GetDirectories(baseP);
+
+                                            bool Find(string path)
+                                            {
+                                                var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
+
+                                                if (File.Exists(p))
+                                                {
+                                                    texturePath = string.Join("/", pieces);
+
+                                                    if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                                    {
+                                                        texturePath = guid;
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+
+                                                        texturePath = "";
+                                                    }
+
+                                                    return true;
+                                                }
+
+                                                return false;
+                                            }
+
+                                            var found = false;
+
+                                            foreach (var directory in directories)
+                                            {
+                                                found = Find(Path.Combine(baseP, directory));
+
+                                                if (found)
+                                                {
+                                                    break;
+                                                }
+                                            }
+
+                                            if (found)
+                                            {
+                                                break;
+                                            }
+
+                                            found = Find(baseP);
+
+                                            if (found)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+
+                                        pieces.RemoveAt(0);
+                                    }
+
+                                    if (pieces.Count == 0)
+                                    {
+                                        Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
+
+                                        texturePath = "";
+                                    }
+
+                                    //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
+                                }
+                            }
+
+                            if (texturePath.Length > 0)
+                            {
                                 mappingU = slot.WrapModeU switch
                                 {
                                     Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
@@ -378,79 +490,6 @@ static partial class Program
                                     type = MaterialParameterType.TextureWrap,
                                     textureWrapValue = mappingV,
                                 });
-
-                                while (pieces.Count > 0)
-                                {
-                                    try
-                                    {
-                                        var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
-
-                                        var directories = Directory.GetDirectories(baseP);
-
-                                        bool Find(string path)
-                                        {
-                                            var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
-
-                                            if (File.Exists(p))
-                                            {
-                                                texturePath = string.Join("/", pieces);
-
-                                                if (processedTextures.TryGetValue($"{p}.meta", out var guid))
-                                                {
-                                                    texturePath = guid;
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
-
-                                                    texturePath = "";
-                                                }
-
-                                                return true;
-                                            }
-
-                                            return false;
-                                        }
-
-                                        var found = false;
-
-                                        foreach (var directory in directories)
-                                        {
-                                            found = Find(Path.Combine(baseP, directory));
-
-                                            if (found)
-                                            {
-                                                break;
-                                            }
-                                        }
-
-                                        if (found)
-                                        {
-                                            break;
-                                        }
-
-                                        found = Find(baseP);
-
-                                        if (found)
-                                        {
-                                            break;
-                                        }
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-
-                                    pieces.RemoveAt(0);
-                                }
-
-                                if (pieces.Count == 0)
-                                {
-                                    Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
-
-                                    texturePath = "";
-                                }
-
-                                //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
                             }
                             else
                             {

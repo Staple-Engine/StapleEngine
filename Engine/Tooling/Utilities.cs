@@ -4,7 +4,9 @@ using Newtonsoft.Json.Linq;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace Staple.Tooling;
 
@@ -139,5 +141,34 @@ public class Utilities
         {
             HandleParameter(pair.Value);
         }
+    }
+
+    public static void ExecuteAndCollectProcess(Process process)
+    {
+        process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
+
+        var result = "";
+
+        using var waitHandle = new AutoResetEvent(false);
+
+        process.OutputDataReceived += (sender, args) =>
+        {
+            if (args.Data == null)
+            {
+                waitHandle.Set();
+
+                return;
+            }
+
+            Log.Info(args.Data);
+        };
+
+        process.Start();
+
+        process.BeginOutputReadLine();
+
+        process.WaitForExit(300000);
+
+        waitHandle.WaitOne();
     }
 }

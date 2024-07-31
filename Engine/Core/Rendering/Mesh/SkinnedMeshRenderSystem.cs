@@ -8,6 +8,8 @@ namespace Staple.Internal;
 
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
+    internal const int MaxBones = 255;
+
     private struct RenderInfo
     {
         public SkinnedMeshRenderer renderer;
@@ -95,10 +97,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
-                if (meshAssetMesh.bones[i].Count > 128)
+                if (meshAssetMesh.bones[i].Count > MaxBones)
                 {
                     Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {meshAssetMesh.bones[i].Count} exceeds limit of 128, try setting split large meshes in the import settings!");
+                        $"Bone count of {meshAssetMesh.bones[i].Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
 
                     continue;
                 }

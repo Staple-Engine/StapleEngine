@@ -248,7 +248,9 @@ internal partial class StapleEditor
 
     private Action messageBoxNoAction;
 
-    public Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = new();
+    private bool refreshingAssets = false;
+
+    internal Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = new();
 
     private static WeakReference<StapleEditor> privInstance;
 
@@ -779,23 +781,26 @@ internal partial class StapleEditor
                 }
             }
 
-            if(needsGameRecompile && window.HasFocus)
+            lock(backgroundLock)
             {
-                needsGameRecompile = false;
-
-                UnloadGame();
-
-                ImGui.OpenPopup("ShowingProgress");
-
-                showingProgress = true;
-                progressFraction = 0;
-
-                StartBackgroundTask((ref float progress) =>
+                if (needsGameRecompile && window.HasFocus)
                 {
-                    RefreshStaging(currentPlatform);
+                    needsGameRecompile = false;
 
-                    return true;
-                });
+                    UnloadGame();
+
+                    ImGui.OpenPopup("ShowingProgress");
+
+                    showingProgress = true;
+                    progressFraction = 0;
+
+                    StartBackgroundTask((ref float progress) =>
+                    {
+                        RefreshStaging(currentPlatform);
+
+                        return true;
+                    });
+                }
             }
 
             /*
@@ -866,7 +871,7 @@ internal partial class StapleEditor
 
             if(hadFocus != hasFocus && hasFocus)
             {
-                if (csProjManager.NeedsGameRecompile())
+                if (csProjManager.NeedsGameRecompile() && refreshingAssets == false)
                 {
                     needsGameRecompile = true;
                 }

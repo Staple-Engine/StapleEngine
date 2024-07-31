@@ -23,15 +23,15 @@ public class LightSystem : IRenderSystem
 
     public LightSystem()
     {
-        Shader.defaultUniforms.Add((LightAmbientKey, ShaderUniformType.Color));
-        Shader.defaultUniforms.Add((LightCountKey, ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add(($"{LightDiffuseKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add(($"{LightSpecularKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add(($"{LightTypePositionKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add(($"{LightSpotDirectionKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add(($"{LightSpotValuesKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.defaultUniforms.Add((NormalMatrixKey, ShaderUniformType.Matrix3x3));
-        Shader.defaultUniforms.Add((ViewPosKey, ShaderUniformType.Vector3));
+        Shader.DefaultUniforms.Add((LightAmbientKey, ShaderUniformType.Color));
+        Shader.DefaultUniforms.Add((LightCountKey, ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add(($"{LightDiffuseKey}[{MaxLights}]", ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add(($"{LightSpecularKey}[{MaxLights}]", ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add(($"{LightTypePositionKey}[{MaxLights}]", ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add(($"{LightSpotDirectionKey}[{MaxLights}]", ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add(($"{LightSpotValuesKey}[{MaxLights}]", ShaderUniformType.Vector4));
+        Shader.DefaultUniforms.Add((NormalMatrixKey, ShaderUniformType.Matrix3x3));
+        Shader.DefaultUniforms.Add((ViewPosKey, ShaderUniformType.Vector3));
     }
 
     public void Destroy()

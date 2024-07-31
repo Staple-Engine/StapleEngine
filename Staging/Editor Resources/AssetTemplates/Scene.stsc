@@ -3,7 +3,7 @@
     "kind": "Entity",
     "name": "Camera",
     "ID": 1,
-    "parent": -1,
+    "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
@@ -25,6 +25,7 @@
       {
         "type": "Staple.Camera",
         "data": {
+          "viewMode": "Default",
           "clearMode": "SolidColor",
           "cameraType": "Perspective",
           "orthographicSize": 5.0,
@@ -43,6 +44,44 @@
       }
     ],
     "layer": "Default",
-    "enabled": true
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "Directional Light",
+    "ID": 2,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Light",
+        "data": {
+          "type": "Directional",
+          "color": "#FFFFFFFF"
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
   }
 ]

@@ -97,6 +97,8 @@ static partial class Program
 
     public static void Main(string[] args)
     {
+        Log.SetLog(new ConsoleLog());
+
         if (args.Length == 0)
         {
             Console.WriteLine("Usage:\n" +

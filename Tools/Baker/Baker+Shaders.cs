@@ -389,14 +389,7 @@ static partial class Program
                             }
                         };
 
-                        process.Start();
-
-                        process.WaitForExit(300000);
-
-                        while (!process.StandardOutput.EndOfStream)
-                        {
-                            Console.WriteLine(process.StandardOutput.ReadLine());
-                        }
+                        Utilities.ExecuteAndCollectProcess(process);
 
                         if (process.ExitCode != 0)
                         {

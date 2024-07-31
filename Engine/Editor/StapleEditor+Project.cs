@@ -162,12 +162,24 @@ internal partial class StapleEditor
 
         FileSystemEventHandler fileSystemHandler = (object sender, FileSystemEventArgs e) =>
         {
-            needsGameRecompile = true;
+            lock(backgroundLock)
+            {
+                if (refreshingAssets == false)
+                {
+                    needsGameRecompile = true;
+                }
+            }
         };
 
         RenamedEventHandler renamedFileSystemHandler = (object sender, RenamedEventArgs e) =>
         {
-            needsGameRecompile = true;
+            lock (backgroundLock)
+            {
+                if (refreshingAssets == false)
+                {
+                    needsGameRecompile = true;
+                }
+            }
         };
 
         fileSystemWatcher.Changed += fileSystemHandler;
@@ -242,6 +254,11 @@ internal partial class StapleEditor
             return;
         }
 
+        lock(backgroundLock)
+        {
+            refreshingAssets = true;
+        }
+
         var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
 
         if(updateProject)
@@ -251,6 +268,11 @@ internal partial class StapleEditor
 
         if (projectAppSettings == null)
         {
+            lock (backgroundLock)
+            {
+                refreshingAssets = false;
+            }
+
             return;
         }
 
@@ -316,45 +338,7 @@ internal partial class StapleEditor
                 StartInfo = processInfo
             };
 
-            if (process.Start())
-            {
-                while (process.HasExited == false)
-                {
-                    var line = process.StandardOutput.ReadLine();
-
-                    if (line != null)
-                    {
-                        Log.Info(line);
-                    }
-                }
-
-                for(; ; )
-                {
-                    var finalLine = process.StandardOutput.ReadLine();
-
-                    if (finalLine != null)
-                    {
-                        Log.Info(finalLine);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                var all = process.StandardOutput.ReadToEnd();
-                var error = process.StandardError.ReadToEnd();
-
-                if(all != null && all.Length > 0)
-                {
-                    Log.Info(all);
-                }
-
-                if(error != null && error.Length > 0)
-                {
-                    Log.Error(error);
-                }
-            }
+            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
 
             foreach(var pair in ResourceManager.instance.cachedMeshes)
             {
@@ -399,6 +383,11 @@ internal partial class StapleEditor
 
             AssetDatabase.Reload();
             projectBrowser.UpdateProjectBrowserNodes();
+
+            lock (backgroundLock)
+            {
+                refreshingAssets = false;
+            }
         }
     }
 

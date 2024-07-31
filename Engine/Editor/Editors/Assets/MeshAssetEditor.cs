@@ -59,7 +59,7 @@ internal class MeshAssetEditor : AssetEditor
 
         if (meshAsset != null)
         {
-            var hasExcessiveBones = meshAsset.meshes.Any(x => x.bones.Any(x => x.Count > 128));
+            var hasExcessiveBones = meshAsset.meshes.Any(x => x.bones.Any(x => x.Count > SkinnedMeshRenderSystem.MaxBones));
 
             EditorGUI.Label($"{meshAsset.meshes.Count} meshes.");
 

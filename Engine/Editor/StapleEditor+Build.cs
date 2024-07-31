@@ -179,18 +179,7 @@ internal partial class StapleEditor
             StartInfo = processInfo
         };
 
-        if (process.Start())
-        {
-            while (process.HasExited == false)
-            {
-                var line = process.StandardOutput.ReadLine();
-
-                if (line != null)
-                {
-                    Log.Info(line);
-                }
-            }
-        }
+        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
 
         if ((process.HasExited && process.ExitCode == 0) == false)
         {
@@ -230,18 +219,7 @@ internal partial class StapleEditor
 
         Log.Debug($"[Build] dotnet {args}");
 
-        if (process.Start())
-        {
-            while (process.HasExited == false)
-            {
-                var line = process.StandardOutput.ReadLine();
-
-                if (line != null)
-                {
-                    Log.Info(line);
-                }
-            }
-        }
+        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
 
         if ((process.HasExited && process.ExitCode == 0) == false)
         {
@@ -338,17 +316,6 @@ internal partial class StapleEditor
             StartInfo = processInfo
         };
 
-        if (process.Start())
-        {
-            while (process.HasExited == false)
-            {
-                var line = process.StandardOutput.ReadLine();
-
-                if (line != null)
-                {
-                    Log.Info(line);
-                }
-            }
-        }
+        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
     }
 }

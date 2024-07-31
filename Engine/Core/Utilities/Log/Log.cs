@@ -58,6 +58,11 @@ public class Log
     private readonly ILog impl;
 
     /// <summary>
+    /// Thread lock
+    /// </summary>
+    private static object lockObject = new();
+
+    /// <summary>
     /// Event for when a message is logged
     /// </summary>
     internal Action<LogType, string> onLog;
@@ -78,16 +83,19 @@ public class Log
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Info(string message)
     {
-        if(AllowedLogTypes.HasFlag(LogType.Info) == false)
+        lock (lockObject)
         {
-            return;
+            if (AllowedLogTypes.HasFlag(LogType.Info) == false)
+            {
+                return;
+            }
+
+            FormatMessage(ref message);
+
+            Instance?.impl?.Info(message);
+
+            Instance?.onLog?.Invoke(LogType.Info, message);
         }
-
-        FormatMessage(ref message);
-
-        Instance?.impl?.Info(message);
-
-        Instance?.onLog?.Invoke(LogType.Info, message);
     }
 
     /// <summary>
@@ -97,16 +105,19 @@ public class Log
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Warning(string message)
     {
-        if (AllowedLogTypes.HasFlag(LogType.Warning) == false)
+        lock (lockObject)
         {
-            return;
+            if (AllowedLogTypes.HasFlag(LogType.Warning) == false)
+            {
+                return;
+            }
+
+            FormatMessage(ref message);
+
+            Instance?.impl?.Warning(message);
+
+            Instance?.onLog?.Invoke(LogType.Warning, message);
         }
-
-        FormatMessage(ref message);
-
-        Instance?.impl?.Warning(message);
-
-        Instance?.onLog?.Invoke(LogType.Warning, message);
     }
 
     /// <summary>
@@ -116,16 +127,19 @@ public class Log
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Error(string message)
     {
-        if (AllowedLogTypes.HasFlag(LogType.Error) == false)
+        lock (lockObject)
         {
-            return;
+            if (AllowedLogTypes.HasFlag(LogType.Error) == false)
+            {
+                return;
+            }
+
+            FormatMessage(ref message);
+
+            Instance?.impl?.Error(message);
+
+            Instance?.onLog?.Invoke(LogType.Error, message);
         }
-
-        FormatMessage(ref message);
-
-        Instance?.impl?.Error(message);
-
-        Instance?.onLog?.Invoke(LogType.Error, message);
     }
 
     /// <summary>
@@ -135,16 +149,19 @@ public class Log
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Debug(string message)
     {
-        if (AllowedLogTypes.HasFlag(LogType.Debug) == false)
+        lock (lockObject)
         {
-            return;
+            if (AllowedLogTypes.HasFlag(LogType.Debug) == false)
+            {
+                return;
+            }
+
+            FormatMessage(ref message);
+
+            Instance?.impl.Debug(message);
+
+            Instance?.onLog?.Invoke(LogType.Debug, message);
         }
-
-        FormatMessage(ref message);
-
-        Instance?.impl.Debug(message);
-
-        Instance?.onLog?.Invoke(LogType.Debug, message);
     }
 
     public static void Cleanup()

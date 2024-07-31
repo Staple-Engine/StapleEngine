@@ -1,8 +1,8 @@
 ﻿namespace Staple.Editor;
 
-internal class LightTemplate : IEntityTemplate
+internal class DirectionalLightTemplate : IEntityTemplate
 {
-    public string Name { get; set; } = "Light";
+    public string Name { get; set; } = "Directional Light";
 
     public Entity Create()
     {

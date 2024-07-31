@@ -4,7 +4,7 @@
 #include <bgfx_shader.sh>
 
 #ifdef SKINNING
-uniform mat4 u_boneMatrices[128];
+uniform mat4 u_boneMatrices[255];
 
 mat4 StapleGetSkinningMatrix(vec4 indices, vec4 weights)
 {

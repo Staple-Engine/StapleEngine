@@ -31,7 +31,17 @@ internal class MaterialEditor : AssetEditor
                             {
                                 var key = parameter.Value.textureValue ?? "";
 
-                                if(cachedTextures.ContainsKey(key) == false)
+                                if(key.Length > 0)
+                                {
+                                    var guid = AssetDatabase.GetAssetGuid(key);
+
+                                    if(guid != null)
+                                    {
+                                        key = parameter.Value.textureValue = guid;
+                                    }
+                                }
+
+                                if(cachedTextures.ContainsKey(key) == false && key.Length > 0)
                                 {
                                     var t = ResourceManager.instance.LoadTexture(key);
 
@@ -167,7 +177,14 @@ internal class MaterialEditor : AssetEditor
                         {
                             if(key.Length > 0)
                             {
-                                shader = ResourceManager.instance.LoadShader(material.shader);
+                                var guid = AssetDatabase.GetAssetGuid(key, ResourceManager.ShaderPrefix);
+
+                                if(guid != null)
+                                {
+                                    key = guid;
+                                }
+
+                                shader = ResourceManager.instance.LoadShader(key);
 
                                 cachedShaders.AddOrSetKey(key, shader);
 

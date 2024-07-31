@@ -172,105 +172,108 @@ internal partial class StapleEditor
     /// </summary>
     public void ReloadTypeCache()
     {
-        foreach (var editor in cachedEditors)
+        lock(backgroundLock)
         {
-            editor.Value?.Destroy();
-        }
+            foreach (var editor in cachedEditors)
+            {
+                editor.Value?.Destroy();
+            }
 
-        TypeCache.Clear();
-        registeredAssetTypes.Clear();
-        registeredComponents.Clear();
-        registeredEntityTemplates.Clear();
-        menuItems.Clear();
-        cachedEditors.Clear();
-        cachedGizmoEditors.Clear();
-        ResourceManager.instance.cachedAssets.Clear();
+            TypeCache.Clear();
+            registeredAssetTypes.Clear();
+            registeredComponents.Clear();
+            registeredEntityTemplates.Clear();
+            menuItems.Clear();
+            cachedEditors.Clear();
+            cachedGizmoEditors.Clear();
+            ResourceManager.instance.cachedAssets.Clear();
 
-        var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
+            var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
 
-        var t = Assembly.GetExecutingAssembly().GetTypes()
-            .Concat(Assembly.GetCallingAssembly().GetTypes())
-            .Concat(core.GetTypes())
-            .Distinct()
-            .ToList();
-
-        if(gameAssembly?.TryGetTarget(out var assembly) ?? false)
-        {
-            t = t.Concat(assembly.GetTypes())
+            var t = Assembly.GetExecutingAssembly().GetTypes()
+                .Concat(Assembly.GetCallingAssembly().GetTypes())
+                .Concat(core.GetTypes())
+                .Distinct()
                 .ToList();
-        }
 
-        foreach (var v in t)
-        {
-            TypeCache.RegisterType(v);
-
-            if(v.IsInterface)
+            if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                continue;
+                t = t.Concat(assembly.GetTypes())
+                    .ToList();
             }
 
-            if(typeof(IStapleAsset).IsAssignableFrom(v))
+            foreach (var v in t)
             {
-                registeredAssetTypes.AddOrSetKey(v.FullName, v);
-            }
-            else if(typeof(IComponent).IsAssignableFrom(v) &&
-                v.GetCustomAttribute<AbstractComponentAttribute>() == null)
-            {
-                registeredComponents.Add(v);
-            }
-            else if(typeof(IEntityTemplate).IsAssignableFrom(v))
-            {
-                try
+                TypeCache.RegisterType(v);
+
+                if (v.IsInterface)
                 {
-                    var instance = (IEntityTemplate)Activator.CreateInstance(v);
-
-                    registeredEntityTemplates.Add(instance);
+                    continue;
                 }
-                catch(Exception)
-                {
-                }
-            }
-            else if(typeof(IRenderSystem).IsAssignableFrom(v) &&
-                v != typeof(IRenderSystem))
-            {
-                try
-                {
-                    var instance = (IRenderSystem)Activator.CreateInstance(v);
 
-                    RenderSystem.Instance.RegisterSystem(instance);
-                }
-                catch (Exception)
+                if (typeof(IStapleAsset).IsAssignableFrom(v))
                 {
+                    registeredAssetTypes.AddOrSetKey(v.FullName, v);
                 }
-            }
-            else if(v.IsSubclassOf(typeof(EditorWindow)))
-            {
-                foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                else if (typeof(IComponent).IsAssignableFrom(v) &&
+                    v.GetCustomAttribute<AbstractComponentAttribute>() == null)
                 {
-                    var menu = method.GetCustomAttribute<MenuItemAttribute>();
-
-                    if(menu == null)
+                    registeredComponents.Add(v);
+                }
+                else if (typeof(IEntityTemplate).IsAssignableFrom(v))
+                {
+                    try
                     {
-                        continue;
+                        var instance = (IEntityTemplate)Activator.CreateInstance(v);
+
+                        registeredEntityTemplates.Add(instance);
                     }
-
-                    var m = method;
-
-                    AddMenuItem(menu.path, () =>
+                    catch (Exception)
                     {
-                        try
+                    }
+                }
+                else if (typeof(IRenderSystem).IsAssignableFrom(v) &&
+                    v != typeof(IRenderSystem))
+                {
+                    try
+                    {
+                        var instance = (IRenderSystem)Activator.CreateInstance(v);
+
+                        RenderSystem.Instance.RegisterSystem(instance);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                else if (v.IsSubclassOf(typeof(EditorWindow)))
+                {
+                    foreach (var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                    {
+                        var menu = method.GetCustomAttribute<MenuItemAttribute>();
+
+                        if (menu == null)
                         {
-                            m.Invoke(null, null);
+                            continue;
                         }
-                        catch (Exception)
+
+                        var m = method;
+
+                        AddMenuItem(menu.path, () =>
                         {
-                        }
-                    });
+                            try
+                            {
+                                m.Invoke(null, null);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                    }
                 }
             }
-        }
 
-        registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
-        registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
+            registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
+            registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
+using Staple.Tooling;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -149,6 +150,8 @@ static partial class Program
 
                 var extension = Path.GetExtension(inputFile).Substring(1);
 
+                var replacedInput = false;
+
                 if (AssetSerialization.ResizableTextureExtensions.Contains(extension))
                 {
                     RawTextureData textureData;
@@ -188,6 +191,7 @@ static partial class Program
                     }
 
                     inputFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                    replacedInput = true;
 
                     var png = textureData.EncodePNG();
 
@@ -522,26 +526,18 @@ static partial class Program
                         Arguments = $"-f \"{inputFile}\" -o \"{outputFileTemp}\" {parameters}",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
+                        RedirectStandardError = true,
                         CreateNoWindow = true,
                     }
                 };
 
-                process.Start();
-
-                process.WaitForExit(300000);
-
-                var result = "";
-
-                while (!process.StandardOutput.EndOfStream)
-                {
-                    result += $"{process.StandardOutput.ReadLine()}\n";
-                }
+                Utilities.ExecuteAndCollectProcess(process);
 
                 if (process.ExitCode != 0)
                 {
-                    Console.WriteLine($"\t\tError:\n\t{result}\n");
+                    Console.WriteLine($"\t\t\tArguments: {process.StartInfo.Arguments}");
 
-                    Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+                    Console.WriteLine($"\t\tError:\n");
 
                     try
                     {
@@ -578,6 +574,11 @@ static partial class Program
 
                     try
                     {
+                        if (replacedInput)
+                        {
+                            File.Delete(inputFile);
+                        }
+
                         File.Delete(outputFileTemp);
                     }
                     catch (Exception)
@@ -590,8 +591,12 @@ static partial class Program
                 {
                     try
                     {
+                        if (replacedInput)
+                        {
+                            File.Delete(inputFile);
+                        }
+
                         File.Delete(outputFileTemp);
-                        File.Delete(inputFile);
                     }
                     catch (Exception)
                     {

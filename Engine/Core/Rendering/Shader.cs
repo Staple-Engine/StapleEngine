@@ -89,8 +89,8 @@ internal partial class Shader : IGuidAsset
     internal readonly ShaderMetadata metadata;
     internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
-    internal static readonly List<(string, ShaderUniformType)> defaultUniforms = [
-        ("u_boneMatrices[128]", ShaderUniformType.Matrix4x4),
+    internal static readonly List<(string, ShaderUniformType)> DefaultUniforms = [
+        ($"u_boneMatrices[{SkinnedMeshRenderSystem.MaxBones}]", ShaderUniformType.Matrix4x4),
     ];
 
     internal readonly Dictionary<ShaderUniformType, object> uniforms = new();
@@ -372,7 +372,7 @@ internal partial class Shader : IGuidAsset
                 }
             }
 
-            foreach(var uniform in defaultUniforms)
+            foreach(var uniform in DefaultUniforms)
             {
                 switch(uniform.Item2)
                 {

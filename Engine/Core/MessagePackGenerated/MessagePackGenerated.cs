@@ -2033,15 +2033,15 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
             writer.Write(value.preTransformVertices);
-            writer.Write(value.limitBoneWeights);
             writer.Write(value.flipUVs);
             writer.Write(value.flipWindingOrder);
             writer.Write(value.splitByBoneCount);
             writer.Write(value.debone);
-            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
             writer.Write(value.convertUnits);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Serialize(ref writer, value.rotation, options);
             writer.Write(value.scale);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.defaultShaderVariants, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.MeshAssetMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2073,31 +2073,31 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.preTransformVertices = reader.ReadBoolean();
                         break;
                     case 4:
-                        ____result.limitBoneWeights = reader.ReadBoolean();
-                        break;
-                    case 5:
                         ____result.flipUVs = reader.ReadBoolean();
                         break;
-                    case 6:
+                    case 5:
                         ____result.flipWindingOrder = reader.ReadBoolean();
                         break;
-                    case 7:
+                    case 6:
                         ____result.splitByBoneCount = reader.ReadBoolean();
                         break;
-                    case 8:
+                    case 7:
                         ____result.debone = reader.ReadBoolean();
                         break;
-                    case 9:
-                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                        break;
-                    case 10:
+                    case 8:
                         ____result.convertUnits = reader.ReadBoolean();
                         break;
-                    case 11:
+                    case 9:
                         ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Deserialize(ref reader, options);
                         break;
-                    case 12:
+                    case 10:
                         ____result.scale = reader.ReadSingle();
+                        break;
+                    case 11:
+                        ____result.defaultShaderVariants = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
+                        break;
+                    case 12:
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
