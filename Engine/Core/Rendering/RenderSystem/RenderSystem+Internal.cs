@@ -217,7 +217,7 @@ public partial class RenderSystem
 
             if (camera.cullingLayers.HasLayer(layer) == false)
             {
-                return;
+                continue;
             }
 
             foreach (var system in systems)
@@ -385,7 +385,7 @@ public partial class RenderSystem
 
                     if (camera.cullingLayers.HasLayer(layer) == false)
                     {
-                        return;
+                        continue;
                     }
 
                     foreach (var system in renderSystems)
