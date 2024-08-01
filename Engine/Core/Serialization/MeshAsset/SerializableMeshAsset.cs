@@ -1,8 +1,6 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -79,16 +77,22 @@ public class MeshAssetMetadata
     public bool convertUnits = true;
 
     [Key(9)]
-    public MeshAssetRotation rotation = MeshAssetRotation.None;
+    public bool regenerateNormals;
 
     [Key(10)]
-    public float scale = 1.0f;
+    public bool useSmoothNormals;
 
     [Key(11)]
-    public List<string> defaultShaderVariants = [];
+    public MeshAssetRotation rotation = MeshAssetRotation.None;
+
+    [Key(12)]
+    public float scale = 1.0f;
+
+    [Key(13)]
+    public MeshLighting lighting = MeshLighting.Lit;
 
     [HideInInspector]
-    [Key(12)]
+    [Key(14)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -103,9 +107,11 @@ public class MeshAssetMetadata
             lhs.debone == rhs.debone &&
             lhs.typeName == rhs.typeName &&
             lhs.convertUnits == rhs.convertUnits &&
+            lhs.regenerateNormals == rhs.regenerateNormals &&
+            lhs.useSmoothNormals == rhs.useSmoothNormals &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
-            lhs.defaultShaderVariants.SequenceEqual(rhs.defaultShaderVariants);
+            lhs.lighting == rhs.lighting;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -120,9 +126,11 @@ public class MeshAssetMetadata
             lhs.debone != rhs.debone ||
             lhs.typeName != rhs.typeName ||
             lhs.convertUnits != rhs.convertUnits ||
+            lhs.regenerateNormals != rhs.regenerateNormals ||
+            lhs.useSmoothNormals != rhs.useSmoothNormals ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
-            lhs.defaultShaderVariants.SequenceEqual(rhs.defaultShaderVariants) == false;
+            lhs.lighting != rhs.lighting;
     }
 
     public override bool Equals(object obj)

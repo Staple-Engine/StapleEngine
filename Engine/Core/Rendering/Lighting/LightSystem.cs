@@ -64,7 +64,7 @@ public class LightSystem : IRenderSystem
     {
     }
 
-    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)
+    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition, MeshLighting lighting)
     {
         if ((material?.IsValid ?? false) == false)
         {
@@ -125,5 +125,40 @@ public class LightSystem : IRenderSystem
         material.shader.SetVector4(LightTypePositionKey, lightTypePositions);
         material.shader.SetVector4(LightDiffuseKey, lightDiffuse);
         material.shader.SetVector4(LightSpotDirectionKey, lightSpotDirection);
+
+        switch (lighting)
+        {
+            case MeshLighting.Lit:
+
+                material.EnableShaderKeyword(Shader.LitKeyword);
+
+                if(material.metadata.enabledShaderVariants.Contains(Shader.HalfLambertKeyword) == false)
+                {
+                    material.DisableShaderKeyword(Shader.HalfLambertKeyword);
+                }
+
+                break;
+
+            case MeshLighting.Unlit:
+
+                if (material.metadata.enabledShaderVariants.Contains(Shader.LitKeyword) == false)
+                {
+                    material.DisableShaderKeyword(Shader.LitKeyword);
+                }
+
+                if (material.metadata.enabledShaderVariants.Contains(Shader.HalfLambertKeyword) == false)
+                {
+                    material.DisableShaderKeyword(Shader.HalfLambertKeyword);
+                }
+
+                break;
+
+            case MeshLighting.HalfLambert:
+
+                material.EnableShaderKeyword(Shader.LitKeyword);
+                material.EnableShaderKeyword(Shader.HalfLambertKeyword);
+
+                break;
+        }
     }
 }

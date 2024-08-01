@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using Hexa.NET.ImGuizmo;
 using Staple.Internal;
+using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -22,6 +23,18 @@ internal partial class StapleEditor
         ImGuizmo.SetDrawlist();
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.width, window.height);
+
+        void ExecuteBlock(object source, Action execute)
+        {
+            try
+            {
+                execute();
+            }
+            catch(Exception e)
+            {
+                Log.Debug($"[{source.GetType().FullName}]: {e}");
+            }
+        }
 
         unsafe
         {
@@ -100,7 +113,10 @@ internal partial class StapleEditor
 
                     if (related != null)
                     {
-                        system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
+                        ExecuteBlock(system, () =>
+                        {
+                            system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
+                        });
 
                         if (related is Renderable renderable &&
                             renderable.enabled)
@@ -109,14 +125,20 @@ internal partial class StapleEditor
 
                             if (renderable.isVisible && renderable.forceRenderingOff == false)
                             {
-                                system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+                                ExecuteBlock(system, () =>
+                                {
+                                    system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+                                });
                             }
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
                         else if(related is not Renderable)
                         {
-                            system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+                            ExecuteBlock(system, () =>
+                            {
+                                system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
+                            });
                         }
                     }
                 }
@@ -130,7 +152,14 @@ internal partial class StapleEditor
                 {
                     if(cachedGizmoEditors.TryGetValue(counter++, out var editor))
                     {
-                        editor.OnGizmo(selectedEntity, selectedEntity.GetComponent<Transform>(), component);
+                        try
+                        {
+                            editor.OnGizmo(selectedEntity, selectedEntity.GetComponent<Transform>(), component);
+                        }
+                        catch(Exception e)
+                        {
+                            Log.Debug($"[{editor.GetType().FullName}]: {e}");
+                        }
                     }
                 });
             }
@@ -162,7 +191,10 @@ internal partial class StapleEditor
 
         foreach (var system in renderSystem.renderSystems)
         {
-            system.Submit();
+            ExecuteBlock(system, () =>
+            {
+                system.Submit();
+            });
         }
     }
 }

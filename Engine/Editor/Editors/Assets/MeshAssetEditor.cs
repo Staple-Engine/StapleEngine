@@ -11,6 +11,18 @@ internal class MeshAssetEditor : AssetEditor
     private MeshAsset meshAsset;
     private bool needsLoad = true;
 
+    public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
+    {
+        var t = target as MeshAssetMetadata;
+
+        if(name == nameof(MeshAssetMetadata.useSmoothNormals) && t.regenerateNormals == false)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();

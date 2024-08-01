@@ -379,6 +379,7 @@ public static class EditorUtils
 
                                     skinnedRenderer.mesh = outMesh;
                                     skinnedRenderer.materials = outMaterials;
+                                    skinnedRenderer.lighting = mesh.lighting;
                                 }
                                 else
                                 {
@@ -386,6 +387,7 @@ public static class EditorUtils
 
                                     meshRenderer.mesh = outMesh;
                                     meshRenderer.materials = outMaterials;
+                                    meshRenderer.lighting = mesh.lighting;
                                 }
                             }
                         }

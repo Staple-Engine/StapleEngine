@@ -26,7 +26,7 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
             return;
         }
 
-        if (poser.nodeCache.Count == 0 && poser.transformCache.Count == 0)
+        if (poser.nodeCache.Count == 0 || poser.transformCache.Count == 0)
         {
             SkinnedMeshRenderSystem.GatherNodes(transform, poser.nodeCache, poser.mesh.meshAsset.rootNode);
             SkinnedMeshRenderSystem.GatherNodeTransforms(transform, poser.transformCache, poser.mesh.meshAsset.rootNode);

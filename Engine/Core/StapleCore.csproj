@@ -154,6 +154,7 @@
 		<Compile Include="Rendering\Lighting\Light.cs" />
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
+		<Compile Include="Rendering\Mesh\MeshLighting.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />

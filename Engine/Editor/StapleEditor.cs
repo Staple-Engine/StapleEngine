@@ -501,7 +501,7 @@ internal partial class StapleEditor
                     };
 
                     Graphics.RenderSimple(vertices.AsSpan(), vertexLayout, [0, 1, 2, 2, 3, 0], SpriteRenderSystem.DefaultMaterial.Value, Matrix4x4.Identity,
-                        MeshTopology.LineStrip, UICanvasSystem.UIViewID);
+                        MeshTopology.LineStrip, MeshLighting.Unlit, UICanvasSystem.UIViewID);
                 };
             }
 
@@ -1242,12 +1242,14 @@ internal partial class StapleEditor
     {
         try
         {
-            var basePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules", "Debug");
+            var basePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules");
 
-            var files = Directory.GetFiles(basePath, "*.dll");
+            var directories = Directory.GetDirectories(basePath);
 
-            foreach(var file in files)
+            foreach (var directory in directories)
             {
+                var file = Path.Combine(directory, "Assembly", "Debug", $"{Path.GetFileName(directory)}.dll");
+
                 try
                 {
                     var loader = new StapleAssemblyLoadContext(AppContext.BaseDirectory);
@@ -1262,27 +1264,27 @@ internal partial class StapleEditor
                             .Where(x => x.IsSubclassOf(typeof(ModuleInitializer)))
                             .ToArray();
 
-                        if(initializers.Length == 0)
+                        if (initializers.Length == 0)
                         {
                             loader.Unload();
 
                             continue;
                         }
 
-                        foreach(var initializer in initializers)
+                        foreach (var initializer in initializers)
                         {
                             var instance = ObjectCreation.CreateObject<ModuleInitializer>(initializer);
 
-                            if(instance == null)
+                            if (instance == null)
                             {
                                 loader.Unload();
 
                                 continue;
                             }
 
-                            if(modulesList.TryGetValue(instance.Kind(), out var list) == false)
+                            if (modulesList.TryGetValue(instance.Kind(), out var list) == false)
                             {
-                                list = new();
+                                list = [];
 
                                 modulesList.Add(instance.Kind(), list);
                             }

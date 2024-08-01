@@ -149,7 +149,16 @@ internal partial class StapleEditor
 
         if (backend.dataDirIsOutput)
         {
-            if(EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
+            if (CSProjManager.CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.basePath, configurationName) == false)
+            {
+                Log.Error($"Failed to build player: Failed to copy redistributable files");
+
+                ShowFailureMessage();
+
+                return;
+            }
+
+            if (EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
             {
                 Log.Error($"Failed to build player: Failed to copy redistributable files");
 

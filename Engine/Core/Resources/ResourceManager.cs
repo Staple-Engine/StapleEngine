@@ -942,6 +942,7 @@ internal class ResourceManager
 
             material = new Material
             {
+                metadata = materialData.metadata,
                 shader = shader,
                 guid = guid ?? path,
                 CullingMode = materialData.metadata.cullingMode,
@@ -1367,6 +1368,7 @@ internal class ResourceManager
             var asset = new MeshAsset()
             {
                 Guid = guid,
+                lighting = meshAssetData.metadata.lighting,
             };
 
             foreach(var m in meshAssetData.meshes)
@@ -1375,6 +1377,7 @@ internal class ResourceManager
                 {
                     name = m.name,
                     topology = m.topology,
+                    lighting = asset.lighting,
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 

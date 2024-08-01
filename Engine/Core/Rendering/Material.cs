@@ -33,10 +33,11 @@ public sealed class Material : IGuidAsset
 
     internal Shader shader;
     internal string guid;
+    internal MaterialMetadata metadata;
 
-    internal Dictionary<string, ParameterInfo> parameters = new();
+    internal Dictionary<string, ParameterInfo> parameters = [];
 
-    internal HashSet<string> shaderKeywords = new();
+    internal HashSet<string> shaderKeywords = [];
 
     /// <summary>
     /// The material's main color
@@ -139,7 +140,7 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public IEnumerable<string> EnabledShaderKeywords => shaderKeywords;
 
-    internal string ShaderVariantKey => string.Join(" ", shaderKeywords);
+    internal string ShaderVariantKey { get; private set; } = "";
 
     /// <summary>
     /// Gets the current shader program, if valid.
@@ -159,14 +160,15 @@ public sealed class Material : IGuidAsset
 
     public Material(Material sourceMaterial)
     {
+        metadata = sourceMaterial.metadata;
+        guid = sourceMaterial.guid;
+        shader = sourceMaterial.shader;
+        CullingMode = sourceMaterial.CullingMode;
+
         foreach (var parameter in sourceMaterial.parameters)
         {
             parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
         }
-
-        guid = sourceMaterial.guid;
-        shader = sourceMaterial.shader;
-        CullingMode = sourceMaterial.CullingMode;
     }
 
     ~Material()
@@ -194,13 +196,63 @@ public sealed class Material : IGuidAsset
     /// <returns>The material, or null</returns>
     public static object Create(string path) => ResourceManager.instance.LoadMaterial(path);
 
+    private void UpdateVariantKey()
+    {
+        ShaderVariantKey = "";
+
+        if(shader == null ||
+            shader.Disposed)
+        {
+            return;
+        }
+
+        foreach(var pair in shader.instances)
+        {
+            var pieces = pair.Key.Split(' ');
+
+            if(pieces.Length != shaderKeywords.Count)
+            {
+                continue;
+            }
+
+            var found = false;
+
+            foreach(var piece in pieces)
+            {
+                found |= shaderKeywords.Contains(piece) == false;
+
+                if(found)
+                {
+                    break;
+                }
+            }
+
+            if(found)
+            {
+                continue;
+            }
+
+            ShaderVariantKey = pair.Key;
+        }
+    }
+
     /// <summary>
     /// Enables a shader keyword
     /// </summary>
     /// <param name="name">The keyword</param>
     public void EnableShaderKeyword(string name)
     {
+        if(shader == null ||
+            shader.Disposed ||
+            (shader.metadata.variants.Contains(name) == false &&
+            Shader.DefaultVariants.Contains(name) == false))
+        {
+            return;
+        }
+
         shaderKeywords.Add(name);
+
+        UpdateVariantKey();
     }
 
     /// <summary>
@@ -210,6 +262,8 @@ public sealed class Material : IGuidAsset
     public void DisableShaderKeyword(string name)
     {
         shaderKeywords.Remove(name);
+
+        UpdateVariantKey();
     }
 
     /// <summary>

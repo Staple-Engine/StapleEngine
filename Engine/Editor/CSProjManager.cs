@@ -134,6 +134,55 @@ internal class CSProjManager
     }
 
     /// <summary>
+    /// Copies the redistributable files from a module to a target path
+    /// </summary>
+    /// <param name="targetPath">The path to copy to</param>
+    /// <param name="appSettings">The project appsettings</param>
+    /// <param name="backendBasePath">The base path of the current backend</param>
+    /// <param name="configurationName">The configuration name</param>
+    /// <returns>Whether we copied successfully</returns>
+    public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, string backendBasePath, string configurationName)
+    {
+        void DeleteAll(string extension)
+        {
+            try
+            {
+                var files = Directory.GetFiles(targetPath, $"*.{extension}");
+
+                foreach(var file in files)
+                {
+                    File.Delete(file);
+                }
+            }
+            catch(Exception)
+            {
+            }
+        }
+
+        DeleteAll("pdb");
+        DeleteAll("dll");
+        DeleteAll("dylib*");
+        DeleteAll("so*");
+
+        foreach (var pair in appSettings.usedModules)
+        {
+            var moduleName = pair.Value;
+
+            if ((moduleName?.Length ?? 0) == 0)
+            {
+                continue;
+            }
+
+            if (EditorUtils.CopyDirectory(Path.Combine(backendBasePath, "Modules", moduleName, "Redist", configurationName), targetPath) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Generates the game project file
     /// </summary>
     /// <param name="platform">The current platform</param>
@@ -376,6 +425,9 @@ internal class CSProjManager
 
         if(backend.dataDirIsOutput == false)
         {
+            CopyModuleRedists(Path.Combine(Path.Combine(projectDirectory, backend.redistOutput), backend.redistOutput),
+                projectAppSettings, backend.basePath, configurationName);
+
             EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(projectDirectory, backend.redistOutput));
         }
 
@@ -523,7 +575,7 @@ internal class CSProjManager
             {
                 p.AddItem("Reference", pair.Value,
                     [
-                        new("HintPath", Path.Combine(backend.basePath, "Modules", configurationName, $"{pair.Value}.dll"))
+                        new("HintPath", Path.Combine(backend.basePath, "Modules", pair.Value, "Assembly", configurationName, $"{pair.Value}.dll"))
                     ]);
             }
         }

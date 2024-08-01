@@ -1014,30 +1014,6 @@ public partial class Mesh : IGuidAsset
     }
 
     /// <summary>
-    /// Generates normals for a list of vertices. Expects triangles.
-    /// </summary>
-    /// <param name="positions">The vertex positions</param>
-    /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
-    /// <remarks>Positions are expected to be triangles</remarks>
-    /// <returns>An array of normals. Might be empty if the positions aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, bool smooth = false)
-    {
-        if(positions.Length % 3 != 0)
-        {
-            return [];
-        }
-
-        var indices = new int[positions.Length];
-
-        for(var i = 0; i < indices.Length; i++)
-        {
-            indices[i] = i;
-        }
-
-        return GenerateNormals(positions, indices, smooth);
-    }
-
-    /// <summary>
     /// Generates normals for a list of vertices
     /// </summary>
     /// <param name="positions">The vertex positions</param>
@@ -1045,7 +1021,7 @@ public partial class Mesh : IGuidAsset
     /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, ushort[] indices, bool smooth = false)
+    public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, ReadOnlySpan<ushort> indices, bool smooth = false)
     {
         if(indices.Length % 3 != 0)
         {
@@ -1131,7 +1107,7 @@ public partial class Mesh : IGuidAsset
     /// <param name="smooth">Whether to generate smooth normals. Note that this can be a slow process.</param>
     /// <remarks>Positions are expected to be triangles</remarks>
     /// <returns>An array of normals. Might be empty if the indices aren't a multiple of 3.</returns>
-    public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, int[] indices, bool smooth = false)
+    public static Vector3[] GenerateNormals(ReadOnlySpan<Vector3> positions, ReadOnlySpan<int> indices, bool smooth = false)
     {
         if (indices.Length % 3 != 0)
         {

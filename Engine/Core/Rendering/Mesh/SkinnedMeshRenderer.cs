@@ -15,5 +15,10 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// <summary>
     /// The materials for each mesh
     /// </summary>
-    public List<Material> materials = new();
+    public List<Material> materials = [];
+
+    /// <summary>
+    /// Lighting mode
+    /// </summary>
+    public MeshLighting lighting = MeshLighting.Lit;
 }

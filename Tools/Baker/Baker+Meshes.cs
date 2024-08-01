@@ -1,6 +1,5 @@
 ﻿using MessagePack;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Staple;
 using Staple.Internal;
 using System;
@@ -8,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Baker;
 
@@ -309,7 +309,6 @@ static partial class Program
                         var materialMetadata = new MaterialMetadata()
                         {
                             shader = "Hidden/Shaders/Default/Standard.stsh",
-                            enabledShaderVariants = metadata.defaultShaderVariants ?? [],
                         };
 
                         if(material.IsTwoSided)
@@ -703,12 +702,42 @@ static partial class Program
                             continue;
                     }
 
-                    m.vertices = mesh.Vertices.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.normals = mesh.Normals.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.colors = mesh.HasVertexColors(0) ? mesh.VertexColorChannels[0].Select(x => new Vector4Holder(new Vector4(x.R, x.G, x.B, x.A))).ToList() : [];
-                    m.tangents = mesh.Tangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.bitangents = mesh.BiTangents.Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z)))).ToList();
-                    m.indices = mesh.Faces.SelectMany(x => x.Indices).ToList();
+                    m.vertices = mesh.Vertices
+                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
+                        .ToList();
+
+                    m.colors = mesh.HasVertexColors(0) ? mesh.VertexColorChannels[0]
+                        .Select(x => new Vector4Holder(new Vector4(x.R, x.G, x.B, x.A)))
+                        .ToList() : [];
+
+                    m.tangents = mesh.Tangents
+                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
+                        .ToList();
+
+                    m.bitangents = mesh.BiTangents
+                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
+                        .ToList();
+
+                    m.indices = mesh.Faces
+                        .SelectMany(x => x.Indices)
+                        .ToList();
+
+                    var normals = mesh.Normals
+                        .Select(x => new Vector3(x.X, x.Y, x.Z))
+                        .ToArray();
+
+                    if(metadata.regenerateNormals)
+                    {
+                        var v = m.vertices
+                            .Select(x => x.ToVector3())
+                            .ToArray();
+
+                        normals = Mesh.GenerateNormals(v, CollectionsMarshal.AsSpan(m.indices), metadata.useSmoothNormals);
+                    }
+
+                    m.normals = normals
+                        .Select(x => ApplyTransform(new Vector3Holder(x)))
+                        .ToList();
 
                     var uvs = new List<Vector2Holder>[8]
                     {
@@ -726,7 +755,8 @@ static partial class Program
 
                     for (var j = 0; j < uvCount; j++)
                     {
-                        uvs[j].AddRange(mesh.TextureCoordinateChannels[j].Select(x => new Vector2Holder()
+                        uvs[j].AddRange(mesh.TextureCoordinateChannels[j]
+                            .Select(x => new Vector2Holder()
                             {
                                 x = x.X,
                                 y = x.Y,
@@ -761,8 +791,13 @@ static partial class Program
                             }
                         }
 
-                        m.boneIndices = boneIndices.Select(x => x.ToHolder()).ToList();
-                        m.boneWeights = boneWeights.Select(x => x.ToHolder()).ToList();
+                        m.boneIndices = boneIndices
+                            .Select(x => x.ToHolder())
+                            .ToList();
+
+                        m.boneWeights = boneWeights
+                            .Select(x => x.ToHolder())
+                            .ToList();
 
                         foreach (var bone in mesh.Bones)
                         {

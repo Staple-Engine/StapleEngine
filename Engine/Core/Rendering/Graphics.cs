@@ -22,11 +22,12 @@ namespace Staple
         /// <param name="material">The material to use</param>
         /// <param name="transform">The transform for the model</param>
         /// <param name="topology">The geometry topology</param>
+        /// <param name="lighting">What kind of lighting to apply</param>
         /// <param name="viewID">The bgfx view ID to render to</param>
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
             int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
-            Matrix4x4 transform, MeshTopology topology, ushort viewID, Action materialSetupCallback = null)
+            Matrix4x4 transform, MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null)
         {
             if(vertex == null ||
                 vertex.Disposed ||
@@ -75,7 +76,7 @@ namespace Staple
 
             if(program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
@@ -84,8 +85,9 @@ namespace Staple
                 bgfx.discard((byte)bgfx.DiscardFlags.All);
             }
         }
+
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, ushort[] indices, Material material, Matrix4x4 transform,
-            MeshTopology topology, ushort viewID, Action materialSetupCallback = null) where T: unmanaged
+            MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null) where T: unmanaged
         {
             if (vertices.Length == 0||
                 indices.Length == 0 ||
@@ -136,7 +138,7 @@ namespace Staple
 
             if (program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

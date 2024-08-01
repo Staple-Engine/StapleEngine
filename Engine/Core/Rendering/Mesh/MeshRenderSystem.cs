@@ -17,7 +17,7 @@ public class MeshRenderSystem : IRenderSystem
 
     private readonly List<RenderInfo> renderers = new();
 
-    public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, ushort viewID)
+    public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, MeshLighting lighting, ushort viewID)
     {
         if(mesh == null ||
             material == null ||
@@ -63,7 +63,7 @@ public class MeshRenderSystem : IRenderSystem
 
         if (program.Valid)
         {
-            RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position);
+            RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
         }
@@ -175,7 +175,8 @@ public class MeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position,
+                        pair.renderer.lighting);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

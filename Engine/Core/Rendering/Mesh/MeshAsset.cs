@@ -43,27 +43,28 @@ public class MeshAsset : IGuidAsset
         public string name;
         public MeshAssetType type;
         public MeshTopology topology;
-        public List<Vector3> vertices = new();
-        public List<Vector3> normals = new();
-        public List<Color> colors = new();
-        public List<Vector3> tangents = new();
-        public List<Vector3> bitangents = new();
-        public List<Vector2> UV1 = new();
-        public List<Vector2> UV2 = new();
-        public List<Vector2> UV3 = new();
-        public List<Vector2> UV4 = new();
-        public List<Vector2> UV5 = new();
-        public List<Vector2> UV6 = new();
-        public List<Vector2> UV7 = new();
-        public List<Vector2> UV8 = new();
-        public List<int> indices = new();
-        public List<Vector4> boneIndices = new();
-        public List<Vector4> boneWeights = new();
+        public List<Vector3> vertices = [];
+        public List<Vector3> normals = [];
+        public List<Color> colors = [];
+        public List<Vector3> tangents = [];
+        public List<Vector3> bitangents = [];
+        public List<Vector2> UV1 = [];
+        public List<Vector2> UV2 = [];
+        public List<Vector2> UV3 = [];
+        public List<Vector2> UV4 = [];
+        public List<Vector2> UV5 = [];
+        public List<Vector2> UV6 = [];
+        public List<Vector2> UV7 = [];
+        public List<Vector2> UV8 = [];
+        public List<int> indices = [];
+        public List<Vector4> boneIndices = [];
+        public List<Vector4> boneWeights = [];
         //One list per submesh
-        public List<List<Bone>> bones = new();
+        public List<List<Bone>> bones = [];
         public AABB bounds;
-        public List<SubmeshInfo> submeshes = new();
-        public List<string> submeshMaterialGuids = new();
+        public List<SubmeshInfo> submeshes = [];
+        public List<string> submeshMaterialGuids = [];
+        public MeshLighting lighting;
     }
 
     /// <summary>
@@ -75,9 +76,9 @@ public class MeshAsset : IGuidAsset
 
         public Node parent;
 
-        public List<Node> children = new();
+        public List<Node> children = [];
 
-        public List<int> meshIndices = new();
+        public List<int> meshIndices = [];
 
         private Matrix4x4 originalTransform;
 
@@ -217,11 +218,11 @@ public class MeshAsset : IGuidAsset
     {
         public Node node;
 
-        public List<AnimationKey<Vector3>> positions = new();
+        public List<AnimationKey<Vector3>> positions = [];
         
-        public List<AnimationKey<Vector3>> scales = new();
+        public List<AnimationKey<Vector3>> scales = [];
 
-        public List<AnimationKey<Quaternion>> rotations = new();
+        public List<AnimationKey<Quaternion>> rotations = [];
     }
 
     /// <summary>
@@ -232,7 +233,7 @@ public class MeshAsset : IGuidAsset
         public string name;
         public float duration;
         public float ticksPerSecond;
-        public List<AnimationChannel> channels = new();
+        public List<AnimationChannel> channels = [];
 
         public float DurationRealtime => duration / ticksPerSecond;
     }
@@ -240,7 +241,7 @@ public class MeshAsset : IGuidAsset
     /// <summary>
     /// List of each mesh in the asset
     /// </summary>
-    public List<MeshInfo> meshes = new();
+    public List<MeshInfo> meshes = [];
 
     /// <summary>
     /// The root node of the transform tree
@@ -255,7 +256,12 @@ public class MeshAsset : IGuidAsset
     /// <summary>
     /// List of all animations
     /// </summary>
-    public Dictionary<string, Animation> animations = new();
+    public readonly Dictionary<string, Animation> animations = [];
+
+    /// <summary>
+    /// The lighting type for this mesh
+    /// </summary>
+    public MeshLighting lighting;
 
     /// <summary>
     /// 3D bounds of the mesh
