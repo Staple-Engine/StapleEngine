@@ -361,6 +361,34 @@ internal class ProjectBrowser
     /// </summary>
     public void CreateMissingMetaFiles()
     {
+        string[] metaFiles = [];
+
+        try
+        {
+            metaFiles = Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories);
+        }
+        catch(Exception)
+        {
+        }
+
+        foreach (var file in metaFiles)
+        {
+            try
+            {
+                var local = file[..^".meta".Length];
+
+                var valid = File.Exists(local) || Directory.Exists(local);
+
+                if(valid == false)
+                {
+                    File.Delete(file);
+                }
+            }
+            catch(Exception)
+            {
+            }
+        }
+
         static void Recursive(List<ProjectBrowserNode> nodes)
         {
             foreach (var node in nodes)

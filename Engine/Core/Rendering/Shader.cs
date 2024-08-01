@@ -80,8 +80,6 @@ internal partial class Shader : IGuidAsset
 
     internal class ShaderInstance
     {
-        public bgfx.ShaderHandle vertexShader;
-        public bgfx.ShaderHandle fragmentShader;
         public bgfx.ProgramHandle program;
 
         public byte[] vertexShaderSource;
@@ -184,50 +182,30 @@ internal partial class Shader : IGuidAsset
                 fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
             }
 
-            pair.Value.vertexShader = bgfx.create_shader(vs);
-            pair.Value.fragmentShader = bgfx.create_shader(fs);
+            var vertexShader = bgfx.create_shader(vs);
+            var fragmentShader = bgfx.create_shader(fs);
 
-            if (pair.Value.vertexShader.Valid == false || pair.Value.fragmentShader.Valid == false)
+            if (vertexShader.Valid == false || fragmentShader.Valid == false)
             {
-                if (pair.Value.vertexShader.Valid)
+                if (vertexShader.Valid)
                 {
-                    bgfx.destroy_shader(pair.Value.vertexShader);
+                    bgfx.destroy_shader(vertexShader);
                 }
 
-                if (pair.Value.fragmentShader.Valid)
+                if (fragmentShader.Valid)
                 {
-                    bgfx.destroy_shader(pair.Value.vertexShader);
+                    bgfx.destroy_shader(fragmentShader);
                 }
-
-                pair.Value.vertexShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-
-                pair.Value.fragmentShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
 
                 return false;
             }
 
-            pair.Value.program = bgfx.create_program(pair.Value.vertexShader, pair.Value.fragmentShader, true);
+            pair.Value.program = bgfx.create_program(vertexShader, fragmentShader, true);
 
             if (pair.Value.program.Valid == false)
             {
-                bgfx.destroy_shader(pair.Value.vertexShader);
-                bgfx.destroy_shader(pair.Value.fragmentShader);
-
-                pair.Value.vertexShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-
-                pair.Value.fragmentShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
+                bgfx.destroy_shader(vertexShader);
+                bgfx.destroy_shader(fragmentShader);
 
                 return false;
             }
@@ -927,26 +905,6 @@ internal partial class Shader : IGuidAsset
 
         foreach(var pair in instances)
         {
-            if(pair.Value.vertexShader.Valid)
-            {
-                bgfx.destroy_shader(pair.Value.vertexShader);
-
-                pair.Value.vertexShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-            }
-
-            if (pair.Value.fragmentShader.Valid)
-            {
-                bgfx.destroy_shader(pair.Value.fragmentShader);
-
-                pair.Value.fragmentShader = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-            }
-
             if (pair.Value.program.Valid)
             {
                 bgfx.destroy_program(pair.Value.program);
