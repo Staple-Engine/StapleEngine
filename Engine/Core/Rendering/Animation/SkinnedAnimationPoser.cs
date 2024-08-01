@@ -6,6 +6,7 @@ public class SkinnedAnimationPoser : IComponent
 {
     public Mesh mesh;
 
-    internal Dictionary<string, MeshAsset.Node> nodeCache = new();
-    internal Dictionary<string, Transform> transformCache = new();
+    internal Dictionary<string, MeshAsset.Node> nodeCache = [];
+    internal Dictionary<string, Transform> transformCache = [];
+    internal Mesh currentMesh;
 }

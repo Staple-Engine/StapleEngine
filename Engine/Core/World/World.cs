@@ -114,6 +114,9 @@ public partial class World
     private readonly HashSet<int> callableComponentIndices = new();
     private readonly List<Entity> destroyedEntities = new();
 
+    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = new();
+    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = new();
+
     internal void StartFrame()
     {
         lock(lockObject)
@@ -169,7 +172,4 @@ public partial class World
             destroyedEntities.Clear();
         }
     }
-
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = new();
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = new();
 }
