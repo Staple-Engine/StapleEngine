@@ -149,12 +149,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 material.EnableShaderKeyword(Shader.SkinningKeyword);
 
+                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+                lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+
                 var program = material.ShaderProgram;
 
                 if (program.Valid)
                 {
-                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position,
-                        renderer.lighting);
+                    lightSystem?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

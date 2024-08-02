@@ -328,12 +328,15 @@ public class SpriteRenderSystem : IRenderSystem
 
             s.material.DisableShaderKeyword(Shader.SkinningKeyword);
 
+            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+            lightSystem?.ApplyMaterialLighting(s.material, MeshLighting.Unlit);
+
             var program = s.material.ShaderProgram;
 
             if (program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(s.transform, s.material, RenderSystem.CurrentCamera.Item2.Position,
-                    MeshLighting.Unlit);
+                lightSystem?.ApplyLightProperties(s.transform, s.material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

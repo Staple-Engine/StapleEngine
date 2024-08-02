@@ -72,11 +72,15 @@ namespace Staple
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
             }
 
+            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+            lightSystem?.ApplyMaterialLighting(material, lighting);
+
             var program = material.ShaderProgram;
 
             if(program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
@@ -134,11 +138,15 @@ namespace Staple
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
             }
 
+            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+            lightSystem?.ApplyMaterialLighting(material, lighting);
+
             var program = material.ShaderProgram;
 
             if (program.Valid)
             {
-                RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

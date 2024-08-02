@@ -59,11 +59,15 @@ public class MeshRenderSystem : IRenderSystem
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
+        var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+        lightSystem?.ApplyMaterialLighting(material, lighting);
+
         var program = material.ShaderProgram;
 
         if (program.Valid)
         {
-            RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+            lightSystem?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position);
 
             bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
         }
@@ -171,12 +175,15 @@ public class MeshRenderSystem : IRenderSystem
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
+                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+                lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+
                 var program = material.ShaderProgram;
 
                 if (program.Valid)
                 {
-                    RenderSystem.Instance.Get<LightSystem>()?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position,
-                        pair.renderer.lighting);
+                    lightSystem?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }
