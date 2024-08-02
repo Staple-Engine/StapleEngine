@@ -10,8 +10,6 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
-    private FrustumCuller frustumCuller = new();
-
     /// <summary>
     /// Renders the scene
     /// </summary>
@@ -24,7 +22,7 @@ internal partial class StapleEditor
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.width, window.height);
 
-        void ExecuteBlock(object source, Action execute)
+        static void ExecuteBlock(object source, Action execute)
         {
             try
             {
@@ -65,16 +63,78 @@ internal partial class StapleEditor
                     }
 
                     var matrix = Math.TransformationMatrix(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
+                    var delta = Matrix4x4.Identity;
 
-                    if (ImGuizmo.Manipulate(ref view, ref projection, ImGuizmoOperation.Translate, ImGuizmoMode.World, ref matrix, null, snap, localBound, snap))
+                    if (ImGuizmo.Manipulate(ref view, ref projection, transformOperation, transformMode, ref matrix, ref delta, snap, localBound, snap))
                     {
-                        if (Matrix4x4.Decompose(matrix, out var scale, out var rotation, out var position))
+                        Matrix4x4.Invert(selectedTransform.parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
+
+                        var local = matrix * invParent;
+
+                        if (Matrix4x4.Decompose(local, out var scale, out var rotation, out var position))
                         {
-                            selectedTransform.Position = position;
-                            selectedTransform.Scale = scale;
-                            selectedTransform.Rotation = rotation;
+                            switch(transformOperation)
+                            {
+                                case ImGuizmoOperation.Rotate:
+
+                                    selectedTransform.LocalRotation = rotation;
+
+                                    break;
+
+                                case ImGuizmoOperation.Translate:
+
+                                    selectedTransform.LocalPosition = position;
+
+                                    break;
+
+                                case ImGuizmoOperation.Scale:
+
+                                    selectedTransform.LocalScale = scale;
+
+                                    break;
+                            }
                         }
                     }
+                }
+
+                if (ImGuizmo.IsUsing())
+                {
+                    if (transforming == false)
+                    {
+                        transforming = true;
+
+                        transformPosition = selectedTransform.LocalPosition;
+                        transformRotation = selectedTransform.LocalRotation;
+                        transformScale = selectedTransform.LocalScale;
+                    }
+                }
+                else if (transforming)
+                {
+                    transforming = false;
+
+                    var t = selectedTransform;
+
+                    var currentPosition = selectedTransform.LocalPosition;
+                    var currentRotation = selectedTransform.LocalRotation;
+                    var currentScale = selectedTransform.LocalScale;
+
+                    var oldPosition = transformPosition;
+                    var oldRotation = transformRotation;
+                    var oldScale = transformScale;
+
+                    undoStack.AddItem("Transform",
+                        () =>
+                        {
+                            t.LocalPosition = currentPosition;
+                            t.LocalRotation = currentRotation;
+                            t.LocalScale = currentScale;
+                        },
+                        () =>
+                        {
+                            t.LocalPosition = oldPosition;
+                            t.LocalRotation = oldRotation;
+                            t.LocalScale = oldScale;
+                        });
                 }
             }
             else

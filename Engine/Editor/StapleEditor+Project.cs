@@ -40,6 +40,8 @@ internal partial class StapleEditor
     /// <param name="path">The patht to load from</param>
     public void LoadProject(string path)
     {
+        undoStack.Clear();
+
         try
         {
             var json = File.ReadAllText(Path.Combine(path, "ProjectInfo.json"));

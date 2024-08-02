@@ -64,5 +64,92 @@ namespace CoreTests
 
             Assert.AreEqual(new Vector3(0.5f, 0.5f, 0.5f), scaled);
         }
+
+        [Test]
+        public void TestPosition()
+        {
+            var transform = new Transform();
+            var parent = new Transform();
+
+            transform.SetParent(parent);
+
+            transform.LocalPosition = new Vector3(0, 0, 1);
+
+            Assert.That(transform.Changed, Is.True);
+
+            Assert.That(transform.Position, Is.EqualTo(new Vector3(0, 0, 1)));
+
+            parent.LocalPosition = new(0, 0, 1);
+
+            Assert.That(transform.Position, Is.EqualTo(new Vector3(0, 0, 2)));
+
+            transform.LocalPosition = Vector3.Zero;
+
+            Assert.That(transform.Position, Is.EqualTo(new Vector3(0, 0, 1)));
+        }
+
+        [Test]
+        public void TestRotation()
+        {
+            var transform = new Transform();
+            var parent = new Transform();
+
+            transform.SetParent(parent);
+
+            transform.LocalRotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+
+            Assert.That(transform.Changed, Is.True);
+
+            var angles = transform.Rotation.ToEulerAngles();
+
+            angles.X = Staple.Math.Round(angles.X);
+            angles.Y = Staple.Math.Round(angles.Y);
+            angles.Z = Staple.Math.Round(angles.Z);
+
+            Assert.That(angles, Is.EqualTo(new Vector3(0, 45, 0)));
+
+            parent.LocalRotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+
+            angles = transform.Rotation.ToEulerAngles();
+
+            angles.X = Staple.Math.Round(angles.X);
+            angles.Y = Staple.Math.Round(angles.Y);
+            angles.Z = Staple.Math.Round(angles.Z);
+
+            Assert.That(angles, Is.EqualTo(new Vector3(0, 90, 0)));
+
+            transform.Rotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+
+            angles = transform.Rotation.ToEulerAngles();
+
+            angles.X = Staple.Math.Round(angles.X);
+            angles.Y = Staple.Math.Round(angles.Y);
+            angles.Z = Staple.Math.Round(angles.Z);
+
+            Assert.That(angles, Is.EqualTo(new Vector3(0, 45, 0)));
+        }
+
+        [Test]
+        public void TestScale()
+        {
+            var transform = new Transform();
+            var parent = new Transform();
+
+            transform.SetParent(parent);
+
+            transform.LocalScale = new Vector3(2, 2, 2);
+
+            Assert.That(transform.Changed, Is.True);
+
+            Assert.That(transform.Scale, Is.EqualTo(new Vector3(2, 2, 2)));
+
+            parent.LocalScale = new(0.5f, 0.5f, 0.5f);
+
+            Assert.That(transform.Scale, Is.EqualTo(new Vector3(1, 1, 1)));
+
+            transform.Scale = new(1, 1, 1);
+
+            Assert.That(transform.Scale, Is.EqualTo(new Vector3(1, 1, 1)));
+        }
     }
 }

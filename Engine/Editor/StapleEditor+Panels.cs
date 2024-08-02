@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
 using MessagePack;
 using Newtonsoft.Json;
 using Staple.Internal;
@@ -622,6 +623,33 @@ internal partial class StapleEditor
         }
 
         ImGui.End();
+
+        {
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                transformOperation = ImGuizmoOperation.Scale;
+            }
+
+            if (Input.GetKeyUp(KeyCode.T))
+            {
+                transformOperation = ImGuizmoOperation.Translate;
+            }
+
+            if (Input.GetKeyUp(KeyCode.R))
+            {
+                transformOperation = ImGuizmoOperation.Rotate;
+            }
+
+            if (Input.GetKeyUp(KeyCode.L))
+            {
+                transformMode = ImGuizmoMode.Local;
+            }
+
+            if (Input.GetKeyUp(KeyCode.K))
+            {
+                transformMode = ImGuizmoMode.World;
+            }
+        }
     }
 
     /// <summary>
@@ -1153,6 +1181,8 @@ internal partial class StapleEditor
                     var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
 
                     Scene.SetActiveScene(scene);
+
+                    undoStack.Clear();
 
                     if (scene != null)
                     {

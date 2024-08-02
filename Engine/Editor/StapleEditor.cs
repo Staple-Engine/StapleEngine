@@ -25,6 +25,7 @@ internal partial class StapleEditor
 
     internal const string RenderTargetLayerName = "STAPLE_EDITOR_RENDER_TARGET_LAYER";
 
+    #region Classes
     enum ViewportType
     {
         Scene,
@@ -113,6 +114,7 @@ internal partial class StapleEditor
         public ModuleInitializer module;
         public string moduleName;
     }
+    #endregion
 
     internal static string StapleBasePath => Storage.StapleBasePath;
 
@@ -123,32 +125,25 @@ internal partial class StapleEditor
 
     internal delegate bool BackgroundTaskProgressCallback(ref float progress);
 
+    #region Background Tasks
     private readonly List<Thread> backgroundThreads = new();
     private readonly object backgroundLock = new();
+    #endregion
 
+    #region Rendering
     private RenderWindow window;
 
     private ImGuiProxy imgui;
 
-    private Entity selectedEntity;
-
-    private ProjectBrowserNode selectedProjectNode;
-
-    private object selectedProjectNodeData;
+    private readonly FrustumCuller frustumCuller = new();
 
     private int activeBottomTab = 0;
-
-    private string basePath;
-
-    private string lastOpenScene;
-
-    internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
 
     private RenderTarget gameRenderTarget;
 
     private const int TargetFramerate = 30;
 
-    private Color32 clearColor = new Color32("#7393B3");
+    private Color32 clearColor = new("#7393B3");
 
     private ViewportType viewportType = ViewportType.Scene;
 
@@ -156,26 +151,96 @@ internal partial class StapleEditor
 
     private readonly Transform cameraTransform = new();
 
-    private readonly AppSettings editorSettings = AppSettings.Default;
-
-    private AppSettings projectAppSettings;
-
-    private readonly Dictionary<Entity, EntityBody> pickEntityBodies = new();
-
     internal Material wireframeMaterial;
 
     internal Mesh wireframeMesh;
 
-    private readonly Dictionary<string, Editor> cachedEditors = new();
+    private PlayerSettings playerSettings;
 
-    private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = new();
+    private Material componentIconMaterial;
+
+    public bool mouseIsHoveringImGui = false;
+
+    private bool hadFocus = true;
+
+    private bool transforming = false;
+
+    private Vector3 transformPosition;
+
+    private Vector3 transformScale;
+
+    private Quaternion transformRotation;
+    #endregion
+
+    #region Entities
+    private Entity selectedEntity;
+
+    private bool resetSelection = false;
+
+    internal Entity draggedEntity;
+
+    internal Entity dropTargetEntity;
+    #endregion
+
+    #region Project
+    private ProjectBrowserNode selectedProjectNode;
+
+    private object selectedProjectNodeData;
+
+    private string basePath;
+
+    private string lastOpenScene;
+
+    internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = [];
+
+    private readonly AppSettings editorSettings = AppSettings.Default;
+
+    private AppSettings projectAppSettings;
+
+    private readonly ProjectBrowser projectBrowser = new();
+
+    private LastProjectInfo lastProjects = new();
+
+    internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
+    #endregion
+
+    #region Editor
+    private readonly Dictionary<Entity, EntityBody> pickEntityBodies = [];
+
+    private readonly Dictionary<string, Editor> cachedEditors = [];
+
+    private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = [];
 
     private readonly Editor defaultEditor = new();
 
+    private readonly Dictionary<string, byte[]> registeredAssetTemplates = [];
+
+    private readonly Dictionary<string, Type> registeredAssetTypes = [];
+
+    private List<IEntityTemplate> registeredEntityTemplates = [];
+
+    private List<Type> registeredComponents = [];
+
+    internal List<EditorWindow> editorWindows = [];
+
+    private List<MenuItemInfo> menuItems = [];
+
+    private Dictionary<Entity, Texture> componentIcons = [];
+
+    private ImGuizmoMode transformMode = ImGuizmoMode.Local;
+
+    private ImGuizmoOperation transformOperation = ImGuizmoOperation.Translate;
+
+    internal readonly UndoStack undoStack = new();
+    #endregion
+
+    #region Game
     private StapleAssemblyLoadContext gameAssemblyLoadContext;
 
     private WeakReference<Assembly> gameAssembly;
+    #endregion
 
+    #region Build
     internal string buildBackend;
 
     internal AppPlatform currentPlatform = AppPlatform.Windows;
@@ -190,49 +255,13 @@ internal partial class StapleEditor
 
     internal float progressFraction = 0;
 
-    private bool shouldTerminate = false;
-
-    private PlayerSettings playerSettings;
-
     private readonly CSProjManager csProjManager = new();
-
-    private readonly ProjectBrowser projectBrowser = new();
-
-    private readonly Dictionary<string, byte[]> registeredAssetTemplates = new();
-
-    private readonly Dictionary<string, Type> registeredAssetTypes = new();
-
-    private List<IEntityTemplate> registeredEntityTemplates = new();
-
-    private List<Type> registeredComponents = new();
-
-    internal List<EditorWindow> editorWindows = new();
-
-    private List<MenuItemInfo> menuItems = new();
-
-    private Dictionary<Entity, Texture> componentIcons = new();
-
-    private Material componentIconMaterial;
-
-    public bool mouseIsHoveringImGui = false;
-
-    private bool hadFocus = true;
 
     private bool needsGameRecompile = false;
 
     private bool gameLoadDisabled = false;
 
-    private bool resetSelection = false;
-
-    internal Entity draggedEntity;
-
-    internal Entity dropTargetEntity;
-
-    private LastProjectInfo lastProjects = new();
-
     private FileSystemWatcher fileSystemWatcher;
-
-    internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
 
     private bool wasShowingMessageBox = false;
 
@@ -248,9 +277,12 @@ internal partial class StapleEditor
 
     private Action messageBoxNoAction;
 
-    private bool refreshingAssets = false;
+    internal Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = [];
 
-    internal Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = new();
+    private bool refreshingAssets = false;
+    #endregion
+
+    private bool shouldTerminate = false;
 
     private static WeakReference<StapleEditor> privInstance;
 
@@ -599,6 +631,16 @@ internal partial class StapleEditor
                 resetSelection = false;
 
                 SetSelectedEntity(selectedEntity);
+            }
+
+            if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Z))
+            {
+                undoStack.Undo();
+            }
+
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Y))
+            {
+                undoStack.Redo();
             }
 
             mouseIsHoveringImGui = true;

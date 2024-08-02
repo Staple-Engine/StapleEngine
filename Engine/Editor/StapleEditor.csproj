@@ -118,6 +118,7 @@
     <Compile Include="Templates\UIContainerTemplate.cs" />
     <Compile Include="Templates\UIImageTemplate.cs" />
     <Compile Include="Templates\UITextTemplate.cs" />
+    <Compile Include="UndoStack.cs" />
     <Compile Include="Windows\SpritePicker.cs" />
     <Compile Include="StapleEditor+BackgroundTask.cs" />
     <Compile Include="StapleEditor+Build.cs" />

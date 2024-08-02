@@ -274,8 +274,6 @@ internal class ImGuiProxy
 
         ImGui.PushFont(editorFont);
 
-        ImGuizmo.BeginFrame();
-
         frameBegun = true;
     }
 
