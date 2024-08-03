@@ -261,6 +261,10 @@ internal partial class StapleEditor
             refreshingAssets = true;
         }
 
+        projectBrowser.UpdateProjectBrowserNodes();
+
+        projectBrowser.CreateMissingMetaFiles();
+
         var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
 
         if(updateProject)
