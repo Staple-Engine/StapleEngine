@@ -12,6 +12,35 @@ namespace Baker;
 
 static partial class Program
 {
+    private static readonly string DefaultVaryingData = $$"""
+vec3 a_position     :   POSITION;
+vec3 a_normal       :   NORMAL;
+vec3 a_tangent      :   TANGENT;
+vec3 a_bitangent    :   BITANGENT;
+vec4 a_color0       :   COLOR0;
+vec4 a_color1       :   COLOR1;
+vec4 a_color2       :   COLOR2;
+vec4 a_color3       :   COLOR3;
+vec4 a_weight       :   BLENDWEIGHT;
+vec4 a_indices      :   BLENDINDICES;
+vec2 a_texcoord0    :   TEXCOORD0;
+vec2 a_texcoord1    :   TEXCOORD1;
+vec2 a_texcoord2    :   TEXCOORD2;
+vec2 a_texcoord3    :   TEXCOORD3;
+vec2 a_texcoord4    :   TEXCOORD4;
+vec2 a_texcoord5    :   TEXCOORD5;
+vec2 a_texcoord6    :   TEXCOORD6;
+vec2 a_texcoord7    :   TEXCOORD7;
+vec4 i_data0        :   TEXCOORD7;
+vec4 i_data1        :   TEXCOORD6;
+vec4 i_data2        :   TEXCOORD5;
+vec4 i_data3        :   TEXCOORD4;
+vec4 i_data4        :   TEXCOORD3;
+vec4 i_data5        :   TEXCOORD2;
+vec4 i_data6        :   TEXCOORD1;
+vec4 i_data7        :   TEXCOORD0;
+""";
+
     private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
     {
         var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
@@ -504,10 +533,7 @@ static partial class Program
                                     return;
                                 }
 
-                                var varying = $"""
-vec4 a_weight : BLENDWEIGHT;
-vec4 a_indices : BLENDINDICES;
-""";
+                                var varying = DefaultVaryingData;
 
                                 if (shader.parameters != null)
                                 {
