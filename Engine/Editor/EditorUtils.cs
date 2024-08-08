@@ -289,20 +289,14 @@ public static class EditorUtils
     {
         var editor = StapleEditor.instance;
 
-        editor.showingProgress = true;
-        editor.progressFraction = 0;
-
-        editor.StartBackgroundTask((ref float progressFraction) =>
+        editor.RefreshAssets(updateProject, () =>
         {
-            editor.RefreshAssets(updateProject);
-
             ThumbnailCache.Clear();
 
             onFinish?.Invoke();
-
-            return true;
         });
     }
+
     public static void ShowMessageBox(string message, string buttonTitle, Action callback)
     {
         StapleEditor.instance.ShowMessageBox(message, buttonTitle, callback);

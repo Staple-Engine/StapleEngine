@@ -87,47 +87,56 @@ internal partial class StapleEditor
 
         csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT);
 
-        RefreshStaging(backend.platform, false);
-
-        try
+        RefreshStaging(backend.platform, () =>
         {
-            File.Copy(Path.Combine(basePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
-        }
-        catch (Exception)
-        {
-        }
-
-        lock (backgroundLock)
-        {
-            progressFraction = 0.1f;
-        }
-
-        try
-        {
-            Directory.CreateDirectory(targetResourcesPath);
-        }
-        catch (Exception)
-        {
-        }
-
-        var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
-
-        try
-        {
-            var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{backend.platform}.pak");
-
-            if (File.Exists(defaultResourcesPath) == false)
+            try
             {
-                Log.Error($"Failed to build player: Missing DefaultResources-{backend.platform} pak file");
+                File.Copy(Path.Combine(basePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
+            }
+            catch (Exception)
+            {
+            }
 
-                ShowFailureMessage();
-
-                return;
+            lock (backgroundLock)
+            {
+                progressFraction = 0.1f;
             }
 
             try
             {
-                File.Copy(defaultResourcesPath, Path.Combine(targetResourcesPath, "DefaultResources.pak"), true);
+                Directory.CreateDirectory(targetResourcesPath);
+            }
+            catch (Exception)
+            {
+            }
+
+            var baseResourcesPath = Path.Combine(StapleBasePath, "DefaultResources");
+
+            try
+            {
+                var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{backend.platform}.pak");
+
+                if (File.Exists(defaultResourcesPath) == false)
+                {
+                    Log.Error($"Failed to build player: Missing DefaultResources-{backend.platform} pak file");
+
+                    ShowFailureMessage();
+
+                    return;
+                }
+
+                try
+                {
+                    File.Copy(defaultResourcesPath, Path.Combine(targetResourcesPath, "DefaultResources.pak"), true);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to build player: {e}");
+
+                    ShowFailureMessage();
+
+                    return;
+                }
             }
             catch (Exception e)
             {
@@ -137,161 +146,153 @@ internal partial class StapleEditor
 
                 return;
             }
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Failed to build player: {e}");
 
-            ShowFailureMessage();
-
-            return;
-        }
-
-        if (backend.dataDirIsOutput)
-        {
-            if (CSProjManager.CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.basePath, configurationName) == false)
+            if (backend.dataDirIsOutput)
             {
-                Log.Error($"Failed to build player: Failed to copy redistributable files");
+                if (CSProjManager.CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.basePath, configurationName) == false)
+                {
+                    Log.Error($"Failed to build player: Failed to copy redistributable files");
 
-                ShowFailureMessage();
+                    ShowFailureMessage();
 
-                return;
+                    return;
+                }
+
+                if (EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
+                {
+                    Log.Error($"Failed to build player: Failed to copy redistributable files");
+
+                    ShowFailureMessage();
+
+                    return;
+                }
             }
 
-            if (EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
+            lock (backgroundLock)
             {
-                Log.Error($"Failed to build player: Failed to copy redistributable files");
-
-                ShowFailureMessage();
-
-                return;
+                progressFraction = 0.6f;
             }
-        }
 
-        lock (backgroundLock)
-        {
-            progressFraction = 0.6f;
-        }
+            var args = $"-p -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, "Resources.pak")}\"";
 
-        var args = $"-p -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, "Resources.pak")}\"";
-
-        var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
-        {
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
-            WorkingDirectory = Environment.CurrentDirectory
-        };
-
-        var process = new Process
-        {
-            StartInfo = processInfo
-        };
-
-        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
-
-        if ((process.HasExited && process.ExitCode == 0) == false)
-        {
-            Log.Error($"Failed to build player: Unable to pack resources");
-
-            ShowFailureMessage();
-
-            return;
-        }
-
-        if(assetsOnly)
-        {
-            return;
-        }
-
-        if(backend.publish)
-        {
-            args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained -p:UseAppHost=true";
-        }
-        else
-        {
-            args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
-        }
-
-        processInfo = new ProcessStartInfo("dotnet", args)
-        {
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
-            WorkingDirectory = Environment.CurrentDirectory
-        };
-
-        process = new Process
-        {
-            StartInfo = processInfo
-        };
-
-        Log.Debug($"[Build] dotnet {args}");
-
-        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
-
-        if ((process.HasExited && process.ExitCode == 0) == false)
-        {
-            Log.Error($"Failed to build player: Unable to complete build");
-
-            ShowFailureMessage();
-
-            return;
-        }
-
-        try
-        {
-            var projectExtension = backend.platform switch
+            var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
             {
-                AppPlatform.Windows => ".exe",
-                _ => "",
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
             };
 
-            File.Move(Path.Combine(outPath, $"Player{projectExtension}"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}{projectExtension}"), true);
-
-            if(debug)
+            var process = new Process
             {
-                File.Move(Path.Combine(outPath, $"Player.pdb"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}.pdb"), true);
+                StartInfo = processInfo
+            };
+
+            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+
+            if ((process.HasExited && process.ExitCode == 0) == false)
+            {
+                Log.Error($"Failed to build player: Unable to pack resources");
+
+                ShowFailureMessage();
+
+                return;
+            }
+
+            if (assetsOnly)
+            {
+                return;
+            }
+
+            if (backend.publish)
+            {
+                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained -p:UseAppHost=true";
             }
             else
             {
-                var pdbs = Directory.GetFiles(outPath, "*.pdb");
-
-                foreach(var file in pdbs)
-                {
-                    File.Delete(file);
-                }
+                args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
             }
-        }
-        catch (Exception)
-        {
-        }
 
-        foreach (var processor in postprocessors)
-        {
-            try
+            processInfo = new ProcessStartInfo("dotnet", args)
             {
-                var instance = (IBuildPostprocessor)Activator.CreateInstance(processor);
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = Environment.CurrentDirectory
+            };
 
-                if(instance.OnPostprocessBuild(buildInfo) == BuildProcessorResult.Failed)
-                {
-                    throw new Exception($"Build Postprocessor failed. Please check your logs for details");
-                }
-            }
-            catch (Exception e)
+            process = new Process
             {
-                Log.Error($"Failed to execute Build Postprocessor {processor.FullName}: {e}");
+                StartInfo = processInfo
+            };
+
+            Log.Debug($"[Build] dotnet {args}");
+
+            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+
+            if ((process.HasExited && process.ExitCode == 0) == false)
+            {
+                Log.Error($"Failed to build player: Unable to complete build");
 
                 ShowFailureMessage();
+
+                return;
             }
-        }
 
-        lock (backgroundLock)
-        {
-            progressFraction = 1;
-        }
+            try
+            {
+                var projectExtension = backend.platform switch
+                {
+                    AppPlatform.Windows => ".exe",
+                    _ => "",
+                };
 
-        ShowMessageBox("Player built successfully!", "OK", null);
+                File.Move(Path.Combine(outPath, $"Player{projectExtension}"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}{projectExtension}"), true);
+
+                if (debug)
+                {
+                    File.Move(Path.Combine(outPath, $"Player.pdb"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}.pdb"), true);
+                }
+                else
+                {
+                    var pdbs = Directory.GetFiles(outPath, "*.pdb");
+
+                    foreach (var file in pdbs)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            foreach (var processor in postprocessors)
+            {
+                try
+                {
+                    var instance = (IBuildPostprocessor)Activator.CreateInstance(processor);
+
+                    if (instance.OnPostprocessBuild(buildInfo) == BuildProcessorResult.Failed)
+                    {
+                        throw new Exception($"Build Postprocessor failed. Please check your logs for details");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to execute Build Postprocessor {processor.FullName}: {e}");
+
+                    ShowFailureMessage();
+                }
+            }
+
+            lock (backgroundLock)
+            {
+                progressFraction = 1;
+            }
+
+            ShowMessageBox("Player built successfully!", "OK", null);
+        }, false);
     }
 
     /// <summary>

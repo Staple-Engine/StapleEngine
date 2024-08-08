@@ -123,8 +123,6 @@ internal partial class StapleEditor
     internal const int SceneView = 253;
     internal const int WireframeView = 254;
 
-    internal delegate bool BackgroundTaskProgressCallback(ref float progress);
-
     #region Background Tasks
     private readonly List<Thread> backgroundThreads = new();
     private readonly object backgroundLock = new();
@@ -254,6 +252,8 @@ internal partial class StapleEditor
     internal bool wasShowingProgress = false;
 
     internal float progressFraction = 0;
+
+    internal string progressMessage = "";
 
     private readonly CSProjManager csProjManager = new();
 
@@ -833,15 +833,7 @@ internal partial class StapleEditor
 
                     ImGui.OpenPopup("ShowingProgress");
 
-                    showingProgress = true;
-                    progressFraction = 0;
-
-                    StartBackgroundTask((ref float progress) =>
-                    {
-                        RefreshStaging(currentPlatform);
-
-                        return true;
-                    });
+                    RefreshStaging(currentPlatform, null);
                 }
             }
 

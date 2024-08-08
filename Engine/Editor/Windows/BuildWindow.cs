@@ -156,17 +156,16 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.UpdateLastSession();
 
-                StapleEditor.instance.showingProgress = true;
-                StapleEditor.instance.progressFraction = 0;
-
                 ImGui.OpenPopup("ShowingProgress");
 
-                StapleEditor.instance.StartBackgroundTask((ref float progressFraction) =>
+                IEnumerator<(bool, string, float)> Handle()
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, false);
 
-                    return true;
-                });
+                    yield return (true, "", 1);
+                }
+
+                StapleEditor.instance.StartBackgroundTask(Handle());
             }
             else
             {
@@ -192,12 +191,14 @@ internal class BuildWindow : EditorWindow
 
                 ImGui.OpenPopup("ShowingProgress");
 
-                StapleEditor.instance.StartBackgroundTask((ref float progressFraction) =>
+                IEnumerator<(bool, string, float)> Handle()
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, true);
 
-                    return true;
-                });
+                    yield return (true, "", 1);
+                }
+
+                StapleEditor.instance.StartBackgroundTask(Handle());
             }
             else
             {

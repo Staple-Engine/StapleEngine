@@ -147,8 +147,6 @@ public class Utilities
     {
         process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
 
-        var result = "";
-
         using var waitHandle = new AutoResetEvent(false);
 
         process.OutputDataReceived += (sender, args) =>
@@ -170,5 +168,34 @@ public class Utilities
         process.WaitForExit(300000);
 
         waitHandle.WaitOne();
+    }
+
+    public static void ExecuteAndCollectProcessAsync(Process process, Action<string> messageCallback, Action onFinish)
+    {
+        process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
+
+        process.OutputDataReceived += (sender, args) =>
+        {
+            if (args.Data == null)
+            {
+                onFinish?.Invoke();
+
+                return;
+            }
+
+            Log.Info(args.Data);
+
+            try
+            {
+                messageCallback?.Invoke(args.Data);
+            }
+            catch(Exception)
+            {
+            }
+        };
+
+        process.Start();
+
+        process.BeginOutputReadLine();
     }
 }

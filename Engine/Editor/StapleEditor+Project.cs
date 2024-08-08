@@ -5,14 +5,17 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Staple.Internal;
 using System.Reflection;
-using MessagePack;
 using System.Linq;
 using NfdSharp;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    private static Regex stagingProgressRegex = StagingProgressRegex();
+
     private void ImGuiNewProject()
     {
         var result = Nfd.PickFolder("", out var projectPath);
@@ -191,55 +194,60 @@ internal partial class StapleEditor
 
         fileSystemWatcher.EnableRaisingEvents = true;
 
-        RefreshStaging(currentPlatform);
-
-        if ((lastOpenScene?.Length ?? 0) > 0)
+        RefreshStaging(currentPlatform, () =>
         {
-            var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
-
-            Scene.SetActiveScene(scene);
-
-            ResetScenePhysics(false);
-        }
-        else
-        {
-            Scene.SetActiveScene(null);
-
-            ResetScenePhysics(false);
-        }
-
-        lastProjects.lastOpenProject = path;
-
-        var target = lastProjects.items.FirstOrDefault(x => x.path == path);
-
-        if (target != null)
-        {
-            target.date = DateTime.Now;
-        }
-        else
-        {
-            lastProjects.items.Add(new LastProjectItem()
+            ThreadHelper.Dispatch(() =>
             {
-                name = Path.GetFileName(path),
-                path = path,
-                date = DateTime.Now,
+                if ((lastOpenScene?.Length ?? 0) > 0)
+                {
+                    var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+
+                    Scene.SetActiveScene(scene);
+
+                    ResetScenePhysics(false);
+                }
+                else
+                {
+                    Scene.SetActiveScene(null);
+
+                    ResetScenePhysics(false);
+                }
+
+                lastProjects.lastOpenProject = path;
+
+                var target = lastProjects.items.FirstOrDefault(x => x.path == path);
+
+                if (target != null)
+                {
+                    target.date = DateTime.Now;
+                }
+                else
+                {
+                    lastProjects.items.Add(new LastProjectItem()
+                    {
+                        name = Path.GetFileName(path),
+                        path = path,
+                        date = DateTime.Now,
+                    });
+                }
+
+                SaveLastProjects();
+
+                csProjManager.CollectGameScriptModifyStates();
+
+                window.Title = $"Staple Editor - {Path.GetFileName(path)}";
             });
-        }
-
-        SaveLastProjects();
-
-        csProjManager.CollectGameScriptModifyStates();
-
-        window.Title = $"Staple Editor - {Path.GetFileName(path)}";
+        });
     }
 
     /// <summary>
     /// Refreshes the current assets and optionally updates the C# project
     /// </summary>
+    /// <param name="onFinish">Callback when finished</param>
     /// <param name="updateProject">Whether to update the project</param>
-    public void RefreshAssets(bool updateProject)
+    public void RefreshAssets(bool updateProject, Action onFinish)
     {
-        RefreshStaging(currentPlatform, updateProject);
+        RefreshStaging(currentPlatform, onFinish, updateProject);
 
         projectBrowser.UpdateProjectBrowserNodes();
     }
@@ -248,10 +256,11 @@ internal partial class StapleEditor
     /// Refreshes the assets cache and optionally updates the C# project
     /// </summary>
     /// <param name="platform">The current platform</param>
+    /// <param name="onFinish">Callback when finished</param>
     /// <param name="updateProject">Whether to update the project</param>
-    public void RefreshStaging(AppPlatform platform, bool updateProject = true)
+    public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = true)
     {
-        if(gameLoadDisabled)
+        if(gameLoadDisabled || refreshingAssets)
         {
             return;
         }
@@ -282,119 +291,184 @@ internal partial class StapleEditor
             return;
         }
 
-        if(projectAppSettings.renderers.TryGetValue(platform, out var renderers))
+        var progress = 0.0f;
+        var message = "";
+        var result = false;
+
+        Task.Run(() =>
         {
-            var rendererParameters = new HashSet<string>();
-
-            foreach(var item in renderers)
+            try
             {
-                switch(item)
+                if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
                 {
-                    case RendererType.Direct3D11:
+                    var rendererParameters = new HashSet<string>();
 
-                        rendererParameters.Add("-r d3d11");
+                    foreach (var item in renderers)
+                    {
+                        switch (item)
+                        {
+                            case RendererType.Direct3D11:
 
-                        break;
+                                rendererParameters.Add("-r d3d11");
 
-                    case RendererType.Direct3D12:
+                                break;
 
-                        rendererParameters.Add("-r d3d12");
+                            case RendererType.Direct3D12:
 
-                        break;
+                                rendererParameters.Add("-r d3d12");
 
-                    case RendererType.Metal:
+                                break;
 
-                        rendererParameters.Add("-r metal");
+                            case RendererType.Metal:
 
-                        break;
+                                rendererParameters.Add("-r metal");
 
-                    case RendererType.OpenGL:
+                                break;
 
-                        rendererParameters.Add("-r opengl");
+                            case RendererType.OpenGL:
 
-                        break;
+                                rendererParameters.Add("-r opengl");
 
-                    case RendererType.OpenGLES:
+                                break;
 
-                        rendererParameters.Add("-r opengles");
+                            case RendererType.OpenGLES:
 
-                        break;
+                                rendererParameters.Add("-r opengles");
 
-                    case RendererType.Vulkan:
+                                break;
 
-                        rendererParameters.Add("-r spirv");
+                            case RendererType.Vulkan:
 
-                        break;
+                                rendererParameters.Add("-r spirv");
+
+                                break;
+                        }
+                    }
+
+                    var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
+
+                    var processInfo = new ProcessStartInfo(bakerPath, args)
+                    {
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        WorkingDirectory = Environment.CurrentDirectory
+                    };
+
+                    var process = new Process
+                    {
+                        StartInfo = processInfo
+                    };
+
+                    Staple.Tooling.Utilities.ExecuteAndCollectProcessAsync(process,
+                        (m) =>
+                        {
+                            message = m;
+
+                            var match = stagingProgressRegex.Match(m);
+
+                            if(match.Success &&
+                                int.TryParse(match.Groups[1].Value, out var left) &&
+                                int.TryParse(match.Groups[2].Value, out var right))
+                            {
+                                progress = left / (float)right;
+
+                                message = match.Groups[3].Value;
+                            }
+                        },
+                        () =>
+                        {
+                            ThreadHelper.Dispatch(() =>
+                            {
+                                foreach (var pair in ResourceManager.instance.cachedMeshes)
+                                {
+                                    pair.Value.Destroy();
+                                }
+
+                                ResourceManager.instance.cachedMeshAssets.Clear();
+                                ResourceManager.instance.cachedMeshes.Clear();
+
+                                if (World.Current != null)
+                                {
+                                    Scene.IterateEntities((entity) =>
+                                    {
+                                        entity.IterateComponents((ref IComponent component) =>
+                                        {
+                                            var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+                                            foreach (var field in fields)
+                                            {
+                                                if (field.FieldType == typeof(Texture))
+                                                {
+                                                    var value = (Texture)field.GetValue(component);
+
+                                                    if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
+                                                    {
+                                                        field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
+                                                    }
+                                                }
+                                                else if (field.FieldType == typeof(Mesh))
+                                                {
+                                                    var value = (Mesh)field.GetValue(component);
+
+                                                    if (value != null && (value.Guid?.Length ?? 0) > 0)
+                                                    {
+                                                        field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
+
+                                AssetDatabase.Reload();
+                                projectBrowser.UpdateProjectBrowserNodes();
+                            });
+
+                            lock (backgroundLock)
+                            {
+                                refreshingAssets = false;
+
+                                result = true;
+                            }
+                        });
                 }
             }
-
-            var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
-
-            var processInfo = new ProcessStartInfo(bakerPath, args)
+            catch (Exception)
             {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
-
-            var process = new Process
-            {
-                StartInfo = processInfo
-            };
-
-            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
-
-            foreach(var pair in ResourceManager.instance.cachedMeshes)
-            {
-                pair.Value.Destroy();
-            }
-
-            ResourceManager.instance.cachedMeshAssets.Clear();
-            ResourceManager.instance.cachedMeshes.Clear();
-
-            if (World.Current != null)
-            {
-                Scene.IterateEntities((entity) =>
+                lock (backgroundLock)
                 {
-                    entity.IterateComponents((ref IComponent component) =>
-                    {
-                        var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+                    refreshingAssets = false;
 
-                        foreach(var field in fields)
-                        {
-                            if(field.FieldType == typeof(Texture))
-                            {
-                                var value = (Texture)field.GetValue(component);
-
-                                if(value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
-                                {
-                                    field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
-                                }
-                            }
-                            else if(field.FieldType == typeof(Mesh))
-                            {
-                                var value = (Mesh)field.GetValue(component);
-
-                                if(value != null && (value.Guid?.Length ?? 0) > 0)
-                                {
-                                    field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
-                                }
-                            }
-                        }
-                    });
-                });
+                    result = true;
+                }
             }
+        });
 
-            AssetDatabase.Reload();
-            projectBrowser.UpdateProjectBrowserNodes();
-
-            lock (backgroundLock)
+        IEnumerator<(bool, string, float)> Handle()
+        {
+            while (result != true)
             {
-                refreshingAssets = false;
+                yield return (result, message, progress);
             }
+
+            ThreadHelper.Dispatch(() =>
+            {
+                try
+                {
+                    onFinish?.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.ToString());
+                }
+            });
+
+            yield return (true, "", 1);
         }
+
+        StartBackgroundTask(Handle());
     }
 
     /// <summary>
@@ -471,4 +545,7 @@ internal partial class StapleEditor
 
         return true;
     }
+
+    [GeneratedRegex("\\[(.*?)\\/(.*?)\\]((.|\\n)*)")]
+    private static partial Regex StagingProgressRegex();
 }

@@ -110,7 +110,7 @@ internal partial class StapleEditor
 
                 Directory.CreateDirectory(path);
 
-                RefreshAssets(false);
+                RefreshAssets(false, null);
             }
             catch (Exception e)
             {
@@ -133,7 +133,7 @@ internal partial class StapleEditor
                 {
                     File.WriteAllBytes(assetPath, pair.Value);
 
-                    RefreshAssets(assetPath.EndsWith(".cs"));
+                    RefreshAssets(assetPath.EndsWith(".cs"), null);
                 }
                 catch (Exception e)
                 {
@@ -158,7 +158,7 @@ internal partial class StapleEditor
 
                     if (assetInstance != null && SaveAsset(assetPath, assetInstance))
                     {
-                        RefreshAssets(false);
+                        RefreshAssets(false, null);
                     }
                 }
                 catch (Exception e)
@@ -261,6 +261,22 @@ internal partial class StapleEditor
                 EditorGUI.Menu("Create", "ASSETSCREATE", () =>
                 {
                     CreateAssetMenu();
+                });
+
+                EditorGUI.Separator();
+
+                EditorGUI.MenuItem("Reimport all", "ASSETSREIMPORT", () =>
+                {
+                    try
+                    {
+                        Directory.Delete(Path.Combine(basePath, "Cache", "Staging"), true);
+                        Directory.Delete(Path.Combine(basePath, "Cache", "Thumbnails"), true);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    RefreshStaging(currentPlatform, null);
                 });
             });
 
@@ -1228,6 +1244,7 @@ internal partial class StapleEditor
                 ImGuiWindowFlags.NoResize |
                 ImGuiWindowFlags.NoMove);
 
+            ImGui.Text(progressMessage ?? "");
             ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
 
             ImGui.EndPopup();
