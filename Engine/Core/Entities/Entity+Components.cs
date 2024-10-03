@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 
 namespace Staple;
 
@@ -85,6 +86,112 @@ public partial struct Entity
         }
 
         return World.Current.GetComponent<T>(this);
+    }
+
+    /// <summary>
+    /// Attempts to get a component from this entity
+    /// </summary>
+    /// <param name="t">The component type</param>
+    /// <param name="includeSelf">Whether to include components from this entity</param>
+    /// <returns>The component instance, or default</returns>
+    public IComponent[] GetComponentsInChildren(Type t, bool includeSelf = true)
+    {
+        if (World.Current == null)
+        {
+            return default;
+        }
+
+        var result = new List<IComponent>();
+
+        if(includeSelf && World.Current.TryGetComponent(this, out var c, t))
+        {
+            result.Add(c);
+        }
+
+        void Recursive(Entity e)
+        {
+            if(e.TryGetComponent(out c, t))
+            {
+                result.Add(c);
+            }
+
+            var transform = e.GetComponent<Transform>();
+
+            if(transform != null)
+            {
+                foreach (var child in transform)
+                {
+                    Recursive(child.entity);
+                }
+            }
+        }
+
+        var transform = GetComponent<Transform>();
+
+        if(transform == null)
+        {
+            return result.ToArray();
+        }
+
+        foreach(var child in transform)
+        {
+            Recursive(child.entity);
+        }
+
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// Attempts to get a component from this entity
+    /// </summary>
+    /// <typeparam name="T">The component type</typeparam>
+    /// <param name="includeSelf">Whether to include components from this entity</param>
+    /// <returns>The component instance, or default</returns>
+    public T[] GetComponentsInChildren<T>(bool includeSelf = true) where T : IComponent
+    {
+        if (World.Current == null)
+        {
+            return default;
+        }
+
+        var result = new List<T>();
+
+        if (includeSelf && World.Current.TryGetComponent<T>(this, out var c))
+        {
+            result.Add(c);
+        }
+
+        void Recursive(Entity e)
+        {
+            if (e.TryGetComponent(out c))
+            {
+                result.Add(c);
+            }
+
+            var transform = e.GetComponent<Transform>();
+
+            if (transform != null)
+            {
+                foreach (var child in transform)
+                {
+                    Recursive(child.entity);
+                }
+            }
+        }
+
+        var transform = GetComponent<Transform>();
+
+        if (transform == null)
+        {
+            return result.ToArray();
+        }
+
+        foreach (var child in transform)
+        {
+            Recursive(child.entity);
+        }
+
+        return result.ToArray();
     }
 
     /// <summary>

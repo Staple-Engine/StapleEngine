@@ -395,10 +395,7 @@ internal class ProjectBrowser
             {
                 static string Hash()
                 {
-                    //Guid collision fix
-                    Thread.Sleep(25);
-
-                    return Guid.NewGuid().ToString();
+                    return GuidGenerator.Generate().ToString();
                 }
 
                 if (node.type == ProjectBrowserNodeType.Folder)

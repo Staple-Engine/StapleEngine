@@ -320,6 +320,10 @@ static partial class Program
             return;
         }
 
+        ProcessMeshes(platform, inputPath, outputPath);
+
+        WorkScheduler.WaitForTasks();
+
         ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
 
         WorkScheduler.WaitForTasks();
@@ -329,10 +333,6 @@ static partial class Program
         WorkScheduler.WaitForTasks();
 
         ProcessAudio(platform, inputPath, outputPath);
-
-        WorkScheduler.WaitForTasks();
-
-        ProcessMeshes(platform, inputPath, outputPath);
 
         WorkScheduler.WaitForTasks();
 

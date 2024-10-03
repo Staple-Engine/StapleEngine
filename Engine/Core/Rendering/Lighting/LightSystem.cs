@@ -102,7 +102,7 @@ public class LightSystem : IRenderSystem
         }
     }
 
-    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)
+    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition, List<(Transform, Light)> lights)
     {
         if ((material?.IsValid ?? false) == false)
         {
@@ -137,7 +137,7 @@ public class LightSystem : IRenderSystem
 
         lightCount.X = targets.Count;
 
-        for(var i = 0; i < targets.Count; i++)
+        for (var i = 0; i < targets.Count; i++)
         {
             lightTypePositions[i] = new((float)targets[i].Item2.type,
                 targets[i].Item1.Position.X,
@@ -163,5 +163,10 @@ public class LightSystem : IRenderSystem
         material.shader.SetVector4(LightTypePositionKey, lightTypePositions);
         material.shader.SetVector4(LightDiffuseKey, lightDiffuse);
         material.shader.SetVector4(LightSpotDirectionKey, lightSpotDirection);
+    }
+
+    public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)
+    {
+        ApplyLightProperties(transform, material, cameraPosition, lights);
     }
 }

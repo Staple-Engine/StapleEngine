@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple;
+using System;
 using System.Threading;
 
 namespace Baker;
@@ -37,8 +38,9 @@ internal static class WorkScheduler
             {
                 task();
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Log.Error($"Failed to process {fileName}: {e}");
             }
 
             lock (syncObject)

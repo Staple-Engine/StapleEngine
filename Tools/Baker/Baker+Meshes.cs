@@ -272,6 +272,7 @@ static partial class Program
                 var counter = 0;
 
                 var materialMapping = new List<string>();
+                var materialEmbeddedTextures = new Dictionary<string, string>();
 
                 lock(meshMaterialLock)
                 {
@@ -316,7 +317,12 @@ static partial class Program
                             materialMetadata.cullingMode = CullingMode.None;
                         }
 
-                        var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "").Substring(1);
+                        var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "");
+                        
+                        if(basePath.Length > 0)
+                        {
+                            basePath = basePath.Substring(1);
+                        }
 
                         void AddColor(string name, bool has, Assimp.Color4D color)
                         {
@@ -361,7 +367,18 @@ static partial class Program
                                     {
                                         if (texture.IsCompressed)
                                         {
-                                            texturePath = $"{texture.Filename}.{texture.CompressedFormatHint}";
+                                            var guid = GuidGenerator.Generate().ToString();
+
+                                            if((texture.Filename?.Length ?? 0) > 0)
+                                            {
+                                                texturePath = $"{texture.Filename}.{texture.CompressedFormatHint}";
+                                            }
+                                            else if(materialEmbeddedTextures.TryGetValue(slot.FilePath, out texturePath) == false)
+                                            {
+                                                texturePath = $"{guid}.{texture.CompressedFormatHint}";
+
+                                                materialEmbeddedTextures.AddOrSetKey(slot.FilePath, texturePath);
+                                            }
 
                                             try
                                             {
@@ -376,6 +393,27 @@ static partial class Program
                                             {
                                             }
 
+                                            try
+                                            {
+                                                var t = Path.Combine(Path.GetDirectoryName(meshFileName), $"{texturePath}.meta");
+
+                                                if (File.Exists(t) == false)
+                                                {
+                                                    var metadata = new TextureMetadata()
+                                                    {
+                                                        guid = guid,
+                                                    };
+
+                                                    var json = JsonConvert.SerializeObject(metadata, Formatting.Indented,
+                                                        Staple.Tooling.Utilities.JsonSettings);
+
+                                                    File.WriteAllText(t, json);
+                                                }
+                                            }
+                                            catch (Exception)
+                                            {
+                                            }
+
                                             texturePath = Path.Combine(basePath, texturePath).Replace("\\", "/");
                                         }
                                     }
@@ -383,6 +421,7 @@ static partial class Program
                                 else
                                 {
                                     var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
+
                                     texturePath = slot.FilePath;
 
                                     while (pieces.Count > 0)
