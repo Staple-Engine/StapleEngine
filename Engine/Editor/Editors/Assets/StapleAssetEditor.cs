@@ -7,4 +7,16 @@ public class StapleAssetEditor : AssetEditor
     {
         StapleEditor.SaveAsset(path, (IStapleAsset)target);
     }
+
+    public void ShowInspectorGUI()
+    {
+        base.OnInspectorGUI();
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        ShowAssetUI(null);
+    }
 }
