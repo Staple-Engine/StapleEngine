@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ static class Program
 
     private static Mode mode;
     private static string outputPath;
+    private static bool recursive = false;
     private static List<string> inputDirectories = new();
 
     public static void Main(string[] args)
@@ -27,6 +29,7 @@ static class Program
                 "Packer\n" +
                 "\t-o [path]: set output file name\n" +
                 "\t-i [path]: add input directory (can repeat)\n" +
+                "\t-r: search subfolders as well\n" +
                 "\t-p: set mode to pack\n" +
                 "\t-up: set mode to unpack\n" +
                 "\t-l: set mode to list\n");
@@ -44,7 +47,7 @@ static class Program
 
                     if (i + 1 >= args.Length)
                     {
-                        Console.WriteLine("Invalid argument `-o`: missing output path");
+                        Console.WriteLine("Error: Invalid argument `-o`: missing output path");
 
                         Environment.Exit(1);
 
@@ -61,7 +64,7 @@ static class Program
 
                     if (i + 1 >= args.Length)
                     {
-                        Console.WriteLine("Invalid argument `-i`: missing input directory path");
+                        Console.WriteLine("Error: Invalid argument `-i`: missing input directory path");
 
                         Environment.Exit(1);
 
@@ -77,6 +80,12 @@ static class Program
                 case "-p":
 
                     mode = Mode.Pack;
+
+                    break;
+
+                case "-r":
+
+                    recursive = true;
 
                     break;
 
@@ -108,7 +117,7 @@ static class Program
 
                     if (input == null)
                     {
-                        Console.WriteLine($"Failed to list files: no input was set. Make sure to use `-i` to specify the file.");
+                        Console.WriteLine($"Error: Failed to list files: no input was set. Make sure to use `-i` to specify the file.");
 
                         Environment.Exit(1);
                     }
@@ -121,7 +130,7 @@ static class Program
 
                         if(pack.Deserialize(stream) == false)
                         {
-                            Console.WriteLine($"Failed to load package at {input}");
+                            Console.WriteLine($"Error: Failed to load package at {input}");
 
                             Environment.Exit(1);
                         }
@@ -135,7 +144,7 @@ static class Program
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine($"Failed to list files at {input}");
+                        Console.WriteLine($"Error: Failed to list files at {input}");
 
                         Environment.Exit(1);
                     }
@@ -148,10 +157,12 @@ static class Program
                 {
                     if((outputPath?.Length ?? 0) == 0)
                     {
-                        Console.WriteLine($"Unable to pack: Missing `-o` parameter.");
+                        Console.WriteLine($"Error: Unable to pack: Missing `-o` parameter.");
 
                         Environment.Exit(1);
                     }
+
+                    var targetPakName = Path.GetFileNameWithoutExtension(outputPath);
 
                     var filePaths = new List<string>();
                     var localFilePaths = new List<string>();
@@ -159,17 +170,85 @@ static class Program
                     var fileTypes = new List<string>();
                     var fileStreams = new List<Stream>();
 
-                    void Recursive(string basePath, string current)
+                    /*
+                     * We want to filter for invalid subfolders but this can be tricky,
+                     * because this is recursive this means that we may go into a folder that has no pakName
+                     * and therefore think it's invalid.
+                     * We can't assume pakName-less folders are valid either.
+                     * So we basically start with an empty pak name and keep searching till we find a valid pak name and then add those files.
+                     * However, we still gotta recursive because our folders might be someplace else, so we have to keep going either way.
+                    */
+                    (bool, string) IsValidSubfolder(string path, string currentPakName)
+                    {
+                        try
+                        {
+                            if(File.Exists($"{path}.meta"))
+                            {
+                                var json = File.ReadAllText($"{path}.meta");
+
+                                var folderAsset = JsonConvert.DeserializeObject<FolderAsset>(json, Staple.Tooling.Utilities.JsonSettings);
+
+                                var pakName = folderAsset.pakName;
+
+                                Console.WriteLine($"ValidSubfolder: {pakName ?? "null"} {currentPakName ?? "null"} {targetPakName}");
+
+                                if(pakName == targetPakName)
+                                {
+                                    Console.WriteLine("Valid PakName");
+                                    return (true, targetPakName);
+                                }
+                                else if(folderAsset.pakName == null)
+                                {
+                                    Console.WriteLine("Valid PakName null");
+                                    return (currentPakName == targetPakName, null);
+                                }
+
+                                return (false, folderAsset.pakName);
+                            }
+
+                            return (currentPakName == targetPakName, null);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Warning: Subfolder {path} ignored due to error: {e}");
+
+                            return (false, null);
+                        }
+                    }
+
+                    void Recursive(string basePath, string current, string currentPakName)
                     {
                         var directories = Directory.GetDirectories(current);
                         var files = Directory.GetFiles(current);
 
-                        foreach(var directory in directories)
+                        void Finish()
                         {
-                            Recursive(basePath, directory);
+                            if (recursive)
+                            {
+                                foreach (var directory in directories)
+                                {
+                                    Recursive(basePath, directory, currentPakName);
+                                }
+                            }
                         }
 
-                        foreach(var file in files)
+                        var validation = IsValidSubfolder(current, currentPakName);
+
+                        if (validation.Item1 == false)
+                        {
+                            currentPakName = validation.Item2 ?? currentPakName;
+
+                            Finish();
+
+                            return;
+                        }
+
+                        if(validation.Item2 != null && validation.Item2 != currentPakName)
+                        {
+                            currentPakName = validation.Item2;
+                        }
+
+                        foreach (var file in files)
                         {
                             if(file.EndsWith(".meta"))
                             {
@@ -190,6 +269,8 @@ static class Program
                             fileStreams.Add(new FileStream(file, FileMode.Open));
                             fileGuids.Add(guid);
                         }
+
+                        Finish();
                     }
 
                     try
@@ -198,12 +279,12 @@ static class Program
                         {
                             var normalized = Path.GetFullPath(input);
 
-                            Recursive(normalized, normalized);
+                            Recursive(normalized, normalized, targetPakName == "Resources" || targetPakName.StartsWith("DefaultResources-") ? targetPakName : null);
                         }
                     }
                     catch(Exception)
                     {
-                        Console.WriteLine($"Failed to scan for files and folders, aborting...");
+                        Console.WriteLine($"Error: Failed to scan for files and folders, aborting...");
 
                         foreach(var stream in fileStreams)
                         {
@@ -211,6 +292,13 @@ static class Program
                         }
 
                         Environment.Exit(1);
+                    }
+
+                    if(filePaths.Count == 0)
+                    {
+                        Console.WriteLine($"Warning: No valid files were found to pack, exiting...");
+
+                        Environment.Exit(0);
                     }
 
                     var resourcePak = new ResourcePak();
@@ -226,7 +314,7 @@ static class Program
 
                         if(resourcePak.Serialize(stream) == false)
                         {
-                            Console.WriteLine($"Failed to save pak, aborting...");
+                            Console.WriteLine($"Error: Failed to save pak, aborting...");
 
                             stream.Dispose();
 
@@ -242,7 +330,7 @@ static class Program
                     }
                     catch(Exception e)
                     {
-                        Console.WriteLine($"Failed to save pak, aborting... (Exception: {e})");
+                        Console.WriteLine($"Error: Failed to save pak, aborting... (Exception: {e})");
 
                         foreach (var s in fileStreams)
                         {
@@ -271,14 +359,14 @@ static class Program
 
                     if ((inputPath?.Length ?? 0) == 0)
                     {
-                        Console.WriteLine($"Unable to unpack: Missing `-i` parameter.");
+                        Console.WriteLine($"Error: Unable to unpack: Missing `-i` parameter.");
 
                         Environment.Exit(1);
                     }
 
                     if ((outputPath?.Length ?? 0) == 0)
                     {
-                        Console.WriteLine($"Unable to unpack: Missing `-o` parameter.");
+                        Console.WriteLine($"Error: Unable to unpack: Missing `-o` parameter.");
 
                         Environment.Exit(1);
                     }
@@ -299,7 +387,7 @@ static class Program
 
                         if(resourcePak.Deserialize(stream) == false)
                         {
-                            Console.WriteLine($"Failed to unpack pak, aborting... (File failed to be read)");
+                            Console.WriteLine($"Error: Failed to unpack pak, aborting... (File failed to be read)");
 
                             Environment.Exit(1);
                         }
@@ -316,7 +404,7 @@ static class Program
 
                             if(resourcePak.Files.Count(x => x.guid == file.guid) > 1)
                             {
-                                Console.WriteLine($"Duplicate guid {file.guid} found for file {file.path}");
+                                Console.WriteLine($"Warning: Duplicate guid {file.guid} found for file {file.path}");
 
                                 using var fileStream = resourcePak.Open(file.path);
                                 using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
@@ -336,7 +424,7 @@ static class Program
                     }
                     catch(Exception e)
                     {
-                        Console.WriteLine($"Failed to unpack pak, aborting... (Exception: {e})");
+                        Console.WriteLine($"Error: Failed to unpack pak, aborting... (Exception: {e})");
 
                         Environment.Exit(1);
                     }

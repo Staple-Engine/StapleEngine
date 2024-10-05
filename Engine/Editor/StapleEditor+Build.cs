@@ -3,6 +3,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Staple.Internal;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Staple.Editor;
 
@@ -173,24 +175,91 @@ internal partial class StapleEditor
                 progressFraction = 0.6f;
             }
 
-            var args = $"-p -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, "Resources.pak")}\"";
-
-            var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
+            List<string> CollectPakNames()
             {
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
-            };
+                var outValue = new List<string>();
 
-            var process = new Process
+                void Recursive(string path)
+                {
+                    try
+                    {
+                        var directories = Directory.GetDirectories(path);
+
+                        foreach(var directory in directories)
+                        {
+                            try
+                            {
+                                if (File.Exists($"{directory}.meta"))
+                                {
+                                    var json = File.ReadAllText($"{directory}.meta");
+
+                                    var folderAsset = JsonConvert.DeserializeObject<FolderAsset>(json);
+
+                                    if ((folderAsset?.pakName?.Length ?? 0) > 0)
+                                    {
+                                        outValue.Add(folderAsset.pakName);
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            Recursive(directory);
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
+
+                Recursive(Path.Combine(basePath, "Assets"));
+
+                return outValue;
+            }
+
+            bool PreparePak(string name)
             {
-                StartInfo = processInfo
-            };
+                var args = $"-p -r -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, $"{name}.pak")}\"";
 
-            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+                var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
+                {
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Environment.CurrentDirectory
+                };
 
-            if ((process.HasExited && process.ExitCode == 0) == false)
+                var process = new Process
+                {
+                    StartInfo = processInfo
+                };
+
+                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+
+                if ((process.HasExited && process.ExitCode == 0) == false)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            var pakNames = CollectPakNames();
+
+            foreach (var name in pakNames)
+            {
+                if (PreparePak(name) == false)
+                {
+                    Log.Error($"Failed to build player: Unable to pack resources");
+
+                    ShowFailureMessage();
+
+                    return;
+                }
+            }
+
+            if (PreparePak("Resources") == false)
             {
                 Log.Error($"Failed to build player: Unable to pack resources");
 
@@ -204,6 +273,8 @@ internal partial class StapleEditor
                 return;
             }
 
+            string args = "";
+
             if (backend.publish)
             {
                 args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained -p:UseAppHost=true";
@@ -213,7 +284,7 @@ internal partial class StapleEditor
                 args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
             }
 
-            processInfo = new ProcessStartInfo("dotnet", args)
+            var processInfo = new ProcessStartInfo("dotnet", args)
             {
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
@@ -221,7 +292,7 @@ internal partial class StapleEditor
                 WorkingDirectory = Environment.CurrentDirectory
             };
 
-            process = new Process
+            var process = new Process
             {
                 StartInfo = processInfo
             };

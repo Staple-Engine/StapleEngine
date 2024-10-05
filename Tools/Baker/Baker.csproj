@@ -45,6 +45,7 @@
 		<Compile Include="Baker+Assets.cs" />
 		<Compile Include="Baker+Audio.cs" />
 		<Compile Include="Baker+Cleanup.cs" />
+		<Compile Include="Baker+Folders.cs" />
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+Meshes.cs" />
@@ -60,6 +61,9 @@
 		<Compile Include="ShaderPiece.cs" />
 		<Compile Include="UnprocessedShader.cs" />
 		<Compile Include="WorkScheduler.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Update="StirlingLabs.assimp.native.win-x64" Version="5.2.5.4" />
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>

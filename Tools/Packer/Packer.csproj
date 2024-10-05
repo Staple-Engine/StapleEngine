@@ -31,6 +31,9 @@
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
+	<Reference Include="StapleTooling">
+		<HintPath>..\..\Engine\Tooling\bin\Release\net8.0\StapleTooling.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 	<Reference Include="StapleCore">

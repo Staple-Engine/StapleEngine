@@ -358,6 +358,7 @@ static partial class Program
 
         ProcessScenes(platform, inputPath, outputPath, editorMode);
         ProcessAppSettings(platform, inputPath, outputPath, editorMode);
+        ProcessFolders(platform, inputPath, outputPath);
 
         WorkScheduler.WaitForTasks();
     }
