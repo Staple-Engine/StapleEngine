@@ -8,13 +8,13 @@ public class FreeTypeFontSource : ITextFontSource
 
     public int FontSize { get; set; }
 
-    public int LineSpacing => FreeType.FreeType.LineSpacing(font, (uint)FontSize);
+    public int LineSpacing => FreeType.LineSpacing(font, (uint)FontSize);
 
     public void Dispose()
     {
         if(font != nint.Zero)
         {
-            FreeType.FreeType.FreeFont(font);
+            FreeType.FreeFont(font);
 
             font = nint.Zero;
         }
@@ -26,7 +26,7 @@ public class FreeTypeFontSource : ITextFontSource
         {
             fixed(byte *d = data)
             {
-                font = FreeType.FreeType.LoadFont(d, data.Length);
+                font = FreeType.LoadFont(d, data.Length);
             }
         }
 
@@ -40,7 +40,7 @@ public class FreeTypeFontSource : ITextFontSource
             return 0;
         }
 
-        return FreeType.FreeType.Kerning(font, from, to, (uint)FontSize);
+        return FreeType.Kerning(font, from, to, (uint)FontSize);
     }
 
     public Glyph LoadGlyph(uint character, int fontSize, Color textColor, Color secondaryTextColor, int borderSize, Color borderColor)
@@ -50,20 +50,20 @@ public class FreeTypeFontSource : ITextFontSource
             return null;
         }
 
-        var glyphPtr = FreeType.FreeType.LoadGlyph(font, character, (uint)fontSize, textColor, secondaryTextColor, borderSize, borderColor);
+        var glyphPtr = FreeType.LoadGlyph(font, character, (uint)fontSize, textColor, secondaryTextColor, borderSize, borderColor);
 
         if(glyphPtr == nint.Zero)
         {
             return null;
         }
 
-        var glyphData = Marshal.PtrToStructure<FreeType.FreeType.Glyph>(glyphPtr);
+        var glyphData = Marshal.PtrToStructure<FreeType.Glyph>(glyphPtr);
 
         unsafe
         {
             if ((nint)glyphData.bitmap == nint.Zero || glyphData.width == 0 || glyphData.height == 0)
             {
-                FreeType.FreeType.FreeGlyph(glyphPtr);
+                FreeType.FreeGlyph(glyphPtr);
 
                 return null;
             }
@@ -74,7 +74,7 @@ public class FreeTypeFontSource : ITextFontSource
 
             Marshal.Copy((nint)glyphData.bitmap, buffer, 0, buffer.Length);
 
-            FreeType.FreeType.FreeGlyph(glyphPtr);
+            FreeType.FreeGlyph(glyphPtr);
 
             return new()
             {

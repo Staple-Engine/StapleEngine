@@ -75,7 +75,11 @@ internal class ResourceManager
             }
 
 #if ANDROID
-            var stream = assetManager.Open(path, Android.Content.Res.Access.Random);
+            var s = assetManager.Open(path);
+
+            var stream = new MemoryStream();
+
+            s.CopyTo(stream);
 
             stream.Position = 0;
 #else

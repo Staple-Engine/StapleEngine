@@ -1,7 +1,6 @@
-﻿using Staple;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace FreeType
+namespace Staple.Internal
 {
     [AdditionalLibrary(AppPlatform.Android, "StapleSupport")]
     [AdditionalLibrary(AppPlatform.Android, "freetype")]
