@@ -18,7 +18,29 @@ namespace Staple;
 
 public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurfaceHolderCallback2
 {
-    private static Dictionary<Keycode, KeyCode> keyMap = new()
+    private static readonly string LogTag = "Staple Engine";
+
+    private static void LogError(string message)
+    {
+        Android.Util.Log.Error(LogTag, message);
+    }
+
+    private static void LogInfo(string message)
+    {
+        Android.Util.Log.Info(LogTag, message);
+    }
+
+    private static void LogDebug(string message)
+    {
+        Android.Util.Log.Debug(LogTag, message);
+    }
+
+    private static void LogWarning(string message)
+    {
+        Android.Util.Log.Warn(LogTag, message);
+    }
+
+    private static readonly Dictionary<Keycode, KeyCode> keyMap = new()
     {
         { Keycode.Space, KeyCode.Space },
         { Keycode.Apostrophe, KeyCode.Apostrophe },
@@ -127,19 +149,19 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
     private float fixedTimer = 0.0f;
 
     [LibraryImport("android")]
-    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
     private static partial nint ANativeWindow_fromSurface(nint env, nint surface);
 
     [LibraryImport("nativewindow")]
-    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
     private static partial int ANativeWindow_getWidth(nint window);
 
     [LibraryImport("nativewindow")]
-    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
     private static partial int ANativeWindow_getHeight(nint window);
 
     [LibraryImport("nativewindow")]
-    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
     private static partial nint ANativeWindow_release(nint window);
 
     class FrameCallback : Java.Lang.Object, Choreographer.IFrameCallback
@@ -233,25 +255,33 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
                 case KeyEventActions.Multiple:
 
-                    if(e.KeyCode == Keycode.Unknown)
+                    //Workaround for analysers complaining about accessing this.
+                    //Unfortunately not able to do == false as the analyser doesn't realize it.
+                    if (OperatingSystem.IsAndroidVersionAtLeast(29))
                     {
-                        if (e.Characters != null)
+                    }
+                    else
+                    {
+                        if (e.KeyCode == Keycode.Unknown)
                         {
-                            foreach (var c in e.Characters)
+                            if (e.Characters != null)
                             {
-                                AppEventQueue.instance.Add(AppEvent.Text(c));
+                                foreach (var c in e.Characters)
+                                {
+                                    AppEventQueue.instance.Add(AppEvent.Text(c));
+                                }
                             }
                         }
-                    }
-                    else if(e.KeyCharacterMap != null)
-                    {
-                        var repeatCount = e.RepeatCount;
-
-                        var character = e.KeyCharacterMap.Get(e.KeyCode, e.MetaState);
-
-                        for(var i = 0; i < repeatCount; i++)
+                        else if (e.KeyCharacterMap != null)
                         {
-                            AppEventQueue.instance.Add(AppEvent.Text((uint)character));
+                            var repeatCount = e.RepeatCount;
+
+                            var character = e.KeyCharacterMap.Get(e.KeyCode, e.MetaState);
+
+                            for (var i = 0; i < repeatCount; i++)
+                            {
+                                AppEventQueue.instance.Add(AppEvent.Text((uint)character));
+                            }
                         }
                     }
 
@@ -278,25 +308,25 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 {
                     case Log.LogType.Info:
 
-                        Android.Util.Log.Info("Staple", message);
+                        LogInfo(message);
 
                         break;
 
                     case Log.LogType.Error:
 
-                        Android.Util.Log.Error("Staple", message);
+                        LogError(message);
 
                         break;
 
                     case Log.LogType.Warning:
 
-                        Android.Util.Log.Warn("Staple", message);
+                        LogWarning(message);
 
                         break;
 
                     case Log.LogType.Debug:
 
-                        Android.Util.Log.Debug("Staple", message);
+                        LogDebug(message);
 
                         break;
                 }
@@ -332,7 +362,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             }
             catch (System.Exception e)
             {
-                Log.Error($"RenderWindow Init Exception: {e}");
+                LogError($"RenderWindow Init Exception: {e}");
 
                 System.Environment.Exit(1);
 
@@ -480,18 +510,18 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 }
                 catch (Exception e)
                 {
-                    Android.Util.Log.Error("Staple", $"Exception: {e}");
+                    LogError($"Exception: {e}");
                 }
             });
 
-            Android.Util.Log.Info("Staple", $"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
+            LogInfo($"Surface Changed - Screen size: {width}x{height}. Is creating: {holder.IsCreating}. nativeWindow: {nativeWindow.ToString("X")}, format: {format}");
         }
 
         void Delay()
         {
             if (holder.IsCreating)
             {
-                Task.Delay(TimeSpan.FromMilliseconds(100)).ContinueWith((t) => Delay());
+                Task.Delay(TimeSpan.FromMilliseconds(10)).ContinueWith((t) => Delay());
             }
             else
             {
@@ -504,12 +534,12 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
     public void SurfaceCreated(ISurfaceHolder holder)
     {
-        Log.Debug("Surface Created");
+        LogDebug("Surface Created");
     }
 
     public void SurfaceDestroyed(ISurfaceHolder holder)
     {
-        Log.Debug("Surface Destroyed");
+        LogDebug("Surface Destroyed");
 
         AndroidRenderWindow.Instance.Mutate((renderWindow) =>
         {
@@ -550,11 +580,11 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             Java.Lang.JavaSystem.LoadLibrary(library);
         }
 
-        if(Build.VERSION.SdkInt >= BuildVersionCodes.R)
+        if(OperatingSystem.IsAndroidVersionAtLeast(23))
         {
             WindowManagerLayoutParams p = Window.Attributes;
 
-            var modes = Display.GetSupportedModes();
+            var modes = WindowManager.DefaultDisplay.GetSupportedModes();
 
             var maxMode = 0;
             var maxHZ = 60.0f;
@@ -579,32 +609,41 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         SetContentView(surfaceView);
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
         }
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             Window.SetDecorFitsSystemWindows(false);
             Window.InsetsController.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
             Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
         }
-        else if (Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
+        else if (OperatingSystem.IsAndroidVersionAtLeast(19))
         {
-            Window.DecorView.SystemUiVisibility = StatusBarVisibility.Hidden;
+            Window.DecorView.SystemUiFlags = SystemUiFlags.HideNavigation |
+                SystemUiFlags.LayoutHideNavigation |
+                SystemUiFlags.LayoutFullscreen |
+                SystemUiFlags.Fullscreen |
+                SystemUiFlags.LayoutStable |
+                SystemUiFlags.ImmersiveSticky;
         }
 
         MessagePackInit.Initialize();
 
         ResourceManager.instance.assetManager = Assets;
 
-        if (ResourceManager.instance.LoadPak("DefaultResources.pak") == false ||
-            ResourceManager.instance.LoadPak("Resources.pak") == false)
-        {
-            Console.WriteLine("Failed to load player resources");
+        var packages = Assets.List("").Where(x => x.EndsWith(".pak")).ToArray();
 
-            System.Environment.Exit(1);
+        foreach(var file in packages)
+        {
+            if (ResourceManager.instance.LoadPak(file) == false)
+            {
+                LogError("Failed to load player resources");
+
+                System.Environment.Exit(1);
+            }
         }
 
         try
@@ -633,7 +672,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Failed to load appsettings: {e}");
+            LogError($"Failed to load appsettings: {e}");
 
             System.Environment.Exit(1);
 

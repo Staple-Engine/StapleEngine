@@ -17,9 +17,22 @@ public static class StaplePlayer
 #if _DEBUG
         baseDirectory = Environment.CurrentDirectory;
 #endif
+         
+        try
+        {
+            var pakFiles = Directory.GetFiles(Path.Combine(baseDirectory, "Data"), "*.pak");
 
-        if (ResourceManager.instance.LoadPak(Path.Combine(baseDirectory, "Data", "DefaultResources.pak")) == false ||
-            ResourceManager.instance.LoadPak(Path.Combine(baseDirectory, "Data", "Resources.pak")) == false)
+            foreach (var file in pakFiles)
+            {
+                if (ResourceManager.instance.LoadPak(file) == false)
+                {
+                    Console.WriteLine($"Failed to load player resources");
+
+                    Environment.Exit(1);
+                }
+            }
+        }
+        catch(Exception)
         {
             Console.WriteLine($"Failed to load player resources");
 
