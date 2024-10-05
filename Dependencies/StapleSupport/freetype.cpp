@@ -54,10 +54,10 @@ void RasterCallback(const int32_t y, const int32_t count, const FT_Span* const s
 	}
 }
 
-CEXPORT FontData * FreeTypeLoadFont(const void* ptr, long byteSize)
+CEXPORT FontData * FreeTypeLoadFont(const void* ptr, int byteSize)
 {
 #ifdef __ANDROID__
-	__android_log_print(ANDROID_LOG_DEBUG, "StapleEngine", "Loading FreeType Font with ptr %p and byte size %l", ptr, byteSize);
+	__android_log_print(ANDROID_LOG_DEBUG, "StapleEngine", "Loading FreeType Font with ptr %p and byte size %i", ptr, byteSize);
 #endif
 
 	FontData* outValue = new FontData();
