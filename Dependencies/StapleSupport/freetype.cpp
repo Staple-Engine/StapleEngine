@@ -9,7 +9,7 @@
 #include FT_STROKER_H
 
 #ifdef __ANDROID__
-#include <log.h>
+#include <android/log.h>
 #endif
 
 struct Color
