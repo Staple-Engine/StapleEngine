@@ -190,16 +190,12 @@ static class Program
 
                                 var pakName = folderAsset.pakName;
 
-                                Console.WriteLine($"ValidSubfolder: {pakName ?? "null"} {currentPakName ?? "null"} {targetPakName}");
-
                                 if(pakName == targetPakName)
                                 {
-                                    Console.WriteLine("Valid PakName");
                                     return (true, targetPakName);
                                 }
                                 else if(folderAsset.pakName == null)
                                 {
-                                    Console.WriteLine("Valid PakName null");
                                     return (currentPakName == targetPakName, null);
                                 }
 
