@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
@@ -32,7 +33,7 @@ inline void NativeLog(const char* fmt, ...)
 	va_end(args);
 
 #ifdef __ANDROID__
-	__android_log_print(ANDROID_LOG_DEBUG, "StapleEngine", buffer);
+	__android_log_print(ANDROID_LOG_DEBUG, "Staple Engine", "%s", buffer);
 #else
 	printf("%s", buffer);
 #endif
