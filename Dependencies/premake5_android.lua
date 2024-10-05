@@ -229,7 +229,7 @@ project "StapleSupport"
 	
 	libdirs { "build/native/freetype/Release" }
 	
-	links { "freetype" }
+	links { "freetype", "log" }
 
 	files {
 
