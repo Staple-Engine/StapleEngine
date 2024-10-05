@@ -8,10 +8,6 @@
 #include FT_BITMAP_H
 #include FT_STROKER_H
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#endif
-
 struct Color
 {
 	float r, g, b, a;
@@ -56,10 +52,6 @@ void RasterCallback(const int32_t y, const int32_t count, const FT_Span* const s
 
 CEXPORT FontData * FreeTypeLoadFont(const void* ptr, int byteSize)
 {
-#ifdef __ANDROID__
-	__android_log_print(ANDROID_LOG_DEBUG, "StapleEngine", "Loading FreeType Font with ptr %p and byte size %i", ptr, byteSize);
-#endif
-
 	FontData* outValue = new FontData();
 
 	if (FT_Init_FreeType(&outValue->library) != 0)
