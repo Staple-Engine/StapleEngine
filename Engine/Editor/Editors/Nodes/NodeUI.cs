@@ -41,7 +41,9 @@ public partial class NodeUI
 
         public Node Node => node;
 
-        public IEnumerable<Node> Targets => targets;
+        public int TargetCount => targets.Count;
+
+        public Node GetTarget(int index) => index >= 0 && index < targets.Count ? targets[index] : null;
 
         public string Name => connector.name;
 
@@ -58,36 +60,39 @@ public partial class NodeUI
 
         public int ID => node.ID;
 
-        public IEnumerable<NodeSocket> Inputs => inputs;
+        public int InputCount => inputs.Count;
 
-        public IEnumerable<NodeSocket> Outputs => outputs;
+        public int OutputCount => outputs.Count;
+
+        public NodeSocket GetInput(int index) => index >= 0 && index < inputs.Count ? inputs[index] : null;
+
+        public NodeSocket GetOutput(int index) => index >= 0 && index < outputs.Count ? outputs[index] : null;
+
+        public NodeSocket GetInput(string name) => inputs.FirstOrDefault(x => x.Name == name);
+
+        public NodeSocket GetOutput(string name) => outputs.FirstOrDefault(x => x.Name == name);
+
+        public NodeSocket GetInputById(int id) => inputs.FirstOrDefault(x => x.connector.ID == id);
+
+        public NodeSocket GetOutputById(int id) => outputs.FirstOrDefault(x => x.connector.ID == id);
     }
+
+    private INodeUIObserver observer;
 
     public record class Connector(string name, PinShape shape);
 
-    public delegate bool ValidateConnection(NodeSocket from, NodeSocket to);
-
-    public delegate (bool, Action) NodeRightClickHandler(Node node);
-
-    public delegate (bool, Action) LinkRightClickHandler((NodeSocket, NodeSocket) link);
-
-    public delegate (bool, Action) WorkspaceRightClickHandler();
-
     public IEnumerable<Node> Nodes => userNodes;
-
-    public ValidateConnection validateConnection;
-
-    public NodeRightClickHandler nodeRightClickHandler;
-
-    public LinkRightClickHandler linkRightClickHandler;
-
-    public WorkspaceRightClickHandler workspaceRightClickHandler;
 
     public bool showMinimap = false;
 
     public MinimapCorner minimapCorner = MinimapCorner.BottomLeft;
 
     public float minimapFraction = 0.1f;
+
+    public NodeUI(INodeUIObserver observer)
+    {
+        this.observer = observer;
+    }
 
     public void Draw()
     {
@@ -143,13 +148,13 @@ public partial class NodeUI
             {
                 var startConnector = start.outputs.FirstOrDefault(x => x.ID == startAttribute);
                 var endConnector = end.inputs.FirstOrDefault(x => x.ID == endAttribute);
-                var startConnectorUser = start.node.Outputs.FirstOrDefault(x => x.connector.ID == startAttribute);
-                var endConnectorUser = end.node.Inputs.FirstOrDefault(x => x.connector.ID == endAttribute);
+                var startConnectorUser = start.node.GetOutputById(startAttribute);
+                var endConnectorUser = end.node.GetInputById(endAttribute);
 
                 if (startConnector != null && endConnector != null &&
                     startConnectorUser != null &&
                     endConnectorUser != null &&
-                    (validateConnection?.Invoke(startConnectorUser, endConnectorUser) ?? true))
+                    (observer?.ValidateConnection(this, startConnectorUser, endConnectorUser) ?? true))
                 {
                     ConnectNodes(startConnector, startConnectorUser, endConnector, endConnectorUser);
                 }
@@ -172,10 +177,10 @@ public partial class NodeUI
 
             if (ImNodes.IsNodeHovered(ref hovered))
             {
-                if (nodeRightClickHandler != null &&
+                if (observer != null &&
                     nodes.TryGetValue(hovered, out var i))
                 {
-                    var r = nodeRightClickHandler(i.node);
+                    var r = observer.OnNodeRightClick(this, i.node);
 
                     ShowPopup(r);
                 }
@@ -184,18 +189,18 @@ public partial class NodeUI
             {
                 var link = links[hovered];
 
-                if (linkRightClickHandler != null &&
+                if (observer != null &&
                     connectors.TryGetValue(link.Item1, out var from) &&
                     connectors.TryGetValue(link.Item2, out var to))
                 {
-                    var r = linkRightClickHandler((from.socket, to.socket));
+                    var r = observer.OnLinkRightClick(this, (from.socket, to.socket));
 
                     ShowPopup(r);
                 }
             }
-            else if(workspaceRightClickHandler != null)
+            else if(observer != null)
             {
-                var r = workspaceRightClickHandler();
+                var r = observer.OnWorkspaceRightClick(this);
 
                 ShowPopup(r);
             }

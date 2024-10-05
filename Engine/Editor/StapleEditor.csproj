@@ -88,7 +88,7 @@
     <Compile Include="Editors\EditorWindowType.cs" />
     <Compile Include="Editors\Gizmo.cs" />
     <Compile Include="Editors\GizmoEditor.cs" />
-    <Compile Include="Editors\NodeEditor.cs" />
+    <Compile Include="Editors\Nodes\INodeUIObserver.cs" />
     <Compile Include="Editors\Nodes\NodeUI+Internal.cs" />
     <Compile Include="Editors\Nodes\NodeUI.cs" />
     <Compile Include="Editors\PropertyAttribute.cs" />
