@@ -15,7 +15,7 @@ public class MeshRenderSystem : IRenderSystem
         public ushort viewID;
     }
 
-    private readonly List<RenderInfo> renderers = new();
+    private readonly List<RenderInfo> renderers = [];
 
     public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, MeshLighting lighting, ushort viewID)
     {

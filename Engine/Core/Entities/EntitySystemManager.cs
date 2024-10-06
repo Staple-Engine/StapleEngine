@@ -178,6 +178,7 @@ internal class EntitySystemManager : ISubsystem
         }
 
         var time = Time.fixedDeltaTime;
+
         foreach (var system in fixedUpdateSystems)
         {
             PerformanceProfiler.Measure($"{system.GetType().FullName} FixedUpdate", () =>

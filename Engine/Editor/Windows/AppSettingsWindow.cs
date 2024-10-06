@@ -49,6 +49,8 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.appDisplayVersion = EditorGUI.TextField("App Display Version", "APPSETTINGSGENERALDISPLAYVERSION", projectAppSettings.appDisplayVersion ?? "");
 
             projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", "APPSETTINGSGENERALVERSION", projectAppSettings.appVersion);
+
+            projectAppSettings.profilingMode = EditorGUI.EnumDropdown("Profiling", "APPSETTINGSGENERALPROFILING", projectAppSettings.profilingMode);
         });
 
         EditorGUI.TreeNode("Timing", "APPSETTINGSTIMING", false, true, () =>
@@ -234,7 +236,7 @@ internal class AppSettingsWindow : EditorWindow
 
                 if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
                 {
-                    renderers = new();
+                    renderers = [];
 
                     projectAppSettings.renderers.Add(backend.platform, renderers);
                 }

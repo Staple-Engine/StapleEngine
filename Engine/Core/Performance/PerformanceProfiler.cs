@@ -5,37 +5,76 @@ namespace Staple.Internal;
 
 internal static class PerformanceProfiler
 {
-    public delegate void OnFinishFrameCallback(Dictionary<string, float> counters);
+    private static readonly Dictionary<string, int> counters = [];
 
-    private static Dictionary<string, float> counters = [];
+    private static readonly Dictionary<string, int> frameCounters = [];
 
-    private static object lockObject = new();
+    private static readonly Dictionary<string, int> averageFrameCounters = [];
 
-    public static event OnFinishFrameCallback OnFinishFrame;
+    private static readonly object lockObject = new();
+
+    private static DateTime lastAverageTime = DateTime.Now;
+
+    public static Dictionary<string, int> FrameCounters
+    {
+        get
+        {
+            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+            {
+                return [];
+            }
+
+            lock(lockObject)
+            {
+                return new(averageFrameCounters);
+            }
+        }
+    }
 
     public static void Measure(string name, Action action)
     {
-        var startTime = DateTime.Now;
-
-        try
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
         {
-            action?.Invoke();
+            try
+            {
+                action?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.ToString());
+
+                return;
+            }
         }
-        catch(Exception e)
+        else
         {
-            Log.Error(e.ToString());
+            var startTime = DateTime.Now;
 
-            return;
+            try
+            {
+                action?.Invoke();
+            }
+            catch(Exception e)
+            {
+                Log.Error(e.ToString());
+
+                return;
+            }
+
+            var elapsedTime = DateTime.Now - startTime;
+
+            AddCounter(name, (int)(elapsedTime.TotalSeconds * 1000));
         }
-
-        var elapsedTime = DateTime.Now - startTime;
-
-        AddCounter(name, (float)elapsedTime.TotalSeconds);
     }
 
     public static void StartFrame()
     {
-        lock (lockObject)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+        {
+            return;
+        }
+
+        lock(lockObject)
         {
             counters.Clear();
         }
@@ -43,25 +82,61 @@ internal static class PerformanceProfiler
 
     public static void FinishFrame()
     {
-        lock (lockObject)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
         {
-            OnFinishFrame?.Invoke(counters);
+            return;
+        }
+
+        lock(lockObject)
+        {
+            foreach(var pair in counters)
+            {
+                if(frameCounters.TryGetValue(pair.Key, out var value))
+                {
+                    value += pair.Value;
+
+                    frameCounters[pair.Key] = value;
+                }
+                else
+                {
+                    frameCounters.Add(pair.Key, pair.Value);
+                }
+            }
+
+            if ((DateTime.Now - lastAverageTime).TotalSeconds >= 1)
+            {
+                lastAverageTime = DateTime.Now;
+
+                averageFrameCounters.Clear();
+
+                foreach(var pair in frameCounters)
+                {
+                    averageFrameCounters.Add(pair.Key, pair.Value / 1000);
+                }
+
+                frameCounters.Clear();
+            }
         }
     }
 
-    public static void AddCounter(string name, float time)
+    public static void AddCounter(string name, int ms)
     {
-        lock (lockObject)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+        {
+            return;
+        }
+
+        lock(lockObject)
         {
             if (counters.TryGetValue(name, out var t))
             {
-                t += time;
+                t += ms;
 
                 counters[name] = t;
             }
             else
             {
-                counters.Add(name, time);
+                counters.Add(name, ms);
             }
         }
     }

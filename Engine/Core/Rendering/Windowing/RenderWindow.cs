@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -123,6 +122,8 @@ internal class RenderWindow
 
         while (window.ShouldClose == false && shouldStop == false)
         {
+            PerformanceProfiler.StartFrame();
+
             Input.UpdateState();
 
             window.PollEvents();
@@ -285,6 +286,8 @@ internal class RenderWindow
 
         while (window.ShouldClose == false && shouldStop == false)
         {
+            PerformanceProfiler.StartFrame();
+
             Input.UpdateState();
 
             window.PollEvents();
@@ -606,10 +609,14 @@ internal class RenderWindow
         bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 1, 0);
         bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
-#if _DEBUG
-        //bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
-        bgfx.set_debug((uint)bgfx.DebugFlags.Text);
-#endif
+        if(AppSettings.Current?.profilingMode == AppSettings.ProfilingMode.RenderOverlay)
+        {
+            bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
+        }
+        else
+        {
+            bgfx.set_debug((uint)bgfx.DebugFlags.Text);
+        }
     }
 
     internal void CheckEvents()
@@ -702,7 +709,6 @@ internal class RenderWindow
         lastTime = current;
 
         World.Current?.StartFrame();
-        PerformanceProfiler.StartFrame();
 
         try
         {
@@ -728,7 +734,27 @@ internal class RenderWindow
 
         bgfx.dbg_text_clear(0, false);
 
-        bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
+        if (AppSettings.Current?.profilingMode == AppSettings.ProfilingMode.PerformanceOverlay)
+        {
+            var counters = PerformanceProfiler.FrameCounters
+                .OrderByDescending(x => x.Value)
+                .ToArray();
+
+            for (var i = 0; i < counters.Length; i++)
+            {
+                var y = i;
+                var counter = counters[i];
+
+                byte attr = 0x8a;
+
+                if(counter.Value >= 16)
+                {
+                    attr = 0x8c;
+                }
+
+                bgfx.dbg_text_printf(2, (ushort)y, attr, $"{counter.Key} - {counter.Value}ms", "");
+            }
+        }
     }
 
     private void RenderThread()
@@ -881,22 +907,6 @@ internal class RenderWindow
 
         Screen.Width = width;
         Screen.Height = height;
-
-        /*
-        PerformanceProfiler.OnFinishFrame += (counters) =>
-        {
-            var builder = new StringBuilder("Profiling:\n");
-
-            var ordered = counters.OrderByDescending(x => x.Value).ToList();
-
-            foreach(var counter in ordered)
-            {
-                builder.AppendLine($"{counter.Key} - {(int)(counter.Value * 1000)}ms");
-            }
-
-            Log.Debug(builder.ToString());
-        };
-        */
 
         return renderWindow;
     }

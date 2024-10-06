@@ -15,6 +15,16 @@ namespace Staple;
 public class AppSettings
 {
     /// <summary>
+    /// What kind of profiling to use
+    /// </summary>
+    public enum ProfilingMode
+    {
+        None,
+        PerformanceOverlay,
+        RenderOverlay,
+    }
+
+    /// <summary>
     /// Whether to run in the background (not pause)
     /// </summary>
     [Key(0)]
@@ -48,19 +58,19 @@ public class AppSettings
     /// Which layers to use
     /// </summary>
     [Key(5)]
-    public List<string> layers = new();
+    public List<string> layers = [];
 
     /// <summary>
     /// Which sorting layers to use
     /// </summary>
     [Key(6)]
-    public List<string> sortingLayers = new();
+    public List<string> sortingLayers = [];
 
     /// <summary>
     /// Which renderers to use per platform
     /// </summary>
     [Key(7)]
-    public Dictionary<AppPlatform, List<RendererType>> renderers = new();
+    public Dictionary<AppPlatform, List<RendererType>> renderers = [];
 
     /// <summary>
     /// Default mode for the game window
@@ -84,7 +94,7 @@ public class AppSettings
     /// Mask of collision layers
     /// </summary>
     [Key(11)]
-    public List<ColliderMask.Item> colliderMask = new();
+    public List<ColliderMask.Item> colliderMask = [];
 
     /// <summary>
     /// The app's bundle ID
@@ -151,6 +161,12 @@ public class AppSettings
     /// </summary>
     [Key(22)]
     public Color ambientLight = Color.LightBlue;
+
+    /// <summary>
+    /// Whether to show the performance profiler overlay
+    /// </summary>
+    [Key(23)]
+    public ProfilingMode profilingMode = ProfilingMode.None;
 
     [IgnoreMember]
     public static AppSettings Default
@@ -253,6 +269,10 @@ public class AppSettings
             runInBackground = runInBackground,
             sortingLayers = sortingLayers.Select(x => x).ToList(),
             usedModules = new(usedModules),
+            ambientLight = ambientLight,
+            maximumFixedTimestepTime = maximumFixedTimestepTime,
+            physicsFrameRate = physicsFrameRate,
+            profilingMode = profilingMode,
         };
     }
 }
