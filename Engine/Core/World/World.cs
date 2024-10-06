@@ -42,17 +42,12 @@ public partial class World
         /// <summary>
         /// List of components for the entity
         /// </summary>
-        public List<IComponent> components = new();
-
-        /// <summary>
-        /// List of component indices for the entity
-        /// </summary>
-        public List<int> componentIndices = new();
+        public Dictionary<string, IComponent> components = [];
 
         /// <summary>
         /// The components that were just removed for the entity
         /// </summary>
-        public HashSet<int> removedComponents = new();
+        public HashSet<string> removedComponents = [];
 
         /// <summary>
         /// The entity's name
@@ -73,13 +68,6 @@ public partial class World
         /// The entity's local ID in the prefab (if any)
         /// </summary>
         public int prefabLocalID;
-
-        public bool TryGetComponentIndex(int index, out int value)
-        {
-            value = componentIndices.IndexOf(index);
-
-            return value >= 0;
-        }
 
         public Entity ToEntity()
         {
@@ -109,13 +97,13 @@ public partial class World
 
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
-    private readonly List<EntityInfo> entities = new();
-    private readonly Dictionary<int, Type> componentsRepository = new();
-    private readonly HashSet<int> callableComponentIndices = new();
-    private readonly List<Entity> destroyedEntities = new();
+    private readonly List<EntityInfo> entities = [];
+    private readonly Dictionary<string, HashSet<string>> componentCompatibilityCache = [];
+    private readonly HashSet<string> callableComponentTypes = [];
+    private readonly List<Entity> destroyedEntities = [];
 
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = new();
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = new();
+    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
+    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
 
     internal void StartFrame()
     {
@@ -125,13 +113,9 @@ public partial class World
             {
                 if(info.removedComponents.Count > 0)
                 {
-                    foreach (var index in info.removedComponents)
+                    foreach (var componentTypeName in info.removedComponents)
                     {
-                        if(info.TryGetComponentIndex(index, out var i))
-                        {
-                            info.components.RemoveAt(i);
-                            info.componentIndices.RemoveAt(i);
-                        }
+                        info.components.Remove(componentTypeName);
                     }
 
                     info.removedComponents.Clear();
@@ -152,7 +136,6 @@ public partial class World
                     transform?.SetParent(null);
 
                     info.components.Clear();
-                    info.componentIndices.Clear();
                     info.alive = false;
 
                     while (transform.ChildCount > 0)

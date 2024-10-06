@@ -17,76 +17,27 @@ public partial class World
     {
         lock(lockObject)
         {
-            var keys = componentsRepository.Keys.ToList();
+            var keys = componentCompatibilityCache.Keys.ToList();
 
             for(var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
-                var value = componentsRepository[key];
 
-                if(value.Assembly == assembly)
+                var type = TypeCache.GetType(key);
+
+                if(type != null && type.Assembly == assembly)
                 {
-                    componentsRepository.Remove(key);
+                    componentCompatibilityCache.Remove(key);
+
+                    foreach(var pair in componentCompatibilityCache)
+                    {
+                        pair.Value.Remove(key);
+                    }
 
                     foreach(var entity in entities)
                     {
-                        if(entity.componentIndices.Contains(key))
-                        {
-                            entity.componentIndices.Remove(key);
-
-                            for(var j = entity.components.Count - 1; j >= 0; j--)
-                            {
-                                if (entity.components[j].GetType() == value)
-                                {
-                                    entity.components.RemoveAt(j);
-                                }
-                            }
-                        }
+                        entity.components.Remove(key);
                     }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Finds a component's indices in the components repository
-    /// </summary>
-    /// <param name="t">The type to check</param>
-    /// <returns>The indices</returns>
-    internal IEnumerable<int> ComponentIndices(Type t)
-    {
-        lock (lockObject)
-        {
-            foreach (var pair in componentsRepository)
-            {
-                if (pair.Value == t ||
-                    pair.Value.IsSubclassOf(t) ||
-                    pair.Value.IsAssignableTo(t))
-                {
-                    yield return pair.Key;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Finds a component's index in an entity's components
-    /// </summary>
-    /// <param name="entity">The entity to check</param>
-    /// <param name="t">The type to check</param>
-    /// <returns>The index or -1 on failure</returns>
-    internal IEnumerable<int> ComponentIndices(EntityInfo entity, Type t)
-    {
-        lock (lockObject)
-        {
-            foreach(var componentIndex in entity.componentIndices)
-            {
-                if(componentsRepository.TryGetValue(componentIndex, out var info) &&
-                    (info == t ||
-                    info.IsSubclassOf(t) ||
-                    info.IsAssignableTo(t)))
-                {
-                    yield return componentIndex;
                 }
             }
         }
@@ -143,78 +94,46 @@ public partial class World
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
-        if(t.GetCustomAttribute(typeof(AbstractComponentAttribute)) != null)
-        {
-            return default;
-        }
-
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if(t.GetCustomAttribute(typeof(AbstractComponentAttribute)) != null ||
+            TryGetEntity(entity, out var entityInfo) == false)
         {
             return default;
         }
 
         lock (lockObject)
         {
-            var componentIndex = -1;
+            EnsureComponentInfo(t);
 
-            foreach (var pair in componentsRepository)
+            if (entityInfo.components.TryGetValue(t.FullName, out var component))
             {
-                if (pair.Value == t)
-                {
-                    componentIndex = pair.Key;
-                }
+                //Already has one, return it
+
+                return component;
             }
-
-            var added = componentIndex < 0;
-
-            if (componentIndex < 0)
+            else
             {
-                componentIndex = componentsRepository.Keys.Count;
-
-                componentsRepository.Add(componentIndex, t);
-
-                if(t.IsSubclassOf(typeof(CallbackComponent)))
-                {
-                    callableComponentIndices.Add(componentIndex);
-                }
-            }
-
-            var index = entityInfo.componentIndices.IndexOf(componentIndex);
-
-            if (index < 0)
-            {
-                var component = ObjectCreation.CreateObject<IComponent>(t);
+                component = ObjectCreation.CreateObject<IComponent>(t);
 
                 if (component == default)
                 {
                     return default;
                 }
 
-                entityInfo.componentIndices.Add(componentIndex);
-
-                entityInfo.components.Add(component);
+                entityInfo.components.Add(t.FullName, component);
 
                 if (Scene.InstancingComponent == false)
                 {
                     EmitAddComponentEvent(entity, ref component);
                 }
-
-                index = entityInfo.componentIndices.Count - 1;
-            }
-            else //Already has one, return it
-            {
-                return entityInfo.components[index];
             }
 
             if(t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
             {
                 try
                 {
-                    var outValue = entityInfo.components[index];
-
                     var field = t.GetField("entity");
 
-                    field?.SetValue(outValue, entity);
+                    field?.SetValue(component, entity);
 
                     var property = t.GetProperty("entity");
 
@@ -222,7 +141,7 @@ public partial class World
                     {
                         if(property.CanWrite)
                         {
-                            property.SetValue(outValue, entity);
+                            property.SetValue(component, entity);
                         }
                         else
                         {
@@ -230,8 +149,10 @@ public partial class World
                         }
                     }
 
-                    //Assign in case it's a value type
-                    entityInfo.components[index] = outValue;
+                    if(t.IsValueType)
+                    {
+                        entityInfo.components.AddOrSetKey(t.FullName, component);
+                    }
                 }
                 catch(Exception e)
                 {
@@ -240,10 +161,10 @@ public partial class World
             }
 
             if(Platform.IsPlaying &&
-                callableComponentIndices.Count != 0 &&
+                callableComponentTypes.Count != 0 &&
                 t.IsSubclassOf(typeof(CallbackComponent)))
             {
-                var instance = entityInfo.components[index] as CallbackComponent;
+                var instance = component as CallbackComponent;
 
                 try
                 {
@@ -255,7 +176,68 @@ public partial class World
                 }
             }
 
-            return entityInfo.components[index];
+            return component;
+        }
+    }
+
+    private void EnsureComponentInfo(Type t)
+    {
+        var added = false;
+
+        if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibleTypes) == false)
+        {
+            added = true;
+            compatibleTypes = [];
+        }
+
+        if (added)
+        {
+            compatibleTypes.Add(t.FullName);
+
+            void RecursiveAdd(Type target)
+            {
+                foreach (var targetInterface in target.GetInterfaces())
+                {
+                    if (targetInterface != typeof(IComponent) && targetInterface.IsAssignableTo(typeof(IComponent)))
+                    {
+                        compatibleTypes.Add(targetInterface.FullName);
+
+                        EnsureComponentInfo(targetInterface);
+
+                        if (componentCompatibilityCache.TryGetValue(targetInterface.FullName, out var interfaceCompatibility))
+                        {
+                            interfaceCompatibility.Add(t.FullName);
+                        }
+                    }
+                }
+
+                if (target.BaseType == null ||
+                    target.BaseType == typeof(IComponent) ||
+                    target.BaseType.IsAssignableTo(typeof(IComponent)) == false)
+                {
+                    return;
+                }
+
+                compatibleTypes.Add(target.BaseType.FullName);
+
+                EnsureComponentInfo(target.BaseType);
+
+                if(componentCompatibilityCache.TryGetValue(target.BaseType.FullName, out var baseCompatibility))
+                {
+                    baseCompatibility.Add(t.FullName);
+                }
+
+                RecursiveAdd(target.BaseType);
+            }
+
+            RecursiveAdd(t);
+
+            componentCompatibilityCache.Add(t.FullName, compatibleTypes);
+
+            if (t.IsSubclassOf(typeof(CallbackComponent)))
+            {
+                callableComponentTypes.Add(t.FullName);
+            }
         }
     }
 
@@ -283,16 +265,21 @@ public partial class World
 
         lock (lockObject)
         {
-            foreach(var componentIndex in ComponentIndices(t))
-            {
-                if (entityInfo.TryGetComponentIndex(componentIndex, out var index))
-                {
-                    entityInfo.removedComponents.Add(componentIndex);
+            var tHash = t.FullName.GetHashCode();
 
-                    var component = entityInfo.components[index];
+            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            {
+                return;
+            }
+
+            foreach(var typeName in compatibility)
+            {
+                if (entityInfo.components.TryGetValue(typeName, out var component))
+                {
+                    entityInfo.removedComponents.Add(typeName);
 
                     if (Platform.IsPlaying &&
-                        callableComponentIndices.Count != 0 &&
+                        callableComponentTypes.Count != 0 &&
                         component is CallbackComponent callable)
                     {
                         try
@@ -307,7 +294,7 @@ public partial class World
 
                     EmitRemoveComponentEvent(entity, ref component);
 
-                    entityInfo.components[index] = component;
+                    entityInfo.components[typeName] = component;
                 }
             }
         }
@@ -329,11 +316,16 @@ public partial class World
 
         lock (lockObject)
         {
-            foreach (var componentIndex in ComponentIndices(t))
+            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
             {
-                if (entityInfo.TryGetComponentIndex(componentIndex, out var index))
+                return default;
+            }
+
+            foreach (var typeName in compatibility)
+            {
+                if (entityInfo.components.TryGetValue(typeName, out var component))
                 {
-                    return entityInfo.components[index];
+                    return component;
                 }
             }
 
@@ -371,12 +363,17 @@ public partial class World
 
         lock (lockObject)
         {
-            foreach(var componentIndex in ComponentIndices(t))
+            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
             {
-                if (entityInfo.TryGetComponentIndex(componentIndex, out var index))
-                {
-                    component = entityInfo.components[index];
+                component = default;
 
+                return false;
+            }
+
+            foreach (var typeName in compatibility)
+            {
+                if (entityInfo.components.TryGetValue(typeName, out component))
+                {
                     return true;
                 }
             }
@@ -423,11 +420,16 @@ public partial class World
 
         lock (lockObject)
         {
-            foreach(var componentIndex in ComponentIndices(component.GetType()))
+            if (componentCompatibilityCache.TryGetValue(component.GetType().FullName, out var compatibility) == false)
             {
-                if(entityInfo.TryGetComponentIndex(componentIndex, out var index))
+                return;
+            }
+
+            foreach (var typeName in compatibility)
+            {
+                if(entityInfo.components.ContainsKey(typeName))
                 {
-                    entityInfo.components[index] = component;
+                    entityInfo.components[typeName] = component;
                 }
             }
         }
@@ -450,7 +452,7 @@ public partial class World
         {
             if(componentAddedCallbacks.TryGetValue(componentType, out var c) == false)
             {
-                c = new();
+                c = [];
 
                 componentAddedCallbacks.Add(componentType, c);
             }
@@ -481,7 +483,7 @@ public partial class World
         {
             if (componentRemovedCallbacks.TryGetValue(componentType, out var c) == false)
             {
-                c = new();
+                c = [];
 
                 componentRemovedCallbacks.Add(componentType, c);
             }
@@ -602,7 +604,7 @@ public partial class World
 
         lock(lockObject)
         {
-            if(callableComponentIndices.Count == 0)
+            if(callableComponentTypes.Count == 0)
             {
                 return;
             }
@@ -617,12 +619,9 @@ public partial class World
                     continue;
                 }
 
-                foreach(var component in entity.componentIndices)
+                foreach(var pair in entity.components)
                 {
-                    if(callableComponentIndices.Count != 0 &&
-                        callableComponentIndices.Contains(component) &&
-                        entity.TryGetComponentIndex(component, out var index) &&
-                        entity.components[index] is CallbackComponent callbackComponent)
+                    if(pair.Value is CallbackComponent callbackComponent)
                     {
                         try
                         {
@@ -660,13 +659,18 @@ public partial class World
 
         lock (lockObject)
         {
-            foreach (var componentIndex in ComponentIndices(component.GetType()))
+            if(componentCompatibilityCache.TryGetValue(component.GetType().FullName, out var compatibility) == false)
+            {
+                return default;
+            }
+
+            foreach (var typeName in compatibility)
             {
                 foreach(var entity in entities)
                 {
                     if (entity.alive &&
-                        entity.TryGetComponentIndex(componentIndex, out var index) &&
-                        entity.components[index] == component)
+                        entity.components.TryGetValue(typeName, out var c) &&
+                        c == component)
                     {
                         return new Entity()
                         {

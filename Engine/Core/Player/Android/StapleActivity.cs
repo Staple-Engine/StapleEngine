@@ -459,18 +459,18 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             fixedTimer += (float)(current - lastTime).TotalSeconds;
 
             //Prevent hard stuck
-            var tries = 0;
+            var currentFixedTime = 0.0f;
 
-            while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && tries < 3)
+            while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
             {
                 fixedTimer -= Time.fixedDeltaTime;
 
                 renderWindow.OnFixedUpdate?.Invoke();
 
-                tries++;
+                currentFixedTime += Time.fixedDeltaTime;
             }
 
-            if (tries >= 3)
+            if (currentFixedTime >= AppSettings.Current.maximumFixedTimestepTime)
             {
                 fixedTimer = 0;
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -177,10 +178,12 @@ internal class EntitySystemManager : ISubsystem
         }
 
         var time = Time.fixedDeltaTime;
-
         foreach (var system in fixedUpdateSystems)
         {
-            system.FixedUpdate(time);
+            PerformanceProfiler.Measure($"{system.GetType().FullName} FixedUpdate", () =>
+            {
+                system.FixedUpdate(time);
+            });
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>
@@ -207,7 +210,10 @@ internal class EntitySystemManager : ISubsystem
 
         foreach (var system in updateSystems)
         {
-            system.Update(time);
+            PerformanceProfiler.Measure($"{system.GetType().FullName} Update", () =>
+            {
+                system.Update(time);
+            });
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>

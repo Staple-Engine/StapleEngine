@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Staple;
+﻿namespace Staple;
 
 public partial class World
 {

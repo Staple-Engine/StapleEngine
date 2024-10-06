@@ -14,7 +14,9 @@ public partial class World
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T)[] Query<T>(bool includeDisabled) where T : IComponent
     {
-        if (ComponentIndices(typeof(T)).Any() == false)
+        var tName = typeof(T).FullName;
+
+        if (componentCompatibilityCache.ContainsKey(tName) == false)
         {
             return [];
         }
@@ -28,20 +30,13 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
+                    entity.components.TryGetValue(tName, out var tComponent) == false)
                 {
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (index < 0 ||
-                    entity.TryGetComponentIndex(index, out var tIndex) == false)
-                {
-                    continue;
-                }
-
-                T t = (T)entity.components[tIndex];
+                T t = (T)tComponent;
 
                 try
                 {
@@ -68,8 +63,11 @@ public partial class World
         where T : IComponent
         where T2 : IComponent
     {
-        if (ComponentIndices(typeof(T)).Any() == false ||
-            ComponentIndices(typeof(T2)).Any() == false)
+        var tName = typeof(T).FullName;
+        var t2Name = typeof(T2).FullName;
+
+        if (componentCompatibilityCache.ContainsKey(tName) == false ||
+            componentCompatibilityCache.ContainsKey(t2Name) == false)
         {
             return [];
         }
@@ -83,24 +81,15 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
+                    entity.components.TryGetValue(tName, out var tComponent) == false ||
+                    entity.components.TryGetValue(t2Name, out var t2Component) == false)
                 {
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (index < 0 ||
-                    index2 < 0 ||
-                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
-                    entity.TryGetComponentIndex(index2, out var tIndex2) == false)
-                {
-                    continue;
-                }
-
-                T t = (T)entity.components[tIndex];
-                T2 t2 = (T2)entity.components[tIndex2];
+                T t = (T)tComponent;
+                T2 t2 = (T2)t2Component;
 
                 try
                 {
@@ -129,9 +118,13 @@ public partial class World
         where T2 : IComponent
         where T3 : IComponent
     {
-        if (ComponentIndices(typeof(T)).Any() == false ||
-            ComponentIndices(typeof(T2)).Any() == false ||
-            ComponentIndices(typeof(T3)).Any() == false)
+        var tName = typeof(T).FullName;
+        var t2Name = typeof(T2).FullName;
+        var t3Name = typeof(T3).FullName;
+
+        if (componentCompatibilityCache.ContainsKey(tName) == false ||
+            componentCompatibilityCache.ContainsKey(t2Name) == false ||
+            componentCompatibilityCache.ContainsKey(t3Name) == false)
         {
             return [];
         }
@@ -145,28 +138,17 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
+                    entity.components.TryGetValue(tName, out var tComponent) == false ||
+                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
+                    entity.components.TryGetValue(t3Name, out var t3Component) == false)
                 {
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (index < 0 ||
-                    index2 < 0 ||
-                    index3 < 0 ||
-                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
-                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
-                    entity.TryGetComponentIndex(index3, out var tIndex3) == false)
-                {
-                    continue;
-                }
-
-                T t = (T)entity.components[tIndex];
-                T2 t2 = (T2)entity.components[tIndex2];
-                T3 t3 = (T3)entity.components[tIndex3];
+                T t = (T)tComponent;
+                T2 t2 = (T2)t2Component;
+                T3 t3 = (T3)t3Component;
 
                 try
                 {
@@ -197,10 +179,15 @@ public partial class World
         where T3 : IComponent
         where T4 : IComponent
     {
-        if (ComponentIndices(typeof(T)).Any() == false ||
-            ComponentIndices(typeof(T2)).Any() == false ||
-            ComponentIndices(typeof(T3)).Any() == false ||
-            ComponentIndices(typeof(T4)).Any() == false)
+        var tName = typeof(T).FullName;
+        var t2Name = typeof(T2).FullName;
+        var t3Name = typeof(T3).FullName;
+        var t4Name = typeof(T4).FullName;
+
+        if (componentCompatibilityCache.ContainsKey(tName) == false ||
+            componentCompatibilityCache.ContainsKey(t2Name) == false ||
+            componentCompatibilityCache.ContainsKey(t3Name) == false ||
+            componentCompatibilityCache.ContainsKey(t4Name) == false)
         {
             return [];
         }
@@ -214,32 +201,19 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
+                    entity.components.TryGetValue(tName, out var tComponent) == false ||
+                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
+                    entity.components.TryGetValue(t3Name, out var t3Component) == false ||
+                    entity.components.TryGetValue(t4Name, out var t4Component) == false)
                 {
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (index < 0 ||
-                    index2 < 0 ||
-                    index3 < 0 ||
-                    index4 < 0 ||
-                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
-                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
-                    entity.TryGetComponentIndex(index3, out var tIndex3) == false ||
-                    entity.TryGetComponentIndex(index4, out var tIndex4) == false)
-                {
-                    continue;
-                }
-
-                T t = (T)entity.components[tIndex];
-                T2 t2 = (T2)entity.components[tIndex2];
-                T3 t3 = (T3)entity.components[tIndex3];
-                T4 t4 = (T4)entity.components[tIndex4];
+                T t = (T)tComponent;
+                T2 t2 = (T2)t2Component;
+                T3 t3 = (T3)t3Component;
+                T4 t4 = (T4)t4Component;
 
                 try
                 {
@@ -272,11 +246,17 @@ public partial class World
         where T4 : IComponent
         where T5 : IComponent
     {
-        if (ComponentIndices(typeof(T)).Any() ||
-            ComponentIndices(typeof(T2)).Any() ||
-            ComponentIndices(typeof(T3)).Any() ||
-            ComponentIndices(typeof(T4)).Any() ||
-            ComponentIndices(typeof(T5)).Any())
+        var tName = typeof(T).FullName;
+        var t2Name = typeof(T2).FullName;
+        var t3Name = typeof(T3).FullName;
+        var t4Name = typeof(T4).FullName;
+        var t5Name = typeof(T5).FullName;
+
+        if (componentCompatibilityCache.ContainsKey(tName) == false ||
+            componentCompatibilityCache.ContainsKey(t2Name) == false ||
+            componentCompatibilityCache.ContainsKey(t3Name) == false ||
+            componentCompatibilityCache.ContainsKey(t4Name) == false ||
+            componentCompatibilityCache.ContainsKey(t5Name) == false)
         {
             return [];
         }
@@ -290,36 +270,21 @@ public partial class World
             foreach (var entity in allEntities)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
+                    entity.components.TryGetValue(tName, out var tComponent) == false ||
+                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
+                    entity.components.TryGetValue(t3Name, out var t3Component) == false ||
+                    entity.components.TryGetValue(t4Name, out var t4Component) == false ||
+                    entity.components.TryGetValue(t5Name, out var t5Component) == false)
                 {
                     continue;
                 }
 
-                var index = ComponentIndices(entity, typeof(T)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index2 = ComponentIndices(entity, typeof(T2)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index3 = ComponentIndices(entity, typeof(T3)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index4 = ComponentIndices(entity, typeof(T4)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-                var index5 = ComponentIndices(entity, typeof(T5)).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (index < 0 ||
-                    index2 < 0 ||
-                    index3 < 0 ||
-                    index4 < 0 ||
-                    index5 < 0 ||
-                    entity.TryGetComponentIndex(index, out var tIndex) == false ||
-                    entity.TryGetComponentIndex(index2, out var tIndex2) == false ||
-                    entity.TryGetComponentIndex(index3, out var tIndex3) == false ||
-                    entity.TryGetComponentIndex(index4, out var tIndex4) == false ||
-                    entity.TryGetComponentIndex(index5, out var tIndex5) == false)
-                {
-                    continue;
-                }
-
-                T t = (T)entity.components[tIndex];
-                T2 t2 = (T2)entity.components[tIndex2];
-                T3 t3 = (T3)entity.components[tIndex3];
-                T4 t4 = (T4)entity.components[tIndex4];
-                T5 t5 = (T5)entity.components[tIndex5];
+                T t = (T)tComponent;
+                T2 t2 = (T2)t2Component;
+                T3 t3 = (T3)t3Component;
+                T4 t4 = (T4)t4Component;
+                T5 t5 = (T5)t5Component;
 
                 try
                 {
@@ -354,6 +319,11 @@ public partial class World
     {
         lock (lockObject)
         {
+            if(componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            {
+                return 0;
+            }
+
             var counter = 0;
 
             foreach (var entity in entities)
@@ -363,14 +333,15 @@ public partial class World
                     continue;
                 }
 
-                var componentIndex = ComponentIndices(t).FirstOrDefault(x => entity.componentIndices.Contains(x), -1);
-
-                if (componentIndex < 0)
+                foreach(var pair in entity.components)
                 {
-                    continue;
-                }
+                    if(compatibility.Contains(pair.Key))
+                    {
+                        counter++;
 
-                counter++;
+                        break;
+                    }
+                }
             }
 
             return counter;
@@ -520,31 +491,33 @@ public partial class World
         lock (lockObject)
         {
             //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var cache = entityInfo.componentIndices.ToArray();
+            var cache = entityInfo.components.ToArray();
 
-            foreach (var index in cache)
+            foreach (var pair in cache)
             {
                 if(entityInfo.alive == false)
                 {
                     break;
                 }
 
-                if(entityInfo.removedComponents.Contains(index) ||
-                    entityInfo.TryGetComponentIndex(index, out var tIndex) == false)
+                if(entityInfo.removedComponents.Contains(pair.Key))
                 {
                     continue;
                 }
 
-                var component = entityInfo.components[tIndex];
+                var component = pair.Value;
 
                 callback(ref component);
 
-                if (entityInfo.removedComponents.Contains(index))
+                if (entityInfo.removedComponents.Contains(pair.Key))
                 {
                     continue;
                 }
 
-                entityInfo.components[tIndex] = component;
+                if(component.GetType().IsValueType)
+                {
+                    entityInfo.components[pair.Key] = component;
+                }
             }
         }
     }

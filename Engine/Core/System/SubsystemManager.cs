@@ -14,7 +14,7 @@ internal class SubsystemManager
     /// </summary>
     public static readonly SubsystemManager instance = new();
 
-    private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = new();
+    private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = [];
     private readonly object lockObject = new();
 
     /// <summary>
@@ -46,7 +46,7 @@ internal class SubsystemManager
         {
             if (subsystems.TryGetValue(priority, out var list) == false)
             {
-                list = new HashSet<ISubsystem>();
+                list = [];
 
                 subsystems.Add(priority, list);
             }
@@ -74,7 +74,10 @@ internal class SubsystemManager
                         continue;
                     }
 
-                    subsystem.Update();
+                    PerformanceProfiler.Measure($"{subsystem.GetType().FullName} {type}", () =>
+                    {
+                        subsystem.Update();
+                    });
                 }
             }
         }

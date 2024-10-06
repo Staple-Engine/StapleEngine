@@ -1,6 +1,8 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -700,6 +702,7 @@ internal class RenderWindow
         lastTime = current;
 
         World.Current?.StartFrame();
+        PerformanceProfiler.StartFrame();
 
         try
         {
@@ -721,12 +724,9 @@ internal class RenderWindow
 
         RenderSystem.Instance.OnFrame(frame);
 
-        bgfx.dbg_text_clear(0, false);
+        PerformanceProfiler.FinishFrame();
 
-        if(hasCamera == false)
-        {
-            bgfx.dbg_text_printf(40, 20, 1, "No cameras are Rendering", "");
-        }
+        bgfx.dbg_text_clear(0, false);
 
         bgfx.dbg_text_printf(0, 0, 1, $"FPS: {Time.FPS}", "");
     }
@@ -881,6 +881,22 @@ internal class RenderWindow
 
         Screen.Width = width;
         Screen.Height = height;
+
+        /*
+        PerformanceProfiler.OnFinishFrame += (counters) =>
+        {
+            var builder = new StringBuilder("Profiling:\n");
+
+            var ordered = counters.OrderByDescending(x => x.Value).ToList();
+
+            foreach(var counter in ordered)
+            {
+                builder.AppendLine($"{counter.Key} - {(int)(counter.Value * 1000)}ms");
+            }
+
+            Log.Debug(builder.ToString());
+        };
+        */
 
         return renderWindow;
     }
