@@ -9,6 +9,8 @@ internal static class PerformanceProfiler
 
     private static readonly Dictionary<string, int> frameCounters = [];
 
+    private static readonly Dictionary<string, int> combinedFrameCounters = [];
+
     private static readonly Dictionary<string, int> averageFrameCounters = [];
 
     private static readonly object lockObject = new();
@@ -25,6 +27,22 @@ internal static class PerformanceProfiler
             }
 
             lock(lockObject)
+            {
+                return new(frameCounters);
+            }
+        }
+    }
+
+    public static Dictionary<string, int> AverageFrameCounters
+    {
+        get
+        {
+            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+            {
+                return [];
+            }
+
+            lock (lockObject)
             {
                 return new(averageFrameCounters);
             }
@@ -89,19 +107,25 @@ internal static class PerformanceProfiler
 
         lock(lockObject)
         {
-            foreach(var pair in counters)
+            frameCounters.Clear();
+
+            foreach (var pair in counters)
             {
-                if(frameCounters.TryGetValue(pair.Key, out var value))
+                if(combinedFrameCounters.TryGetValue(pair.Key, out var value))
                 {
                     value += pair.Value;
 
-                    frameCounters[pair.Key] = value;
+                    combinedFrameCounters[pair.Key] = value;
                 }
                 else
                 {
-                    frameCounters.Add(pair.Key, pair.Value);
+                    combinedFrameCounters.Add(pair.Key, pair.Value);
                 }
+
+                frameCounters.AddOrSetKey(pair.Key, pair.Value);
             }
+
+            counters.Clear();
 
             if ((DateTime.Now - lastAverageTime).TotalSeconds >= 1)
             {
@@ -109,12 +133,12 @@ internal static class PerformanceProfiler
 
                 averageFrameCounters.Clear();
 
-                foreach(var pair in frameCounters)
+                foreach(var pair in combinedFrameCounters)
                 {
                     averageFrameCounters.Add(pair.Key, pair.Value / 1000);
                 }
 
-                frameCounters.Clear();
+                combinedFrameCounters.Clear();
             }
         }
     }
