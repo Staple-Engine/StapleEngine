@@ -205,12 +205,5 @@ internal class BuildWindow : EditorWindow
                 Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
             }
         });
-
-        EditorGUI.SameLine();
-
-        EditorGUI.Button("Close", "BuildWindowClose", () =>
-        {
-            Close();
-        });
     }
 }

@@ -279,12 +279,5 @@ internal class AppSettingsWindow : EditorWindow
             {
             }
         });
-
-        EditorGUI.SameLine();
-
-        EditorGUI.Button("Close", "APPSETTINGSCLOSE", () =>
-        {
-            Close();
-        });
     }
 }

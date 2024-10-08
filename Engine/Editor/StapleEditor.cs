@@ -750,6 +750,8 @@ internal partial class StapleEditor
                     }
                 }
 
+                var isOpen = true;
+
                 switch(window.windowType)
                 {
                     case EditorWindowType.Modal:
@@ -785,7 +787,7 @@ internal partial class StapleEditor
 
                     default:
 
-                        shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", flags);
+                        shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", ref isOpen, flags);
 
                         break;
                 }
@@ -815,6 +817,11 @@ internal partial class StapleEditor
                             ImGui.End();
 
                             break;
+                    }
+
+                    if(isOpen == false)
+                    {
+                        window.Close();
                     }
 
                     var size = ImGui.GetWindowSize();
