@@ -81,6 +81,7 @@ internal partial class Shader : IGuidAsset
     internal class ShaderInstance
     {
         public bgfx.ProgramHandle program;
+        public string[] keyPieces;
 
         public byte[] vertexShaderSource;
         public byte[] fragmentShaderSource;
@@ -121,6 +122,7 @@ internal partial class Shader : IGuidAsset
         {
             instances.AddOrSetKey(pair.Key, new()
             {
+                keyPieces = pair.Key.Split(' '),
                 fragmentShaderSource = pair.Value.fragmentShader,
                 vertexShaderSource = pair.Value.vertexShader,
             });

@@ -41,14 +41,17 @@ public class LightSystem : IRenderSystem
     public void Prepare()
     {
         lights.Clear();
+
+        var result = Scene.Query<Transform, Light>();
+
+        foreach(var pair in result)
+        {
+            lights.Add((pair.Item2, pair.Item3));
+        }
     }
 
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(relatedComponent is Light light)
-        {
-            lights.Add((transform, light));
-        }
     }
 
     public void Process(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
@@ -57,7 +60,7 @@ public class LightSystem : IRenderSystem
 
     public Type RelatedComponent()
     {
-        return typeof(Light);
+        return null;
     }
 
     public void Submit()
@@ -104,7 +107,8 @@ public class LightSystem : IRenderSystem
 
     public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition, List<(Transform, Light)> lights)
     {
-        if ((material?.IsValid ?? false) == false)
+        if ((material?.IsValid ?? false) == false ||
+            lights.Count == 0)
         {
             return;
         }

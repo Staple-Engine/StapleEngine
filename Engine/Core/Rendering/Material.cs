@@ -208,16 +208,14 @@ public sealed class Material : IGuidAsset
 
         foreach(var pair in shader.instances)
         {
-            var pieces = pair.Key.Split(' ');
-
-            if(pieces.Length != shaderKeywords.Count)
+            if(pair.Value.keyPieces.Length != shaderKeywords.Count)
             {
                 continue;
             }
 
             var found = false;
 
-            foreach(var piece in pieces)
+            foreach(var piece in pair.Value.keyPieces)
             {
                 found |= shaderKeywords.Contains(piece) == false;
 
@@ -233,6 +231,8 @@ public sealed class Material : IGuidAsset
             }
 
             ShaderVariantKey = pair.Key;
+
+            break;
         }
     }
 
