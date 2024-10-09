@@ -90,6 +90,8 @@ public class MeshAsset : IGuidAsset
 
         private Matrix4x4 originalGlobalMatrix;
 
+        private Dictionary<string, Node> cachedNodes = [];
+
         private void UpdateTransforms()
         {
             if (changed)
@@ -155,6 +157,11 @@ public class MeshAsset : IGuidAsset
 
         public Node GetNode(string name)
         {
+            if(cachedNodes.TryGetValue(name, out Node node))
+            {
+                return node;
+            }
+
             if(this.name == name)
             {
                 return this;
@@ -166,6 +173,8 @@ public class MeshAsset : IGuidAsset
 
                 if(result != null)
                 {
+                    cachedNodes.AddOrSetKey(name, result);
+
                     return result;
                 }
             }
