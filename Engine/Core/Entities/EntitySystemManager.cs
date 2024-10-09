@@ -181,10 +181,9 @@ internal class EntitySystemManager : ISubsystem
 
         foreach (var system in fixedUpdateSystems)
         {
-            PerformanceProfiler.Measure($"{system.GetType().FullName} FixedUpdate", () =>
-            {
-                system.FixedUpdate(time);
-            });
+            using var profiler = new PerformanceProfiler($"{system.GetType().FullName} FixedUpdate");
+
+            system.FixedUpdate(time);
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>
@@ -211,10 +210,9 @@ internal class EntitySystemManager : ISubsystem
 
         foreach (var system in updateSystems)
         {
-            PerformanceProfiler.Measure($"{system.GetType().FullName} Update", () =>
-            {
-                system.Update(time);
-            });
+            using var profiler = new PerformanceProfiler($"{system.GetType().FullName} Update");
+            
+            system.Update(time);
         }
 
         World.Current?.IterateCallableComponents((entity, component) =>

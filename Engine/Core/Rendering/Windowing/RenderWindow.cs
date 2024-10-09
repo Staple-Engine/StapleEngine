@@ -116,13 +116,13 @@ internal class RenderWindow
             shouldStop = true;
         }
 
-        var last = DateTime.Now;
+        var last = DateTime.UtcNow;
 
         var fixedTimer = 0.0f;
 
         while (window.ShouldClose == false && shouldStop == false)
         {
-            PerformanceProfiler.StartFrame();
+            PerformanceProfilerSystem.StartFrame();
 
             Input.UpdateState();
 
@@ -182,7 +182,7 @@ internal class RenderWindow
             }
             else
             {
-                var current = DateTime.Now;
+                var current = DateTime.UtcNow;
 
                 fixedTimer += (float)(current - last).TotalSeconds;
 
@@ -280,13 +280,13 @@ internal class RenderWindow
             shouldStop = true;
         }
 
-        var last = DateTime.Now;
+        var last = DateTime.UtcNow;
 
         var fixedTimer = 0.0f;
 
         while (window.ShouldClose == false && shouldStop == false)
         {
-            PerformanceProfiler.StartFrame();
+            PerformanceProfilerSystem.StartFrame();
 
             Input.UpdateState();
 
@@ -344,7 +344,7 @@ internal class RenderWindow
             }
             else
             {
-                var current = DateTime.Now;
+                var current = DateTime.UtcNow;
 
                 fixedTimer += (float)(current - last).TotalSeconds;
 
@@ -366,7 +366,7 @@ internal class RenderWindow
                 }
             }
 
-            last = DateTime.Now;
+            last = DateTime.UtcNow;
 
             ThreadHelper.Update();
         }
@@ -695,7 +695,7 @@ internal class RenderWindow
 
     internal void RenderFrame(ref DateTime lastTime)
     {
-        var current = DateTime.Now;
+        var current = DateTime.UtcNow;
 
         if (Paused)
         {
@@ -730,13 +730,13 @@ internal class RenderWindow
 
         RenderSystem.Instance.OnFrame(frame);
 
-        PerformanceProfiler.FinishFrame();
+        PerformanceProfilerSystem.FinishFrame();
 
         bgfx.dbg_text_clear(0, false);
 
         if (AppSettings.Current?.profilingMode == AppSettings.ProfilingMode.PerformanceOverlay)
         {
-            var counters = PerformanceProfiler.FrameCounters
+            var counters = PerformanceProfilerSystem.AverageFrameCounters
                 .OrderByDescending(x => x.Value)
                 .ToArray();
 
@@ -766,7 +766,7 @@ internal class RenderWindow
             renderThreadReady = true;
         }
 
-        var last = DateTime.Now;
+        var last = DateTime.UtcNow;
 
         for (; ; )
         {

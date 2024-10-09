@@ -18,7 +18,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public ushort viewID;
     }
 
-    private readonly List<RenderInfo> renderers = new();
+    private readonly List<RenderInfo> renderers = [];
 
     public void Destroy()
     {

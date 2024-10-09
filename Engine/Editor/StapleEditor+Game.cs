@@ -157,9 +157,9 @@ internal partial class StapleEditor
 
             gameAssemblyLoadContext = null;
 
-            var time = DateTime.Now;
+            var time = DateTime.UtcNow;
 
-            while((DateTime.Now - time).TotalSeconds < 1)
+            while((DateTime.UtcNow - time).TotalSeconds < 1)
             {
                 GC.Collect();
                 GC.WaitForPendingFinalizers();

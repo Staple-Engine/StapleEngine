@@ -1,7 +1,6 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -194,90 +193,94 @@ public partial class RenderSystem
     #region Render Modes
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
-        PerformanceProfiler.Measure($"RenderSystem - RenderStandard", () =>
+        using var p1 = new PerformanceProfiler("RenderSystem - RenderStandard");
+
+        CurrentCamera = (camera, cameraTransform);
+
+        var systems = new List<IRenderSystem>();
+
+        lock (lockObject)
         {
-            CurrentCamera = (camera, cameraTransform);
+            systems.AddRange(renderSystems);
+        }
 
-            var systems = new List<IRenderSystem>();
+        foreach (var system in systems)
+        {
+            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Prepare");
 
-            lock (lockObject)
+            system.Prepare();
+        }
+
+        {
+            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
+
+            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
+        }
+
+        var transforms = Scene.Query<Transform>();
+
+        foreach ((Entity entity, Transform t) in transforms)
+        {
+            using var p4 = new PerformanceProfiler($"RenderSystem - Process {transforms.Length} Entities");
+
+            var layer = entity.Layer;
+
+            if (camera.cullingLayers.HasLayer(layer) == false)
             {
-                systems.AddRange(renderSystems);
+                return;
             }
 
             foreach (var system in systems)
             {
-                PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName} Prepare", () =>
+                IComponent related = null;
+
                 {
-                    system.Prepare();
-                });
-            }
+                    using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} GetComponent");
 
-            PerformanceProfiler.Measure($"RenderSystem - PrepareCamera", () =>
-            {
-                PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-            });
+                    related = entity.GetComponent(system.RelatedComponent());
+                }
 
-            var transforms = Scene.Query<Transform>();
-
-            foreach ((Entity entity, Transform t) in transforms)
-            {
-                PerformanceProfiler.Measure($"RenderSystem - Process {transforms.Length} Entities", () =>
+                if (related != null)
                 {
-                    var layer = entity.Layer;
-
-                    if (camera.cullingLayers.HasLayer(layer) == false)
                     {
-                        return;
+                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Preprocess");
+
+                        system.Preprocess(entity, t, related, camera, cameraTransform);
                     }
 
-                    foreach (var system in systems)
+                    if (related is Renderable renderable && renderable.enabled)
                     {
-                        IComponent related = null;
+                        renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
 
-                        PerformanceProfiler.Measure($"RenderSystem - GetComponent", () =>
+                        if (renderable.isVisible && renderable.forceRenderingOff == false)
                         {
-                            related = entity.GetComponent(system.RelatedComponent());
-                        });
+                            using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
 
-                        if (related != null)
-                        {
-                            PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName}", () =>
-                            {
-                                system.Preprocess(entity, t, related, camera, cameraTransform);
-
-                                if (related is Renderable renderable &&
-                                    renderable.enabled)
-                                {
-                                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                                    if (renderable.isVisible && renderable.forceRenderingOff == false)
-                                    {
-                                        system.Process(entity, t, related, camera, cameraTransform, viewID);
-                                    }
-                                }
-                                else if (related is not Renderable) //Systems that do not require a renderer
-                                {
-                                    system.Process(entity, t, related, camera, cameraTransform, viewID);
-                                }
-                            });
+                            system.Process(entity, t, related, camera, cameraTransform, viewID);
                         }
                     }
-                });
+                    else if (related is not Renderable) //Systems that do not require a renderer
+                    {
+                        using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
+
+                        system.Process(entity, t, related, camera, cameraTransform, viewID);
+                    }
+                }
             }
 
             foreach (var system in systems)
             {
-                PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName}", () =>
-                {
-                    system.Submit();
-                });
+                using var p9 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
+
+                system.Submit();
             }
-        });
+        }
     }
 
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
+        using var p1 = new PerformanceProfiler($"RenderSystem - RenderAccumulator");
+
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -289,10 +292,16 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
+            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Prepare");
+
             system.Prepare();
         }
 
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
+        {
+            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
+
+            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
+        }
 
         var alpha = accumulator / Time.fixedDeltaTime;
 
@@ -331,11 +340,10 @@ public partial class RenderSystem
                         {
                             if (call.relatedComponent.GetType() == system.RelatedComponent())
                             {
-                                PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName}", () =>
-                                {
-                                    system.Process(call.entity, stagingTransform, call.relatedComponent,
+                                using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
+
+                                system.Process(call.entity, stagingTransform, call.relatedComponent,
                                     camera, cameraTransform, viewID);
-                                });
                             }
                         }
                     }
@@ -345,10 +353,9 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName}", () =>
-            {
-                system.Submit();
-            });
+            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
+
+            system.Submit();
         }
     }
 
@@ -360,13 +367,12 @@ public partial class RenderSystem
 
         if (cameras.Length > 0)
         {
-            PerformanceProfiler.Measure($"RenderSystem - Frame", () =>
+            using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({cameras.Length} cameras)");
+
+            foreach (var c in cameras)
             {
-                foreach (var c in cameras)
-                {
-                    RenderStandard(c.entity, c.camera, c.transform, CurrentViewID++);
-                }
-            });
+                RenderStandard(c.entity, c.camera, c.transform, CurrentViewID++);
+            }
         }
     }
 
@@ -378,6 +384,8 @@ public partial class RenderSystem
 
         if (cameras.Length > 0)
         {
+            using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({cameras.Length} cameras)");
+
             foreach (var c in cameras)
             {
                 RenderAccumulator(c.entity, c.camera, c.transform, CurrentViewID++);
@@ -427,21 +435,21 @@ public partial class RenderSystem
 
                         if (related != null)
                         {
-                            PerformanceProfiler.Measure($"RenderSystem - {system.GetType().FullName}", () =>
                             {
+                                using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Preprocess");
+
                                 system.Preprocess(entity, t, related, camera, cameraTransform);
+                            }
 
-                                if (related is Renderable renderable &&
-                                    renderable.enabled)
+                            if (related is Renderable renderable && renderable.enabled)
+                            {
+                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+
+                                if (renderable.isVisible && renderable.forceRenderingOff == false)
                                 {
-                                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                                    if (renderable.isVisible && renderable.forceRenderingOff == false)
-                                    {
-                                        AddDrawCall(entity, t, related, renderable, CurrentViewID);
-                                    }
+                                    AddDrawCall(entity, t, related, renderable, CurrentViewID);
                                 }
-                            });
+                            }
                         }
                     }
                 }
@@ -460,7 +468,6 @@ public partial class RenderSystem
     #endregion
 
     #region Render Helpers
-
     private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
     {
         unsafe
@@ -506,6 +513,8 @@ public partial class RenderSystem
 
         bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
             (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
+
+        bgfx.touch(viewID);
     }
 
     /// <summary>
@@ -522,7 +531,7 @@ public partial class RenderSystem
         {
             if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
             {
-                drawCalls = new();
+                drawCalls = [];
 
                 currentDrawBucket.drawCalls.Add(viewID, drawCalls);
             }

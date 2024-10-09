@@ -23,7 +23,7 @@ public class UICanvasSystem : IRenderSystem
 
     private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
-    private List<RenderInfo> renders = new();
+    private List<RenderInfo> renders = [];
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 

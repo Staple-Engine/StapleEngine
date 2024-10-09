@@ -74,10 +74,9 @@ internal class SubsystemManager
                         continue;
                     }
 
-                    PerformanceProfiler.Measure($"{subsystem.GetType().FullName} {type}", () =>
-                    {
-                        subsystem.Update();
-                    });
+                    using var profiler = new PerformanceProfiler($"{subsystem.GetType().FullName} {type}");
+
+                    subsystem.Update();
                 }
             }
         }

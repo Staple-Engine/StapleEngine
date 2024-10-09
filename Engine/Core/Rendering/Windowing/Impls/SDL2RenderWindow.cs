@@ -548,10 +548,10 @@ internal class SDL2RenderWindow : IRenderWindow
             previousWindowPosition = windowPosition;
 
             movedWindow = true;
-            movedWindowTimer = DateTime.Now;
+            movedWindowTimer = DateTime.UtcNow;
         }
 
-        if (movedWindow && (DateTime.Now - movedWindowTimer).TotalSeconds >= 1.0f)
+        if (movedWindow && (DateTime.UtcNow - movedWindowTimer).TotalSeconds >= 1.0f)
         {
             movedWindow = false;
 

@@ -454,7 +454,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         }
         else
         {
-            var current = DateTime.Now;
+            var current = DateTime.UtcNow;
 
             fixedTimer += (float)(current - lastTime).TotalSeconds;
 
