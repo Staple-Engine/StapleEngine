@@ -267,13 +267,13 @@ public partial class RenderSystem
                     }
                 }
             }
+        }
 
-            foreach (var system in systems)
-            {
-                using var p9 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
+        foreach (var system in systems)
+        {
+            using var p9 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
 
-                system.Submit();
-            }
+            system.Submit();
         }
     }
 
