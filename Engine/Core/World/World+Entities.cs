@@ -1,4 +1,6 @@
-﻿namespace Staple;
+﻿using System.Runtime.CompilerServices;
+
+namespace Staple;
 
 public partial class World
 {
@@ -9,6 +11,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity</param>
     /// <returns>Whether it is valid</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValidEntity(Entity entity)
     {
         var localID = entity.Identifier.ID - 1;
@@ -32,6 +35,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity</param>
     /// <returns>The entity info, or null</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryGetEntity(Entity entity, out EntityInfo info)
     {
         var localID = entity.Identifier.ID - 1;
@@ -68,44 +72,12 @@ public partial class World
 
         lock (lockObject)
         {
-            if (entityInfo.enabled == false)
+            if (checkParent)
             {
-                return false;
+                return entityInfo.enabled && entityInfo.enabledInHierarchy;
             }
 
-            if (checkParent == false)
-            {
-                return true;
-            }
-
-            var transform = GetComponent<Transform>(entity);
-
-            if (transform == null)
-            {
-                return true;
-            }
-
-            bool Recursive(Transform t)
-            {
-                if (t == null)
-                {
-                    return true;
-                }
-
-                if (IsEntityEnabled(t.entity, false) == false)
-                {
-                    return false;
-                }
-
-                if (t.parent != null)
-                {
-                    return Recursive(t.parent);
-                }
-
-                return true;
-            }
-
-            return Recursive(transform.parent);
+            return entityInfo.enabled;
         }
     }
 
@@ -124,6 +96,27 @@ public partial class World
         lock (lockObject)
         {
             entityInfo.enabled = enabled;
+
+            void Handle(Entity e)
+            {
+                var eInfo = entities[e.Identifier.ID - 1];
+
+                eInfo.enabledInHierarchy = eInfo.enabled && enabled;
+
+                var transform = GetComponent<Transform>(e);
+
+                if(transform == null)
+                {
+                    return;
+                }
+
+                foreach(var child in transform)
+                {
+                    Handle(child.entity);
+                }
+            }
+
+            Handle(entity);
         }
     }
 
@@ -147,6 +140,7 @@ public partial class World
 
                     other.alive = true;
                     other.enabled = true;
+                    other.enabledInHierarchy = true;
 
                     return new Entity()
                     {
@@ -164,6 +158,7 @@ public partial class World
                 ID = entities.Count + 1,
                 alive = true,
                 enabled = true,
+                enabledInHierarchy = true,
                 name = DefaultEntityName,
             };
 

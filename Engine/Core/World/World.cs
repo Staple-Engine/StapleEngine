@@ -40,6 +40,11 @@ public partial class World
         public bool enabled;
 
         /// <summary>
+        /// Whether this entity is enabled in the scene hierarchy. If a parent is disabled, this will be false, even if it's normally enabled.
+        /// </summary>
+        public bool enabledInHierarchy;
+
+        /// <summary>
         /// List of components for the entity
         /// </summary>
         public Dictionary<string, IComponent> components = [];
