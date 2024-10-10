@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
@@ -99,7 +100,7 @@ internal partial class Shader : IGuidAsset
         ($"u_boneMatrices[{SkinnedMeshRenderSystem.MaxBones}]", ShaderUniformType.Matrix4x4),
     ];
 
-    internal readonly List<UniformInfo> uniforms = [];
+    internal UniformInfo[] uniforms = [];
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
@@ -107,8 +108,8 @@ internal partial class Shader : IGuidAsset
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private readonly List<int> uniformTable = [];
-    private readonly List<int> uniformIndices = [];
+    private int[] uniformTable = [];
+    private int[] uniformIndices = [];
     private int usedTextureStages = 0;
 
     public string Guid { get; set; }
@@ -144,6 +145,21 @@ internal partial class Shader : IGuidAsset
     ~Shader()
     {
         Destroy();
+    }
+
+    private int GetUniformIndex(int hash)
+    {
+        var l = uniformIndices.Length;
+
+        for(var i = 0; i < l; i++)
+        {
+            if(uniformIndices[i] == hash)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private static string NormalizeUniformName(string name, ShaderUniformType type)
@@ -222,7 +238,7 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        if (uniforms.Count > 0)
+        if (uniforms.Length > 0)
         {
             foreach (var uniform in uniforms)
             {
@@ -263,14 +279,14 @@ internal partial class Shader : IGuidAsset
         var nameHash = name.GetHashCode();
         var normalizedHash = normalizedName.GetHashCode();
 
-        var uniformIndex = uniformIndices.IndexOf(nameHash);
+        var uniformIndex = GetUniformIndex(nameHash);
 
         if(uniformIndex >= 0)
         {
             return;
         }
 
-        uniformIndex = uniformIndices.IndexOf(normalizedHash);
+        uniformIndex = GetUniformIndex(normalizedHash);
 
         if (uniformIndex >= 0)
         {
@@ -296,18 +312,18 @@ internal partial class Shader : IGuidAsset
                 usedTextureStages++;
             }
 
-            var i = uniforms.Count;
+            var i = uniforms.Length;
 
-            uniformTable.Add(i);
-            uniformIndices.Add(normalizedHash);
-            uniforms.Add(u);
+            uniformTable = uniformTable.Concat([i]).ToArray();
+            uniformIndices = uniformIndices.Concat([normalizedHash]).ToArray();
+            uniforms = uniforms.Concat([u]).ToArray();
 
-            if(uniformIndices.IndexOf(nameHash) < 0)
+            if(GetUniformIndex(nameHash) < 0)
             {
-                uniformTable.Add(i);
-                uniformIndices.Add(nameHash);
+                uniformTable = uniformTable.Concat([i]).ToArray();
+                uniformIndices = uniformIndices.Concat([nameHash]).ToArray();
 
-                uniforms.Add(new()
+                uniforms = uniforms.Concat([new()
                 {
                     count = u.count,
                     isAlias = true,
@@ -318,7 +334,7 @@ internal partial class Shader : IGuidAsset
                         name = u.uniform.name,
                         type = type,
                     },
-                });
+                }]).ToArray();
             }
         }
     }
@@ -343,18 +359,9 @@ internal partial class Shader : IGuidAsset
             return null;
         }
 
-        //Might be slightly faster than checking
-        var c = uniformIndices.Count;
+        var index = GetUniformIndex(hash);
 
-        for(var i = 0; i < c; i++)
-        {
-            if (uniformIndices[i] == hash)
-            {
-                return uniforms[uniformTable[i]];
-            }
-        }
-
-        return null;
+        return index >= 0 ? uniforms[uniformTable[index]] : null;
     }
 
     /// <summary>
