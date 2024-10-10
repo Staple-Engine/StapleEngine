@@ -525,6 +525,7 @@ internal class CSProjManager
                 p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                 p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
                 p.SetProperty("RuntimeIdentifiers", "android-arm64");
+                p.SetProperty("UseInterpreter", "false");
 
                 break;
 
@@ -535,6 +536,7 @@ internal class CSProjManager
                 p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
                 p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
                 p.SetProperty("RuntimeIdentifiers", "ios-arm64");
+                p.SetProperty("UseInterpreter", "false");
 
                 break;
         }
