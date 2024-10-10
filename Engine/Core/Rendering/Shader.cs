@@ -20,16 +20,21 @@ internal partial class Shader : IGuidAsset
         SkinningKeyword,
     ];
 
-    internal class UniformInfo<T>
+    internal class UniformInfo
     {
         public ShaderUniform uniform;
         public bgfx.UniformHandle handle;
-        public T value;
         public byte stage;
         public int count = 1;
+        public bool isAlias = false;
 
         public bool Create()
         {
+            if(isAlias)
+            {
+                return true;
+            }
+
             bgfx.UniformType type;
 
             switch (uniform.type)
@@ -94,13 +99,17 @@ internal partial class Shader : IGuidAsset
         ($"u_boneMatrices[{SkinnedMeshRenderSystem.MaxBones}]", ShaderUniformType.Matrix4x4),
     ];
 
-    internal readonly Dictionary<ShaderUniformType, object> uniforms = new();
-    internal readonly Dictionary<string, ShaderInstance> instances = new();
+    internal readonly List<UniformInfo> uniforms = [];
+    internal readonly Dictionary<string, ShaderInstance> instances = [];
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
+
+    private readonly List<int> uniformTable = [];
+    private readonly List<int> uniformIndices = [];
+    private int usedTextureStages = 0;
 
     public string Guid { get; set; }
 
@@ -215,197 +224,31 @@ internal partial class Shader : IGuidAsset
 
         if (uniforms.Count > 0)
         {
-            void Apply<T>(object value, Action<UniformInfo<T>> callback)
+            foreach (var uniform in uniforms)
             {
-                if (value is Dictionary<int, UniformInfo<T>> container)
-                {
-                    foreach (var p in container)
-                    {
-                        var uniform = p.Value;
-
-                        if (uniform.Create())
-                        {
-                            if (uniform.value != null)
-                            {
-                                callback?.Invoke(uniform);
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach (var pair in uniforms)
-            {
-                switch(pair.Key)
-                {
-                    case ShaderUniformType.Texture:
-
-                        Apply<Texture>(pair.Value, (uniform) => SetTexture(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Matrix3x3:
-
-                        Apply<Matrix3x3>(pair.Value, (uniform) => SetMatrix3x3(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Matrix4x4:
-
-                        Apply<Matrix4x4>(pair.Value, (uniform) => SetMatrix4x4(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Vector2:
-
-                        Apply<Vector2>(pair.Value, (uniform) => SetVector2(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Vector3:
-
-                        Apply<Vector3>(pair.Value, (uniform) => SetVector3(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Vector4:
-
-                        Apply<Vector4>(pair.Value, (uniform) => SetVector4(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        Apply<Color>(pair.Value, (uniform) => SetColor(uniform.uniform.name, uniform.value));
-
-                        break;
-
-                    case ShaderUniformType.Float:
-
-                        Apply<float>(pair.Value, (uniform) => SetFloat(uniform.uniform.name, uniform.value));
-
-                        break;
-                }
+                uniform.Create();
             }
         }
         else
         {
             foreach (var uniform in metadata.uniforms)
             {
-                switch (uniform.type)
-                {
-                    case ShaderUniformType.Texture:
-
-                        AddUniform<Texture>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Matrix3x3:
-
-                        AddUniform<Matrix3x3>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Matrix4x4:
-
-                        AddUniform<Matrix4x4>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Vector2:
-
-                        AddUniform<Vector2>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Vector3:
-
-                        AddUniform<Vector3>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Vector4:
-
-                        AddUniform<Vector4>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        AddUniform<Color>(uniform.name, uniform.type);
-
-                        break;
-
-                    case ShaderUniformType.Float:
-
-                        AddUniform<float>(uniform.name, uniform.type);
-
-                        break;
-                }
+                AddUniform(uniform.name, uniform.type);
             }
 
-            void EnsureUniform<T>(string name, ShaderUniformType type)
+            void EnsureUniform(string name, ShaderUniformType type)
             {
-                var uniform = GetUniform<T>(name, type);
+                var uniform = GetUniform(name.GetHashCode());
 
                 if (uniform == null)
                 {
-                    AddUniform<T>(name, type);
+                    AddUniform(name, type);
                 }
             }
 
             foreach(var uniform in DefaultUniforms)
             {
-                switch(uniform.Item2)
-                {
-                    case ShaderUniformType.Texture:
-
-                        EnsureUniform<Texture>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Matrix3x3:
-
-                        EnsureUniform<Matrix3x3>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Matrix4x4:
-
-                        EnsureUniform<Matrix4x4>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Float:
-
-                        EnsureUniform<float>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Vector2:
-
-                        EnsureUniform<Vector2>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Vector3:
-
-                        EnsureUniform<Vector3>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Vector4:
-
-                        EnsureUniform<Vector4>(uniform.Item1, uniform.Item2);
-
-                        break;
-
-                    case ShaderUniformType.Color:
-
-                        EnsureUniform<Color>(uniform.Item1, uniform.Item2);
-
-                        break;
-                }
+                EnsureUniform(uniform.Item1, uniform.Item2);
             }
         }
 
@@ -414,35 +257,68 @@ internal partial class Shader : IGuidAsset
         return true;
     }
 
-    internal void AddUniform<T>(string name, ShaderUniformType type)
+    internal void AddUniform(string name, ShaderUniformType type)
     {
-        if (uniforms.TryGetValue(type, out var container) == false)
-        {
-            container = new Dictionary<int, UniformInfo<T>>();
+        var normalizedName = NormalizeUniformName(name, type);
+        var nameHash = name.GetHashCode();
+        var normalizedHash = normalizedName.GetHashCode();
 
-            uniforms.Add(type, container);
+        var uniformIndex = uniformIndices.IndexOf(nameHash);
+
+        if(uniformIndex >= 0)
+        {
+            return;
         }
 
-        if (container is Dictionary<int, UniformInfo<T>> c)
+        uniformIndex = uniformIndices.IndexOf(normalizedHash);
+
+        if (uniformIndex >= 0)
         {
-            var u = new UniformInfo<T>()
-            {
-                uniform = new()
-                {
-                    name = NormalizeUniformName(name, type),
-                    type = type,
-                },
-                count = NormalizeUniformCount(name),
-            };
+            return;
+        }
 
-            if (u.Create())
+        var u = new UniformInfo()
+        {
+            uniform = new()
             {
-                if (type == ShaderUniformType.Texture)
-                {
-                    u.stage = (byte)c.Count;
-                }
+                name = normalizedName,
+                type = type,
+            },
+            count = NormalizeUniformCount(name),
+        };
 
-                c.Add(u.uniform.name.GetHashCode(), u);
+        if (u.Create())
+        {
+            if (type == ShaderUniformType.Texture)
+            {
+                u.stage = (byte)usedTextureStages;
+
+                usedTextureStages++;
+            }
+
+            var i = uniforms.Count;
+
+            uniformTable.Add(i);
+            uniformIndices.Add(normalizedHash);
+            uniforms.Add(u);
+
+            if(uniformIndices.IndexOf(nameHash) < 0)
+            {
+                uniformTable.Add(i);
+                uniformIndices.Add(nameHash);
+
+                uniforms.Add(new()
+                {
+                    count = u.count,
+                    isAlias = true,
+                    handle = u.handle,
+                    stage = u.stage,
+                    uniform = new()
+                    {
+                        name = u.uniform.name,
+                        type = type,
+                    },
+                });
             }
         }
     }
@@ -460,30 +336,25 @@ internal partial class Shader : IGuidAsset
         }
     }
 
-    internal UniformInfo<T> GetUniform<T>(string name, ShaderUniformType type)
+    internal UniformInfo GetUniform(int hash)
     {
         if (Disposed)
         {
             return null;
         }
 
-        name = NormalizeUniformName(name, type);
+        //Might be slightly faster than checking
+        var c = uniformIndices.Count;
 
-        return uniforms.TryGetValue(type, out var container) &&
-            container is Dictionary<int, UniformInfo<T>> c &&
-            c.TryGetValue(name.GetHashCode(), out var outValue) ? outValue : null;
-    }
-
-    internal UniformInfo<T> GetUniform<T>(int hashCode, ShaderUniformType type)
-    {
-        if (Disposed)
+        for(var i = 0; i < c; i++)
         {
-            return null;
+            if (uniformIndices[i] == hash)
+            {
+                return uniforms[uniformTable[i]];
+            }
         }
 
-        return uniforms.TryGetValue(type, out var container) &&
-            container is Dictionary<int, UniformInfo<T>> c &&
-            c.TryGetValue(hashCode, out var outValue) ? outValue : null;
+        return null;
     }
 
     /// <summary>
@@ -498,14 +369,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<float>(name, ShaderUniformType.Float);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -527,14 +396,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector2>(name, ShaderUniformType.Vector2);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -556,7 +423,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector2>(name, ShaderUniformType.Vector2);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -591,14 +458,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector3>(name, ShaderUniformType.Vector3);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -620,7 +485,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector3>(name, ShaderUniformType.Vector3);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -655,14 +520,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector4>(name, ShaderUniformType.Vector4);
+        var uniform = GetUniform(name.GetHashCode());
 
-        if(uniform == null)
+        if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -682,7 +545,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Vector4>(name, ShaderUniformType.Vector4);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -710,7 +573,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Color>(name, ShaderUniformType.Color);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -718,8 +581,6 @@ internal partial class Shader : IGuidAsset
         }
 
         var colorValue = new Vector4(value.r, value.g, value.b, value.a);
-
-        uniform.value = value;
 
         unsafe
         {
@@ -739,7 +600,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Color>(name, ShaderUniformType.Color);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -768,14 +629,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Texture>(name, ShaderUniformType.Texture);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -795,14 +654,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Matrix3x3>(name, ShaderUniformType.Matrix3x3);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -822,7 +679,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Matrix3x3>(name, ShaderUniformType.Matrix3x3);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -850,14 +707,12 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Matrix4x4>(name, ShaderUniformType.Matrix4x4);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
             return;
         }
-
-        uniform.value = value;
 
         unsafe
         {
@@ -877,7 +732,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = GetUniform<Matrix4x4>(name, ShaderUniformType.Matrix4x4);
+        var uniform = GetUniform(name.GetHashCode());
 
         if (uniform == null)
         {
@@ -918,73 +773,16 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        static void DestroyUniforms<T>(object value)
+        foreach (var uniform in uniforms)
         {
-            if (value is Dictionary<int, UniformInfo<T>> container)
+            if(uniform.isAlias)
             {
-                foreach (var p in container)
-                {
-                    var uniform = p.Value;
-
-                    if (uniform.handle.Valid)
-                    {
-                        bgfx.destroy_uniform(uniform.handle);
-                    }
-                }
+                continue;
             }
-        }
 
-        foreach (var pair in uniforms)
-        {
-            switch (pair.Key)
+            if(uniform.handle.Valid)
             {
-                case ShaderUniformType.Texture:
-
-                    DestroyUniforms<Texture>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Vector2:
-
-                    DestroyUniforms<Vector2>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Vector3:
-
-                    DestroyUniforms<Vector3>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Vector4:
-
-                    DestroyUniforms<Vector4>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Matrix3x3:
-
-                    DestroyUniforms<Matrix3x3>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Matrix4x4:
-
-                    DestroyUniforms<Matrix4x4>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Color:
-
-                    DestroyUniforms<Color>(pair.Value);
-
-                    break;
-
-                case ShaderUniformType.Float:
-
-                    DestroyUniforms<float>(pair.Value);
-
-                    break;
+                bgfx.destroy_uniform(uniform.handle);
             }
         }
     }
