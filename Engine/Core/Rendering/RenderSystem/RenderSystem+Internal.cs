@@ -206,7 +206,7 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Prepare");
+            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
             system.Prepare();
         }
@@ -232,18 +232,12 @@ public partial class RenderSystem
 
             foreach (var system in systems)
             {
-                IComponent related = null;
-
-                {
-                    using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} GetComponent");
-
-                    related = entity.GetComponent(system.RelatedComponent());
-                }
+                IComponent related = entity.GetComponent(system.RelatedComponent());
 
                 if (related != null)
                 {
                     {
-                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Preprocess");
+                        using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
                         system.Preprocess(entity, t, related, camera, cameraTransform);
                     }
@@ -254,14 +248,14 @@ public partial class RenderSystem
 
                         if (renderable.isVisible && renderable.forceRenderingOff == false)
                         {
-                            using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
+                            using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
                             system.Process(entity, t, related, camera, cameraTransform, viewID);
                         }
                     }
                     else if (related is not Renderable) //Systems that do not require a renderer
                     {
-                        using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
+                        using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
                         system.Process(entity, t, related, camera, cameraTransform, viewID);
                     }
@@ -271,7 +265,7 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p9 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
+            using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
             system.Submit();
         }
@@ -292,7 +286,7 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Prepare");
+            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
             system.Prepare();
         }
@@ -340,7 +334,7 @@ public partial class RenderSystem
                         {
                             if (call.relatedComponent.GetType() == system.RelatedComponent())
                             {
-                                using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Process");
+                                using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
                                 system.Process(call.entity, stagingTransform, call.relatedComponent,
                                     camera, cameraTransform, viewID);
@@ -353,7 +347,7 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Submit");
+            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
             system.Submit();
         }
@@ -436,7 +430,7 @@ public partial class RenderSystem
                         if (related != null)
                         {
                             {
-                                using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName} Preprocess");
+                                using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
                                 system.Preprocess(entity, t, related, camera, cameraTransform);
                             }

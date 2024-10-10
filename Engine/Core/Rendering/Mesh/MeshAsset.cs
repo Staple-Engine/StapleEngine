@@ -162,24 +162,34 @@ public class MeshAsset : IGuidAsset
                 return node;
             }
 
-            if(this.name == name)
+            Node Get(Node current)
             {
-                return this;
-            }
-
-            foreach(var child in children)
-            {
-                var result = child.GetNode(name);
-
-                if(result != null)
+                if(current.name == name)
                 {
-                    cachedNodes.AddOrSetKey(name, result);
-
-                    return result;
+                    return current;
                 }
+
+                foreach (var child in current.children)
+                {
+                    var result = Get(child);
+
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
+                return null;
             }
 
-            return null;
+            var result = Get(this);
+
+            if(result != null)
+            {
+                cachedNodes.AddOrSetKey(name, result);
+            }
+
+            return result;
         }
 
         public Node Clone(Node parent = null)
