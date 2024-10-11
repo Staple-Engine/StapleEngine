@@ -14,7 +14,7 @@ public partial class World
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T)[] Query<T>(bool includeDisabled) where T : IComponent
     {
-        var tName = typeof(T).FullName;
+        var tName = typeof(T).FullName.GetHashCode();
 
         if (componentCompatibilityCache.ContainsKey(tName) == false)
         {
@@ -63,8 +63,8 @@ public partial class World
         where T : IComponent
         where T2 : IComponent
     {
-        var tName = typeof(T).FullName;
-        var t2Name = typeof(T2).FullName;
+        var tName = typeof(T).FullName.GetHashCode();
+        var t2Name = typeof(T2).FullName.GetHashCode();
 
         if (componentCompatibilityCache.ContainsKey(tName) == false ||
             componentCompatibilityCache.ContainsKey(t2Name) == false)
@@ -118,9 +118,9 @@ public partial class World
         where T2 : IComponent
         where T3 : IComponent
     {
-        var tName = typeof(T).FullName;
-        var t2Name = typeof(T2).FullName;
-        var t3Name = typeof(T3).FullName;
+        var tName = typeof(T).FullName.GetHashCode();
+        var t2Name = typeof(T2).FullName.GetHashCode();
+        var t3Name = typeof(T3).FullName.GetHashCode();
 
         if (componentCompatibilityCache.ContainsKey(tName) == false ||
             componentCompatibilityCache.ContainsKey(t2Name) == false ||
@@ -179,10 +179,10 @@ public partial class World
         where T3 : IComponent
         where T4 : IComponent
     {
-        var tName = typeof(T).FullName;
-        var t2Name = typeof(T2).FullName;
-        var t3Name = typeof(T3).FullName;
-        var t4Name = typeof(T4).FullName;
+        var tName = typeof(T).FullName.GetHashCode();
+        var t2Name = typeof(T2).FullName.GetHashCode();
+        var t3Name = typeof(T3).FullName.GetHashCode();
+        var t4Name = typeof(T4).FullName.GetHashCode();
 
         if (componentCompatibilityCache.ContainsKey(tName) == false ||
             componentCompatibilityCache.ContainsKey(t2Name) == false ||
@@ -246,11 +246,11 @@ public partial class World
         where T4 : IComponent
         where T5 : IComponent
     {
-        var tName = typeof(T).FullName;
-        var t2Name = typeof(T2).FullName;
-        var t3Name = typeof(T3).FullName;
-        var t4Name = typeof(T4).FullName;
-        var t5Name = typeof(T5).FullName;
+        var tName = typeof(T).FullName.GetHashCode();
+        var t2Name = typeof(T2).FullName.GetHashCode();
+        var t3Name = typeof(T3).FullName.GetHashCode();
+        var t4Name = typeof(T4).FullName.GetHashCode();
+        var t5Name = typeof(T5).FullName.GetHashCode();
 
         if (componentCompatibilityCache.ContainsKey(tName) == false ||
             componentCompatibilityCache.ContainsKey(t2Name) == false ||
@@ -319,7 +319,7 @@ public partial class World
     {
         lock (lockObject)
         {
-            if(componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            if(componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
             {
                 return 0;
             }

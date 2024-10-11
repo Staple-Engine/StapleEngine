@@ -163,6 +163,8 @@
 		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
 		<Compile Include="Rendering\Text\ITextFontSource.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
+		<Compile Include="Scene\ISceneQuery.cs" />
+		<Compile Include="Scene\SceneQuery.cs" />
 		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Serialization\Text\FontMetadata.cs" />
 		<Compile Include="Serialization\Text\SerializableFontAsset.cs" />
@@ -305,6 +307,7 @@
 		<Compile Include="Utilities\ObservableManager.cs" />
 		<Compile Include="Utilities\ThreadHelper.cs" />
 		<Compile Include="Utilities\TypeCache.cs" />
+		<Compile Include="World\IWorldChangeReceiver.cs" />
 		<Compile Include="World\World+Components.cs" />
 		<Compile Include="World\World+Entities.cs" />
 		<Compile Include="World\World+Iteration.cs" />

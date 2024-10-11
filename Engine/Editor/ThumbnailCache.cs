@@ -221,7 +221,7 @@ internal class ThumbnailCache
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
-                            RenderSystem.Instance.RenderStandard(default, camera, cameraTransform, StapleEditor.MeshRenderView);
+                            RenderSystem.Instance.RenderStandardNoQueue(default, camera, cameraTransform, StapleEditor.MeshRenderView);
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
@@ -445,7 +445,7 @@ internal class ThumbnailCache
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
-                            RenderSystem.Instance.RenderStandard(default, camera, cameraTransform, StapleEditor.MeshRenderView);
+                            RenderSystem.Instance.RenderStandardNoQueue(default, camera, cameraTransform, StapleEditor.MeshRenderView);
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>

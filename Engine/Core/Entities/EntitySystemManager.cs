@@ -128,7 +128,12 @@ internal class EntitySystemManager : ISubsystem
     {
         var ranStartup = false;
 
-        if(system is IEntitySystemFixedUpdate fixedUpdate)
+        if(system is IWorldChangeReceiver receiver)
+        {
+            World.AddChangeReceiver(receiver);
+        }
+
+        if (system is IEntitySystemFixedUpdate fixedUpdate)
         {
             fixedUpdateSystems.Add(fixedUpdate);
 
@@ -141,7 +146,7 @@ internal class EntitySystemManager : ISubsystem
         {
             updateSystems.Add(update);
 
-            if(ranStartup == false)
+            if (ranStartup == false)
             {
                 update.Startup();
             }

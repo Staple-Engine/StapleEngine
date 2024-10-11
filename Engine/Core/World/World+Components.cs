@@ -15,6 +15,9 @@ public partial class World
     /// <param name="assembly">The assembly to unload from</param>
     internal void UnloadComponentsFromAssembly(Assembly assembly)
     {
+        sceneQueries.RemoveAll(assembly);
+        worldChangeReceivers.RemoveAll(assembly);
+
         lock(lockObject)
         {
             var keys = componentCompatibilityCache.Keys.ToList();
@@ -23,10 +26,17 @@ public partial class World
             {
                 var key = keys[i];
 
-                var type = TypeCache.GetType(key);
+                if (componentNameHashes.TryGetValue(key, out var typeName) == false)
+                {
+                    continue;
+                }
+
+                var type = TypeCache.GetType(typeName);
 
                 if(type != null && type.Assembly == assembly)
                 {
+                    needsEmitWorldChange = true;
+
                     componentCompatibilityCache.Remove(key);
 
                     foreach(var pair in componentCompatibilityCache)
@@ -104,7 +114,9 @@ public partial class World
         {
             EnsureComponentInfo(t);
 
-            if (entityInfo.components.TryGetValue(t.FullName, out var component))
+            var hash = t.FullName.GetHashCode();
+
+            if (entityInfo.components.TryGetValue(hash, out var component))
             {
                 //Already has one, return it
 
@@ -119,7 +131,9 @@ public partial class World
                     return default;
                 }
 
-                entityInfo.components.Add(t.FullName, component);
+                needsEmitWorldChange = true;
+
+                entityInfo.components.Add(hash, component);
 
                 if (Scene.InstancingComponent == false)
                 {
@@ -127,7 +141,7 @@ public partial class World
                 }
             }
 
-            if(t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
+            if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
             {
                 try
                 {
@@ -151,7 +165,7 @@ public partial class World
 
                     if(t.IsValueType)
                     {
-                        entityInfo.components.AddOrSetKey(t.FullName, component);
+                        entityInfo.components.AddOrSetKey(hash, component);
                     }
                 }
                 catch(Exception e)
@@ -183,16 +197,18 @@ public partial class World
     private void EnsureComponentInfo(Type t)
     {
         var added = false;
+        var hash = t.FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibleTypes) == false)
+        if (componentCompatibilityCache.TryGetValue(hash, out var compatibleTypes) == false)
         {
             added = true;
             compatibleTypes = [];
+            componentNameHashes.Add(hash, t.FullName);
         }
 
         if (added)
         {
-            compatibleTypes.Add(t.FullName);
+            compatibleTypes.Add(hash);
 
             void RecursiveAdd(Type target)
             {
@@ -200,13 +216,15 @@ public partial class World
                 {
                     if (targetInterface != typeof(IComponent) && targetInterface.IsAssignableTo(typeof(IComponent)))
                     {
-                        compatibleTypes.Add(targetInterface.FullName);
+                        var targetHash = targetInterface.FullName.GetHashCode();
+
+                        compatibleTypes.Add(targetHash);
 
                         EnsureComponentInfo(targetInterface);
 
-                        if (componentCompatibilityCache.TryGetValue(targetInterface.FullName, out var interfaceCompatibility))
+                        if (componentCompatibilityCache.TryGetValue(targetHash, out var interfaceCompatibility))
                         {
-                            interfaceCompatibility.Add(t.FullName);
+                            interfaceCompatibility.Add(hash);
                         }
                     }
                 }
@@ -218,13 +236,15 @@ public partial class World
                     return;
                 }
 
-                compatibleTypes.Add(target.BaseType.FullName);
+                var baseHash = target.BaseType.FullName.GetHashCode();
+
+                compatibleTypes.Add(baseHash);
 
                 EnsureComponentInfo(target.BaseType);
 
-                if(componentCompatibilityCache.TryGetValue(target.BaseType.FullName, out var baseCompatibility))
+                if(componentCompatibilityCache.TryGetValue(baseHash, out var baseCompatibility))
                 {
-                    baseCompatibility.Add(t.FullName);
+                    baseCompatibility.Add(hash);
                 }
 
                 RecursiveAdd(target.BaseType);
@@ -232,11 +252,11 @@ public partial class World
 
             RecursiveAdd(t);
 
-            componentCompatibilityCache.Add(t.FullName, compatibleTypes);
+            componentCompatibilityCache.Add(hash, compatibleTypes);
 
             if (t.IsSubclassOf(typeof(CallbackComponent)))
             {
-                callableComponentTypes.Add(t.FullName);
+                callableComponentTypes.Add(hash);
             }
         }
     }
@@ -267,7 +287,7 @@ public partial class World
         {
             var tHash = t.FullName.GetHashCode();
 
-            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            if (componentCompatibilityCache.TryGetValue(tHash, out var compatibility) == false)
             {
                 return;
             }
@@ -276,6 +296,8 @@ public partial class World
             {
                 if (entityInfo.components.TryGetValue(typeName, out var component))
                 {
+                    needsEmitWorldChange = true;
+
                     entityInfo.removedComponents.Add(typeName);
 
                     if (Platform.IsPlaying &&
@@ -316,7 +338,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
             {
                 return default;
             }
@@ -363,7 +385,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(t.FullName, out var compatibility) == false)
+            if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
             {
                 component = default;
 
@@ -420,7 +442,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(component.GetType().FullName, out var compatibility) == false)
+            if (componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility) == false)
             {
                 return;
             }
@@ -430,6 +452,8 @@ public partial class World
                 if(entityInfo.components.ContainsKey(typeName))
                 {
                     entityInfo.components[typeName] = component;
+
+                    needsEmitWorldChange = true;
                 }
             }
         }
@@ -450,11 +474,11 @@ public partial class World
 
         lock(globalLockObject)
         {
-            if(componentAddedCallbacks.TryGetValue(componentType, out var c) == false)
+            if(componentAddedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c) == false)
             {
                 c = [];
 
-                componentAddedCallbacks.Add(componentType, c);
+                componentAddedCallbacks.Add(componentType.FullName.GetHashCode(), c);
             }
 
             if(c.Contains(callback))
@@ -481,11 +505,11 @@ public partial class World
 
         lock (globalLockObject)
         {
-            if (componentRemovedCallbacks.TryGetValue(componentType, out var c) == false)
+            if (componentRemovedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c) == false)
             {
                 c = [];
 
-                componentRemovedCallbacks.Add(componentType, c);
+                componentRemovedCallbacks.Add(componentType.FullName.GetHashCode(), c);
             }
 
             if (c.Contains(callback))
@@ -511,7 +535,7 @@ public partial class World
 
         lock (globalLockObject)
         {
-            if (componentAddedCallbacks.TryGetValue(component.GetType(), out var callbacks))
+            if (componentAddedCallbacks.TryGetValue(component.GetType().FullName.GetHashCode(), out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
 
@@ -560,7 +584,7 @@ public partial class World
 
         lock (globalLockObject)
         {
-            if (componentRemovedCallbacks.TryGetValue(component.GetType(), out var callbacks))
+            if (componentRemovedCallbacks.TryGetValue(component.GetType().FullName.GetHashCode(), out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
 
@@ -659,7 +683,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if(componentCompatibilityCache.TryGetValue(component.GetType().FullName, out var compatibility) == false)
+            if(componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility) == false)
             {
                 return default;
             }

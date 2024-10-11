@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
-public class LightSystem : IRenderSystem
+public class LightSystem : IRenderSystem, IWorldChangeReceiver
 {
     public const int MaxLights = 16;
 
@@ -20,6 +20,8 @@ public class LightSystem : IRenderSystem
     private static readonly string ViewPosKey = "u_viewPos";
 
     private readonly List<(Transform, Light)> lights = [];
+
+    private readonly SceneQuery<Transform, Light> lightQuery = new();
 
     public LightSystem()
     {
@@ -40,14 +42,6 @@ public class LightSystem : IRenderSystem
 
     public void Prepare()
     {
-        lights.Clear();
-
-        var result = Scene.Query<Transform, Light>();
-
-        foreach(var pair in result)
-        {
-            lights.Add((pair.Item2, pair.Item3));
-        }
     }
 
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform)
@@ -172,5 +166,15 @@ public class LightSystem : IRenderSystem
     public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)
     {
         ApplyLightProperties(transform, material, cameraPosition, lights);
+    }
+
+    public void WorldChanged()
+    {
+        lights.Clear();
+
+        foreach (var pair in lightQuery)
+        {
+            lights.Add((pair.Item2, pair.Item3));
+        }
     }
 }

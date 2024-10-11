@@ -325,6 +325,8 @@ public class Transform : IComponent, IEnumerable<Transform>
         this.parent = parent;
 
         parent?.AttachChild(this);
+
+        Scene.RequestWorldUpdate();
     }
 
     /// <summary>
@@ -380,6 +382,8 @@ public class Transform : IComponent, IEnumerable<Transform>
         {
             children.Remove(child);
             children.Insert(index, child);
+
+            Scene.RequestWorldUpdate();
 
             return true;
         }

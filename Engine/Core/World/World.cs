@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -47,12 +48,12 @@ public partial class World
         /// <summary>
         /// List of components for the entity
         /// </summary>
-        public Dictionary<string, IComponent> components = [];
+        public Dictionary<int, IComponent> components = [];
 
         /// <summary>
         /// The components that were just removed for the entity
         /// </summary>
-        public HashSet<string> removedComponents = [];
+        public HashSet<int> removedComponents = [];
 
         /// <summary>
         /// The entity's name
@@ -103,12 +104,57 @@ public partial class World
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
     private readonly List<EntityInfo> entities = [];
-    private readonly Dictionary<string, HashSet<string>> componentCompatibilityCache = [];
-    private readonly HashSet<string> callableComponentTypes = [];
+    private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
+    private readonly Dictionary<int, string> componentNameHashes = [];
+    private readonly HashSet<int> callableComponentTypes = [];
     private readonly List<Entity> destroyedEntities = [];
+    private bool needsEmitWorldChange = false;
 
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
-    private static readonly Dictionary<Type, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
+    private static readonly ObservableBox worldChangeReceivers = new();
+    private static readonly ObservableBox sceneQueries = new();
+    private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
+    private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
+
+    internal static void AddSceneQuery(ISceneQuery receiver)
+    {
+        if (receiver == null)
+        {
+            return;
+        }
+
+        lock (globalLockObject)
+        {
+            sceneQueries.AddObserver(receiver);
+        }
+    }
+
+    internal static void AddChangeReceiver(IWorldChangeReceiver receiver)
+    {
+        if(receiver == null)
+        {
+            return;
+        }
+
+        lock(globalLockObject)
+        {
+            worldChangeReceivers.AddObserver(receiver);
+        }
+    }
+
+    internal static void EmitWorldChangedEvent()
+    {
+        sceneQueries.Emit((t) => ((ISceneQuery)t).WorldChanged());
+
+        worldChangeReceivers.Emit((t) => ((IWorldChangeReceiver)t).WorldChanged());
+    }
+
+    internal void RequestWorldUpdate()
+    {
+        lock (lockObject)
+        {
+            needsEmitWorldChange = true;
+        }
+    }
 
     internal void StartFrame()
     {
@@ -120,15 +166,19 @@ public partial class World
                 {
                     foreach (var componentTypeName in info.removedComponents)
                     {
-                        info.components.Remove(componentTypeName);
+                        info.components.Remove(componentTypeName.GetHashCode());
                     }
 
                     info.removedComponents.Clear();
+
+                    needsEmitWorldChange = true;
                 }
             }
 
             void Destroy(Entity e)
             {
+                needsEmitWorldChange = true;
+
                 if (TryGetEntity(e, out var info) == false)
                 {
                     return;
@@ -158,6 +208,13 @@ public partial class World
             }
 
             destroyedEntities.Clear();
+
+            if(needsEmitWorldChange)
+            {
+                needsEmitWorldChange = false;
+
+                EmitWorldChangedEvent();
+            }
         }
     }
 }

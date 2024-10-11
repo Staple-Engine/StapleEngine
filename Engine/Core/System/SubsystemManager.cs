@@ -54,6 +54,11 @@ internal class SubsystemManager
             list.Add(subsystem);
 
             subsystem.Startup();
+
+            if(subsystem is IWorldChangeReceiver worldChangeReceiver)
+            {
+                World.AddChangeReceiver(worldChangeReceiver);
+            }
         }
     }
 

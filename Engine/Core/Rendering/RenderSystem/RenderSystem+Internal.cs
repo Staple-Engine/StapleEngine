@@ -188,10 +188,55 @@ public partial class RenderSystem
             UpdateStandard();
         }
     }
+
+    public void WorldChanged()
+    {
+        lock (lockObject)
+        {
+            renderQueue.Clear();
+
+            var cameras = World.Current.SortedCameras;
+
+            if (cameras.Length > 0)
+            {
+                foreach (var cameraInfo in cameras)
+                {
+                    var outValue = new List<(Entity, Transform, List<(IRenderSystem, IComponent)>)>();
+
+                    foreach (var entityInfo in entityQuery)
+                    {
+                        var layer = entityInfo.Item1.Layer;
+
+                        if (cameraInfo.camera.cullingLayers.HasLayer(layer) == false)
+                        {
+                            continue;
+                        }
+
+                        var systemValues = new List<(IRenderSystem, IComponent)>();
+
+                        outValue.Add((entityInfo.Item1, entityInfo.Item2, systemValues));
+
+                        foreach (var system in renderSystems)
+                        {
+                            if (entityInfo.Item1.TryGetComponent(out var component, system.RelatedComponent()))
+                            {
+                                systemValues.Add((system, component));
+                            }
+                        }
+                    }
+
+                    renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), outValue));
+                }
+            }
+        }
+    }
     #endregion
 
     #region Render Modes
-    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+
+    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
+        List<(Entity, Transform, List<(IRenderSystem, IComponent)>)> queue,
+        ushort viewID)
     {
         using var p1 = new PerformanceProfiler("RenderSystem - RenderStandard");
 
@@ -217,29 +262,94 @@ public partial class RenderSystem
             PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
         }
 
-        var transforms = Scene.Query<Transform>();
-
-        foreach ((Entity entity, Transform t) in transforms)
+        foreach(var item in queue)
         {
-            using var p4 = new PerformanceProfiler($"RenderSystem - Process {transforms.Length} Entities");
+            var entity = item.Item1;
+            var transform = item.Item2;
+            var entitySystems = item.Item3;
 
-            var layer = entity.Layer;
+            foreach (var pair in entitySystems)
+            {
+                var system = pair.Item1;
+
+                {
+                    using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+                    system.Preprocess(entity, transform, pair.Item2, camera, cameraTransform);
+                }
+
+                if (pair.Item2 is Renderable renderable && renderable.enabled)
+                {
+                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+
+                    if (renderable.isVisible && renderable.forceRenderingOff == false)
+                    {
+                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+                        system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
+                    }
+                }
+                else if (pair.Item2 is not Renderable) //Systems that do not require a renderer
+                {
+                    using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+                    system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
+                }
+            }
+        }
+
+        foreach (var system in systems)
+        {
+            using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+            system.Submit();
+        }
+    }
+
+    public void RenderStandardNoQueue(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    {
+        using var p1 = new PerformanceProfiler("RenderSystem - RenderStandard");
+
+        CurrentCamera = (camera, cameraTransform);
+
+        var systems = new List<IRenderSystem>();
+
+        lock (lockObject)
+        {
+            systems.AddRange(renderSystems);
+        }
+
+        foreach (var system in systems)
+        {
+            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+            system.Prepare();
+        }
+
+        {
+            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
+
+            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
+        }
+
+        foreach (var entityInfo in entityQuery)
+        {
+            var layer = entityInfo.Item1.Layer;
 
             if (camera.cullingLayers.HasLayer(layer) == false)
             {
-                return;
+                continue;
             }
 
             foreach (var system in systems)
             {
-                IComponent related = entity.GetComponent(system.RelatedComponent());
-
-                if (related != null)
+                if (system.RelatedComponent() != null &&
+                    entityInfo.Item1.TryGetComponent(out var related, system.RelatedComponent()))
                 {
                     {
-                        using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+                        using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
-                        system.Preprocess(entity, t, related, camera, cameraTransform);
+                        system.Preprocess(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform);
                     }
 
                     if (related is Renderable renderable && renderable.enabled)
@@ -248,16 +358,16 @@ public partial class RenderSystem
 
                         if (renderable.isVisible && renderable.forceRenderingOff == false)
                         {
-                            using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+                            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
-                            system.Process(entity, t, related, camera, cameraTransform, viewID);
+                            system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
                         }
                     }
                     else if (related is not Renderable) //Systems that do not require a renderer
                     {
-                        using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
-                        system.Process(entity, t, related, camera, cameraTransform, viewID);
+                        system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
                     }
                 }
             }
@@ -265,7 +375,7 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+            using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
 
             system.Submit();
         }
@@ -357,16 +467,11 @@ public partial class RenderSystem
     {
         CurrentViewID = 1;
 
-        var cameras = World.Current.SortedCameras;
+        using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({renderQueue.Count} cameras)");
 
-        if (cameras.Length > 0)
+        foreach (var pair in renderQueue)
         {
-            using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({cameras.Length} cameras)");
-
-            foreach (var c in cameras)
-            {
-                RenderStandard(c.entity, c.camera, c.transform, CurrentViewID++);
-            }
+            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, CurrentViewID++);
         }
     }
 
@@ -374,16 +479,11 @@ public partial class RenderSystem
     {
         CurrentViewID = 1;
 
-        var cameras = Scene.SortedCameras;
+        using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({renderQueue.Count} cameras)");
 
-        if (cameras.Length > 0)
+        foreach (var pair in renderQueue)
         {
-            using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({cameras.Length} cameras)");
-
-            foreach (var c in cameras)
-            {
-                RenderAccumulator(c.entity, c.camera, c.transform, CurrentViewID++);
-            }
+            RenderAccumulator(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
         }
 
         if (needsDrawCalls)
@@ -397,14 +497,14 @@ public partial class RenderSystem
                 currentDrawBucket.drawCalls.Clear();
             }
 
-            foreach (var c in cameras)
+            foreach (var pair in renderQueue)
             {
-                var camera = c.camera;
-                var cameraTransform = c.transform;
+                var camera = pair.Item1.Item1;
+                var cameraTransform = pair.Item1.Item2;
 
                 unsafe
                 {
-                    var projection = Camera.Projection(c.entity, c.camera);
+                    var projection = Camera.Projection(cameraTransform.entity, camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);
@@ -412,37 +512,29 @@ public partial class RenderSystem
                     frustumCuller.Update(view, projection);
                 }
 
-                var transforms = Scene.Query<Transform>();
-
-                foreach((Entity entity, Transform t) in transforms)
+                foreach (var entityInfo in pair.Item2)
                 {
-                    var layer = entity.Layer;
+                    var entity = entityInfo.Item1;
+                    var transform = entityInfo.Item2;
 
-                    if (camera.cullingLayers.HasLayer(layer) == false)
+                    foreach (var systemInfo in entityInfo.Item3)
                     {
-                        continue;
-                    }
+                        var system = systemInfo.Item1;
+                        var component = systemInfo.Item2;
 
-                    foreach (var system in renderSystems)
-                    {
-                        var related = entity.GetComponent(system.RelatedComponent());
-
-                        if (related != null)
                         {
+                            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
+
+                            system.Preprocess(entity, transform, component, camera, cameraTransform);
+                        }
+
+                        if (component is Renderable renderable && renderable.enabled)
+                        {
+                            renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+
+                            if (renderable.isVisible && renderable.forceRenderingOff == false)
                             {
-                                using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
-                                system.Preprocess(entity, t, related, camera, cameraTransform);
-                            }
-
-                            if (related is Renderable renderable && renderable.enabled)
-                            {
-                                renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                                if (renderable.isVisible && renderable.forceRenderingOff == false)
-                                {
-                                    AddDrawCall(entity, t, related, renderable, CurrentViewID);
-                                }
+                                AddDrawCall(entity, transform, component, renderable, CurrentViewID);
                             }
                         }
                     }

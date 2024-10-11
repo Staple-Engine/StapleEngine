@@ -25,6 +25,16 @@ public class Scene
     public static World.CameraInfo[] SortedCameras => World.Current?.SortedCameras ?? Array.Empty<World.CameraInfo>();
 
     /// <summary>
+    /// Requests a world update.
+    /// Use when you're doing changes that the world should be aware of that require an update.
+    /// Usually you won't need to use this.
+    /// </summary>
+    public static void RequestWorldUpdate()
+    {
+        World.Current?.RequestWorldUpdate();
+    }
+
+    /// <summary>
     /// Changes the currently active scene
     /// </summary>
     /// <param name="scene">The new scene</param>

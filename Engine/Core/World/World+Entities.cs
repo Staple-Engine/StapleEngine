@@ -95,6 +95,8 @@ public partial class World
 
         lock (lockObject)
         {
+            needsEmitWorldChange = true;
+
             entityInfo.enabled = enabled;
 
             void Handle(Entity e)
@@ -142,6 +144,8 @@ public partial class World
                     other.enabled = true;
                     other.enabledInHierarchy = true;
 
+                    needsEmitWorldChange = true;
+
                     return new Entity()
                     {
                         Identifier = new()
@@ -163,6 +167,8 @@ public partial class World
             };
 
             entities.Add(newEntity);
+
+            needsEmitWorldChange = true;
 
             return new Entity()
             {
@@ -256,6 +262,8 @@ public partial class World
         lock (lockObject)
         {
             entityInfo.layer = layer;
+
+            needsEmitWorldChange = true;
         }
     }
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 public enum ModuleType
 {

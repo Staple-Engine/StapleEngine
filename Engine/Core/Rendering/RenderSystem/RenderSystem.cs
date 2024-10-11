@@ -9,7 +9,7 @@ namespace Staple.Internal;
 /// Rendering subsystem, handles all rendering
 /// </summary>
 [AdditionalLibrary(AppPlatform.Android, "bgfx")]
-public partial class RenderSystem : ISubsystem
+public partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
     /// <summary>
     /// Contains information on a draw call
@@ -57,11 +57,15 @@ public partial class RenderSystem : ISubsystem
 
     private float accumulator = 0.0f;
 
-    internal readonly List<IRenderSystem> renderSystems = new();
+    internal readonly List<IRenderSystem> renderSystems = [];
 
     private readonly Transform stagingTransform = new();
 
-    private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = new();
+    private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = [];
+
+    private readonly List<((Camera, Transform), List<(Entity, Transform, List<(IRenderSystem, IComponent)>)>)> renderQueue = [];
+
+    private readonly SceneQuery<Transform> entityQuery = new();
 
     /// <summary>
     /// Registers a render system into this subsystem
@@ -77,6 +81,11 @@ public partial class RenderSystem : ISubsystem
                 {
                     return;
                 }
+            }
+
+            if(system is IWorldChangeReceiver receiver)
+            {
+                World.AddChangeReceiver(receiver);
             }
 
             renderSystems.Add(system);
