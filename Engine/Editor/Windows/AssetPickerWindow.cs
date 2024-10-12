@@ -252,6 +252,26 @@ internal class AssetPickerWindow : EditorWindow
                         }
 
                         break;
+
+                    case ProjectBrowserResourceType.Prefab:
+
+                        try
+                        {
+                            var font = ResourceManager.instance.LoadPrefab(guid);
+
+                            if (font != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = font;
+                                }
+                            }
+                        }
+                        catch (System.Exception)
+                        {
+                        }
+
+                        break;
                 }
 
                 Close();

@@ -100,7 +100,36 @@ static class PackerUtils
                 return null;
             }
         }
-        else if(path.EndsWith(".asset"))
+        else if (path.EndsWith(".stpr"))
+        {
+            typeName = typeof(Prefab).FullName;
+
+            try
+            {
+                var data = File.ReadAllBytes(path);
+
+                using var stream = new MemoryStream(data);
+
+                var header = MessagePackSerializer.Deserialize<SerializablePrefabHeader>(stream);
+
+                if (header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) == false ||
+                    header.version != SerializablePrefabHeader.ValidVersion)
+                {
+                    return null;
+                }
+
+                var value = MessagePackSerializer.Deserialize<SerializablePrefab>(stream);
+
+                return value.guid;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                return null;
+            }
+        }
+        else if (path.EndsWith(".asset"))
         {
             try
             {

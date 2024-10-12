@@ -191,7 +191,11 @@ public partial class World
                     transform?.SetParent(null);
 
                     info.components.Clear();
+                    info.removedComponents.Clear();
+
                     info.alive = false;
+                    info.prefabGUID = null;
+                    info.prefabLocalID = 0;
 
                     while (transform.ChildCount > 0)
                     {
