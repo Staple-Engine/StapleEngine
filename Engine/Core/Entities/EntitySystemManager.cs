@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Staple;
@@ -20,6 +21,8 @@ internal class EntitySystemManager : ISubsystem
 
     private readonly Dictionary<string, object> cachedSubclasses = new();
 
+    private readonly object lockObject = new();
+
     public static readonly EntitySystemManager Instance = new();
 
     /// <summary>
@@ -29,36 +32,39 @@ internal class EntitySystemManager : ISubsystem
     /// <returns>All entity systems currently loaded of that type</returns>
     public T[] FindEntitySystemsSubclassing<T>()
     {
-        if(cachedSubclasses.TryGetValue(typeof(T).FullName, out var subclasses))
+        lock (lockObject)
         {
-            return (T[])subclasses;
-        }
-
-        var outValue = new List<T>();
-
-        foreach(var system in updateSystems)
-        {
-            if(system.GetType().IsSubclassOf(typeof(T)) ||
-                system.GetType().IsAssignableTo(typeof(T)))
+            if (cachedSubclasses.TryGetValue(typeof(T).FullName, out var subclasses))
             {
-                outValue.Add((T)system);
+                return (T[])subclasses;
             }
-        }
 
-        foreach (var system in fixedUpdateSystems)
-        {
-            if (system.GetType().IsSubclassOf(typeof(T)) ||
-                system.GetType().IsAssignableTo(typeof(T)))
+            var outValue = new List<T>();
+
+            foreach (var system in updateSystems)
             {
-                outValue.Add((T)system);
+                if (system.GetType().IsSubclassOf(typeof(T)) ||
+                    system.GetType().IsAssignableTo(typeof(T)))
+                {
+                    outValue.Add((T)system);
+                }
             }
+
+            foreach (var system in fixedUpdateSystems)
+            {
+                if (system.GetType().IsSubclassOf(typeof(T)) ||
+                    system.GetType().IsAssignableTo(typeof(T)))
+                {
+                    outValue.Add((T)system);
+                }
+            }
+
+            var v = outValue.ToArray();
+
+            cachedSubclasses.Add(typeof(T).FullName, v);
+
+            return v;
         }
-
-        var v = outValue.ToArray();
-
-        cachedSubclasses.Add(typeof(T).FullName, v);
-
-        return v;
     }
 
     /// <summary>
@@ -67,57 +73,60 @@ internal class EntitySystemManager : ISubsystem
     /// <param name="assembly">The assembly to unload from</param>
     internal void UnloadSystemsFromAssembly(Assembly assembly)
     {
-        var unloadedUpdate = new List<IEntitySystemUpdate>();
-        var unloadedFixedUpdate = new List<IEntitySystemFixedUpdate>();
-
-        foreach (var system in updateSystems)
+        lock (lockObject)
         {
-            if(system.GetType().Assembly == assembly)
+            var unloadedUpdate = new List<IEntitySystemUpdate>();
+            var unloadedFixedUpdate = new List<IEntitySystemFixedUpdate>();
+
+            foreach (var system in updateSystems)
             {
-                unloadedUpdate.Add(system);
-            }
-        }
-
-        foreach (var system in fixedUpdateSystems)
-        {
-            if (system.GetType().Assembly == assembly)
-            {
-                unloadedFixedUpdate.Add(system);
-            }
-        }
-
-        foreach (var system in unloadedUpdate)
-        {
-            updateSystems.Remove(system);
-
-            system.Shutdown();
-        }
-
-        foreach(var system in unloadedFixedUpdate)
-        {
-            fixedUpdateSystems.Remove(system);
-
-            var skip = false;
-
-            foreach(var o in unloadedUpdate)
-            {
-                if(o == system)
+                if (system.GetType().Assembly == assembly)
                 {
-                    skip = true;
-
-                    break;
+                    unloadedUpdate.Add(system);
                 }
             }
 
-            if (skip)
+            foreach (var system in fixedUpdateSystems)
             {
-                continue;
+                if (system.GetType().Assembly == assembly)
+                {
+                    unloadedFixedUpdate.Add(system);
+                }
             }
 
-            system.Shutdown();
-        }
+            foreach (var system in unloadedUpdate)
+            {
+                updateSystems.Remove(system);
 
-        cachedSubclasses.Clear();
+                system.Shutdown();
+            }
+
+            foreach (var system in unloadedFixedUpdate)
+            {
+                fixedUpdateSystems.Remove(system);
+
+                var skip = false;
+
+                foreach (var o in unloadedUpdate)
+                {
+                    if (o == system)
+                    {
+                        skip = true;
+
+                        break;
+                    }
+                }
+
+                if (skip)
+                {
+                    continue;
+                }
+
+                system.Shutdown();
+            }
+
+            cachedSubclasses.Clear();
+        }
     }
 
     /// <summary>
@@ -126,49 +135,61 @@ internal class EntitySystemManager : ISubsystem
     /// <param name="system">The system to register</param>
     public void RegisterSystem(object system)
     {
-        var ranStartup = false;
-
-        if(system is IWorldChangeReceiver receiver)
+        lock (lockObject)
         {
-            World.AddChangeReceiver(receiver);
-        }
-
-        if (system is IEntitySystemFixedUpdate fixedUpdate)
-        {
-            fixedUpdateSystems.Add(fixedUpdate);
-
-            ranStartup = true;
-
-            fixedUpdate.Startup();
-        }
-
-        if(system is IEntitySystemUpdate update)
-        {
-            updateSystems.Add(update);
-
-            if (ranStartup == false)
+            if(fixedUpdateSystems.Any(x => x == system) ||
+                updateSystems.Any(x => x == system))
             {
-                update.Startup();
+                return;
             }
-        }
 
-        cachedSubclasses.Clear();
+            var ranStartup = false;
+
+            if (system is IWorldChangeReceiver receiver)
+            {
+                World.AddChangeReceiver(receiver);
+            }
+
+            if (system is IEntitySystemFixedUpdate fixedUpdate)
+            {
+                fixedUpdateSystems.Add(fixedUpdate);
+
+                ranStartup = true;
+
+                fixedUpdate.Startup();
+            }
+
+            if (system is IEntitySystemUpdate update)
+            {
+                updateSystems.Add(update);
+
+                if (ranStartup == false)
+                {
+                    update.Startup();
+                }
+            }
+
+            cachedSubclasses.Clear();
+        }
     }
 
     public void Shutdown()
     {
-        foreach(var system in updateSystems)
+        lock (lockObject)
         {
-            system.Shutdown();
-        }
+            foreach (var system in updateSystems)
+            {
+                system.Shutdown();
+            }
 
-        foreach (var system in fixedUpdateSystems)
-        {
-            system.Shutdown();
-        }
+            foreach (var system in fixedUpdateSystems)
+            {
+                system.Shutdown();
+            }
 
-        updateSystems.Clear();
-        fixedUpdateSystems.Clear();
+            updateSystems.Clear();
+            fixedUpdateSystems.Clear();
+        }
     }
 
     public void Startup()
@@ -182,26 +203,29 @@ internal class EntitySystemManager : ISubsystem
             return;
         }
 
-        var time = Time.fixedDeltaTime;
-
-        foreach (var system in fixedUpdateSystems)
+        lock(lockObject)
         {
-            using var profiler = new PerformanceProfiler($"{system.GetType().FullName} FixedUpdate");
+            var time = Time.fixedDeltaTime;
 
-            system.FixedUpdate(time);
+            foreach (var system in fixedUpdateSystems)
+            {
+                using var profiler = new PerformanceProfiler($"{system.GetType().FullName} FixedUpdate");
+
+                system.FixedUpdate(time);
+            }
+
+            World.Current?.IterateCallableComponents((entity, component) =>
+            {
+                try
+                {
+                    component.FixedUpdate();
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
+                }
+            });
         }
-
-        World.Current?.IterateCallableComponents((entity, component) =>
-        {
-            try
-            {
-                component.FixedUpdate();
-            }
-            catch(Exception e)
-            {
-                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
-            }
-        });
     }
 
     public void Update()
@@ -211,51 +235,54 @@ internal class EntitySystemManager : ISubsystem
             return;
         }
 
-        var time = Time.deltaTime;
-
-        foreach (var system in updateSystems)
+        lock (lockObject)
         {
-            using var profiler = new PerformanceProfiler($"{system.GetType().FullName} Update");
-            
-            system.Update(time);
-        }
+            var time = Time.deltaTime;
 
-        World.Current?.IterateCallableComponents((entity, component) =>
-        {
-            if(component.STAPLE_JUST_ADDED)
+            foreach (var system in updateSystems)
             {
-                component.STAPLE_JUST_ADDED = false;
+                using var profiler = new PerformanceProfiler($"{system.GetType().FullName} Update");
+
+                system.Update(time);
+            }
+
+            World.Current?.IterateCallableComponents((entity, component) =>
+            {
+                if (component.STAPLE_JUST_ADDED)
+                {
+                    component.STAPLE_JUST_ADDED = false;
+
+                    try
+                    {
+                        component.Start();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                    }
+                }
 
                 try
                 {
-                    component.Start();
+                    component.Update();
                 }
                 catch (Exception e)
                 {
-                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
                 }
-            }
+            });
 
-            try
+            World.Current?.IterateCallableComponents((entity, component) =>
             {
-                component.Update();
-            }
-            catch (Exception e)
-            {
-                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
-            }
-        });
-
-        World.Current?.IterateCallableComponents((entity, component) =>
-        {
-            try
-            {
-                component.LateUpdate();
-            }
-            catch (Exception e)
-            {
-                Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
-            }
-        });
+                try
+                {
+                    component.LateUpdate();
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
+                }
+            });
+        }
     }
 }
