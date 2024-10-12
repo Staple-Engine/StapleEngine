@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Staple.Internal;
@@ -347,6 +346,19 @@ internal partial class Shader : IGuidAsset
         return index >= 0 ? uniforms[uniformIndices[index]] : null;
     }
 
+    internal ShaderHandle GetUniformHandle(int hash)
+    {
+        var uniform = GetUniform(hash);
+
+        if(uniform == null)
+        {
+            return null;
+        }
+
+        return new(uniform);
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector3 uniform's value
     /// </summary>
@@ -373,7 +385,36 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector3 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetFloat(ShaderHandle handle, float value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4(value, 0, 0, 0);
+
+            bgfx.set_uniform(uniform.handle, &temp, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector2 uniform's value
     /// </summary>
@@ -400,7 +441,36 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector2 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector2(ShaderHandle handle, Vector2 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4(value, 0, 0);
+
+            bgfx.set_uniform(uniform.handle, &temp, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector2 uniform's value
     /// </summary>
@@ -435,7 +505,44 @@ internal partial class Shader : IGuidAsset
             }
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector2 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector2(ShaderHandle handle, ReadOnlySpan<Vector2> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4[value.Length];
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                temp[i] = value[i].ToVector4();
+            }
+
+            fixed (void* ptr = temp)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector3 uniform's value
     /// </summary>
@@ -462,7 +569,36 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector3 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector3(ShaderHandle handle, Vector3 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4(value, 0);
+
+            bgfx.set_uniform(uniform.handle, &temp, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector3 uniform's value
     /// </summary>
@@ -497,7 +633,44 @@ internal partial class Shader : IGuidAsset
             }
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector3 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector3(ShaderHandle handle, ReadOnlySpan<Vector3> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            var temp = new Vector4[value.Length];
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                temp[i] = value[i].ToVector4();
+            }
+
+            fixed (void* ptr = temp)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector4 uniform's value
     /// </summary>
@@ -522,7 +695,34 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector4 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector4(ShaderHandle handle, Vector4 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.set_uniform(uniform.handle, &value, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Vector4 uniform's value
     /// </summary>
@@ -550,7 +750,37 @@ internal partial class Shader : IGuidAsset
             }
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Vector4 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetVector4(ShaderHandle handle, ReadOnlySpan<Vector4> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Color uniform's value
     /// </summary>
@@ -577,7 +807,36 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &colorValue, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Color uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetColor(ShaderHandle handle, Color value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        var colorValue = new Vector4(value.r, value.g, value.b, value.a);
+
+        unsafe
+        {
+            bgfx.set_uniform(uniform.handle, &colorValue, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Color uniform's value
     /// </summary>
@@ -605,7 +864,37 @@ internal partial class Shader : IGuidAsset
             }
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Color uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetColor(ShaderHandle handle, ReadOnlySpan<Color> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Texture uniform's value
     /// </summary>
@@ -631,7 +920,35 @@ internal partial class Shader : IGuidAsset
             value.SetActive(uniform.stage, uniform.handle, overrideFlags);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Texture uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    /// <param name="overrideFlags">Flags to override texture state</param>
+    public void SetTexture(ShaderHandle handle, Texture value, TextureFlags overrideFlags = (TextureFlags)uint.MaxValue)
+    {
+        if (Disposed || value == null || value.Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Matrix3x3 uniform's value
     /// </summary>
@@ -656,7 +973,34 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Matrix3x3 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix3x3(ShaderHandle handle, Matrix3x3 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.set_uniform(uniform.handle, &value, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Matrix3x3 uniform's value
     /// </summary>
@@ -684,7 +1028,37 @@ internal partial class Shader : IGuidAsset
             }
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Matrix3x3 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix3x3(ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Matrix4x4 uniform's value
     /// </summary>
@@ -709,7 +1083,34 @@ internal partial class Shader : IGuidAsset
             bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
+#endif
 
+    /// <summary>
+    /// Sets a Matrix4x4 uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix4x4(ShaderHandle handle, Matrix4x4 value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle?.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.set_uniform(uniform.handle, &value, 1);
+        }
+    }
+
+#if STAPLE_ALLOWS_STRING_SHADER_UNIFORMS
     /// <summary>
     /// Sets a Matrix4x4 array uniform's value
     /// </summary>
@@ -732,6 +1133,35 @@ internal partial class Shader : IGuidAsset
         unsafe
         {
             fixed(void *ptr = value)
+            {
+                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+            }
+        }
+    }
+#endif
+
+    /// <summary>
+    /// Sets a Matrix4x4 array uniform's value
+    /// </summary>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetMatrix4x4(ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
+    {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var uniform = handle.uniform;
+
+        if (uniform == null)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
             {
                 bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }

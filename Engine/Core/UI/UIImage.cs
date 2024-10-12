@@ -92,8 +92,8 @@ public class UIImage : UIElement
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MeshLighting.Unlit,
             viewID, () =>
             {
-                material.shader.SetColor(Material.MainColorProperty, color);
-                material.shader.SetTexture(Material.MainTextureProperty, texture);
+                material.shader.SetColor(material.GetShaderHandle(Material.MainColorProperty), color);
+                material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), texture);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
             });

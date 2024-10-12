@@ -158,6 +158,7 @@
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\Mesh\MeshLighting.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
+		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
 		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
@@ -342,7 +343,7 @@
 		<Compile Include="Rendering\RenderTarget.cs" />
 		<Compile Include="Rendering\Windowing\RenderWindow.cs" />
 		<Compile Include="Rendering\RendererType.cs" />
-		<Compile Include="Rendering\Shader.cs" />
+		<Compile Include="Rendering\Shader\Shader.cs" />
 		<Compile Include="Rendering\Sprites\SpriteRenderSystem.cs" />
 		<Compile Include="Rendering\Texture\Texture.cs" />
 		<Compile Include="Rendering\Texture\TextureFlags.cs" />

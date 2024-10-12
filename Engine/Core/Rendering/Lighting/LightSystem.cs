@@ -154,13 +154,21 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
             lightSpotDirection[i] = forward.ToVector4();
         }
 
-        material.shader.SetVector3(ViewPosKey, cameraPosition);
-        material.shader.SetMatrix3x3(NormalMatrixKey, normalMatrix);
-        material.shader.SetColor(LightAmbientKey, lightAmbient);
-        material.shader.SetVector4(LightCountKey, lightCount);
-        material.shader.SetVector4(LightTypePositionKey, lightTypePositions);
-        material.shader.SetVector4(LightDiffuseKey, lightDiffuse);
-        material.shader.SetVector4(LightSpotDirectionKey, lightSpotDirection);
+        var viewPosHandle = material.GetShaderHandle(ViewPosKey);
+        var normalMatrixHandle = material.GetShaderHandle(NormalMatrixKey);
+        var lightAmbientHandle = material.GetShaderHandle(LightAmbientKey);
+        var lightCountHandle = material.GetShaderHandle(LightCountKey);
+        var lightTypePositionHandle = material.GetShaderHandle(LightTypePositionKey);
+        var lightDiffuseHandle = material.GetShaderHandle(LightDiffuseKey);
+        var lightSpotDirectionHandle = material.GetShaderHandle(LightSpotDirectionKey);
+
+        material.shader.SetVector3(viewPosHandle, cameraPosition);
+        material.shader.SetMatrix3x3(normalMatrixHandle, normalMatrix);
+        material.shader.SetColor(lightAmbientHandle, lightAmbient);
+        material.shader.SetVector4(lightCountHandle, lightCount);
+        material.shader.SetVector4(lightTypePositionHandle, lightTypePositions);
+        material.shader.SetVector4(lightDiffuseHandle, lightDiffuse);
+        material.shader.SetVector4(lightSpotDirectionHandle, lightSpotDirection);
     }
 
     public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)

@@ -143,7 +143,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 material.ApplyProperties();
 
-                material.shader.SetMatrix4x4("u_boneMatrices", boneMatrices);
+                material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), boneMatrices);
 
                 renderer.mesh.SetActive(i);
 

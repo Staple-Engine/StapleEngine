@@ -323,8 +323,8 @@ public class SpriteRenderSystem : IRenderSystem
             //Don't use culling for sprites
             bgfx.set_state((ulong)(state | s.material.shader.BlendingFlag), 0);
 
-            s.material.shader.SetColor(Material.MainColorProperty, s.color);
-            s.material.shader.SetTexture(Material.MainTextureProperty, s.texture);
+            s.material.shader.SetColor(s.material.GetShaderHandle(Material.MainColorProperty), s.color);
+            s.material.shader.SetTexture(s.material.GetShaderHandle(Material.MainTextureProperty), s.texture);
 
             s.material.DisableShaderKeyword(Shader.SkinningKeyword);
 
