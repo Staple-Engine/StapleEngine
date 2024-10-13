@@ -25,6 +25,7 @@
       {
         "type": "Staple.Camera",
         "data": {
+          "viewMode": "Default",
           "clearMode": "SolidColor",
           "cameraType": "Orthographic",
           "orthographicSize": 5.0,
@@ -280,6 +281,7 @@
       {
         "type": "Staple.Camera",
         "data": {
+          "viewMode": "Default",
           "clearMode": "SolidColor",
           "cameraType": "Orthographic",
           "orthographicSize": 5.0,
@@ -335,6 +337,97 @@
           "spatial": false,
           "autoplay": true
         }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "UI Canvas",
+    "ID": 6,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.UI.UICanvas",
+        "data": {}
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "UI Text",
+    "ID": 7,
+    "parent": 6,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.UI.UIText",
+        "data": {
+          "text": "FPS",
+          "fontSize": 30,
+          "autoSizeText": false,
+          "minFontSize": 14,
+          "maxFontSize": 30,
+          "textColor": "#FFFFFFFF",
+          "secondaryTextColor": "#FFFFFFFF",
+          "borderSize": 0,
+          "borderColor": "#00000000",
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "alignment": "TopRight",
+          "position": {
+            "x": -30.0,
+            "y": 30.0
+          },
+          "size": {
+            "x": 54.0,
+            "y": 30.0
+          },
+          "adjustToIntrinsicSize": true
+        }
+      },
+      {
+        "type": "FPSCounterComponent",
+        "data": {}
       }
     ],
     "layer": "Default",

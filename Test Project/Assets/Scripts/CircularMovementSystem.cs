@@ -5,14 +5,14 @@ namespace TestGame
 {
     public class CircularMovementSystem : IEntitySystemFixedUpdate
     {
+        private readonly SceneQuery<CircularMovementComponent, Transform> movements = new();
+
         public void Startup()
         {
         }
 
         public void FixedUpdate(float deltaTime)
         {
-            var movements = Scene.Query<CircularMovementComponent, Transform>();
-
             foreach ((_, CircularMovementComponent movement, Transform transform) in movements)
             {
                 movement.t += deltaTime * movement.speed;

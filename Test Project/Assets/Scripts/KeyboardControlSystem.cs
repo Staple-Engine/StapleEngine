@@ -5,18 +5,17 @@ namespace TestGame
 {
     public class KeyboardControlSystem : IEntitySystemUpdate
     {
+        private readonly SceneQuery<KeyboardControlComponent, Transform> keyboards = new();
+
         public void Startup()
         {
         }
 
         public void Update(float deltaTime)
         {
-            var keyboards = Scene.Query<KeyboardControlComponent, Transform>();
-
             foreach((Entity entity, KeyboardControlComponent component, Transform transform) in keyboards)
             {
                 var targetRotation = Quaternion.Identity;
-                var targetDirection = Vector3.Zero;
 
                 var direction = Vector3.Zero;
 
@@ -64,7 +63,7 @@ namespace TestGame
                     targetRotation = Math.FromEulerAngles(rotation);
                 }
 
-                targetDirection = direction * component.speed;
+                var targetDirection = direction * component.speed;
 
                 var body = Physics.GetBody3D(entity);
 

@@ -511,6 +511,8 @@ internal partial class StapleEditor
 
             RenderSystem.Instance.Startup();
 
+            World.AddChangeReceiver(RenderSystem.Instance);
+
             var canvasSystem = RenderSystem.Instance.Get<UICanvasSystem>();
 
             if(canvasSystem != null)

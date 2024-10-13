@@ -177,8 +177,6 @@ public partial class RenderSystem
             return;
         }
 
-        CurrentViewID = 0;
-
         if (UseDrawcallInterpolator)
         {
             UpdateAccumulator();

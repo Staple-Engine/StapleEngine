@@ -6,6 +6,8 @@ namespace TestGame
 {
     public class HighlightableSystem : IEntitySystemUpdate
     {
+        private readonly SceneQuery<HighlightableComponent, SpriteRenderer> highlightables = new();
+
         public void Startup()
         {
         }
@@ -38,8 +40,6 @@ namespace TestGame
             }
 
             var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
-
-            var highlightables = Scene.Query<HighlightableComponent, SpriteRenderer>();
 
             foreach((_, _, SpriteRenderer renderer) in highlightables)
             {

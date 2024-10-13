@@ -77,6 +77,8 @@ jobs:
             - run: 'sh build_linux.sh'
               working-directory: './Dependencies/'
               
+            - run: 'dotnet --info'
+              
             - run: 'dotnet workload install android'
 
             - run: 'dotnet workload restore'
