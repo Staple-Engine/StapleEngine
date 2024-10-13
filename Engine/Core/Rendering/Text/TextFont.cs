@@ -12,9 +12,9 @@ internal class TextFont : IDisposable
         public Texture atlas;
         public int lineSpacing;
 
-        public Dictionary<int, Glyph> glyphs = new();
+        public Dictionary<int, Glyph> glyphs = [];
 
-        public Dictionary<Vector2Int, int> kerning = new();
+        public Dictionary<Vector2Int, int> kerning = [];
     }
 
     internal static readonly Dictionary<FontCharacterSet, (int, int)> characterRanges = new()
@@ -54,13 +54,15 @@ internal class TextFont : IDisposable
 
     internal FontCharacterSet includedRanges;
 
-    internal Dictionary<string, FontAtlasInfo> atlas = new();
+    internal readonly Dictionary<string, FontAtlasInfo> atlas = [];
 
     internal string guid;
 
     private bool useAntiAliasing = true;
 
-    private HashSet<string> failedLoads = new();
+    private readonly HashSet<string> failedLoads = [];
+
+    private bool changed = false;
 
     public int FontSize
     {
@@ -75,25 +77,86 @@ internal class TextFont : IDisposable
 
             fontSource.FontSize = value;
 
+            changed = true;
+
             GenerateTextureAtlas();
         }
     }
 
-    public Color TextColor { get; set; } = Color.White;
+    private Color textColor = Color.White;
 
-    public Color SecondaryTextColor { get; set; } = Color.White;
+    public Color TextColor
+    {
+        get => textColor;
 
-    public Color BorderColor { get; set; } = Color.White;
+        set
+        {
+            textColor = value;
 
-    public int BorderSize { get; set; }
+            changed = true;
+        }
+    }
+
+
+    private Color secondaryTextColor = Color.White;
+
+    public Color SecondaryTextColor
+    {
+        get => secondaryTextColor;
+
+        set
+        {
+            secondaryTextColor = value;
+
+            changed = true;
+        }
+    }
+
+    private Color borderColor = Color.White;
+
+    public Color BorderColor
+    {
+        get => borderColor;
+
+        set
+        {
+            borderColor = value;
+
+            changed = true;
+        }
+    }
+
+
+    private int borderSize;
+
+    public int BorderSize
+    {
+        get => borderSize;
+
+        set
+        {
+            borderSize = value;
+
+            changed = true;
+        }
+    }
+
+    private string key;
 
     internal string Key
     {
         get
         {
-            return $"{FontSize}:{textureSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
-                $"{SecondaryTextColor.r},{SecondaryTextColor.g},{SecondaryTextColor.b},{SecondaryTextColor.a}:" + 
-                $"{BorderSize}:{BorderColor.r},{BorderColor.g},{BorderColor.b},{BorderColor.a}";
+            if(changed)
+            {
+                changed = false;
+
+                key = $"{FontSize}:{textureSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
+                    $"{SecondaryTextColor.r},{SecondaryTextColor.g},{SecondaryTextColor.b},{SecondaryTextColor.a}:" +
+                    $"{BorderSize}:{BorderColor.r},{BorderColor.g},{BorderColor.b},{BorderColor.a}";
+            }
+
+            return key;
         }
     }
 
