@@ -93,13 +93,20 @@ public class MeshRenderSystem : IRenderSystem
 
         if (r.mesh == null ||
             r.materials == null ||
-            r.materials.Count == 0 ||
-            r.materials.Any(x => x == null || x.IsValid == false))
+            r.materials.Count == 0)
         {
             return;
         }
 
-        if(r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
+        for (var i = 0; i < r.materials.Count; i++)
+        {
+            if (r.materials[i]?.IsValid == false)
+            {
+                return;
+            }
+        }
+
+        if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
         {
             return;
         }
@@ -120,10 +127,17 @@ public class MeshRenderSystem : IRenderSystem
 
         if (r.mesh == null ||
             r.materials == null ||
-            r.materials.Count == 0 ||
-            r.materials.Any(x => x == null || x.IsValid == false))
+            r.materials.Count == 0)
         {
             return;
+        }
+
+        for (var i = 0; i < r.materials.Count; i++)
+        {
+            if (r.materials[i]?.IsValid == false)
+            {
+                return;
+            }
         }
 
         if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)

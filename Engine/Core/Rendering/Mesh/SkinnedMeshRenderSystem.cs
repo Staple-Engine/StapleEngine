@@ -32,18 +32,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
         Camera activeCamera, Transform activeCameraTransform)
     {
-        var renderer = relatedComponent as SkinnedMeshRenderer;
-
-        if (renderer.mesh == null ||
-            renderer.mesh.meshAsset == null ||
-            renderer.mesh.meshAssetIndex < 0 ||
-            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
-            renderer.materials == null ||
-            renderer.materials.Count != renderer.mesh.submeshes.Count ||
-            renderer.materials.Any(x => x == null || x.IsValid == false))
-        {
-            return;
-        }
     }
 
     public void Process(Entity entity, Transform transform, IComponent relatedComponent,
@@ -56,10 +44,17 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             renderer.mesh.meshAssetIndex < 0 ||
             renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
             renderer.materials == null ||
-            renderer.materials.Count != renderer.mesh.submeshes.Count ||
-            renderer.materials.Any(x => x == null || x.IsValid == false))
+            renderer.materials.Count != renderer.mesh.submeshes.Count)
         {
             return;
+        }
+
+        for (var i = 0; i < renderer.materials.Count; i++)
+        {
+            if (renderer.materials[i]?.IsValid == false)
+            {
+                return;
+            }
         }
 
         var animator = entity.GetComponentInParent<SkinnedMeshAnimator>();
