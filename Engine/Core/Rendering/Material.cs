@@ -29,7 +29,10 @@ public sealed class Material : IGuidAsset
                 value = value,
                 shaderHandle = shaderHandle,
                 relatedShaderHandles = relatedShaderHandles,
-                relatedParameters = relatedParameters.Select(x => x.Clone()).ToArray(),
+                relatedParameters = relatedParameters
+                    .Where(x => x != null)
+                    .Select(x => x.Clone())
+                    .ToArray(),
             };
         }
     }
