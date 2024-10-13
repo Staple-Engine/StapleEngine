@@ -23,6 +23,10 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
 
     private readonly SceneQuery<Transform, Light> lightQuery = new();
 
+    private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
+    private readonly Vector4[] cachedLightDiffuse = new Vector4[MaxLights];
+    private readonly Vector4[] cachedLightSpotDirection = new Vector4[MaxLights];
+
     public LightSystem()
     {
         Shader.DefaultUniforms.Add((LightAmbientKey, ShaderUniformType.Color));
@@ -129,15 +133,12 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
 
         var lightAmbient = AppSettings.Current.ambientLight;
         var lightCount = new Vector4(targets.Count);
-        var lightTypePositions = new Vector4[targets.Count];
-        var lightDiffuse = new Vector4[targets.Count];
-        var lightSpotDirection = new Vector4[targets.Count];
 
         lightCount.X = targets.Count;
 
         for (var i = 0; i < targets.Count; i++)
         {
-            lightTypePositions[i] = new((float)targets[i].Item2.type,
+            cachedLightTypePositions[i] = new((float)targets[i].Item2.type,
                 targets[i].Item1.Position.X,
                 targets[i].Item1.Position.Y,
                 targets[i].Item1.Position.Z);
@@ -146,12 +147,12 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
 
             if (targets[i].Item2.type == LightType.Directional)
             {
-                (lightTypePositions[i].Y, lightTypePositions[i].Z, lightTypePositions[i].W) = (-forward.X, -forward.Y, -forward.Z);
+                (cachedLightTypePositions[i].Y, cachedLightTypePositions[i].Z, cachedLightTypePositions[i].W) = (-forward.X, -forward.Y, -forward.Z);
             }
 
-            lightDiffuse[i] = targets[i].Item2.color;
+            cachedLightDiffuse[i] = targets[i].Item2.color;
 
-            lightSpotDirection[i] = forward.ToVector4();
+            cachedLightSpotDirection[i] = forward.ToVector4();
         }
 
         var viewPosHandle = material.GetShaderHandle(ViewPosKey);
@@ -166,9 +167,9 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         material.shader.SetMatrix3x3(normalMatrixHandle, normalMatrix);
         material.shader.SetColor(lightAmbientHandle, lightAmbient);
         material.shader.SetVector4(lightCountHandle, lightCount);
-        material.shader.SetVector4(lightTypePositionHandle, lightTypePositions);
-        material.shader.SetVector4(lightDiffuseHandle, lightDiffuse);
-        material.shader.SetVector4(lightSpotDirectionHandle, lightSpotDirection);
+        material.shader.SetVector4(lightTypePositionHandle, cachedLightTypePositions);
+        material.shader.SetVector4(lightDiffuseHandle, cachedLightDiffuse);
+        material.shader.SetVector4(lightSpotDirectionHandle, cachedLightSpotDirection);
     }
 
     public void ApplyLightProperties(Matrix4x4 transform, Material material, Vector3 cameraPosition)

@@ -634,10 +634,7 @@ public partial class World
                 return;
             }
 
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
-
-            foreach(var entity in allEntities)
+            foreach(var entity in cachedEntityList)
             {
                 if(entity.alive == false)
                 {

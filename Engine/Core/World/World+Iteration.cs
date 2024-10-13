@@ -23,11 +23,9 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
             var outValue = new List<(Entity, T)>();
 
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
                     (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
@@ -74,11 +72,9 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
             var outValue = new List<(Entity, T, T2)>();
 
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
                     (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
@@ -131,11 +127,9 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
             var outValue = new List<(Entity, T, T2, T3)>();
 
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
                     (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
@@ -194,11 +188,9 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
             var outValue = new List<(Entity, T, T2, T3, T4)>();
 
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
                     (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
@@ -263,11 +255,9 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
             var outValue = new List<(Entity, T, T2, T3, T4, T5)>();
 
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
                     (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
@@ -454,10 +444,7 @@ public partial class World
     {
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var allEntities = entities.ToArray();
-
-            foreach (var entity in allEntities)
+            foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false)
                 {

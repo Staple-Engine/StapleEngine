@@ -108,6 +108,7 @@ public partial class World
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
     private readonly List<Entity> destroyedEntities = [];
+    private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
 
     private static readonly ObservableBox worldChangeReceivers = new();
@@ -215,6 +216,8 @@ public partial class World
 
             if(needsEmitWorldChange)
             {
+                cachedEntityList = entities.ToArray();
+
                 needsEmitWorldChange = false;
 
                 EmitWorldChangedEvent();
