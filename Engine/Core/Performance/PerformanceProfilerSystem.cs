@@ -5,19 +5,19 @@ namespace Staple.Internal;
 
 internal static class PerformanceProfilerSystem
 {
-    private static readonly Dictionary<string, int> counters = [];
+    private static readonly Dictionary<PerformanceProfilerType, int> counters = [];
 
-    private static readonly Dictionary<string, int> frameCounters = [];
+    private static readonly Dictionary<PerformanceProfilerType, int> frameCounters = [];
 
-    private static readonly Dictionary<string, int> combinedFrameCounters = [];
+    private static readonly Dictionary<PerformanceProfilerType, int> combinedFrameCounters = [];
 
-    private static readonly Dictionary<string, int> averageFrameCounters = [];
+    private static readonly Dictionary<PerformanceProfilerType, int> averageFrameCounters = [];
 
     private static readonly object lockObject = new();
 
     private static DateTime lastAverageTime = DateTime.UtcNow;
 
-    public static Dictionary<string, int> FrameCounters
+    public static Dictionary<PerformanceProfilerType, int> FrameCounters
     {
         get
         {
@@ -33,7 +33,7 @@ internal static class PerformanceProfilerSystem
         }
     }
 
-    public static Dictionary<string, int> AverageFrameCounters
+    public static Dictionary<PerformanceProfilerType, int> AverageFrameCounters
     {
         get
         {
@@ -107,7 +107,7 @@ internal static class PerformanceProfilerSystem
         }
     }
 
-    public static void AddCounter(string name, int ms)
+    public static void AddCounter(PerformanceProfilerType type, int ms)
     {
         if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
         {
@@ -116,15 +116,15 @@ internal static class PerformanceProfilerSystem
 
         lock(lockObject)
         {
-            if (counters.TryGetValue(name, out var t))
+            if (counters.TryGetValue(type, out var t))
             {
                 t += ms;
 
-                counters[name] = t;
+                counters[type] = t;
             }
             else
             {
-                counters.Add(name, ms);
+                counters.Add(type, ms);
             }
         }
     }

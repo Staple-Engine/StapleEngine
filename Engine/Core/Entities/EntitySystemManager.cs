@@ -209,7 +209,7 @@ internal class EntitySystemManager : ISubsystem
 
             foreach (var system in fixedUpdateSystems)
             {
-                using var profiler = new PerformanceProfiler($"{system.GetType().FullName} FixedUpdate");
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Entity);
 
                 system.FixedUpdate(time);
             }
@@ -241,7 +241,7 @@ internal class EntitySystemManager : ISubsystem
 
             foreach (var system in updateSystems)
             {
-                using var profiler = new PerformanceProfiler($"{system.GetType().FullName} Update");
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Entity);
 
                 system.Update(time);
             }

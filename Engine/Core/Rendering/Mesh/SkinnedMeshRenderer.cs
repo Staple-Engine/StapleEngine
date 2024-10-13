@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple;
 
@@ -21,4 +22,9 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// Lighting mode
     /// </summary>
     public MeshLighting lighting = MeshLighting.Lit;
+
+    /// <summary>
+    /// Contains cached bone matrices to reduce allocations
+    /// </summary>
+    internal List<Matrix4x4[]> cachedBoneMatrices = [];
 }

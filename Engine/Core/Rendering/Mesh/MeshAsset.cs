@@ -92,6 +92,18 @@ public class MeshAsset : IGuidAsset
 
         private Dictionary<string, Node> cachedNodes = [];
 
+        private Vector3 position;
+
+        private Vector3 originalPosition;
+
+        private Vector3 scale;
+
+        private Vector3 originalScale;
+
+        private Quaternion rotation;
+
+        private Quaternion originalRotation;
+
         private void UpdateTransforms()
         {
             if (changed)
@@ -108,6 +120,69 @@ public class MeshAsset : IGuidAsset
                     globalMatrix = transform;
                     originalGlobalMatrix = originalTransform;
                 }
+
+                Matrix4x4.Decompose(transform, out scale, out rotation, out position);
+                Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
+            }
+        }
+
+        public Vector3 Position
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return position;
+            }
+        }
+
+        public Vector3 OriginalPosition
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return originalPosition;
+            }
+        }
+
+        public Vector3 Scale
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return scale;
+            }
+        }
+
+        public Vector3 OriginalScale
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return originalScale;
+            }
+        }
+
+        public Quaternion Rotation
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return rotation;
+            }
+        }
+
+        public Quaternion OriginalRotation
+        {
+            get
+            {
+                UpdateTransforms();
+
+                return originalRotation;
             }
         }
 

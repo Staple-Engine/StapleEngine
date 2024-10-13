@@ -236,8 +236,6 @@ public partial class RenderSystem
         List<(Entity, Transform, List<(IRenderSystem, IComponent)>)> queue,
         ushort viewID)
     {
-        using var p1 = new PerformanceProfiler("RenderSystem - RenderStandard");
-
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -249,16 +247,10 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Prepare();
         }
 
-        {
-            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
-
-            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-        }
+        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         foreach(var item in queue)
         {
@@ -270,11 +262,7 @@ public partial class RenderSystem
             {
                 var system = pair.Item1;
 
-                {
-                    using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
-                    system.Preprocess(entity, transform, pair.Item2, camera, cameraTransform);
-                }
+                system.Preprocess(entity, transform, pair.Item2, camera, cameraTransform);
 
                 if (pair.Item2 is Renderable renderable && renderable.enabled)
                 {
@@ -282,15 +270,11 @@ public partial class RenderSystem
 
                     if (renderable.isVisible && renderable.forceRenderingOff == false)
                     {
-                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                         system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
                     }
                 }
                 else if (pair.Item2 is not Renderable) //Systems that do not require a renderer
                 {
-                    using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                     system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
                 }
             }
@@ -298,15 +282,13 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p8 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Submit();
         }
     }
 
     public void RenderStandardNoQueue(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
-        using var p1 = new PerformanceProfiler("RenderSystem - RenderStandard");
+        using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         CurrentCamera = (camera, cameraTransform);
 
@@ -319,16 +301,10 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Prepare();
         }
 
-        {
-            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
-
-            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-        }
+        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         foreach (var entityInfo in entityQuery)
         {
@@ -344,11 +320,7 @@ public partial class RenderSystem
                 if (system.RelatedComponent() != null &&
                     entityInfo.Item1.TryGetComponent(out var related, system.RelatedComponent()))
                 {
-                    {
-                        using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
-                        system.Preprocess(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform);
-                    }
+                    system.Preprocess(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform);
 
                     if (related is Renderable renderable && renderable.enabled)
                     {
@@ -356,15 +328,11 @@ public partial class RenderSystem
 
                         if (renderable.isVisible && renderable.forceRenderingOff == false)
                         {
-                            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                             system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
                         }
                     }
                     else if (related is not Renderable) //Systems that do not require a renderer
                     {
-                        using var p6 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                         system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
                     }
                 }
@@ -373,16 +341,12 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p7 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Submit();
         }
     }
 
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
-        using var p1 = new PerformanceProfiler($"RenderSystem - RenderAccumulator");
-
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -394,16 +358,10 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Prepare();
         }
 
-        {
-            using var p3 = new PerformanceProfiler($"RenderSystem - PrepareCamera");
-
-            PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-        }
+        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         var alpha = accumulator / Time.fixedDeltaTime;
 
@@ -442,8 +400,6 @@ public partial class RenderSystem
                         {
                             if (call.relatedComponent.GetType() == system.RelatedComponent())
                             {
-                                using var p4 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                                 system.Process(call.entity, stagingTransform, call.relatedComponent,
                                     camera, cameraTransform, viewID);
                             }
@@ -455,8 +411,6 @@ public partial class RenderSystem
 
         foreach (var system in systems)
         {
-            using var p5 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
             system.Submit();
         }
     }
@@ -465,7 +419,7 @@ public partial class RenderSystem
     {
         CurrentViewID = 1;
 
-        using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({renderQueue.Count} cameras)");
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
@@ -477,7 +431,7 @@ public partial class RenderSystem
     {
         CurrentViewID = 1;
 
-        using var profiler = new PerformanceProfiler($"RenderSystem - Frame ({renderQueue.Count} cameras)");
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
@@ -521,8 +475,6 @@ public partial class RenderSystem
                         var component = systemInfo.Item2;
 
                         {
-                            using var p2 = new PerformanceProfiler($"RenderSystem - {system.GetType().FullName}");
-
                             system.Preprocess(entity, transform, component, camera, cameraTransform);
                         }
 

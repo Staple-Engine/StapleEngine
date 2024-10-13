@@ -962,8 +962,9 @@ internal class ResourceManager
                 {
                     case MaterialParameterType.TextureWrap:
 
-                        material.parameters.Add(parameter.Key, new()
+                        material.parameters.Add(parameter.Key.GetHashCode(), new()
                         {
+                            name = parameter.Key,
                             type = MaterialParameterType.TextureWrap,
                             value = parameter.Value.textureWrapValue,
                         });

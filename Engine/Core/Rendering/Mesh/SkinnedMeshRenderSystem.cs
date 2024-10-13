@@ -95,6 +95,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             var useAnimator = animator != null && animator.evaluator != null;
 
+            if(renderer.cachedBoneMatrices.Count != renderer.mesh.submeshes.Count)
+            {
+                renderer.cachedBoneMatrices.Clear();
+                
+                for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
+                {
+                    renderer.cachedBoneMatrices.Add(new Matrix4x4[meshAssetMesh.bones[i].Count]);
+                }
+            }
+
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
                 if (meshAssetMesh.bones[i].Count > MaxBones)
@@ -105,7 +115,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     continue;
                 }
 
-                var boneMatrices = new Matrix4x4[meshAssetMesh.bones[i].Count];
+                if (renderer.cachedBoneMatrices[i].Length != meshAssetMesh.bones[i].Count)
+                {
+                    renderer.cachedBoneMatrices[i] = new Matrix4x4[meshAssetMesh.bones[i].Count];
+                }
+
+                var boneMatrices = renderer.cachedBoneMatrices[i];
 
                 for (var j = 0; j < boneMatrices.Length; j++)
                 {
@@ -239,16 +254,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     {
         foreach (var pair in transformCache)
         {
-            if(nodeCache.TryGetValue(pair.Key, out var node) == false ||
-                Matrix4x4.Decompose(original ? node.OriginalTransform : node.Transform,
-                    out var scale, out var rotation, out var translation) == false)
+            if(nodeCache.TryGetValue(pair.Key, out var node) == false)
             {
                 continue;
             }
 
-            pair.Value.LocalPosition = translation;
-            pair.Value.LocalRotation = rotation;
-            pair.Value.LocalScale = scale;
+            pair.Value.LocalPosition = original ? node.OriginalPosition : node.Position;
+            pair.Value.LocalRotation = original ? node.OriginalRotation : node.Rotation;
+            pair.Value.LocalScale = original ? node.OriginalScale : node.Scale;
         }
     }
 

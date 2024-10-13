@@ -5,16 +5,16 @@ namespace Staple;
 
 public sealed class PerformanceProfiler : IDisposable
 {
-    private readonly string name;
+    private readonly PerformanceProfilerType type;
     private readonly DateTime startTime = DateTime.UtcNow;
 
-    public PerformanceProfiler(string name)
+    public PerformanceProfiler(PerformanceProfilerType type)
     {
-        this.name = name;
+        this.type = type;
     }
 
     public void Dispose()
     {
-        PerformanceProfilerSystem.AddCounter(name, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
+        PerformanceProfilerSystem.AddCounter(type, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
     }
 }
