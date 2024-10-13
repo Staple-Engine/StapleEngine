@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -15,10 +16,18 @@ public sealed class Material : IGuidAsset
     {
         public string name;
         public MaterialParameterType type;
-        public object value;
         public ShaderHandle shaderHandle;
         public ShaderHandle[] relatedShaderHandles = [];
         public ParameterInfo[] relatedParameters = [];
+        public float floatValue;
+        public Vector2 vector2Value;
+        public Vector3 vector3Value;
+        public Vector4 vector4Value;
+        public Color colorValue;
+        public Texture textureValue;
+        public Matrix3x3 matrix3x3Value = Matrix3x3.Identity;
+        public Matrix4x4 matrix4x4Value = Matrix4x4.Identity;
+        public TextureWrap textureWrapValue;
 
         public ParameterInfo Clone()
         {
@@ -26,13 +35,21 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = type,
-                value = value,
                 shaderHandle = shaderHandle,
                 relatedShaderHandles = relatedShaderHandles,
                 relatedParameters = relatedParameters
                     .Where(x => x != null)
                     .Select(x => x.Clone())
                     .ToArray(),
+                floatValue = floatValue,
+                vector2Value = vector2Value,
+                vector3Value = vector3Value,
+                vector4Value = vector4Value,
+                colorValue = colorValue,
+                textureValue = textureValue,
+                matrix3x3Value = matrix3x3Value,
+                matrix4x4Value = matrix4x4Value,
+                textureWrapValue = textureWrapValue,
             };
         }
     }
@@ -55,6 +72,8 @@ public sealed class Material : IGuidAsset
 
     internal HashSet<int> shaderKeywords = [];
 
+    private Action[] applyPropertiesCallbacks = [];
+
     private readonly Dictionary<int, string> cachedShaderVariantKeys = [];
 
     internal string ShaderVariantKey { get; private set; } = "";
@@ -64,13 +83,13 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Color MainColor
     {
-        get => parameters.TryGetValue(MainColorPropertyHash, out var parameter) ? (Color)parameter.value : Color.White;
+        get => parameters.TryGetValue(MainColorPropertyHash, out var parameter) ? parameter.colorValue : Color.White;
 
         set
         {
             if(parameters.TryGetValue(MainColorPropertyHash, out var parameter) && parameter != null && parameter.type == MaterialParameterType.Color)
             {
-                parameter.value = value;
+                parameter.colorValue = value;
             }
             else
             {
@@ -78,7 +97,7 @@ public sealed class Material : IGuidAsset
                 {
                     name = MainColorProperty,
                     type = MaterialParameterType.Color,
-                    value = value,
+                    colorValue = value,
                     shaderHandle = shader?.GetUniformHandle(MainColorPropertyHash),
                 });
             }
@@ -90,13 +109,13 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Texture MainTexture
     {
-        get => parameters.TryGetValue(MainTexturePropertyHash, out var parameter) ? (Texture)parameter.value : null;
+        get => parameters.TryGetValue(MainTexturePropertyHash, out var parameter) ? parameter.textureValue : null;
 
         set
         {
             if (parameters.TryGetValue(MainTexturePropertyHash, out var parameter) && parameter != null && parameter.type == MaterialParameterType.Texture)
             {
-                parameter.value = value;
+                parameter.textureValue = value;
             }
             else
             {
@@ -104,7 +123,7 @@ public sealed class Material : IGuidAsset
                 {
                     name = MainTextureProperty,
                     type = MaterialParameterType.Texture,
-                    value = value,
+                    textureValue = value,
                     shaderHandle = shader?.GetUniformHandle(MainTexturePropertyHash),
                 });
             }
@@ -315,7 +334,7 @@ public sealed class Material : IGuidAsset
         {
             if(parameter.type == MaterialParameterType.Color)
             {
-                parameter.value = value;
+                parameter.colorValue = value;
             }
         }
         else
@@ -323,7 +342,7 @@ public sealed class Material : IGuidAsset
             parameters.AddOrSetKey(hash, new ParameterInfo()
             {
                 type = MaterialParameterType.Color,
-                value = value,
+                colorValue = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -342,7 +361,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Float)
             {
-                parameter.value = value;
+                parameter.floatValue = value;
             }
         }
         else
@@ -351,7 +370,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Float,
-                value = value,
+                floatValue = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -370,7 +389,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Vector2)
             {
-                parameter.value = value;
+                parameter.vector2Value = value;
             }
         }
         else
@@ -379,7 +398,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Vector2,
-                value = value,
+                vector2Value = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -398,7 +417,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Vector3)
             {
-                parameter.value = value;
+                parameter.vector3Value = value;
             }
         }
         else
@@ -407,7 +426,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Vector3,
-                value = value,
+                vector3Value = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -426,7 +445,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Vector4)
             {
-                parameter.value = value;
+                parameter.vector4Value = value;
             }
         }
         else
@@ -435,7 +454,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Vector4,
-                value = value,
+                vector4Value = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -454,7 +473,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Texture)
             {
-                parameter.value = value;
+                parameter.textureValue = value;
             }
         }
         else
@@ -463,7 +482,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Texture,
-                value = value,
+                textureValue = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
                 relatedShaderHandles = [
                     shader?.GetUniformHandle($"{name}Set".GetHashCode()),
@@ -485,7 +504,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Matrix3x3)
             {
-                parameter.value = value;
+                parameter.matrix3x3Value = value;
             }
         }
         else
@@ -494,7 +513,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Matrix3x3,
-                value = value,
+                matrix3x3Value = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -513,7 +532,7 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Matrix4x4)
             {
-                parameter.value = value;
+                parameter.matrix4x4Value = value;
             }
         }
         else
@@ -522,7 +541,7 @@ public sealed class Material : IGuidAsset
             {
                 name = name,
                 type = MaterialParameterType.Matrix4x4,
-                value = value,
+                matrix4x4Value = value,
                 shaderHandle = shader?.GetUniformHandle(hash),
             });
         }
@@ -577,109 +596,149 @@ public sealed class Material : IGuidAsset
             SetTexture(MainTextureProperty, WhiteTexture);
         }
 
-        foreach(var parameter in parameters.Values)
+        if(applyPropertiesCallbacks.Length != parameters.Count)
         {
-            var key = parameter.name;
+            applyPropertiesCallbacks = new Action[parameters.Count];
 
-            switch (parameter.type)
+            var counter = 0;
+
+            foreach (var parameter in parameters.Values)
             {
-                case MaterialParameterType.Texture:
+                var key = parameter.name;
 
-                    {
-                        shader?.SetFloat(parameter.relatedShaderHandles[0], parameter.value == null ? 0 : 1);
+                switch (parameter.type)
+                {
+                    case MaterialParameterType.Texture:
 
-                        var texture = (Texture)parameter.value;
-
-                        var overrideFlags = (TextureFlags)uint.MaxValue;
-
-                        if(texture != null)
+                        applyPropertiesCallbacks[counter++] = () =>
                         {
-                            overrideFlags = 0;
-
-                            Texture.ProcessFlags(ref overrideFlags, texture.metadata, true);
-
-                            if(parameter.relatedParameters.Length == 0)
+                            if(parameter.textureValue == null)
                             {
-                                parameter.relatedParameters =
-                                [
-                                    parameters.TryGetValue($"{key}_UMapping".GetHashCode(), out var p) &&
-                                        p.type == MaterialParameterType.TextureWrap &&
-                                        p.value is TextureWrap ? p : null,
-
-                                    parameters.TryGetValue($"{key}_VMapping".GetHashCode(), out p) &&
-                                        p.type == MaterialParameterType.TextureWrap &&
-                                        p.value is TextureWrap ? p : null,
-                                ];
+                                return;
                             }
 
-                            if (parameter.relatedParameters[0]?.value is TextureWrap UWrap &&
-                                parameter.relatedParameters[1]?.value is TextureWrap VWrap)
+                            shader?.SetVector4(parameter.relatedShaderHandles[0], new Vector4(parameter.textureValue == null ? 0 : 1));
+
+                            var texture = parameter.textureValue;
+
+                            var overrideFlags = (TextureFlags)uint.MaxValue;
+
+                            if (texture != null)
                             {
-                                overrideFlags |=
-                                    UWrap switch
-                                    {
-                                        TextureWrap.Mirror => TextureFlags.SamplerUMirror,
-                                        TextureWrap.Repeat => 0,
-                                        _ => TextureFlags.SamplerUClamp,
-                                    };
-                                
-                                overrideFlags |=
-                                    VWrap switch
-                                    {
-                                        TextureWrap.Mirror => TextureFlags.SamplerUMirror,
-                                        TextureWrap.Repeat => 0,
-                                        _ => TextureFlags.SamplerUClamp,
-                                    };
+                                overrideFlags = 0;
+
+                                Texture.ProcessFlags(ref overrideFlags, texture.metadata, true);
+
+                                if (parameter.relatedParameters.Length == 0)
+                                {
+                                    parameter.relatedParameters =
+                                    [
+                                        parameters.TryGetValue($"{key}_UMapping".GetHashCode(), out var p) &&
+                                            p.type == MaterialParameterType.TextureWrap ? p : null,
+
+                                        parameters.TryGetValue($"{key}_VMapping".GetHashCode(), out p) &&
+                                            p.type == MaterialParameterType.TextureWrap ? p : null,
+                                    ];
+                                }
+
+                                if (parameter.relatedParameters[0] != null &&
+                                    parameter.relatedParameters[1] != null)
+                                {
+
+                                    overrideFlags |=
+                                        parameter.relatedParameters[0].textureWrapValue switch
+                                        {
+                                            TextureWrap.Mirror => TextureFlags.SamplerUMirror,
+                                            TextureWrap.Repeat => 0,
+                                            _ => TextureFlags.SamplerUClamp,
+                                        };
+
+                                    overrideFlags |=
+                                        parameter.relatedParameters[1].textureWrapValue switch
+                                        {
+                                            TextureWrap.Mirror => TextureFlags.SamplerVMirror,
+                                            TextureWrap.Repeat => 0,
+                                            _ => TextureFlags.SamplerVClamp,
+                                        };
+                                }
                             }
-                        }
 
-                        shader?.SetTexture(parameter.shaderHandle, texture, overrideFlags);
-                    }
+                            shader?.SetTexture(parameter.shaderHandle, texture, overrideFlags);
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Matrix3x3:
+                    case MaterialParameterType.Matrix3x3:
 
-                    shader?.SetMatrix3x3(parameter.shaderHandle, (Matrix3x3)parameter.value);
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetMatrix3x3(parameter.shaderHandle, parameter.matrix3x3Value);
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Matrix4x4:
+                    case MaterialParameterType.Matrix4x4:
 
-                    shader?.SetMatrix4x4(parameter.shaderHandle, (Matrix4x4)parameter.value);
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetMatrix4x4(parameter.shaderHandle, parameter.matrix4x4Value);
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Float:
+                    case MaterialParameterType.Float:
 
-                    shader?.SetVector4(parameter.shaderHandle, new Vector4((float)parameter.value, 0, 0, 0));
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetVector4(parameter.shaderHandle, new Vector4(parameter.floatValue, 0, 0, 0));
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Vector2:
+                    case MaterialParameterType.Vector2:
 
-                    shader?.SetVector4(parameter.shaderHandle, new Vector4((Vector2)parameter.value, 0, 0));
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetVector4(parameter.shaderHandle, new Vector4(parameter.vector2Value, 0, 0));
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Vector3:
+                    case MaterialParameterType.Vector3:
 
-                    shader?.SetVector4(parameter.shaderHandle, new Vector4((Vector3)parameter.value, 0));
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetVector4(parameter.shaderHandle, new Vector4(parameter.vector3Value, 0));
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Vector4:
+                    case MaterialParameterType.Vector4:
 
-                    shader?.SetVector4(parameter.shaderHandle, (Vector4)parameter.value);
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetVector4(parameter.shaderHandle, parameter.vector4Value);
+                        };
 
-                    break;
+                        break;
 
-                case MaterialParameterType.Color:
+                    case MaterialParameterType.Color:
 
-                    shader?.SetColor(parameter.shaderHandle, (Color)parameter.value);
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader?.SetColor(parameter.shaderHandle, parameter.colorValue);
+                        };
 
-                    break;
+                        break;
+                }
             }
+        }
+
+        var l = applyPropertiesCallbacks.Length;
+
+        for(var i = 0; i < l; i++)
+        {
+            applyPropertiesCallbacks[i]?.Invoke();
         }
     }
 }

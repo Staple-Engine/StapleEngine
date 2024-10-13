@@ -966,7 +966,7 @@ internal class ResourceManager
                         {
                             name = parameter.Key,
                             type = MaterialParameterType.TextureWrap,
-                            value = parameter.Value.textureWrapValue,
+                            textureWrapValue = parameter.Value.textureWrapValue,
                         });
 
                         break;

@@ -67,11 +67,13 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var p = position;
+
             var parentPosition = parent?.Position ?? Vector3.Zero;
 
             position = value - parentPosition;
 
-            Changed = true;
+            Changed |= p != position;
         }
     }
 
@@ -84,9 +86,11 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var p = position;
+
             position = value;
 
-            Changed = true;
+            Changed |= p != position;
         }
     }
 
@@ -107,11 +111,13 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var s = scale;
+
             var parentScale = parent?.Scale ?? Vector3.One;
 
             scale = value / parentScale;
 
-            Changed = true;
+            Changed |= s != scale;
         }
     }
 
@@ -124,9 +130,11 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var s = scale;
+
             scale = value;
 
-            Changed = true;
+            Changed |= s != scale;
         }
     }
 
@@ -147,9 +155,13 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var r = rotation;
+
             var parentRotation = parent?.Rotation ?? Quaternion.Identity;
 
             rotation = Quaternion.Inverse(parentRotation) * value;
+
+            Changed |= r != rotation;
         }
     }
 
@@ -165,9 +177,11 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var r = rotation;
+
             rotation = value;
 
-            Changed = true;
+            Changed |= r != rotation;
         }
     }
 

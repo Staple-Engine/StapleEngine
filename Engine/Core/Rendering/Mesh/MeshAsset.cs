@@ -86,6 +86,8 @@ public class MeshAsset : IGuidAsset
 
         private bool changed = true;
 
+        private bool transformChanged = true;
+
         private Matrix4x4 globalMatrix;
 
         private Matrix4x4 originalGlobalMatrix;
@@ -120,6 +122,11 @@ public class MeshAsset : IGuidAsset
                     globalMatrix = transform;
                     originalGlobalMatrix = originalTransform;
                 }
+            }
+
+            if(transformChanged)
+            {
+                transformChanged = false;
 
                 Matrix4x4.Decompose(transform, out scale, out rotation, out position);
                 Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
@@ -194,7 +201,7 @@ public class MeshAsset : IGuidAsset
             {
                 transform = value;
 
-                changed = true;
+                changed = transformChanged = true;
             }
         }
 
@@ -206,7 +213,7 @@ public class MeshAsset : IGuidAsset
             {
                 originalTransform = value;
 
-                changed = true;
+                changed = transformChanged = true;
             }
         }
 
