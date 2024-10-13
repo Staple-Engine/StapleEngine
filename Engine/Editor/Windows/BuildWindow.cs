@@ -137,6 +137,7 @@ internal class BuildWindow : EditorWindow
 
         StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug Build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
         StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
+        StapleEditor.instance.buildPlayerDebugRedists = EditorGUI.Toggle("Use Debug Redistributables", "BuildWindowDebugRedist", StapleEditor.instance.buildPlayerDebugRedists);
 
         var backend = PlayerBackendManager.Instance.GetBackend(StapleEditor.instance.buildBackend);
 
@@ -160,7 +161,8 @@ internal class BuildWindow : EditorWindow
 
                 IEnumerator<(bool, string, float)> Handle()
                 {
-                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, false);
+                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                        StapleEditor.instance.buildPlayerDebugRedists, false);
 
                     yield return (true, "", 1);
                 }
@@ -193,7 +195,8 @@ internal class BuildWindow : EditorWindow
 
                 IEnumerator<(bool, string, float)> Handle()
                 {
-                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT, true);
+                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                        StapleEditor.instance.buildPlayerDebugRedists, true);
 
                     yield return (true, "", 1);
                 }

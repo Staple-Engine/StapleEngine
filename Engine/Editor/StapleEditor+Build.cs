@@ -18,7 +18,7 @@ internal partial class StapleEditor
     /// <param name="debug">Whether to make a debug build</param>
     /// <param name="nativeAOT">Whether to build natively</param>
     /// <param name="assetsOnly">Whether to just pack and copy assets</param>
-    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool assetsOnly)
+    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool debugRedists, bool assetsOnly)
     {
         lock (backgroundLock)
         {
@@ -34,6 +34,7 @@ internal partial class StapleEditor
         var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", backend.platform.ToString());
         var projectPath = Path.Combine(projectDirectory, "Player.csproj");
         var configurationName = debug ? "Debug" : "Release";
+        var redistConfigurationName = debugRedists ? "Debug" : "Release";
         var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : projectDirectory, backend.dataDir);
 
         try
@@ -87,7 +88,7 @@ internal partial class StapleEditor
             }
         }
 
-        csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT);
+        csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists);
 
         RefreshStaging(backend.platform, () =>
         {
@@ -151,7 +152,8 @@ internal partial class StapleEditor
 
             if (backend.dataDirIsOutput)
             {
-                if (CSProjManager.CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.basePath, configurationName) == false)
+                if (CSProjManager.CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.basePath,
+                    redistConfigurationName) == false)
                 {
                     Log.Error($"Failed to build player: Failed to copy redistributable files");
 
@@ -160,7 +162,8 @@ internal partial class StapleEditor
                     return;
                 }
 
-                if (EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(outPath, backend.redistOutput)) == false)
+                if (EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName),
+                    Path.Combine(outPath, backend.redistOutput)) == false)
                 {
                     Log.Error($"Failed to build player: Failed to copy redistributable files");
 
@@ -363,7 +366,8 @@ internal partial class StapleEditor
             }
 
             ShowMessageBox("Player built successfully!", "OK", null);
-        }, false);
+        },
+        false);
     }
 
     /// <summary>

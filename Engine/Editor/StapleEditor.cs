@@ -52,6 +52,7 @@ internal partial class StapleEditor
         public AppPlatform currentPlatform;
         public bool debugBuild = false;
         public bool nativeBuild = false;
+        public bool debugRedists = false;
 
         public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
     }
@@ -246,6 +247,8 @@ internal partial class StapleEditor
     internal bool buildPlayerDebug = false;
 
     internal bool buildPlayerNativeAOT = false;
+
+    internal bool buildPlayerDebugRedists = false;
 
     internal bool showingProgress = false;
 
@@ -1125,6 +1128,7 @@ internal partial class StapleEditor
             lastPickedBuildDirectories = lastPickedBuildDirectories,
             debugBuild = buildPlayerDebug,
             nativeBuild = buildPlayerNativeAOT,
+            debugRedists = buildPlayerDebugRedists,
         });
     }
 

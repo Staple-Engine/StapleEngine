@@ -38,8 +38,9 @@ public partial class World
                     needsEmitWorldChange = true;
 
                     componentCompatibilityCache.Remove(key);
+                    callableComponentTypes.Remove(key);
 
-                    foreach(var pair in componentCompatibilityCache)
+                    foreach (var pair in componentCompatibilityCache)
                     {
                         pair.Value.Remove(key);
                     }

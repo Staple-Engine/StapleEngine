@@ -43,6 +43,8 @@ internal partial class StapleEditor
     /// <param name="path">The patht to load from</param>
     public void LoadProject(string path)
     {
+        UnloadGame();
+
         undoStack.Clear();
 
         try
@@ -144,6 +146,7 @@ internal partial class StapleEditor
             lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
             buildPlayerDebug = lastSession.debugBuild;
             buildPlayerNativeAOT = lastSession.nativeBuild;
+            buildPlayerDebugRedists = lastSession.debugRedists;
         }
         else
         {
@@ -152,6 +155,7 @@ internal partial class StapleEditor
             lastPickedBuildDirectories.Clear();
             buildPlayerDebug = true;
             buildPlayerNativeAOT = false;
+            buildPlayerDebugRedists = false;
         }
 
         projectBrowser.currentPlatform = currentPlatform;

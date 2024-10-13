@@ -378,7 +378,8 @@ internal class CSProjManager
     /// <param name="projectAppSettings">The project app settings</param>
     /// <param name="debug">Whether it's a debug build</param>
     /// <param name="nativeAOT">Whether to build natively</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT)
+    /// <param name="debugRedists">Whether to use debug dependencies</param>
+    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists)
     {
         using var collection = new ProjectCollection();
 
@@ -420,15 +421,16 @@ internal class CSProjManager
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
         var assetsDirectory = Path.Combine(basePath, "Assets");
         var configurationName = debug ? "Debug" : "Release";
+        var redistConfigurationName = debugRedists ? "Debug" : "Release";
 
         EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
 
         if(backend.dataDirIsOutput == false)
         {
             CopyModuleRedists(Path.Combine(Path.Combine(projectDirectory, backend.redistOutput), backend.redistOutput),
-                projectAppSettings, backend.basePath, configurationName);
+                projectAppSettings, backend.basePath, redistConfigurationName);
 
-            EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", configurationName), Path.Combine(projectDirectory, backend.redistOutput));
+            EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
         }
 
         var targetFramework = platformFramework[platform];
