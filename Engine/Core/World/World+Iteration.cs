@@ -16,7 +16,7 @@ public partial class World
     {
         var tName = typeof(T).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.ContainsKey(tName) == false)
+        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false)
         {
             return [];
         }
@@ -28,13 +28,27 @@ public partial class World
             foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
-                    entity.components.TryGetValue(tName, out var tComponent) == false)
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
 
-                T t = (T)tComponent;
+                IComponent tComponent = default;
+
+                foreach(var key in c1)
+                {
+                    if (entity.components.TryGetValue(key, out tComponent))
+                    {
+                        break;
+                    }
+                }
+
+                if(tComponent == null)
+                {
+                    continue;
+                }
+
+                var t = (T)tComponent;
 
                 try
                 {
@@ -64,8 +78,8 @@ public partial class World
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.ContainsKey(tName) == false ||
-            componentCompatibilityCache.ContainsKey(t2Name) == false)
+        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
+            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false)
         {
             return [];
         }
@@ -77,15 +91,38 @@ public partial class World
             foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
-                    entity.components.TryGetValue(tName, out var tComponent) == false ||
-                    entity.components.TryGetValue(t2Name, out var t2Component) == false)
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
 
-                T t = (T)tComponent;
-                T2 t2 = (T2)t2Component;
+                IComponent tComponent = default;
+                IComponent t2Component = default;
+
+                foreach (var key in c1)
+                {
+                    if (entity.components.TryGetValue(key, out tComponent))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c2)
+                {
+                    if (entity.components.TryGetValue(key, out t2Component))
+                    {
+                        break;
+                    }
+                }
+
+                if (tComponent == null ||
+                    t2Component == null)
+                {
+                    continue;
+                }
+
+                var t = (T)tComponent;
+                var t2 = (T2)t2Component;
 
                 try
                 {
@@ -118,9 +155,9 @@ public partial class World
         var t2Name = typeof(T2).FullName.GetHashCode();
         var t3Name = typeof(T3).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.ContainsKey(tName) == false ||
-            componentCompatibilityCache.ContainsKey(t2Name) == false ||
-            componentCompatibilityCache.ContainsKey(t3Name) == false)
+        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
+            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
+            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false)
         {
             return [];
         }
@@ -132,17 +169,49 @@ public partial class World
             foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
-                    entity.components.TryGetValue(tName, out var tComponent) == false ||
-                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
-                    entity.components.TryGetValue(t3Name, out var t3Component) == false)
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
 
-                T t = (T)tComponent;
-                T2 t2 = (T2)t2Component;
-                T3 t3 = (T3)t3Component;
+                IComponent tComponent = default;
+                IComponent t2Component = default;
+                IComponent t3Component = default;
+
+                foreach (var key in c1)
+                {
+                    if (entity.components.TryGetValue(key, out tComponent))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c2)
+                {
+                    if (entity.components.TryGetValue(key, out t2Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c3)
+                {
+                    if (entity.components.TryGetValue(key, out t3Component))
+                    {
+                        break;
+                    }
+                }
+
+                if (tComponent == null ||
+                    t2Component == null ||
+                    t3Component == null)
+                {
+                    continue;
+                }
+
+                var t = (T)tComponent;
+                var t2 = (T2)t2Component;
+                var t3 = (T3)t3Component;
 
                 try
                 {
@@ -178,10 +247,10 @@ public partial class World
         var t3Name = typeof(T3).FullName.GetHashCode();
         var t4Name = typeof(T4).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.ContainsKey(tName) == false ||
-            componentCompatibilityCache.ContainsKey(t2Name) == false ||
-            componentCompatibilityCache.ContainsKey(t3Name) == false ||
-            componentCompatibilityCache.ContainsKey(t4Name) == false)
+        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
+            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
+            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false ||
+            componentCompatibilityCache.TryGetValue(t4Name, out var c4) == false)
         {
             return [];
         }
@@ -193,19 +262,60 @@ public partial class World
             foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
-                    entity.components.TryGetValue(tName, out var tComponent) == false ||
-                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
-                    entity.components.TryGetValue(t3Name, out var t3Component) == false ||
-                    entity.components.TryGetValue(t4Name, out var t4Component) == false)
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
 
-                T t = (T)tComponent;
-                T2 t2 = (T2)t2Component;
-                T3 t3 = (T3)t3Component;
-                T4 t4 = (T4)t4Component;
+                IComponent tComponent = default;
+                IComponent t2Component = default;
+                IComponent t3Component = default;
+                IComponent t4Component = default;
+
+                foreach (var key in c1)
+                {
+                    if (entity.components.TryGetValue(key, out tComponent))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c2)
+                {
+                    if (entity.components.TryGetValue(key, out t2Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c3)
+                {
+                    if (entity.components.TryGetValue(key, out t3Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c4)
+                {
+                    if (entity.components.TryGetValue(key, out t4Component))
+                    {
+                        break;
+                    }
+                }
+
+                if (tComponent == null ||
+                    t2Component == null ||
+                    t3Component == null ||
+                    t4Component == null)
+                {
+                    continue;
+                }
+
+                var t = (T)tComponent;
+                var t2 = (T2)t2Component;
+                var t3 = (T3)t3Component;
+                var t4 = (T4)t4Component;
 
                 try
                 {
@@ -244,11 +354,11 @@ public partial class World
         var t4Name = typeof(T4).FullName.GetHashCode();
         var t5Name = typeof(T5).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.ContainsKey(tName) == false ||
-            componentCompatibilityCache.ContainsKey(t2Name) == false ||
-            componentCompatibilityCache.ContainsKey(t3Name) == false ||
-            componentCompatibilityCache.ContainsKey(t4Name) == false ||
-            componentCompatibilityCache.ContainsKey(t5Name) == false)
+        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
+            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
+            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false ||
+            componentCompatibilityCache.TryGetValue(t4Name, out var c4) == false ||
+            componentCompatibilityCache.TryGetValue(t5Name, out var c5) == false)
         {
             return [];
         }
@@ -260,21 +370,71 @@ public partial class World
             foreach (var entity in cachedEntityList)
             {
                 if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false) ||
-                    entity.components.TryGetValue(tName, out var tComponent) == false ||
-                    entity.components.TryGetValue(t2Name, out var t2Component) == false ||
-                    entity.components.TryGetValue(t3Name, out var t3Component) == false ||
-                    entity.components.TryGetValue(t4Name, out var t4Component) == false ||
-                    entity.components.TryGetValue(t5Name, out var t5Component) == false)
+                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
                 {
                     continue;
                 }
 
-                T t = (T)tComponent;
-                T2 t2 = (T2)t2Component;
-                T3 t3 = (T3)t3Component;
-                T4 t4 = (T4)t4Component;
-                T5 t5 = (T5)t5Component;
+                IComponent tComponent = default;
+                IComponent t2Component = default;
+                IComponent t3Component = default;
+                IComponent t4Component = default;
+                IComponent t5Component = default;
+
+                foreach (var key in c1)
+                {
+                    if (entity.components.TryGetValue(key, out tComponent))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c2)
+                {
+                    if (entity.components.TryGetValue(key, out t2Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c3)
+                {
+                    if (entity.components.TryGetValue(key, out t3Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c4)
+                {
+                    if (entity.components.TryGetValue(key, out t4Component))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var key in c5)
+                {
+                    if (entity.components.TryGetValue(key, out t5Component))
+                    {
+                        break;
+                    }
+                }
+
+                if (tComponent == null ||
+                    t2Component == null ||
+                    t3Component == null ||
+                    t4Component == null ||
+                    t5Component == null)
+                {
+                    continue;
+                }
+
+                var t = (T)tComponent;
+                var t2 = (T2)t2Component;
+                var t3 = (T3)t3Component;
+                var t4 = (T4)t4Component;
+                var t5 = (T5)t5Component;
 
                 try
                 {
@@ -504,6 +664,45 @@ public partial class World
                 if(component.GetType().IsValueType)
                 {
                     entityInfo.components[pair.Key] = component;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Iterates through every callable component type
+    /// </summary>
+    /// <param name="callback">A callback to execute with the component</param>
+    internal void IterateCallableComponents(CallableComponentCallback callback)
+    {
+        if (Platform.IsPlaying == false)
+        {
+            return;
+        }
+
+        if(callableComponents == null)
+        {
+            callableComponents = new();
+
+            callableComponents.WorldChanged();
+        }
+
+        lock (lockObject)
+        {
+            if (callableComponentTypes.Count == 0)
+            {
+                return;
+            }
+
+            foreach ((Entity entity, CallbackComponent component) in callableComponents)
+            {
+                try
+                {
+                    callback?.Invoke(entity, component);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"[World] Failed to handle callable component callback: {e}");
                 }
             }
         }

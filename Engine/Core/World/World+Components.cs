@@ -620,53 +620,6 @@ public partial class World
         }
     }
 
-    internal void IterateCallableComponents(CallableComponentCallback callback)
-    {
-        if(Platform.IsPlaying == false)
-        {
-            return;
-        }
-
-        lock(lockObject)
-        {
-            if(callableComponentTypes.Count == 0)
-            {
-                return;
-            }
-
-            foreach(var entity in cachedEntityList)
-            {
-                if(entity.alive == false)
-                {
-                    continue;
-                }
-
-                foreach(var pair in entity.components)
-                {
-                    if(pair.Value is CallbackComponent callbackComponent)
-                    {
-                        try
-                        {
-                            callback?.Invoke(new Entity()
-                            {
-                                Identifier = new()
-                                {
-                                    ID = entity.ID,
-                                    generation = entity.generation,
-                                }
-                            },
-                            callbackComponent);
-                        }
-                        catch(Exception e)
-                        {
-                            Log.Error($"[World] Failed to handle callable component callback: {e}");
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Attempts to find the entity for a component. Mostly works with classes, since it compares each.
     /// </summary>

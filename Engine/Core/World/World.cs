@@ -108,6 +108,7 @@ public partial class World
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
     private readonly List<Entity> destroyedEntities = [];
+    private SceneQuery<CallbackComponent> callableComponents;
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
 
