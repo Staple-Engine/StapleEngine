@@ -305,9 +305,14 @@ public sealed class Material : IGuidAsset
             return;
         }
 
+        var length = shaderKeywords.Count;
+
         shaderKeywords.Add(name.GetHashCode());
 
-        UpdateVariantKey();
+        if (length != shaderKeywords.Count)
+        {
+            UpdateVariantKey();
+        }
     }
 
     /// <summary>
@@ -316,9 +321,14 @@ public sealed class Material : IGuidAsset
     /// <param name="name">The keyword</param>
     public void DisableShaderKeyword(string name)
     {
+        var length = shaderKeywords.Count;
+
         shaderKeywords.Remove(name.GetHashCode());
 
-        UpdateVariantKey();
+        if (length != shaderKeywords.Count)
+        {
+            UpdateVariantKey();
+        }
     }
 
     /// <summary>
