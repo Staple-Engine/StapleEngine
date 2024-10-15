@@ -719,7 +719,7 @@ internal class RenderWindow
             Log.Error($"RenderWindow Render Exception: {e}");
         }
 
-        var hasCamera = Scene.CountEntities<Camera>() != 0;
+        var hasCamera = Scene.SortedCameras.Length != 0;
 
         if (hasCamera == false)
         {

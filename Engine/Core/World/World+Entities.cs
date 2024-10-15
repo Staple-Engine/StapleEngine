@@ -130,9 +130,9 @@ public partial class World
     {
         lock (lockObject)
         {
-            for (var i = 0; i < entities.Count; i++)
+            for (var i = 0; i < cachedEntityList.Length; i++)
             {
-                if (entities[i].alive == false)
+                if (cachedEntityList[i].alive == false)
                 {
                     var other = entities[i];
 

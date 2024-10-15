@@ -266,7 +266,7 @@ public partial class RenderSystem
 
                 if (pair.Item2 is Renderable renderable && renderable.enabled)
                 {
-                    renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+                    renderable.isVisible = true; //frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
 
                     if (renderable.isVisible && renderable.forceRenderingOff == false)
                     {

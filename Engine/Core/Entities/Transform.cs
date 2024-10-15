@@ -17,6 +17,11 @@ public class Transform : IComponent, IEnumerable<Transform>
     private Vector3 position;
     private Vector3 scale = Vector3.One;
 
+    private Matrix4x4 finalMatrix = Matrix4x4.Identity;
+    private Vector3 finalPosition;
+    private Vector3 finalScale;
+    private Quaternion finalRotation;
+
     /// <summary>
     /// The parent of this transform, if any.
     /// </summary>
@@ -39,14 +44,15 @@ public class Transform : IComponent, IEnumerable<Transform>
                 Changed = false;
 
                 matrix = Math.TransformationMatrix(position, scale, rotation);
+
+                finalMatrix = parent != null ? matrix * parent.Matrix : matrix;
+
+                finalPosition = parent != null ? Vector3.Transform(position, parent.Matrix) : position;
+                finalRotation = parent != null ? parent.Rotation * rotation : rotation;
+                finalScale = parent != null ? parent.Scale * scale : scale;
             }
 
-            if(parent != null)
-            {
-                return matrix * parent.Matrix;
-            }
-
-            return matrix;
+            return finalMatrix;
         }
     }
 
@@ -57,12 +63,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            if(parent != null)
-            {
-                return Vector3.Transform(position, parent.Matrix);
-            }
-
-            return position;
+            return finalPosition;
         }
 
         set
@@ -101,12 +102,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            if (parent != null)
-            {
-                return parent.Scale * scale;
-            }
-
-            return scale;
+            return finalScale;
         }
 
         set
@@ -145,12 +141,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            if(parent != null)
-            {
-                return parent.Rotation * rotation;
-            }
-
-            return rotation;
+            return finalRotation;
         }
 
         set
@@ -255,7 +246,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// Whether this transform changed.
     /// We need this to recalculate and cache the transformation matrix.
     /// </summary>
-    internal bool Changed { get; set; } = false;
+    internal bool Changed { get; set; } = true;
 
     /// <summary>
     /// The root transform of this transform

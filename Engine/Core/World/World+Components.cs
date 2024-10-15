@@ -57,29 +57,7 @@ public partial class World
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public CameraInfo[] SortedCameras
-    {
-        get
-        {
-            var pieces = new List<CameraInfo>();
-
-            var cameras = Query<Camera, Transform>(false);
-
-            foreach((Entity e, Camera c, Transform t) in cameras)
-            {
-                pieces.Add(new()
-                {
-                    camera = c,
-                    entity = e,
-                    transform = t,
-                });
-            }
-
-            pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
-
-            return pieces.ToArray();
-        }
-    }
+    public CameraInfo[] SortedCameras => sortedCamerasHolder?.sortedCameras ?? [];
 
     /// <summary>
     /// Adds a component to an entity
@@ -299,7 +277,7 @@ public partial class World
                 {
                     needsEmitWorldChange = true;
 
-                    entityInfo.removedComponents.Add(typeName);
+                    removedComponents.Add((entity, typeName));
 
                     if (Platform.IsPlaying &&
                         callableComponentTypes.Count != 0 &&

@@ -22,7 +22,7 @@ public class Scene
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public static World.CameraInfo[] SortedCameras => World.Current?.SortedCameras ?? Array.Empty<World.CameraInfo>();
+    public static World.CameraInfo[] SortedCameras => World.Current?.SortedCameras ?? [];
 
     /// <summary>
     /// Requests a world update.
@@ -259,26 +259,6 @@ public class Scene
         where T5 : IComponent
     {
         return World.Current?.Query<T, T2, T3, T4, T5>(includeDisabled);
-    }
-
-    /// <summary>
-    /// Counts the amount of entities with a specific component
-    /// </summary>
-    /// <typeparam name="T">The type of the component</typeparam>
-    /// <returns>The amount of entities with the component</returns>
-    public static int CountEntities<T>() where T : IComponent
-    {
-        return CountEntities(typeof(T));
-    }
-
-    /// <summary>
-    /// Counts the amount of entities with a specific component
-    /// </summary>
-    /// <param name="t">The type of the component</param>
-    /// <returns>The amount of entities with the component</returns>
-    public static int CountEntities(Type t)
-    {
-        return World.Current?.CountEntities(t) ?? 0;
     }
 
     /// <summary>

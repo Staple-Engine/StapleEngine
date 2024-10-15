@@ -51,11 +51,6 @@ public partial class World
         public Dictionary<int, IComponent> components = [];
 
         /// <summary>
-        /// The components that were just removed for the entity
-        /// </summary>
-        public HashSet<int> removedComponents = [];
-
-        /// <summary>
         /// The entity's name
         /// </summary>
         public string name;
@@ -99,6 +94,34 @@ public partial class World
         public Transform transform;
     }
 
+    /// <summary>
+    /// Listener to calculate the sorted cameras in a scene
+    /// </summary>
+    public class SortedCamerasHolder : IWorldChangeReceiver
+    {
+        public CameraInfo[] sortedCameras = [];
+
+        public void WorldChanged()
+        {
+            var pieces = new List<CameraInfo>();
+            var cameras = Scene.Query<Camera, Transform>(false);
+
+            foreach ((Entity e, Camera c, Transform t) in cameras)
+            {
+                pieces.Add(new()
+                {
+                    camera = c,
+                    entity = e,
+                    transform = t,
+                });
+            }
+
+            pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
+
+            sortedCameras = pieces.ToArray();
+        }
+    }
+
     public static World Current { get; internal set; } = new();
 
     private readonly object lockObject = new();
@@ -108,7 +131,12 @@ public partial class World
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
     private readonly List<Entity> destroyedEntities = [];
+    private readonly HashSet<(Entity, int)> removedComponents = [];
     private SceneQuery<CallbackComponent> callableComponents;
+    private SceneQuery<Camera, Transform> cameras;
+
+    internal SortedCamerasHolder sortedCamerasHolder;
+
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
 
@@ -162,19 +190,19 @@ public partial class World
     {
         lock(lockObject)
         {
-            foreach(var info in entities)
+            if(removedComponents.Count > 0)
             {
-                if(info.removedComponents.Count > 0)
+                foreach (var item in removedComponents)
                 {
-                    foreach (var componentTypeName in info.removedComponents)
+                    if(TryGetEntity(item.Item1, out var entityInfo))
                     {
-                        info.components.Remove(componentTypeName.GetHashCode());
+                        entityInfo.components.Remove(item.Item2);
+
+                        needsEmitWorldChange = true;
                     }
-
-                    info.removedComponents.Clear();
-
-                    needsEmitWorldChange = true;
                 }
+
+                removedComponents.Clear();
             }
 
             void Destroy(Entity e)
@@ -193,7 +221,8 @@ public partial class World
                     transform?.SetParent(null);
 
                     info.components.Clear();
-                    info.removedComponents.Clear();
+
+                    removedComponents.RemoveWhere(x => x.Item1 == e);
 
                     info.alive = false;
                     info.prefabGUID = null;

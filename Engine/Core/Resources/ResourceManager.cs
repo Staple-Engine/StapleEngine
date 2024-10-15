@@ -1534,11 +1534,6 @@ internal class ResourceManager
 
                 asset.rootNode ??= outNode;
 
-                if(parent == null)
-                {
-                    Matrix4x4.Invert(outNode.Transform, out asset.inverseTransform);
-                }
-
                 foreach(var child in node.children)
                 {
                     GatherNodes(child, outNode);

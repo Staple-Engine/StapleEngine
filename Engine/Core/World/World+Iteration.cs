@@ -451,54 +451,6 @@ public partial class World
     }
 
     /// <summary>
-    /// Counts the amount of entities with a specific component
-    /// </summary>
-    /// <typeparam name="T">The type of the component</typeparam>
-    /// <returns>The amount of entities with the component</returns>
-    public int CountEntities<T>() where T : IComponent
-    {
-        return CountEntities(typeof(T));
-    }
-
-    /// <summary>
-    /// Counts the amount of entities with a specific component
-    /// </summary>
-    /// <param name="t">The type of the component</param>
-    /// <returns>The amount of entities with the component</returns>
-    public int CountEntities(Type t)
-    {
-        lock (lockObject)
-        {
-            if(componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
-            {
-                return 0;
-            }
-
-            var counter = 0;
-
-            foreach (var entity in entities)
-            {
-                if (entity.alive == false)
-                {
-                    continue;
-                }
-
-                foreach(var pair in entity.components)
-                {
-                    if(compatibility.Contains(pair.Key))
-                    {
-                        counter++;
-
-                        break;
-                    }
-                }
-            }
-
-            return counter;
-        }
-    }
-
-    /// <summary>
     /// Gets an entity by ID
     /// </summary>
     /// <param name="ID">The entity's ID</param>
@@ -647,19 +599,9 @@ public partial class World
                     break;
                 }
 
-                if(entityInfo.removedComponents.Contains(pair.Key))
-                {
-                    continue;
-                }
-
                 var component = pair.Value;
 
                 callback(ref component);
-
-                if (entityInfo.removedComponents.Contains(pair.Key))
-                {
-                    continue;
-                }
 
                 if(component.GetType().IsValueType)
                 {
@@ -685,6 +627,22 @@ public partial class World
             callableComponents = new();
 
             callableComponents.WorldChanged();
+        }
+
+        if(cameras == null)
+        {
+            cameras = new();
+
+            cameras.WorldChanged();
+        }
+
+        if(sortedCamerasHolder == null)
+        {
+            sortedCamerasHolder = new();
+
+            AddChangeReceiver(sortedCamerasHolder);
+
+            sortedCamerasHolder.WorldChanged();
         }
 
         lock (lockObject)
