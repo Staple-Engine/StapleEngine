@@ -11,7 +11,27 @@ namespace Staple;
 [AutoAssignEntity]
 public class Transform : IComponent, IEnumerable<Transform>
 {
-    private readonly List<Transform> children = new();
+    internal bool changed = false;
+
+    internal bool Changed
+    {
+        get => changed;
+
+        set
+        {
+            changed = value;
+
+            if(changed)
+            {
+                foreach(Transform child in children)
+                {
+                    child.Changed = value;
+                }
+            }
+        }
+    }
+
+    private readonly List<Transform> children = [];
     private Matrix4x4 matrix = Matrix4x4.Identity;
     private Quaternion rotation = Quaternion.Identity;
     private Vector3 position;
@@ -39,9 +59,9 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            if(Changed)
+            if(changed)
             {
-                Changed = false;
+                changed = false;
 
                 matrix = Math.TransformationMatrix(position, scale, rotation);
 
@@ -61,20 +81,15 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Vector3 Position
     {
-        get
-        {
-            return finalPosition;
-        }
+        get => finalPosition;
 
         set
         {
-            var p = position;
+            Changed = true;
 
             var parentPosition = parent?.Position ?? Vector3.Zero;
 
             position = value - parentPosition;
-
-            Changed |= p != position;
         }
     }
 
@@ -87,11 +102,9 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
-            var p = position;
+            Changed = true;
 
             position = value;
-
-            Changed |= p != position;
         }
     }
 
@@ -100,20 +113,15 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Vector3 Scale
     {
-        get
-        {
-            return finalScale;
-        }
+        get => finalScale;
 
         set
         {
-            var s = scale;
+            Changed = true;
 
             var parentScale = parent?.Scale ?? Vector3.One;
 
             scale = value / parentScale;
-
-            Changed |= s != scale;
         }
     }
 
@@ -126,11 +134,9 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
-            var s = scale;
+            Changed = true;
 
             scale = value;
-
-            Changed |= s != scale;
         }
     }
 
@@ -139,20 +145,15 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Quaternion Rotation
     {
-        get
-        {
-            return finalRotation;
-        }
+        get => finalRotation;
 
         set
         {
-            var r = rotation;
+            Changed = true;
 
             var parentRotation = parent?.Rotation ?? Quaternion.Identity;
 
             rotation = Quaternion.Inverse(parentRotation) * value;
-
-            Changed |= r != rotation;
         }
     }
 
@@ -161,103 +162,50 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Quaternion LocalRotation
     {
-        get
-        {
-            return rotation;
-        }
+        get => rotation;
 
         set
         {
-            var r = rotation;
+            Changed = true;
 
             rotation = value;
-
-            Changed |= r != rotation;
         }
     }
 
     /// <summary>
     /// The forward direction
     /// </summary>
-    public Vector3 Forward
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
-        }
-    }
+    public Vector3 Forward => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
 
     /// <summary>
     /// The backwards direction
     /// </summary>
-    public Vector3 Back
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
-        }
-    }
+    public Vector3 Back => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
 
     /// <summary>
     /// The up direction
     /// </summary>
-    public Vector3 Up
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Rotation));
-        }
-    }
+    public Vector3 Up => Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Rotation));
 
     /// <summary>
     /// The down direction
     /// </summary>
-    public Vector3 Down
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Rotation));
-        }
-    }
+    public Vector3 Down => Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Rotation));
 
     /// <summary>
     /// The left direction
     /// </summary>
-    public Vector3 Left
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Rotation));
-        }
-    }
+    public Vector3 Left => Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Rotation));
 
     /// <summary>
     /// The right direction
     /// </summary>
-    public Vector3 Right
-    {
-        get
-        {
-            return Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Rotation));
-        }
-    }
-
-    /// <summary>
-    /// Whether this transform changed.
-    /// We need this to recalculate and cache the transformation matrix.
-    /// </summary>
-    internal bool Changed { get; set; } = true;
+    public Vector3 Right => Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Rotation));
 
     /// <summary>
     /// The root transform of this transform
     /// </summary>
-    public Transform Root
-    {
-        get
-        {
-            return parent != null ? parent.Root : this;
-        }
-    }
+    public Transform Root => parent != null ? parent.Root : this;
 
     /// <summary>
     /// The total children in this transform
@@ -330,6 +278,8 @@ public class Transform : IComponent, IEnumerable<Transform>
         this.parent = parent;
 
         parent?.AttachChild(this);
+
+        Changed = true;
 
         Scene.RequestWorldUpdate();
     }
