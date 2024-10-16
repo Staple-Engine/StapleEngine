@@ -327,7 +327,7 @@ public class Transform : IComponent, IEnumerable<Transform>
                 continue;
             }
 
-            newChildren[current++] = child;
+            newChildren[current++] = children[i];
         }
 
         children = newChildren;

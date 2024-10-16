@@ -236,6 +236,15 @@ public partial class World
 
                     transform?.SetParent(null);
 
+                    while (transform.ChildCount > 0)
+                    {
+                        var child = transform.GetChild(0);
+
+                        child.SetParent(null);
+
+                        Destroy(child.entity);
+                    }
+
                     info.components.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
@@ -243,13 +252,6 @@ public partial class World
                     info.alive = false;
                     info.prefabGUID = null;
                     info.prefabLocalID = 0;
-
-                    while (transform.ChildCount > 0)
-                    {
-                        var child = transform.GetChild(0);
-
-                        Destroy(child.entity);
-                    }
                 }
             }
 

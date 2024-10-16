@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 
 namespace Staple.Editor;
@@ -687,7 +688,7 @@ internal class ProjectBrowser
                 return;
             }
 
-            var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow;
+            var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.AllowOverlap;
             var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
 
             if (hasChildren == false)
@@ -695,7 +696,20 @@ internal class ProjectBrowser
                 flags |= ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf;
             }
 
-            if (ImGui.TreeNodeEx($"{node.name}##0", flags))
+            var open = ImGui.TreeNodeEx($"##{node.name}", flags);
+
+            if(editorResources.TryGetValue("FolderIcon", out var folderTexture))
+            {
+                ImGui.SameLine();
+
+                EditorGUI.Texture(folderTexture, new Vector2(20, 20));
+
+                ImGui.SameLine();
+
+                EditorGUI.Label(node.name);
+            }
+
+            if (open)
             {
                 if (ImGui.IsItemClicked())
                 {

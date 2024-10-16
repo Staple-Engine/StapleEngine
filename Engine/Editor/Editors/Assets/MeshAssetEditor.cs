@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -9,6 +10,10 @@ namespace Staple.Editor;
 internal class MeshAssetEditor : AssetEditor
 {
     private MeshAsset meshAsset;
+    private int meshCount = 0;
+    private int boneCount = 0;
+    private int triangleCount = 0;
+    private bool hasExcessiveBones = false;
     private bool needsLoad = true;
 
     public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
@@ -35,6 +40,40 @@ internal class MeshAssetEditor : AssetEditor
             needsLoad = false;
 
             meshAsset = ResourceManager.instance.LoadMeshAsset(metadata.guid, true);
+
+            if(meshAsset != null)
+            {
+                var boneSet = new HashSet<string>();
+
+                meshCount = meshAsset.meshes.Count;
+                hasExcessiveBones = false;
+                triangleCount = 0;
+
+                foreach (var mesh in meshAsset.meshes)
+                {
+                    triangleCount += mesh.indices.Count;
+
+                    foreach (var submesh in mesh.bones)
+                    {
+                        hasExcessiveBones |= submesh.Count > SkinnedMeshRenderSystem.MaxBones;
+
+                        foreach (var bone in submesh)
+                        {
+                            boneSet.Add(bone.name);
+                        }
+                    }
+                }
+
+                boneCount = boneSet.Count;
+                triangleCount /= 3;
+            }
+            else
+            {
+                boneCount = 0;
+                meshCount = 0;
+                triangleCount = 0;
+                hasExcessiveBones = false;
+            }
         }
 
         ShowAssetUI(() =>
@@ -71,19 +110,17 @@ internal class MeshAssetEditor : AssetEditor
 
         if (meshAsset != null)
         {
-            var hasExcessiveBones = meshAsset.meshes.Any(x => x.bones.Any(x => x.Count > SkinnedMeshRenderSystem.MaxBones));
-
-            EditorGUI.Label($"{meshAsset.meshes.Count} meshes.");
+            EditorGUI.Label($"Stats:\n{meshCount} meshes\n{triangleCount} triangles\n{boneCount} bones\n{meshAsset.animations.Count} animations\n\n");
 
             if(hasExcessiveBones)
             {
-                EditorGUI.Label("There are one or more meshes with excessive bone count. " +
+                EditorGUI.Label("Warning: There are one or more meshes with excessive bone count. " +
                     "Please change import settings to reduce bones or split meshes.");
             }
 
-            if (meshAsset.meshes.Any(x => x.bones.Count > 0) && path.Contains(".fbx"))
+            if (boneCount > 0 && path.Contains(".fbx"))
             {
-                EditorGUI.Label("Skinned FBX models currently import incorrectly,\nplease convert to another format such as gltf/glb");
+                EditorGUI.Label("Warning: Skinned FBX models currently import incorrectly,\nplease convert to another format such as gltf/glb");
             }
         }
     }
