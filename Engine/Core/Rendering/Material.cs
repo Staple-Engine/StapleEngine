@@ -644,8 +644,12 @@ public sealed class Material : IGuidAsset
                         {
                             if (parameter.hasTexture == false)
                             {
+                                shader?.SetVector4(parameter.relatedShaderHandles[0], Vector4.Zero);
+
                                 return;
                             }
+
+                            shader?.SetVector4(parameter.relatedShaderHandles[0], Vector4.One);
 
                             var overrideFlags = (TextureFlags)uint.MaxValue;
 

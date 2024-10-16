@@ -212,14 +212,17 @@ public partial class RenderSystem
 
                         var systemValues = new List<(IRenderSystem, IComponent)>();
 
-                        outValue.Add((entityInfo.Item1, entityInfo.Item2, systemValues));
-
                         foreach (var system in renderSystems)
                         {
                             if (entityInfo.Item1.TryGetComponent(out var component, system.RelatedComponent()))
                             {
                                 systemValues.Add((system, component));
                             }
+                        }
+
+                        if(systemValues.Count > 0)
+                        {
+                            outValue.Add((entityInfo.Item1, entityInfo.Item2, systemValues));
                         }
                     }
 

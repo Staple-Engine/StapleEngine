@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Staple;
 
@@ -62,18 +63,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         get
         {
-            if(changed)
-            {
-                changed = false;
-
-                matrix = Math.TransformationMatrix(position, scale, rotation);
-
-                finalMatrix = parent != null ? matrix * parent.Matrix : matrix;
-
-                finalPosition = parent != null ? Vector3.Transform(position, parent.Matrix) : position;
-                finalRotation = parent != null ? parent.Rotation * rotation : rotation;
-                finalScale = parent != null ? parent.Scale * scale : scale;
-            }
+            UpdateState();
 
             return finalMatrix;
         }
@@ -84,7 +74,12 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Vector3 Position
     {
-        get => finalPosition;
+        get
+        {
+            UpdateState();
+
+            return finalPosition;
+        }
 
         set
         {
@@ -116,7 +111,12 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Vector3 Scale
     {
-        get => finalScale;
+        get
+        {
+            UpdateState();
+
+            return finalScale;
+        }
 
         set
         {
@@ -148,7 +148,12 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     public Quaternion Rotation
     {
-        get => finalRotation;
+        get
+        {
+            UpdateState();
+
+            return finalRotation;
+        }
 
         set
         {
@@ -285,6 +290,26 @@ public class Transform : IComponent, IEnumerable<Transform>
         Changed = true;
 
         Scene.RequestWorldUpdate();
+    }
+
+    /// <summary>
+    /// Ensures we have the latest state for this transform
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void UpdateState()
+    {
+        if (changed)
+        {
+            changed = false;
+
+            matrix = Math.TransformationMatrix(position, scale, rotation);
+
+            finalMatrix = parent != null ? matrix * parent.Matrix : matrix;
+
+            finalPosition = parent != null ? Vector3.Transform(position, parent.Matrix) : position;
+            finalRotation = parent != null ? parent.Rotation * rotation : rotation;
+            finalScale = parent != null ? parent.Scale * scale : scale;
+        }
     }
 
     /// <summary>

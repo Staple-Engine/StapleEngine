@@ -629,22 +629,6 @@ public partial class World
             callableComponents.WorldChanged();
         }
 
-        if(cameras == null)
-        {
-            cameras = new();
-
-            cameras.WorldChanged();
-        }
-
-        if(sortedCamerasHolder == null)
-        {
-            sortedCamerasHolder = new();
-
-            AddChangeReceiver(sortedCamerasHolder);
-
-            sortedCamerasHolder.WorldChanged();
-        }
-
         lock (lockObject)
         {
             if (callableComponentTypes.Count == 0)

@@ -190,7 +190,23 @@ public partial class World
     {
         lock(lockObject)
         {
-            if(removedComponents.Count > 0)
+            if (cameras == null)
+            {
+                cameras = new();
+
+                cameras.WorldChanged();
+            }
+
+            if (sortedCamerasHolder == null)
+            {
+                sortedCamerasHolder = new();
+
+                AddChangeReceiver(sortedCamerasHolder);
+
+                sortedCamerasHolder.WorldChanged();
+            }
+
+            if (removedComponents.Count > 0)
             {
                 foreach (var item in removedComponents)
                 {
