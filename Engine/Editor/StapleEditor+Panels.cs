@@ -355,7 +355,7 @@ internal partial class StapleEditor
     {
         ImGui.Begin("Entities");
 
-        ImGui.BeginChild(ImGui.GetID("EntityFrame"), new Vector2(0, 0), ImGuiChildFlags.FrameStyle);
+        ImGui.BeginChild(ImGui.GetID("EntityFrame"), new Vector2(0, 0), ImGuiChildFlags.None);
 
         if (Scene.current != null)
         {
@@ -678,7 +678,7 @@ internal partial class StapleEditor
 
         ImGui.Begin("Inspector");
 
-        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 0), ImGuiChildFlags.FrameStyle);
+        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 0), ImGuiChildFlags.None);
 
         if (selectedEntity != null && selectedEntity.IsValid)
         {
@@ -830,7 +830,7 @@ internal partial class StapleEditor
     {
         ImGui.Begin("BottomPanel");
 
-        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.FrameStyle);
+        ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.None);
 
         EditorGUI.TabBar(["Project", "Log"], "PROJECT", (tabIndex) =>
         {

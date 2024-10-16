@@ -104,6 +104,7 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="ResourceUtils.cs" />
+    <Compile Include="StapleEditor+ImGuiStyle.cs" />
     <Compile Include="StapleEditor+MessageBox.cs" />
     <Compile Include="StapleEditor+Prefab.cs" />
     <Compile Include="Templates\CubeTemplate.cs" />
