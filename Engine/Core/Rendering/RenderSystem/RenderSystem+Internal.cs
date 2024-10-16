@@ -238,51 +238,55 @@ public partial class RenderSystem
     {
         CurrentCamera = (camera, cameraTransform);
 
-        var systems = new List<IRenderSystem>();
+        IRenderSystem[] systems = [];
 
         lock (lockObject)
         {
-            systems.AddRange(renderSystems);
+            systems = renderSystems.ToArray();
         }
 
-        foreach (var system in systems)
+        var systemLength = systems.Length;
+
+        for (var i = 0; i < systemLength; i++)
         {
-            system.Prepare();
+            systems[i].Prepare();
         }
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
-        foreach(var item in queue)
+        var queueLength = queue.Count;
+
+        for (var i = 0; i < queueLength; i++)
         {
-            var entity = item.Item1;
-            var transform = item.Item2;
-            var entitySystems = item.Item3;
+            var (entity, transform, entitySystems) = queue[i];
 
-            foreach (var pair in entitySystems)
+            var entitySystemLength = entitySystems.Count;
+
+            for (var j = 0; j < entitySystemLength; j++)
             {
-                var system = pair.Item1;
+                var (system, component) = entitySystems[j];
 
-                system.Preprocess(entity, transform, pair.Item2, camera, cameraTransform);
+                system.Preprocess(entity, transform, component, camera, cameraTransform);
 
-                if (pair.Item2 is Renderable renderable && renderable.enabled)
+                if (component is Renderable renderable && renderable.enabled)
                 {
                     renderable.isVisible = true; //frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
 
                     if (renderable.isVisible && renderable.forceRenderingOff == false)
                     {
-                        system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
+                        system.Process(entity, transform, component, camera, cameraTransform, viewID);
                     }
                 }
-                else if (pair.Item2 is not Renderable) //Systems that do not require a renderer
+                else //Systems that do not require a renderer
                 {
-                    system.Process(entity, transform, pair.Item2, camera, cameraTransform, viewID);
+                    system.Process(entity, transform, component, camera, cameraTransform, viewID);
                 }
             }
         }
 
-        foreach (var system in systems)
+        for (var i = 0; i < systemLength; i++)
         {
-            system.Submit();
+            systems[i].Submit();
         }
     }
 

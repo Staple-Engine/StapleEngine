@@ -13,9 +13,10 @@ public class SkinnedMeshAnimator : IComponent
 
     internal bool playInEditMode;
     internal float playTime;
-    internal Dictionary<string, Transform> transformCache = new();
-    internal Dictionary<string, MeshAsset.Node> nodeCache = new();
+    internal Dictionary<string, Transform> transformCache = [];
+    internal Dictionary<string, MeshAsset.Node> nodeCache = [];
     internal SkinnedMeshAnimationEvaluator evaluator;
+    internal bool shouldRender = true;
 
     public void SetAnimation(string name, bool repeat)
     {

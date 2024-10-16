@@ -27,7 +27,7 @@ namespace Staple
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
             int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
-            Matrix4x4 transform, MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null)
+            Vector3 position, Matrix4x4 transform, MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null)
         {
             if(vertex == null ||
                 vertex.Disposed ||
@@ -80,7 +80,7 @@ namespace Staple
 
             if(program.Valid)
             {
-                lightSystem?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                lightSystem?.ApplyLightProperties(position, transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
@@ -90,8 +90,8 @@ namespace Staple
             }
         }
 
-        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, ushort[] indices, Material material, Matrix4x4 transform,
-            MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null) where T: unmanaged
+        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, ushort[] indices, Material material, Vector3 position,
+            Matrix4x4 transform, MeshTopology topology, MeshLighting lighting, ushort viewID, Action materialSetupCallback = null) where T: unmanaged
         {
             if (vertices.Length == 0||
                 indices.Length == 0 ||
@@ -146,7 +146,7 @@ namespace Staple
 
             if (program.Valid)
             {
-                lightSystem?.ApplyLightProperties(transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                lightSystem?.ApplyLightProperties(position, transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

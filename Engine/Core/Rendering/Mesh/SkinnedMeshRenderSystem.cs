@@ -13,7 +13,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     private struct RenderInfo
     {
         public SkinnedMeshRenderer renderer;
-        public SkinnedMeshAnimator animator;
+        public Vector3 position;
         public Matrix4x4 transform;
         public ushort viewID;
     }
@@ -57,12 +57,17 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
         }
 
-        var animator = entity.GetComponentInParent<SkinnedMeshAnimator>();
+        if(renderer.checkedAnimator == false)
+        {
+            renderer.checkedAnimator = true;
+
+            renderer.animator = entity.GetComponentInParent<SkinnedMeshAnimator>();
+        }
 
         renderers.Add(new RenderInfo()
         {
             renderer = renderer,
-            animator = animator,
+            position = transform.Position,
             transform = transform.Matrix,
             viewID = viewId,
         });
@@ -83,7 +88,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         foreach (var pair in renderers)
         {
             var renderer = pair.renderer;
-            var animator = pair.animator;
+            var animator = pair.renderer.animator;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
@@ -93,48 +98,71 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             if(renderer.cachedBoneMatrices.Count != renderer.mesh.submeshes.Count)
             {
                 renderer.cachedBoneMatrices.Clear();
+                renderer.cachedNodes.Clear();
+                renderer.cachedAnimatorNodes.Clear();
                 
                 for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
                 {
                     renderer.cachedBoneMatrices.Add(new Matrix4x4[meshAssetMesh.bones[i].Count]);
+                    renderer.cachedNodes.Add(new MeshAsset.Node[meshAssetMesh.bones[i].Count]);
+                    renderer.cachedAnimatorNodes.Add(null);
                 }
             }
 
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
-                if (meshAssetMesh.bones[i].Count > MaxBones)
+                var bones = meshAssetMesh.bones[i];
+
+                if (bones.Count > MaxBones)
                 {
                     Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {meshAssetMesh.bones[i].Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
+                        $"Bone count of {bones.Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
 
                     continue;
                 }
 
-                if (renderer.cachedBoneMatrices[i].Length != meshAssetMesh.bones[i].Count)
+                if (renderer.cachedBoneMatrices[i].Length != bones.Count)
                 {
-                    renderer.cachedBoneMatrices[i] = new Matrix4x4[meshAssetMesh.bones[i].Count];
+                    renderer.cachedBoneMatrices[i] = new Matrix4x4[bones.Count];
+                    renderer.cachedNodes[i] = new MeshAsset.Node[bones.Count];
+                }
+
+                if(useAnimator && (renderer.cachedAnimatorNodes[i]?.Length ?? 0) != bones.Count)
+                {
+                    renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Count];
+
+                    for(var j = 0; j < bones.Count; j++)
+                    {
+                        renderer.cachedAnimatorNodes[i][j] = MeshAsset.TryGetNode(animator.evaluator.rootNode, bones[j].name, out var localNode) ?
+                            localNode : null;
+                    }
                 }
 
                 var boneMatrices = renderer.cachedBoneMatrices[i];
 
-                for (var j = 0; j < boneMatrices.Length; j++)
+                if (animator == null || animator.shouldRender)
                 {
-                    var bone = meshAssetMesh.bones[i][j];
-
-                    Matrix4x4 globalTransform;
-
-                    if (useAnimator && MeshAsset.TryGetNode(animator.evaluator.rootNode, bone.name, out var localNode))
+                    for (var j = 0; j < boneMatrices.Length; j++)
                     {
-                        globalTransform = localNode.GlobalTransform;
-                    }
-                    else
-                    {
-                        var node = mesh.meshAsset.GetNode(bone.name);
+                        var bone = bones[j];
 
-                        globalTransform = node.GlobalTransform;
-                    }
+                        Matrix4x4 globalTransform;
 
-                    boneMatrices[j] = bone.offsetMatrix * globalTransform;
+                        if (useAnimator && renderer.cachedAnimatorNodes[i][j] is MeshAsset.Node localNode)
+                        {
+                            globalTransform = localNode.GlobalTransform;
+                        }
+                        else if (renderer.cachedNodes[i][j] is MeshAsset.Node node)
+                        {
+                            globalTransform = node.GlobalTransform;
+                        }
+                        else
+                        {
+                            globalTransform = Matrix4x4.Identity;
+                        }
+
+                        boneMatrices[j] = bone.offsetMatrix * globalTransform;
+                    }
                 }
 
                 unsafe
@@ -167,7 +195,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    lightSystem?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

@@ -90,15 +90,10 @@ $input v_texcoord0, v_fragPos, v_normal, v_color
 void main()
 {
 	#if VERTEX_COLORS || PER_VERTEX_LIGHTING
-	vec4 diffuse = v_color * diffuseColor;
+	vec4 diffuse = texture2D(diffuseTexture, v_texcoord0) * v_color * diffuseColor;
 	#else
-	vec4 diffuse = diffuseColor;
+	vec4 diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;
 	#endif
-	
-	if(diffuseTextureSet != 0.0)
-	{
-		diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuse;
-	}
 	
 #if LIT && PER_VERTEX_LIGHTING
 	gl_FragColor = diffuse;

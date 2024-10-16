@@ -365,6 +365,11 @@ public class MeshAsset : IGuidAsset
     public MeshLighting lighting;
 
     /// <summary>
+    /// The frame rate of the animations in this mesh
+    /// </summary>
+    public int frameRate = 30;
+
+    /// <summary>
     /// 3D bounds of the mesh
     /// </summary>
     public AABB Bounds { get; internal set; }

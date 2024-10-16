@@ -27,4 +27,24 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// Contains cached bone matrices to reduce allocations
     /// </summary>
     internal List<Matrix4x4[]> cachedBoneMatrices = [];
+
+    /// <summary>
+    /// Contains cached nodes for bone matrices
+    /// </summary>
+    internal List<MeshAsset.Node[]> cachedNodes = [];
+
+    /// <summary>
+    /// Contains cached nodes for bone matrices
+    /// </summary>
+    internal List<MeshAsset.Node[]> cachedAnimatorNodes = [];
+
+    /// <summary>
+    /// Cached animator for this renderer
+    /// </summary>
+    internal SkinnedMeshAnimator animator;
+
+    /// <summary>
+    /// Whether we've checked for an animator yet
+    /// </summary>
+    internal bool checkedAnimator = false;
 }

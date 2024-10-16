@@ -12,6 +12,7 @@ public class MeshRenderSystem : IRenderSystem
     {
         public MeshRenderer renderer;
         public Matrix4x4 transform;
+        public Vector3 position;
         public ushort viewID;
     }
 
@@ -67,7 +68,7 @@ public class MeshRenderSystem : IRenderSystem
 
         if (program.Valid)
         {
-            lightSystem?.ApplyLightProperties(matrix, material, RenderSystem.CurrentCamera.Item2.Position);
+            lightSystem?.ApplyLightProperties(position, matrix, material, RenderSystem.CurrentCamera.Item2.Position);
 
             bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
         }
@@ -148,6 +149,7 @@ public class MeshRenderSystem : IRenderSystem
         renderers.Add(new RenderInfo()
         {
             renderer = r,
+            position = transform.Position,
             transform = transform.Matrix,
             viewID = viewId,
         });
@@ -197,7 +199,7 @@ public class MeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    lightSystem?.ApplyLightProperties(pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

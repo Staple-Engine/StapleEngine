@@ -91,8 +91,11 @@ public class MeshAssetMetadata
     [Key(13)]
     public MeshLighting lighting = MeshLighting.Lit;
 
-    [HideInInspector]
     [Key(14)]
+    public int frameRate = 30;
+
+    [HideInInspector]
+    [Key(15)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -111,7 +114,8 @@ public class MeshAssetMetadata
             lhs.useSmoothNormals == rhs.useSmoothNormals &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
-            lhs.lighting == rhs.lighting;
+            lhs.lighting == rhs.lighting &&
+            lhs.frameRate == rhs.frameRate;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -130,7 +134,8 @@ public class MeshAssetMetadata
             lhs.useSmoothNormals != rhs.useSmoothNormals ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
-            lhs.lighting != rhs.lighting;
+            lhs.lighting != rhs.lighting ||
+            lhs.frameRate != rhs.frameRate;
     }
 
     public override bool Equals(object obj)

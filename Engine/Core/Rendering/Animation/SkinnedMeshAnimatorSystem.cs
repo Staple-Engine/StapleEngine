@@ -15,6 +15,10 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
 
     public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform)
     {
+        if(relatedComponent is SkinnedMeshAnimator animator)
+        {
+            animator.shouldRender = false;
+        }
     }
 
     public void Process(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
@@ -54,20 +58,29 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator.mesh.meshAsset.rootNode.Clone(),
                     animator);
 
+                animator.evaluator.onFrameEvaluated = () =>
+                {
+                    SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
+
+                    animator.shouldRender = true;
+                };
+
                 SkinnedMeshRenderSystem.GatherNodes(transform, animator.nodeCache, animator.evaluator.rootNode);
+
+                animator.shouldRender = true;
 
                 animator.playTime = 0;
             }
 
             animator.evaluator.Evaluate();
-
-            SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
         }
         else if (animator.playInEditMode == false)
         {
             if(animator.evaluator != null)
             {
                 SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
+
+                animator.shouldRender = true;
             }
 
             animator.evaluator = null;

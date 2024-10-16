@@ -88,7 +88,7 @@ public class UIImage : UIElement
             return;
         }
 
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, 6, material,
+        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, 6, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MeshLighting.Unlit,
             viewID, () =>
             {

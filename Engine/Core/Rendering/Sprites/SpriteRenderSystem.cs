@@ -17,6 +17,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private class SpriteRenderInfo
     {
+        public Vector3 position;
         public Matrix4x4 transform;
         public Material material;
         public Color color;
@@ -262,6 +263,7 @@ public class SpriteRenderSystem : IRenderSystem
             material = r.material,
             texture = texture,
             textureRect = sprite.rect,
+            position = transform.Position,
             transform = matrix,
             viewID = viewId,
             sortingOrder = r.sortingOrder,
@@ -336,7 +338,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             if (program.Valid)
             {
-                lightSystem?.ApplyLightProperties(s.transform, s.material, RenderSystem.CurrentCamera.Item2.Position);
+                lightSystem?.ApplyLightProperties(s.position, s.transform, s.material, RenderSystem.CurrentCamera.Item2.Position);
 
                 bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }

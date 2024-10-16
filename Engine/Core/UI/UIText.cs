@@ -216,7 +216,7 @@ public class UIText : UIElement
         {
             material.MainTexture = TextRenderer.instance.FontTexture(parameters);
 
-            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material,
+            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
                 Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MeshLighting.Unlit,
                 viewID);
         }

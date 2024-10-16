@@ -104,6 +104,7 @@ public static class Gizmo
             .Add(Bgfx.bgfx.Attrib.Position, 3, Bgfx.bgfx.AttribType.Float)
             .Build();
 
-        Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Matrix4x4.Identity, MeshTopology.Lines, MeshLighting.Unlit, StapleEditor.WireframeView);
+        Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
+            MeshTopology.Lines, MeshLighting.Unlit, StapleEditor.WireframeView);
     }
 }

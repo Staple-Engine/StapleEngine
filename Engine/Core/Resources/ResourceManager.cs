@@ -973,9 +973,14 @@ internal class ResourceManager
 
                     case MaterialParameterType.Texture:
 
-                        {
-                            Texture texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
+                        var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
 
+                        if (parameter.Key == Material.MainTextureProperty)
+                        {
+                            material.MainTexture = texture;
+                        }
+                        else
+                        {
                             material.SetTexture(parameter.Key, texture);
                         }
 
@@ -1013,31 +1018,20 @@ internal class ResourceManager
 
                     case MaterialParameterType.Color:
 
-                        material.SetColor(parameter.Key, parameter.Value.colorValue);
+                        if(parameter.Key == Material.MainColorProperty)
+                        {
+                            material.MainColor = parameter.Value.colorValue;
+                        }
+                        else
+                        {
+                            material.SetColor(parameter.Key, parameter.Value.colorValue);
+                        }
 
                         break;
 
                     case MaterialParameterType.Float:
 
                         material.SetFloat(parameter.Key, parameter.Value.floatValue);
-
-                        break;
-                }
-
-                switch(parameter.Key)
-                {
-                    case Material.MainTextureProperty:
-
-                        if(parameter.Value.textureValue != null)
-                        {
-                            material.MainTexture = LoadTexture(parameter.Value.textureValue);
-                        }
-
-                        break;
-
-                    case Material.MainColorProperty:
-
-                        material.MainColor = parameter.Value.colorValue;
 
                         break;
                 }
@@ -1370,6 +1364,7 @@ internal class ResourceManager
             {
                 Guid = guid,
                 lighting = meshAssetData.metadata.lighting,
+                frameRate = meshAssetData.metadata.frameRate,
             };
 
             foreach(var m in meshAssetData.meshes)

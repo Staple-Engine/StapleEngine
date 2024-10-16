@@ -289,7 +289,7 @@ public class TextRenderer
                 material.MainTexture = font.Texture;
 
                 Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
-                    material, transform, MeshTopology.Triangles, MeshLighting.Unlit, viewID);
+                    material, Vector3.Zero, transform, MeshTopology.Triangles, MeshLighting.Unlit, viewID);
             }
         }
     }

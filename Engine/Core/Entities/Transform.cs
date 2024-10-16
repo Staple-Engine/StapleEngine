@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -19,19 +20,21 @@ public class Transform : IComponent, IEnumerable<Transform>
 
         set
         {
+            var wasChanged = changed;
+
             changed = value;
 
-            if(changed)
+            if(wasChanged == false && changed)
             {
-                foreach(Transform child in children)
+                for(var i = 0; i < children.Length; i++)
                 {
-                    child.Changed = value;
+                    children[i].Changed = true;
                 }
             }
         }
     }
 
-    private readonly List<Transform> children = [];
+    private Transform[] children = [];
     private Matrix4x4 matrix = Matrix4x4.Identity;
     private Quaternion rotation = Quaternion.Identity;
     private Vector3 position;
@@ -210,7 +213,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <summary>
     /// The total children in this transform
     /// </summary>
-    public int ChildCount => children.Count;
+    public int ChildCount => children.Length;
 
     /// <summary>
     /// The index of this transform in its parent
@@ -229,7 +232,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     /// <param name="index">The index of the child</param>
     /// <returns>The child, or null</returns>
-    public Transform GetChild(int index) => index >= 0 && index < children.Count ? children[index] : null;
+    public Transform GetChild(int index) => index >= 0 && index < children.Length ? children[index] : null;
 
     /// <summary>
     /// Searches for a child transform with a specific name and optional partial search
@@ -290,10 +293,19 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <param name="child">The child to detach</param>
     private void DetachChild(Transform child)
     {
-        if(children.Contains(child))
+        var newChildren = new Transform[children.Length - 1];
+
+        for(int i = 0, current = 0; i < children.Length; i++)
         {
-            children.Remove(child);
+            if (children[i] == child)
+            {
+                continue;
+            }
+
+            newChildren[current++] = child;
         }
+
+        children = newChildren;
     }
 
     /// <summary>
@@ -302,10 +314,13 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <param name="child">The new child</param>
     private void AttachChild(Transform child)
     {
-        if(!children.Contains(child))
-        {
-            children.Add(child);
-        }
+        var newChildren = new Transform[children.Length + 1];
+
+        Array.Copy(children, newChildren, children.Length);
+
+        newChildren[children.Length] = child;
+
+        children = newChildren;
     }
 
     /// <summary>
@@ -315,14 +330,15 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <returns>The index, or 0</returns>
     private int ChildIndex(Transform child)
     {
-        var index = children.IndexOf(child);
-
-        if(index >= 0)
+        for(var i = 0; i < children.Length; i++)
         {
-            return index;
+            if(children[i] == child)
+            {
+                return i;
+            }
         }
 
-        return 0;
+        return -1;
     }
 
     /// <summary>
@@ -333,17 +349,18 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <returns>Whether it was successfully moved</returns>
     private bool MoveChild(Transform child, int index)
     {
-        if(children.Contains(child) && index >= 0 && index < children.Count)
+        var childIndex = ChildIndex(child);
+
+        if(childIndex < 0)
         {
-            children.Remove(child);
-            children.Insert(index, child);
-
-            Scene.RequestWorldUpdate();
-
-            return true;
+            return false;
         }
 
-        return false;
+        (children[childIndex], children[index]) = (children[index], children[childIndex]);
+
+        Scene.RequestWorldUpdate();
+
+        return true;
     }
 
     public IEnumerator<Transform> GetEnumerator()

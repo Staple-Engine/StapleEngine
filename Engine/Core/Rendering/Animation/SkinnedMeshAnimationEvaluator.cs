@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple;
@@ -10,10 +11,16 @@ internal class SkinnedMeshAnimationEvaluator
     public SkinnedMeshAnimator animator;
     public MeshAsset.Node rootNode;
 
-    private Dictionary<int, int> lastPositionIndex = new();
-    private Dictionary<int, int> lastRotationIndex = new();
-    private Dictionary<int, int> lastScaleIndex = new();
+    public Action onFrameEvaluated;
+
+    private readonly Dictionary<int, int> lastPositionIndex = [];
+    private readonly Dictionary<int, int> lastRotationIndex = [];
+    private readonly Dictionary<int, int> lastScaleIndex = [];
+
     private float lastTime;
+    private float updateTimer;
+
+    private readonly float timeBetweenFrames;
 
     public bool FinishedPlaying
     {
@@ -31,6 +38,8 @@ internal class SkinnedMeshAnimationEvaluator
         this.animation = animation;
         this.rootNode = rootNode;
         this.animator = animator;
+
+        timeBetweenFrames = 1 / (float)(asset.frameRate == 0 ? 1 : asset.frameRate);
     }
 
     public void Evaluate()
@@ -41,6 +50,15 @@ internal class SkinnedMeshAnimationEvaluator
         }
 
         animator.playTime += Time.deltaTime;
+
+        updateTimer += Time.deltaTime;
+
+        if(updateTimer < timeBetweenFrames)
+        {
+            return;
+        }
+
+        updateTimer = 0;
 
         var t = animator.playTime * animation.ticksPerSecond;
         var time = t % animation.duration;
@@ -189,5 +207,7 @@ internal class SkinnedMeshAnimationEvaluator
         }
 
         lastTime = time;
+
+        onFrameEvaluated?.Invoke();
     }
 }
