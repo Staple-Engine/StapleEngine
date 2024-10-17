@@ -359,7 +359,7 @@ internal partial class StapleEditor
 
         if (Scene.current != null)
         {
-            bool skip = false;
+            var skip = false;
 
             var entityIcon = projectBrowser.GetEditorResource("EntityIcon");
 
@@ -377,6 +377,55 @@ internal partial class StapleEditor
                 if(hasPrefab)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(PrefabColor));
+                }
+
+                void HandleReorder(bool before)
+                {
+                    var beforeString = before ? "BEFORE" : "AFTER";
+
+                    ImGui.Selectable($"##{transform.entity.Name}-{transform.entity.Identifier.ID}-{beforeString}",
+                        ImGui.IsDragDropActive() ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled,
+                        new Vector2(ImGui.GetContentRegionAvail().X, 2));
+
+                    if (ImGui.BeginDragDropTarget())
+                    {
+                        var targetTransform = transform.parent;
+                        var siblingIndex = transform.SiblingIndex + (draggedEntity.GetComponent<Transform>() == transform.parent ? 0 : before ? -1 : 1);
+                        var childCount = (transform.parent?.ChildCount ?? 0);
+
+                        if (siblingIndex < 0)
+                        {
+                            siblingIndex = 0;
+                        }
+                        else if(siblingIndex >= childCount && childCount > 0)
+                        {
+                            siblingIndex = childCount - 1;
+                        }
+
+                        var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+                        unsafe
+                        {
+                            if (payload.Handle != null)
+                            {
+                                var t = draggedEntity.GetComponent<Transform>();
+
+                                t?.SetParent(targetTransform);
+                                t?.SetSiblingIndex(siblingIndex);
+
+                                draggedEntity = default;
+                            }
+                        }
+
+                        ImGui.EndDragDropTarget();
+
+                        return;
+                    }
+                }
+
+                if(transform.SiblingIndex == 0 && transform.parent != null)
+                {
+                    HandleReorder(true);
                 }
 
                 EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName, $"{transform.entity}", transform.ChildCount == 0, () =>
@@ -448,6 +497,7 @@ internal partial class StapleEditor
                                 p.action(p.index, p.item);
 
                                 dragDropPayloads.Clear();
+
                                 dropTargetEntity = default;
                             }
                         }
@@ -475,6 +525,8 @@ internal partial class StapleEditor
                         return;
                     }
                 });
+
+                HandleReorder(false);
 
                 if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
                 {

@@ -281,6 +281,11 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <param name="parent">The new parent (can be null to remove)</param>
     public void SetParent(Transform parent)
     {
+        if (parent == this)
+        {
+            return;
+        }
+
         this.parent?.DetachChild(this);
 
         this.parent = parent;
@@ -376,7 +381,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         var childIndex = ChildIndex(child);
 
-        if(childIndex < 0)
+        if(childIndex < 0 || childIndex >= children.Length)
         {
             return false;
         }
