@@ -293,7 +293,8 @@ public partial class RenderSystem
         }
     }
 
-    public void RenderStandardNoQueue(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
+        Entity entity, Transform entityTransform, ushort viewID)
     {
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
@@ -313,21 +314,14 @@ public partial class RenderSystem
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
-        foreach (var entityInfo in entityQuery)
+        void Handle(Entity e, Transform t)
         {
-            var layer = entityInfo.Item1.Layer;
-
-            if (camera.cullingLayers.HasLayer(layer) == false)
-            {
-                continue;
-            }
-
             foreach (var system in systems)
             {
                 if (system.RelatedComponent() != null &&
-                    entityInfo.Item1.TryGetComponent(out var related, system.RelatedComponent()))
+                    e.TryGetComponent(out var related, system.RelatedComponent()))
                 {
-                    system.Preprocess(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform);
+                    system.Preprocess(e, t, related, camera, cameraTransform);
 
                     if (related is Renderable renderable && renderable.enabled)
                     {
@@ -335,16 +329,23 @@ public partial class RenderSystem
 
                         if (renderable.isVisible && renderable.forceRenderingOff == false)
                         {
-                            system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
+                            system.Process(e, t, related, camera, cameraTransform, viewID);
                         }
                     }
                     else if (related is not Renderable) //Systems that do not require a renderer
                     {
-                        system.Process(entityInfo.Item1, entityInfo.Item2, related, camera, cameraTransform, viewID);
+                        system.Process(e, t, related, camera, cameraTransform, viewID);
                     }
                 }
             }
+
+            foreach(var child in t)
+            {
+                Handle(child.entity, child);
+            }
         }
+
+        Handle(entity, entityTransform);
 
         foreach (var system in systems)
         {

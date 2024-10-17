@@ -160,11 +160,11 @@ internal partial class StapleEditor
 
             var transforms = Scene.Query<Transform>();
 
-            foreach((Entity entity, Transform transform) in transforms)
+            foreach ((Entity entity, Transform transform) in transforms)
             {
                 if(entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
                 {
-                    return;
+                    continue;
                 }
 
                 foreach(var system in renderSystem.renderSystems)

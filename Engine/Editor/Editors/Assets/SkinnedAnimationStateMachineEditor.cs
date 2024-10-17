@@ -24,7 +24,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                     return true;
                 }
 
-                EditorGUI.TreeNode("Parameters", "SkinnedAnimationParameters", false, true, () =>
+                EditorGUI.TreeNode("Parameters", "SkinnedAnimationParameters", false, () =>
                 {
                     EditorGUI.SameLine();
 
@@ -51,7 +51,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                             parameter.parameterType = EditorGUI.EnumDropdown("Type", $"SkinnedAnimationParameters{i}Type", parameter.parameterType);
                         }
                     });
-                });
+                }, null);
 
                 return true;
 
@@ -66,7 +66,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                 var allAnimations = stateMachine.mesh.meshAsset.animations.Select(x => x.Key).ToList();
 
-                EditorGUI.TreeNode("States", $"SkinnedAnimationStates", false, true, () =>
+                EditorGUI.TreeNode("States", $"SkinnedAnimationStates", false, () =>
                 {
                     EditorGUI.SameLine();
 
@@ -121,7 +121,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                             state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStates{i}Repeat", state.repeat);
 
-                            EditorGUI.TreeNode("Connections", $"SkinnedAnimationStates{i}Connections", false, false, () =>
+                            EditorGUI.TreeNode("Connections", $"SkinnedAnimationStates{i}Connections", false, () =>
                             {
                                 EditorGUI.SameLine();
 
@@ -164,7 +164,7 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
                                         connection.onFinish = EditorGUI.Toggle("Trigger on finish", $"SkinnedAnimationStates{i}Trigger{j}", connection.onFinish);
 
-                                        EditorGUI.TreeNode("Conditions", $"SkinnedAnimationStates{i}Conditions{j}", false, false, () =>
+                                        EditorGUI.TreeNode("Conditions", $"SkinnedAnimationStates{i}Conditions{j}", false, () =>
                                         {
                                             EditorGUI.SameLine();
 
@@ -233,13 +233,13 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
                                                     }
                                                 }
                                             }
-                                        });
+                                        }, null);
                                     }
                                 });
-                            });
+                            }, null);
                         }
                     });
-                });
+                }, null);
 
                 return true;
         }

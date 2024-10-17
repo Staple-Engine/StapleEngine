@@ -35,7 +35,7 @@ public static partial class ShaderParser
     private static Regex blendRegex = BlendRegex();
     private static Regex variantsRegex = VariantsRegex();
 
-    [GeneratedRegex("(varying|uniform) (\\w+) (\\w+)( \\: (\\w+))?( \\= (.*))?")]
+    [GeneratedRegex("(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
 
     [GeneratedRegex("Begin Vertex((.|\\n)*)End Vertex")]
@@ -125,8 +125,8 @@ public static partial class ShaderParser
                     type = match.Groups[1].Value.Trim(),
                     dataType = match.Groups[2].Value.Trim(),
                     name = match.Groups[3].Value.Trim(),
-                    attribute = match.Groups[5].Value.Trim(),
-                    initializer = match.Groups[7].Value.Trim()
+                    attribute = match.Groups[7].Value.Trim(),
+                    initializer = match.Groups[11].Value.Trim()
                 };
 
                 if (parameter.attribute.Length == 0)

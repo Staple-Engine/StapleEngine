@@ -38,7 +38,7 @@ internal class AppSettingsWindow : EditorWindow
     {
         base.OnGUI();
 
-        EditorGUI.TreeNode("General", "APPSETTINGSGENERAL", false, true, () =>
+        EditorGUI.TreeNode("General", "APPSETTINGSGENERAL", false, () =>
         {
             projectAppSettings.appName = EditorGUI.TextField("App Name", "APPSETTINGSGENERALNAME", projectAppSettings.appName ?? "");
 
@@ -51,9 +51,9 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.appVersion = EditorGUI.IntField("App Version ID", "APPSETTINGSGENERALVERSION", projectAppSettings.appVersion);
 
             projectAppSettings.profilingMode = EditorGUI.EnumDropdown("Profiling", "APPSETTINGSGENERALPROFILING", projectAppSettings.profilingMode);
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Timing", "APPSETTINGSTIMING", false, true, () =>
+        EditorGUI.TreeNode("Timing", "APPSETTINGSTIMING", false, () =>
         {
             projectAppSettings.fixedTimeFrameRate = EditorGUI.IntField("Fixed Time Frame Rate", "APPSETTINGSTIMINGFIXEDTIMEFRAMERATE", projectAppSettings.fixedTimeFrameRate);
 
@@ -68,9 +68,9 @@ internal class AppSettingsWindow : EditorWindow
             {
                 projectAppSettings.maximumFixedTimestepTime = 0.1f;
             }
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Physics", "APPSETTINGSPHYSICS", false, true, () =>
+        EditorGUI.TreeNode("Physics", "APPSETTINGSPHYSICS", false, () =>
         {
             projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics Frame Rate", "APPSETTINGSPHYSICSFRAMERATE", projectAppSettings.physicsFrameRate);
 
@@ -78,9 +78,9 @@ internal class AppSettingsWindow : EditorWindow
             {
                 projectAppSettings.physicsFrameRate = 1;
             }
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Layers", "APPSETTINGSLAYERS", false, true, () =>
+        EditorGUI.TreeNode("Layers", "APPSETTINGSLAYERS", false, () =>
         {
             void Handle(List<string> layers)
             {
@@ -141,9 +141,9 @@ internal class AppSettingsWindow : EditorWindow
             EditorGUI.Label("Sorting Layers");
 
             Handle(projectAppSettings.sortingLayers);
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Modules", "APPSETTINGSMODULES", false, true, () =>
+        EditorGUI.TreeNode("Modules", "APPSETTINGSMODULES", false, () =>
         {
             foreach (var kind in moduleKinds)
             {
@@ -163,9 +163,9 @@ internal class AppSettingsWindow : EditorWindow
                     }
                 }
             }
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Lighting", $"APPSETTINGSLIGHTING", false, true, () =>
+        EditorGUI.TreeNode("Lighting", $"APPSETTINGSLIGHTING", false, () =>
         {
             var current = projectAppSettings.ambientLight;
 
@@ -175,9 +175,9 @@ internal class AppSettingsWindow : EditorWindow
             {
                 AppSettings.Current.ambientLight = current;
             }
-        });
+        }, null);
 
-        EditorGUI.TreeNode("Rendering and Presentation", $"APPSETTINGSRENDERING", false, true, () =>
+        EditorGUI.TreeNode("Rendering and Presentation", $"APPSETTINGSRENDERING", false, () =>
         {
             projectAppSettings.runInBackground = EditorGUI.Toggle("Run in Background", $"APPSETTINGSRENDERINGBACKGROUND", projectAppSettings.runInBackground);
 
@@ -263,7 +263,7 @@ internal class AppSettingsWindow : EditorWindow
                     renderers.Add(backend.renderers.FirstOrDefault());
                 });
             });
-        });
+        }, null);
 
         EditorGUI.Label("* - Shared setting between platforms");
 

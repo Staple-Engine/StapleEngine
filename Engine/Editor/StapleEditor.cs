@@ -119,6 +119,8 @@ internal partial class StapleEditor
 
     internal static string StapleBasePath => Storage.StapleBasePath;
 
+    private static Color PrefabColor = new Color32("#00CED1");
+
     internal const int ClearView = 0;
     internal const int MeshRenderView = 252;
     internal const int SceneView = 253;
@@ -371,8 +373,7 @@ internal partial class StapleEditor
 
             Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
-            projectBrowser.LoadEditorTexture("FolderIcon", "Textures/open-folder.png");
-            projectBrowser.LoadEditorTexture("FileIcon", "Textures/files.png");
+            projectBrowser.LoadEditorTextures();
 
             var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Icon.png");
 
@@ -589,6 +590,7 @@ internal partial class StapleEditor
             }
 
             mouseIsHoveringImGui = true;
+
             var viewport = ImGui.GetMainViewport();
 
             ImGui.SetNextWindowPos(viewport.Pos);

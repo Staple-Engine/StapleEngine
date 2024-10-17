@@ -361,6 +361,8 @@ internal partial class StapleEditor
         {
             bool skip = false;
 
+            var entityIcon = projectBrowser.GetEditorResource("EntityIcon");
+
             void Recursive(Transform transform)
             {
                 if(skip || transform == null || transform.entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
@@ -374,10 +376,10 @@ internal partial class StapleEditor
 
                 if(hasPrefab)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(new Color32("#00CED1")));
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiProxy.ImGuiRGBA(PrefabColor));
                 }
 
-                EditorGUI.TreeNode(entityName, $"{transform.entity}", transform.ChildCount == 0, true, () =>
+                EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName, $"{transform.entity}", transform.ChildCount == 0, () =>
                 {
                     if (ImGui.BeginDragDropTarget())
                     {
@@ -435,16 +437,35 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    if (ImGui.IsItemHovered())
+                    foreach (var child in transform)
                     {
-                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                        var childEntity = World.Current.FindEntity(child.entity.Identifier.ID);
+
+                        if (childEntity.IsValid)
                         {
-                            ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
+                            var t = childEntity.GetComponent<Transform>();
+
+                            if (t != null)
+                            {
+                                Recursive(t);
+                            }
                         }
-                        else if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+
+                        if (skip)
                         {
-                            SetSelectedEntity(transform.entity);
+                            break;
                         }
+                    }
+                },
+                () =>
+                {
+                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                    {
+                        ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
+                    }
+                    else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                    {
+                        SetSelectedEntity(transform.entity);
                     }
 
                     if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
@@ -477,26 +498,6 @@ internal partial class StapleEditor
                         }
 
                         ImGui.EndPopup();
-                    }
-
-                    foreach (var child in transform)
-                    {
-                        var childEntity = World.Current.FindEntity(child.entity.Identifier.ID);
-
-                        if (childEntity.IsValid)
-                        {
-                            var t = childEntity.GetComponent<Transform>();
-
-                            if (t != null)
-                            {
-                                Recursive(t);
-                            }
-                        }
-
-                        if (skip)
-                        {
-                            break;
-                        }
                     }
                 },
                 () =>
@@ -721,7 +722,7 @@ internal partial class StapleEditor
                 var localComponent = component;
                 var removed = false;
 
-                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), $"SELECTED{component.GetType().FullName}", false, false, () =>
+                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), $"SELECTED{component.GetType().FullName}", false, () =>
                 {
                     if(removed)
                     {
@@ -762,6 +763,7 @@ internal partial class StapleEditor
                         selectedEntity.SetComponent(localComponent);
                     }
                 },
+                null,
                 () =>
                 {
                     EditorGUI.SameLine();

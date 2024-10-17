@@ -1,7 +1,14 @@
 # Some icons licensed by Ionic
 
-* open-folder.png
+* asset.png
+* audio.png
+* entity.png
 * files.png
+* font.png
+* open-folder.png
+* prefab.png
+* shader.pnng
+* text.png
 
 The MIT License (MIT)
 

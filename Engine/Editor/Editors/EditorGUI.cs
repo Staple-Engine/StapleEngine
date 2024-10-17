@@ -17,11 +17,15 @@ public static class EditorGUI
     internal static ImGuiIOPtr io;
     internal static StapleEditor editor;
 
-    internal static Dictionary<string, object> pendingObjectPickers = new();
+    internal static readonly Dictionary<string, object> pendingObjectPickers = [];
 
-    private static readonly Dictionary<string, object> cachedEnumValues = new();
+    private static readonly Dictionary<string, object> cachedEnumValues = [];
 
     private static bool changed = false;
+
+    private static readonly Dictionary<string, bool> treeViewStates = [];
+
+    private static readonly HashSet<int> usedTreeViewStates = [];
 
     private static string MakeIdentifier(string identifier, string key) => $"{identifier}##{key}";
 
@@ -60,6 +64,25 @@ public static class EditorGUI
 
     internal static void OnFrameStart()
     {
+        if (treeViewStates.Count > 0)
+        {
+            var keys = treeViewStates.Keys.ToArray();
+
+            foreach (var key in keys)
+            {
+                if (usedTreeViewStates.Contains(key.GetHashCode()))
+                {
+                    continue;
+                }
+
+                treeViewStates.Remove(key);
+            }
+        }
+
+        if (usedTreeViewStates.Count > 0)
+        {
+            usedTreeViewStates.Clear();
+        }
     }
 
     /// <summary>
@@ -667,12 +690,23 @@ public static class EditorGUI
     /// <param name="size">The size of the image that will appear</param>
     public static void Texture(Texture texture, Vector2 size)
     {
-        if(texture == null)
+        Texture(texture, size, Color.White);
+    }
+
+    /// <summary>
+    /// Shows a texture
+    /// </summary>
+    /// <param name="texture">The texture to show</param>
+    /// <param name="size">The size of the image that will appear</param>
+    /// <param name="color">The color of the image</param>
+    public static void Texture(Texture texture, Vector2 size, Color color)
+    {
+        if (texture == null)
         {
             return;
         }
 
-        ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size);
+        ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, new Vector4(color.r, color.g, color.b, color.a));
     }
 
     /// <summary>
@@ -767,36 +801,145 @@ public static class EditorGUI
     /// <param name="label">The label of the tree node</param>
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
-    /// <param name="spanFullWidth">Whether to use the full width</param>
-    /// <param name="handler">A handler for when it is clicked or is open</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
-    public static void TreeNode(string label, string key, bool leaf, bool spanFullWidth, Action handler, Action prefixHandler = null)
+    public static void TreeNode(string label, string key, bool leaf, Action openHandler, Action clickHandler,
+        Action prefixHandler = null)
     {
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
-
-        if(spanFullWidth)
-        {
-            flags |= ImGuiTreeNodeFlags.SpanFullWidth;
-        }
 
         if (leaf)
         {
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
         }
 
-        var isOpen = ImGui.TreeNodeEx(MakeIdentifier(label, key), flags);
+        var open = ImGui.TreeNodeEx($"##{key}", flags);
+
+        var stateKey = $"{label}-{key}";
+
+        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            treeViewStates.Add(stateKey, isOpen);
+        }
+
+        usedTreeViewStates.Add(stateKey.GetHashCode());
+
+        if (isOpen != open)
+        {
+            treeViewStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        ImGui.SameLine();
+
+        var clicked = ImGui.Selectable(label);
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
-        if(isOpen)
+        if (ImGui.IsItemClicked() || clicked)
         {
-            ExecuteHandler(handler, $"TreeNode {label}");
+            ExecuteHandler(clickHandler, $"TreeNode {label} click");
+        }
 
-            if(leaf == false)
+        if (open)
+        {
+            ExecuteHandler(openHandler, $"TreeNode {label} open");
+
+            if (leaf == false)
             {
                 ImGui.TreePop();
             }
         }
+    }
+
+    /// <summary>
+    /// Creates a tree node with an icon, and runs a handler if it's open
+    /// </summary>
+    /// <param name="icon">The icon texture</param>
+    /// <param name="color">The icon's tint color</param>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    public static void TreeNodeIcon(Texture icon, Color color, string label, string key, bool leaf,
+        Action openHandler, Action clickHandler, Action prefixHandler = null)
+    {
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (leaf)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        var open = ImGui.TreeNodeEx($"##{key}", flags);
+
+        var stateKey = $"{label}-{key}";
+
+        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            treeViewStates.Add(stateKey, isOpen);
+        }
+
+        usedTreeViewStates.Add(stateKey.GetHashCode());
+
+        if(isOpen != open)
+        {
+            treeViewStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        if (icon != null)
+        {
+            ImGui.SameLine();
+
+            Texture(icon, new Vector2(20, 20), color);
+        }
+
+        ImGui.SameLine();
+
+        var clicked = ImGui.Selectable(label);
+
+        ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
+
+        if (ImGui.IsItemClicked() || clicked)
+        {
+            ExecuteHandler(clickHandler, $"TreeNode {label} click");
+        }
+
+        if (open)
+        {
+            ExecuteHandler(openHandler, $"TreeNode {label} open");
+
+            if (leaf == false)
+            {
+                ImGui.TreePop();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a tree node with an icon, and runs a handler if it's open
+    /// </summary>
+    /// <param name="icon">The icon texture</param>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    public static void TreeNodeIcon(Texture icon, string label, string key, bool leaf, Action openHandler, Action clickHandler,
+        Action prefixHandler = null)
+    {
+        TreeNodeIcon(icon, Color.White, label, key, leaf, openHandler, clickHandler, prefixHandler);
     }
 
     /// <summary>

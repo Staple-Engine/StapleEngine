@@ -1,13 +1,10 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Threading;
 
 namespace Staple.Editor;
 
@@ -19,13 +16,26 @@ internal class ProjectBrowser
     /// <summary>
     /// All valid resource types
     /// </summary>
-    public static Dictionary<string, ProjectBrowserResourceType> resourceTypes = new()
+    public static readonly Dictionary<string, ProjectBrowserResourceType> resourceTypes = new()
     {
         { ".asset", ProjectBrowserResourceType.Asset },
         { ".mat", ProjectBrowserResourceType.Material },
         { ".stsh", ProjectBrowserResourceType.Shader },
         { ".stsc", ProjectBrowserResourceType.Scene },
         { ".stpr", ProjectBrowserResourceType.Prefab },
+    };
+
+    public static readonly Dictionary<string, string> DefaultResourceIcons = new()
+    {
+        { "FolderIcon", "Textures/open-folder.png" },
+        { "FileIcon", "Textures/files.png" },
+        { "EntityIcon", "Textures/entity.png" },
+        { "SceneIcon", "Textures/scene.png" },
+        { "PrefabIcon", "Textures/prefab.png" },
+        { "FontIcon", "Textures/font.png" },
+        { "TextIcon", "Textures/text.png" },
+        { "AssetIcon", "Textures/asset.png" },
+        { "AudioIcon", "Textures/audio.png" },
     };
 
     static ProjectBrowser()
@@ -129,6 +139,30 @@ internal class ProjectBrowser
         }
 
         return ProjectBrowserResourceType.Other;
+    }
+
+    internal void LoadEditorTextures()
+    {
+        foreach(var pair in DefaultResourceIcons)
+        {
+            LoadEditorTexture(pair.Key, pair.Value);
+        }
+    }
+
+    internal Texture GetResourceIcon(ProjectBrowserResourceType resourceType)
+    {
+        var result = resourceType switch
+        {
+            ProjectBrowserResourceType.Scene => GetEditorResource("SceneIcon"),
+            ProjectBrowserResourceType.Prefab => GetEditorResource("PrefabIcon"),
+            ProjectBrowserResourceType.Font => GetEditorResource("FontIcon"),
+            ProjectBrowserResourceType.Shader => GetEditorResource("ShaderIcon"),
+            ProjectBrowserResourceType.Asset => GetEditorResource("AssetIcon"),
+            ProjectBrowserResourceType.Audio => GetEditorResource("AudioIcon"),
+            _ => GetEditorResource("FileIcon"),
+        };
+
+        return result ?? GetEditorResource("FileIcon");
     }
 
     /// <summary>
@@ -330,7 +364,7 @@ internal class ProjectBrowser
                     {
                         if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(node.path))
                         {
-                            return ThumbnailCache.GetThumbnail(node.path) ?? GetEditorResource("FileIcon");
+                            return ThumbnailCache.GetThumbnail(node.path) ?? GetResourceIcon(ResourceTypeForExtension(node.extension));
                         }
 
                         return texture;
@@ -681,6 +715,8 @@ internal class ProjectBrowser
 
         var nextNode = currentContentNode;
 
+        editorResources.TryGetValue("FolderIcon", out var folderTexture);
+
         void Recursive(ProjectBrowserNode node)
         {
             if (node.type != ProjectBrowserNodeType.Folder)
@@ -688,44 +724,22 @@ internal class ProjectBrowser
                 return;
             }
 
-            var flags = ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.AllowOverlap;
             var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
 
-            if (hasChildren == false)
+            EditorGUI.TreeNodeIcon(folderTexture, node.name, node.name, hasChildren == false, () =>
             {
-                flags |= ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf;
-            }
-
-            var open = ImGui.TreeNodeEx($"##{node.name}", flags);
-
-            if(editorResources.TryGetValue("FolderIcon", out var folderTexture))
-            {
-                ImGui.SameLine();
-
-                EditorGUI.Texture(folderTexture, new Vector2(20, 20));
-
-                ImGui.SameLine();
-
-                EditorGUI.Label(node.name);
-            }
-
-            if (open)
-            {
-                if (ImGui.IsItemClicked())
-                {
-                    nextNode = node;
-                }
-
                 if (hasChildren)
                 {
                     foreach (var subnode in node.subnodes)
                     {
                         Recursive(subnode);
                     }
-
-                    ImGui.TreePop();
                 }
-            }
+            },
+            () =>
+            {
+                nextNode = node;
+            });
         }
 
         if (ImGui.TreeNodeEx("Assets", ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow))
@@ -754,7 +768,7 @@ internal class ProjectBrowser
             UpdateCurrentContentNodes(nextNode.subnodes);
         }
 
-        ImGui.BeginChild("ProjectBrowserContentAssets");
+        ImGui.BeginChild("ProjectBrowserContentAssets", ImGuiChildFlags.None);
 
         ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
             "ASSET", true,
