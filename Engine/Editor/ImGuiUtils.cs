@@ -55,7 +55,7 @@ internal static class ImGuiUtils
                 {
                     onDoubleClick?.Invoke(i, item);
                 }
-                else if(ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                else if(Input.GetMouseButtonUp(MouseButton.Left))
                 {
                     foreach(var j in items)
                     {
@@ -90,7 +90,7 @@ internal static class ImGuiUtils
 
                     ImGui.EndDragDropSource();
                 }
-                else if (ImGui.IsMouseDown(ImGuiMouseButton.Left) == false)
+                else if (Input.GetMouseButtonDown(MouseButton.Left) == false)
                 {
                     StapleEditor.instance.dragDropPayloads.Clear();
                 }

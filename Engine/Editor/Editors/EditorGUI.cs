@@ -804,6 +804,7 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler for when it is clicked</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNode(string label, string key, bool leaf, Action openHandler, Action clickHandler,
         Action prefixHandler = null)
     {
@@ -840,7 +841,9 @@ public static class EditorGUI
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
-        if (ImGui.IsItemClicked() || clicked)
+        if (ImGui.IsItemClicked() ||
+            clicked ||
+            (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Right)))
         {
             ExecuteHandler(clickHandler, $"TreeNode {label} click");
         }
@@ -867,6 +870,7 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler for when it is clicked</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNodeIcon(Texture icon, Color color, string label, string key, bool leaf,
         Action openHandler, Action clickHandler, Action prefixHandler = null)
     {
@@ -910,7 +914,9 @@ public static class EditorGUI
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
-        if (ImGui.IsItemClicked() || clicked)
+        if (ImGui.IsItemClicked() ||
+            clicked ||
+            (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Right)))
         {
             ExecuteHandler(clickHandler, $"TreeNode {label} click");
         }
@@ -936,6 +942,7 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler for when it is clicked</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNodeIcon(Texture icon, string label, string key, bool leaf, Action openHandler, Action clickHandler,
         Action prefixHandler = null)
     {

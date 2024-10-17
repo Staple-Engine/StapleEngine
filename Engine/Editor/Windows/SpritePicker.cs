@@ -63,7 +63,7 @@ internal class SpritePicker: EditorWindow
             ImGui.GetWindowDrawList().AddRect(new Vector2(rect.Min.X, rect.Min.Y),
                 new Vector2(rect.Max.X, rect.Max.Y), ImGuiProxy.ImGuiRGBA(255, 255, 255, 255));
 
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && rect.Contains(ImGui.GetMousePos()))
+            if (Input.GetMouseButtonUp(MouseButton.Left) && rect.Contains(ImGui.GetMousePos()))
             {
                 Close();
 
