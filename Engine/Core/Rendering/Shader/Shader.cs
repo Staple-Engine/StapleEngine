@@ -102,14 +102,15 @@ internal partial class Shader : IGuidAsset
 
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
+    private UniformInfo[] uniforms = [];
+    private readonly IntLookupCache<int> uniformIndices = new();
+
+    private int usedTextureStages = 0;
+
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
-
-    private UniformInfo[] uniforms = [];
-    private IntLookupCache<int> uniformIndices = new();
-    private int usedTextureStages = 0;
 
     public string Guid { get; set; }
 

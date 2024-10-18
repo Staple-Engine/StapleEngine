@@ -882,11 +882,11 @@ internal partial class StapleEditor
     /// <param name="io">The current ImGUI IO</param>
     private void BottomPanel(ImGuiIOPtr io)
     {
-        ImGui.Begin("BottomPanel");
+        ImGui.Begin("Project");
 
         ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.None);
 
-        EditorGUI.TabBar(["Project", "Log"], "PROJECT", (tabIndex) =>
+        EditorGUI.TabBar(["Folders", "Log"], "PROJECT", (tabIndex) =>
         {
             activeBottomTab = tabIndex;
         });

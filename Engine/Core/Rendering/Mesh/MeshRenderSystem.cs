@@ -68,7 +68,7 @@ public class MeshRenderSystem : IRenderSystem
 
         if (program.Valid)
         {
-            lightSystem?.ApplyLightProperties(position, matrix, material, RenderSystem.CurrentCamera.Item2.Position);
+            lightSystem?.ApplyLightProperties(position, matrix, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
         }
@@ -199,7 +199,8 @@ public class MeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

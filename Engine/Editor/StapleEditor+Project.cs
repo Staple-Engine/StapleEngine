@@ -125,6 +125,9 @@ internal partial class StapleEditor
 
         AppSettings.Current.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
         AppSettings.Current.ambientLight = projectAppSettings.ambientLight;
+        AppSettings.Current.enableLighting = projectAppSettings.enableLighting;
+
+        LightSystem.Enabled = projectAppSettings.enableLighting;
 
         foreach(var pair in projectAppSettings.renderers)
         {

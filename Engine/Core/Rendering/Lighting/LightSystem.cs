@@ -75,6 +75,9 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
     {
         if(Enabled == false)
         {
+            material.DisableShaderKeyword(Shader.LitKeyword);
+            material.DisableShaderKeyword(Shader.HalfLambertKeyword);
+
             return;
         }
 
@@ -83,25 +86,14 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
             case MeshLighting.Lit:
 
                 material.EnableShaderKeyword(Shader.LitKeyword);
-
-                if (material.metadata.enabledShaderVariants.Contains(Shader.HalfLambertKeyword) == false)
-                {
-                    material.DisableShaderKeyword(Shader.HalfLambertKeyword);
-                }
+                material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
                 break;
 
             case MeshLighting.Unlit:
 
-                if (material.metadata.enabledShaderVariants.Contains(Shader.LitKeyword) == false)
-                {
-                    material.DisableShaderKeyword(Shader.LitKeyword);
-                }
-
-                if (material.metadata.enabledShaderVariants.Contains(Shader.HalfLambertKeyword) == false)
-                {
-                    material.DisableShaderKeyword(Shader.HalfLambertKeyword);
-                }
+                material.DisableShaderKeyword(Shader.LitKeyword);
+                material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
                 break;
 
@@ -114,9 +106,11 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         }
     }
 
-    public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition, List<(Transform, Light)> lights)
+    public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition,
+        List<(Transform, Light)> lights, MeshLighting lighting)
     {
         if (Enabled == false ||
+            lighting == MeshLighting.Unlit ||
             (material?.IsValid ?? false) == false ||
             lights.Count == 0)
         {
@@ -198,18 +192,13 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         material.shader.SetVector4(lightSpotDirectionHandle, cachedLightSpotDirection);
     }
 
-    public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition)
+    public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition, MeshLighting lighting)
     {
-        ApplyLightProperties(position, transform, material, cameraPosition, lights);
+        ApplyLightProperties(position, transform, material, cameraPosition, lights, lighting);
     }
 
     public void WorldChanged()
     {
-        if(Enabled == false)
-        {
-            return;
-        }
-
         lights.Clear();
 
         foreach (var pair in lightQuery)

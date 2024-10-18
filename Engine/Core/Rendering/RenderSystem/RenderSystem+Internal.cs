@@ -156,6 +156,8 @@ public partial class RenderSystem
         RegisterSystem(new TextRenderSystem());
         RegisterSystem(new UICanvasSystem());
 
+        LightSystem.Enabled = AppSettings.Current?.enableLighting ?? true;
+
         Time.OnAccumulatorFinished += () =>
         {
             needsDrawCalls = true;

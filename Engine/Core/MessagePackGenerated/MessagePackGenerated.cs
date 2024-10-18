@@ -785,7 +785,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(24);
+            writer.WriteArrayHeader(25);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -810,6 +810,7 @@ namespace MessagePack.Formatters.Staple
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.Internal.ModuleType, string>>().Serialize(ref writer, value.usedModules, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Serialize(ref writer, value.ambientLight, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Serialize(ref writer, value.profilingMode, options);
+            writer.Write(value.enableLighting);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -899,6 +900,9 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 23:
                         ____result.profilingMode = formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Deserialize(ref reader, options);
+                        break;
+                    case 24:
+                        ____result.enableLighting = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

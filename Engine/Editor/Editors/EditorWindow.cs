@@ -79,7 +79,7 @@ public class EditorWindow
                 return null;
             }
 
-            result.title = typeof(T).Name;
+            result.title = result.title ?? typeof(T).Name;
 
             StapleEditor.instance.editorWindows.Add(result);
 

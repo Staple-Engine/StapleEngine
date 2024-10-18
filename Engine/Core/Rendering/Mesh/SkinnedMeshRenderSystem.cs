@@ -195,7 +195,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 if (program.Valid)
                 {
-                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material, RenderSystem.CurrentCamera.Item2.Position);
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
 
                     bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }

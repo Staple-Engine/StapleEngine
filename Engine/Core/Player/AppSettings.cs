@@ -168,6 +168,12 @@ public class AppSettings
     [Key(23)]
     public ProfilingMode profilingMode = ProfilingMode.None;
 
+    /// <summary>
+    /// Whether to enable lighting
+    /// </summary>
+    [Key(24)]
+    public bool enableLighting = true;
+
     [IgnoreMember]
     public static AppSettings Default
     {

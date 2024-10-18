@@ -135,34 +135,28 @@ internal class AppPlayer
 
             Log.Info("Loaded scene list");
 
-            if(Physics3D.ImplType != null)
+            if(Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
             {
-                if(Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
-                {
-                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
+                Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
 
-                    renderWindow.shouldStop = true;
+                renderWindow.shouldStop = true;
 
-                    throw new Exception("Failed to initialize physics");
-                }
+                throw new Exception("Failed to initialize physics");
+            }
 
-                var physicsInstance = ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType);
+            var physicsInstance = Physics3D.ImplType != null ? ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType) : null;
 
-                if (physicsInstance != null)
-                {
-                    try
-                    {
-                        Physics3D.Instance = new Physics3D(physicsInstance);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e.ToString());
+            try
+            {
+                Physics3D.Instance = new Physics3D(physicsInstance);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.ToString());
 
-                        renderWindow.shouldStop = true;
+                renderWindow.shouldStop = true;
 
-                        throw new Exception("Failed to initialize physics");
-                    }
-                }
+                throw new Exception("Failed to initialize physics");
             }
 
             SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);

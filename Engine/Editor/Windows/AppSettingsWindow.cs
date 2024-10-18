@@ -13,11 +13,13 @@ internal class AppSettingsWindow : EditorWindow
     public string basePath;
     public AppSettings projectAppSettings;
 
-    private List<ModuleType> moduleKinds = new();
-    private Dictionary<ModuleType, string[]> moduleNames = new();
+    private readonly List<ModuleType> moduleKinds = [];
+    private readonly Dictionary<ModuleType, string[]> moduleNames = [];
 
     public AppSettingsWindow()
     {
+        title = "Settings";
+
         allowDocking = false;
 
         moduleKinds = Enum.GetValues<ModuleType>().ToList();
@@ -167,13 +169,26 @@ internal class AppSettingsWindow : EditorWindow
 
         EditorGUI.TreeNode("Lighting", $"APPSETTINGSLIGHTING", false, () =>
         {
-            var current = projectAppSettings.ambientLight;
-
-            projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient Color", "APPSETTINGSLIGHTINGAMBIENTCOLOR", projectAppSettings.ambientLight);
-
-            if (projectAppSettings.ambientLight != current)
             {
-                AppSettings.Current.ambientLight = current;
+                var current = projectAppSettings.enableLighting;
+
+                projectAppSettings.enableLighting = EditorGUI.Toggle("Enable Lighting", "APPSETTINGSLIGHTINGAMBIENTCOLOR", current);
+
+                if(projectAppSettings.enableLighting != current)
+                {
+                    LightSystem.Enabled = projectAppSettings.enableLighting;
+                }
+            }
+
+            {
+                var current = projectAppSettings.ambientLight;
+
+                projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient Color", "APPSETTINGSLIGHTINGAMBIENTCOLOR", projectAppSettings.ambientLight);
+
+                if (projectAppSettings.ambientLight != current)
+                {
+                    AppSettings.Current.ambientLight = projectAppSettings.ambientLight;
+                }
             }
         }, null);
 

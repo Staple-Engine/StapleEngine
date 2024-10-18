@@ -54,6 +54,11 @@ public sealed class Material : IGuidAsset
                 hasTexture = hasTexture,
             };
         }
+
+        public override string ToString()
+        {
+            return $"{name} ({type})";
+        }
     }
 
     internal const string MainColorProperty = "mainColor";
@@ -62,7 +67,28 @@ public sealed class Material : IGuidAsset
     internal static readonly int MainColorPropertyHash = MainColorProperty.GetHashCode();
     internal static readonly int MainTexturePropertyHash = MainTextureProperty.GetHashCode();
 
-    internal static Texture WhiteTexture;
+    private static Texture whiteTexture;
+
+    internal static Texture WhiteTexture
+    {
+        get
+        {
+            if (whiteTexture == null)
+            {
+                var pixels = Enumerable.Repeat((byte)255, 64 * 64 * 4).ToArray();
+
+                whiteTexture = Texture.CreatePixels("WHITE", pixels, 64, 64, new TextureMetadata()
+                {
+                    filter = TextureFilter.Linear,
+                    format = TextureMetadataFormat.RGBA8,
+                    type = TextureType.Texture,
+                    useMipmaps = false,
+                }, Bgfx.bgfx.TextureFormat.RGBA8);
+            }
+
+            return whiteTexture;
+        }
+    }
 
     internal Shader shader;
     internal string guid;
@@ -354,6 +380,7 @@ public sealed class Material : IGuidAsset
         {
             parameters.AddOrSetKey(hash, new ParameterInfo()
             {
+                name = name,
                 type = MaterialParameterType.Color,
                 colorValue = value,
                 shaderHandle = shader.GetUniformHandle(hash),
@@ -482,6 +509,8 @@ public sealed class Material : IGuidAsset
     {
         var hash = name.GetHashCode();
 
+        value = value ?? WhiteTexture;
+
         if (parameters.TryGetValue(hash, out var parameter))
         {
             if (parameter.type == MaterialParameterType.Texture)
@@ -602,19 +631,6 @@ public sealed class Material : IGuidAsset
 
             if (t.Disposed)
             {
-                if (WhiteTexture == null)
-                {
-                    var pixels = Enumerable.Repeat((byte)255, 64 * 64 * 4).ToArray();
-
-                    WhiteTexture = Texture.CreatePixels("WHITE", pixels, 64, 64, new TextureMetadata()
-                    {
-                        filter = TextureFilter.Linear,
-                        format = TextureMetadataFormat.RGBA8,
-                        type = TextureType.Texture,
-                        useMipmaps = false,
-                    }, Bgfx.bgfx.TextureFormat.RGBA8);
-                }
-
                 MainTexture = WhiteTexture;
             }
 
@@ -644,12 +660,8 @@ public sealed class Material : IGuidAsset
                         {
                             if (parameter.hasTexture == false)
                             {
-                                shader?.SetVector4(parameter.relatedShaderHandles[0], Vector4.Zero);
-
                                 return;
                             }
-
-                            shader?.SetVector4(parameter.relatedShaderHandles[0], Vector4.One);
 
                             var overrideFlags = (TextureFlags)uint.MaxValue;
 

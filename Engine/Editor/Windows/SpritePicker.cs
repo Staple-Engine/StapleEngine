@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Staple.Editor;
 
-internal class SpritePicker: EditorWindow
+internal class SpritePicker : EditorWindow
 {
     public Texture texture;
     public List<TextureSpriteInfo> sprites;

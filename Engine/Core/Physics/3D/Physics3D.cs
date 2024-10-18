@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -23,6 +24,7 @@ public class Physics3D : ISubsystem
     /// <summary>
     /// The implementation type to use for this subsystem
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     internal static Type ImplType;
 
     internal static readonly byte Priority = 2;
@@ -34,6 +36,7 @@ public class Physics3D : ISubsystem
     internal static float PhysicsDeltaTime = 1 / 60.0f;
 
     private float deltaTimer = 0.0f;
+    private readonly bool implIsValid;
 
     public delegate void OnBodyActivated3D(IBody3D body);
     public delegate void OnBodyDeactivated3D(IBody3D body);
@@ -53,14 +56,31 @@ public class Physics3D : ISubsystem
     /// </summary>
     public Vector3 Gravity
     {
-        get => Impl.Gravity;
+        get
+        {
+            if (implIsValid == false)
+            {
+                return Vector3.Zero;
+            }
 
-        set => Impl.Gravity = value;
+            return Impl.Gravity;
+        }
+
+        set
+        {
+            if (implIsValid == false)
+            {
+                return;
+            }
+
+            Impl.Gravity = value;
+        }
     }
 
     public Physics3D(IPhysics3D impl)
     {
         Impl = impl;
+        implIsValid = impl != null;
     }
 
     #region API
@@ -71,6 +91,11 @@ public class Physics3D : ISubsystem
     /// <returns>The body, or null</returns>
     internal IBody3D CreateBody(Entity entity, World world)
     {
+        if(implIsValid == false)
+        {
+            return default;
+        }
+
         return Impl.CreateBody(entity, world);
     }
 
@@ -98,6 +123,13 @@ public class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -126,6 +158,13 @@ public class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -155,6 +194,13 @@ public class Physics3D : ISubsystem
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -184,6 +230,13 @@ public class Physics3D : ISubsystem
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ,
         bool is2DPlane, float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -212,6 +265,13 @@ public class Physics3D : ISubsystem
         bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -234,6 +294,13 @@ public class Physics3D : ISubsystem
     internal bool CreateHeightMap(Entity entity, float[] heights, Vector3 offset, Vector3 scale, Vector3 position, Quaternion rotation,
         ushort layer, float friction, float restitution, float mass, out IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+
+            return false;
+        }
+
         return Impl.CreateHeightMap(entity, heights, offset, scale, position, rotation, layer, friction, restitution, mass, out body);
     }
 
@@ -243,7 +310,7 @@ public class Physics3D : ISubsystem
     /// <param name="body">The body to destroy</param>
     internal void DestroyBody(IBody3D body)
     {
-        if(body == null)
+        if(implIsValid == false || body == null)
         {
             return;
         }
@@ -258,6 +325,11 @@ public class Physics3D : ISubsystem
     /// <param name="activated">Whether it's activated</param>
     internal void AddBody(IBody3D body, bool activated)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.AddBody(body, activated);
     }
 
@@ -267,6 +339,11 @@ public class Physics3D : ISubsystem
     /// <param name="body">The body to remove</param>
     internal void RemoveBody(IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.RemoveBody(body);
     }
 
@@ -282,6 +359,14 @@ public class Physics3D : ISubsystem
     /// <returns>Whether we hit something</returns>
     public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
+        if (implIsValid == false)
+        {
+            body = default;
+            fraction = default;
+
+            return false;
+        }
+
         return Impl.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance);
     }
 
@@ -292,6 +377,11 @@ public class Physics3D : ISubsystem
     /// <returns>The gravity factor</returns>
     public float GravityFactor(IBody3D body)
     {
+        if (implIsValid == false)
+        {
+            return default;
+        }
+
         return Impl.GravityFactor(body);
     }
 
@@ -302,6 +392,11 @@ public class Physics3D : ISubsystem
     /// <param name="factor">The gravity factor</param>
     public void SetGravityFactor(IBody3D body, float factor)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.SetGravityFactor(body, factor);
     }
 
@@ -312,6 +407,11 @@ public class Physics3D : ISubsystem
     /// <param name="newPosition">The new position</param>
     public void SetBodyPosition(IBody3D body, Vector3 newPosition)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.SetBodyPosition(body, newPosition);
     }
 
@@ -322,6 +422,11 @@ public class Physics3D : ISubsystem
     /// <param name="newRotation">The new rotation</param>
     public void SetBodyRotation(IBody3D body, Quaternion newRotation)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.SetBodyRotation(body, newRotation);
     }
 
@@ -332,6 +437,11 @@ public class Physics3D : ISubsystem
     /// <param name="value">Whether it should be a trigger</param>
     public void SetBodyTrigger(IBody3D body, bool value)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.SetBodyTrigger(body, value);
     }
 
@@ -342,6 +452,11 @@ public class Physics3D : ISubsystem
     /// <returns>The body if available, or null</returns>
     public IBody3D GetBody(Entity entity)
     {
+        if (implIsValid == false)
+        {
+            return default;
+        }
+
         return Impl.GetBody(entity);
     }
 
@@ -352,6 +467,11 @@ public class Physics3D : ISubsystem
     /// <param name="force">The force to add</param>
     public void AddForce(IBody3D body, Vector3 force)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.AddForce(body, force);
     }
 
@@ -362,6 +482,11 @@ public class Physics3D : ISubsystem
     /// <param name="impulse">The impulse to add</param>
     public void AddImpulse(IBody3D body, Vector3 impulse)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.AddImpulse(body, impulse);
     }
 
@@ -372,6 +497,11 @@ public class Physics3D : ISubsystem
     /// <param name="impulse">The impulse to add</param>
     public void AddAngularImpulse(IBody3D body, Vector3 impulse)
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         Impl.AddAngularImpulse(body, impulse);
     }
 
@@ -381,7 +511,8 @@ public class Physics3D : ISubsystem
     /// <param name="entity">The entity to recreate the body of (if able)</param>
     public void RecreateBody(Entity entity)
     {
-        if (entity.TryGetComponent<RigidBody3D>(out var rigidBody) == false)
+        if (implIsValid == false ||
+            entity.TryGetComponent<RigidBody3D>(out var rigidBody) == false)
         {
             return;
         }
@@ -399,6 +530,11 @@ public class Physics3D : ISubsystem
     #region Internal
     public void Startup()
     {
+        if(implIsValid == false)
+        {
+            return;
+        }
+
         World.AddComponentAddedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
         {
             if(Platform.IsPlaying == false)
@@ -432,6 +568,11 @@ public class Physics3D : ISubsystem
 
     public void Shutdown()
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         var rigidBodies = World.Current.Query<RigidBody3D>(true);
         
         foreach((Entity _, RigidBody3D rigidBody) in rigidBodies)
@@ -444,6 +585,11 @@ public class Physics3D : ISubsystem
 
     public void Update()
     {
+        if (implIsValid == false)
+        {
+            return;
+        }
+
         deltaTimer += Time.unscaledDeltaTime;
 
         if(deltaTimer >= PhysicsDeltaTime)

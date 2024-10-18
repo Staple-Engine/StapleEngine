@@ -19,6 +19,8 @@ internal class BuildWindow : EditorWindow
 
     public BuildWindow()
     {
+        title = "Build";
+
         instance = new WeakReference<BuildWindow>(this);
 
         allowDocking = false;

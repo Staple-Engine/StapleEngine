@@ -234,7 +234,7 @@ internal class ProjectBrowser
                         name = Path.GetFileNameWithoutExtension(file),
                         extension = Path.GetExtension(file).ToLowerInvariant(),
                         path = file.Replace("\\", "/"),
-                        subnodes = new(),
+                        subnodes = [],
                         type = ProjectBrowserNodeType.File
                     };
 
