@@ -98,71 +98,48 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             if(renderer.cachedBoneMatrices.Count != renderer.mesh.submeshes.Count)
             {
                 renderer.cachedBoneMatrices.Clear();
-                renderer.cachedNodes.Clear();
-                renderer.cachedAnimatorNodes.Clear();
                 
                 for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
                 {
                     renderer.cachedBoneMatrices.Add(new Matrix4x4[meshAssetMesh.bones[i].Count]);
-                    renderer.cachedNodes.Add(new MeshAsset.Node[meshAssetMesh.bones[i].Count]);
-                    renderer.cachedAnimatorNodes.Add(null);
                 }
             }
 
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
-                var bones = meshAssetMesh.bones[i];
-
-                if (bones.Count > MaxBones)
+                if (meshAssetMesh.bones[i].Count > MaxBones)
                 {
                     Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {bones.Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
+                        $"Bone count of {meshAssetMesh.bones[i].Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
 
                     continue;
                 }
 
-                if (renderer.cachedBoneMatrices[i].Length != bones.Count)
+                if (renderer.cachedBoneMatrices[i].Length != meshAssetMesh.bones[i].Count)
                 {
-                    renderer.cachedBoneMatrices[i] = new Matrix4x4[bones.Count];
-                    renderer.cachedNodes[i] = new MeshAsset.Node[bones.Count];
-                }
-
-                if(useAnimator && (renderer.cachedAnimatorNodes[i]?.Length ?? 0) != bones.Count)
-                {
-                    renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Count];
-
-                    for(var j = 0; j < bones.Count; j++)
-                    {
-                        renderer.cachedAnimatorNodes[i][j] = MeshAsset.TryGetNode(animator.evaluator.rootNode, bones[j].name, out var localNode) ?
-                            localNode : null;
-                    }
+                    renderer.cachedBoneMatrices[i] = new Matrix4x4[meshAssetMesh.bones[i].Count];
                 }
 
                 var boneMatrices = renderer.cachedBoneMatrices[i];
 
-                if (animator == null || animator.shouldRender)
+                for (var j = 0; j < boneMatrices.Length; j++)
                 {
-                    for (var j = 0; j < boneMatrices.Length; j++)
+                    var bone = meshAssetMesh.bones[i][j];
+
+                    var globalTransform = Matrix4x4.Identity;
+
+                    if (useAnimator && MeshAsset.TryGetNode(animator.evaluator.rootNode, bone.name, out var localNode))
                     {
-                        var bone = bones[j];
-
-                        Matrix4x4 globalTransform;
-
-                        if (useAnimator && renderer.cachedAnimatorNodes[i][j] is MeshAsset.Node localNode)
-                        {
-                            globalTransform = localNode.GlobalTransform;
-                        }
-                        else if (renderer.cachedNodes[i][j] is MeshAsset.Node node)
-                        {
-                            globalTransform = node.GlobalTransform;
-                        }
-                        else
-                        {
-                            globalTransform = Matrix4x4.Identity;
-                        }
-
-                        boneMatrices[j] = bone.offsetMatrix * globalTransform;
+                        globalTransform = localNode.BakedTransform;
                     }
+                    else
+                    {
+                        var node = mesh.meshAsset.GetNode(bone.name);
+
+                        globalTransform = node.GlobalTransform;
+                    }
+
+                    boneMatrices[j] = bone.offsetMatrix * globalTransform;
                 }
 
                 unsafe
@@ -276,6 +253,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public static void ApplyNodeTransform(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache, bool original = false)
     {
+        //return;
         foreach (var pair in transformCache)
         {
             if(nodeCache.TryGetValue(pair.Key, out var node) == false)
@@ -291,6 +269,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public static void ApplyTransformsToNodes(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache)
     {
+        //return;
+
         foreach(var pair in nodeCache)
         {
             if(transformCache.TryGetValue(pair.Key, out var transform) == false)

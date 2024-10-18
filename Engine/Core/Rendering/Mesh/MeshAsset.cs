@@ -80,19 +80,17 @@ public class MeshAsset : IGuidAsset
 
         public List<int> meshIndices = [];
 
-        private Matrix4x4 originalTransform;
+        private Matrix4x4 originalTransform = Matrix4x4.Identity;
 
-        private Matrix4x4 transform;
+        internal Matrix4x4 transform = Matrix4x4.Identity;
 
         private bool changed = true;
 
         private bool transformChanged = true;
 
-        private Matrix4x4 globalMatrix;
+        internal Matrix4x4 globalMatrix = Matrix4x4.Identity;
 
-        private Matrix4x4 originalGlobalMatrix;
-
-        private Dictionary<string, Node> cachedNodes = [];
+        private readonly Dictionary<string, Node> cachedNodes = [];
 
         private Vector3 position;
 
@@ -106,21 +104,26 @@ public class MeshAsset : IGuidAsset
 
         private Quaternion originalRotation;
 
-        private void UpdateTransforms()
+        internal bool forceUpdateTransforms = false;
+
+        internal void UpdateTransforms()
         {
-            if (changed)
+            if (changed || forceUpdateTransforms)
             {
                 changed = false;
 
                 if (parent != null)
                 {
+                    if(forceUpdateTransforms)
+                    {
+                        parent.forceUpdateTransforms = true;
+                    }
+
                     globalMatrix = transform * parent.GlobalTransform;
-                    originalGlobalMatrix = originalTransform * parent.OriginalGlobalTransform;
                 }
                 else
                 {
                     globalMatrix = transform;
-                    originalGlobalMatrix = originalTransform;
                 }
             }
 
@@ -129,7 +132,6 @@ public class MeshAsset : IGuidAsset
                 transformChanged = false;
 
                 Matrix4x4.Decompose(transform, out scale, out rotation, out position);
-                Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
             }
         }
 
@@ -140,6 +142,13 @@ public class MeshAsset : IGuidAsset
                 UpdateTransforms();
 
                 return position;
+            }
+
+            set
+            {
+                position = value;
+
+                changed = transformChanged = false;
             }
         }
 
@@ -161,6 +170,13 @@ public class MeshAsset : IGuidAsset
 
                 return scale;
             }
+
+            set
+            {
+                scale = value;
+
+                changed = transformChanged = false;
+            }
         }
 
         public Vector3 OriginalScale
@@ -181,6 +197,13 @@ public class MeshAsset : IGuidAsset
 
                 return rotation;
             }
+
+            set
+            {
+                rotation = value;
+
+                changed = transformChanged = false;
+            }
         }
 
         public Quaternion OriginalRotation
@@ -195,13 +218,18 @@ public class MeshAsset : IGuidAsset
 
         public Matrix4x4 Transform
         {
-            get => transform;
+            get
+            {
+                UpdateTransforms();
+
+                return transform;
+            }
 
             set
             {
                 transform = value;
 
-                changed = transformChanged = true;
+                changed = transformChanged = false;
             }
         }
 
@@ -213,9 +241,11 @@ public class MeshAsset : IGuidAsset
             {
                 originalTransform = value;
 
-                changed = transformChanged = true;
+                Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
             }
         }
+
+        public Matrix4x4 BakedTransform { get; set; } = Matrix4x4.Identity;
 
         public Matrix4x4 GlobalTransform
         {
@@ -224,16 +254,6 @@ public class MeshAsset : IGuidAsset
                 UpdateTransforms();
 
                 return globalMatrix;
-            }
-        }
-
-        public Matrix4x4 OriginalGlobalTransform
-        {
-            get
-            {
-                UpdateTransforms();
-
-                return originalGlobalMatrix;
             }
         }
 
@@ -285,7 +305,6 @@ public class MeshAsset : IGuidAsset
                 transform = transform,
                 globalMatrix = globalMatrix,
                 originalTransform = originalTransform,
-                originalGlobalMatrix = originalGlobalMatrix,
             };
 
             foreach(var child in children)
@@ -335,8 +354,20 @@ public class MeshAsset : IGuidAsset
         public float duration;
         public float ticksPerSecond;
         public List<AnimationChannel> channels = [];
+        public Dictionary<float, Dictionary<string, AnimationNodeState>> bakedData = null;
 
         public float DurationRealtime => duration / ticksPerSecond;
+    }
+
+    /// <summary>
+    /// Contains information about the state of an animation node
+    /// </summary>
+    public class AnimationNodeState(Matrix4x4 transform, Vector3 position, Quaternion rotation, Vector3 scale)
+    {
+        public Matrix4x4 transform = transform;
+        public Vector3 position = position;
+        public Quaternion rotation = rotation;
+        public Vector3 scale = scale;
     }
 
     /// <summary>
@@ -348,11 +379,6 @@ public class MeshAsset : IGuidAsset
     /// The root node of the transform tree
     /// </summary>
     public Node rootNode;
-
-    /// <summary>
-    /// The inverse root node transform
-    /// </summary>
-    public Matrix4x4 inverseTransform;
 
     /// <summary>
     /// List of all animations
