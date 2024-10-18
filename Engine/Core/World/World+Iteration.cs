@@ -622,12 +622,7 @@ public partial class World
             return;
         }
 
-        if(callableComponents == null)
-        {
-            callableComponents = new();
-
-            callableComponents.WorldChanged();
-        }
+        callableComponents ??= new();
 
         lock (lockObject)
         {

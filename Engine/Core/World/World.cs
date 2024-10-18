@@ -155,6 +155,8 @@ public partial class World
         lock (globalLockObject)
         {
             sceneQueries.AddObserver(receiver);
+
+            receiver.WorldChanged();
         }
     }
 
@@ -168,6 +170,8 @@ public partial class World
         lock(globalLockObject)
         {
             worldChangeReceivers.AddObserver(receiver);
+
+            receiver.WorldChanged();
         }
     }
 
@@ -193,8 +197,6 @@ public partial class World
             if (cameras == null)
             {
                 cameras = new();
-
-                cameras.WorldChanged();
             }
 
             if (sortedCamerasHolder == null)
@@ -202,8 +204,6 @@ public partial class World
                 sortedCamerasHolder = new();
 
                 AddChangeReceiver(sortedCamerasHolder);
-
-                sortedCamerasHolder.WorldChanged();
             }
 
             if (removedComponents.Count > 0)

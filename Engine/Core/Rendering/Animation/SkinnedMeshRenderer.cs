@@ -41,10 +41,15 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// <summary>
     /// Cached animator for this renderer
     /// </summary>
-    internal SkinnedMeshAnimator animator;
+    internal EntityQuery<SkinnedMeshAnimator> animator;
 
     /// <summary>
-    /// Whether we've checked for an animator yet
+    /// Resets the animation state of this renderer
     /// </summary>
-    internal bool checkedAnimator = false;
+    internal void ResetAnimationState()
+    {
+        cachedBoneMatrices.Clear();
+        cachedNodes.Clear();
+        cachedAnimatorNodes.Clear();
+    }
 }

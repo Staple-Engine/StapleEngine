@@ -17,6 +17,7 @@ public class SkinnedMeshAnimator : IComponent
     internal Dictionary<string, MeshAsset.Node> nodeCache = [];
     internal SkinnedMeshAnimationEvaluator evaluator;
     internal bool shouldRender = true;
+    internal EntityQuery<SkinnedMeshRenderer> renderers;
 
     public void SetAnimation(string name, bool repeat)
     {

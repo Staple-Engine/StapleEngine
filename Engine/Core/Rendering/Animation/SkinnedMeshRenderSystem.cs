@@ -1,7 +1,6 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -57,12 +56,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
         }
 
-        if(renderer.checkedAnimator == false)
-        {
-            renderer.checkedAnimator = true;
-
-            renderer.animator = entity.GetComponentInParent<SkinnedMeshAnimator>();
-        }
+        renderer.animator ??= new(entity, EntityQueryMode.Parent);
 
         renderers.Add(new RenderInfo()
         {
@@ -88,7 +82,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         foreach (var pair in renderers)
         {
             var renderer = pair.renderer;
-            var animator = pair.renderer.animator;
+            var animator = pair.renderer.animator.Length > 0 ? pair.renderer.animator[0] : null;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
@@ -103,9 +97,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 
                 for(var i = 0; i < renderer.mesh.submeshes.Count; i++)
                 {
-                    renderer.cachedBoneMatrices.Add(new Matrix4x4[meshAssetMesh.bones[i].Count]);
-                    renderer.cachedNodes.Add(new MeshAsset.Node[meshAssetMesh.bones[i].Count]);
-                    renderer.cachedAnimatorNodes.Add(null);
+                    renderer.cachedBoneMatrices.Add([]);
+                    renderer.cachedNodes.Add([]);
+                    renderer.cachedAnimatorNodes.Add([]);
                 }
             }
 
@@ -125,9 +119,19 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     renderer.cachedBoneMatrices[i] = new Matrix4x4[bones.Count];
                     renderer.cachedNodes[i] = new MeshAsset.Node[bones.Count];
+
+                    for(var j = 0; j < bones.Count; j++)
+                    {
+                        var bone = bones[j];
+
+                        renderer.cachedNodes[i][j] = MeshAsset.TryGetNode(meshAsset.rootNode, bone.name, out var localNode) ?
+                            localNode : null;
+
+                        renderer.cachedBoneMatrices[i][j] = localNode != null ? bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
+                    }
                 }
 
-                if(useAnimator && (renderer.cachedAnimatorNodes[i]?.Length ?? 0) != bones.Count)
+                if(useAnimator && renderer.cachedAnimatorNodes[i].Length != bones.Count)
                 {
                     renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Count];
 

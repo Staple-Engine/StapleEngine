@@ -4,6 +4,14 @@ namespace Staple.Internal;
 
 public class SkinnedMeshAnimatorSystem : IRenderSystem
 {
+    private static void ResetRenderers(SkinnedMeshAnimator animator)
+    {
+        foreach(var renderer in animator.renderers)
+        {
+            renderer.ResetAnimationState();
+        }
+    }
+
     public Type RelatedComponent()
     {
         return typeof(SkinnedMeshAnimator);
@@ -18,6 +26,11 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
         if(relatedComponent is SkinnedMeshAnimator animator)
         {
             animator.shouldRender = false;
+
+            if(animator.renderers == null)
+            {
+                animator.renderers = new(entity, EntityQueryMode.Children);
+            }
         }
     }
 
@@ -53,6 +66,8 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
             if (animator.evaluator == null ||
                 animator.evaluator.animation.name != animator.animation)
             {
+                ResetRenderers(animator);
+
                 animator.evaluator = new(animator.mesh.meshAsset,
                     animator.mesh.meshAsset.animations[animator.animation],
                     animator.mesh.meshAsset.rootNode.Clone(),
@@ -81,6 +96,8 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
                 SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
 
                 animator.shouldRender = true;
+
+                ResetRenderers(animator);
             }
 
             animator.evaluator = null;
