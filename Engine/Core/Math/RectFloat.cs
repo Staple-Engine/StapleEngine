@@ -3,6 +3,9 @@ using System.Numerics;
 
 namespace Staple;
 
+/// <summary>
+/// Represents a rectangle with float values
+/// </summary>
 [MessagePackObject]
 public struct RectFloat
 {
@@ -66,11 +69,11 @@ public struct RectFloat
         }
     }
 
-    public bool ShouldSerializeMin() => false;
+    public readonly bool ShouldSerializeMin() => false;
 
-    public bool ShouldSerializeMax() => false;
+    public readonly bool ShouldSerializeMax() => false;
 
-    public bool ShouldSerializeWidth() => false;
+    public readonly bool ShouldSerializeWidth() => false;
 
-    public bool ShouldSerializeHeight() => false;
+    public readonly bool ShouldSerializeHeight() => false;
 }

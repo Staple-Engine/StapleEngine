@@ -1,20 +1,22 @@
 ﻿using Staple.Internal;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Staple;
 
-public sealed class PerformanceProfiler : IDisposable
+public sealed class PerformanceProfiler(PerformanceProfilerType type) : IDisposable
 {
-    private readonly PerformanceProfilerType type;
+    private readonly PerformanceProfilerType type = type;
     private readonly DateTime startTime = DateTime.UtcNow;
 
-    public PerformanceProfiler(PerformanceProfilerType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Report()
     {
-        this.type = type;
+        PerformanceProfilerSystem.AddCounter(type, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
     }
 
     public void Dispose()
     {
-        PerformanceProfilerSystem.AddCounter(type, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
+        Report();
     }
 }

@@ -1,5 +1,4 @@
-﻿using Staple.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,10 +15,10 @@ internal class EntitySystemManager : ISubsystem
 
     public SubsystemType type => SubsystemType.Update;
 
-    private readonly HashSet<IEntitySystemUpdate> updateSystems = new();
-    private readonly HashSet<IEntitySystemFixedUpdate> fixedUpdateSystems = new();
+    private readonly HashSet<IEntitySystemUpdate> updateSystems = [];
+    private readonly HashSet<IEntitySystemFixedUpdate> fixedUpdateSystems = [];
 
-    private readonly Dictionary<string, object> cachedSubclasses = new();
+    private readonly Dictionary<string, object> cachedSubclasses = [];
 
     private readonly object lockObject = new();
 

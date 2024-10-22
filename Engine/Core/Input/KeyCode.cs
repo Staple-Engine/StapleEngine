@@ -1,5 +1,8 @@
 ﻿namespace Staple;
 
+/// <summary>
+/// Codes for keyboard keys
+/// </summary>
 public enum KeyCode
 {
     Unknown = -1,

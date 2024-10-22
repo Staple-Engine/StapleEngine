@@ -5,19 +5,22 @@ using System.Reflection;
 
 namespace Staple;
 
-[Serializable]
-public class EntityCallbackEntry
-{
-    public int entityID;
-
-    public string className;
-
-    public string methodName;
-}
-
+/// <summary>
+/// Contains a way to add callbacks to actions and an entity, a component, and its methods
+/// </summary>
 [Serializable]
 public class EntityCallback
 {
+    [Serializable]
+    internal class EntityCallbackEntry
+    {
+        public int entityID;
+
+        public string className;
+
+        public string methodName;
+    }
+
     [Serializable]
     private class EntityCallbackEntryCache
     {
@@ -27,36 +30,58 @@ public class EntityCallback
     }
 
     [SerializeField]
-    private List<EntityCallbackEntry> persistentCallbacks = new();
+    private readonly List<EntityCallbackEntry> persistentCallbacks = [];
 
-    private HashSet<Action> callbacks = new();
-    private List<EntityCallbackEntryCache> persistentCache = new();
+    private readonly HashSet<Action> callbacks = [];
+    private readonly List<EntityCallbackEntryCache> persistentCache = [];
 
+    /// <summary>
+    /// Adds a callback to this entity callback
+    /// </summary>
+    /// <param name="callback">The callback</param>
     public void AddListener(Action callback)
     {
         callbacks.Add(callback);
     }
 
+    /// <summary>
+    /// Removes a callback from this entity callback
+    /// </summary>
+    /// <param name="callback">The callback</param>
     public void RemoveListener(Action callback)
     {
         callbacks.Remove(callback);
     }
 
+    /// <summary>
+    /// Removes all callbacks from this entity callback
+    /// </summary>
     public void RemoveAllListeners()
     {
         callbacks.Clear();
     }
 
+    /// <summary>
+    /// Clears the persistent cache of this entity callback
+    /// </summary>
     internal void ClearCache()
     {
         persistentCache.Clear();
     }
 
+    /// <summary>
+    /// Adds a persistent callback
+    /// </summary>
+    /// <param name="entry">The new entry</param>
     internal void AddPersistentCallback(EntityCallbackEntry entry)
     {
         persistentCallbacks.Add(entry);
     }
 
+    /// <summary>
+    /// Removes a persistent callback
+    /// </summary>
+    /// <param name="entry">The entry</param>
     internal void RemovePersistentCallback(EntityCallbackEntry entry)
     {
         persistentCallbacks.Remove(entry);
@@ -67,6 +92,9 @@ public class EntityCallback
         return persistentCallbacks;
     }
 
+    /// <summary>
+    /// Updates the persistent cache of this entity callback
+    /// </summary>
     internal void UpdateCache()
     {
         if (persistentCache.Count == 0)
@@ -112,6 +140,9 @@ public class EntityCallback
         }
     }
 
+    /// <summary>
+    /// Invokes the callbacks in this entity callback
+    /// </summary>
     public void Invoke()
     {
         UpdateCache();

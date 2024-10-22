@@ -15,28 +15,51 @@ public class CallbackComponent : IComponent
     /// </summary>
     internal bool STAPLE_JUST_ADDED = true;
 
+    /// <summary>
+    /// The entity this belongs to
+    /// </summary>
     public Entity entity { get; internal set; }
 
+    /// <summary>
+    /// Called when this component is added to its object
+    /// </summary>
     public virtual void Awake()
     {
     }
 
+    /// <summary>
+    /// Called after the first frame this component was added to its object
+    /// </summary>
     public virtual void Start()
     {
     }
 
+    /// <summary>
+    /// Called when this component is being destroyed
+    /// </summary>
     public virtual void OnDestroy()
     {
     }
 
+    /// <summary>
+    /// Called once per frame.
+    /// You should use Time.deltaTime if you need a delta time here.
+    /// </summary>
     public virtual void Update()
     {
     }
 
+    /// <summary>
+    /// Called once per fixed update tick.
+    /// You should use Time.fixedDeltaTime if you need a delta time here.
+    /// </summary>
     public virtual void FixedUpdate()
     {
     }
 
+    /// <summary>
+    /// Called at the end of each frame
+    /// </summary>
     public virtual void LateUpdate()
     {
     }

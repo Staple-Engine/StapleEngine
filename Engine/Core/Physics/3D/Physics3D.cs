@@ -7,7 +7,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Physics 3D management proxy
 /// </summary>
-public class Physics3D : ISubsystem
+public sealed class Physics3D : ISubsystem
 {
     private static Physics3D instance;
 

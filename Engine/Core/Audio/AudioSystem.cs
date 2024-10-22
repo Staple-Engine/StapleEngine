@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Threading;
 
 namespace Staple.Internal;
 
 /// <summary>
-/// Audio system
+/// Audio system subsystem
 /// </summary>
 public class AudioSystem : ISubsystem
 {
-    class AudioSourceInfo
+    private class AudioSourceInfo
     {
         public WeakReference<AudioSource> source;
         public Entity entity;
@@ -27,26 +28,68 @@ public class AudioSystem : ISubsystem
 
     public SubsystemType type => SubsystemType.Update;
 
+    /// <summary>
+    /// What implementation to use for the audio device
+    /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public static Type AudioDeviceImpl { get; internal set; }
 
+    /// <summary>
+    /// What implementation to use for the audio listener
+    /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public static Type AudioListenerImpl { get; internal set; }
 
+    /// <summary>
+    /// What implementation to use for the audio source
+    /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public static Type AudioSourceImpl { get; internal set; }
 
+    /// <summary>
+    /// What implementation to use for the audio clip
+    /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public static Type AudioClipImpl { get; internal set; }
 
+    /// <summary>
+    /// Internal audio device instance
+    /// </summary>
     internal IAudioDevice device;
 
     internal static readonly byte Priority = 3;
 
+    /// <summary>
+    /// Thread to load audio in the background
+    /// </summary>
     private Thread backgroundLoadThread;
-    private bool shuttingDown = false;
-    private object backgroundLock = new();
-    private Queue<Action> backgroundActions = new();
 
+    /// <summary>
+    /// Whether we're shutting down
+    /// </summary>
+    private bool shuttingDown = false;
+
+    /// <summary>
+    /// Thread lock for background usage
+    /// </summary>
+    private object backgroundLock = new();
+
+    /// <summary>
+    /// Pending actions for the background thrread
+    /// </summary>
+    private readonly Queue<Action> backgroundActions = new();
+
+    /// <summary>
+    /// The instance of the audio system
+    /// </summary>
     public static readonly AudioSystem Instance = new();
 
-    private readonly List<AudioSourceInfo> audioSources = new();
+    /// <summary>
+    /// All our audio sources
+    /// </summary>
+    private readonly List<AudioSourceInfo> audioSources = [];
+
+    private SceneQuery<Transform, AudioListener> audioListeners;
 
     public void Startup()
     {
@@ -183,11 +226,14 @@ public class AudioSystem : ISubsystem
             return;
         }
 
-        Transform listenerTransform = null;
+        if(audioListeners == null)
+        {
+            audioListeners = new();
+        }
 
-        var listeners = Scene.Query<Transform, AudioListener>();
+        Transform listenerTransform = null;
         
-        foreach((Entity _, Transform transform, AudioListener listener) in listeners)
+        foreach((Entity _, Transform transform, AudioListener listener) in audioListeners)
         {
             listenerTransform ??= transform;
 

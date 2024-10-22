@@ -6,20 +6,45 @@ namespace Staple;
 
 public enum EntityQueryMode
 {
+    /// <summary>
+    /// Get the component from self
+    /// </summary>
     Self,
+
+    /// <summary>
+    /// Get the component from the closest parent
+    /// </summary>
     Parent,
+
+    /// <summary>
+    /// Get multiple components from children
+    /// </summary>
     Children,
+
+    /// <summary>
+    /// Get multiple components from self or children
+    /// </summary>
     SelfAndChildren,
 }
 
+/// <summary>
+/// Automatically queries for components related to an entity and stores the result.
+/// It automatically updates as the world changes.
+/// </summary>
+/// <typeparam name="T">A type of component to get</typeparam>
 public class EntityQuery<T> : ISceneQuery, IEnumerable<T>
     where T : IComponent
 {
     private T[] contents = [];
+    private T content;
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
 
     public int Length => contents.Length;
+
+    public T Content => content;
+
+    public T this[int index] => contents[index];
 
     public EntityQuery(Entity target, EntityQueryMode queryMode)
     {
@@ -29,12 +54,14 @@ public class EntityQuery<T> : ISceneQuery, IEnumerable<T>
         World.AddSceneQuery(this);
     }
 
-    public T this[int index] => contents[index];
-
     public void WorldChanged()
     {
-        if(target.IsValid == false)
+        content = default;
+
+        if (target.IsValid == false)
         {
+            contents = [];
+
             return;
         }
 
@@ -69,6 +96,11 @@ public class EntityQuery<T> : ISceneQuery, IEnumerable<T>
             }
 
             contents[counter++] = (T)items[i];
+        }
+
+        if(count == 1 && contents[0] != null)
+        {
+            content = contents[0];
         }
     }
 

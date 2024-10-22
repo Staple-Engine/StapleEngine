@@ -4,35 +4,65 @@ using System.IO;
 
 namespace Staple;
 
+/// <summary>
+/// Audio clip asset.
+/// Contains data on an audio file.
+/// </summary>
 public sealed class AudioClip : IGuidAsset
 {
-    public AudioClipMetadata metadata;
+    /// <summary>
+    /// Audio metadata
+    /// </summary>
+    internal AudioClipMetadata metadata;
 
-    [NonSerialized]
-    public int sizeInBytes;
+    /// <summary>
+    /// Size in bytes of the contained file
+    /// </summary>
+    internal int sizeInBytes;
 
-    [NonSerialized]
-    public float duration;
+    /// <summary>
+    /// Duration in seconds
+    /// </summary>
+    internal float duration;
 
-    [NonSerialized]
-    public int channels;
+    /// <summary>
+    /// Audio channels
+    /// </summary>
+    internal int channels;
 
-    [NonSerialized]
-    public int bitsPerSample;
+    /// <summary>
+    /// Bits per sample
+    /// </summary>
+    internal int bitsPerSample;
 
-    [NonSerialized]
-    public int sampleRate;
+    /// <summary>
+    /// Sample rate
+    /// </summary>
+    internal int sampleRate;
 
+    /// <summary>
+    /// 16-bit samples
+    /// </summary>
     internal short[] samples;
 
+    /// <summary>
+    /// What kind of audio format we have
+    /// </summary>
     internal AudioClipFormat format;
 
+    /// <summary>
+    /// The file's contents
+    /// </summary>
     internal byte[] fileData;
 
     private string guid;
 
     public string Guid { get => guid; set => guid = value; }
 
+    /// <summary>
+    /// Gets an internal audio stream for the audio.
+    /// </summary>
+    /// <returns>The audio stream, or null</returns>
     internal IAudioStream GetAudioStream()
     {
         switch(format)

@@ -1,5 +1,8 @@
 ﻿namespace Staple;
 
+/// <summary>
+/// List of gamepad buttons
+/// </summary>
 public enum GamepadButton
 {
     Invalid = -1,

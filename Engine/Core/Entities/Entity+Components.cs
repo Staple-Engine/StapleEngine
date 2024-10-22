@@ -11,7 +11,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent AddComponent(
+    public readonly IComponent AddComponent(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
@@ -28,7 +28,7 @@ public partial struct Entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
-    public T AddComponent
+    public readonly T AddComponent
         <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>
         () where T : IComponent
     {
@@ -44,7 +44,7 @@ public partial struct Entity
     /// Removes a component from this entity
     /// </summary>
     /// <param name="t">The type to remove</param>
-    public void RemoveComponent(Type t)
+    public readonly void RemoveComponent(Type t)
     {
         World.Current.RemoveComponent(this, t);
     }
@@ -53,7 +53,7 @@ public partial struct Entity
     /// Removes a component from this entity
     /// </summary>
     /// <typeparam name="T">The type to remove</typeparam>
-    public void RemoveComponent<T>() where T : IComponent
+    public readonly void RemoveComponent<T>() where T : IComponent
     {
         World.Current?.RemoveComponent<T>(this);
     }
@@ -63,7 +63,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent GetComponent(Type t)
+    public readonly IComponent GetComponent(Type t)
     {
         if (World.Current == null)
         {
@@ -78,7 +78,7 @@ public partial struct Entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
-    public T GetComponent<T>() where T : IComponent
+    public readonly T GetComponent<T>() where T : IComponent
     {
         if (World.Current == null)
         {
@@ -254,7 +254,7 @@ public partial struct Entity
     /// <param name="component">The component instance</param>
     /// <param name="t">The component type</param>
     /// <returns>Whether the component was found</returns>
-    public bool TryGetComponent(out IComponent component, Type t)
+    public readonly bool TryGetComponent(out IComponent component, Type t)
     {
         if (World.Current == null)
         {
@@ -272,7 +272,7 @@ public partial struct Entity
     /// <param name="component">The component instance</param>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>Whether the component was found</returns>
-    public bool TryGetComponent<T>(out T component) where T : IComponent
+    public readonly bool TryGetComponent<T>(out T component) where T : IComponent
     {
         if (World.Current == null)
         {
@@ -289,7 +289,7 @@ public partial struct Entity
     /// This is required if the component type is a struct.
     /// </summary>
     /// <param name="component">The component instance to replace</param>
-    public void SetComponent(IComponent component)
+    public readonly void SetComponent(IComponent component)
     {
         if (World.Current == null)
         {

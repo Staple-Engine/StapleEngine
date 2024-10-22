@@ -32,7 +32,7 @@ public class ColliderMask
         }
     }
 
-    internal static List<Item> collideMask = new();
+    internal static List<Item> collideMask = [];
 
     /// <summary>
     /// Checks whether two layer indices should collider with each other

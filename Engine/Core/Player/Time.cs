@@ -50,7 +50,7 @@ public static class Time
     /// <summary>
     /// The current time accumulator
     /// </summary>
-    internal static float Accumulator { get; set; }
+    internal static float Accumulator { get; private set; }
 
     /// <summary>
     /// Called when the accumulator triggers

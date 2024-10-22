@@ -3,6 +3,9 @@ using System.Numerics;
 
 namespace Staple;
 
+/// <summary>
+/// Represents a rectangle with integer values
+/// </summary>
 [MessagePackObject]
 public struct Rect
 {
@@ -39,7 +42,7 @@ public struct Rect
     }
 
     [IgnoreMember]
-    public bool IsEmpty => left == 0 && right == 0 && top == 0 && bottom == 0;
+    public readonly bool IsEmpty => left == 0 && right == 0 && top == 0 && bottom == 0;
 
     [IgnoreMember]
     public readonly Vector2Int Min => new(left, top);
@@ -81,13 +84,13 @@ public struct Rect
             v.Y >= top && v.Y <= bottom;
     }
 
-    public bool ShouldSerializeIsEmpty() => false;
+    public readonly bool ShouldSerializeIsEmpty() => false;
 
-    public bool ShouldSerializeMin() => false;
+    public readonly bool ShouldSerializeMin() => false;
 
-    public bool ShouldSerializeMax() => false;
+    public readonly bool ShouldSerializeMax() => false;
 
-    public bool ShouldSerializeWidth() => false;
+    public readonly bool ShouldSerializeWidth() => false;
 
-    public bool ShouldSerializeHeight() => false;
+    public readonly bool ShouldSerializeHeight() => false;
 }

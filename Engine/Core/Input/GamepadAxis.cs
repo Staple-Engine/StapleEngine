@@ -1,5 +1,8 @@
 ﻿namespace Staple;
 
+/// <summary>
+/// List of gamepad axis
+/// </summary>
 public enum GamepadAxis
 {
     Invalid =-1,

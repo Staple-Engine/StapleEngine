@@ -23,8 +23,8 @@ public static class Input
     private class GamepadState
     {
         public GamepadConnectionState state = GamepadConnectionState.Unknown;
-        public readonly Dictionary<GamepadButton, InputState> buttonStates = new();
-        public readonly Dictionary<GamepadAxis, float> axis = new();
+        public readonly Dictionary<GamepadButton, InputState> buttonStates = [];
+        public readonly Dictionary<GamepadAxis, float> axis = [];
     }
 
     private class InputCallback
@@ -36,19 +36,19 @@ public static class Input
         public Assembly assembly;
     }
 
-    private static readonly Dictionary<KeyCode, InputState> keyStates = new();
+    private static readonly Dictionary<KeyCode, InputState> keyStates = [];
 
-    private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = new();
+    private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = [];
 
-    private static readonly Dictionary<int, InputState> touchStates = new();
+    private static readonly Dictionary<int, InputState> touchStates = [];
 
-    private static readonly Dictionary<int, Vector2> touchPositions = new();
+    private static readonly Dictionary<int, Vector2> touchPositions = [];
 
-    private static readonly HashSet<int> touchKeysToRemove = new();
+    private static readonly HashSet<int> touchKeysToRemove = [];
 
-    private static readonly Dictionary<int, GamepadState> gamepads = new();
+    private static readonly Dictionary<int, GamepadState> gamepads = [];
 
-    private static readonly Dictionary<int, InputCallback> inputCallbacks = new();
+    private static readonly Dictionary<int, InputCallback> inputCallbacks = [];
 
     private static int inputCallbackCounter = 0;
 

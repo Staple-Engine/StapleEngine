@@ -17,7 +17,7 @@ public class SkinnedAnimationController
     internal SkinnedAnimationStateMachine stateMachine;
     internal SkinnedAnimationStateMachine.AnimationState currentState;
 
-    private Dictionary<string, Parameter> parameters = new();
+    private readonly Dictionary<string, Parameter> parameters = [];
 
     public SkinnedAnimationController(SkinnedMeshAnimator animator)
     {

@@ -83,7 +83,7 @@ public partial struct Entity
         return Identifier.GetHashCode();
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         if(IsValid)
         {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Staple;
+﻿namespace Staple;
 
 /// <summary>
 /// Used to specify the range of values for a variable in the inspector. The variable will be rendered with a slider.

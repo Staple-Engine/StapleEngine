@@ -2,6 +2,9 @@
 
 namespace Staple;
 
+/// <summary>
+/// Sets a category for a component. Can use `/` in the category name to make sub-categories.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
 public class ComponentCategoryAttribute : Attribute
 {

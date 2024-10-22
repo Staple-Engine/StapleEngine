@@ -26,7 +26,7 @@ public struct EntityID
         return (a == b) == false;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
         {
@@ -41,12 +41,12 @@ public struct EntityID
         return false;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return ID.GetHashCode() * 17 + generation.GetHashCode();
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"{ID}:{generation}";
     }

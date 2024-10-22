@@ -2,12 +2,8 @@
 
 namespace Staple;
 
-public class TooltipAttribute : Attribute
+[AttributeUsage(AttributeTargets.Field)]
+public class TooltipAttribute(string caption) : Attribute
 {
-    public string caption;
-
-    public TooltipAttribute(string caption)
-    {
-        this.caption = caption;
-    }
+    public string caption = caption;
 }

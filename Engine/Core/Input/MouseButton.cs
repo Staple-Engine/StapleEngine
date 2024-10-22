@@ -1,5 +1,8 @@
 ﻿namespace Staple;
 
+/// <summary>
+/// List of mouse buttons
+/// </summary>
 public enum MouseButton
 {
     Button1 = 0,

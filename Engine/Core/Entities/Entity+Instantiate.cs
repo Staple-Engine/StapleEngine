@@ -5,6 +5,14 @@ namespace Staple;
 
 public partial struct Entity
 {
+    /// <summary>
+    /// Internally instantiates an entity into a transform
+    /// </summary>
+    /// <param name="source">The source entity to instantiate</param>
+    /// <param name="parent">The parent transform to put this entity into</param>
+    /// <param name="keepWorldPosition">Whether to keep the world position</param>
+    /// <param name="rename">Whether to rename the entity</param>
+    /// <returns>The new entity, or an invalid entity</returns>
     internal static Entity InstantiateInternal(Entity source, Transform parent, bool keepWorldPosition, bool rename)
     {
         if (source.IsValid == false ||
@@ -36,7 +44,7 @@ public partial struct Entity
 
         SceneSerialization.InstantiateEntityComponents(source, newEntity);
 
-        void Recursive(Transform sourceTransform, Transform targetTransform)
+        static void Recursive(Transform sourceTransform, Transform targetTransform)
         {
             foreach (var child in sourceTransform)
             {
@@ -49,6 +57,15 @@ public partial struct Entity
         return newEntity;
     }
 
+    /// <summary>
+    /// Internally instantiates an entity to a specific world position and rotation
+    /// </summary>
+    /// <param name="source">The source entity</param>
+    /// <param name="position">The target world position</param>
+    /// <param name="rotation">The target world rotation</param>
+    /// <param name="parent">The target transform</param>
+    /// <param name="rename">Whether to rename</param>
+    /// <returns>The new entity, or an invalid entity</returns>
     internal static Entity InstantiateInternal(Entity source, Vector3 position, Quaternion rotation, Transform parent, bool rename)
     {
         if (source.IsValid == false ||
@@ -73,7 +90,7 @@ public partial struct Entity
 
         SceneSerialization.InstantiateEntityComponents(source, newEntity);
 
-        void Recursive(Transform sourceTransform, Transform targetTransform)
+        static void Recursive(Transform sourceTransform, Transform targetTransform)
         {
             foreach (var child in sourceTransform)
             {
@@ -112,7 +129,7 @@ public partial struct Entity
     }
 
     /// <summary>
-    /// Instantiates a new copy of an existing entity
+    /// Instantiates a new copy of a prefab
     /// </summary>
     /// <param name="prefab">The prefab to instantiate</param>
     /// <param name="parent">The parent transform, if any</param>
@@ -128,7 +145,7 @@ public partial struct Entity
     }
 
     /// <summary>
-    /// Instantiates a new copy of an existing entity
+    /// Instantiates a new copy of a prefab
     /// </summary>
     /// <param name="prefab">The entity to instantiate</param>
     /// <param name="position">The entity's position</param>
@@ -160,7 +177,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="guid">The prefab guid</param>
     /// <param name="localID">The local ID for this entity</param>
-    internal void SetPrefab(string guid, int localID)
+    internal readonly void SetPrefab(string guid, int localID)
     {
         World.Current?.SetEntityPrefab(this, guid, localID);
     }
@@ -171,7 +188,7 @@ public partial struct Entity
     /// <param name="guid">The prefab guid</param>
     /// <param name="localID">The prefab local ID</param>
     /// <returns>Whether the entity has a prefab</returns>
-    internal bool TryGetPrefab(out string guid, out int localID)
+    internal readonly bool TryGetPrefab(out string guid, out int localID)
     {
         if(World.Current == null)
         {

@@ -2,6 +2,9 @@
 
 namespace Staple;
 
+/// <summary>
+/// Represents a prefab asset
+/// </summary>
 public class Prefab : IGuidAsset
 {
     internal SerializablePrefab data;

@@ -9,18 +9,12 @@ namespace Staple;
 /// </summary>
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
-public struct Ray
+public struct Ray(Vector3 position, Vector3 direction)
 {
-    public Vector3 position;
-    public Vector3 direction;
+    public Vector3 position = position;
+    public Vector3 direction = direction;
 
-    public Ray(Vector3 position, Vector3 direction)
-    {
-        this.position = position;
-        this.direction = direction;
-    }
-
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"(position: {position}, direction: {direction})";
     }
