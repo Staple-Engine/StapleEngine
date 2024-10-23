@@ -3,27 +3,67 @@ using System.Linq;
 
 namespace Staple;
 
-public class SkinnedAnimationController
+/// <summary>
+/// State machine controller for skinned mesh animators
+/// </summary>
+public sealed class SkinnedAnimationController
 {
+    /// <summary>
+    /// Animation parameter
+    /// </summary>
     internal class Parameter
     {
+        /// <summary>
+        /// The parameter type
+        /// </summary>
         public SkinnedAnimationStateMachine.AnimationParameterType type;
+
+        /// <summary>
+        /// The bool value if the type is bool
+        /// </summary>
         public bool boolValue;
+
+        /// <summary>
+        /// The int value if the type is int
+        /// </summary>
         public int intValue;
+
+        /// <summary>
+        /// The float value if the type is float
+        /// </summary>
         public float floatValue;
     }
 
+    /// <summary>
+    /// The animator we're using
+    /// </summary>
     internal SkinnedMeshAnimator animator;
+
+    /// <summary>
+    /// The state machine we're using
+    /// </summary>
     internal SkinnedAnimationStateMachine stateMachine;
+
+    /// <summary>
+    /// The current state in the state machine
+    /// </summary>
     internal SkinnedAnimationStateMachine.AnimationState currentState;
 
+    /// <summary>
+    /// List of all parameters
+    /// </summary>
     private readonly Dictionary<string, Parameter> parameters = [];
 
     public SkinnedAnimationController(SkinnedMeshAnimator animator)
     {
         this.animator = animator;
 
-        stateMachine = animator.stateMachine;
+        stateMachine = animator?.stateMachine;
+
+        if(stateMachine == null)
+        {
+            return;
+        }
 
         var startState = stateMachine.states.FirstOrDefault()?.name;
 
@@ -34,7 +74,7 @@ public class SkinnedAnimationController
 
         foreach (var parameter in stateMachine.parameters)
         {
-            if(parameter.name == null || parameter.name.Length == 0)
+            if((parameter.name?.Length ?? 0) == 0)
             {
                 continue;
             }
@@ -46,6 +86,11 @@ public class SkinnedAnimationController
         }
     }
 
+    /// <summary>
+    /// Sets a bool value for a parameter
+    /// </summary>
+    /// <param name="name">The parameter name</param>
+    /// <param name="value">The new value</param>
     public void SetBoolParameter(string name, bool value)
     {
         if(parameters.TryGetValue(name, out var parameter) &&
@@ -57,6 +102,11 @@ public class SkinnedAnimationController
         CheckConditions();
     }
 
+    /// <summary>
+    /// Sets an int value for a parameter
+    /// </summary>
+    /// <param name="name">The parameter name</param>
+    /// <param name="value">The new value</param>
     public void SetIntParameter(string name, int value)
     {
         if (parameters.TryGetValue(name, out var parameter) &&
@@ -68,6 +118,11 @@ public class SkinnedAnimationController
         CheckConditions();
     }
 
+    /// <summary>
+    /// Sets a float value for a parameter
+    /// </summary>
+    /// <param name="name">The parameter name</param>
+    /// <param name="value">The new value</param>
     public void SetFloatParameter(string name, float value)
     {
         if (parameters.TryGetValue(name, out var parameter) &&
@@ -79,6 +134,10 @@ public class SkinnedAnimationController
         CheckConditions();
     }
 
+    /// <summary>
+    /// Checks if the animation finished
+    /// </summary>
+    /// <returns>Whether the animation finished</returns>
     private bool AnimationFinished()
     {
         if(currentState == null ||
@@ -91,6 +150,11 @@ public class SkinnedAnimationController
         return animator.evaluator.FinishedPlaying;
     }
 
+    /// <summary>
+    /// Checks whether a parameter passes its condition
+    /// </summary>
+    /// <param name="parameter">The parameter to check</param>
+    /// <returns>Whether it passes</returns>
     private bool CheckParameter(SkinnedAnimationStateMachine.AnimationConditionParameter parameter)
     {
         if (parameter.name == null || parameter.name.Length == 0)
@@ -237,6 +301,9 @@ public class SkinnedAnimationController
         return false;
     }
 
+    /// <summary>
+    /// Checks the current conditions to trigger a state change
+    /// </summary>
     private void CheckConditions()
     {
         if(currentState == null || currentState.connections.Count == 0)
@@ -291,6 +358,10 @@ public class SkinnedAnimationController
         }
     }
 
+    /// <summary>
+    /// Sets a new state
+    /// </summary>
+    /// <param name="name">The state name</param>
     private void SetState(string name)
     {
         if (name == null)

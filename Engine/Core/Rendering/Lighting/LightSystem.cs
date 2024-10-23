@@ -5,9 +5,20 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
-public class LightSystem : IRenderSystem, IWorldChangeReceiver
+/// <summary>
+/// Light rendering system
+/// </summary>
+public sealed class LightSystem : IRenderSystem
 {
+    /// <summary>
+    /// Limit to 16 lights
+    /// </summary>
     public const int MaxLights = 16;
+
+    /// <summary>
+    /// Enable or disable the light system
+    /// </summary>
+    public static bool Enabled = true;
 
     private static readonly string LightAmbientKey = "u_lightAmbient";
     private static readonly string LightCountKey = "u_lightCount";
@@ -19,8 +30,6 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
     private static readonly string NormalMatrixKey = "u_normalMatrix";
     private static readonly string ViewPosKey = "u_viewPos";
 
-    private readonly List<(Transform, Light)> lights = [];
-
     private readonly SceneQuery<Transform, Light> lightQuery = new();
 
     private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
@@ -30,8 +39,6 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
     private readonly Dictionary<int, (ShaderHandle, ShaderHandle, ShaderHandle,
         ShaderHandle, ShaderHandle, ShaderHandle,
         ShaderHandle, ShaderHandle, ShaderHandle)> cachedMaterialInfo = [];
-
-    public static bool Enabled = true;
 
     public LightSystem()
     {
@@ -71,6 +78,11 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
     {
     }
 
+    /// <summary>
+    /// Applies the material-specific lighting state
+    /// </summary>
+    /// <param name="material">The material to use</param>
+    /// <param name="lighting">The lighting type</param>
     public void ApplyMaterialLighting(Material material, MeshLighting lighting)
     {
         if(Enabled == false)
@@ -106,23 +118,31 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         }
     }
 
+    /// <summary>
+    /// Applies light properties to the next render pass
+    /// </summary>
+    /// <param name="position">The position of the renderable</param>
+    /// <param name="transform">The transform of the renderable</param>
+    /// <param name="material">The material to use</param>
+    /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="lighting">What lighting to use</param>
     public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition,
-        List<(Transform, Light)> lights, MeshLighting lighting)
+        MeshLighting lighting)
     {
         if (Enabled == false ||
             lighting == MeshLighting.Unlit ||
             (material?.IsValid ?? false) == false ||
-            lights.Count == 0)
+            lightQuery.Length == 0)
         {
             return;
         }
 
-        var targets = lights;
+        var targets = lightQuery.ToList();
 
-        if (lights.Count > MaxLights)
+        if (targets.Count > MaxLights)
         {
-            targets = lights
-                .OrderBy(x => Vector3.DistanceSquared(x.Item1.Position, position))
+            targets = targets
+                .OrderBy(x => Vector3.DistanceSquared(x.Item2.Position, position))
                 .Take(MaxLights)
                 .ToList();
         }
@@ -139,8 +159,8 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         for (var i = 0; i < targets.Count; i++)
         {
             var target = targets[i];
-            var light = target.Item2;
-            var t = target.Item1;
+            var light = target.Item3;
+            var t = target.Item2;
             var p = t.Position;
             var forward = t.Forward;
 
@@ -190,20 +210,5 @@ public class LightSystem : IRenderSystem, IWorldChangeReceiver
         material.shader.SetVector4(lightTypePositionHandle, cachedLightTypePositions);
         material.shader.SetVector4(lightDiffuseHandle, cachedLightDiffuse);
         material.shader.SetVector4(lightSpotDirectionHandle, cachedLightSpotDirection);
-    }
-
-    public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition, MeshLighting lighting)
-    {
-        ApplyLightProperties(position, transform, material, cameraPosition, lights, lighting);
-    }
-
-    public void WorldChanged()
-    {
-        lights.Clear();
-
-        foreach (var pair in lightQuery)
-        {
-            lights.Add((pair.Item2, pair.Item3));
-        }
     }
 }

@@ -5,15 +5,39 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Skinned mesh render system
+/// </summary>
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
+    /// <summary>
+    /// Limit bones to 255
+    /// </summary>
     internal const int MaxBones = 255;
 
+    /// <summary>
+    /// Infor for rendering
+    /// </summary>
     private struct RenderInfo
     {
+        /// <summary>
+        /// The renderer
+        /// </summary>
         public SkinnedMeshRenderer renderer;
+
+        /// <summary>
+        /// The current position of the object
+        /// </summary>
         public Vector3 position;
+
+        /// <summary>
+        /// The transform of the object
+        /// </summary>
         public Matrix4x4 transform;
+
+        /// <summary>
+        /// The render view ID
+        /// </summary>
         public ushort viewID;
     }
 
@@ -212,9 +236,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public static void GatherNodes(Transform parent, Dictionary<string, MeshAsset.Node> nodeCache, MeshAsset.Node rootNode)
+    /// <summary>
+    /// Gets all animation nodes for a parent transform
+    /// </summary>
+    /// <param name="nodeCache">A cache to store the nodes</param>
+    /// <param name="rootNode">The root node</param>
+    public static void GatherNodes(Dictionary<string, MeshAsset.Node> nodeCache, MeshAsset.Node rootNode)
     {
-        if (parent == null || nodeCache == null)
+        if (nodeCache == null)
         {
             return;
         }
@@ -239,6 +268,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         GatherNodes(rootNode);
     }
 
+    /// <summary>
+    /// Gets all transforms related to animation nodes
+    /// </summary>
+    /// <param name="parent">The parent transform</param>
+    /// <param name="transformCache">The transform cache</param>
+    /// <param name="rootNode">The root node</param>
     public static void GatherNodeTransforms(Transform parent, Dictionary<string, Transform> transformCache, MeshAsset.Node rootNode)
     {
         if (parent == null || transformCache == null)
@@ -278,6 +313,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         GatherNodes(rootNode);
     }
 
+    /// <summary>
+    /// Applies the transforms of a node cache into its related entity transforms
+    /// </summary>
+    /// <param name="nodeCache">The node cache</param>
+    /// <param name="transformCache">The transform cache</param>
+    /// <param name="original">Whether we want the original transforms (before animating)</param>
     public static void ApplyNodeTransform(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache, bool original = false)
     {
         foreach (var pair in transformCache)
@@ -293,6 +334,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
+    /// <summary>
+    /// Applies transforms to nodes. This lets you override the animation transforms.
+    /// </summary>
+    /// <param name="nodeCache">The node cache</param>
+    /// <param name="transformCache">The transform cache</param>
     public static void ApplyTransformsToNodes(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache)
     {
         foreach(var pair in nodeCache)

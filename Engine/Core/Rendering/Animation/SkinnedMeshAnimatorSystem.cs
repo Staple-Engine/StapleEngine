@@ -2,7 +2,11 @@
 
 namespace Staple.Internal;
 
-public class SkinnedMeshAnimatorSystem : IRenderSystem
+/// <summary>
+/// Skinned mesh animator system.
+/// Animates skinned meshes.
+/// </summary>
+public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
     private static void ResetRenderers(SkinnedMeshAnimator animator)
     {
@@ -80,7 +84,7 @@ public class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator.shouldRender = true;
                 };
 
-                SkinnedMeshRenderSystem.GatherNodes(transform, animator.nodeCache, animator.evaluator.rootNode);
+                SkinnedMeshRenderSystem.GatherNodes(animator.nodeCache, animator.evaluator.rootNode);
 
                 animator.shouldRender = true;
 

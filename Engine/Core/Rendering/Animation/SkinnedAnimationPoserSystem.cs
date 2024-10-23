@@ -2,6 +2,10 @@
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Skinned mesh poser system.
+/// Automatically syncs transforms into the skinned mesh
+/// </summary>
 public class SkinnedAnimationPoserSystem : IRenderSystem
 {
     public void Destroy()
@@ -30,7 +34,7 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
             poser.transformCache.Count == 0 ||
             poser.currentMesh != poser.mesh)
         {
-            SkinnedMeshRenderSystem.GatherNodes(transform, poser.nodeCache, poser.mesh.meshAsset.rootNode);
+            SkinnedMeshRenderSystem.GatherNodes(poser.nodeCache, poser.mesh.meshAsset.rootNode);
             SkinnedMeshRenderSystem.GatherNodeTransforms(transform, poser.transformCache, poser.mesh.meshAsset.rootNode);
         }
 

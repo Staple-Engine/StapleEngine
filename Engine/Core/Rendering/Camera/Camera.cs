@@ -6,7 +6,7 @@ namespace Staple;
 /// Camera component
 /// </summary>
 [ComponentIcon("Camera.png")]
-public class Camera : IComponent
+public sealed class Camera : IComponent
 {
     /// <summary>
     /// How to render elements of the camera
@@ -65,8 +65,14 @@ public class Camera : IComponent
     /// </summary>
     public LayerMask cullingLayers = LayerMask.Everything;
 
+    /// <summary>
+    /// Actual width of this camera viewport
+    /// </summary>
     internal float Width => viewport.Z * Screen.Width;
 
+    /// <summary>
+    /// Actual height of this camera viewport
+    /// </summary>
     internal float Height => viewport.W * Screen.Height;
 
     /// <summary>

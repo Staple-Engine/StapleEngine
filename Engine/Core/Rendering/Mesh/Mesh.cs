@@ -9,7 +9,7 @@ namespace Staple;
 /// <summary>
 /// 3D data container (Mesh)
 /// </summary>
-public partial class Mesh : IGuidAsset
+public sealed partial class Mesh : IGuidAsset
 {
     /// <summary>
     /// Whether this mesh is readable by the CPU
@@ -696,7 +696,9 @@ public partial class Mesh : IGuidAsset
         return ResourceManager.instance.LoadMesh(guid);
     }
 
-    public Mesh() { }
+    public Mesh()
+    {
+    }
 
     /// <summary>
     /// Clears all data in this mesh

@@ -4,24 +4,19 @@ using System.Numerics;
 
 namespace Staple;
 
+/// <summary>
+/// Calculates the animations for a skinned mesh
+/// </summary>
 internal class SkinnedMeshAnimationEvaluator
 {
-    public MeshAsset.Animation animation;
-    public MeshAsset meshAsset;
-    public SkinnedMeshAnimator animator;
-    public MeshAsset.Node rootNode;
-
+    /// <summary>
+    /// Called every time a frame is evaluated
+    /// </summary>
     public Action onFrameEvaluated;
 
-    private readonly Dictionary<int, int> lastPositionIndex = [];
-    private readonly Dictionary<int, int> lastRotationIndex = [];
-    private readonly Dictionary<int, int> lastScaleIndex = [];
-
-    private float lastTime;
-    private float updateTimer;
-
-    private readonly float timeBetweenFrames;
-
+    /// <summary>
+    /// Whether we've finished playing
+    /// </summary>
     public bool FinishedPlaying
     {
         get
@@ -31,6 +26,56 @@ internal class SkinnedMeshAnimationEvaluator
         }
     }
 
+    /// <summary>
+    /// The animation to animate
+    /// </summary>
+    internal readonly MeshAsset.Animation animation;
+
+    /// <summary>
+    /// The mesh asset
+    /// </summary>
+    private readonly MeshAsset meshAsset;
+
+    /// <summary>
+    /// The animator component
+    /// </summary>
+    private readonly SkinnedMeshAnimator animator;
+
+    /// <summary>
+    /// The root node for animating
+    /// </summary>
+    internal MeshAsset.Node rootNode;
+
+    /// <summary>
+    /// Cache of last indices for positions (channel index -> frame index)
+    /// </summary>
+    private readonly Dictionary<int, int> lastPositionIndex = [];
+
+    /// <summary>
+    /// Cache of last indices for rotations (channel index -> frame index)
+    /// </summary>
+    private readonly Dictionary<int, int> lastRotationIndex = [];
+
+    /// <summary>
+    /// Cache of last indices for scales (channel index -> frame index)
+    /// </summary>
+    private readonly Dictionary<int, int> lastScaleIndex = [];
+
+    /// <summary>
+    /// Last update time
+    /// </summary>
+    private float lastTime;
+
+    /// <summary>
+    /// Update timer to limit evaluations
+    /// </summary>
+    private float updateTimer;
+
+    /// <summary>
+    /// Time to wait between frames before evaluating
+    /// </summary>
+    private readonly float timeBetweenFrames;
+
     public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode, SkinnedMeshAnimator animator)
     {
         meshAsset = asset;
@@ -39,9 +84,12 @@ internal class SkinnedMeshAnimationEvaluator
         this.rootNode = rootNode;
         this.animator = animator;
 
-        timeBetweenFrames = 1 / (float)(asset.frameRate == 0 ? 1 : asset.frameRate);
+        timeBetweenFrames = 1 / (float)((asset?.frameRate ?? 0) == 0 ? 1 : asset.frameRate);
     }
 
+    /// <summary>
+    /// Evaluates the current animation frame
+    /// </summary>
     public void Evaluate()
     {
         if (animation == null || meshAsset == null)

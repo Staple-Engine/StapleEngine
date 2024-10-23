@@ -1,5 +1,4 @@
 ﻿using Bgfx;
-using Staple.Internal;
 using Staple.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Text;
 
 namespace Staple;
 
-public partial class Mesh
+public sealed partial class Mesh
 {
     internal class SubmeshInfo
     {
