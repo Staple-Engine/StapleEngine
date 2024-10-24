@@ -50,6 +50,27 @@ public struct Color
         a = A;
     }
 
+    /// <summary>
+    /// Converts a HTML hex string to a Color.
+    /// </summary>
+    /// <param name="value">The hex string</param>
+    /// <remarks>Expected format: "#RRGGBB" or "#RRGGBBAA"</remarks>
+    public Color(string value)
+    {
+        //Compensate for missing alpha component
+        if (value.Length == 7)
+        {
+            value += "FF";
+        }
+
+        uint v = Convert.ToUInt32(value[1..], 16);
+
+        r = ((byte)((v & 0xFF000000) >> 24)) / 255.0f;
+        g = ((byte)((v & 0x00FF0000) >> 16)) / 255.0f;
+        b = ((byte)((v & 0x0000FF00) >> 8)) / 255.0f;
+        a = ((byte)(v & 0x000000FF)) / 255.0f;
+    }
+
     public static implicit operator Color32(Color v) => new((byte)(v.r * 255.0f), (byte)(v.g * 255.0f), (byte)(v.b * 255.0f), (byte)(v.a * 255.0f));
 
     public static implicit operator Vector4(Color v) => new(v.r, v.g, v.b, v.a);
@@ -82,9 +103,14 @@ public struct Color
             return false;
         }
 
-        if(GetType().Equals(obj.GetType()))
+        if(obj is Color c)
         {
-            Color c = (Color)obj;
+            return r == c.r && g == c.g && b == c.b && a == c.a;
+        }
+
+        if(obj is Color32 c32)
+        {
+            c = c32;
 
             return r == c.r && g == c.g && b == c.b && a == c.a;
         }
@@ -92,6 +118,13 @@ public struct Color
         return false;
     }
 
+    /// <summary>
+    /// Mixes two colors
+    /// </summary>
+    /// <param name="a">The first color</param>
+    /// <param name="b">The second color</param>
+    /// <param name="t">The percentage as a float (0.0 to 1.0). 0 will return a, 1 will return b, and anything in-between is a mix</param>
+    /// <returns>The mixed color</returns>
     public static Color Lerp(Color a, Color b, float t)
     {
         t = Math.Clamp01(t);

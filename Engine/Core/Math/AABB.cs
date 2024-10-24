@@ -55,7 +55,7 @@ public struct AABB
         extents = size / 2;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"({center}, {extents})";
     }

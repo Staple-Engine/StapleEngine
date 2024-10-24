@@ -114,9 +114,14 @@ public struct Color32
             return false;
         }
 
-        if(GetType().Equals(obj.GetType()))
+        if(obj is Color32 c)
         {
-            Color32 c = (Color32)obj;
+            return r == c.r && g == c.g && b == c.b && a == c.a;
+        }
+
+        if(obj is Color cF)
+        {
+            c = cF;
 
             return r == c.r && g == c.g && b == c.b && a == c.a;
         }
@@ -124,5 +129,12 @@ public struct Color32
         return false;
     }
 
+    /// <summary>
+    /// Mixes two colors
+    /// </summary>
+    /// <param name="a">The first color</param>
+    /// <param name="b">The second color</param>
+    /// <param name="t">The percentage as a float (0.0 to 1.0). 0 will return a, 1 will return b, and anything in-between is a mix</param>
+    /// <returns>The mixed color</returns>
     public static Color32 Lerp(Color32 a, Color32 b, float t) => Color.Lerp(a, b, t);
 }

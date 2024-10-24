@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Ogg Audio Stream.
+/// Reads Ogg audio from a byte stream.
+/// </summary>
 internal class OggAudioStream : IAudioStream, IDisposable
 {
     private VorbisReader reader = null;
@@ -22,7 +26,7 @@ internal class OggAudioStream : IAudioStream, IDisposable
 
     public TimeSpan CurrentTime => reader?.TimePosition ?? default;
 
-    private object lockObject = new();
+    private readonly object lockObject = new();
 
     public OggAudioStream(Stream stream)
     {

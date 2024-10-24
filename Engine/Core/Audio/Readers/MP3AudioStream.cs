@@ -5,6 +5,10 @@ using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// MP3 Audio Stream.
+/// Reads MP3 audio from a byte stream.
+/// </summary>
 internal class MP3AudioStream : IAudioStream, IDisposable
 {
     private Stream stream;
@@ -20,7 +24,7 @@ internal class MP3AudioStream : IAudioStream, IDisposable
 
     public TimeSpan CurrentTime { get; private set; }
 
-    private object lockObject = new();
+    private readonly object lockObject = new();
 
     public MP3AudioStream(Stream stream)
     {

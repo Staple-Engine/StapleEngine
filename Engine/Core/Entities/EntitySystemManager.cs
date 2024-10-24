@@ -9,7 +9,7 @@ namespace Staple;
 /// Manages entity systems
 /// The player will automatically register entity systems.
 /// </summary>
-internal class EntitySystemManager : ISubsystem
+internal sealed class EntitySystemManager : ISubsystem
 {
     internal static readonly byte Priority = 0;
 

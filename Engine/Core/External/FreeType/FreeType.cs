@@ -4,7 +4,7 @@ namespace Staple.Internal
 {
     [AdditionalLibrary(AppPlatform.Android, "StapleSupport")]
     [AdditionalLibrary(AppPlatform.Android, "freetype")]
-    public static partial class FreeType
+    internal static partial class FreeType
     {
 #if STAPLE_WINDOWS
         const string DllName = "StapleSupport.dll";

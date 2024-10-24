@@ -94,7 +94,7 @@ public partial struct Entity
     /// <param name="t">The component type</param>
     /// <param name="includeSelf">Whether to include components from this entity</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent[] GetComponentsInChildren(Type t, bool includeSelf = true)
+    public readonly IComponent[] GetComponentsInChildren(Type t, bool includeSelf = true)
     {
         if (World.Current == null)
         {
@@ -147,7 +147,7 @@ public partial struct Entity
     /// <typeparam name="T">The component type</typeparam>
     /// <param name="includeSelf">Whether to include components from this entity</param>
     /// <returns>The component instance, or default</returns>
-    public T[] GetComponentsInChildren<T>(bool includeSelf = true) where T : IComponent
+    public readonly T[] GetComponentsInChildren<T>(bool includeSelf = false) where T : IComponent
     {
         if (World.Current == null)
         {
@@ -199,7 +199,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent GetComponentInParent(Type t)
+    public readonly IComponent GetComponentInParent(Type t)
     {
         if (World.Current == null)
         {
@@ -226,7 +226,7 @@ public partial struct Entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
-    public T GetComponentInParent<T>() where T : IComponent
+    public readonly T GetComponentInParent<T>() where T : IComponent
     {
         if (World.Current == null)
         {

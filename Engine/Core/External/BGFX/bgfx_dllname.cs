@@ -1,6 +1,6 @@
 namespace Bgfx
 {
-    public static partial class bgfx
+    internal static partial class bgfx
     {
 #if STAPLE_WINDOWS
         const string DllName = "bgfx.dll";

@@ -9,7 +9,7 @@ namespace Staple;
 /// Contains a way to add callbacks to actions and an entity, a component, and its methods
 /// </summary>
 [Serializable]
-public class EntityCallback
+public sealed class EntityCallback
 {
     [Serializable]
     internal class EntityCallbackEntry
@@ -21,7 +21,6 @@ public class EntityCallback
         public string methodName;
     }
 
-    [Serializable]
     private class EntityCallbackEntryCache
     {
         public Entity entity;

@@ -10,7 +10,7 @@ namespace Staple.Internal;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public abstract class ModuleInitializer
 {
-    private static List<ModuleInitializer> loadedInitializers = new();
+    private static List<ModuleInitializer> loadedInitializers = [];
 
     /// <summary>
     /// Called to initialize the module on startup

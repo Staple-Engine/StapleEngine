@@ -8,13 +8,17 @@ namespace Staple;
 
 /// <summary>
 /// Transform component.
-/// Contains rotation, position, scale, and parent connection.
+/// Contains rotation, position, scale, and parent entity.
 /// </summary>
 [AutoAssignEntity]
 public class Transform : IComponent, IEnumerable<Transform>
 {
     internal bool changed = false;
 
+    /// <summary>
+    /// Whether the transform has changed.
+    /// This is used to force children to refresh themselves when the parent is modified.
+    /// </summary>
     internal bool Changed
     {
         get => changed;
@@ -35,15 +39,49 @@ public class Transform : IComponent, IEnumerable<Transform>
         }
     }
 
+    /// <summary>
+    /// Child transforms
+    /// </summary>
     private Transform[] children = [];
+
+    /// <summary>
+    /// Our transform matrix
+    /// </summary>
     private Matrix4x4 matrix = Matrix4x4.Identity;
+
+    /// <summary>
+    /// Local rotation
+    /// </summary>
     private Quaternion rotation = Quaternion.Identity;
+
+    /// <summary>
+    /// Local position
+    /// </summary>
     private Vector3 position;
+
+    /// <summary>
+    /// Local scale
+    /// </summary>
     private Vector3 scale = Vector3.One;
 
+    /// <summary>
+    /// Global transform matrix
+    /// </summary>
     private Matrix4x4 finalMatrix = Matrix4x4.Identity;
+
+    /// <summary>
+    /// Global position
+    /// </summary>
     private Vector3 finalPosition;
+
+    /// <summary>
+    /// Global scale
+    /// </summary>
     private Vector3 finalScale;
+
+    /// <summary>
+    /// Global rotation
+    /// </summary>
     private Quaternion finalRotation;
 
     /// <summary>
@@ -52,12 +90,12 @@ public class Transform : IComponent, IEnumerable<Transform>
     public Transform parent { get; private set; }
 
     /// <summary>
-    /// The entity related to this transform
+    /// The entity this transform belongs to
     /// </summary>
     public Entity entity { get; internal set; }
 
     /// <summary>
-    /// Gets the transform's Transformation Matrix
+    /// Gets the transform's Global Transformation Matrix
     /// </summary>
     public Matrix4x4 Matrix
     {

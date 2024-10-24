@@ -61,19 +61,12 @@ public struct Vector2Int
 
     public override readonly bool Equals(object obj)
     {
-        if (obj == null)
+        if (obj == null || obj is not Vector2Int v)
         {
             return false;
         }
 
-        if (GetType().Equals(obj.GetType()))
-        {
-            var v = (Vector2Int)obj;
-
-            return X == v.X && Y == v.Y;
-        }
-
-        return false;
+        return X == v.X && Y == v.Y;
     }
 
     public override readonly string ToString()

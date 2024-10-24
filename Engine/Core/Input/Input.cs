@@ -23,6 +23,7 @@ public static class Input
     private class GamepadState
     {
         public GamepadConnectionState state = GamepadConnectionState.Unknown;
+
         public readonly Dictionary<GamepadButton, InputState> buttonStates = [];
         public readonly Dictionary<GamepadAxis, float> axis = [];
     }

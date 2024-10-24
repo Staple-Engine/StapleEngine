@@ -32,7 +32,7 @@ public enum EntityQueryMode
 /// It automatically updates as the world changes.
 /// </summary>
 /// <typeparam name="T">A type of component to get</typeparam>
-public class EntityQuery<T> : ISceneQuery, IEnumerable<T>
+public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
     where T : IComponent
 {
     private T[] contents = [];
@@ -42,10 +42,18 @@ public class EntityQuery<T> : ISceneQuery, IEnumerable<T>
 
     public int Length => contents.Length;
 
+    /// <summary>
+    /// Contained content. Only valid if we have a single element.
+    /// </summary>
     public T Content => content;
 
     public T this[int index] => contents[index];
 
+    /// <summary>
+    /// Creates an entity query for a specific entity.
+    /// </summary>
+    /// <param name="target">The target entity</param>
+    /// <param name="queryMode">The query mode</param>
     public EntityQuery(Entity target, EntityQueryMode queryMode)
     {
         this.target = target;

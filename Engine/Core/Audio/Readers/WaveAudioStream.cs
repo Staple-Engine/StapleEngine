@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Wave Audio Stream.
+/// Reads WAV audio from a byte stream.
+/// </summary>
 internal class WaveAudioStream : IAudioStream, IDisposable
 {
     private WaveFileReader reader = null;
@@ -23,7 +27,7 @@ internal class WaveAudioStream : IAudioStream, IDisposable
 
     public TimeSpan CurrentTime => default;
 
-    private object lockObject = new();
+    private readonly object lockObject = new();
 
     public WaveAudioStream(Stream stream)
     {

@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace Bgfx
 {
-	public static partial class bgfx
+	internal static partial class bgfx
 	{
 		[Flags]
 		public enum StateFlags : ulong

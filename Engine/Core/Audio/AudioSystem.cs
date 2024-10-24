@@ -72,7 +72,7 @@ public class AudioSystem : ISubsystem
     /// <summary>
     /// Thread lock for background usage
     /// </summary>
-    private object backgroundLock = new();
+    private readonly object backgroundLock = new();
 
     /// <summary>
     /// Pending actions for the background thrread
@@ -366,6 +366,9 @@ public class AudioSystem : ISubsystem
         device?.Shutdown();
     }
 
+    /// <summary>
+    /// Called when the game enters background or stops being focused
+    /// </summary>
     public void EnterBackground()
     {
         foreach(var source in audioSources)
@@ -379,6 +382,9 @@ public class AudioSystem : ISubsystem
         }
     }
 
+    /// <summary>
+    /// Called when the game enters foreground or resumes being focused
+    /// </summary>
     public void EnterForeground()
     {
         foreach (var source in audioSources)
@@ -392,7 +398,13 @@ public class AudioSystem : ISubsystem
         }
     }
 
-    public CancellationTokenSource LoadAudioClip(AudioClip clip, AudioClipLoadHandler onFinish)
+    /// <summary>
+    /// Attempts to load an audio clip
+    /// </summary>
+    /// <param name="clip">The audio clip component</param>
+    /// <param name="onFinish">Called when the loading finishes</param>
+    /// <returns>A cancellation token</returns>
+    internal CancellationTokenSource LoadAudioClip(AudioClip clip, AudioClipLoadHandler onFinish)
     {
         var cts = new CancellationTokenSource();
 

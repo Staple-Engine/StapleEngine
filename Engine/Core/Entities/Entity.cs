@@ -63,7 +63,7 @@ public partial struct Entity
         return (a == b) == false;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if(obj is null)
         {
@@ -78,7 +78,7 @@ public partial struct Entity
         return false;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return Identifier.GetHashCode();
     }
