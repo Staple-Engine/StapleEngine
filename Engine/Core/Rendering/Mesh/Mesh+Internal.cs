@@ -329,76 +329,76 @@ public sealed partial class Mesh
 
         var builder = new VertexLayoutBuilder();
 
-        builder.Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float);
+        builder.Add(VertexAttribute.Position, 3, VertexAttributeType.Float);
 
         if(mesh.HasNormals)
         {
-            builder.Add(bgfx.Attrib.Normal, 3, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.Normal, 3, VertexAttributeType.Float);
         }
 
         if (mesh.HasTangents)
         {
-            builder.Add(bgfx.Attrib.Tangent, 3, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.Tangent, 3, VertexAttributeType.Float);
         }
 
         if (mesh.HasBitangents)
         {
-            builder.Add(bgfx.Attrib.Bitangent, 3, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.Bitangent, 3, VertexAttributeType.Float);
         }
 
         if (mesh.HasColors || mesh.HasColors32)
         {
-            builder.Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.Color0, 4, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV)
         {
-            builder.Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV2)
         {
-            builder.Add(bgfx.Attrib.TexCoord1, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord1, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV3)
         {
-            builder.Add(bgfx.Attrib.TexCoord2, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord2, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV4)
         {
-            builder.Add(bgfx.Attrib.TexCoord3, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord3, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV5)
         {
-            builder.Add(bgfx.Attrib.TexCoord4, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord4, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV6)
         {
-            builder.Add(bgfx.Attrib.TexCoord5, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord5, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV7)
         {
-            builder.Add(bgfx.Attrib.TexCoord6, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord6, 2, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV8)
         {
-            builder.Add(bgfx.Attrib.TexCoord7, 2, bgfx.AttribType.Float);
+            builder.Add(VertexAttribute.TexCoord7, 2, VertexAttributeType.Float);
         }
 
         if(mesh.HasBoneIndices)
         {
-            builder.Add(bgfx.Attrib.Indices, 4, bgfx.AttribType.Float, false, false);
+            builder.Add(VertexAttribute.BoneIndices, 4, VertexAttributeType.Float, false, false);
         }
 
         if(mesh.HasBoneWeights)
         {
-            builder.Add(bgfx.Attrib.Weight, 4, bgfx.AttribType.Float, false, false);
+            builder.Add(VertexAttribute.BoneWeight, 4, VertexAttributeType.Float, false, false);
         }
 
         layout = builder.Build();

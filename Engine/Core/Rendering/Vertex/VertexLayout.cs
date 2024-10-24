@@ -1,11 +1,12 @@
 ﻿using Bgfx;
+using Staple.Internal;
 
 namespace Staple;
 
 /// <summary>
 /// Manages a vertex layout
 /// </summary>
-public class VertexLayout
+public sealed class VertexLayout
 {
     internal bgfx.VertexLayout layout;
 
@@ -14,13 +15,13 @@ public class VertexLayout
     /// </summary>
     /// <param name="name">The attribute name</param>
     /// <returns>Whether the attribute exists</returns>
-    public bool Has(bgfx.Attrib name)
+    public bool Has(VertexAttribute name)
     {
         unsafe
         {
             fixed (bgfx.VertexLayout* v = &layout)
             {
-                return bgfx.vertex_layout_has(v, name);
+                return bgfx.vertex_layout_has(v, BGFXUtils.GetBGFXVertexAttribute(name));
             }
         }
     }
@@ -33,7 +34,7 @@ public class VertexLayout
     /// <param name="type">The attribute type</param>
     /// <param name="normalized">Whether it's normalized</param>
     /// <param name="asInt">Whether it's an int</param>
-    public void Decode(bgfx.Attrib name, out byte offset, out bgfx.AttribType type, out bool normalized, out bool asInt)
+    public void Decode(VertexAttribute name, out byte offset, out VertexAttributeType type, out bool normalized, out bool asInt)
     {
         unsafe
         {
@@ -44,11 +45,11 @@ public class VertexLayout
 
             fixed (bgfx.VertexLayout* v = &layout)
             {
-                bgfx.vertex_layout_decode(v, name, &num, &typeUnsafe, &normalizedUnsafe, &asIntUnsafe);
+                bgfx.vertex_layout_decode(v, BGFXUtils.GetBGFXVertexAttribute(name), &num, &typeUnsafe, &normalizedUnsafe, &asIntUnsafe);
             }
 
             offset = num;
-            type = typeUnsafe;
+            type = BGFXUtils.GetVertexAttributeType(typeUnsafe);
             normalized = normalizedUnsafe;
             asInt = asIntUnsafe;
         }

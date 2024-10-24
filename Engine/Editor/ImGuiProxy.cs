@@ -76,9 +76,9 @@ internal class ImGuiProxy
         }
 
         layout = new VertexLayoutBuilder()
-            .Add(bgfx.Attrib.Position, 2, bgfx.AttribType.Float)
-            .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
-            .Add(bgfx.Attrib.Color0, 4, bgfx.AttribType.Uint8, true)
+            .Add(VertexAttribute.Position, 2, VertexAttributeType.Float)
+            .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+            .Add(VertexAttribute.Color0, 4, VertexAttributeType.Uint8, true)
             .Build();
 
         textureUniform = bgfx.create_uniform("s_tex", bgfx.UniformType.Sampler, 1);
@@ -101,7 +101,7 @@ internal class ImGuiProxy
             fontTexture = Texture.CreatePixels("FONT", fontData, (ushort)fontWidth, (ushort)fontHeight, new TextureMetadata()
             {
                 useMipmaps = false,
-            }, bgfx.TextureFormat.BGRA8);
+            }, TextureFormat.BGRA8);
         }
 
         if(fontTexture == null)

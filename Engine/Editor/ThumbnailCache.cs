@@ -261,7 +261,7 @@ internal class ThumbnailCache
                                 {
                                     useMipmaps = false,
                                 },
-                                Bgfx.bgfx.TextureFormat.RGBA8);
+                                TextureFormat.RGBA8);
 
                             if (texture != null)
                             {
@@ -309,7 +309,7 @@ internal class ThumbnailCache
                         {
                             useMipmaps = false,
                         },
-                        Bgfx.bgfx.TextureFormat.RGBA8);
+                        TextureFormat.RGBA8);
 
                     if (texture != null)
                     {
@@ -486,7 +486,7 @@ internal class ThumbnailCache
                                 {
                                     useMipmaps = false,
                                 },
-                                Bgfx.bgfx.TextureFormat.RGBA8);
+                                TextureFormat.RGBA8);
 
                             if (texture != null)
                             {
@@ -534,7 +534,7 @@ internal class ThumbnailCache
                         {
                             useMipmaps = false,
                         },
-                        Bgfx.bgfx.TextureFormat.RGBA8);
+                        TextureFormat.RGBA8);
 
                     if (texture != null)
                     {
@@ -610,7 +610,7 @@ internal class ThumbnailCache
                                 type = TextureType.Texture,
                                 useMipmaps = false,
                             },
-                            Bgfx.bgfx.TextureFormat.RGBA8);
+                            TextureFormat.RGBA8);
 
                         if (texture == null)
                         {
@@ -770,7 +770,7 @@ internal class ThumbnailCache
                             {
                                 useMipmaps = false,
                             },
-                            Bgfx.bgfx.TextureFormat.RGBA8);
+                            TextureFormat.RGBA8);
 
                         if (texture != null)
                         {
@@ -884,7 +884,8 @@ internal class ThumbnailCache
                 format = TextureMetadataFormat.RGBA8,
                 type = TextureType.Texture,
                 useMipmaps = false,
-            }, Bgfx.bgfx.TextureFormat.RGBA8);
+            },
+            TextureFormat.RGBA8);
 
             if (texture == null)
             {

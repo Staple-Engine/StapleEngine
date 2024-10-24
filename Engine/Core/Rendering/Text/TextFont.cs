@@ -266,7 +266,7 @@ internal class TextFont : IDisposable
             filter = useAntiAliasing ? TextureFilter.Linear : TextureFilter.Point,
             type = TextureType.Texture,
             useMipmaps = false,
-        }, Bgfx.bgfx.TextureFormat.RGBA8);
+        }, TextureFormat.RGBA8);
 
         if(texture == null)
         {

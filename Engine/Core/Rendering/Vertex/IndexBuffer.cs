@@ -12,12 +12,12 @@ public class IndexBuffer
     /// <summary>
     /// The index buffer's handle
     /// </summary>
-    public bgfx.IndexBufferHandle handle;
+    internal bgfx.IndexBufferHandle handle;
 
     /// <summary>
     /// The index buffer's transient handle
     /// </summary>
-    public bgfx.TransientIndexBuffer transientHandle;
+    internal bgfx.TransientIndexBuffer transientHandle;
 
     /// <summary>
     /// Whether this was destroyed
@@ -29,14 +29,14 @@ public class IndexBuffer
     /// </summary>
     private readonly bool isTransient = false;
 
-    public unsafe IndexBuffer(bgfx.IndexBufferHandle handle)
+    internal unsafe IndexBuffer(bgfx.IndexBufferHandle handle)
     {
         this.handle = handle;
 
         isTransient = false;
     }
 
-    public unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)
+    internal unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)
     {
         this.handle = new bgfx.IndexBufferHandle()
         {

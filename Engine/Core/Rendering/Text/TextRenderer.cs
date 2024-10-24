@@ -30,8 +30,8 @@ public class TextRenderer
     }
 
     public static Lazy<VertexLayout> VertexLayout = new(() => new VertexLayoutBuilder()
-        .Add(Bgfx.bgfx.Attrib.Position, 2, Bgfx.bgfx.AttribType.Float)
-        .Add(Bgfx.bgfx.Attrib.TexCoord0, 2, Bgfx.bgfx.AttribType.Float)
+        .Add(VertexAttribute.Position, 2, VertexAttributeType.Float)
+        .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
         .Build());
 
     public static readonly TextRenderer instance = new();

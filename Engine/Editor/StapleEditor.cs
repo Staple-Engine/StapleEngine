@@ -462,7 +462,7 @@ internal partial class StapleEditor
             if(canvasSystem != null)
             {
                 var vertexLayout = new VertexLayoutBuilder()
-                    .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
+                    .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
                     .Build();
 
                 canvasSystem.observer = (p, s, e) =>

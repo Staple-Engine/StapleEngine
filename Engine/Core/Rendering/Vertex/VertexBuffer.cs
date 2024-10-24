@@ -9,10 +9,10 @@ namespace Staple;
 /// </summary>
 public class VertexBuffer
 {
-    public VertexLayout layout;
-    public bgfx.VertexBufferHandle handle;
-    public bgfx.DynamicVertexBufferHandle dynamicHandle;
-    public bgfx.TransientVertexBuffer transientHandle;
+    internal bgfx.VertexBufferHandle handle;
+    internal bgfx.DynamicVertexBufferHandle dynamicHandle;
+    internal bgfx.TransientVertexBuffer transientHandle;
+    public readonly VertexLayout layout;
     public readonly VertexBufferType type;
 
     /// <summary>

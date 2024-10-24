@@ -83,7 +83,7 @@ public sealed class Material : IGuidAsset
                     format = TextureMetadataFormat.RGBA8,
                     type = TextureType.Texture,
                     useMipmaps = false,
-                }, Bgfx.bgfx.TextureFormat.RGBA8);
+                }, TextureFormat.RGBA8);
             }
 
             return whiteTexture;
@@ -211,7 +211,7 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Gets the current shader program, if valid.
     /// </summary>
-    public bgfx.ProgramHandle ShaderProgram => shader != null &&
+    internal bgfx.ProgramHandle ShaderProgram => shader != null &&
         shader.Disposed == false &&
         shader.instances.TryGetValue(ShaderVariantKey, out var instance) ?
         instance.program : new()

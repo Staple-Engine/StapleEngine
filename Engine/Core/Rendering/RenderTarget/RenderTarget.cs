@@ -17,10 +17,10 @@ public sealed class RenderTarget
     internal bgfx.FrameBufferHandle handle;
     internal ushort width;
     internal ushort height;
-    internal bgfx.TextureFormat format;
+    internal TextureFormat format;
     internal TextureFlags flags;
-    internal bgfx.BackbufferRatio ratio;
-    internal List<Texture> textures = new();
+    internal RenderTargetBackbufferRatio ratio;
+    internal List<Texture> textures = [];
 
     private bool destroyed = false;
 
@@ -28,7 +28,7 @@ public sealed class RenderTarget
     //So we're gonna have to do this in an unconventional way...
     private static nint renderPtr = nint.Zero;
 
-    private static List<Action> renderQueue = new();
+    private static readonly List<Action> renderQueue = [];
 
     ~RenderTarget()
     {
@@ -142,7 +142,8 @@ public sealed class RenderTarget
                         return;
                     }
 
-                    var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1, texture.info.format,
+                    var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1,
+                        BGFXUtils.GetBGFXTextureFormat(texture.info.format),
                         TextureFlags.BlitDestination | TextureFlags.ReadBack | TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp);
 
                     bgfx.blit(viewID, readBackTexture.handle, 0, 0, 0, 0, texture.handle, 0, 0, 0, 0, texture.info.width, texture.info.height, 0);
@@ -218,12 +219,12 @@ public sealed class RenderTarget
     /// <param name="layers">Amount of layers to use on the textures</param>
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The render target, or null</returns>
-    public static RenderTarget Create(ushort width, ushort height, bgfx.TextureFormat colorFormat = bgfx.TextureFormat.RGBA8,
+    public static RenderTarget Create(ushort width, ushort height, TextureFormat colorFormat = TextureFormat.RGBA8,
         bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
     {
-        var depthFormat = bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D16, (ulong)flags) ? bgfx.TextureFormat.D16 :
-            bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D24S8, (ulong)flags) ? bgfx.TextureFormat.D24S8 :
-            bgfx.TextureFormat.D32;
+        var depthFormat = bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D16, (ulong)flags) ? TextureFormat.D16 :
+            bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D24S8, (ulong)flags) ? TextureFormat.D24S8 :
+            TextureFormat.D32;
 
         var colorTexture = Texture.CreateEmpty(width, height, hasMips, layers, colorFormat, flags | TextureFlags.RenderTarget);
         var depthTexture = Texture.CreateEmpty(width, height, hasMips, layers, depthFormat, flags | TextureFlags.RenderTarget);
@@ -256,10 +257,10 @@ public sealed class RenderTarget
     /// <param name="format">The texture format</param>
     /// <param name="flags">Additional texture lags</param>
     /// <returns>The render target, or null</returns>
-    public static RenderTarget Create(bgfx.BackbufferRatio ratio, bgfx.TextureFormat format,
+    public static RenderTarget Create(RenderTargetBackbufferRatio ratio, TextureFormat format,
         TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
     {
-        var handle = bgfx.create_frame_buffer_scaled(ratio, format, (ulong)flags);
+        var handle = bgfx.create_frame_buffer_scaled(BGFXUtils.GetBackbufferRatio(ratio), BGFXUtils.GetTextureFormat(format), (ulong)flags);
 
         if (handle.Valid == false)
         {
@@ -287,37 +288,37 @@ public sealed class RenderTarget
 
         switch(ratio)
         {
-            case bgfx.BackbufferRatio.Sixteenth:
+            case RenderTargetBackbufferRatio.Sixteenth:
 
                 factor = 1 / 16.0f;
 
                 break;
 
-            case bgfx.BackbufferRatio.Eighth:
+            case RenderTargetBackbufferRatio.Eighth:
 
                 factor = 1 / 8.0f;
 
                 break;
 
-            case bgfx.BackbufferRatio.Quarter:
+            case RenderTargetBackbufferRatio.Quarter:
 
                 factor = 0.25f;
 
                 break;
 
-            case bgfx.BackbufferRatio.Double:
+            case RenderTargetBackbufferRatio.Double:
 
                 factor = 2;
 
                 break;
 
-            case bgfx.BackbufferRatio.Equal:
+            case RenderTargetBackbufferRatio.Equal:
 
                 //Default
 
                 break;
 
-            case bgfx.BackbufferRatio.Half:
+            case RenderTargetBackbufferRatio.Half:
 
                 factor = 0.5f;
 
@@ -334,7 +335,7 @@ public sealed class RenderTarget
             handle = handle,
             format = format,
             flags = flags,
-            textures = new List<Texture>(new Texture[] { texture })
+            textures = [ texture ],
         };
     }
 

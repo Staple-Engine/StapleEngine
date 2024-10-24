@@ -28,6 +28,11 @@ public sealed class SkinnedMeshAnimator : IComponent
     public SkinnedAnimationStateMachine stateMachine;
 
     /// <summary>
+    /// The animation controller, if any (requires state)
+    /// </summary>
+    public SkinnedAnimationController animationController;
+
+    /// <summary>
     /// Whether to play in edit mode
     /// </summary>
     internal bool playInEditMode;
@@ -46,11 +51,6 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// A cache for nodes
     /// </summary>
     internal Dictionary<string, MeshAsset.Node> nodeCache = [];
-
-    /// <summary>
-    /// The animation controller, if any (requires state)
-    /// </summary>
-    internal SkinnedAnimationController animationController;
 
     /// <summary>
     /// The animation evaluator

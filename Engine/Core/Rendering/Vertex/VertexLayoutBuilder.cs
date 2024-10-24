@@ -1,11 +1,12 @@
 ﻿using Bgfx;
+using Staple.Internal;
 
 namespace Staple;
 
 /// <summary>
 /// Creates a vertex layout
 /// </summary>
-public class VertexLayoutBuilder
+public sealed class VertexLayoutBuilder
 {
     private bgfx.VertexLayout layout;
     private bool completed = false;
@@ -30,7 +31,7 @@ public class VertexLayoutBuilder
     /// <param name="normalized">Whether the attribute is normalized</param>
     /// <param name="asInt">Whether the attribute should be converted to int</param>
     /// <returns>The current instance of this vertex layout builder</returns>
-    public VertexLayoutBuilder Add(bgfx.Attrib name, byte amount, bgfx.AttribType type, bool normalized = false, bool asInt = false)
+    public VertexLayoutBuilder Add(VertexAttribute name, byte amount, VertexAttributeType type, bool normalized = false, bool asInt = false)
     {
         if(completed)
         {
@@ -41,7 +42,8 @@ public class VertexLayoutBuilder
         {
             fixed (bgfx.VertexLayout* v = &layout)
             {
-                bgfx.vertex_layout_add(v, name, amount, type, normalized, asInt);
+                bgfx.vertex_layout_add(v, BGFXUtils.GetBGFXVertexAttribute(name), amount,
+                    BGFXUtils.GetBGFXVertexAttributeType(type), normalized, asInt);
             }
         }
 

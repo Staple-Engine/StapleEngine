@@ -38,8 +38,8 @@ public class SpriteRenderSystem : IRenderSystem
     internal static Lazy<VertexLayout> vertexLayout = new(() =>
     {
         return new VertexLayoutBuilder()
-            .Add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float)
-            .Add(bgfx.Attrib.TexCoord0, 2, bgfx.AttribType.Float)
+            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+            .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
             .Build();
     });
 

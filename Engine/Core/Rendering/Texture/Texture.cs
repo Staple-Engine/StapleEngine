@@ -154,7 +154,7 @@ public class Texture : IGuidAsset
     /// <param name="format">The texture format</param>
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The texture or null</returns>
-    public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
+    public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, TextureFormat format, TextureFlags flags = TextureFlags.None)
     {
         var texture = new Texture(new EmptyTextureCreateMethod(width, height, hasMips, layers, format, flags));
 
@@ -271,21 +271,21 @@ public class Texture : IGuidAsset
                 return null;
             }
 
-            var format = bgfx.TextureFormat.RGBA8;
+            var format = TextureFormat.RGBA8;
 
             switch (colorComponents)
             {
                 case StandardTextureColorComponents.RGB:
                 case StandardTextureColorComponents.Greyscale:
 
-                    format = bgfx.TextureFormat.RGB8;
+                    format = TextureFormat.RGB8;
 
                     break;
 
                 case StandardTextureColorComponents.RGBA:
                 case StandardTextureColorComponents.GreyscaleAlpha:
 
-                    format = bgfx.TextureFormat.RGBA8;
+                    format = TextureFormat.RGBA8;
 
                     break;
             }
@@ -317,7 +317,7 @@ public class Texture : IGuidAsset
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The texture, or null</returns>
     public static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
-        bgfx.TextureFormat format, TextureFlags flags = TextureFlags.None)
+        TextureFormat format, TextureFlags flags = TextureFlags.None)
     {
         var texture = new Texture(new PixelTextureCreateMethod(path, data, width, height, metadata, format, flags));
 

@@ -101,7 +101,7 @@ public static class Gizmo
         meshMaterial.MainColor = color;
 
         lineLayout ??= new VertexLayoutBuilder()
-            .Add(Bgfx.bgfx.Attrib.Position, 3, Bgfx.bgfx.AttribType.Float)
+            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
             .Build();
 
         Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
