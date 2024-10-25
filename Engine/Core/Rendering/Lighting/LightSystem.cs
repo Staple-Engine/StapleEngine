@@ -83,7 +83,7 @@ public sealed class LightSystem : IRenderSystem
     /// </summary>
     /// <param name="material">The material to use</param>
     /// <param name="lighting">The lighting type</param>
-    public void ApplyMaterialLighting(Material material, MeshLighting lighting)
+    public void ApplyMaterialLighting(Material material, MaterialLighting lighting)
     {
         if(Enabled == false)
         {
@@ -95,21 +95,21 @@ public sealed class LightSystem : IRenderSystem
 
         switch (lighting)
         {
-            case MeshLighting.Lit:
+            case MaterialLighting.Lit:
 
                 material.EnableShaderKeyword(Shader.LitKeyword);
                 material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
                 break;
 
-            case MeshLighting.Unlit:
+            case MaterialLighting.Unlit:
 
                 material.DisableShaderKeyword(Shader.LitKeyword);
                 material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
                 break;
 
-            case MeshLighting.HalfLambert:
+            case MaterialLighting.HalfLambert:
 
                 material.EnableShaderKeyword(Shader.LitKeyword);
                 material.EnableShaderKeyword(Shader.HalfLambertKeyword);
@@ -127,10 +127,10 @@ public sealed class LightSystem : IRenderSystem
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="lighting">What lighting to use</param>
     public void ApplyLightProperties(Vector3 position, Matrix4x4 transform, Material material, Vector3 cameraPosition,
-        MeshLighting lighting)
+        MaterialLighting lighting)
     {
         if (Enabled == false ||
-            lighting == MeshLighting.Unlit ||
+            lighting == MaterialLighting.Unlit ||
             (material?.IsValid ?? false) == false ||
             lightQuery.Length == 0)
         {

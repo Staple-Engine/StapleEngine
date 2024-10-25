@@ -131,20 +131,20 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 var bones = meshAssetMesh.bones[i];
 
-                if (bones.Count > MaxBones)
+                if (bones.Length > MaxBones)
                 {
                     Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {bones.Count} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
+                        $"Bone count of {bones.Length} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
 
                     continue;
                 }
 
-                if (renderer.cachedBoneMatrices[i].Length != bones.Count)
+                if (renderer.cachedBoneMatrices[i].Length != bones.Length)
                 {
-                    renderer.cachedBoneMatrices[i] = new Matrix4x4[bones.Count];
-                    renderer.cachedNodes[i] = new MeshAsset.Node[bones.Count];
+                    renderer.cachedBoneMatrices[i] = new Matrix4x4[bones.Length];
+                    renderer.cachedNodes[i] = new MeshAsset.Node[bones.Length];
 
-                    for(var j = 0; j < bones.Count; j++)
+                    for(var j = 0; j < bones.Length; j++)
                     {
                         var bone = bones[j];
 
@@ -155,11 +155,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     }
                 }
 
-                if(useAnimator && renderer.cachedAnimatorNodes[i].Length != bones.Count)
+                if(useAnimator && renderer.cachedAnimatorNodes[i].Length != bones.Length)
                 {
-                    renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Count];
+                    renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Length];
 
-                    for(var j = 0; j < bones.Count; j++)
+                    for(var j = 0; j < bones.Length; j++)
                     {
                         renderer.cachedAnimatorNodes[i][j] = MeshAsset.TryGetNode(animator.evaluator.rootNode, bones[j].name, out var localNode) ?
                             localNode : null;

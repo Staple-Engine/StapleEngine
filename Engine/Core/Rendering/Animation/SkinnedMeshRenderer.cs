@@ -21,7 +21,7 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// <summary>
     /// Lighting mode
     /// </summary>
-    public MeshLighting lighting = MeshLighting.Lit;
+    public MaterialLighting lighting = MaterialLighting.Lit;
 
     /// <summary>
     /// Contains cached bone matrices to reduce allocations

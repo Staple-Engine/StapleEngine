@@ -26,7 +26,7 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        MeshRenderSystem.DrawMesh(Mesh.Cube, position, rotation, scale, meshMaterial, MeshLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(Mesh.Cube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public static class Gizmo
             wireCube.UploadMeshData();
         }
 
-        MeshRenderSystem.DrawMesh(wireCube, position, rotation, scale, meshMaterial, MeshLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(wireCube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
     }
 
     public static void Line(Vector3 from, Vector3 to, Color color)
@@ -105,6 +105,6 @@ public static class Gizmo
             .Build();
 
         Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
-            MeshTopology.Lines, MeshLighting.Unlit, StapleEditor.WireframeView);
+            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
     }
 }

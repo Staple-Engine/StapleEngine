@@ -51,11 +51,11 @@ internal class MeshAssetEditor : AssetEditor
 
                 foreach (var mesh in meshAsset.meshes)
                 {
-                    triangleCount += mesh.indices.Count;
+                    triangleCount += mesh.indices.Length;
 
                     foreach (var submesh in mesh.bones)
                     {
-                        hasExcessiveBones |= submesh.Count > SkinnedMeshRenderSystem.MaxBones;
+                        hasExcessiveBones |= submesh.Length > SkinnedMeshRenderSystem.MaxBones;
 
                         foreach (var bone in submesh)
                         {

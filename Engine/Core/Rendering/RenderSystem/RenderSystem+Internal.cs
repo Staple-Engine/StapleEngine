@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Staple.Internal;
 
-public partial class RenderSystem
+public sealed partial class RenderSystem
 {
     #region Helpers
     /// <summary>
@@ -98,6 +98,11 @@ public partial class RenderSystem
     #endregion
 
     #region Frame Callbacks
+    /// <summary>
+    /// Queues a callback to run at a specific frame
+    /// </summary>
+    /// <param name="frame">The frame to run the callback at</param>
+    /// <param name="callback">The callback</param>
     internal void QueueFrameCallback(uint frame, Action callback)
     {
         lock (lockObject)
@@ -113,6 +118,10 @@ public partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Called at the start of each frame
+    /// </summary>
+    /// <param name="frame">The current frame</param>
     internal void OnFrame(uint frame)
     {
         List<Action> callbacks = null;
@@ -237,6 +246,14 @@ public partial class RenderSystem
 
     #region Render Modes
 
+    /// <summary>
+    /// Renders in the standard mode (no interpolator)
+    /// </summary>
+    /// <param name="cameraEntity">The camera's entity</param>
+    /// <param name="camera">The camera</param>
+    /// <param name="cameraTransform">The camera's transform</param>
+    /// <param name="queue">The render queue for this camera</param>
+    /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
         List<(Entity, Transform, List<(IRenderSystem, IComponent)>)> queue,
         ushort viewID)
@@ -295,6 +312,15 @@ public partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Renders a single entity
+    /// </summary>
+    /// <param name="cameraEntity">The camera's entity</param>
+    /// <param name="camera">The camera</param>
+    /// <param name="cameraTransform">The camera's transform</param>
+    /// <param name="entity">The entity to render</param>
+    /// <param name="entityTransform">The transform of the entity to render</param>
+    /// <param name="viewID">The view ID</param>
     public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
         Entity entity, Transform entityTransform, ushort viewID)
     {
@@ -355,6 +381,13 @@ public partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Render with the drawcall accumulator (interpolator)
+    /// </summary>
+    /// <param name="cameraEntity">The camera's entity</param>
+    /// <param name="camera">The camera</param>
+    /// <param name="cameraTransform">The camera's transform</param>
+    /// <param name="viewID">The view ID</param>
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
         CurrentCamera = (camera, cameraTransform);
@@ -425,6 +458,9 @@ public partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Update process for standard rendering
+    /// </summary>
     private void UpdateStandard()
     {
         CurrentViewID = 1;
@@ -437,6 +473,9 @@ public partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Update process for interpolator rendering
+    /// </summary>
     private void UpdateAccumulator()
     {
         CurrentViewID = 1;
@@ -514,6 +553,13 @@ public partial class RenderSystem
     #endregion
 
     #region Render Helpers
+    /// <summary>
+    /// Prepares a camera for rendering
+    /// </summary>
+    /// <param name="entity">The camera's entity</param>
+    /// <param name="camera">The camera</param>
+    /// <param name="cameraTransform">The camera's transform</param>
+    /// <param name="viewID">The view ID</param>
     private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
     {
         unsafe

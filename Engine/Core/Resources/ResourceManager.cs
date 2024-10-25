@@ -1261,24 +1261,24 @@ internal class ResourceManager
         mesh = new Mesh(true, false)
         {
             Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original,
-            vertices = m.vertices.ToArray(),
-            normals = m.normals.ToArray(),
-            tangents = m.tangents.ToArray(),
-            bitangents = m.bitangents.ToArray(),
+            vertices = m.vertices,
+            normals = m.normals,
+            tangents = m.tangents,
+            bitangents = m.bitangents,
 
-            uv = m.UV1.ToArray(),
-            uv2 = m.UV2.ToArray(),
-            uv3 = m.UV3.ToArray(),
-            uv4 = m.UV4.ToArray(),
-            uv5 = m.UV5.ToArray(),
-            uv6 = m.UV6.ToArray(),
-            uv7 = m.UV7.ToArray(),
-            uv8 = m.UV8.ToArray(),
+            uv = m.UV1,
+            uv2 = m.UV2,
+            uv3 = m.UV3,
+            uv4 = m.UV4,
+            uv5 = m.UV5,
+            uv6 = m.UV6,
+            uv7 = m.UV7,
+            uv8 = m.UV8,
 
-            indices = m.indices.ToArray(),
+            indices = m.indices,
 
-            boneIndices = m.boneIndices.ToArray(),
-            boneWeights = m.boneWeights.ToArray(),
+            boneIndices = m.boneIndices,
+            boneWeights = m.boneWeights,
 
             meshTopology = m.topology,
             indexFormat = MeshIndexFormat.UInt32,
@@ -1288,9 +1288,9 @@ internal class ResourceManager
             meshAssetIndex = index,
         };
 
-        if (m.colors.Count > 0)
+        if (m.colors.Length > 0)
         {
-            mesh.colors = m.colors.ToArray();
+            mesh.colors = m.colors;
         }
 
         foreach(var submesh in m.submeshes)
@@ -1379,11 +1379,11 @@ internal class ResourceManager
 
                     vertices = m.vertices
                         .Select(x => x.ToVector3())
-                        .ToList(),
+                        .ToArray(),
 
                     normals = m.normals
                         .Select(x => x.ToVector3())
-                        .ToList(),
+                        .ToArray(),
 
                     colors = m.colors
                         .Select(x =>
@@ -1391,73 +1391,74 @@ internal class ResourceManager
                             var v = x.ToVector4();
 
                             return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToList(),
+                        }).ToArray(),
 
                     tangents = m.tangents
                         .Select(x => x.ToVector3())
-                        .ToList(),
+                        .ToArray(),
 
                     bitangents = m.bitangents
                         .Select(x => x.ToVector3())
-                        .ToList(),
+                        .ToArray(),
 
                     UV1 = m.UV1
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV2 = m.UV2
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV3 = m.UV3
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV4 = m.UV4
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV5 = m.UV5
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV6 = m.UV6
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV7 = m.UV7
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
                     UV8 = m.UV8
                         .Select(x => x.ToVector2())
-                        .ToList(),
+                        .ToArray(),
 
-                    indices = m.indices,
+                    indices = m.indices.ToArray(),
 
                     boneIndices = m.boneIndices
                         .Select(x => x.ToVector4())
-                        .ToList(),
+                        .ToArray(),
 
                     boneWeights = m.boneWeights
                         .Select(x => x.ToVector4())
-                        .ToList(),
+                        .ToArray(),
+
                     bones = [m.bones.Select(x => new MeshAsset.Bone()
                     {
                         name = x.name,
                         offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
-                    }).ToList()],
+                    }).ToArray()],
                 };
 
-                newMesh.submeshes.Add(new()
+                newMesh.submeshes = [new()
                 {
                     startVertex = 0,
                     startIndex = 0,
                     vertexCount = m.vertices.Count,
                     indexCount = m.indices.Count,
-                });
+                }];
 
-                newMesh.submeshMaterialGuids.Add(m.materialGuid);
+                newMesh.submeshMaterialGuids = [ m.materialGuid ];
 
                 asset.meshes.Add(newMesh);
             }

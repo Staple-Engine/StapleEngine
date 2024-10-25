@@ -479,7 +479,7 @@ internal partial class StapleEditor
                     };
 
                     Graphics.RenderSimple(vertices.AsSpan(), vertexLayout, [0, 1, 2, 2, 3, 0], SpriteRenderSystem.DefaultMaterial.Value,
-                        Vector3.Zero, Matrix4x4.Identity, MeshTopology.LineStrip, MeshLighting.Unlit, UICanvasSystem.UIViewID);
+                        Vector3.Zero, Matrix4x4.Identity, MeshTopology.LineStrip, MaterialLighting.Unlit, UICanvasSystem.UIViewID);
                 };
             }
 

@@ -1,24 +1,54 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
 
-public class MeshRenderSystem : IRenderSystem
+/// <summary>
+/// Mesh render system
+/// </summary>
+public sealed class MeshRenderSystem : IRenderSystem
 {
+    /// <summary>
+    /// Contains info on something that is meant to be rendered
+    /// </summary>
     private struct RenderInfo
     {
+        /// <summary>
+        /// The mesh renderer to render
+        /// </summary>
         public MeshRenderer renderer;
+
+        /// <summary>
+        /// The current transform
+        /// </summary>
         public Matrix4x4 transform;
+
+        /// <summary>
+        /// The current position
+        /// </summary>
         public Vector3 position;
+
+        /// <summary>
+        /// The view ID to render to
+        /// </summary>
         public ushort viewID;
     }
 
     private readonly List<RenderInfo> renderers = [];
 
-    public static void DrawMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, MeshLighting lighting, ushort viewID)
+    /// <summary>
+    /// Renders a mesh
+    /// </summary>
+    /// <param name="mesh">The mesh</param>
+    /// <param name="position">The position of the mesh</param>
+    /// <param name="rotation">The rotation of the mesh</param>
+    /// <param name="scale">The scale of the mesh</param>
+    /// <param name="material">The material to use</param>
+    /// <param name="lighting">The lighting model to use</param>
+    /// <param name="viewID">The view ID to render to</param>
+    public static void RenderMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, MaterialLighting lighting, ushort viewID)
     {
         if(mesh == null ||
             material == null ||

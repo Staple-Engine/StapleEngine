@@ -332,7 +332,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
-            lightSystem?.ApplyMaterialLighting(s.material, MeshLighting.Unlit);
+            lightSystem?.ApplyMaterialLighting(s.material, MaterialLighting.Unlit);
 
             var program = s.material.ShaderProgram;
 

@@ -1,5 +1,4 @@
-﻿using Staple.Internal;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Staple;
 
@@ -22,5 +21,5 @@ public sealed class MeshRenderer : Renderable
     /// <summary>
     /// Lighting mode
     /// </summary>
-    public MeshLighting lighting = MeshLighting.Lit;
+    public MaterialLighting lighting = MaterialLighting.Lit;
 }

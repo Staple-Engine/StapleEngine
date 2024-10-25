@@ -89,7 +89,7 @@ public class UIImage : UIElement
         }
 
         Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, 6, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MeshLighting.Unlit,
+            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
             viewID, () =>
             {
                 material.shader.SetColor(material.GetShaderHandle(Material.MainColorProperty), color);

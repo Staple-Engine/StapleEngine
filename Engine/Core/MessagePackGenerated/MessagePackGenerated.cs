@@ -99,7 +99,7 @@ namespace MessagePack.Resolvers
                 { typeof(global::Staple.Internal.TextureSpriteRotation), 44 },
                 { typeof(global::Staple.Internal.TextureType), 45 },
                 { typeof(global::Staple.Internal.TextureWrap), 46 },
-                { typeof(global::Staple.MeshLighting), 47 },
+                { typeof(global::Staple.MaterialLighting), 47 },
                 { typeof(global::Staple.MeshTopology), 48 },
                 { typeof(global::Staple.RendererType), 49 },
                 { typeof(global::Staple.WindowMode), 50 },
@@ -224,7 +224,7 @@ namespace MessagePack.Resolvers
                 case 44: return new MessagePack.Formatters.Staple.Internal.TextureSpriteRotationFormatter();
                 case 45: return new MessagePack.Formatters.Staple.Internal.TextureTypeFormatter();
                 case 46: return new MessagePack.Formatters.Staple.Internal.TextureWrapFormatter();
-                case 47: return new MessagePack.Formatters.Staple.MeshLightingFormatter();
+                case 47: return new MessagePack.Formatters.Staple.MaterialLightingFormatter();
                 case 48: return new MessagePack.Formatters.Staple.MeshTopologyFormatter();
                 case 49: return new MessagePack.Formatters.Staple.RendererTypeFormatter();
                 case 50: return new MessagePack.Formatters.Staple.WindowModeFormatter();
@@ -377,16 +377,16 @@ namespace MessagePack.Formatters.Staple
         }
     }
 
-    public sealed class MeshLightingFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.MeshLighting>
+    public sealed class MaterialLightingFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.MaterialLighting>
     {
-        public void Serialize(ref MessagePackWriter writer, global::Staple.MeshLighting value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.MaterialLighting value, global::MessagePack.MessagePackSerializerOptions options)
         {
             writer.Write((Int32)value);
         }
 
-        public global::Staple.MeshLighting Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.MaterialLighting Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
-            return (global::Staple.MeshLighting)reader.ReadInt32();
+            return (global::Staple.MaterialLighting)reader.ReadInt32();
         }
     }
 
@@ -2080,7 +2080,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.useSmoothNormals);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Serialize(ref writer, value.rotation, options);
             writer.Write(value.scale);
-            formatterResolver.GetFormatterWithVerify<global::Staple.MeshLighting>().Serialize(ref writer, value.lighting, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
             writer.Write(value.frameRate);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
@@ -2141,7 +2141,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.scale = reader.ReadSingle();
                         break;
                     case 13:
-                        ____result.lighting = formatterResolver.GetFormatterWithVerify<global::Staple.MeshLighting>().Deserialize(ref reader, options);
+                        ____result.lighting = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Deserialize(ref reader, options);
                         break;
                     case 14:
                         ____result.frameRate = reader.ReadInt32();

@@ -358,7 +358,7 @@ public static class EditorUtils
 
                             var meshTransform = meshEntity.GetComponent<Transform>();
 
-                            var isSkinned = mesh.bones.Any(x => x.Count > 0);
+                            var isSkinned = mesh.bones.Any(x => x.Length > 0);
 
                             meshTransform.SetParent(isSkinned ? skinningParentTransform : nodeTransform);
 

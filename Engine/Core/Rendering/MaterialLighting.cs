@@ -1,6 +1,6 @@
 ﻿namespace Staple;
 
-public enum MeshLighting
+public enum MaterialLighting
 {
     Unlit,
     Lit,

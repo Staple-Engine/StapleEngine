@@ -22,7 +22,7 @@ internal class SkinnedMeshRendererEditor : Editor
 
         foreach(var b in mesh.bones)
         {
-            boneCount += b.Count;
+            boneCount += b.Length;
         }
 
         EditorGUI.Label($"{mesh.name}\n{boneCount} bones");

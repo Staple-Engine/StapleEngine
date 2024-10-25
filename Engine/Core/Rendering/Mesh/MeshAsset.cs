@@ -7,15 +7,21 @@ namespace Staple;
 /// <summary>
 /// Contains info on a mesh asset's data
 /// </summary>
-public class MeshAsset : IGuidAsset
+public sealed class MeshAsset : IGuidAsset
 {
     /// <summary>
     /// Bone info such as name and offset matrix
     /// </summary>
     public class Bone
     {
+        /// <summary>
+        /// Bone name
+        /// </summary>
         public string name;
 
+        /// <summary>
+        /// Bone offset matrix
+        /// </summary>
         public Matrix4x4 offsetMatrix;
 
         public override string ToString()
@@ -29,9 +35,24 @@ public class MeshAsset : IGuidAsset
     /// </summary>
     public class SubmeshInfo
     {
+        /// <summary>
+        /// The vertex to start rendering from
+        /// </summary>
         public int startVertex;
+
+        /// <summary>
+        /// How many vertices to render
+        /// </summary>
         public int vertexCount;
+
+        /// <summary>
+        /// The index to start rendering from
+        /// </summary>
         public int startIndex;
+
+        /// <summary>
+        /// How many indices to render
+        /// </summary>
         public int indexCount;
     }
 
@@ -40,31 +61,125 @@ public class MeshAsset : IGuidAsset
     /// </summary>
     public class MeshInfo
     {
+        /// <summary>
+        /// The mesh name
+        /// </summary>
         public string name;
+
+        /// <summary>
+        /// The type of mesh
+        /// </summary>
         public MeshAssetType type;
+
+        /// <summary>
+        /// The mesh topology (geometry type)
+        /// </summary>
         public MeshTopology topology;
-        public List<Vector3> vertices = [];
-        public List<Vector3> normals = [];
-        public List<Color> colors = [];
-        public List<Vector3> tangents = [];
-        public List<Vector3> bitangents = [];
-        public List<Vector2> UV1 = [];
-        public List<Vector2> UV2 = [];
-        public List<Vector2> UV3 = [];
-        public List<Vector2> UV4 = [];
-        public List<Vector2> UV5 = [];
-        public List<Vector2> UV6 = [];
-        public List<Vector2> UV7 = [];
-        public List<Vector2> UV8 = [];
-        public List<int> indices = [];
-        public List<Vector4> boneIndices = [];
-        public List<Vector4> boneWeights = [];
-        //One list per submesh
-        public List<List<Bone>> bones = [];
+
+        /// <summary>
+        /// The mesh vertices
+        /// </summary>
+        public Vector3[] vertices = [];
+
+        /// <summary>
+        /// The mesh normals
+        /// </summary>
+        public Vector3[] normals = [];
+
+        /// <summary>
+        /// The mesh colors
+        /// </summary>
+        public Color[] colors = [];
+
+        /// <summary>
+        /// The mesh tangents
+        /// </summary>
+        public Vector3[] tangents = [];
+
+        /// <summary>
+        /// The mesh bitangents
+        /// </summary>
+        public Vector3[] bitangents = [];
+
+        /// <summary>
+        /// The first UV stream
+        /// </summary>
+        public Vector2[] UV1 = [];
+
+        /// <summary>
+        /// The second UV stream
+        /// </summary>
+        public Vector2[] UV2 = [];
+
+        /// <summary>
+        /// The third UV stream
+        /// </summary>
+        public Vector2[] UV3 = [];
+
+        /// <summary>
+        /// The fourth UV stream
+        /// </summary>
+        public Vector2[] UV4 = [];
+
+        /// <summary>
+        /// The fifth UV stream
+        /// </summary>
+        public Vector2[] UV5 = [];
+
+        /// <summary>
+        /// The sixth UV stream
+        /// </summary>
+        public Vector2[] UV6 = [];
+
+        /// <summary>
+        /// The seventh UV stream
+        /// </summary>
+        public Vector2[] UV7 = [];
+
+        /// <summary>
+        /// The eighth UV stream
+        /// </summary>
+        public Vector2[] UV8 = [];
+
+        /// <summary>
+        /// The mesh indices
+        /// </summary>
+        public int[] indices = [];
+
+        /// <summary>
+        /// The bone indices
+        /// </summary>
+        public Vector4[] boneIndices = [];
+
+        /// <summary>
+        /// The bone weights
+        /// </summary>
+        public Vector4[] boneWeights = [];
+
+        /// <summary>
+        /// A list of bones per submesh
+        /// </summary>
+        public List<Bone[]> bones = [];
+
+        /// <summary>
+        /// The bounds of the mesh
+        /// </summary>
         public AABB bounds;
-        public List<SubmeshInfo> submeshes = [];
-        public List<string> submeshMaterialGuids = [];
-        public MeshLighting lighting;
+
+        /// <summary>
+        /// A list of submeshes
+        /// </summary>
+        public SubmeshInfo[] submeshes = [];
+
+        /// <summary>
+        /// The material GUIDs for the submeshes
+        /// </summary>
+        public string[] submeshMaterialGuids = [];
+
+        /// <summary>
+        /// The lighting to apply
+        /// </summary>
+        public MaterialLighting lighting;
     }
 
     /// <summary>
@@ -72,42 +187,117 @@ public class MeshAsset : IGuidAsset
     /// </summary>
     public class Node
     {
+        /// <summary>
+        /// The node name
+        /// </summary>
         public string name;
 
+        /// <summary>
+        /// The parent of the node (if any)
+        /// </summary>
         public Node parent;
 
+        /// <summary>
+        /// The child nodes
+        /// </summary>
         public List<Node> children = [];
 
+        /// <summary>
+        /// The meshes that are in this node
+        /// </summary>
         public List<int> meshIndices = [];
 
-        private Matrix4x4 originalTransform;
-
-        private Matrix4x4 transform;
-
+        /// <summary>
+        /// Whether the values were changed (and need recalculation)
+        /// </summary>
         private bool changed = true;
 
+        /// <summary>
+        /// Whether the transforms were changed (and need recalculation)
+        /// </summary>
         private bool transformChanged = true;
 
+        /// <summary>
+        /// The local transform without animations
+        /// </summary>
+        private Matrix4x4 originalTransform;
+
+        /// <summary>
+        /// The current local transform
+        /// </summary>
+        private Matrix4x4 transform;
+
+        /// <summary>
+        /// The global transformation matrix
+        /// </summary>
         private Matrix4x4 globalMatrix;
 
+        /// <summary>
+        /// The global transformation matrix without animations
+        /// </summary>
         private Matrix4x4 originalGlobalMatrix;
 
-        private Dictionary<string, Node> cachedNodes = [];
+        /// <summary>
+        /// A list of names to nodes
+        /// </summary>
+        private readonly Dictionary<string, Node> cachedNodes = [];
 
+        /// <summary>
+        /// The local position
+        /// </summary>
         private Vector3 position;
 
+        /// <summary>
+        /// The local position without animations
+        /// </summary>
         private Vector3 originalPosition;
 
+        /// <summary>
+        /// The local scale
+        /// </summary>
         private Vector3 scale;
 
+        /// <summary>
+        /// The local scale without animations
+        /// </summary>
         private Vector3 originalScale;
 
+        /// <summary>
+        /// The local rotation
+        /// </summary>
         private Quaternion rotation;
 
+        /// <summary>
+        /// The local rotation without animations
+        /// </summary>
         private Quaternion originalRotation;
 
+        /// <summary>
+        /// Whether we need to calculate the original matrices
+        /// </summary>
+        private bool needsOriginalCalculation = true;
+
+        /// <summary>
+        /// Updates our transforms
+        /// </summary>
         private void UpdateTransforms()
         {
+            if(needsOriginalCalculation)
+            {
+                needsOriginalCalculation = false;
+
+                if (parent != null)
+                {
+                    originalGlobalMatrix = originalTransform * parent.OriginalGlobalTransform;
+                }
+                else
+                {
+                    originalGlobalMatrix = originalTransform;
+                }
+
+                Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
+            }
+
             if (changed)
             {
                 changed = false;
@@ -129,10 +319,12 @@ public class MeshAsset : IGuidAsset
                 transformChanged = false;
 
                 Matrix4x4.Decompose(transform, out scale, out rotation, out position);
-                Matrix4x4.Decompose(originalTransform, out originalScale, out originalRotation, out originalPosition);
             }
         }
 
+        /// <summary>
+        /// The current local position
+        /// </summary>
         public Vector3 Position
         {
             get
@@ -143,6 +335,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local position without animations
+        /// </summary>
         public Vector3 OriginalPosition
         {
             get
@@ -153,6 +348,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local scale
+        /// </summary>
         public Vector3 Scale
         {
             get
@@ -163,6 +361,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local scale without animations
+        /// </summary>
         public Vector3 OriginalScale
         {
             get
@@ -173,6 +374,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local rotation
+        /// </summary>
         public Quaternion Rotation
         {
             get
@@ -183,6 +387,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local rotation without animations
+        /// </summary>
         public Quaternion OriginalRotation
         {
             get
@@ -193,6 +400,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local transform
+        /// </summary>
         public Matrix4x4 Transform
         {
             get => transform;
@@ -205,6 +415,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current local transform without animations
+        /// </summary>
         public Matrix4x4 OriginalTransform
         {
             get => originalTransform;
@@ -213,10 +426,13 @@ public class MeshAsset : IGuidAsset
             {
                 originalTransform = value;
 
-                changed = transformChanged = true;
+                needsOriginalCalculation = true;
             }
         }
 
+        /// <summary>
+        /// The current global transform
+        /// </summary>
         public Matrix4x4 GlobalTransform
         {
             get
@@ -227,6 +443,9 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// The current global transform without animations
+        /// </summary>
         public Matrix4x4 OriginalGlobalTransform
         {
             get
@@ -237,6 +456,11 @@ public class MeshAsset : IGuidAsset
             }
         }
 
+        /// <summary>
+        /// Tries to get a node from a name
+        /// </summary>
+        /// <param name="name">The node name</param>
+        /// <returns>The node, or null</returns>
         public Node GetNode(string name)
         {
             if(cachedNodes.TryGetValue(name, out Node node))
@@ -274,7 +498,12 @@ public class MeshAsset : IGuidAsset
             return result;
         }
 
-        public Node Clone(Node parent = null)
+        /// <summary>
+        /// Makes a copy of this node
+        /// </summary>
+        /// <param name="parent">The parent node to set for this</param>
+        /// <returns>The copy</returns>
+        internal Node Clone(Node parent = null)
         {
             var result = new Node()
             {
@@ -286,6 +515,14 @@ public class MeshAsset : IGuidAsset
                 globalMatrix = globalMatrix,
                 originalTransform = originalTransform,
                 originalGlobalMatrix = originalGlobalMatrix,
+                originalPosition = originalPosition,
+                originalRotation = originalRotation,
+                originalScale = originalScale,
+                position = position,
+                rotation = rotation,
+                scale = scale,
+                transformChanged = transformChanged,
+                needsOriginalCalculation = needsOriginalCalculation,
             };
 
             foreach(var child in children)
@@ -308,7 +545,14 @@ public class MeshAsset : IGuidAsset
     /// <typeparam name="T">The value type</typeparam>
     public class AnimationKey<T>
     {
+        /// <summary>
+        /// The time at which this key is active
+        /// </summary>
         public float time;
+
+        /// <summary>
+        /// The value of the key
+        /// </summary>
         public T value;
     }
 
@@ -317,12 +561,24 @@ public class MeshAsset : IGuidAsset
     /// </summary>
     public class AnimationChannel
     {
+        /// <summary>
+        /// The node this belongs to
+        /// </summary>
         public Node node;
 
+        /// <summary>
+        /// The positions in this key
+        /// </summary>
         public List<AnimationKey<Vector3>> positions = [];
-        
+
+        /// <summary>
+        /// The scales in this key
+        /// </summary>
         public List<AnimationKey<Vector3>> scales = [];
 
+        /// <summary>
+        /// The rotations in this key
+        /// </summary>
         public List<AnimationKey<Quaternion>> rotations = [];
     }
 
@@ -331,11 +587,29 @@ public class MeshAsset : IGuidAsset
     /// </summary>
     public class Animation
     {
+        /// <summary>
+        /// The animation name
+        /// </summary>
         public string name;
+
+        /// <summary>
+        /// The duration in ticks
+        /// </summary>
         public float duration;
+
+        /// <summary>
+        /// How many ticks per second
+        /// </summary>
         public float ticksPerSecond;
+
+        /// <summary>
+        /// The channels in this animation
+        /// </summary>
         public List<AnimationChannel> channels = [];
 
+        /// <summary>
+        /// The duration in real time
+        /// </summary>
         public float DurationRealtime => duration / ticksPerSecond;
     }
 
@@ -362,7 +636,7 @@ public class MeshAsset : IGuidAsset
     /// <summary>
     /// The lighting type for this mesh
     /// </summary>
-    public MeshLighting lighting;
+    public MaterialLighting lighting;
 
     /// <summary>
     /// The frame rate of the animations in this mesh

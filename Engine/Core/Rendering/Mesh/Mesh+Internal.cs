@@ -9,66 +9,215 @@ namespace Staple;
 
 public sealed partial class Mesh
 {
+    /// <summary>
+    /// Contains info for a submesh
+    /// </summary>
     internal class SubmeshInfo
     {
+        /// <summary>
+        /// The vertex to start rendering from
+        /// </summary>
         public int startVertex;
+
+        /// <summary>
+        /// How many vertices to render
+        /// </summary>
         public int vertexCount;
+
+        /// <summary>
+        /// The index to start rendering from
+        /// </summary>
         public int startIndex;
+
+        /// <summary>
+        /// How many indices to render
+        /// </summary>
         public int indexCount;
+
+        /// <summary>
+        /// The topology of the mesh
+        /// </summary>
         public MeshTopology topology;
     }
 
+    /// <summary>
+    /// Whether the mesh was changed
+    /// </summary>
     internal bool changed;
+
+    /// <summary>
+    /// Whether this mesh is dynamic
+    /// </summary>
+    internal bool isDynamic = false;
+
+    /// <summary>
+    /// List of vertices. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector3[] vertices;
+
+    /// <summary>
+    /// List of normals. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector3[] normals;
+
+    /// <summary>
+    /// List of tangents. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector3[] tangents;
+
+    /// <summary>
+    /// List of bitangents. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector3[] bitangents;
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Color[] colors;
+
+    /// <summary>
+    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Color32[] colors32;
+
+    /// <summary>
+    /// List of UVs in the first channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv;
+
+    /// <summary>
+    /// List of UVs in the second channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv2;
+
+    /// <summary>
+    /// List of UVs in the third channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv3;
+
+    /// <summary>
+    /// List of UVs in the fourth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv4;
+
+    /// <summary>
+    /// List of UVs in the fifth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv5;
+
+    /// <summary>
+    /// List of UVs in the sixth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv6;
+
+    /// <summary>
+    /// List of UVs in the seventh channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv7;
+
+    /// <summary>
+    /// List of UVs in the eighth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector2[] uv8;
+
+    /// <summary>
+    /// List of indices
+    /// </summary>
     internal int[] indices;
+
+    /// <summary>
+    /// List of bone indices. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector4[] boneIndices;
+
+    /// <summary>
+    /// List of bone weights. This is only valid if you don't use SetMeshData.
+    /// </summary>
     internal Vector4[] boneWeights;
+
+    /// <summary>
+    /// The index format of the mesh
+    /// </summary>
     internal MeshIndexFormat indexFormat = MeshIndexFormat.UInt16;
+
+    /// <summary>
+    /// The topology (geometry type) of the mesh
+    /// </summary>
     internal MeshTopology meshTopology = MeshTopology.TriangleStrip;
+
+    /// <summary>
+    /// Internal vertex buffer
+    /// </summary>
     internal VertexBuffer vertexBuffer;
+
+    /// <summary>
+    /// Internal index buffer
+    /// </summary>
     internal IndexBuffer indexBuffer;
 
+    /// <summary>
+    /// Contains the last received mesh data blob. Received from SetMeshData.
+    /// </summary>
     internal byte[] meshDataBlob = null;
+
+    /// <summary>
+    /// The vertex layout of this mesh from the mesh data
+    /// </summary>
     internal VertexLayout meshDataVertexLayout = null;
 
+    /// <summary>
+    /// The mesh asset this mesh belongs to, if any.
+    /// </summary>
     internal MeshAsset meshAsset;
+
+    /// <summary>
+    /// The mesh index of the mesh asset, if any.
+    /// </summary>
     internal int meshAssetIndex;
 
-    internal List<SubmeshInfo> submeshes = new();
+    /// <summary>
+    /// A list of all submeshes in this mesh
+    /// </summary>
+    internal List<SubmeshInfo> submeshes = [];
 
-    internal static Dictionary<string, VertexLayout> vertexLayouts = new();
+    /// <summary>
+    /// Internal list of vertex layouts for each a unique key
+    /// </summary>
+    internal static Dictionary<string, VertexLayout> vertexLayouts = [];
 
     internal bool HasNormals => (normals?.Length ?? 0) > 0;
+
     internal bool HasTangents => (tangents?.Length ?? 0) > 0;
+
     internal bool HasBitangents => (tangents?.Length ?? 0) > 0;
+
     internal bool HasColors => (colors?.Length ?? 0) > 0;
+
     internal bool HasColors32 => (colors32?.Length ?? 0) > 0;
+
     internal bool HasUV => (uv?.Length ?? 0) > 0;
+
     internal bool HasUV2 => (uv2?.Length ?? 0) > 0;
+
     internal bool HasUV3 => (uv3?.Length ?? 0) > 0;
+
     internal bool HasUV4 => (uv4?.Length ?? 0) > 0;
+
     internal bool HasUV5 => (uv5?.Length ?? 0) > 0;
+
     internal bool HasUV6 => (uv6?.Length ?? 0) > 0;
+
     internal bool HasUV7 => (uv7?.Length ?? 0) > 0;
+
     internal bool HasUV8 => (uv8?.Length ?? 0) > 0;
 
     internal bool HasBoneIndices => (boneIndices?.Length ?? 0) > 0;
 
     internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
+    /// <summary>
+    /// List of default meshes
+    /// </summary>
     internal static readonly Dictionary<string, Mesh> defaultMeshes = new()
     {
         { "Internal/Quad", Quad },
@@ -77,6 +226,10 @@ public sealed partial class Mesh
     };
 
     private static Mesh _quad;
+
+    /// <summary>
+    /// Gets the quad default mesh, and generates it if it's not built yet.
+    /// </summary>
     internal static Mesh Quad
     {
         get
@@ -101,6 +254,10 @@ public sealed partial class Mesh
     }
 
     private static Mesh _cube;
+
+    /// <summary>
+    /// Gets the cube default mesh, and generates it if it's not built yet.
+    /// </summary>
     internal static Mesh Cube
     {
         get
@@ -128,6 +285,10 @@ public sealed partial class Mesh
     }
 
     private static Mesh _sphere;
+
+    /// <summary>
+    /// Gets the sphere default mesh, and generates it if it's not built yet.
+    /// </summary>
     internal static Mesh Sphere
     {
         get
@@ -145,6 +306,13 @@ public sealed partial class Mesh
         }
     }
 
+    /// <summary>
+    /// Generates a sphere mesh
+    /// </summary>
+    /// <param name="sectorCount">The amount of sectors</param>
+    /// <param name="stackCount">The amount of stacks</param>
+    /// <param name="radius">The radius of the mesh</param>
+    /// <returns>The mesh</returns>
     internal static Mesh GenerateSphere(int sectorCount, int stackCount, float radius)
     {
         //Based on https://www.songho.ca/opengl/gl_sphere.html
@@ -219,19 +387,29 @@ public sealed partial class Mesh
         return outValue;
     }
 
-    internal bool isDynamic = false;
-
+    /// <summary>
+    /// Creates a mesh that may be readable, writable, or neither
+    /// </summary>
+    /// <param name="readable">Whether we can read the mesh data</param>
+    /// <param name="writable">Whether we can write the mesh data</param>
     internal Mesh(bool readable, bool writable)
     {
         isReadable = readable;
         isWritable = writable;
     }
 
+    /// <summary>
+    /// Gets the rendering primitive flag
+    /// </summary>
+    /// <returns>The state flag</returns>
     internal bgfx.StateFlags PrimitiveFlag()
     {
         return (bgfx.StateFlags)meshTopology;
     }
 
+    /// <summary>
+    /// Destroys this mesh's resources
+    /// </summary>
     internal void Destroy()
     {
         vertexBuffer?.Destroy();
@@ -241,6 +419,12 @@ public sealed partial class Mesh
         indexBuffer = null;
     }
 
+
+    /// <summary>
+    /// Generates a vertex layout for a mesh
+    /// </summary>
+    /// <param name="mesh">The mesh to generate the layout for</param>
+    /// <returns>The layout</returns>
     internal static VertexLayout GetVertexLayout(Mesh mesh)
     {
         var keyBuilder = new StringBuilder();
@@ -411,6 +595,12 @@ public sealed partial class Mesh
         return layout;
     }
 
+    /// <summary>
+    /// Generates a vertex data blob from the data sent to the mesh and a layout
+    /// </summary>
+    /// <param name="layout">The vertex layout</param>
+    /// <returns>The byte blob, or null</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the mesh data is invalid</exception>
     internal byte[] MakeVertexDataBlob(VertexLayout layout)
     {
         var size = layout.layout.stride * vertices.Length;
@@ -549,6 +739,11 @@ public sealed partial class Mesh
         return buffer;
     }
 
+    /// <summary>
+    /// Makes this mesh active for rendering
+    /// </summary>
+    /// <param name="submeshIndex">A submesh index, or 0</param>
+    /// <returns>Whether it was set active</returns>
     internal bool SetActive(int submeshIndex = 0)
     {
         if(changed)
@@ -581,6 +776,11 @@ public sealed partial class Mesh
         return true;
     }
 
+    /// <summary>
+    /// Gets a default mesh for a path
+    /// </summary>
+    /// <param name="path">The default mesh path</param>
+    /// <returns>The mesh, or null</returns>
     internal static Mesh GetDefaultMesh(string path)
     {
         if(defaultMeshes.TryGetValue(path, out var mesh))

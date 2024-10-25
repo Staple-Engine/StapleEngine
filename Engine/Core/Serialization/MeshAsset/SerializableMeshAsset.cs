@@ -89,7 +89,7 @@ public class MeshAssetMetadata
     public float scale = 1.0f;
 
     [Key(13)]
-    public MeshLighting lighting = MeshLighting.Lit;
+    public MaterialLighting lighting = MaterialLighting.Lit;
 
     [Key(14)]
     public int frameRate = 30;
