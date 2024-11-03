@@ -117,72 +117,78 @@ public sealed class MeshRenderSystem : IRenderSystem
         renderers.Clear();
     }
 
-    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        var r = relatedComponent as MeshRenderer;
-
-        if (r.mesh == null ||
-            r.materials == null ||
-            r.materials.Count == 0)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            var r = relatedComponent as MeshRenderer;
 
-        for (var i = 0; i < r.materials.Count; i++)
-        {
-            if (r.materials[i]?.IsValid == false)
+            if (r.isVisible == false ||
+                r.mesh == null ||
+                r.materials == null ||
+                r.materials.Count == 0)
             {
-                return;
+                continue;
             }
-        }
 
-        if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
-        {
-            return;
-        }
+            for (var i = 0; i < r.materials.Count; i++)
+            {
+                if (r.materials[i]?.IsValid == false)
+                {
+                    continue;
+                }
+            }
 
-        if(r.mesh.changed)
-        {
-            r.mesh.UploadMeshData();
-        }
+            if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
+            {
+                continue;
+            }
 
-        r.localBounds = r.mesh.bounds;
-        r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
+            if (r.mesh.changed)
+            {
+                r.mesh.UploadMeshData();
+            }
+
+            r.localBounds = r.mesh.bounds;
+            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
+        }
     }
 
-    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        var r = relatedComponent as MeshRenderer;
-
-        if (r.mesh == null ||
-            r.materials == null ||
-            r.materials.Count == 0)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            var r = relatedComponent as MeshRenderer;
 
-        for (var i = 0; i < r.materials.Count; i++)
-        {
-            if (r.materials[i]?.IsValid == false)
+            if (r.isVisible == false ||
+                r.mesh == null ||
+                r.materials == null ||
+                r.materials.Count == 0)
             {
-                return;
+                continue;
             }
-        }
 
-        if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
-        {
-            return;
-        }
+            for (var i = 0; i < r.materials.Count; i++)
+            {
+                if (r.materials[i]?.IsValid == false)
+                {
+                    continue;
+                }
+            }
 
-        renderers.Add(new RenderInfo()
-        {
-            renderer = r,
-            position = transform.Position,
-            transform = transform.Matrix,
-            viewID = viewId,
-        });
+            if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
+            {
+                continue;
+            }
+
+            renderers.Add(new RenderInfo()
+            {
+                renderer = r,
+                position = transform.Position,
+                transform = transform.Matrix,
+                viewID = viewId,
+            });
+        }
     }
 
     public Type RelatedComponent()

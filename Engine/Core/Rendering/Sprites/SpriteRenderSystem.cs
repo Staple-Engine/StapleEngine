@@ -88,187 +88,202 @@ public class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
+    public void Preprocess((Entity, Transform, IComponent)[] entities,
         Camera activeCamera, Transform activeCameraTransform)
     {
-        var r = relatedComponent as SpriteRenderer;
-
-        var hasValidAnimation = r.animation != null &&
-            r.animation.texture != null &&
-            r.animation.texture.Disposed == false &&
-            r.animation.frames.Count > 0;
-
-        var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
-            hasValidAnimation;
-
-        if (hasValidTexture == false ||
-            r.material == null ||
-            r.material.shader == null ||
-            r.material.Disposed ||
-            r.material.shader.Disposed)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            var r = relatedComponent as SpriteRenderer;
 
-        TextureSpriteInfo sprite;
-        Texture texture;
-
-        if(hasValidAnimation)
-        {
-            texture = r.animation.texture;
-
-            if(Platform.IsPlaying)
+            if(r.isVisible == false)
             {
-                r.timer += Time.deltaTime;
+                continue;
+            }
 
-                var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
+            var hasValidAnimation = r.animation != null &&
+                r.animation.texture != null &&
+                r.animation.texture.Disposed == false &&
+                r.animation.frames.Count > 0;
 
-                while (r.timer >= timeStep && timeStep > 0)
+            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+                hasValidAnimation;
+
+            if (hasValidTexture == false ||
+                r.material == null ||
+                r.material.shader == null ||
+                r.material.Disposed ||
+                r.material.shader.Disposed)
+            {
+                continue;
+            }
+
+            TextureSpriteInfo sprite;
+            Texture texture;
+
+            if (hasValidAnimation)
+            {
+                texture = r.animation.texture;
+
+                if (Platform.IsPlaying)
                 {
-                    r.timer -= timeStep;
+                    r.timer += Time.deltaTime;
 
-                    r.currentFrame++;
+                    var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
 
-                    if (r.currentFrame >= r.animation.frames.Count)
+                    while (r.timer >= timeStep && timeStep > 0)
                     {
-                        r.currentFrame = 0;
+                        r.timer -= timeStep;
+
+                        r.currentFrame++;
+
+                        if (r.currentFrame >= r.animation.frames.Count)
+                        {
+                            r.currentFrame = 0;
+                        }
                     }
                 }
-            }
 
-            if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                {
+                    continue;
+                }
+
+                var frame = r.animation.frames[r.currentFrame];
+
+                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                {
+                    continue;
+                }
+
+                sprite = r.animation.texture.metadata.sprites[frame];
+            }
+            else
             {
-                return;
+                if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+                {
+                    continue;
+                }
+
+                texture = r.texture;
+                sprite = r.texture.metadata.sprites[r.spriteIndex];
             }
 
-            var frame = r.animation.frames[r.currentFrame];
+            var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
 
-            if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
-            {
-                return;
-            }
+            r.localBounds = new AABB(Vector3.Zero, size);
 
-            sprite = r.animation.texture.metadata.sprites[frame];
+            r.bounds = new AABB(transform.Position, size);
         }
-        else
-        {
-            if(r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
-            {
-                return;
-            }
-
-            texture = r.texture;
-            sprite = r.texture.metadata.sprites[r.spriteIndex];
-        }
-
-        var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
-
-        r.localBounds = new AABB(Vector3.Zero, size);
-
-        r.bounds = new AABB(transform.Position, size);
     }
 
-    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        var r = relatedComponent as SpriteRenderer;
-
-        var hasValidAnimation = r.animation != null &&
-            r.animation.texture != null &&
-            r.animation.texture.Disposed == false &&
-            r.animation.frames.Count > 0;
-
-        var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
-            hasValidAnimation;
-
-        if (hasValidTexture == false ||
-            r.material == null ||
-            r.material.shader == null ||
-            r.material.Disposed ||
-            r.material.shader.Disposed)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            var r = relatedComponent as SpriteRenderer;
 
-        TextureSpriteInfo sprite;
-        Texture texture;
-
-        if (hasValidAnimation)
-        {
-            texture = r.animation.texture;
-
-            if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+            if(r.isVisible == false)
             {
-                return;
+                continue;
             }
 
-            var frame = r.animation.frames[r.currentFrame];
+            var hasValidAnimation = r.animation != null &&
+                r.animation.texture != null &&
+                r.animation.texture.Disposed == false &&
+                r.animation.frames.Count > 0;
 
-            if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+                hasValidAnimation;
+
+            if (hasValidTexture == false ||
+                r.material == null ||
+                r.material.shader == null ||
+                r.material.Disposed ||
+                r.material.shader.Disposed)
             {
-                return;
+                continue;
             }
 
-            sprite = r.animation.texture.metadata.sprites[frame];
-        }
-        else
-        {
-            if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+            TextureSpriteInfo sprite;
+            Texture texture;
+
+            if (hasValidAnimation)
             {
-                return;
+                texture = r.animation.texture;
+
+                if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
+                {
+                    continue;
+                }
+
+                var frame = r.animation.frames[r.currentFrame];
+
+                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                {
+                    continue;
+                }
+
+                sprite = r.animation.texture.metadata.sprites[frame];
+            }
+            else
+            {
+                if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
+                {
+                    continue;
+                }
+
+                texture = r.texture;
+                sprite = r.texture.metadata.sprites[r.spriteIndex];
             }
 
-            texture = r.texture;
-            sprite = r.texture.metadata.sprites[r.spriteIndex];
-        }
+            var scale = Vector3.Zero;
 
-        var scale = Vector3.Zero;
+            if (texture != null)
+            {
+                scale.X = sprite.rect.Width * texture.SpriteScale;
+                scale.Y = sprite.rect.Height * texture.SpriteScale;
+            }
 
-        if (texture != null)
-        {
-            scale.X = sprite.rect.Width * texture.SpriteScale;
-            scale.Y = sprite.rect.Height * texture.SpriteScale;
-        }
+            switch (sprite.rotation)
+            {
+                case TextureSpriteRotation.FlipY:
 
-        switch(sprite.rotation)
-        {
-            case TextureSpriteRotation.FlipY:
+                    scale.Y *= -1;
 
-                scale.Y *= -1;
+                    break;
 
-                break;
+                case TextureSpriteRotation.FlipX:
 
-            case TextureSpriteRotation.FlipX:
+                    scale.X *= -1;
 
+                    break;
+            }
+
+            if (r.flipX)
+            {
                 scale.X *= -1;
+            }
 
-                break;
+            if (r.flipY)
+            {
+                scale.Y *= -1;
+            }
+
+            var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
+
+            sprites.Add(new SpriteRenderInfo()
+            {
+                color = r.color,
+                material = r.material,
+                texture = texture,
+                textureRect = sprite.rect,
+                position = transform.Position,
+                transform = matrix,
+                viewID = viewId,
+                sortingOrder = r.sortingOrder,
+                layer = r.sortingLayer,
+            });
         }
-
-        if (r.flipX)
-        {
-            scale.X *= -1;
-        }
-
-        if (r.flipY)
-        {
-            scale.Y *= -1;
-        }
-
-        var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
-
-        sprites.Add(new SpriteRenderInfo()
-        {
-            color = r.color,
-            material = r.material,
-            texture = texture,
-            textureRect = sprite.rect,
-            position = transform.Position,
-            transform = matrix,
-            viewID = viewId,
-            sortingOrder = r.sortingOrder,
-            layer = r.sortingLayer,
-        });
     }
 
     public void Submit()

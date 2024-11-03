@@ -99,7 +99,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(Entity, Transform, List<(IRenderSystem, IComponent)>)>)> renderQueue = [];
+    private readonly List<((Camera, Transform), List<(IRenderSystem, (Entity, Transform, IComponent)[])>)> renderQueue = [];
 
     /// <summary>
     /// The entity query for every entity with a transform

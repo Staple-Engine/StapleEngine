@@ -52,43 +52,45 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         renderers.Clear();
     }
 
-    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        var renderer = relatedComponent as SkinnedMeshRenderer;
-
-        if (renderer.mesh == null ||
-            renderer.mesh.meshAsset == null ||
-            renderer.mesh.meshAssetIndex < 0 ||
-            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
-            renderer.materials == null ||
-            renderer.materials.Count != renderer.mesh.submeshes.Count)
+        foreach (var (entity, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            var renderer = relatedComponent as SkinnedMeshRenderer;
 
-        for (var i = 0; i < renderer.materials.Count; i++)
-        {
-            if (renderer.materials[i]?.IsValid == false)
+            if (renderer.isVisible == false ||
+                renderer.mesh == null ||
+                renderer.mesh.meshAsset == null ||
+                renderer.mesh.meshAssetIndex < 0 ||
+                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+                renderer.materials == null ||
+                renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
-                return;
+                continue;
             }
+
+            for (var i = 0; i < renderer.materials.Count; i++)
+            {
+                if (renderer.materials[i]?.IsValid == false)
+                {
+                    continue;
+                }
+            }
+
+            renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
+
+            renderers.Add(new RenderInfo()
+            {
+                renderer = renderer,
+                position = transform.Position,
+                transform = transform.Matrix,
+                viewID = viewId,
+            });
         }
-
-        renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
-
-        renderers.Add(new RenderInfo()
-        {
-            renderer = renderer,
-            position = transform.Position,
-            transform = transform.Matrix,
-            viewID = viewId,
-        });
     }
 
     public Type RelatedComponent()

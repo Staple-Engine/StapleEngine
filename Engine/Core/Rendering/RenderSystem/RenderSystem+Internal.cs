@@ -210,7 +210,7 @@ public sealed partial class RenderSystem
             {
                 foreach (var cameraInfo in cameras)
                 {
-                    var outValue = new List<(Entity, Transform, List<(IRenderSystem, IComponent)>)>();
+                    var collected = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
 
                     foreach (var entityInfo in entityQuery)
                     {
@@ -221,23 +221,30 @@ public sealed partial class RenderSystem
                             continue;
                         }
 
-                        var systemValues = new List<(IRenderSystem, IComponent)>();
-
                         foreach (var system in renderSystems)
                         {
                             if (entityInfo.Item1.TryGetComponent(out var component, system.RelatedComponent()))
                             {
-                                systemValues.Add((system, component));
-                            }
-                        }
+                                if(collected.TryGetValue(system, out var content) == false)
+                                {
+                                    content = [];
 
-                        if(systemValues.Count > 0)
-                        {
-                            outValue.Add((entityInfo.Item1, entityInfo.Item2, systemValues));
+                                    collected.Add(system, content);
+                                }
+
+                                content.Add((entityInfo.Item1, entityInfo.Item2, component));
+                            }
                         }
                     }
 
-                    renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), outValue));
+                    var final = new List<(IRenderSystem, (Entity, Transform, IComponent)[])>();
+
+                    foreach(var pair in collected)
+                    {
+                        final.Add((pair.Key, pair.Value.ToArray()));
+                    }
+
+                    renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
                 }
             }
         }
@@ -255,24 +262,10 @@ public sealed partial class RenderSystem
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(Entity, Transform, List<(IRenderSystem, IComponent)>)> queue,
+        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue,
         ushort viewID)
     {
         CurrentCamera = (camera, cameraTransform);
-
-        IRenderSystem[] systems = [];
-
-        lock (lockObject)
-        {
-            systems = renderSystems.ToArray();
-        }
-
-        var systemLength = systems.Length;
-
-        for (var i = 0; i < systemLength; i++)
-        {
-            systems[i].Prepare();
-        }
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
@@ -280,35 +273,26 @@ public sealed partial class RenderSystem
 
         for (var i = 0; i < queueLength; i++)
         {
-            var (entity, transform, entitySystems) = queue[i];
+            var (system, content) = queue[i];
 
-            var entitySystemLength = entitySystems.Count;
+            system.Prepare();
 
-            for (var j = 0; j < entitySystemLength; j++)
+            system.Preprocess(content, camera, cameraTransform);
+
+            var contentLength = content.Length;
+
+            for(var j = 0; j < contentLength; j++)
             {
-                var (system, component) = entitySystems[j];
-
-                system.Preprocess(entity, transform, component, camera, cameraTransform);
-
-                if (component is Renderable renderable && renderable.enabled)
+                if (content[j].Item3 is Renderable renderable)
                 {
-                    renderable.isVisible = true; //frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                    if (renderable.isVisible && renderable.forceRenderingOff == false)
-                    {
-                        system.Process(entity, transform, component, camera, cameraTransform, viewID);
-                    }
-                }
-                else //Systems that do not require a renderer
-                {
-                    system.Process(entity, transform, component, camera, cameraTransform, viewID);
+                    //TODO: Frustum
+                    renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
                 }
             }
-        }
 
-        for (var i = 0; i < systemLength; i++)
-        {
-            systems[i].Submit();
+            system.Process(content, camera, cameraTransform, viewID);
+
+            system.Submit();
         }
     }
 
@@ -349,21 +333,15 @@ public sealed partial class RenderSystem
                 if (system.RelatedComponent() != null &&
                     e.TryGetComponent(out var related, system.RelatedComponent()))
                 {
-                    system.Preprocess(e, t, related, camera, cameraTransform);
+                    system.Preprocess([(e, t, related)], camera, cameraTransform);
 
-                    if (related is Renderable renderable && renderable.enabled)
+                    if (related is Renderable renderable)
                     {
-                        renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
+                        //TODO: Frustum
+                        renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+                    }
 
-                        if (renderable.isVisible && renderable.forceRenderingOff == false)
-                        {
-                            system.Process(e, t, related, camera, cameraTransform, viewID);
-                        }
-                    }
-                    else if (related is not Renderable) //Systems that do not require a renderer
-                    {
-                        system.Process(e, t, related, camera, cameraTransform, viewID);
-                    }
+                    system.Process([(e, t, related)], camera, cameraTransform, viewID);
                 }
             }
 
@@ -443,7 +421,7 @@ public sealed partial class RenderSystem
                         {
                             if (call.relatedComponent.GetType() == system.RelatedComponent())
                             {
-                                system.Process(call.entity, stagingTransform, call.relatedComponent,
+                                system.Process([(call.entity, stagingTransform, call.relatedComponent)],
                                     camera, cameraTransform, viewID);
                             }
                         }
@@ -513,27 +491,25 @@ public sealed partial class RenderSystem
                     frustumCuller.Update(view, projection);
                 }
 
-                foreach (var entityInfo in pair.Item2)
+                foreach (var systemInfo in pair.Item2)
                 {
-                    var entity = entityInfo.Item1;
-                    var transform = entityInfo.Item2;
+                    var system = systemInfo.Item1;
+                    var contents = systemInfo.Item2;
 
-                    foreach (var systemInfo in entityInfo.Item3)
+                    system.Preprocess(contents, camera, cameraTransform);
+
+                    var contentLength = contents.Length;
+
+                    for (var j = 0; j < contentLength; j++)
                     {
-                        var system = systemInfo.Item1;
-                        var component = systemInfo.Item2;
-
+                        if (contents[j].Item3 is Renderable renderable)
                         {
-                            system.Preprocess(entity, transform, component, camera, cameraTransform);
-                        }
+                            //TODO: Frustum
+                            renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
-                        if (component is Renderable renderable && renderable.enabled)
-                        {
-                            renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                            if (renderable.isVisible && renderable.forceRenderingOff == false)
+                            if(renderable.isVisible)
                             {
-                                AddDrawCall(entity, transform, component, renderable, CurrentViewID);
+                                AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
                             }
                         }
                     }

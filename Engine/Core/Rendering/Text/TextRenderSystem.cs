@@ -23,7 +23,7 @@ public class TextRenderSystem : IRenderSystem
 
     private Material material;
 
-    private readonly List<TextInfo> texts = new();
+    private readonly List<TextInfo> texts = [];
 
     public Type RelatedComponent() => typeof(Text);
 
@@ -42,35 +42,36 @@ public class TextRenderSystem : IRenderSystem
         }
     }
 
-    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Entity entity, Transform transform, IComponent relatedComponent,
-        Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if(relatedComponent is not Text text)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            if (relatedComponent is not Text text)
+            {
+                continue;
+            }
 
-        text.text ??= "";
-        
-        if(text.fontSize < 4)
-        {
-            text.fontSize = 4;
-        }
+            text.text ??= "";
 
-        texts.Add(new TextInfo()
-        {
-            text = text.text,
-            fontSize = text.fontSize,
-            transform = transform.Matrix,
-            viewID = viewId,
-            fontAsset = text.font,
-            scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
-        });
+            if (text.fontSize < 4)
+            {
+                text.fontSize = 4;
+            }
+
+            texts.Add(new TextInfo()
+            {
+                text = text.text,
+                fontSize = text.fontSize,
+                transform = transform.Matrix,
+                viewID = viewId,
+                fontAsset = text.font,
+                scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
+            });
+        }
     }
 
     public void Submit()

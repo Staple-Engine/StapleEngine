@@ -38,24 +38,27 @@ public class UICanvasSystem : IRenderSystem
         renders.Clear();
     }
 
-    public void Preprocess(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Entity entity, Transform transform, IComponent relatedComponent, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if(relatedComponent is not UICanvas canvas ||
-            renders.Any(x => x.canvas == canvas))
+        foreach (var (_, transform, relatedComponent) in entities)
         {
-            return;
-        }
+            if (relatedComponent is not UICanvas canvas ||
+                renders.Any(x => x.canvas == canvas))
+            {
+                continue;
+            }
 
-        renders.Add(new()
-        {
-            canvas = canvas,
-            canvasTransform = transform,
-            projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1),
-        });
+            renders.Add(new()
+            {
+                canvas = canvas,
+                canvasTransform = transform,
+                projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1),
+            });
+        }
     }
 
     public Type RelatedComponent() => typeof(UICanvas);

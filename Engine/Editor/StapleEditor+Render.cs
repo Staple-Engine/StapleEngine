@@ -2,6 +2,7 @@
 using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -158,7 +159,10 @@ internal partial class StapleEditor
         {
             var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
 
+            //TODO: Cache this
             var transforms = Scene.Query<Transform>();
+
+            var renderQueue = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
 
             foreach ((Entity entity, Transform transform) in transforms)
             {
@@ -173,35 +177,37 @@ internal partial class StapleEditor
 
                     if (related != null)
                     {
-                        ExecuteBlock(system, () =>
+                        if(renderQueue.TryGetValue(system, out var content) == false)
                         {
-                            system.Preprocess(entity, transform, related, renderCamera, cameraTransform);
-                        });
+                            content = [];
+
+                            renderQueue.Add(system, content);
+                        }
 
                         if (related is Renderable renderable &&
                             renderable.enabled)
                         {
-                            renderable.isVisible = frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible || true; //TEMP: Figure out what's wrong with the frustum culler
-
-                            if (renderable.isVisible && renderable.forceRenderingOff == false)
-                            {
-                                ExecuteBlock(system, () =>
-                                {
-                                    system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
-                                });
-                            }
+                            //TODO: Frustum Culling
+                            renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
-                        else if(related is not Renderable)
-                        {
-                            ExecuteBlock(system, () =>
-                            {
-                                system.Process(entity, transform, related, renderCamera, cameraTransform, SceneView);
-                            });
-                        }
+
+                        content.Add((entity, transform, related));
                     }
                 }
+            }
+
+            foreach(var pair in renderQueue)
+            {
+                ExecuteBlock(pair.Key, () =>
+                {
+                    pair.Key.Preprocess(pair.Value.ToArray(), renderCamera, cameraTransform);
+
+                    pair.Key.Process(pair.Value.ToArray(), renderCamera, cameraTransform, SceneView);
+
+                    pair.Key.Submit();
+                });
             }
 
             if (cachedGizmoEditors.Count > 0)
@@ -224,13 +230,11 @@ internal partial class StapleEditor
                 });
             }
 
-            //Temporarily disabled because obtrusive
-            /*
             Scene.IterateEntities((entity) =>
             {
                 var transform = entity.GetComponent<Transform>();
 
-                if(transform == null)
+                if(transform == null || Vector3.Distance(transform.Position, cameraTransform.Position) < 3)
                 {
                     return;
                 }
@@ -244,16 +248,8 @@ internal partial class StapleEditor
 
                 componentIconMaterial.MainTexture = icon;
 
-                MeshRenderSystem.DrawMesh(Mesh.Quad, transform.Position, Quaternion.Identity, Vector3.One, componentIconMaterial, WireframeView);
-            });
-            */
-        }
-
-        foreach (var system in renderSystem.renderSystems)
-        {
-            ExecuteBlock(system, () =>
-            {
-                system.Submit();
+                MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, Quaternion.Identity, Vector3.One, componentIconMaterial,
+                    MaterialLighting.Unlit, WireframeView);
             });
         }
     }
