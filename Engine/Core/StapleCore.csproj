@@ -80,6 +80,9 @@
 		<Reference Include="NAudio">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NAudio.dll</HintPath>
 		</Reference>
+		<Reference Include="ZeroAllocJobScheduler">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\ZeroAllocJobScheduler.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -176,6 +179,10 @@
 		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
 		<Compile Include="Serialization\Font\FontMetadata.cs" />
 		<Compile Include="Serialization\Font\SerializableFontAsset.cs" />
+		<Compile Include="System\Jobs\IJob.cs" />
+		<Compile Include="System\Jobs\IJobParallelFor.cs" />
+		<Compile Include="System\Jobs\JobHandle.cs" />
+		<Compile Include="System\Jobs\JobSheduler.cs" />
 		<Compile Include="UI\UIInteractible.cs" />
 		<Compile Include="UI\UIButton.cs" />
 		<Compile Include="UI\UICanvas.cs" />

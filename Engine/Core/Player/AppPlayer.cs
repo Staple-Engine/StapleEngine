@@ -1,5 +1,6 @@
 ﻿using Bgfx;
 using Staple.Internal;
+using Staple.Jobs;
 using System;
 using System.IO;
 using System.Linq;
@@ -264,6 +265,8 @@ internal class AppPlayer
         renderWindow.OnCleanup = () =>
         {
             Log.Info("Terminating");
+
+            JobScheduler.Dispose();
 
             SubsystemManager.instance.Destroy();
 

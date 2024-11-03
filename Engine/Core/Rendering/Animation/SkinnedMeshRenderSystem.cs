@@ -80,7 +80,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
         }
 
-        renderer.animator ??= new(entity, EntityQueryMode.Parent);
+        renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
 
         renderers.Add(new RenderInfo()
         {

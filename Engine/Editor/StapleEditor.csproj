@@ -97,6 +97,7 @@
     <Compile Include="Editors\PropertyDrawers\EntityCallbackPropertyDrawer.cs" />
     <Compile Include="Editors\PropertyDrawers\RangePropertyDrawer.cs" />
     <Compile Include="EditorUtils.cs" />
+    <Compile Include="GameRegistration.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserDropType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />
@@ -144,9 +145,14 @@
     <PackageReference Include="Hexa.NET.ImNodes" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImPlot" Version="1.0.3" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\StapleJoltPhysics\StapleJoltPhysics.csproj" />
-    <ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
+	  <ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+	
+  <ItemGroup>
+	  <ProjectReference Include="..\StapleJoltPhysics\StapleJoltPhysics.csproj" />
+	  <ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

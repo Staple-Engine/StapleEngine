@@ -209,7 +209,14 @@ internal partial class StapleEditor
 
                 EditorGUI.MenuItem("Open Solution", "OPENSOLUTION", () =>
                 {
-                    csProjManager.GenerateGameCSProj(currentPlatform, true);
+                    var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
+
+                    if (backend == null)
+                    {
+                        return;
+                    }
+
+                    csProjManager.GenerateGameCSProj(backend, currentPlatform, true);
                     csProjManager.OpenGameSolution();
                 });
 

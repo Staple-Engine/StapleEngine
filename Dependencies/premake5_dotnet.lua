@@ -85,3 +85,12 @@ project "MessagePack"
 	files {
 		"MessagePack/**.cs"
 	}
+
+project "ZeroAllocJobScheduler"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+
+	files {
+		"ZeroAllocJobScheduler/**.cs"
+	}

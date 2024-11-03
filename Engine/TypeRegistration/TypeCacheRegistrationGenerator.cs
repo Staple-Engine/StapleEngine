@@ -63,6 +63,8 @@ namespace Staple
 ";
 
             var types = new HashSet<string>();
+            var constructibleTypes = new HashSet<string>();
+            var componentTypes = new HashSet<string>();
 
             void Perform(IAssemblySymbol symbol, bool isSelf)
             {
@@ -72,7 +74,9 @@ namespace Staple
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
+                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
+                        t.TypeKind == TypeKind.Enum ||
+                        t.TypeKind == TypeKind.Delegate)
                     {
                         //source += $"            //Ignoring type {t.Name}: {t.DeclaredAccessibility}\r\n";
 
@@ -99,6 +103,16 @@ namespace Staple
 
                     types.Add(typeName);
 
+                    if(t.Constructors.Any(x => x.Parameters.Length == 0))
+                    {
+                        constructibleTypes.Add(typeName);
+                    }
+
+                    if(t.AllInterfaces.Any(x => x.ContainingNamespace?.Name == "Staple" && x.Name == "IComponent"))
+                    {
+                        componentTypes.Add(typeName);
+                    }
+
                     foreach(var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field))
                     {
                         HandleSymbol(member);
@@ -116,7 +130,9 @@ namespace Staple
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)))
+                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
+                        t.ContainingType.TypeKind == TypeKind.Enum ||
+                        t.ContainingType.TypeKind == TypeKind.Delegate)
                     {
                         //source += $"            //Ignoring type {t.Name}: {t.DeclaredAccessibility}\r\n";
 
@@ -181,7 +197,7 @@ namespace Staple
 
                 void HandleNamespace(INamespaceSymbol n)
                 {
-                    if (n.Name == "System" || n.Name == "Microsoft")
+                    if(n.Name == "System" || n.Name == "Microsoft")
                     {
                         return;
                     }
@@ -256,7 +272,23 @@ namespace Staple
                 }
 
                 //source += $"            Console.WriteLine(\"Registering {type}\");\r\n\r\n";
-                source += $"            TypeCache.RegisterType(typeof({type}));\r\n";
+
+                if (componentTypes.Contains(type) && constructibleTypes.Contains(type))
+                {
+                    source += $@"
+            TypeCache.RegisterType(typeof({type}), new() 
+            {{
+                add = (entity) => entity.AddComponent<{type}>(),
+                remove = (entity) => entity.RemoveComponent<{type}>(),
+                get = (entity) => entity.GetComponent<{type}>(),
+            }});
+
+";
+                }
+                else
+                {
+                    source += $"            TypeCache.RegisterType(typeof({type}), null);\r\n";
+                }
             }
 
             source += $@"

@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -126,6 +125,7 @@ public partial class World
 
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
+
     private readonly List<EntityInfo> entities = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
     private readonly Dictionary<int, string> componentNameHashes = [];
@@ -236,7 +236,7 @@ public partial class World
 
                     transform?.SetParent(null);
 
-                    while (transform.ChildCount > 0)
+                    while ((transform?.ChildCount ?? 0) > 0)
                     {
                         var child = transform.GetChild(0);
 

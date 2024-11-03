@@ -38,9 +38,6 @@
     <ProjectReference Include="..\Editor\StapleEditor.csproj" />
 	<ProjectReference Include="..\Core\StapleCore.csproj" />
   </ItemGroup>
-  <ItemGroup>
-	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
   <PropertyGroup>
 	  <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>

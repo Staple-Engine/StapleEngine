@@ -185,9 +185,10 @@ internal class CSProjManager
     /// <summary>
     /// Generates the game project file
     /// </summary>
+    /// <param name="backend">The current backend</param>
     /// <param name="platform">The current platform</param>
     /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
-    public void GenerateGameCSProj(AppPlatform platform, bool sandbox)
+    public void GenerateGameCSProj(PlayerBackend backend, AppPlatform platform, bool sandbox)
     {
         using var collection = new ProjectCollection();
 
@@ -296,6 +297,39 @@ internal class CSProjManager
         }
 
         Recursive(assetsDirectory);
+
+        if(sandbox == false)
+        {
+            var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
+
+            p.AddItem("ProjectReference", typeRegistrationPath,
+                [
+                    new("OutputItemType", "Analyzer"),
+                    new("ReferenceOutputAssembly", "false"),
+                ]);
+
+            var registration = Path.Combine(projectDirectory, "GameRegistration.cs");
+
+            p.AddItem("Compile", registration);
+
+            try
+            {
+                File.WriteAllText(registration, $$"""
+                    namespace Staple.Internal;
+
+                    public sealed class GameRegistration
+                    {
+                        public void RegisterAll()
+                        {
+                            TypeCacheRegistration.RegisterAll();
+                        }
+                    }
+                    """);
+            }
+            catch(Exception)
+            {
+            }
+        }
 
         try
         {
@@ -543,8 +577,6 @@ internal class CSProjManager
                 break;
         }
 
-        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
-
         p.AddItem("Reference", "StapleCore",
             [
                 new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
@@ -583,6 +615,8 @@ internal class CSProjManager
                     ]);
             }
         }
+
+        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 
         p.AddItem("ProjectReference", typeRegistrationPath,
             [

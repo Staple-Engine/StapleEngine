@@ -1,6 +1,6 @@
 ﻿using Staple;
 
-public class MyComponent : CallbackComponent
+public class MyCallbackComponent : CallbackComponent
 {
 	//Called one frame after the component is added
 	public override void Start()

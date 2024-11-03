@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -20,6 +21,16 @@ public class SceneQuery<T>: ISceneQuery, IEnumerable<(Entity, T)>
     }
 
     public (Entity, T) this[int index] => contents[index];
+
+    public void IterateThreaded(Action<(Entity, T), int> callback)
+    {
+        if(Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
 
     public void WorldChanged()
     {
@@ -60,6 +71,16 @@ public class SceneQuery<T, T2>: ISceneQuery, IEnumerable<(Entity, T, T2)>
     }
 
     public (Entity, T, T2) this[int index] => contents[index];
+
+    public void IterateThreaded(Action<(Entity, T, T2), int> callback)
+    {
+        if (Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
 
     public void WorldChanged()
     {
@@ -102,6 +123,16 @@ public class SceneQuery<T, T2, T3> : ISceneQuery, IEnumerable<(Entity, T, T2, T3
 
     public (Entity, T, T2, T3) this[int index] => contents[index];
 
+    public void IterateThreaded(Action<(Entity, T, T2, T3), int> callback)
+    {
+        if (Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
+
     public void WorldChanged()
     {
         contents = Scene.Query<T, T2, T3>(includeDisabled);
@@ -143,6 +174,16 @@ public class SceneQuery<T, T2, T3, T4> : ISceneQuery, IEnumerable<(Entity, T, T2
     }
 
     public (Entity, T, T2, T3, T4) this[int index] => contents[index];
+
+    public void IterateThreaded(Action<(Entity, T, T2, T3, T4), int> callback)
+    {
+        if (Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
 
     public void WorldChanged()
     {
@@ -187,6 +228,16 @@ public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery, IEnumerable<(Entity, T
     }
 
     public (Entity, T, T2, T3, T4, T5) this[int index] => contents[index];
+
+    public void IterateThreaded(Action<(Entity, T, T2, T3, T4, T5), int> callback)
+    {
+        if (Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
 
     public void WorldChanged()
     {

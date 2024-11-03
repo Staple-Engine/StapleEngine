@@ -18,12 +18,12 @@ public struct EntityID
 
     public static bool operator ==(EntityID a, EntityID b)
     {
-        return a.ID == b.ID;
+        return a.ID == b.ID && a.generation == b.generation;
     }
 
     public static bool operator !=(EntityID a, EntityID b)
     {
-        return (a == b) == false;
+        return a.ID != b.ID || a.generation == b.generation;
     }
 
     public override readonly bool Equals(object obj)

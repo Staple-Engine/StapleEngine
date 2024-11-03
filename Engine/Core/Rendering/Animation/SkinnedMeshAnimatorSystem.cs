@@ -33,7 +33,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
             if(animator.renderers == null)
             {
-                animator.renderers = new(entity, EntityQueryMode.Children);
+                animator.renderers = new(entity, EntityQueryMode.Children, false);
             }
         }
     }

@@ -10,9 +10,20 @@ namespace Staple.Internal;
 /// </summary>
 public static class TypeCache
 {
-    internal static Dictionary<string, Type> types = new();
+    public class ComponentCallbacks
+    {
+        public Func<Entity, IComponent> add;
+        public Action<Entity> remove;
+        public Func<Entity, IComponent> get;
+    }
 
-    private static Dictionary<string, Type[]> subclassCaches = new();
+    internal static readonly Dictionary<string, HashSet<string>> inheritance = [];
+
+    internal static readonly Dictionary<string, Type> types = [];
+
+    private static readonly Dictionary<string, ComponentCallbacks> componentCallbacks = [];
+
+    private static readonly Dictionary<string, Type[]> subclassCaches = [];
 
     /// <summary>
     /// Clears the type cache
@@ -20,7 +31,9 @@ public static class TypeCache
     public static void Clear()
     {
         types.Clear();
+        componentCallbacks.Clear();
         subclassCaches.Clear();
+        inheritance.Clear();
     }
 
     /// <summary>
@@ -99,13 +112,69 @@ public static class TypeCache
         return types.Values.ToArray();
     }
 
+    public static IComponent AddComponent(Entity entity, string typeName)
+    {
+        if(componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        {
+            return default;
+        }
+
+        try
+        {
+            return callback.add?.Invoke(entity);
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[TypeCache] Failed to add a component '{typeName}: {e}");
+        }
+
+        return default;
+    }
+
+    public static void RemoveComponent(Entity entity, string typeName)
+    {
+        if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        {
+            return;
+        }
+
+        try
+        {
+            callback.remove?.Invoke(entity);
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[TypeCache] Failed to add a component '{typeName}: {e}");
+        }
+    }
+
+    public static IComponent GetComponent(Entity entity, string typeName)
+    {
+        if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        {
+            return default;
+        }
+
+        try
+        {
+            return callback.get?.Invoke(entity);
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[TypeCache] Failed to add a component '{typeName}: {e}");
+        }
+
+        return default;
+    }
+
     /// <summary>
     /// Registers a type in the type cache
     /// </summary>
     /// <param name="type">The type to register</param>
     public static void RegisterType(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-        Type type)
+        Type type,
+        ComponentCallbacks callbacks)
     {
         if(types.ContainsKey(type.FullName))
         {
@@ -113,5 +182,31 @@ public static class TypeCache
         }
 
         types.Add(type.FullName, type);
+
+        HashSet<string> inheritanceInfo = [];
+
+        void GatherInheritance(Type t)
+        {
+            inheritanceInfo.Add(t.FullName);
+
+            foreach(var i in t.GetInterfaces())
+            {
+                inheritanceInfo.Add(i.FullName);
+            }
+
+            if(t.BaseType != null)
+            {
+                GatherInheritance(t.BaseType);
+            }
+        }
+
+        GatherInheritance(type);
+
+        inheritance.Add(type.FullName, inheritanceInfo);
+
+        if (callbacks != null && type.IsAssignableTo(typeof(IComponent)))
+        {
+            componentCallbacks.Add(type.FullName, callbacks);
+        }
     }
 }

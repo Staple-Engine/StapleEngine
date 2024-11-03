@@ -17,6 +17,7 @@ internal sealed class EntitySystemManager : ISubsystem
 
     private readonly HashSet<IEntitySystemUpdate> updateSystems = [];
     private readonly HashSet<IEntitySystemFixedUpdate> fixedUpdateSystems = [];
+    private readonly HashSet<IEntitySystemLifecycle> lifecycleSystems = [];
 
     private readonly Dictionary<string, object> cachedSubclasses = [];
 
@@ -76,6 +77,7 @@ internal sealed class EntitySystemManager : ISubsystem
         {
             var unloadedUpdate = new List<IEntitySystemUpdate>();
             var unloadedFixedUpdate = new List<IEntitySystemFixedUpdate>();
+            var unloadedLifecycles = new List<IEntitySystemLifecycle>();
 
             foreach (var system in updateSystems)
             {
@@ -93,33 +95,27 @@ internal sealed class EntitySystemManager : ISubsystem
                 }
             }
 
+            foreach(var system in lifecycleSystems)
+            {
+                if(system.GetType().Assembly == assembly)
+                {
+                    unloadedLifecycles.Add(system);
+                }
+            }
+
             foreach (var system in unloadedUpdate)
             {
                 updateSystems.Remove(system);
-
-                system.Shutdown();
             }
 
             foreach (var system in unloadedFixedUpdate)
             {
                 fixedUpdateSystems.Remove(system);
+            }
 
-                var skip = false;
-
-                foreach (var o in unloadedUpdate)
-                {
-                    if (o == system)
-                    {
-                        skip = true;
-
-                        break;
-                    }
-                }
-
-                if (skip)
-                {
-                    continue;
-                }
+            foreach(var system in unloadedLifecycles)
+            {
+                lifecycleSystems.Remove(system);
 
                 system.Shutdown();
             }
@@ -137,12 +133,11 @@ internal sealed class EntitySystemManager : ISubsystem
         lock (lockObject)
         {
             if(fixedUpdateSystems.Any(x => x == system) ||
-                updateSystems.Any(x => x == system))
+                updateSystems.Any(x => x == system) ||
+                lifecycleSystems.Any(x => x == system))
             {
                 return;
             }
-
-            var ranStartup = false;
 
             if (system is IWorldChangeReceiver receiver)
             {
@@ -152,19 +147,36 @@ internal sealed class EntitySystemManager : ISubsystem
             if (system is IEntitySystemFixedUpdate fixedUpdate)
             {
                 fixedUpdateSystems.Add(fixedUpdate);
-
-                ranStartup = true;
-
-                fixedUpdate.Startup();
             }
 
             if (system is IEntitySystemUpdate update)
             {
                 updateSystems.Add(update);
+            }
 
-                if (ranStartup == false)
+            if(system is IEntitySystemLifecycle lifecycle)
+            {
+                lifecycleSystems.Add(lifecycle);
+
+                try
                 {
-                    update.Startup();
+                    lifecycle.Startup();
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"[EntitySystemManager] Failed to startup {system.GetType().FullName}: {e}");
+
+                    lifecycleSystems.Remove(lifecycle);
+
+                    if (lifecycle is IEntitySystemFixedUpdate f)
+                    {
+                        fixedUpdateSystems.Remove(f);
+                    }
+
+                    if (lifecycle is IEntitySystemUpdate u)
+                    {
+                        updateSystems.Remove(u);
+                    }
                 }
             }
 
@@ -176,18 +188,21 @@ internal sealed class EntitySystemManager : ISubsystem
     {
         lock (lockObject)
         {
-            foreach (var system in updateSystems)
+            foreach(var system in lifecycleSystems)
             {
-                system.Shutdown();
-            }
-
-            foreach (var system in fixedUpdateSystems)
-            {
-                system.Shutdown();
+                try
+                {
+                    system.Shutdown();
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"[EntitySystemManager] Failed to shutdown {system.GetType().FullName}: {e}");
+                }
             }
 
             updateSystems.Clear();
             fixedUpdateSystems.Clear();
+            lifecycleSystems.Clear();
         }
     }
 

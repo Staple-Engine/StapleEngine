@@ -386,6 +386,14 @@ internal partial class StapleEditor
         var projectPath = Path.Combine(projectDirectory, "Game.csproj");
         var outPath = Path.Combine(projectDirectory, "bin");
 
+        try
+        {
+            Directory.Delete(outPath, true);
+        }
+        catch(Exception)
+        {
+        }
+
         var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
 
         var processInfo = new ProcessStartInfo("dotnet", args)

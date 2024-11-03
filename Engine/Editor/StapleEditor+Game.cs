@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -39,11 +40,12 @@ internal partial class StapleEditor
                 {
                     gameAssembly = new(assembly);
 
+                    //TODO: Proxy type cache
                     var types = assembly.GetTypes();
 
                     foreach(var type in types)
                     {
-                        TypeCache.RegisterType(type);
+                        TypeCache.RegisterType(type, null);
                     }
                 }
             }
@@ -188,88 +190,114 @@ internal partial class StapleEditor
             cachedGizmoEditors.Clear();
             ResourceManager.instance.cachedAssets.Clear();
 
-            var core = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "StapleCore");
+            TypeCacheRegistration.RegisterAll();
 
-            var t = Assembly.GetExecutingAssembly().GetTypes()
-                .Concat(Assembly.GetCallingAssembly().GetTypes())
-                .Concat(core.GetTypes())
-                .Distinct()
-                .ToList();
+            void RegisterTypes(Type[] types)
+            {
+                foreach (var v in types)
+                {
+                    if (v.IsInterface)
+                    {
+                        continue;
+                    }
+
+                    if (typeof(IStapleAsset).IsAssignableFrom(v))
+                    {
+                        registeredAssetTypes.AddOrSetKey(v.FullName, v);
+                    }
+                    else if (typeof(IComponent).IsAssignableFrom(v) &&
+                        v.GetCustomAttribute<AbstractComponentAttribute>() == null)
+                    {
+                        registeredComponents.Add(v);
+                    }
+                    else if (typeof(IEntityTemplate).IsAssignableFrom(v))
+                    {
+                        try
+                        {
+                            var instance = (IEntityTemplate)Activator.CreateInstance(v);
+
+                            registeredEntityTemplates.Add(instance);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if (typeof(IRenderSystem).IsAssignableFrom(v) &&
+                        v != typeof(IRenderSystem))
+                    {
+                        try
+                        {
+                            var instance = (IRenderSystem)Activator.CreateInstance(v);
+
+                            RenderSystem.Instance.RegisterSystem(instance);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if (v.IsSubclassOf(typeof(EditorWindow)))
+                    {
+                        foreach (var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                        {
+                            var menu = method.GetCustomAttribute<MenuItemAttribute>();
+
+                            if (menu == null)
+                            {
+                                continue;
+                            }
+
+                            var m = method;
+
+                            AddMenuItem(menu.path, () =>
+                            {
+                                try
+                                {
+                                    m.Invoke(null, null);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            RegisterTypes(TypeCache.AllTypes());
 
             if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                t = t.Concat(assembly.GetTypes())
-                    .ToList();
-            }
+                RegisterTypes(assembly.GetTypes());
 
-            foreach (var v in t)
-            {
-                TypeCache.RegisterType(v);
-
-                if (v.IsInterface)
-                {
-                    continue;
-                }
-
-                if (typeof(IStapleAsset).IsAssignableFrom(v))
-                {
-                    registeredAssetTypes.AddOrSetKey(v.FullName, v);
-                }
-                else if (typeof(IComponent).IsAssignableFrom(v) &&
-                    v.GetCustomAttribute<AbstractComponentAttribute>() == null)
-                {
-                    registeredComponents.Add(v);
-                }
-                else if (typeof(IEntityTemplate).IsAssignableFrom(v))
+                void HandleRegistration()
                 {
                     try
                     {
-                        var instance = (IEntityTemplate)Activator.CreateInstance(v);
+                        var registrationType = assembly.GetType(typeof(GameRegistration).FullName);
 
-                        registeredEntityTemplates.Add(instance);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                else if (typeof(IRenderSystem).IsAssignableFrom(v) &&
-                    v != typeof(IRenderSystem))
-                {
-                    try
-                    {
-                        var instance = (IRenderSystem)Activator.CreateInstance(v);
-
-                        RenderSystem.Instance.RegisterSystem(instance);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                else if (v.IsSubclassOf(typeof(EditorWindow)))
-                {
-                    foreach (var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                    {
-                        var menu = method.GetCustomAttribute<MenuItemAttribute>();
-
-                        if (menu == null)
+                        if (registrationType == null)
                         {
-                            continue;
+                            return;
                         }
 
-                        var m = method;
+                        var instance = ObjectCreation.CreateObject(registrationType);
 
-                        AddMenuItem(menu.path, () =>
+                        if (instance == null)
                         {
-                            try
-                            {
-                                m.Invoke(null, null);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        });
+                            return;
+                        }
+
+                        var method = instance.GetType().GetMethod("RegisterAll");
+
+                        method?.Invoke(instance, null);
+                    }
+                    catch(Exception e)
+                    {
+                        Log.Error($"Failed to initialize game: {e}");
                     }
                 }
+
+                HandleRegistration();
             }
 
             registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();

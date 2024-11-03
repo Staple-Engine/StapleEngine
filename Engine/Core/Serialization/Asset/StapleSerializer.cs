@@ -1038,7 +1038,17 @@ internal static class StapleSerializer
                         continue;
                     }
 
-                    field.SetValue(instance, pair.Value.value);
+                    if(field.FieldType.IsEnum && pair.Value.value is string str)
+                    {
+                        if(Enum.TryParse(field.FieldType, str, true, out var enumValue))
+                        {
+                            field.SetValue(instance, enumValue);
+                        }
+                    }
+                    else
+                    {
+                        field.SetValue(instance, pair.Value.value);
+                    }
                 }
                 catch (Exception e)
                 {

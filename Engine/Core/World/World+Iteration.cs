@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Jobs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +7,196 @@ namespace Staple;
 
 public partial class World
 {
+    private class WorldIterationSimple<T> : IJobParallelFor
+        where T: IComponent
+    {
+        public Memory<T> contents;
+
+        public Action<T, int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
+    private class WorldIteration<T> : IJobParallelFor
+        where T: IComponent
+    {
+        public Memory<(Entity, T)> contents;
+
+        public Action<(Entity, T), int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
+    private class WorldIteration<T, T2> : IJobParallelFor
+        where T : IComponent
+        where T2 : IComponent
+    {
+        public Memory<(Entity, T, T2)> contents;
+
+        public Action<(Entity, T, T2), int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
+    private class WorldIteration<T, T2, T3> : IJobParallelFor
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+    {
+        public Memory<(Entity, T, T2, T3)> contents;
+
+        public Action<(Entity, T, T2, T3), int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
+    private class WorldIteration<T, T2, T3, T4> : IJobParallelFor
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+    {
+        public Memory<(Entity, T, T2, T3, T4)> contents;
+
+        public Action<(Entity, T, T2, T3, T4), int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
+    private class WorldIteration<T, T2, T3, T4, T5> : IJobParallelFor
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+        where T5 : IComponent
+    {
+        public Memory<(Entity, T, T2, T3, T4, T5)> contents;
+
+        public Action<(Entity, T, T2, T3, T4, T5), int> callback;
+
+        public int chunkSize;
+
+        public int BatchSize => chunkSize;
+
+        public int ThreadCount => 0;
+
+        public void Execute(int i)
+        {
+            try
+            {
+                callback(contents.Span[i], i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[World] Threaded iteration exception:\nAt iteration {i}:\n{e}");
+            }
+        }
+
+        public void Finish()
+        {
+        }
+    }
+
     /// <summary>
     /// Iterates through entities, querying for components.
     /// </summary>
@@ -536,7 +727,7 @@ public partial class World
     /// <summary>
     /// Attempts to find an entity and get a specific component
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The component type</typeparam>
     /// <param name="name">The entity's name</param>
     /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
     /// <param name="component">The returned component if successful</param>
@@ -546,6 +737,168 @@ public partial class World
         var e = FindEntity(name, allowDisabled);
 
         return TryGetComponent(e, out component);
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T>(T[] contents, Action<T, int> callback) where T : IComponent
+    {
+        if ((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIterationSimple<T>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T>((Entity, T)[] contents, Action<(Entity, T), int> callback) where T: IComponent
+    {
+        if((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIteration<T>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T, T2>((Entity, T, T2)[] contents, Action<(Entity, T, T2), int> callback)
+        where T : IComponent
+        where T2 : IComponent
+    {
+        if ((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIteration<T, T2>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T, T2, T3>((Entity, T, T2, T3)[] contents, Action<(Entity, T, T2, T3), int> callback)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+    {
+        if ((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T, T2, T3, T4>((Entity, T, T2, T3, T4)[] contents, Action<(Entity, T, T2, T3, T4), int> callback)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+    {
+        if ((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3, T4>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
+    }
+
+    /// <summary>
+    /// Iterates through threading
+    /// </summary>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    /// <typeparam name="T5">The fifth component type</typeparam>
+    /// <param name="contents">The contents to iterate through</param>
+    /// <param name="callback">The callback for each iteration, with the elements and the index</param>
+    public static void IterateThreaded<T, T2, T3, T4, T5>((Entity, T, T2, T3, T4, T5)[] contents, Action<(Entity, T, T2, T3, T4, T5), int> callback)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+        where T5 : IComponent
+    {
+        if ((contents?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3, T4, T5>()
+        {
+            callback = callback,
+            contents = contents.AsMemory(),
+            chunkSize = JobScheduler.ChunkSize(contents.Length),
+        }, contents.Length);
+
+        handle.Complete();
     }
 
     /// <summary>

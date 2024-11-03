@@ -195,6 +195,59 @@ public partial struct Entity
     }
 
     /// <summary>
+    /// Attempts to get a component from this entity
+    /// </summary>
+    /// <typeparam name="T">The component type</typeparam>
+    /// <param name="includeSelf">Whether to include components from this entity</param>
+    /// <returns>A list of entities and component instance tuples, or empty</returns>
+    public readonly (Entity, T)[] GetComponentEntitiesInChildren<T>(bool includeSelf = false) where T : IComponent
+    {
+        if (World.Current == null)
+        {
+            return [];
+        }
+
+        var result = new List<(Entity, T)>();
+
+        if (includeSelf && World.Current.TryGetComponent<T>(this, out var c))
+        {
+            result.Add((this, c));
+        }
+
+        void Recursive(Entity e)
+        {
+            if (e.TryGetComponent(out c))
+            {
+                result.Add((e, c));
+            }
+
+            var transform = e.GetComponent<Transform>();
+
+            if (transform != null)
+            {
+                foreach (var child in transform)
+                {
+                    Recursive(child.entity);
+                }
+            }
+        }
+
+        var transform = GetComponent<Transform>();
+
+        if (transform == null)
+        {
+            return result.ToArray();
+        }
+
+        foreach (var child in transform)
+        {
+            Recursive(child.entity);
+        }
+
+        return result.ToArray();
+    }
+
+    /// <summary>
     /// Attempts to get a component from a parent entity
     /// </summary>
     /// <param name="t">The component type</param>

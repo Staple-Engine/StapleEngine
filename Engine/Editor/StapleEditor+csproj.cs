@@ -8,8 +8,15 @@ internal partial class StapleEditor
     /// <param name="platform">The platform to build for</param>
     internal void UpdateCSProj(AppPlatform platform)
     {
-        csProjManager.GenerateGameCSProj(platform, false);
-        csProjManager.GenerateGameCSProj(platform, true);
+        var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
+
+        if(backend == null)
+        {
+            return;
+        }
+
+        csProjManager.GenerateGameCSProj(backend, platform, false);
+        csProjManager.GenerateGameCSProj(backend, platform, true);
 
         BuildGame();
         LoadGame();

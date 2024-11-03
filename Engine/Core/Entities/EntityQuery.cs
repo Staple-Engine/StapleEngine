@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -37,8 +38,12 @@ public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
 {
     private T[] contents = [];
     private T content;
+    private (Entity, T)[] contentEntities = [];
+    private (Entity, T) contentEntity;
+
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
+    private readonly bool getEntities;
 
     public int Length => contents.Length;
 
@@ -47,29 +52,66 @@ public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
     /// </summary>
     public T Content => content;
 
+    /// <summary>
+    /// The content with its entity, if available.
+    /// </summary>
+    public (Entity, T) ContentEntity => contentEntity;
+
     public T this[int index] => contents[index];
+
+    /// <summary>
+    /// Gets an entity and component at a specific index
+    /// </summary>
+    /// <param name="index">The index to get at</param>
+    /// <returns>The entity and component as a tuple, if valid</returns>
+    public (Entity, T) ContentEntityAt(int index) => index >= 0 && index < contentEntities.Length ? contentEntities[index] : default;
 
     /// <summary>
     /// Creates an entity query for a specific entity.
     /// </summary>
     /// <param name="target">The target entity</param>
     /// <param name="queryMode">The query mode</param>
-    public EntityQuery(Entity target, EntityQueryMode queryMode)
+    /// <param name="getEntities">Whether to get the component entities as well</param>
+    public EntityQuery(Entity target, EntityQueryMode queryMode, bool getEntities)
     {
         this.target = target;
         this.queryMode = queryMode;
+        this.getEntities = getEntities;
 
         World.AddSceneQuery(this);
+    }
+
+    public void IterateThreaded(Action<T, int> callback)
+    {
+        if (Length == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contents, callback);
+    }
+
+    public void IterateThreaded(Action<(Entity, T), int> callback)
+    {
+        if (getEntities == false ||
+            (contentEntities?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        World.IterateThreaded(contentEntities, callback);
     }
 
     public void WorldChanged()
     {
         content = default;
+        contentEntity = default;
+
+        contents = [];
+        contentEntities = [];
 
         if (target.IsValid == false)
         {
-            contents = [];
-
             return;
         }
 
@@ -109,6 +151,21 @@ public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
         if(count == 1 && contents[0] != null)
         {
             content = contents[0];
+        }
+
+        if(getEntities)
+        {
+            contentEntities = new (Entity, T)[count];
+
+            for(var i = 0; i < items.Length; i++)
+            {
+                contentEntities[i] = (World.Current.GetComponentEntity(contents[i]), contents[i]);
+            }
+
+            if(count == 1 && contents[0] != null)
+            {
+                contentEntity = contentEntities[0];
+            }
         }
     }
 

@@ -91,7 +91,7 @@ public class Scene
                 continue;
             }
 
-            var componentInstance = entity.AddComponent(type);
+            var componentInstance = TypeCache.AddComponent(entity, component.type);
 
             if (componentInstance == null)
             {
@@ -127,6 +127,8 @@ public class Scene
                     }
                     catch (Exception e)
                     {
+                        Log.Debug($"[Entity Instantiate] Failed to deserialize {pair.Key} of {entity}: {e}");
+
                         return default;
                     }
                 }
@@ -161,6 +163,8 @@ public class Scene
                     }
                     catch (Exception e)
                     {
+                        Log.Debug($"[Entity Instantiate] Failed to deserialize {parameter.name} of {entity}: {e}");
+
                         return default;
                     }
                 }
