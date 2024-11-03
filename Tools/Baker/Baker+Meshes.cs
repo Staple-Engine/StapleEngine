@@ -172,19 +172,22 @@ static partial class Program
 
                 context.Scale = metadata.scale;
 
-                var flags = Assimp.PostProcessSteps.TransformUVCoords |
-                    Assimp.PostProcessSteps.GenerateSmoothNormals |
-                    Assimp.PostProcessSteps.GenerateUVCoords |
-                    Assimp.PostProcessSteps.FindDegenerates |
-                    Assimp.PostProcessSteps.FindInvalidData |
-                    Assimp.PostProcessSteps.FixInFacingNormals |
-                    Assimp.PostProcessSteps.ImproveCacheLocality |
+                var flags = Assimp.PostProcessSteps.CalculateTangentSpace |
                     Assimp.PostProcessSteps.JoinIdenticalVertices |
                     Assimp.PostProcessSteps.Triangulate |
-                    Assimp.PostProcessSteps.SortByPrimitiveType |
-                    Assimp.PostProcessSteps.RemoveRedundantMaterials |
-                    Assimp.PostProcessSteps.CalculateTangentSpace |
+                    Assimp.PostProcessSteps.GenerateSmoothNormals |
                     Assimp.PostProcessSteps.LimitBoneWeights |
+                    Assimp.PostProcessSteps.ImproveCacheLocality |
+                    Assimp.PostProcessSteps.RemoveRedundantMaterials |
+                    Assimp.PostProcessSteps.FixInFacingNormals |
+                    Assimp.PostProcessSteps.SortByPrimitiveType |
+                    Assimp.PostProcessSteps.FindDegenerates |
+                    Assimp.PostProcessSteps.FindInvalidData |
+                    Assimp.PostProcessSteps.GenerateUVCoords |
+                    Assimp.PostProcessSteps.TransformUVCoords |
+                    Assimp.PostProcessSteps.FindInstances |
+                    Assimp.PostProcessSteps.OptimizeMeshes |
+                    Assimp.PostProcessSteps.OptimizeGraph |
                     Assimp.PostProcessSteps.GenerateBoundingBoxes;
 
                 if (metadata.convertUnits)

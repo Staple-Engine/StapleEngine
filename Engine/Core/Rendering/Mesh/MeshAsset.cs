@@ -278,6 +278,11 @@ public sealed class MeshAsset : IGuidAsset
         private bool needsOriginalCalculation = true;
 
         /// <summary>
+        /// Threading lock
+        /// </summary>
+        private static readonly object lockObject = new();
+
+        /// <summary>
         /// Updates our transforms
         /// </summary>
         private void UpdateTransforms()
@@ -463,39 +468,42 @@ public sealed class MeshAsset : IGuidAsset
         /// <returns>The node, or null</returns>
         public Node GetNode(string name)
         {
-            if(cachedNodes.TryGetValue(name, out Node node))
+            lock(lockObject)
             {
-                return node;
-            }
-
-            Node Get(Node current)
-            {
-                if(current.name == name)
+                if (cachedNodes.TryGetValue(name, out Node node))
                 {
-                    return current;
+                    return node;
                 }
 
-                foreach (var child in current.children)
+                Node Get(Node current)
                 {
-                    var result = Get(child);
-
-                    if (result != null)
+                    if (current.name == name)
                     {
-                        return result;
+                        return current;
                     }
+
+                    foreach (var child in current.children)
+                    {
+                        var result = Get(child);
+
+                        if (result != null)
+                        {
+                            return result;
+                        }
+                    }
+
+                    return null;
                 }
 
-                return null;
+                var result = Get(this);
+
+                if (result != null)
+                {
+                    cachedNodes.AddOrSetKey(name, result);
+                }
+
+                return result;
             }
-
-            var result = Get(this);
-
-            if(result != null)
-            {
-                cachedNodes.AddOrSetKey(name, result);
-            }
-
-            return result;
         }
 
         /// <summary>

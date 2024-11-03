@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -10,7 +11,7 @@ namespace Staple;
 /// <typeparam name="T">The type to use</typeparam>
 public class ConcurrentExpandableArray<T> : IEnumerable<T>
 {
-    private readonly List<T> list = [];
+    private T[] list = [];
     private int length;
     private readonly object lockObject = new();
 
@@ -24,9 +25,9 @@ public class ConcurrentExpandableArray<T> : IEnumerable<T>
             {
                 length = value;
 
-                while(list.Count < length)
+                if (length > list.Length)
                 {
-                    list.Add(default);
+                    Array.Resize(ref list, length);
                 }
             }
         }
@@ -46,11 +47,11 @@ public class ConcurrentExpandableArray<T> : IEnumerable<T>
         lock (lockObject)
         {
             count = length;
-        }
 
-        for(var i = 0; i < count; i++)
-        {
-            yield return list[i];
+            for (var i = 0; i < count; i++)
+            {
+                yield return list[i];
+            }
         }
     }
 
@@ -61,11 +62,11 @@ public class ConcurrentExpandableArray<T> : IEnumerable<T>
         lock (lockObject)
         {
             count = length;
-        }
 
-        for (var i = 0; i < count; i++)
-        {
-            yield return list[i];
+            for (var i = 0; i < count; i++)
+            {
+                yield return list[i];
+            }
         }
     }
 }
