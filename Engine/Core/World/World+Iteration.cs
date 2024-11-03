@@ -10,7 +10,7 @@ public partial class World
     private class WorldIterationSimple<T> : IJobParallelFor
         where T: IComponent
     {
-        public Memory<T> contents;
+        public T[] contents;
 
         public Action<T, int> callback;
 
@@ -24,7 +24,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -40,7 +40,7 @@ public partial class World
     private class WorldIteration<T> : IJobParallelFor
         where T: IComponent
     {
-        public Memory<(Entity, T)> contents;
+        public (Entity, T)[] contents;
 
         public Action<(Entity, T), int> callback;
 
@@ -54,7 +54,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -71,7 +71,7 @@ public partial class World
         where T : IComponent
         where T2 : IComponent
     {
-        public Memory<(Entity, T, T2)> contents;
+        public (Entity, T, T2)[] contents;
 
         public Action<(Entity, T, T2), int> callback;
 
@@ -85,7 +85,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -103,7 +103,7 @@ public partial class World
         where T2 : IComponent
         where T3 : IComponent
     {
-        public Memory<(Entity, T, T2, T3)> contents;
+        public (Entity, T, T2, T3)[] contents;
 
         public Action<(Entity, T, T2, T3), int> callback;
 
@@ -117,7 +117,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -136,7 +136,7 @@ public partial class World
         where T3 : IComponent
         where T4 : IComponent
     {
-        public Memory<(Entity, T, T2, T3, T4)> contents;
+        public (Entity, T, T2, T3, T4)[] contents;
 
         public Action<(Entity, T, T2, T3, T4), int> callback;
 
@@ -150,7 +150,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -170,7 +170,7 @@ public partial class World
         where T4 : IComponent
         where T5 : IComponent
     {
-        public Memory<(Entity, T, T2, T3, T4, T5)> contents;
+        public (Entity, T, T2, T3, T4, T5)[] contents;
 
         public Action<(Entity, T, T2, T3, T4, T5), int> callback;
 
@@ -184,7 +184,7 @@ public partial class World
         {
             try
             {
-                callback(contents.Span[i], i);
+                callback(contents[i], i);
             }
             catch (Exception e)
             {
@@ -755,7 +755,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIterationSimple<T>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
@@ -778,7 +778,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIteration<T>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
@@ -804,7 +804,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIteration<T, T2>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
@@ -832,7 +832,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
@@ -862,7 +862,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3, T4>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
@@ -894,7 +894,7 @@ public partial class World
         var handle = JobScheduler.Schedule(new WorldIteration<T, T2, T3, T4, T5>()
         {
             callback = callback,
-            contents = contents.AsMemory(),
+            contents = contents,
             chunkSize = JobScheduler.ChunkSize(contents.Length),
         }, contents.Length);
 
