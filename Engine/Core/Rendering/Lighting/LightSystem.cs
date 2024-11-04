@@ -137,14 +137,14 @@ public sealed class LightSystem : IRenderSystem
             return;
         }
 
-        var targets = lightQuery.ToList();
+        var targets = lightQuery.Contents;
 
-        if (targets.Count > MaxLights)
+        if (targets.Length > MaxLights)
         {
             targets = targets
                 .OrderBy(x => Vector3.DistanceSquared(x.Item2.Position, position))
                 .Take(MaxLights)
-                .ToList();
+                .ToArray();
         }
 
         Matrix4x4.Invert(transform, out var invTransform);
@@ -154,9 +154,9 @@ public sealed class LightSystem : IRenderSystem
         var normalMatrix = transTransform.ToMatrix3x3();
 
         var lightAmbient = AppSettings.Current.ambientLight;
-        var lightCount = new Vector4(targets.Count);
+        var lightCount = new Vector4(targets.Length);
 
-        for (var i = 0; i < targets.Count; i++)
+        for (var i = 0; i < targets.Length; i++)
         {
             var target = targets[i];
             var light = target.Item3;

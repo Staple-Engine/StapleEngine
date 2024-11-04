@@ -13,6 +13,8 @@ public class SceneQuery<T>: ISceneQuery, IEnumerable<(Entity, T)>
 
     public int Length => contents.Length;
 
+    public (Entity, T)[] Contents => contents;
+
     public SceneQuery(bool includeDisabled = false)
     {
         this.includeDisabled = includeDisabled;
@@ -62,6 +64,8 @@ public class SceneQuery<T, T2>: ISceneQuery, IEnumerable<(Entity, T, T2)>
     private readonly bool includeDisabled;
 
     public int Length => contents.Length;
+
+    public (Entity, T, T2)[] Contents => contents;
 
     public SceneQuery(bool includeDisabled = false)
     {
@@ -114,6 +118,8 @@ public class SceneQuery<T, T2, T3> : ISceneQuery, IEnumerable<(Entity, T, T2, T3
 
     public int Length => contents.Length;
 
+    public (Entity, T, T2, T3)[] Contents => contents;
+
     public SceneQuery(bool includeDisabled = false)
     {
         this.includeDisabled = includeDisabled;
@@ -165,6 +171,8 @@ public class SceneQuery<T, T2, T3, T4> : ISceneQuery, IEnumerable<(Entity, T, T2
     private readonly bool includeDisabled;
 
     public int Length => contents.Length;
+
+    public (Entity, T, T2, T3, T4)[] Contents => contents;
 
     public SceneQuery(bool includeDisabled = false)
     {
@@ -219,6 +227,8 @@ public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery, IEnumerable<(Entity, T
     private readonly bool includeDisabled;
 
     public int Length => contents.Length;
+
+    public (Entity, T, T2, T3, T4, T5)[] Contents => contents;
 
     public SceneQuery(bool includeDisabled = false)
     {
