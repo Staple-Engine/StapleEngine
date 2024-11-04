@@ -1459,7 +1459,7 @@ internal class ResourceManager
                     newMesh.boneIndices[i] += new Vector4(startBoneIndex);
                 }
 
-                startBoneIndex += newMesh.bones.Count;
+                startBoneIndex += newMesh.bones[0].Length;
 
                 newMesh.submeshes = [new()
                 {

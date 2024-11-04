@@ -43,6 +43,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly ConcurrentExpandableArray<RenderInfo> renderers = [];
 
+    private readonly Dictionary<int, Matrix4x4[]> cachedBoneMatrices = [];
+
+    private readonly object lockObject = new();
+
     public void Destroy()
     {
     }
@@ -73,14 +77,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.materials == null ||
                 renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
-                return;
+                continue;
             }
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
                 if (renderer.materials[i]?.IsValid == false)
                 {
-                    return;
+                    continue;
                 }
             }
 
@@ -101,10 +105,29 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             var useAnimator = animator != null && animator.evaluator != null;
 
-            if (renderer.cachedBoneMatrices.Length != meshAsset.BoneCount)
-            {
-                renderer.cachedBoneMatrices = new Matrix4x4[meshAsset.BoneCount];
+            Matrix4x4[] boneMatrices = null;
 
+            lock(lockObject)
+            {
+                if (useAnimator)
+                {
+                    if((animator?.cachedBoneMatrices?.Length ?? 0) == 0)
+                    {
+                        animator.cachedBoneMatrices = new Matrix4x4[meshAsset.BoneCount];
+                    }
+
+                    boneMatrices = animator.cachedBoneMatrices;
+                }
+                else if (cachedBoneMatrices.TryGetValue(meshAsset.Guid.GetHashCode(), out boneMatrices) == false)
+                {
+                    boneMatrices = new Matrix4x4[meshAsset.BoneCount];
+
+                    cachedBoneMatrices.Add(meshAsset.Guid.GetHashCode(), boneMatrices);
+                }
+            }
+
+            if (renderer.cachedNodes.Count != renderer.mesh.submeshes.Count)
+            {
                 renderer.cachedNodes.Clear();
                 renderer.cachedAnimatorNodes.Clear();
 
@@ -138,7 +161,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         renderer.cachedNodes[i][j] = MeshAsset.TryGetNode(meshAsset.rootNode, bone.name, out var localNode) ?
                             localNode : null;
 
-                        renderer.cachedBoneMatrices[meshAssetMesh.startBoneIndex + j] = localNode != null ?
+                        boneMatrices[meshAssetMesh.startBoneIndex + j] = localNode != null ?
                             bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
                     }
                 }
@@ -175,7 +198,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                             globalTransform = Matrix4x4.Identity;
                         }
 
-                        renderer.cachedBoneMatrices[meshAssetMesh.startBoneIndex + j] = bone.offsetMatrix * globalTransform;
+                        boneMatrices[meshAssetMesh.startBoneIndex + j] = bone.offsetMatrix * globalTransform;
                     }
                 }
             }
@@ -196,15 +219,42 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             bgfx.StateFlags.WriteZ |
             bgfx.StateFlags.DepthTestLequal;
 
+        Material lastMaterial = null;
+        int lastMeshAsset = 0;
+        SkinnedMeshAnimator lastAnimator = null;
+
+        bgfx.discard((byte)bgfx.DiscardFlags.All);
+
         foreach (var pair in renderers)
         {
             var renderer = pair.renderer;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
+            var animator = renderer.animator.Content;
 
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
+                var assetGuid = meshAsset.Guid.GetHashCode();
+
+                var useAnimator = animator != null && animator.evaluator != null;
+
+                Matrix4x4[] boneMatrices = null;
+
+                if (useAnimator)
+                {
+                    boneMatrices = animator.cachedBoneMatrices;
+                }
+                else
+                {
+                    cachedBoneMatrices.TryGetValue(assetGuid, out boneMatrices);
+                }
+
+                if(boneMatrices == null)
+                {
+                    continue;
+                }
+
                 var bones = meshAssetMesh.bones[i];
 
                 if (bones.Length > MaxBones)
@@ -215,6 +265,44 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     continue;
                 }
 
+                var material = renderer.materials[i];
+
+                var needsChange = assetGuid != lastMeshAsset ||
+                    material.Guid != (lastMaterial?.Guid ?? "") ||
+                    lastAnimator != animator;
+
+                if(needsChange)
+                {
+                    lastMeshAsset = assetGuid;
+                    lastMaterial = material;
+                    lastAnimator = animator;
+
+                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+
+                    material.EnableShaderKeyword(Shader.SkinningKeyword);
+
+                    var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+                    lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+
+                    if(material.ShaderProgram.Valid == false)
+                    {
+                        continue;
+                    }
+
+                    bgfx.set_state((ulong)(state |
+                        renderer.mesh.PrimitiveFlag() |
+                        material.shader.BlendingFlag |
+                        material.CullingFlag), 0);
+
+                    material.ApplyProperties();
+
+                    material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), boneMatrices);
+
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+                }
+
                 unsafe
                 {
                     var transform = pair.transform;
@@ -222,38 +310,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                bgfx.set_state((ulong)(state |
-                    renderer.mesh.PrimitiveFlag() |
-                    renderer.materials[i].shader.BlendingFlag |
-                    renderer.materials[i].CullingFlag), 0);
-
-                var material = renderer.materials[i];
-
-                material.ApplyProperties();
-
-                material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), renderer.cachedBoneMatrices);
-
                 renderer.mesh.SetActive(i);
-
-                material.EnableShaderKeyword(Shader.SkinningKeyword);
-
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-                lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
 
                 var program = material.ShaderProgram;
 
-                if (program.Valid)
-                {
-                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
-                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+                var flags = bgfx.DiscardFlags.VertexStreams |
+                    bgfx.DiscardFlags.IndexBuffer |
+                    bgfx.DiscardFlags.Transform;
 
-                    bgfx.submit(pair.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
-                }
-                else
-                {
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-                }
+                bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }
         }
     }

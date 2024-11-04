@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple;
 
@@ -66,6 +67,11 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// A list of all skinned mesh renderers in self and children
     /// </summary>
     internal EntityQuery<SkinnedMeshRenderer> renderers;
+
+    /// <summary>
+    /// A cache of bone matrices
+    /// </summary>
+    internal Matrix4x4[] cachedBoneMatrices;
 
     /// <summary>
     /// Sets the current animation

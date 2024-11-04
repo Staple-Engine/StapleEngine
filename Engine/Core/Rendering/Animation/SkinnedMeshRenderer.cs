@@ -24,11 +24,6 @@ public sealed class SkinnedMeshRenderer : Renderable
     public MaterialLighting lighting = MaterialLighting.Lit;
 
     /// <summary>
-    /// Contains cached bone matrices to reduce allocations
-    /// </summary>
-    internal Matrix4x4[] cachedBoneMatrices = [];
-
-    /// <summary>
     /// Contains cached nodes for bone matrices
     /// </summary>
     internal List<MeshAsset.Node[]> cachedNodes = [];
@@ -48,7 +43,6 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// </summary>
     internal void ResetAnimationState()
     {
-        cachedBoneMatrices = [];
         cachedNodes.Clear();
         cachedAnimatorNodes.Clear();
     }
