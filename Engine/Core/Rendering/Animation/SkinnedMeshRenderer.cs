@@ -26,7 +26,7 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// <summary>
     /// Contains cached bone matrices to reduce allocations
     /// </summary>
-    internal List<Matrix4x4[]> cachedBoneMatrices = [];
+    internal Matrix4x4[] cachedBoneMatrices = [];
 
     /// <summary>
     /// Contains cached nodes for bone matrices
@@ -48,7 +48,7 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// </summary>
     internal void ResetAnimationState()
     {
-        cachedBoneMatrices.Clear();
+        cachedBoneMatrices = [];
         cachedNodes.Clear();
         cachedAnimatorNodes.Clear();
     }

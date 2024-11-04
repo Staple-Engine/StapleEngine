@@ -1367,6 +1367,8 @@ internal class ResourceManager
                 frameRate = meshAssetData.metadata.frameRate,
             };
 
+            var startBoneIndex = 0;
+
             foreach(var m in meshAssetData.meshes)
             {
                 var newMesh = new MeshAsset.MeshInfo()
@@ -1443,12 +1445,21 @@ internal class ResourceManager
                         .Select(x => x.ToVector4())
                         .ToArray(),
 
+                    startBoneIndex = startBoneIndex,
+
                     bones = [m.bones.Select(x => new MeshAsset.Bone()
                     {
                         name = x.name,
                         offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
                     }).ToArray()],
                 };
+
+                for (var i = 0; i < newMesh.boneIndices.Length; i++)
+                {
+                    newMesh.boneIndices[i] += new Vector4(startBoneIndex);
+                }
+
+                startBoneIndex += newMesh.bones.Count;
 
                 newMesh.submeshes = [new()
                 {
@@ -1462,6 +1473,8 @@ internal class ResourceManager
 
                 asset.meshes.Add(newMesh);
             }
+
+            asset.BoneCount = startBoneIndex;
 
             if(asset.meshes.Count == 1)
             {

@@ -162,6 +162,11 @@ public sealed class MeshAsset : IGuidAsset
         public List<Bone[]> bones = [];
 
         /// <summary>
+        /// The index at which this mesh's bones start at
+        /// </summary>
+        public int startBoneIndex = 0;
+
+        /// <summary>
         /// The bounds of the mesh
         /// </summary>
         public AABB bounds;
@@ -655,6 +660,11 @@ public sealed class MeshAsset : IGuidAsset
     /// 3D bounds of the mesh
     /// </summary>
     public AABB Bounds { get; internal set; }
+
+    /// <summary>
+    /// The amount of bones in the meshes within this MeshAsset
+    /// </summary>
+    public int BoneCount { get; internal set; }
 
     /// <summary>
     /// Asset GUID
