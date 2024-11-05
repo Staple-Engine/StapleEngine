@@ -57,6 +57,6 @@ make GENIE=../GENie/bin/darwin/genie tools -j $(sysctl -n hw.logicalcpu)
 
 mkdir -p ../../Tools/bin
 
-cp .build/osx-x64/bin/*cRelease ../../Tools/bin
+cp .build/osx-arm64/bin/*cRelease ../../Tools/bin
 
 cd ../../

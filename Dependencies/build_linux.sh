@@ -34,8 +34,8 @@ make config=debug -j $(nproc)
 
 cd ../dotnet
 
-dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net7.0
-dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net7.0
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net8.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net8.0
 
 cd ../../GENie
 
@@ -49,6 +49,6 @@ make GENIE=../GENie/bin/linux/genie tools -j $(nproc)
 
 mkdir -p ../../Tools/bin
 
-cp .build/linux64_gcc/bin/*cRelease ../../Tools/bin
+cp .build/gmake-linux-clang/bin/*cRelease ../../Tools/bin
 
 cd ../../
