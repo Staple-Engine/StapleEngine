@@ -1153,7 +1153,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle.uniform;
+        var uniform = handle?.uniform;
 
         if (uniform == null)
         {

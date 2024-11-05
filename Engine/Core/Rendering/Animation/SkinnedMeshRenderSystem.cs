@@ -41,7 +41,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public ushort viewID;
     }
 
-    private readonly ConcurrentExpandableArray<RenderInfo> renderers = [];
+    private RenderInfo[] renderers = [];
+
+    private int rendererCount = 0;
 
     private readonly Dictionary<int, Matrix4x4[]> cachedBoneMatrices = [];
 
@@ -61,7 +63,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        renderers.Length = entities.Length;
+        if(entities.Length != renderers.Length)
+        {
+            Array.Resize(ref renderers, entities.Length);
+        }
 
         var index = 0;
 
@@ -90,13 +95,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
 
-            renderers[index++] = new RenderInfo()
-            {
-                renderer = renderer,
-                position = transform.Position,
-                transform = transform.Matrix,
-                viewID = viewId,
-            };
+            renderers[index].renderer = renderer;
+            renderers[index].position = transform.Position;
+            renderers[index].transform = transform.Matrix;
+            renderers[index].viewID = viewId;
+
+            index++;
 
             var animator = renderer.animator.Content;
             var mesh = renderer.mesh;
@@ -204,7 +208,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
         }
 
-        renderers.Length = index;
+        rendererCount = index;
     }
 
     public Type RelatedComponent()
@@ -225,15 +229,17 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
-        foreach (var pair in renderers)
+        for(var i = 0; i < rendererCount; i++)
         {
+            var pair = renderers[i];
+
             var renderer = pair.renderer;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
             var animator = renderer.animator.Content;
 
-            for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+            for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
                 var assetGuid = meshAsset.Guid.GetHashCode();
 
@@ -255,7 +261,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     continue;
                 }
 
-                var bones = meshAssetMesh.bones[i];
+                var bones = meshAssetMesh.bones[j];
 
                 if (bones.Length > MaxBones)
                 {
@@ -265,7 +271,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     continue;
                 }
 
-                var material = renderer.materials[i];
+                var material = renderer.materials[j];
 
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.Guid != (lastMaterial?.Guid ?? "") ||
@@ -310,7 +316,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
-                renderer.mesh.SetActive(i);
+                renderer.mesh.SetActive(j);
 
                 var program = material.ShaderProgram;
 

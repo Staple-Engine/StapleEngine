@@ -20,8 +20,8 @@ public class AppSettings
     public enum ProfilingMode
     {
         None,
-        PerformanceOverlay,
-        RenderOverlay,
+        Profiler,
+        RenderStats,
     }
 
     /// <summary>

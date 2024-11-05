@@ -21,7 +21,7 @@ internal static class PerformanceProfilerSystem
     {
         get
         {
-            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.Profiler)
             {
                 return [];
             }
@@ -37,7 +37,7 @@ internal static class PerformanceProfilerSystem
     {
         get
         {
-            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+            if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.Profiler)
             {
                 return [];
             }
@@ -51,7 +51,7 @@ internal static class PerformanceProfilerSystem
 
     public static void StartFrame()
     {
-        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.Profiler)
         {
             return;
         }
@@ -64,7 +64,7 @@ internal static class PerformanceProfilerSystem
 
     public static void FinishFrame()
     {
-        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.Profiler)
         {
             return;
         }
@@ -109,7 +109,7 @@ internal static class PerformanceProfilerSystem
 
     public static void AddCounter(PerformanceProfilerType type, int ms)
     {
-        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.PerformanceOverlay)
+        if (AppSettings.Current?.profilingMode != AppSettings.ProfilingMode.Profiler)
         {
             return;
         }

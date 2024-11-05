@@ -7,9 +7,13 @@
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
 #define CEXPORT extern "C" __declspec(dllexport)
+#define IMPORT __declspec(dllimport)
+#define CIMPORT extern "C" __declspec(dllimport)
 #else
 #define EXPORT
 #define CEXPORT extern "C"
+#define IMPORT
+#define CIMPORT extern "C"
 #endif
 
 #ifdef __ANDROID__

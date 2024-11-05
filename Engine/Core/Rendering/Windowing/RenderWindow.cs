@@ -609,13 +609,20 @@ internal class RenderWindow
         bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 1, 0);
         bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
-        if(AppSettings.Current?.profilingMode == AppSettings.ProfilingMode.RenderOverlay)
+        switch(AppSettings.Current?.profilingMode ?? AppSettings.ProfilingMode.None)
         {
-            bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
-        }
-        else
-        {
-            bgfx.set_debug((uint)bgfx.DebugFlags.Text);
+            case AppSettings.ProfilingMode.None:
+            case AppSettings.ProfilingMode.Profiler:
+
+                bgfx.set_debug((uint)bgfx.DebugFlags.Text);
+
+                break;
+
+            case AppSettings.ProfilingMode.RenderStats:
+
+                bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
+
+                break;
         }
     }
 
@@ -734,26 +741,32 @@ internal class RenderWindow
 
         bgfx.dbg_text_clear(0, false);
 
-        if (AppSettings.Current?.profilingMode == AppSettings.ProfilingMode.PerformanceOverlay)
+        switch(AppSettings.Current?.profilingMode ?? AppSettings.ProfilingMode.None)
         {
-            var counters = PerformanceProfilerSystem.AverageFrameCounters
-                .OrderByDescending(x => x.Value)
-                .ToArray();
+            case AppSettings.ProfilingMode.Profiler:
 
-            for (var i = 0; i < counters.Length; i++)
-            {
-                var y = i;
-                var counter = counters[i];
-
-                byte attr = 0x8a;
-
-                if(counter.Value >= 16)
                 {
-                    attr = 0x8c;
+                    var counters = PerformanceProfilerSystem.AverageFrameCounters
+                        .OrderByDescending(x => x.Value)
+                        .ToArray();
+
+                    for (var i = 0; i < counters.Length; i++)
+                    {
+                        var y = i;
+                        var counter = counters[i];
+
+                        byte attr = 0x8a;
+
+                        if (counter.Value >= 16)
+                        {
+                            attr = 0x8c;
+                        }
+
+                        bgfx.dbg_text_printf(2, (ushort)y, attr, $"{counter.Key} - {counter.Value}ms", "");
+                    }
                 }
 
-                bgfx.dbg_text_printf(2, (ushort)y, attr, $"{counter.Key} - {counter.Value}ms", "");
-            }
+                break;
         }
     }
 
