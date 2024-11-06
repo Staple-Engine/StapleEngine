@@ -42,9 +42,9 @@ internal class SkinnedMeshAnimationEvaluator
     private readonly SkinnedMeshAnimator animator;
 
     /// <summary>
-    /// The root node for animating
+    /// The nodes for animating
     /// </summary>
-    internal MeshAsset.Node rootNode;
+    internal MeshAsset.Node[] nodes;
 
     /// <summary>
     /// Cache of last indices for positions (channel index -> frame index)
@@ -76,12 +76,12 @@ internal class SkinnedMeshAnimationEvaluator
     /// </summary>
     private readonly float timeBetweenFrames;
 
-    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node rootNode, SkinnedMeshAnimator animator)
+    public SkinnedMeshAnimationEvaluator(MeshAsset asset, MeshAsset.Animation animation, MeshAsset.Node[] nodes, SkinnedMeshAnimator animator)
     {
         meshAsset = asset;
 
         this.animation = animation;
-        this.rootNode = rootNode;
+        this.nodes = nodes;
         this.animator = animator;
 
         timeBetweenFrames = 1 / (float)((asset?.frameRate ?? 0) == 0 ? 1 : asset.frameRate);
@@ -122,11 +122,12 @@ internal class SkinnedMeshAnimationEvaluator
         {
             var channel = animation.channels[i];
 
-            if (channel.node == null ||
-                MeshAsset.TryGetNode(rootNode, channel.node.name, out var node) == false)
+            if (channel.nodeIndex < 0 || channel.nodeIndex >= nodes.Length)
             {
                 continue;
             }
+
+            var node = nodes[channel.nodeIndex];
 
             Vector3 GetVector3(List<MeshAsset.AnimationKey<Vector3>> keys, ref int last)
             {

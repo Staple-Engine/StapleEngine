@@ -344,8 +344,15 @@ public class JoltPhysics3D : IPhysics3D
                 {
                     var body = pair.body;
 
-                    transform.Position = body.Position;
-                    transform.LocalRotation = body.Rotation;
+                    if(transform.Position != body.Position)
+                    {
+                        transform.Position = body.Position;
+                    }
+
+                    if(transform.Rotation != body.Rotation)
+                    {
+                        transform.Rotation = body.Rotation;
+                    }
                 }
             }
         }

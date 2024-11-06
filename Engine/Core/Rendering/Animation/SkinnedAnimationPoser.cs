@@ -16,12 +16,12 @@ public sealed class SkinnedAnimationPoser : IComponent
     /// <summary>
     /// Cache of nodes
     /// </summary>
-    internal Dictionary<string, MeshAsset.Node> nodeCache = [];
+    internal MeshAsset.Node[] nodeCache = [];
 
     /// <summary>
     /// Cache of transforms
     /// </summary>
-    internal Dictionary<string, Transform> transformCache = [];
+    internal Dictionary<int, Transform> transformCache = [];
 
     /// <summary>
     /// Current mesh we're dealing with, to know whether to reset

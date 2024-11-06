@@ -45,26 +45,16 @@ internal class MeshAssetEditor : AssetEditor
             {
                 var boneSet = new HashSet<string>();
 
+                boneCount = meshAsset.BoneCount;
                 meshCount = meshAsset.meshes.Count;
-                hasExcessiveBones = false;
+                hasExcessiveBones = meshAsset.BoneCount > SkinnedMeshRenderSystem.MaxBones;
                 triangleCount = 0;
 
                 foreach (var mesh in meshAsset.meshes)
                 {
                     triangleCount += mesh.indices.Length;
-
-                    foreach (var submesh in mesh.bones)
-                    {
-                        hasExcessiveBones |= submesh.Length > SkinnedMeshRenderSystem.MaxBones;
-
-                        foreach (var bone in submesh)
-                        {
-                            boneSet.Add(bone.name);
-                        }
-                    }
                 }
 
-                boneCount = boneSet.Count;
                 triangleCount /= 3;
             }
             else

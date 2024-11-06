@@ -321,7 +321,7 @@ public static class EditorUtils
 
         baseTransform.SetParent(parent);
 
-        if (asset.rootNode != null)
+        if ((asset.nodes?.Length ?? 0) > 0)
         {
             void Recursive(MeshAsset.Node current, Transform parent)
             {
@@ -337,7 +337,7 @@ public static class EditorUtils
                     nodeTransform.LocalRotation = nodeRotation;
                     nodeTransform.LocalScale = nodeScale;
 
-                    if (current.meshIndices.Count > 0)
+                    if (current.meshIndices.Length > 0)
                     {
                         var skinningParentEntity = Entity.Create(current.name, typeof(Transform));
 
@@ -387,14 +387,16 @@ public static class EditorUtils
                         }
                     }
 
-                    foreach (var child in current.children)
+                    foreach (var childIndex in current.children)
                     {
-                        Recursive(child, nodeTransform);
+                        var childNode = asset.nodes[childIndex];
+
+                        Recursive(childNode, nodeTransform);
                     }
                 }
             }
 
-            Recursive(asset.rootNode, baseTransform);
+            Recursive(asset.nodes[0], baseTransform);
         }
 
         return baseEntity;

@@ -54,9 +54,9 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 return;
             }
 
-            if (animator.nodeCache.Count == 0 && animator.transformCache.Count == 0)
+            if (animator.nodeCache.Length == 0 && animator.transformCache.Count == 0)
             {
-                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.rootNode);
+                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.nodes);
             }
 
             if (Platform.IsPlaying)
@@ -76,7 +76,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                     animator.evaluator = new(animator.mesh.meshAsset,
                         animator.mesh.meshAsset.animations[animator.animation],
-                        animator.mesh.meshAsset.rootNode.Clone(),
+                        animator.mesh.meshAsset.CloneNodes(),
                         animator);
 
                     animator.evaluator.onFrameEvaluated = () =>
@@ -86,7 +86,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                         animator.shouldRender = true;
                     };
 
-                    SkinnedMeshRenderSystem.GatherNodes(animator.nodeCache, animator.evaluator.rootNode);
+                    animator.nodeCache = animator.evaluator.nodes;
 
                     animator.shouldRender = true;
 

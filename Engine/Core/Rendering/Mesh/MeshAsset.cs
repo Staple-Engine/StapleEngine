@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple;
@@ -23,6 +24,11 @@ public sealed class MeshAsset : IGuidAsset
         /// Bone offset matrix
         /// </summary>
         public Matrix4x4 offsetMatrix;
+
+        /// <summary>
+        /// The node index
+        /// </summary>
+        public int index;
 
         public override string ToString()
         {
@@ -205,12 +211,12 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// The child nodes
         /// </summary>
-        public List<Node> children = [];
+        public int[] children = [];
 
         /// <summary>
         /// The meshes that are in this node
         /// </summary>
-        public List<int> meshIndices = [];
+        public int[] meshIndices = [];
 
         /// <summary>
         /// Whether the values were changed (and need recalculation)
@@ -241,11 +247,6 @@ public sealed class MeshAsset : IGuidAsset
         /// The global transformation matrix without animations
         /// </summary>
         private Matrix4x4 originalGlobalMatrix;
-
-        /// <summary>
-        /// A list of names to nodes
-        /// </summary>
-        private readonly Dictionary<string, Node> cachedNodes = [];
 
         /// <summary>
         /// The local position
@@ -467,51 +468,6 @@ public sealed class MeshAsset : IGuidAsset
         }
 
         /// <summary>
-        /// Tries to get a node from a name
-        /// </summary>
-        /// <param name="name">The node name</param>
-        /// <returns>The node, or null</returns>
-        public Node GetNode(string name)
-        {
-            lock(lockObject)
-            {
-                if (cachedNodes.TryGetValue(name, out Node node))
-                {
-                    return node;
-                }
-
-                Node Get(Node current)
-                {
-                    if (current.name == name)
-                    {
-                        return current;
-                    }
-
-                    foreach (var child in current.children)
-                    {
-                        var result = Get(child);
-
-                        if (result != null)
-                        {
-                            return result;
-                        }
-                    }
-
-                    return null;
-                }
-
-                var result = Get(this);
-
-                if (result != null)
-                {
-                    cachedNodes.AddOrSetKey(name, result);
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>
         /// Makes a copy of this node
         /// </summary>
         /// <param name="parent">The parent node to set for this</param>
@@ -523,6 +479,7 @@ public sealed class MeshAsset : IGuidAsset
                 name = name,
                 parent = parent,
                 meshIndices = meshIndices,
+                children = children,
                 changed = changed,
                 transform = transform,
                 globalMatrix = globalMatrix,
@@ -537,11 +494,6 @@ public sealed class MeshAsset : IGuidAsset
                 transformChanged = transformChanged,
                 needsOriginalCalculation = needsOriginalCalculation,
             };
-
-            foreach(var child in children)
-            {
-                result.children.Add(child.Clone(result));
-            }
 
             return result;
         }
@@ -577,7 +529,7 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// The node this belongs to
         /// </summary>
-        public Node node;
+        public int nodeIndex = -1;
 
         /// <summary>
         /// The positions in this key
@@ -632,9 +584,9 @@ public sealed class MeshAsset : IGuidAsset
     public List<MeshInfo> meshes = [];
 
     /// <summary>
-    /// The root node of the transform tree
+    /// The nodes of the transform tree
     /// </summary>
-    public Node rootNode;
+    public Node[] nodes;
 
     /// <summary>
     /// The inverse root node transform
@@ -672,63 +624,32 @@ public sealed class MeshAsset : IGuidAsset
     public string Guid { get; set; }
 
     /// <summary>
-    /// Attempts to find a transform node with a specific name
-    /// </summary>
-    /// <param name="rootNode"></param>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public static Node GetNode(Node rootNode, string name)
-    {
-        if (name == null)
-        {
-            return null;
-        }
-
-        return rootNode.GetNode(name);
-    }
-
-    /// <summary>
-    /// Attempts to get a transform node
-    /// </summary>
-    /// <param name="rootNode">The root node to check</param>
-    /// <param name="name">The name of the node</param>
-    /// <param name="node">The node, which is valid if the return is true</param>
-    /// <returns>Whether the node was found</returns>
-    public static bool TryGetNode(Node rootNode, string name, out Node node)
-    {
-        if (name == null)
-        {
-            node = null;
-
-            return false;
-        }
-
-        node = rootNode.GetNode(name);
-
-        return node != null;
-    }
-
-    /// <summary>
-    /// Attempts to get a transform node by name
-    /// </summary>
-    /// <param name="name">The name of the node</param>
-    /// <returns>The node, or null</returns>
-    public Node GetNode(string name) => GetNode(rootNode, name);
-
-    /// <summary>
-    /// Attempts to get a transform node by name
-    /// </summary>
-    /// <param name="name">The name fo the node</param>
-    /// <param name="node">The node, which is valid if the return is true</param>
-    /// <returns>Whether the node was found</returns>
-    public bool TryGetNode(string name, out Node node) => TryGetNode(rootNode, name, out node);
-
-    /// <summary>
     /// Attempts to get an animation by name
     /// </summary>
     /// <param name="name">The name of the animation</param>
     /// <returns>The animation, if found</returns>
     public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
+
+    /// <summary>
+    /// Clones the nodes this asset contains
+    /// </summary>
+    /// <returns>The cloned nodes</returns>
+    public Node[] CloneNodes()
+    {
+        var outValue = new Node[nodes.Length];
+
+        for (var i = 0; i < nodes.Length; i++)
+        {
+            outValue[i] = nodes[i].Clone();
+        }
+
+        for (var i = 0; i < nodes.Length; i++)
+        {
+            outValue[i].parent = outValue.FirstOrDefault(x => x.children.Contains(i));
+        }
+
+        return outValue;
+    }
 
     /// <summary>
     /// Loads a Mesh Asset by guid

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Staple.Internal;
 
@@ -32,12 +33,13 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
                 return;
             }
 
-            if (poser.nodeCache.Count == 0 ||
+            if (poser.nodeCache.Length == 0 ||
                 poser.transformCache.Count == 0 ||
                 poser.currentMesh != poser.mesh)
             {
-                SkinnedMeshRenderSystem.GatherNodes(poser.nodeCache, poser.mesh.meshAsset.rootNode);
-                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, poser.transformCache, poser.mesh.meshAsset.rootNode);
+                poser.nodeCache = poser.mesh.meshAsset.CloneNodes();
+
+                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, poser.transformCache, poser.mesh.meshAsset.nodes);
             }
 
             SkinnedMeshRenderSystem.ApplyTransformsToNodes(poser.nodeCache, poser.transformCache);

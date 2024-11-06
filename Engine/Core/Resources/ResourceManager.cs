@@ -1367,6 +1367,31 @@ internal class ResourceManager
                 frameRate = meshAssetData.metadata.frameRate,
             };
 
+            asset.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
+
+            for (var i = 0; i < meshAssetData.nodes.Length; i++)
+            {
+                var node = meshAssetData.nodes[i];
+
+                var transform = Math.TransformationMatrix(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
+
+                asset.nodes[i] = new MeshAsset.Node()
+                {
+                    name = node.name,
+                    Transform = transform,
+                    OriginalTransform = transform,
+                    meshIndices = node.meshIndices.ToArray(),
+                    children = node.children.ToArray(),
+                };
+            }
+
+            for (var i = 0; i < meshAssetData.nodes.Length; i++)
+            {
+                var node = meshAssetData.nodes[i];
+
+                asset.nodes[i].parent = asset.nodes.FirstOrDefault(x => x.children.Contains(i));
+            }
+
             var startBoneIndex = 0;
 
             foreach(var m in meshAssetData.meshes)
@@ -1451,6 +1476,7 @@ internal class ResourceManager
                     {
                         name = x.name,
                         offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
+                        index = Array.FindIndex(asset.nodes, y => y.name == x.name),
                     }).ToArray()],
                 };
 
@@ -1521,36 +1547,6 @@ internal class ResourceManager
                 asset.Bounds = AABB.CreateFromMinMax(min, max);
             }
 
-            void GatherNodes(MeshAssetNode node, MeshAsset.Node parent)
-            {
-                if(node.name == null)
-                {
-                    return;
-                }
-
-                var transform = Math.TransformationMatrix(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
-
-                var outNode = new MeshAsset.Node()
-                {
-                    name = node.name,
-                    Transform = transform,
-                    OriginalTransform = transform,
-                    parent = parent,
-                    meshIndices = node.meshIndices,
-                };
-
-                parent?.children.Add(outNode);
-
-                asset.rootNode ??= outNode;
-
-                foreach(var child in node.children)
-                {
-                    GatherNodes(child, outNode);
-                }
-            }
-
-            GatherNodes(meshAssetData.rootNode, null);
-
             foreach(var a in meshAssetData.animations)
             {
                 var animation = new MeshAsset.Animation()
@@ -1562,16 +1558,16 @@ internal class ResourceManager
 
                 foreach(var c in a.channels)
                 {
-                    var node = asset.GetNode(c.nodeName);
+                    var nodeIndex = Array.FindIndex(meshAssetData.nodes, (x => x.name == c.nodeName));
 
-                    if(node == null)
+                    if(nodeIndex < 0)
                     {
                         continue;
                     }
 
                     var channel = new MeshAsset.AnimationChannel()
                     {
-                        node = node,
+                        nodeIndex = nodeIndex,
                         positions = c.positionKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
                         {
                             time = x.time,

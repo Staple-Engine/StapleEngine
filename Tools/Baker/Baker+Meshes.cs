@@ -625,7 +625,9 @@ static partial class Program
                     return new Vector3Holder(Vector3.Transform(value.ToVector3(), transformMatrix));
                 }
 
-                void RegisterNode(Assimp.Node node, MeshAssetNode parent)
+                var nodes = new List<MeshAssetNode>();
+
+                void RegisterNode(Assimp.Node node, int parentIndex)
                 {
                     node.Transform.Decompose(out var scale, out var rotation, out var translation);
 
@@ -638,17 +640,24 @@ static partial class Program
                         rotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
                     };
 
-                    meshData.rootNode ??= newNode;
+                    if(parentIndex >= 0)
+                    {
+                        nodes[parentIndex].children.Add(nodes.Count);
+                    }
 
-                    parent?.children.Add(newNode);
+                    var currentIndex = nodes.Count;
+
+                    nodes.Add(newNode);
 
                     foreach (var n in node.Children)
                     {
-                        RegisterNode(n, newNode);
+                        RegisterNode(n, currentIndex);
                     }
                 }
 
-                RegisterNode(scene.RootNode, null);
+                RegisterNode(scene.RootNode, -1);
+
+                meshData.nodes = nodes.ToArray();
 
                 foreach (var animation in scene.Animations)
                 {

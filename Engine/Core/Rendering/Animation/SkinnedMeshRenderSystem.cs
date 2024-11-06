@@ -80,7 +80,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.mesh.meshAssetIndex < 0 ||
                 renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
                 renderer.materials == null ||
-                renderer.materials.Count != renderer.mesh.submeshes.Count)
+                renderer.materials.Count != renderer.mesh.submeshes.Count ||
+                renderer.mesh.meshAsset.BoneCount >= MaxBones)
             {
                 continue;
             }
@@ -161,9 +162,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     for (var j = 0; j < bones.Length; j++)
                     {
                         var bone = bones[j];
+                        var nodeIndex = bones[j].index;
 
-                        renderer.cachedNodes[i][j] = MeshAsset.TryGetNode(meshAsset.rootNode, bone.name, out var localNode) ?
-                            localNode : null;
+                        var localNode = nodeIndex >= 0 && nodeIndex < meshAsset.nodes.Length ?
+                            meshAsset.nodes[nodeIndex] : null;
+
+                        renderer.cachedNodes[i][j] = localNode;
 
                         boneMatrices[meshAssetMesh.startBoneIndex + j] = localNode != null ?
                             bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
@@ -176,8 +180,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     for (var j = 0; j < bones.Length; j++)
                     {
-                        renderer.cachedAnimatorNodes[i][j] = MeshAsset.TryGetNode(animator.evaluator.rootNode, bones[j].name, out var localNode) ?
-                            localNode : null;
+                        var nodeIndex = bones[j].index;
+
+                        renderer.cachedAnimatorNodes[i][j] = nodeIndex >= 0 && nodeIndex < animator.evaluator.nodes.Length ?
+                            animator.evaluator.nodes[nodeIndex] : null;
                     }
                 }
 
@@ -330,44 +336,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     }
 
     /// <summary>
-    /// Gets all animation nodes for a parent transform
-    /// </summary>
-    /// <param name="nodeCache">A cache to store the nodes</param>
-    /// <param name="rootNode">The root node</param>
-    public static void GatherNodes(Dictionary<string, MeshAsset.Node> nodeCache, MeshAsset.Node rootNode)
-    {
-        if (nodeCache == null)
-        {
-            return;
-        }
-
-        nodeCache.Clear();
-
-        void GatherNodes(MeshAsset.Node node)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            nodeCache.AddOrSetKey(node.name, node);
-
-            foreach (var child in node.children)
-            {
-                GatherNodes(child);
-            }
-        }
-
-        GatherNodes(rootNode);
-    }
-
-    /// <summary>
     /// Gets all transforms related to animation nodes
     /// </summary>
     /// <param name="parent">The parent transform</param>
     /// <param name="transformCache">The transform cache</param>
-    /// <param name="rootNode">The root node</param>
-    public static void GatherNodeTransforms(Transform parent, Dictionary<string, Transform> transformCache, MeshAsset.Node rootNode)
+    /// <param name="nodes">The nodes</param>
+    public static void GatherNodeTransforms(Transform parent, Dictionary<int, Transform> transformCache, MeshAsset.Node[] nodes)
     {
         if (parent == null || transformCache == null)
         {
@@ -376,34 +350,17 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         transformCache.Clear();
 
-        void GatherNodes(MeshAsset.Node node)
+        for(var i = 0; i < nodes.Length; i++)
         {
-            if (node == null)
+            var childTransform = parent.SearchChild(nodes[i].name);
+
+            if(childTransform == null)
             {
-                return;
+                continue;
             }
 
-            var childTransform = parent.SearchChild(node.name);
-
-            if (childTransform == null)
-            {
-                foreach (var child in node.children)
-                {
-                    GatherNodes(child);
-                }
-
-                return;
-            }
-
-            transformCache.AddOrSetKey(node.name, childTransform);
-
-            foreach (var child in node.children)
-            {
-                GatherNodes(child);
-            }
+            transformCache.AddOrSetKey(i, childTransform);
         }
-
-        GatherNodes(rootNode);
     }
 
     /// <summary>
@@ -412,14 +369,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     /// <param name="nodeCache">The node cache</param>
     /// <param name="transformCache">The transform cache</param>
     /// <param name="original">Whether we want the original transforms (before animating)</param>
-    public static void ApplyNodeTransform(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache, bool original = false)
+    public static void ApplyNodeTransform(MeshAsset.Node[] nodeCache, Dictionary<int, Transform> transformCache, bool original = false)
     {
         foreach (var pair in transformCache)
         {
-            if(nodeCache.TryGetValue(pair.Key, out var node) == false)
-            {
-                continue;
-            }
+            var node = nodeCache[pair.Key];
 
             pair.Value.LocalPosition = original ? node.OriginalPosition : node.Position;
             pair.Value.LocalRotation = original ? node.OriginalRotation : node.Rotation;
@@ -432,16 +386,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     /// </summary>
     /// <param name="nodeCache">The node cache</param>
     /// <param name="transformCache">The transform cache</param>
-    public static void ApplyTransformsToNodes(Dictionary<string, MeshAsset.Node> nodeCache, Dictionary<string, Transform> transformCache)
+    public static void ApplyTransformsToNodes(MeshAsset.Node[] nodeCache, Dictionary<int, Transform> transformCache)
     {
-        foreach(var pair in nodeCache)
+        for(var i = 0; i < nodeCache.Length; i++)
         {
-            if(transformCache.TryGetValue(pair.Key, out var transform) == false)
+            if (transformCache.TryGetValue(i, out var transform) == false)
             {
                 continue;
             }
 
-            pair.Value.Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
+            nodeCache[i].Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
         }
     }
 }

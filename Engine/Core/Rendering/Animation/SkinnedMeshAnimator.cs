@@ -46,12 +46,12 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// <summary>
     /// A cache for transforms
     /// </summary>
-    internal Dictionary<string, Transform> transformCache = [];
+    internal Dictionary<int, Transform> transformCache = [];
 
     /// <summary>
     /// A cache for nodes
     /// </summary>
-    internal Dictionary<string, MeshAsset.Node> nodeCache = [];
+    internal MeshAsset.Node[] nodeCache = [];
 
     /// <summary>
     /// The animation evaluator

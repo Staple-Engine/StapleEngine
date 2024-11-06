@@ -183,22 +183,22 @@ public class MeshAssetMeshInfo
     public MeshTopology topology;
 
     [Key(3)]
-    public List<Vector3Holder> vertices = new();
+    public List<Vector3Holder> vertices = [];
 
     [Key(4)]
-    public List<Vector4Holder> colors = new();
+    public List<Vector4Holder> colors = [];
 
     [Key(5)]
-    public List<Vector3Holder> normals = new();
+    public List<Vector3Holder> normals = [];
 
     [Key(6)]
-    public List<Vector3Holder> tangents = new();
+    public List<Vector3Holder> tangents = [];
 
     [Key(7)]
-    public List<Vector3Holder> bitangents = new();
+    public List<Vector3Holder> bitangents = [];
 
     [Key(8)]
-    public List<int> indices = new();
+    public List<int> indices = [];
 
     [Key(9)]
     public Vector3Holder boundsCenter;
@@ -207,40 +207,40 @@ public class MeshAssetMeshInfo
     public Vector3Holder boundsExtents;
 
     [Key(11)]
-    public List<Vector2Holder> UV1 = new();
+    public List<Vector2Holder> UV1 = [];
 
     [Key(12)]
-    public List<Vector2Holder> UV2 = new();
+    public List<Vector2Holder> UV2 = [];
 
     [Key(13)]
-    public List<Vector2Holder> UV3 = new();
+    public List<Vector2Holder> UV3 = [];
 
     [Key(14)]
-    public List<Vector2Holder> UV4 = new();
+    public List<Vector2Holder> UV4 = [];
 
     [Key(15)]
-    public List<Vector2Holder> UV5 = new();
+    public List<Vector2Holder> UV5 = [];
 
     [Key(16)]
-    public List<Vector2Holder> UV6 = new();
+    public List<Vector2Holder> UV6 = [];
 
     [Key(17)]
-    public List<Vector2Holder> UV7 = new();
+    public List<Vector2Holder> UV7 = [];
 
     [Key(18)]
-    public List<Vector2Holder> UV8 = new();
+    public List<Vector2Holder> UV8 = [];
 
     [Key(19)]
     public MeshAssetType type;
 
     [Key(20)]
-    public List<MeshAssetBone> bones = new();
+    public List<MeshAssetBone> bones = [];
 
     [Key(21)]
-    public List<Vector4Holder> boneIndices = new();
+    public List<Vector4Holder> boneIndices = [];
 
     [Key(22)]
-    public List<Vector4Holder> boneWeights = new();
+    public List<Vector4Holder> boneWeights = [];
 }
 
 [MessagePackObject]
@@ -259,10 +259,10 @@ public class MeshAssetNode
     public Vector3Holder scale;
 
     [Key(4)]
-    public List<MeshAssetNode> children = new();
+    public List<int> children = [];
 
     [Key(5)]
-    public List<int> meshIndices = new();
+    public List<int> meshIndices = [];
 }
 
 [MessagePackObject]
@@ -292,13 +292,13 @@ public class MeshAssetAnimationChannel
     public string nodeName;
 
     [Key(1)]
-    public List<MeshAssetVectorAnimationKey> positionKeys = new();
+    public List<MeshAssetVectorAnimationKey> positionKeys = [];
 
     [Key(2)]
-    public List<MeshAssetQuaternionAnimationKey> rotationKeys = new();
+    public List<MeshAssetQuaternionAnimationKey> rotationKeys = [];
 
     [Key(3)]
-    public List<MeshAssetVectorAnimationKey> scaleKeys = new();
+    public List<MeshAssetVectorAnimationKey> scaleKeys = [];
 
     [Key(4)]
     public MeshAssetAnimationStateBehaviour preState;
@@ -320,7 +320,7 @@ public class MeshAssetAnimation
     public float ticksPerSecond;
 
     [Key(3)]
-    public List<MeshAssetAnimationChannel> channels = new();
+    public List<MeshAssetAnimationChannel> channels = [];
 }
 
 [MessagePackObject]
@@ -330,11 +330,11 @@ public class SerializableMeshAsset
     public MeshAssetMetadata metadata;
 
     [Key(1)]
-    public List<MeshAssetMeshInfo> meshes = new();
+    public List<MeshAssetMeshInfo> meshes = [];
 
     [Key(2)]
-    public MeshAssetNode rootNode;
+    public MeshAssetNode[] nodes;
 
     [Key(3)]
-    public List<MeshAssetAnimation> animations = new();
+    public List<MeshAssetAnimation> animations = [];
 }
