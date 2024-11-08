@@ -167,7 +167,7 @@ public sealed partial class RenderSystem
 
         LightSystem.Enabled = AppSettings.Current?.enableLighting ?? true;
 
-        Time.OnAccumulatorFinished += () =>
+        Time.onAccumulatorFinished += () =>
         {
             needsDrawCalls = true;
         };
@@ -524,7 +524,7 @@ public sealed partial class RenderSystem
             needsDrawCalls = false;
         }
 
-        accumulator = Time.Accumulator;
+        accumulator = Time.accumulator;
     }
     #endregion
 

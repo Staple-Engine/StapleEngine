@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Staple;
 
@@ -48,17 +49,24 @@ public static class Time
     public static int FPS { get; internal set; }
 
     /// <summary>
+    /// Frame Delta Time
+    /// </summary>
+    public static (float min, float max, float average) frameDeltaTime { get; internal set; }
+
+    /// <summary>
     /// The current time accumulator
     /// </summary>
-    internal static float Accumulator { get; private set; }
+    internal static float accumulator { get; private set; }
 
     /// <summary>
     /// Called when the accumulator triggers
     /// </summary>
-    internal static Action OnAccumulatorFinished { get; set; }
+    internal static Action onAccumulatorFinished { get; set; }
 
     private static int frames;
     private static float frameTimer;
+    private static Vector3 frameDelta;
+    private static float frameDeltaTimer;
 
     /// <summary>
     /// Updates the clock
@@ -76,27 +84,44 @@ public static class Time
             delta = maximumDeltaTime;
         }
 
-        Accumulator += delta;
+        accumulator += delta;
 
         unscaledDeltaTime = delta;
 
-        var previousAccumulator = Accumulator;
+        var previousAccumulator = accumulator;
 
         if(fixedDeltaTime > 0)
         {
-            while (Accumulator >= fixedDeltaTime)
+            while (accumulator >= fixedDeltaTime)
             {
-                Accumulator -= fixedDeltaTime;
+                accumulator -= fixedDeltaTime;
             }
         }
 
-        if(Accumulator < previousAccumulator)
+        if(accumulator < previousAccumulator)
         {
-            OnAccumulatorFinished?.Invoke();
+            onAccumulatorFinished?.Invoke();
         }
 
         frames++;
         frameTimer += delta;
+
+        frameDeltaTimer += delta;
+
+        frameDelta.X = Math.Min(delta, frameDelta.X);
+        frameDelta.Y = Math.Max(delta, frameDelta.Y);
+        frameDelta.Z += delta;
+
+        if(frameDeltaTimer >= 2.0f)
+        {
+            frameDeltaTimer = 0;
+
+            frameDelta.Z /= frames;
+
+            frameDeltaTime = (frameDelta.X, frameDelta.Y, frameDelta.Z);
+
+            frameDelta = new Vector3(999, 0, 0);
+        }
 
         if(frameTimer >= 1.0f)
         {
