@@ -37,9 +37,13 @@ cd ../dotnet
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net8.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net8.0
 
-cd ../../bgfx
+cd ../../GENie
 
-../bx/tools/bin/linux/genie --with-tools --with-shared-lib --os=linux --gc=linux-clang gmake
+make
+
+cd ../bgfx
+
+../GENie/bin/linux/genie --with-tools --with-shared-lib --os=linux --gc=linux-clang gmake
 
 make -j $(nproc) build-linux
 
