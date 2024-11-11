@@ -43,7 +43,7 @@ make
 
 cd ../bgfx
 
-../GENie/bin/linux/genie --with-tools --with-shared-lib --os=linux --gc=linux-clang gmake
+../GENie/bin/linux/genie --with-tools --with-shared-lib --os=linux --gcc=linux-clang gmake
 
 make -j $(nproc) build-linux
 
