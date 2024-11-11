@@ -45,7 +45,7 @@ cd ../bgfx
 
 ../GENie/bin/linux/genie --with-tools --with-shared-lib --os=linux --gcc=linux-clang gmake
 
-make -j $(nproc) build-linux
+make -j $(nproc) linux-clang
 
 make -j $(nproc) tools
 
