@@ -47,6 +47,6 @@ make GENIE=../GENie/bin/linux/genie -j $(nproc) linux-clang
 
 mkdir -p ../../Tools/bin
 
-cp .build/gmake-linux-clang/bin/*cRelease ../../Tools/bin
+cp .build/linux64_clang/bin/*cRelease ../../Tools/bin
 
 cd ../../

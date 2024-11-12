@@ -67,7 +67,45 @@ Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to 
 
 #### Ubuntu
 
-`sudo apt install git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev`
+```bash
+sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev cmake clang
+```
+
+##### To install .NET
+
+```bash
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x ./dotnet-install.sh
+./dotnet-install.sh --version latest
+```
+
+##### Don't forget to add to your shell
+
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+```
+
+#### Arch
+
+```bash
+sudo pacman -Syu premake git base-devel libxi libxinerama librandr libxcursor libx11 gtk3 cmake clang
+```
+
+##### To install .NET
+
+```bash
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x ./dotnet-install.sh
+./dotnet-install.sh --version latest
+```
+
+##### Don't forget to add to your shell
+
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+```
 
 ### Instructions (After required packages)
 
