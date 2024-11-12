@@ -43,7 +43,7 @@ make
 
 cd ../bgfx
 
-make -j $(nproc) linux-clang
+make GENIE=../GENie/bin/linux/genie -j $(nproc) linux-clang
 
 mkdir -p ../../Tools/bin
 
