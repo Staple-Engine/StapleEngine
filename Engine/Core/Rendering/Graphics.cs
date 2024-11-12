@@ -67,7 +67,7 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties();
+                material.ApplyProperties(Material.ApplyMode.All);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
             }
@@ -133,7 +133,7 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties();
+                material.ApplyProperties(Material.ApplyMode.All);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
             }

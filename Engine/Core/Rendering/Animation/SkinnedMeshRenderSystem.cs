@@ -280,20 +280,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var material = renderer.materials[j];
 
                 var needsChange = assetGuid != lastMeshAsset ||
-                    material.Guid != (lastMaterial?.Guid ?? "") ||
-                    lastAnimator != animator;
+                    material.Guid != (lastMaterial?.Guid ?? "");
 
-                if(needsChange)
+                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+                if (needsChange)
                 {
                     lastMeshAsset = assetGuid;
                     lastMaterial = material;
-                    lastAnimator = animator;
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
 
                     material.EnableShaderKeyword(Shader.SkinningKeyword);
-
-                    var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
                     lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
 
@@ -302,17 +300,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         continue;
                     }
 
-                    bgfx.set_state((ulong)(state |
-                        renderer.mesh.PrimitiveFlag() |
-                        material.shader.BlendingFlag |
-                        material.CullingFlag), 0);
-
-                    material.ApplyProperties();
-
-                    material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), boneMatrices);
-
-                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
-                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+                    material.ApplyProperties(Material.ApplyMode.TexturesOnly);
                 }
 
                 unsafe
@@ -324,11 +312,24 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(j);
 
+                material.ApplyProperties(Material.ApplyMode.IgnoreTextures);
+
+                material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), boneMatrices);
+
                 var program = material.ShaderProgram;
+
+                bgfx.set_state((ulong)(state |
+                    renderer.mesh.PrimitiveFlag() |
+                    material.shader.BlendingFlag |
+                    material.CullingFlag), 0);
+
+                lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                    RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
 
                 var flags = bgfx.DiscardFlags.VertexStreams |
                     bgfx.DiscardFlags.IndexBuffer |
-                    bgfx.DiscardFlags.Transform;
+                    bgfx.DiscardFlags.Transform |
+                    bgfx.DiscardFlags.State;
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

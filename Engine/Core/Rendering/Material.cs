@@ -61,6 +61,13 @@ public sealed class Material : IGuidAsset
         }
     }
 
+    internal enum ApplyMode
+    {
+        IgnoreTextures,
+        TexturesOnly,
+        All,
+    }
+
     internal const string MainColorProperty = "mainColor";
     internal const string MainTextureProperty = "mainTexture";
 
@@ -618,7 +625,8 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Applies the default properties of this material to the shader
     /// </summary>
-    internal void ApplyProperties()
+    /// <param name="applyMode">How to apply the properties</param>
+    internal void ApplyProperties(ApplyMode applyMode)
     {
         if(shader == null)
         {
@@ -650,11 +658,22 @@ public sealed class Material : IGuidAsset
 
             foreach (var parameter in parameters.Values)
             {
+                if((applyMode == ApplyMode.IgnoreTextures && parameter.type == MaterialParameterType.Texture) ||
+                    (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture))
+                {
+                    continue;
+                }
+
                 var key = parameter.name;
 
                 switch (parameter.type)
                 {
                     case MaterialParameterType.Texture:
+
+                        if(applyMode == ApplyMode.IgnoreTextures)
+                        {
+                            continue;
+                        }
 
                         applyPropertiesCallbacks[counter++] = () =>
                         {
