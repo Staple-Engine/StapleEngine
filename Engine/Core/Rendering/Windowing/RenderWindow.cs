@@ -108,6 +108,8 @@ internal class RenderWindow
         try
         {
             OnInit?.Invoke();
+
+            StapleHooks.ExecuteHooks(StapleHookEvent.Init, null);
         }
         catch (Exception e)
         {
@@ -195,6 +197,8 @@ internal class RenderWindow
 
                     OnFixedUpdate?.Invoke();
 
+                    StapleHooks.ExecuteHooks(StapleHookEvent.FixedUpdate, null);
+
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
@@ -212,6 +216,8 @@ internal class RenderWindow
         try
         {
             OnCleanup?.Invoke();
+
+            StapleHooks.ExecuteHooks(StapleHookEvent.Cleanup, null);
         }
         catch (Exception)
         {
@@ -272,6 +278,8 @@ internal class RenderWindow
         try
         {
             OnInit?.Invoke();
+
+            StapleHooks.ExecuteHooks(StapleHookEvent.Init, null);
         }
         catch (Exception e)
         {
@@ -357,6 +365,8 @@ internal class RenderWindow
 
                     OnFixedUpdate?.Invoke();
 
+                    StapleHooks.ExecuteHooks(StapleHookEvent.FixedUpdate, null);
+
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
@@ -376,6 +386,8 @@ internal class RenderWindow
             try
             {
                 OnCleanup?.Invoke();
+
+                StapleHooks.ExecuteHooks(StapleHookEvent.Cleanup, null);
             }
             catch (Exception)
             {
@@ -717,6 +729,8 @@ internal class RenderWindow
 
         World.Current?.StartFrame();
 
+        StapleHooks.ExecuteHooks(StapleHookEvent.FrameBegin, null);
+
         try
         {
             OnUpdate?.Invoke();
@@ -725,6 +739,8 @@ internal class RenderWindow
         {
             Log.Error($"RenderWindow Render Exception: {e}");
         }
+
+        StapleHooks.ExecuteHooks(StapleHookEvent.FrameEnd, null);
 
         var hasCamera = Scene.SortedCameras.Length != 0;
 

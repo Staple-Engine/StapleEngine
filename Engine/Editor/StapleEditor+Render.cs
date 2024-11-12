@@ -66,7 +66,8 @@ internal partial class StapleEditor
                     var matrix = Math.TransformationMatrix(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
                     var delta = Matrix4x4.Identity;
 
-                    if (ImGuizmo.Manipulate(ref view, ref projection, transformOperation, transformMode, ref matrix, ref delta, snap, localBound, snap))
+                    if (ImGuizmo.Manipulate((float *)&view, (float*)&projection, transformOperation, transformMode,
+                        (float*)&matrix, (float*)&delta, snap, localBound, snap))
                     {
                         Matrix4x4.Invert(selectedTransform.parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
 

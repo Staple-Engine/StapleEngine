@@ -86,14 +86,21 @@ internal class ImGuiProxy
         unsafe
         {
             byte *data = null;
-            int fontWidth = 0;
-            int fontHeight = 0;
+            var fontWidth = 0;
+            var fontHeight = 0;
 
             io.Fonts.GetTexDataAsRGBA32(&data, ref fontWidth, ref fontHeight);
 
-            byte[] fontData = new byte[fontWidth * fontHeight * 4];
+            if (data == null)
+            {
+                Log.Error("Failed to load font");
 
-            for(int i = 0; i < fontData.Length; i++)
+                return false;
+            }
+
+            var fontData = new byte[fontWidth * fontHeight * 4];
+
+            for(var i = 0; i < fontData.Length; i++)
             {
                 fontData[i] = data[i];
             }
@@ -315,15 +322,15 @@ internal class ImGuiProxy
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
 
-            for (int i = 0; i < drawData.CmdListsCount; i++)
+            for (var i = 0; i < drawData.CmdListsCount; i++)
             {
                 bgfx.TransientVertexBuffer tvb;
                 bgfx.TransientIndexBuffer tib;
 
                 var cmdList = drawData.CmdLists.Data[i];
 
-                var numVertices = cmdList->VtxBuffer.Size;
-                var numIndices = cmdList->IdxBuffer.Size;
+                var numVertices = cmdList.VtxBuffer.Size;
+                var numIndices = cmdList.IdxBuffer.Size;
 
                 if (RenderSystem.CheckAvailableTransientBuffers((uint)numVertices, layout.layout, (uint)numIndices) == false)
                 {
@@ -339,15 +346,15 @@ internal class ImGuiProxy
 
                 var size = numVertices * sizeof(ImDrawVert);
 
-                Buffer.MemoryCopy((void *)cmdList->VtxBuffer.Data, tvb.data, size, size);
+                Buffer.MemoryCopy(cmdList.VtxBuffer.Data, tvb.data, size, size);
 
                 size = numIndices * sizeof(ushort);
 
-                Buffer.MemoryCopy((void *)cmdList->IdxBuffer.Data, tib.data, size, size);
+                Buffer.MemoryCopy(cmdList.IdxBuffer.Data, tib.data, size, size);
 
-                for (var j = 0; j < cmdList->CmdBuffer.Size; j++)
+                for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                 {
-                    var drawCmd = cmdList->CmdBuffer.Data[j];
+                    var drawCmd = cmdList.CmdBuffer.Data[j];
 
                     if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
                     {
@@ -402,14 +409,14 @@ internal class ImGuiProxy
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntPtr GetImGuiTexture(Texture texture)
+    public static ImTextureID GetImGuiTexture(Texture texture)
     {
         if(texture == null || texture.handle.Valid == false || texture.Disposed)
         {
-            return IntPtr.Zero;
+            return ImTextureID.Null;
         }
 
-        return new IntPtr(texture.handle.idx);
+        return new ImTextureID((ulong)texture.handle.idx);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

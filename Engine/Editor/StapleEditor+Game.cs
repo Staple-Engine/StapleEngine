@@ -190,7 +190,7 @@ internal partial class StapleEditor
             cachedGizmoEditors.Clear();
             ResourceManager.instance.cachedAssets.Clear();
 
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             void RegisterTypes(Type[] types)
             {

@@ -53,7 +53,7 @@ namespace Staple
 using System;
 using Staple.Internal;
 
-namespace Staple
+namespace StapleCodeGeneration
 {{
     public static class TypeCacheRegistration
     {{

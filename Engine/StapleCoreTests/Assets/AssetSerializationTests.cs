@@ -107,7 +107,7 @@ namespace CoreTests
         [Test]
         public void TestSerialize()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new SimpleAsset
             {
@@ -160,7 +160,7 @@ namespace CoreTests
         [Test]
         public void TestDeserialize()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new SimpleAsset
             {
@@ -199,7 +199,7 @@ namespace CoreTests
         [Test]
         public void TestSerializeSerializable()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new SerializableAsset
             {
@@ -286,7 +286,7 @@ namespace CoreTests
         [Test]
         public void TestPrimitiveSerialization()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new PrimitiveAsset
             {
@@ -324,7 +324,7 @@ namespace CoreTests
         [Test]
         public void TestPrimitiveSerializationText()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new PrimitiveAsset
             {
@@ -362,7 +362,7 @@ namespace CoreTests
         [Test]
         public void TestPrimitiveListSerializationText()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new Base64ListAsset
             {
@@ -396,7 +396,7 @@ namespace CoreTests
         [Test]
         public void TestPrimitiveListSerialization()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new Base64ListAsset
             {
@@ -430,7 +430,7 @@ namespace CoreTests
         [Test]
         public void TestSerializeField()
         {
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             var asset = new SerializeFieldAsset();
 

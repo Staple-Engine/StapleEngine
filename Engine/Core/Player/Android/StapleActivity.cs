@@ -359,6 +359,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             try
             {
                 renderWindow.OnInit?.Invoke();
+
+                StapleHooks.ExecuteHooks(StapleHookEvent.Init, null);
             }
             catch (System.Exception e)
             {
@@ -466,6 +468,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 fixedTimer -= Time.fixedDeltaTime;
 
                 renderWindow.OnFixedUpdate?.Invoke();
+
+                StapleHooks.ExecuteHooks(StapleHookEvent.FixedUpdate, null);
 
                 currentFixedTime += Time.fixedDeltaTime;
             }
@@ -714,6 +718,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         try
         {
             AppPlayer.instance?.renderWindow.OnCleanup?.Invoke();
+
+            StapleHooks.ExecuteHooks(StapleHookEvent.Cleanup, null);
         }
         catch (Exception)
         {

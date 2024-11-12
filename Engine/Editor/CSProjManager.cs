@@ -321,7 +321,7 @@ internal class CSProjManager
                     {
                         public void RegisterAll()
                         {
-                            TypeCacheRegistration.RegisterAll();
+                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
                         }
                     }
                     """);

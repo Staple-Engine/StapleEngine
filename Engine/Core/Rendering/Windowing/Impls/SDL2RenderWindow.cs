@@ -27,6 +27,8 @@ internal class SDL2RenderWindow : IRenderWindow
     private bool windowFocused = true;
     private bool windowMaximized = false;
 
+    private nint metalView = nint.Zero;
+
     public bool ContextLost { get; set; } = false;
 
     public bool IsFocused => windowFocused;
@@ -612,7 +614,12 @@ internal class SDL2RenderWindow : IRenderWindow
 
             case AppPlatform.MacOSX:
 
-                return StapleSupport.MacWindow(info.info.cocoa.window);
+                if(metalView == nint.Zero)
+                {
+                    metalView = SDL.SDL_Metal_CreateView(window);
+                }
+
+                return SDL.SDL_Metal_GetLayer(metalView);
 
             default:
 

@@ -18,3 +18,4 @@ DefaultResources
 dist
 Test Project/Game.csproj
 Test Project/Sandbox.sln
+.idea

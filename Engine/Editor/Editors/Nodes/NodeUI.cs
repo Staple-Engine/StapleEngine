@@ -141,7 +141,7 @@ public partial class NodeUI
         int endAttribute = 0;
         bool fromSnap = false;
 
-        if (ImNodes.IsLinkCreatedIntPtr(ref startNode, ref startAttribute, ref endNode, ref endAttribute, ref fromSnap))
+        if (ImNodes.IsLinkCreated(ref startNode, ref startAttribute, ref endNode, ref endAttribute, ref fromSnap))
         {
             if (nodes.TryGetValue(startNode, out var start) &&
                 nodes.TryGetValue(endNode, out var end))

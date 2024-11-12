@@ -4,6 +4,6 @@ public sealed class GameRegistration
 {
     public void RegisterAll()
     {
-        TypeCacheRegistration.RegisterAll();
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
     }
 }
