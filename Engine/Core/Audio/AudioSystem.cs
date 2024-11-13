@@ -233,7 +233,7 @@ public class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
         
-        foreach((Entity _, Transform transform, AudioListener listener) in audioListeners)
+        foreach((Entity _, Transform transform, AudioListener listener) in audioListeners.Contents)
         {
             listenerTransform ??= transform;
 

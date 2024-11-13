@@ -1,11 +1,9 @@
 ﻿using Staple.Internal;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Staple;
 
-public class SceneQuery<T>: ISceneQuery, IEnumerable<(Entity, T)> 
+public class SceneQuery<T>: ISceneQuery
     where T: IComponent
 {
     private (Entity, T)[] contents = [];
@@ -38,25 +36,9 @@ public class SceneQuery<T>: ISceneQuery, IEnumerable<(Entity, T)>
     {
         contents = Scene.Query<T>(includeDisabled);
     }
-
-    public IEnumerator<(Entity, T)> GetEnumerator()
-    {
-        foreach(var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
 }
 
-public class SceneQuery<T, T2>: ISceneQuery, IEnumerable<(Entity, T, T2)> 
+public class SceneQuery<T, T2>: ISceneQuery
     where T: IComponent
     where T2: IComponent
 {
@@ -90,25 +72,9 @@ public class SceneQuery<T, T2>: ISceneQuery, IEnumerable<(Entity, T, T2)>
     {
         contents = Scene.Query<T, T2>(includeDisabled);
     }
-
-    public IEnumerator<(Entity, T, T2)> GetEnumerator()
-    {
-        foreach(var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
 }
 
-public class SceneQuery<T, T2, T3> : ISceneQuery, IEnumerable<(Entity, T, T2, T3)>
+public class SceneQuery<T, T2, T3> : ISceneQuery
     where T : IComponent
     where T2 : IComponent
     where T3: IComponent
@@ -143,25 +109,9 @@ public class SceneQuery<T, T2, T3> : ISceneQuery, IEnumerable<(Entity, T, T2, T3
     {
         contents = Scene.Query<T, T2, T3>(includeDisabled);
     }
-
-    public IEnumerator<(Entity, T, T2, T3)> GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
 }
 
-public class SceneQuery<T, T2, T3, T4> : ISceneQuery, IEnumerable<(Entity, T, T2, T3, T4)>
+public class SceneQuery<T, T2, T3, T4> : ISceneQuery
     where T : IComponent
     where T2 : IComponent
     where T3 : IComponent
@@ -197,25 +147,9 @@ public class SceneQuery<T, T2, T3, T4> : ISceneQuery, IEnumerable<(Entity, T, T2
     {
         contents = Scene.Query<T, T2, T3, T4>(includeDisabled);
     }
-
-    public IEnumerator<(Entity, T, T2, T3, T4)> GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
 }
 
-public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery, IEnumerable<(Entity, T, T2, T3, T4, T5)>
+public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery
     where T : IComponent
     where T2 : IComponent
     where T3 : IComponent
@@ -252,21 +186,5 @@ public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery, IEnumerable<(Entity, T
     public void WorldChanged()
     {
         contents = Scene.Query<T, T2, T3, T4, T5>(includeDisabled);
-    }
-
-    public IEnumerator<(Entity, T, T2, T3, T4, T5)> GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
     }
 }

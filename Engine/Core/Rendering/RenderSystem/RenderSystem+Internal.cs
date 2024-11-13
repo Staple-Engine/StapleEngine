@@ -212,7 +212,7 @@ public sealed partial class RenderSystem
                 {
                     var collected = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
 
-                    foreach (var entityInfo in entityQuery)
+                    foreach (var entityInfo in entityQuery.Contents)
                     {
                         var layer = entityInfo.Item1.Layer;
 

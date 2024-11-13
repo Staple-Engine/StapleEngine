@@ -6,7 +6,7 @@ public class FreeTypeFontSource : ITextFontSource
 {
     nint font;
 
-    public int FontSize { get; set; }
+    public int FontSize { get; set; } = 0;
 
     public int LineSpacing => FreeType.LineSpacing(font, (uint)FontSize);
 
@@ -47,14 +47,14 @@ public class FreeTypeFontSource : ITextFontSource
     {
         if (font == nint.Zero)
         {
-            return null;
+            return Glyph.Invalid;
         }
 
         var glyphPtr = FreeType.LoadGlyph(font, character, (uint)fontSize, textColor, secondaryTextColor, borderSize, borderColor);
 
         if(glyphPtr == nint.Zero)
         {
-            return null;
+            return Glyph.Invalid;
         }
 
         var glyphData = Marshal.PtrToStructure<FreeType.Glyph>(glyphPtr);
@@ -65,7 +65,7 @@ public class FreeTypeFontSource : ITextFontSource
             {
                 FreeType.FreeGlyph(glyphPtr);
 
-                return null;
+                return Glyph.Invalid;
             }
 
             var size = glyphData.width * glyphData.height * 4;

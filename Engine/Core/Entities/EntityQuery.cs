@@ -1,7 +1,5 @@
 ﻿using Staple.Internal;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Staple;
 
@@ -33,7 +31,7 @@ public enum EntityQueryMode
 /// It automatically updates as the world changes.
 /// </summary>
 /// <typeparam name="T">A type of component to get</typeparam>
-public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
+public sealed class EntityQuery<T> : ISceneQuery
     where T : IComponent
 {
     private T[] contents = [];
@@ -53,9 +51,19 @@ public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
     public T Content => content;
 
     /// <summary>
+    /// Contained content. Only valid if we have a single element.
+    /// </summary>
+    public T[] Contents => contents;
+
+    /// <summary>
     /// The content with its entity, if available.
     /// </summary>
     public (Entity, T) ContentEntity => contentEntity;
+
+    /// <summary>
+    /// The content with its entity, if available.
+    /// </summary>
+    public (Entity, T)[] ContentEntities => contentEntities;
 
     public T this[int index] => contents[index];
 
@@ -166,22 +174,6 @@ public sealed class EntityQuery<T> : ISceneQuery, IEnumerable<T>
             {
                 contentEntity = contentEntities[0];
             }
-        }
-    }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var result in contents)
-        {
-            yield return result;
         }
     }
 }

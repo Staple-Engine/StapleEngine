@@ -141,10 +141,15 @@ public sealed class LightSystem : IRenderSystem
 
         if (targets.Length > MaxLights)
         {
-            targets = targets
-                .OrderBy(x => Vector3.DistanceSquared(x.Item2.Position, position))
-                .Take(MaxLights)
-                .ToArray();
+            static (Entity, Transform, Light)[] Trim((Entity, Transform, Light)[] targets, Vector3 position)
+            {
+                return targets
+                    .OrderBy(x => Vector3.DistanceSquared(x.Item2.Position, position))
+                    .Take(MaxLights)
+                    .ToArray();
+            }
+
+            targets = Trim(targets, position);
         }
 
         Matrix4x4.Invert(transform, out var invTransform);

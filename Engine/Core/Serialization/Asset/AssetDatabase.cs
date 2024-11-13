@@ -215,8 +215,20 @@ public static class AssetDatabase
     /// <returns>The guid or null</returns>
     public static string GetAssetGuid(string path)
     {
-        return assets.FirstOrDefault(x => x.path == path)?.guid ??
-            assets.FirstOrDefault(x => x.guid == path)?.guid;
+        var l = assets.Count;
+
+        for(var i = 0; i < l; i++)
+        {
+            var asset = assets[i];
+
+            if(asset.path == path ||
+                asset.guid == path)
+            {
+                return asset.guid;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -229,7 +241,19 @@ public static class AssetDatabase
     {
         var t = prefix + path;
 
-        return assets.FirstOrDefault(x => x.path == t)?.guid;
+        var l = assets.Count;
+
+        for (var i = 0; i < l; i++)
+        {
+            var asset = assets[i];
+
+            if(asset.path == t)
+            {
+                return asset.guid;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -239,6 +263,18 @@ public static class AssetDatabase
     /// <returns>The asset type, or null</returns>
     public static string GetAssetType(string guid)
     {
-        return assets.FirstOrDefault(x => x.guid == guid)?.typeName;
+        var l = assets.Count;
+
+        for (var i = 0; i < l; i++)
+        {
+            var asset = assets[i];
+
+            if (asset.guid == guid)
+            {
+                return asset.typeName;
+            }
+        }
+
+        return null;
     }
 }

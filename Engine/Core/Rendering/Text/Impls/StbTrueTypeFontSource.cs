@@ -7,7 +7,7 @@ namespace Staple.Internal;
 public class StbTrueTypeFontSource : ITextFontSource
 {
     private StbTrueType.stbtt_fontinfo font = null;
-    private int fontSize = 14;
+    private int fontSize = 0;
     private int lineSpacing = 0;
 
     public int FontSize
@@ -86,7 +86,7 @@ public class StbTrueTypeFontSource : ITextFontSource
 
             if(bitmap == null)
             {
-                return null;
+                return Glyph.Invalid;
             }
 
             var buffer = new byte[width * height];

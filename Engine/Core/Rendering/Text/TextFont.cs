@@ -173,7 +173,7 @@ internal class TextFont : IDisposable
             return false;
         }
 
-        glyphs = new Dictionary<int, Glyph>();
+        glyphs = new();
 
         var values = Enum.GetValues<FontCharacterSet>();
 
@@ -190,7 +190,7 @@ internal class TextFont : IDisposable
             {
                 var glyph = fontSource.LoadGlyph((uint)c, fontSize, TextColor, SecondaryTextColor, BorderSize, BorderColor);
 
-                if(glyph == null || glyph.bitmap == null)
+                if(glyph == Glyph.Invalid || glyph.bitmap == null)
                 {
                     continue;
                 }
@@ -225,10 +225,14 @@ internal class TextFont : IDisposable
             {
                 var rect = rects[counter++];
 
-                pair.Value.uvBounds = new RectFloat(rect.left / (float)textureSize,
+                var glyph = pair.Value;
+
+                glyph.uvBounds = new RectFloat(rect.left / (float)textureSize,
                     rect.right / (float)textureSize,
                     rect.top / (float)textureSize,
                     rect.bottom / (float)textureSize);
+
+                glyphs[pair.Key] = glyph;
             }
 
             return true;

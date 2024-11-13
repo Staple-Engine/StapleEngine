@@ -38,7 +38,7 @@ public class TextRenderer
 
     public Texture FontTexture(TextParameters parameters)
     {
-        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -78,7 +78,7 @@ public class TextRenderer
             return default;
         }
 
-        var font = (parameters.font?.TryGetTarget(out var f) ?? false) ? f?.font : DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -250,19 +250,14 @@ public class TextRenderer
             throw new ArgumentNullException("text");
         }
 
-        if(parameters == null)
-        {
-            throw new ArgumentNullException("parameters");
-        }
-
         if(material == null)
         {
             throw new ArgumentNullException("material");
         }
 
-        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 
-        if(font == null)
+        if (font == null)
         {
             return;
         }
@@ -301,12 +296,7 @@ public class TextRenderer
             throw new ArgumentNullException("text");
         }
 
-        if (parameters == null)
-        {
-            throw new ArgumentNullException("parameters");
-        }
-
-        var font = (parameters.font?.TryGetTarget(out var textFont) ?? false) ? textFont?.font : DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 
         if (font == null)
         {

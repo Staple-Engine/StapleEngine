@@ -10,7 +10,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
     private static void ResetRenderers(SkinnedMeshAnimator animator)
     {
-        foreach(var renderer in animator.renderers)
+        foreach(var renderer in animator.renderers.Contents)
         {
             renderer.ResetAnimationState();
         }

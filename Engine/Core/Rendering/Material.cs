@@ -633,11 +633,11 @@ public sealed class Material : IGuidAsset
             return;
         }
 
-        if(hasMainTexture)
+        if(hasMainTexture && applyMode != ApplyMode.IgnoreTextures)
         {
             var t = mainTexture;
 
-            if (t.Disposed)
+            if (t?.Disposed ?? true)
             {
                 MainTexture = WhiteTexture;
             }

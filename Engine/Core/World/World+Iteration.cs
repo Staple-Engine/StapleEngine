@@ -984,7 +984,7 @@ public partial class World
                 return;
             }
 
-            foreach ((Entity entity, CallbackComponent component) in callableComponents)
+            foreach ((Entity entity, CallbackComponent component) in callableComponents.Contents)
             {
                 try
                 {

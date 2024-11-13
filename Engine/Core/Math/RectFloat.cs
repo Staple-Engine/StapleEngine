@@ -1,4 +1,6 @@
 ﻿using MessagePack;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Staple;
@@ -69,6 +71,32 @@ public struct RectFloat
         }
     }
 
+    public static bool operator ==(RectFloat lhs, RectFloat rhs)
+    {
+        return lhs.left == rhs.left &&
+            lhs.right == rhs.right &&
+            lhs.top == rhs.top &&
+            lhs.bottom == rhs.bottom;
+    }
+
+    public static bool operator !=(RectFloat lhs, RectFloat rhs)
+    {
+        return lhs.left != rhs.left ||
+            lhs.right != rhs.right ||
+            lhs.top != rhs.top ||
+            lhs.bottom != rhs.bottom;
+    }
+
+    public override bool Equals([NotNullWhen(true)] object obj)
+    {
+        if (obj is RectFloat rhs)
+        {
+            return this == rhs;
+        }
+
+        return false;
+    }
+
     public readonly bool ShouldSerializeMin() => false;
 
     public readonly bool ShouldSerializeMax() => false;
@@ -76,4 +104,9 @@ public struct RectFloat
     public readonly bool ShouldSerializeWidth() => false;
 
     public readonly bool ShouldSerializeHeight() => false;
+
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(left, right, top, bottom);
+    }
 }

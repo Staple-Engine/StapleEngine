@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Staple;
 
-public class TextParameters
+public struct TextParameters
 {
     public Color textColor = Color.White;
     public Color secondaryTextColor = Color.White;
@@ -13,7 +13,11 @@ public class TextParameters
     public float rotation;
     public int fontSize = 12;
 
-    internal WeakReference<FontAsset> font;
+    internal string font;
+
+    public TextParameters()
+    {
+    }
 
     public override int GetHashCode()
     {
@@ -92,14 +96,7 @@ public class TextParameters
 
     internal TextParameters Font(FontAsset font)
     {
-        if(font == null)
-        {
-            this.font = null;
-
-            return this;
-        }
-
-        this.font = new WeakReference<FontAsset>(font);
+        this.font = font?.Guid;
 
         return this;
     }

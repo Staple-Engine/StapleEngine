@@ -64,12 +64,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             mesh.UploadMeshData();
         }
 
-        var matrix = new Transform()
-        {
-            Position = position,
-            LocalRotation = rotation,
-            LocalScale = scale,
-        }.Matrix;
+        var matrix = Math.TransformationMatrix(position, scale, rotation);
 
         bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
             bgfx.StateFlags.WriteA |
