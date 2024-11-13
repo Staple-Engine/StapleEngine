@@ -224,7 +224,8 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 var material = pair.renderer.materials[index];
 
-                var needsChange = lastMaterial?.Guid.GetHashCode() != material?.Guid?.GetHashCode();
+                var needsChange = lastMaterial?.Guid.GetHashCode() != material?.Guid?.GetHashCode() ||
+                    pair.renderer.lighting != MaterialLighting.Unlit;
 
                 if (needsChange)
                 {

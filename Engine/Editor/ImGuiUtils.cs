@@ -51,7 +51,7 @@ internal static class ImGuiUtils
 
             if(ImGui.IsItemHovered())
             {
-                if(ImGui.GetMouseClickedCount(ImGuiMouseButton.Left) == 2)
+                if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                 {
                     onDoubleClick?.Invoke(i, item);
                 }

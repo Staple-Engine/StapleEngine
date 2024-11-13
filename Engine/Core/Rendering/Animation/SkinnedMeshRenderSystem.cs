@@ -281,7 +281,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.Guid != (lastMaterial?.Guid ?? "") ||
-                    lastAnimator != animator;
+                    lastAnimator != animator ||
+                    renderer.lighting != MaterialLighting.Unlit;
 
                 if (needsChange)
                 {

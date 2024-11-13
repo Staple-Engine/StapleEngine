@@ -646,7 +646,7 @@ internal partial class StapleEditor
 
                         ImGui.Selectable($"{lastProjects.items[i].name}##PL{i}");
 
-                        if(ImGui.IsItemHovered() && ImGui.GetMouseClickedCount(ImGuiMouseButton.Left) == 2)
+                        if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                         {
                             LoadProject(lastProjects.items[i].path);
 
