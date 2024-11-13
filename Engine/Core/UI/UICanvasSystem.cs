@@ -1,6 +1,5 @@
 ﻿using Bgfx;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Staple.UI;
@@ -14,7 +13,7 @@ public class UICanvasSystem : IRenderSystem
 {
     public const ushort UIViewID = 200;
 
-    private class RenderInfo
+    private struct RenderInfo
     {
         public UICanvas canvas;
         public Transform canvasTransform;
@@ -54,8 +53,7 @@ public class UICanvasSystem : IRenderSystem
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
-            if (relatedComponent is not UICanvas canvas ||
-                renders.Any(x => x.canvas == canvas))
+            if (relatedComponent is not UICanvas canvas)
             {
                 continue;
             }
