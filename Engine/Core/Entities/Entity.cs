@@ -108,7 +108,7 @@ public partial struct Entity
 
         if(recursive && TryGetComponent<Transform>(out var transform))
         {
-            foreach (var child in transform)
+            foreach (var child in transform.Children)
             {
                 child.entity.SetLayer(layer, true);
             }

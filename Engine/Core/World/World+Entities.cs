@@ -112,7 +112,7 @@ public partial class World
                     return;
                 }
 
-                foreach(var child in transform)
+                foreach(var child in transform.Children)
                 {
                     Handle(child.entity);
                 }

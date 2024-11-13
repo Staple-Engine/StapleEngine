@@ -437,7 +437,7 @@ internal partial class StapleEditor
 
                 EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName, $"{transform.entity}", transform.ChildCount == 0, () =>
                 {
-                    foreach (var child in transform)
+                    foreach (var child in transform.Children)
                     {
                         var childEntity = World.Current.FindEntity(child.entity.Identifier.ID);
 

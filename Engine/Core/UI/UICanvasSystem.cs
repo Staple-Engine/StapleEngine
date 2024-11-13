@@ -23,7 +23,9 @@ public class UICanvasSystem : IRenderSystem
 
     private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
-    private List<RenderInfo> renders = [];
+    private RenderInfo[] renders = [];
+
+    private int renderCount = 0;
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 
@@ -35,7 +37,6 @@ public class UICanvasSystem : IRenderSystem
 
     public void Prepare()
     {
-        renders.Clear();
     }
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
@@ -44,6 +45,13 @@ public class UICanvasSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
+        if (renders.Length < entities.Length)
+        {
+            Array.Resize(ref renders, entities.Length);
+        }
+
+        var index = 0;
+
         foreach (var (_, transform, relatedComponent) in entities)
         {
             if (relatedComponent is not UICanvas canvas ||
@@ -52,21 +60,23 @@ public class UICanvasSystem : IRenderSystem
                 continue;
             }
 
-            renders.Add(new()
-            {
-                canvas = canvas,
-                canvasTransform = transform,
-                projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1),
-            });
+            renders[index].canvas = canvas;
+            renders[index].canvasTransform = transform;
+            renders[index].projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
+
+            index++;
         }
+
+        renderCount = index;
     }
 
     public Type RelatedComponent() => typeof(UICanvas);
 
     public void Submit()
     {
-        foreach(var render in renders)
+        for(var i = 0; i < renderCount; i++)
         {
+            var render = renders[i];
             var view = Matrix4x4.Identity;
             var projection = render.projection;
 
@@ -119,7 +129,7 @@ public class UICanvasSystem : IRenderSystem
 
                 foundElement = interactible;
 
-                foreach(var child in current)
+                foreach(var child in current.Children)
                 {
                     if(child.entity.Enabled &&
                         child.entity.TryGetComponent<UIElement>(out var e))
@@ -150,7 +160,7 @@ public class UICanvasSystem : IRenderSystem
                     element.Clicked = false;
                     element.Hovered = false;
 
-                    foreach(var child in current)
+                    foreach(var child in current.Children)
                     {
                         Clear(child);
                     }
@@ -163,7 +173,7 @@ public class UICanvasSystem : IRenderSystem
 
                 UIInteractible foundElement = null;
 
-                foreach (var child in render.canvasTransform)
+                foreach (var child in render.canvasTransform.Children)
                 {
                     if (child.entity.TryGetComponent<UIElement>(out var element))
                     {
@@ -192,7 +202,7 @@ public class UICanvasSystem : IRenderSystem
 
             void Recursive(Transform parent, Vector2Int position, Vector2Int containerSize)
             {
-                foreach(var child in parent)
+                foreach(var child in parent.Children)
                 {
                     if(child.entity.EnabledInHierarchy == false ||
                         child.entity.TryGetComponent<UIElement>(out var element) == false)

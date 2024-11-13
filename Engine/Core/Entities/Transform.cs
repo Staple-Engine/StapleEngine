@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -11,7 +10,7 @@ namespace Staple;
 /// Contains rotation, position, scale, and parent entity.
 /// </summary>
 [AutoAssignEntity]
-public class Transform : IComponent, IEnumerable<Transform>
+public class Transform : IComponent
 {
     internal bool changed = false;
 
@@ -31,9 +30,9 @@ public class Transform : IComponent, IEnumerable<Transform>
 
             if(wasChanged == false && changed)
             {
-                for(var i = 0; i < children.Length; i++)
+                for(var i = 0; i < Children.Length; i++)
                 {
-                    children[i].Changed = true;
+                    Children[i].Changed = true;
                 }
             }
         }
@@ -42,7 +41,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <summary>
     /// Child transforms
     /// </summary>
-    private Transform[] children = [];
+    public Transform[] Children { get; private set; } = [];
 
     /// <summary>
     /// Our transform matrix
@@ -256,7 +255,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <summary>
     /// The total children in this transform
     /// </summary>
-    public int ChildCount => children.Length;
+    public int ChildCount => Children.Length;
 
     /// <summary>
     /// The index of this transform in its parent
@@ -275,7 +274,7 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// </summary>
     /// <param name="index">The index of the child</param>
     /// <returns>The child, or null</returns>
-    public Transform GetChild(int index) => index >= 0 && index < children.Length ? children[index] : null;
+    public Transform GetChild(int index) => index >= 0 && index < Children.Length ? Children[index] : null;
 
     /// <summary>
     /// Searches for a child transform with a specific name and optional partial search
@@ -290,7 +289,7 @@ public class Transform : IComponent, IEnumerable<Transform>
             return null;
         }
 
-        foreach(var child in children)
+        foreach(var child in Children)
         {
             if(partial && child.entity.Name.StartsWith(name, System.StringComparison.Ordinal))
             {
@@ -361,19 +360,19 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <param name="child">The child to detach</param>
     private void DetachChild(Transform child)
     {
-        var newChildren = new Transform[children.Length - 1];
+        var newChildren = new Transform[Children.Length - 1];
 
-        for(int i = 0, current = 0; i < children.Length; i++)
+        for(int i = 0, current = 0; i < Children.Length; i++)
         {
-            if (children[i] == child)
+            if (Children[i] == child)
             {
                 continue;
             }
 
-            newChildren[current++] = children[i];
+            newChildren[current++] = Children[i];
         }
 
-        children = newChildren;
+        Children = newChildren;
     }
 
     /// <summary>
@@ -382,13 +381,13 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <param name="child">The new child</param>
     private void AttachChild(Transform child)
     {
-        var newChildren = new Transform[children.Length + 1];
+        var newChildren = new Transform[Children.Length + 1];
 
-        Array.Copy(children, newChildren, children.Length);
+        Array.Copy(Children, newChildren, Children.Length);
 
-        newChildren[children.Length] = child;
+        newChildren[Children.Length] = child;
 
-        children = newChildren;
+        Children = newChildren;
     }
 
     /// <summary>
@@ -398,9 +397,9 @@ public class Transform : IComponent, IEnumerable<Transform>
     /// <returns>The index, or 0</returns>
     private int ChildIndex(Transform child)
     {
-        for(var i = 0; i < children.Length; i++)
+        for(var i = 0; i < Children.Length; i++)
         {
-            if(children[i] == child)
+            if(Children[i] == child)
             {
                 return i;
             }
@@ -419,25 +418,15 @@ public class Transform : IComponent, IEnumerable<Transform>
     {
         var childIndex = ChildIndex(child);
 
-        if(childIndex < 0 || childIndex >= children.Length)
+        if(childIndex < 0 || childIndex >= Children.Length)
         {
             return false;
         }
 
-        (children[childIndex], children[index]) = (children[index], children[childIndex]);
+        (Children[childIndex], Children[index]) = (Children[index], Children[childIndex]);
 
         Scene.RequestWorldUpdate();
 
         return true;
-    }
-
-    public IEnumerator<Transform> GetEnumerator()
-    {
-        return ((IEnumerable<Transform>)children).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable)children).GetEnumerator();
     }
 }

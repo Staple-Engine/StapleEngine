@@ -345,7 +345,7 @@ public sealed partial class RenderSystem
                 }
             }
 
-            foreach(var child in t)
+            foreach(var child in t.Children)
             {
                 Handle(child.entity, child);
             }

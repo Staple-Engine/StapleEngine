@@ -1175,7 +1175,7 @@ internal static class SceneSerialization
         {
             localIDs.Add(transform.entity.Identifier.ID, localIDs.Count);
 
-            foreach(var child in transform)
+            foreach(var child in transform.Children)
             {
                 GatherIDs(child);
             }
@@ -1202,7 +1202,7 @@ internal static class SceneSerialization
                 outValue.children.Add(entityObject);
             }
 
-            foreach (var child in transform)
+            foreach (var child in transform.Children)
             {
                 GatherSceneObjects(child, false);
             }

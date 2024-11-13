@@ -46,7 +46,7 @@ public partial struct Entity
 
         static void Recursive(Transform sourceTransform, Transform targetTransform)
         {
-            foreach (var child in sourceTransform)
+            foreach (var child in sourceTransform.Children)
             {
                 InstantiateInternal(child.entity, targetTransform, false, false);
             }
@@ -92,7 +92,7 @@ public partial struct Entity
 
         static void Recursive(Transform sourceTransform, Transform targetTransform)
         {
-            foreach (var child in sourceTransform)
+            foreach (var child in sourceTransform.Children)
             {
                 InstantiateInternal(child.entity, targetTransform, false, false);
             }

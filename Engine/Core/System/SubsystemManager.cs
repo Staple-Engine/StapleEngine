@@ -15,6 +15,8 @@ internal class SubsystemManager
     public static readonly SubsystemManager instance = new();
 
     private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = [];
+    private bool needsRecalculation = true;
+    private ISubsystem[] final;
     private readonly object lockObject = new();
 
     /// <summary>
@@ -59,6 +61,8 @@ internal class SubsystemManager
             {
                 World.AddChangeReceiver(worldChangeReceiver);
             }
+
+            needsRecalculation = true;
         }
     }
 
@@ -68,19 +72,44 @@ internal class SubsystemManager
     /// <param name="type"></param>
     internal void Update(SubsystemType type)
     {
+        if(needsRecalculation)
+        {
+            needsRecalculation = false;
+
+            var systemCount = 0;
+
+            foreach(var pair in subsystems)
+            {
+                systemCount += pair.Value.Count;
+            }
+
+            Array.Resize(ref final, systemCount);
+
+            var index = 0;
+
+            foreach(var pair in subsystems)
+            {
+                foreach(var subsystem in pair.Value)
+                {
+                    final[index++] = subsystem;
+                }
+            }
+        }
+
         lock (lockObject)
         {
-            foreach (var pair in subsystems)
-            {
-                foreach (var subsystem in pair.Value)
-                {
-                    if(subsystem.type != type)
-                    {
-                        continue;
-                    }
+            var l = final.Length;
 
-                    subsystem.Update();
+            for(var i = 0; i < l; i++)
+            {
+                var subsystem = final[i];
+
+                if(subsystem.type != type)
+                {
+                    continue;
                 }
+
+                subsystem.Update();
             }
         }
     }

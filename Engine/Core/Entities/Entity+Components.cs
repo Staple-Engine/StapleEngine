@@ -119,7 +119,7 @@ public partial struct Entity
 
             if(transform != null)
             {
-                foreach (var child in transform)
+                foreach (var child in transform.Children)
                 {
                     Recursive(child.entity);
                 }
@@ -133,7 +133,7 @@ public partial struct Entity
             return result.ToArray();
         }
 
-        foreach(var child in transform)
+        foreach(var child in transform.Children)
         {
             Recursive(child.entity);
         }
@@ -172,7 +172,7 @@ public partial struct Entity
 
             if (transform != null)
             {
-                foreach (var child in transform)
+                foreach (var child in transform.Children)
                 {
                     Recursive(child.entity);
                 }
@@ -186,7 +186,7 @@ public partial struct Entity
             return result.ToArray();
         }
 
-        foreach (var child in transform)
+        foreach (var child in transform.Children)
         {
             Recursive(child.entity);
         }
@@ -225,7 +225,7 @@ public partial struct Entity
 
             if (transform != null)
             {
-                foreach (var child in transform)
+                foreach (var child in transform.Children)
                 {
                     Recursive(child.entity);
                 }
@@ -239,7 +239,7 @@ public partial struct Entity
             return result.ToArray();
         }
 
-        foreach (var child in transform)
+        foreach (var child in transform.Children)
         {
             Recursive(child.entity);
         }

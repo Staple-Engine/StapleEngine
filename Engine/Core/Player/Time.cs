@@ -108,8 +108,8 @@ public static class Time
 
         frameDeltaTimer += delta;
 
-        frameDelta.X = Math.Min(delta, frameDelta.X);
-        frameDelta.Y = Math.Max(delta, frameDelta.Y);
+        frameDelta.X = delta < frameDelta.X ? delta : frameDelta.X;
+        frameDelta.Y = delta > frameDelta.Y ? delta : frameDelta.Y;
         frameDelta.Z += delta;
 
         if(frameDeltaTimer >= 2.0f)

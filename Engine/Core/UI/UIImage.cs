@@ -39,6 +39,8 @@ public class UIImage : UIElement
         return Vector2Int.Zero;
     }
 
+    private static SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
+
     public override void Render(Vector2Int position, ushort viewID)
     {
         if (texture == null ||
@@ -55,29 +57,14 @@ public class UIImage : UIElement
 
         var sprite = texture.metadata.sprites[spriteIndex];
 
-        var vertices = new SpriteRenderSystem.SpriteVertex[]
-        {
-            new()
-            {
-                position = new Vector3(0, size.Y, 0),
-                uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.bottom / (float)texture.Height),
-            },
-            new()
-            {
-                position = Vector3.Zero,
-                uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.top / (float)texture.Height),
-            },
-            new()
-            {
-                position = new Vector3(size.X, 0, 0),
-                uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.top / (float)texture.Height),
-            },
-            new()
-            {
-                position = new Vector3(size.X, size.Y, 0),
-                uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.bottom / (float)texture.Height),
-            },
-        };
+        vertices[0].position = new Vector3(0, size.Y, 0);
+        vertices[0].uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.bottom / (float)texture.Height);
+        vertices[1].position = Vector3.Zero;
+        vertices[1].uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.top / (float)texture.Height);
+        vertices[2].position = new Vector3(size.X, 0, 0);
+        vertices[2].uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.top / (float)texture.Height);
+        vertices[3].position = new Vector3(size.X, size.Y, 0);
+        vertices[3].uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.bottom / (float)texture.Height);
 
         var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value, true);
 
