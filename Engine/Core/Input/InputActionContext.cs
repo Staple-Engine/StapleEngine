@@ -3,7 +3,7 @@
 /// <summary>
 /// Contains information on an input action so you can tell what device it's related to.
 /// </summary>
-public class InputActionContext
+public struct InputActionContext
 {
     /// <summary>
     /// The device type

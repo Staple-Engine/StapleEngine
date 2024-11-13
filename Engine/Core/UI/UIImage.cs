@@ -41,6 +41,8 @@ public class UIImage : UIElement
 
     private static SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
 
+    private static readonly ushort[] indices = [0, 1, 2, 2, 3, 0];
+
     public override void Render(Vector2Int position, ushort viewID)
     {
         if (texture == null ||
@@ -68,7 +70,7 @@ public class UIImage : UIElement
 
         var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value, true);
 
-        var indexBuffer = IndexBuffer.Create((ushort[])[0, 1, 2, 2, 3, 0], RenderBufferFlags.None, true);
+        var indexBuffer = IndexBuffer.Create(indices.AsSpan(), RenderBufferFlags.None, true);
 
         if (vertexBuffer == null || indexBuffer == null)
         {

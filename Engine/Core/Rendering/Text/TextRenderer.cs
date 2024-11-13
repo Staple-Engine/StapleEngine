@@ -93,7 +93,7 @@ public class TextRenderer
         var min = Vector2Int.Zero;
         var max = Vector2Int.Zero;
 
-        var lines = str.Replace("\r", "").Split("\n".ToCharArray());
+        var lines = str.Replace("\r", "").Split(['\n']);
         var first = true;
 
         for(var i = 0; i < lines.Length; i++)
