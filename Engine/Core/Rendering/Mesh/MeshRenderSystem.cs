@@ -226,8 +226,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 var needsChange = lastMaterial?.Guid.GetHashCode() != material?.Guid?.GetHashCode();
 
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
                 if (needsChange)
                 {
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
@@ -236,6 +234,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
 
+                    var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
                     lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
 
                     if(material.ShaderProgram.Valid == false)
@@ -243,7 +243,15 @@ public sealed class MeshRenderSystem : IRenderSystem
                         return;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.TexturesOnly);
+                    bgfx.set_state((ulong)(state |
+                        pair.renderer.mesh.PrimitiveFlag() |
+                        material.shader.BlendingFlag |
+                        material.CullingFlag), 0);
+
+                    material.ApplyProperties(Material.ApplyMode.All);
+
+                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
                 }
 
                 unsafe
@@ -255,22 +263,11 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 pair.renderer.mesh.SetActive(index);
 
-                bgfx.set_state((ulong)(state |
-                    pair.renderer.mesh.PrimitiveFlag() |
-                    material.shader.BlendingFlag |
-                    material.CullingFlag), 0);
-
-                material.ApplyProperties(Material.ApplyMode.IgnoreTextures);
-
-                lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
-                    RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
-
                 var program = material.ShaderProgram;
 
                 var flags = bgfx.DiscardFlags.VertexStreams |
                     bgfx.DiscardFlags.IndexBuffer |
-                    bgfx.DiscardFlags.Transform |
-                    bgfx.DiscardFlags.State;
+                    bgfx.DiscardFlags.Transform;
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

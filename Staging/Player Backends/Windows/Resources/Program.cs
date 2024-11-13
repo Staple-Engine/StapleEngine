@@ -9,7 +9,7 @@ namespace Staple
         {
             Console.WriteLine($"Staple: Registering type cache");
 
-            TypeCacheRegistration.RegisterAll();
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
             Console.WriteLine($"Staple: Registered {TypeCache.AllTypes().Length} types");
 
