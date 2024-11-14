@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -44,32 +44,32 @@
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 	  <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/StapleEditorApp*" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.[DLL]" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Windows/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Windows/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
 	  </PostBuildEvent>
 	</PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <PostBuildEvent>
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/StapleEditorApp*" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Linux/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Linux/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
   	</PostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
   	<PostBuildEvent>
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/StapleEditorApp*" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/MacOSX/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net8.0/runtimes" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/MacOSX/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

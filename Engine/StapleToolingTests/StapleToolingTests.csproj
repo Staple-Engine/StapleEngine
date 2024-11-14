@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -26,10 +26,10 @@
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+		<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleTooling">
-		<HintPath>..\Tooling\bin\Debug\net8.0\StapleTooling.dll</HintPath>
+		<HintPath>..\Tooling\bin\Debug\net9.0\StapleTooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
 

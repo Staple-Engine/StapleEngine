@@ -3,11 +3,11 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFrameworks>net8.0;net8.0-android</TargetFrameworks>
+		<TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net8.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net9.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -36,12 +36,12 @@
 
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<Reference Include="StapleCore">
-			<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+			<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<Reference Include="StapleCore">
-			<HintPath>..\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
+			<HintPath>..\Core\bin\Release\net9.0\StapleCore.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>

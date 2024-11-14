@@ -2,13 +2,11 @@ local BUILD_DIR = path.join("build", "dotnet")
 local BGFX_DIR = "bgfx"
 local BIMG_DIR = "bimg"
 local BX_DIR = "bx"
-local GLFW_DIR = "glfw"
-local GLFWNET_DIR = "glfw-net"
 
 solution "Dependencies_Dotnet"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	dotnetframework "net8.0"
+	dotnetframework "net9.0"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"

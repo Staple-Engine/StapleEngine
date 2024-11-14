@@ -22,5 +22,5 @@ devenv build\native\Dependencies.sln  /Build "Debug|x64"
 
 devenv build\native\Dependencies.sln  /Build "Release|x64"
 
-dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Debug -o build\dotnet\bin\Debug\net8.0
-dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Release -o build\dotnet\bin\Release\net8.0
+dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Debug -o build\dotnet\bin\Debug\net9.0
+dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Release -o build\dotnet\bin\Release\net9.0

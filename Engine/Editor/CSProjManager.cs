@@ -24,11 +24,11 @@ internal class CSProjManager
 
     private readonly Dictionary<AppPlatform, string> platformFramework = new()
     {
-        { AppPlatform.Windows, "net8.0" },
-        { AppPlatform.Linux, "net8.0" },
-        { AppPlatform.MacOSX, "net8.0" },
-        { AppPlatform.Android, "net8.0-android" },
-        { AppPlatform.iOS, "net8.0-ios" },
+        { AppPlatform.Windows, "net9.0" },
+        { AppPlatform.Linux, "net9.0" },
+        { AppPlatform.MacOSX, "net9.0" },
+        { AppPlatform.Android, "net9.0-android" },
+        { AppPlatform.iOS, "net9.0-ios" },
     };
 
     public string basePath;
@@ -198,7 +198,7 @@ internal class CSProjManager
         var projectProperties = new Dictionary<string, string>()
         {
             { "OutputType", "Library" },
-            { "TargetFramework", "net8.0" },
+            { "TargetFramework", "net9.0" },
             { "StripSymbols", "true" },
             { "PublishAOT", "true" },
             { "IsAOTCompatible", "true" },

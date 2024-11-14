@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -26,29 +26,29 @@
   </PropertyGroup>
   <ItemGroup>
 	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
 	</Reference>
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
 	<Reference Include="NfdSharp">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NfdSharp.dll</HintPath>
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NfdSharp.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+		<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleCore">
-		<HintPath>..\Tooling\bin\Debug\net8.0\StapleTooling.dll</HintPath>
+		<HintPath>..\Tooling\bin\Debug\net9.0\StapleTooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
+		<HintPath>..\Core\bin\Release\net9.0\StapleCore.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleCore">
-		<HintPath>..\Tooling\bin\Release\net8.0\StapleTooling.dll</HintPath>
+		<HintPath>..\Tooling\bin\Release\net9.0\StapleTooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -139,7 +139,7 @@
     <Compile Include="Windows\BuildWindow.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="17.7.2" />
+    <PackageReference Include="Microsoft.Build" Version="17.12.6" />
     <PackageReference Include="Hexa.NET.ImGui" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImGuizmo" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImNodes" Version="1.0.3" />
@@ -156,9 +156,9 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)Editor/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net8.0/*.dll" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy "$(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Editor/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL]" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

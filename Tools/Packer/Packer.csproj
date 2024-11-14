@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -26,23 +26,23 @@
   </PropertyGroup>
   <ItemGroup>
 	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
+		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
 	</Reference>
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleTooling">
-		<HintPath>..\..\Engine\Tooling\bin\Release\net8.0\StapleTooling.dll</HintPath>
+		<HintPath>..\..\Engine\Tooling\bin\Release\net9.0\StapleTooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 	<Reference Include="StapleCore">
-		<HintPath>..\..\Engine\Core\bin\Debug\net8.0\StapleCore.dll</HintPath>
+		<HintPath>..\..\Engine\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 	<Reference Include="StapleCore">
-	  <HintPath>..\..\Engine\Core\bin\Release\net8.0\StapleCore.dll</HintPath>
+	  <HintPath>..\..\Engine\Core\bin\Release\net9.0\StapleCore.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -51,8 +51,8 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)Packer\bin\$(Configuration)\net8.0\*.exe $(SolutionDir)bin\
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net8.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)bin\
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)Packer\bin\$(Configuration)\net9.0\*.exe $(SolutionDir)bin\
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)bin\
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>

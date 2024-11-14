@@ -2,11 +2,11 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFrameworks>net8.0;net8.0-android</TargetFrameworks>
+		<TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net8.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net9.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -59,29 +59,29 @@
 		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
 
 		<Reference Include="SDL2-CS">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\SDL2-CS.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\SDL2-CS.dll</HintPath>
 		</Reference>
 
 	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\MessagePack.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="NVorbis">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NVorbis.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NVorbis.dll</HintPath>
 		</Reference>
 		<Reference Include="NAudio">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\NAudio.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NAudio.dll</HintPath>
 		</Reference>
 		<Reference Include="ZeroAllocJobScheduler">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net8.0\ZeroAllocJobScheduler.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\ZeroAllocJobScheduler.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	

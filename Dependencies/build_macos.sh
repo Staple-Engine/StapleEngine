@@ -42,8 +42,8 @@ xcodebuild -scheme StapleSupport -configuration Release build -workspace Depende
 
 cd ../dotnet
 
-dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net8.0
-dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net8.0
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net9.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net9.0
 
 cd ../../GENie
 
