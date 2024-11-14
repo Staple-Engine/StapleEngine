@@ -18,6 +18,10 @@ jobs:
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+            
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: '9.0.0'
 
             - run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" && build_windows.cmd' }}
               shell: cmd
@@ -69,6 +73,10 @@ jobs:
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+            
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: '9.0.0'
 
             - run: 'sudo apt update'
 
@@ -154,6 +162,10 @@ jobs:
                 distribution: 'temurin'
             
             - uses: android-actions/setup-android@v3
+            
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: '9.0.0'
 
             - run: 'sh build_macos.sh'
               working-directory: './Dependencies/'
