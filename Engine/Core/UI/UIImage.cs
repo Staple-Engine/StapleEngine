@@ -78,7 +78,7 @@ public class UIImage : UIElement
 
         var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
 
-        var indexBuffer = IndexBuffer.CreateTransient(indices.AsSpan());
+        var indexBuffer = IndexBuffer.CreateTransient(indices);
 
         if (vertexBuffer == null || indexBuffer == null)
         {

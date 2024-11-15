@@ -77,10 +77,6 @@ public class UIText : UIElement
     private Color previousSecondaryTextColor;
     private int previousBorderSize;
     private Color previousBorderColor;
-    private VertexBuffer vertexBuffer;
-    private IndexBuffer indexBuffer;
-    private int vertexCount;
-    private int indexCount;
     private Vector2Int intrinsicSize;
 
     private bool IsDirty
@@ -179,37 +175,9 @@ public class UIText : UIElement
 
         var parameters = Parameters();
 
-        if (IsDirty ||
-            (vertexBuffer?.Disposed ?? true) ||
-            (indexBuffer?.Disposed ?? true))
+        if (IsDirty)
         {
             IsDirty = false;
-
-            vertexBuffer?.Destroy();
-            indexBuffer?.Destroy();
-
-            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, true, out var vertices, out var indices))
-            {
-                vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), TextRenderer.VertexLayout.Value);
-
-                indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None);
-
-                if(vertexBuffer == null || indexBuffer == null)
-                {
-                    vertexBuffer?.Destroy();
-                    indexBuffer?.Destroy();
-
-                    vertexBuffer = null;
-                    indexBuffer = null;
-                    vertexCount = 0;
-                    indexCount = 0;
-
-                    return;
-                }
-
-                vertexCount = vertices.Length;
-                indexCount = indices.Length;
-            }
 
             UpdateFontSize();
 
@@ -218,17 +186,20 @@ public class UIText : UIElement
             intrinsicSize = new Vector2Int(rect.left + rect.Width, rect.top + rect.Height);
         }
 
-        if (vertexBuffer != null &&
-            indexBuffer != null &&
-            vertexBuffer.Disposed == false &&
-            indexBuffer.Disposed == false &&
-            material != null)
+        if (material != null)
         {
-            material.MainTexture = TextRenderer.instance.FontTexture(parameters);
+            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, true, out var vertices, out var indices))
+            {
+                var vertexBuffer = VertexBuffer.CreateTransient(vertices, TextRenderer.VertexLayout.Value);
 
-            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
-                Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-                viewID);
+                var indexBuffer = IndexBuffer.CreateTransient(indices);
+
+                material.MainTexture = TextRenderer.instance.FontTexture(parameters);
+
+                Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length, material, Vector3.Zero,
+                    Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
+                    viewID);
+            }
         }
     }
 }

@@ -72,7 +72,7 @@ public class AudioSystem : ISubsystem
     /// <summary>
     /// Thread lock for background usage
     /// </summary>
-    private readonly object backgroundLock = new();
+    private readonly Lock backgroundLock = new();
 
     /// <summary>
     /// Pending actions for the background thrread
@@ -88,6 +88,11 @@ public class AudioSystem : ISubsystem
     /// All our audio sources
     /// </summary>
     private readonly List<AudioSourceInfo> audioSources = [];
+
+    /// <summary>
+    /// List of audio sources to be removed
+    /// </summary>
+    private ExpandableContainer<AudioSourceInfo> removedAudioSources = new();
 
     private SceneQuery<Transform, AudioListener> audioListeners;
 
@@ -249,13 +254,13 @@ public class AudioSystem : ISubsystem
             }
         }
 
-        var removed = new List<AudioSourceInfo>();
+        removedAudioSources.Clear();
 
         foreach (var item in audioSources)
         {
             if (item.source.TryGetTarget(out var source) == false)
             {
-                removed.Add(item);
+                removedAudioSources.Add(item);
 
                 continue;
             }
@@ -342,9 +347,9 @@ public class AudioSystem : ISubsystem
             }
         }
 
-        foreach (var item in removed)
+        for(var i = 0; i < removedAudioSources.Length; i++)
         {
-            audioSources.Remove(item);
+            audioSources.Remove(removedAudioSources.Contents[i]);
         }
     }
 

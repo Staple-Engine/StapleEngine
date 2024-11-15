@@ -14,6 +14,9 @@ public class TextRenderer
         public Vector2 uv;
     }
 
+    private ExpandableContainer<PosTexVertex> vertexCache = new();
+    private ExpandableContainer<ushort> indexCache = new();
+
     private TextFont defaultFont;
 
     private TextFont DefaultFont
@@ -273,7 +276,7 @@ public class TextRenderer
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
             {
-                var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), VertexLayout.Value);
+                var vertexBuffer = VertexBuffer.CreateTransient(vertices, VertexLayout.Value);
                 var indexBuffer = IndexBuffer.CreateTransient(indices);
 
                 if(vertexBuffer == null || indexBuffer == null)
@@ -289,7 +292,7 @@ public class TextRenderer
         }
     }
 
-    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out PosTexVertex[] vertices, out ushort[] indices)
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out Span<PosTexVertex> vertices, out Span<ushort> indices)
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -316,10 +319,10 @@ public class TextRenderer
 
         var initialPosition = position;
 
-        var lines = text.Replace("\r", "").Split("\n".ToCharArray());
+        var lines = text.Replace("\r", "").Split(['\n']);
 
-        var outVertices = new List<PosTexVertex>();
-        var outIndices = new List<ushort>();
+        vertexCache.Clear();
+        indexCache.Clear();
 
         foreach (var line in lines)
         {
@@ -352,60 +355,64 @@ public class TextRenderer
 
                             var p = position + new Vector2(glyph.xOffset * scale, yOffset * scale);
 
-                            outIndices.AddRange([(ushort)outVertices.Count, (ushort)(outVertices.Count + 1), (ushort)(outVertices.Count + 2),
-                                (ushort)(outVertices.Count + 2), (ushort)(outVertices.Count + 3), (ushort)outVertices.Count]);
+                            indexCache.Add((ushort)vertexCache.Length);
+                            indexCache.Add((ushort)(vertexCache.Length + 1));
+                            indexCache.Add((ushort)(vertexCache.Length + 2));
+                            indexCache.Add((ushort)(vertexCache.Length + 2));
+                            indexCache.Add((ushort)(vertexCache.Length + 3));
+                            indexCache.Add((ushort)(vertexCache.Length));
 
-                            if(flipY)
+                            if (flipY)
                             {
-                                outVertices.AddRange([
+                                vertexCache.Add(new()
+                                {
+                                    position = p + new Vector2(0, size.Y),
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                });
 
-                                    new()
-                                    {
-                                        position = p + new Vector2(0, size.Y),
-                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
-                                    },
-                                    new()
-                                    {
-                                        position = p,
-                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
-                                    },
-                                    new()
-                                    {
-                                        position = p + new Vector2(size.X, 0),
-                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
-                                    },
-                                    new()
-                                    {
-                                        position = p + size,
-                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
-                                    },
-                                ]);
+                                vertexCache.Add(new()
+                                {
+                                    position = p,
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                });
+
+                                vertexCache.Add(new()
+                                {
+                                    position = p + new Vector2(size.X, 0),
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                });
+
+                                vertexCache.Add(new()
+                                {
+                                    position = p + size,
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                });
                             }
                             else
                             {
-                                outVertices.AddRange([
+                                vertexCache.Add(new()
+                                {
+                                    position = p,
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                });
 
-                                    new()
-                                    {
-                                        position = p,
-                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
-                                    },
-                                    new()
-                                    {
-                                        position = p + new Vector2(0, size.Y),
-                                        uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
-                                    },
-                                    new()
-                                    {
-                                        position = p + size,
-                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
-                                    },
-                                    new()
-                                    {
-                                        position = p + new Vector2(size.X, 0),
-                                        uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
-                                    },
-                                ]);
+                                vertexCache.Add(new()
+                                {
+                                    position = p + new Vector2(0, size.Y),
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                });
+
+                                vertexCache.Add(new()
+                                {
+                                    position = p + size,
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                });
+
+                                vertexCache.Add(new()
+                                {
+                                    position = p + new Vector2(size.X, 0),
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                });
                             }
 
                             position.X += advance;
@@ -423,8 +430,8 @@ public class TextRenderer
             position.Y += lineSpace;
         }
 
-        vertices = outVertices.ToArray();
-        indices = outIndices.ToArray();
+        vertices = vertexCache.Contents.AsSpan(0, vertexCache.Length);
+        indices = indexCache.Contents.AsSpan(0, indexCache.Length);
 
         return true;
     }
