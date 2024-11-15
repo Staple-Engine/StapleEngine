@@ -98,7 +98,7 @@ internal static class StapleSerializer
             return boolArray.Select(x => (byte)(x ? 1 : 0)).ToArray();
         }
 
-        var size = Marshal.SizeOf(array.GetType().GetElementType());
+        var size = TypeCache.SizeOf(array.GetType().GetElementType().FullName);
 
         if(size <= 0)
         {
@@ -134,7 +134,7 @@ internal static class StapleSerializer
             return;
         }
 
-        var size = Marshal.SizeOf(target.GetType().GetElementType());
+        var size = TypeCache.SizeOf(target.GetType().GetElementType().FullName);
 
         if (size <= 0)
         {
@@ -169,7 +169,7 @@ internal static class StapleSerializer
             return boolArray.ToArray();
         }
 
-        var size = Marshal.SizeOf(elementType);
+        var size = TypeCache.SizeOf(elementType.FullName);
 
         if (size <= 0)
         {
@@ -702,40 +702,43 @@ internal static class StapleSerializer
                                     field.FieldType.GetElementType().IsPrimitive &&
                                     field.FieldType.GetElementType() != typeof(bool))
                                 {
-                                    var size = Marshal.SizeOf(elementType);
+                                    var size = TypeCache.SizeOf(elementType.FullName);
 
-                                    newValue = Array.CreateInstance(elementType, array.Length / size);
+                                    newValue = TypeCache.CreateArray(elementType.FullName, array.Length / size);
                                 }
                                 else
                                 {
-                                    newValue = Array.CreateInstance(elementType, array.Length);
+                                    newValue = TypeCache.CreateArray(elementType.FullName, array.Length);
                                 }
 
-                                if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
-                                    elementType == typeof(IGuidAsset))
+                                if(newValue != null)
                                 {
-                                    for(var i = 0; i < array.Length; i++)
+                                    if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                                        elementType == typeof(IGuidAsset))
                                     {
-                                        if (array.GetValue(i) is string guid)
+                                        for (var i = 0; i < array.Length; i++)
                                         {
-                                            var asset = AssetSerialization.GetGuidAsset(elementType, guid);
+                                            if (array.GetValue(i) is string guid)
+                                            {
+                                                var asset = AssetSerialization.GetGuidAsset(elementType, guid);
 
-                                            newValue.SetValue(asset, i);
+                                                newValue.SetValue(asset, i);
+                                            }
                                         }
                                     }
-                                }
-                                else if (elementType == typeof(string))
-                                {
-                                    for(var i = 0; i < array.Length; i++)
+                                    else if (elementType == typeof(string))
                                     {
-                                        newValue.SetValue(array.GetValue(i), i);
+                                        for (var i = 0; i < array.Length; i++)
+                                        {
+                                            newValue.SetValue(array.GetValue(i), i);
+                                        }
                                     }
-                                }
-                                else if (elementType.IsPrimitive)
-                                {
-                                    if(array is byte[] buffer)
+                                    else if (elementType.IsPrimitive)
                                     {
-                                        DeserializePrimitiveArray(buffer, newValue);
+                                        if (array is byte[] buffer)
+                                        {
+                                            DeserializePrimitiveArray(buffer, newValue);
+                                        }
                                     }
                                 }
                             }
@@ -755,20 +758,25 @@ internal static class StapleSerializer
                                         field.FieldType.GetElementType().IsPrimitive &&
                                         field.FieldType.GetElementType() != typeof(bool))
                                     {
-                                        var size = Marshal.SizeOf(elementType);
+                                        var size = TypeCache.SizeOf(elementType.FullName);
 
-                                        newValue = Array.CreateInstance(elementType, bytes.Length / size);
+                                        newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
                                     }
                                     else
                                     {
-                                        newValue = Array.CreateInstance(elementType, bytes.Length);
+                                        newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
                                     }
 
-                                    DeserializePrimitiveArray(bytes, newValue);
+                                    if(newValue != null)
+                                    {
+                                        DeserializePrimitiveArray(bytes, newValue);
+                                    }
                                 }
                             }
-                            catch(Exception)
+                            catch(Exception e)
                             {
+                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
                                 continue;
                             }
                         }
@@ -777,21 +785,24 @@ internal static class StapleSerializer
                         {
                             try
                             {
-                                newValue = Array.CreateInstance(field.FieldType.GetElementType(), containers.Count);
+                                newValue = TypeCache.CreateArray(field.FieldType.GetElementType().FullName, containers.Count);
 
-                                for(var i = 0; i < containers.Count; i++)
+                                if(newValue != null)
                                 {
-                                    try
+                                    for (var i = 0; i < containers.Count; i++)
                                     {
-                                        var itemValue = DeserializeContainer(containers[i]);
-
-                                        if(itemValue != null)
+                                        try
                                         {
-                                            newValue.SetValue(itemValue, i);
+                                            var itemValue = DeserializeContainer(containers[i]);
+
+                                            if (itemValue != null)
+                                            {
+                                                newValue.SetValue(itemValue, i);
+                                            }
                                         }
-                                    }
-                                    catch (Exception)
-                                    {
+                                        catch (Exception)
+                                        {
+                                        }
                                     }
                                 }
                             }
@@ -987,16 +998,19 @@ internal static class StapleSerializer
                                             fieldType.IsPrimitive &&
                                             fieldType != typeof(bool))
                                         {
-                                            var size = Marshal.SizeOf(fieldType);
+                                            var size = TypeCache.SizeOf(fieldType.FullName);
 
-                                            newValue = Array.CreateInstance(fieldType, bytes.Length / size);
+                                            newValue = TypeCache.CreateArray(fieldType.FullName, bytes.Length / size);
                                         }
                                         else
                                         {
-                                            newValue = Array.CreateInstance(fieldType, bytes.Length);
+                                            newValue = TypeCache.CreateArray(fieldType.FullName, bytes.Length);
                                         }
 
-                                        DeserializePrimitiveArray(bytes, newValue);
+                                        if(newValue != null)
+                                        {
+                                            DeserializePrimitiveArray(bytes, newValue);
+                                        }
                                     }
                                 }
                                 catch (Exception)

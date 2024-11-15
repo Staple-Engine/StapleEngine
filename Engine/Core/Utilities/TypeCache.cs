@@ -17,13 +17,17 @@ public static class TypeCache
         public Func<Entity, IComponent> get;
     }
 
-    internal static readonly Dictionary<string, HashSet<string>> inheritance = [];
-
     internal static readonly Dictionary<string, Type> types = [];
+
+    internal static readonly Dictionary<string, Func<int, Array>> arrayConstructors = [];
+
+    internal static readonly Dictionary<string, Func<int>> sizeOfs = [];
 
     private static readonly Dictionary<string, ComponentCallbacks> componentCallbacks = [];
 
     private static readonly Dictionary<string, Type[]> subclassCaches = [];
+
+    internal static readonly Dictionary<string, HashSet<string>> inheritance = [];
 
     /// <summary>
     /// Clears the type cache
@@ -31,6 +35,8 @@ public static class TypeCache
     public static void Clear()
     {
         types.Clear();
+        arrayConstructors.Clear();
+        sizeOfs.Clear();
         componentCallbacks.Clear();
         subclassCaches.Clear();
         inheritance.Clear();
@@ -112,6 +118,12 @@ public static class TypeCache
         return types.Values.ToArray();
     }
 
+    /// <summary>
+    /// Attempts to create a component for an entity
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="typeName">The component type name</param>
+    /// <returns>The component or default</returns>
     public static IComponent AddComponent(Entity entity, string typeName)
     {
         if(componentCallbacks.TryGetValue(typeName, out var callback) == false)
@@ -131,6 +143,11 @@ public static class TypeCache
         return default;
     }
 
+    /// <summary>
+    /// Attempts to remove a component for an entity
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="typeName">The component type name</param>
     public static void RemoveComponent(Entity entity, string typeName)
     {
         if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
@@ -148,6 +165,12 @@ public static class TypeCache
         }
     }
 
+    /// <summary>
+    /// Attempts to get a component in an entity
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="typeName">The component type name</param>
+    /// <returns>The component or default</returns>
     public static IComponent GetComponent(Entity entity, string typeName)
     {
         if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
@@ -168,12 +191,63 @@ public static class TypeCache
     }
 
     /// <summary>
+    /// Attempts to create an array of a specific type
+    /// </summary>
+    /// <param name="typeName">The type name</param>
+    /// <param name="length">The size of the array</param>
+    /// <returns>An array instance, or default</returns>
+    public static Array CreateArray(string typeName, int length)
+    {
+        if(arrayConstructors.TryGetValue(typeName, out var fn) == false)
+        {
+            return default;
+        }
+
+        try
+        {
+            return fn(length);
+        }
+        catch(Exception e)
+        {
+            Log.Debug($"[TypeCache] Failed to create array of {typeName}: {e}");
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to get the size of a type
+    /// </summary>
+    /// <param name="typeName">The type name</param>
+    /// <returns>The size, or 0</returns>
+    public static int SizeOf(string typeName)
+    {
+        if(sizeOfs.TryGetValue(typeName, out var fn) == false)
+        {
+            return 0;
+        }
+
+        try
+        {
+            return fn();
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[TypeCache] Failed to get size of {typeName}: {e}");
+
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Registers a type in the type cache
     /// </summary>
     /// <param name="type">The type to register</param>
     public static void RegisterType(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type type,
+        Func<int> sizeOf,
+        Func<int, Array> createArray,
         ComponentCallbacks callbacks)
     {
         if(types.ContainsKey(type.FullName))
@@ -182,6 +256,7 @@ public static class TypeCache
         }
 
         types.Add(type.FullName, type);
+        sizeOfs.Add(type.FullName, sizeOf);
 
         HashSet<string> inheritanceInfo = [];
 
@@ -203,6 +278,11 @@ public static class TypeCache
         GatherInheritance(type);
 
         inheritance.Add(type.FullName, inheritanceInfo);
+
+        if(createArray != null)
+        {
+            arrayConstructors.Add(type.FullName, createArray);
+        }
 
         if (callbacks != null && type.IsAssignableTo(typeof(IComponent)))
         {

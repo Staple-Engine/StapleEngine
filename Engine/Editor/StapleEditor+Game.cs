@@ -39,14 +39,6 @@ internal partial class StapleEditor
                 if(assembly != null)
                 {
                     gameAssembly = new(assembly);
-
-                    //TODO: Proxy type cache
-                    var types = assembly.GetTypes();
-
-                    foreach(var type in types)
-                    {
-                        TypeCache.RegisterType(type, null);
-                    }
                 }
             }
         }

@@ -35,22 +35,6 @@
 		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NfdSharp.dll</HintPath>
 	</Reference>
   </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
-	</Reference>
-	<Reference Include="StapleCore">
-		<HintPath>..\Tooling\bin\Debug\net9.0\StapleTooling.dll</HintPath>
-	</Reference>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Release\net9.0\StapleCore.dll</HintPath>
-	</Reference>
-	<Reference Include="StapleCore">
-		<HintPath>..\Tooling\bin\Release\net9.0\StapleTooling.dll</HintPath>
-	</Reference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\AndroidBuildProcessor.cs" />
@@ -147,6 +131,8 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <ProjectReference Include="..\Core\StapleCore.csproj" />
+	  <ProjectReference Include="..\Tooling\StapleTooling.csproj" />
 	  <ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 	
