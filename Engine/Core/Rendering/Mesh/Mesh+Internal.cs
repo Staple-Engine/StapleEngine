@@ -1,8 +1,10 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using Staple.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Staple;
@@ -607,17 +609,24 @@ public sealed partial class Mesh
 
         var buffer = new byte[size];
 
-        void Copy(byte[] source, ref int index)
+        void Copy<T>(T source, ref int index) where T: unmanaged
         {
-            if(index + source.Length > buffer.Length)
+            var sourceSize = TypeCache.SizeOf(source.GetType().FullName);
+
+            if(index + sourceSize > buffer.Length)
             {
-                throw new InvalidOperationException($"[Mesh] Buffer Overrun while generating vertex data blob: {index} -> {index + source.Length} "
+                throw new InvalidOperationException($"[Mesh] Buffer Overrun while generating vertex data blob: {index} -> {index + sourceSize} "
                     + $"is larger than buffer {buffer.Length}");
             }
 
-            Buffer.BlockCopy(source, 0, buffer, index, source.Length);
+            unsafe
+            {
+                byte* src = (byte*)&source;
 
-            index += source.Length;
+                Marshal.Copy((nint)src, buffer, index, sourceSize);
+            }
+
+            index += sourceSize;
         }
 
         for (int i = 0, index = 0; i < vertices.Length; i++)
@@ -627,112 +636,82 @@ public sealed partial class Mesh
                 throw new InvalidOperationException("[Mesh] Exceeded expected byte count while generating vertex data blob");
             }
 
-            //Copy position
-            Copy(BitConverter.GetBytes(vertices[i].X), ref index);
-            Copy(BitConverter.GetBytes(vertices[i].Y), ref index);
-            Copy(BitConverter.GetBytes(vertices[i].Z), ref index);
+            Copy(vertices[i], ref index);
 
-            //Copy normals
             if(HasNormals)
             {
-                Copy(BitConverter.GetBytes(normals[i].X), ref index);
-                Copy(BitConverter.GetBytes(normals[i].Y), ref index);
-                Copy(BitConverter.GetBytes(normals[i].Z), ref index);
+                Copy(normals[i], ref index);
             }
 
             if(HasTangents)
             {
-                Copy(BitConverter.GetBytes(tangents[i].X), ref index);
-                Copy(BitConverter.GetBytes(tangents[i].Y), ref index);
-                Copy(BitConverter.GetBytes(tangents[i].Z), ref index);
+                Copy(tangents[i], ref index);
             }
 
             if (HasBitangents)
             {
-                Copy(BitConverter.GetBytes(bitangents[i].X), ref index);
-                Copy(BitConverter.GetBytes(bitangents[i].Y), ref index);
-                Copy(BitConverter.GetBytes(bitangents[i].Z), ref index);
+                Copy(bitangents[i], ref index);
             }
 
             if(HasColors)
             {
-                Copy(BitConverter.GetBytes(colors[i].r), ref index);
-                Copy(BitConverter.GetBytes(colors[i].g), ref index);
-                Copy(BitConverter.GetBytes(colors[i].b), ref index);
-                Copy(BitConverter.GetBytes(colors[i].a), ref index);
+                Copy(colors[i], ref index);
             }
             else if(HasColors32)
             {
                 var c = (Color)colors32[i];
 
-                Copy(BitConverter.GetBytes(c.r), ref index);
-                Copy(BitConverter.GetBytes(c.g), ref index);
-                Copy(BitConverter.GetBytes(c.b), ref index);
-                Copy(BitConverter.GetBytes(c.a), ref index);
+                Copy(c, ref index);
             }
 
             if(HasUV)
             {
-                Copy(BitConverter.GetBytes(uv[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv[i].Y), ref index);
+                Copy(uv[i], ref index);
             }
 
             if (HasUV2)
             {
-                Copy(BitConverter.GetBytes(uv2[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv2[i].Y), ref index);
+                Copy(uv2[i], ref index);
             }
 
             if (HasUV3)
             {
-                Copy(BitConverter.GetBytes(uv3[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv3[i].Y), ref index);
+                Copy(uv3[i], ref index);
             }
 
             if (HasUV4)
             {
-                Copy(BitConverter.GetBytes(uv4[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv4[i].Y), ref index);
+                Copy(uv4[i], ref index);
             }
 
             if (HasUV5)
             {
-                Copy(BitConverter.GetBytes(uv5[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv5[i].Y), ref index);
+                Copy(uv5[i], ref index);
             }
 
             if (HasUV6)
             {
-                Copy(BitConverter.GetBytes(uv6[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv6[i].Y), ref index);
+                Copy(uv6[i], ref index);
             }
 
             if (HasUV7)
             {
-                Copy(BitConverter.GetBytes(uv7[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv7[i].Y), ref index);
+                Copy(uv7[i], ref index);
             }
 
             if (HasUV8)
             {
-                Copy(BitConverter.GetBytes(uv8[i].X), ref index);
-                Copy(BitConverter.GetBytes(uv8[i].Y), ref index);
+                Copy(uv8[i], ref index);
             }
 
             if(HasBoneIndices)
             {
-                Copy(BitConverter.GetBytes(boneIndices[i].X), ref index);
-                Copy(BitConverter.GetBytes(boneIndices[i].Y), ref index);
-                Copy(BitConverter.GetBytes(boneIndices[i].Z), ref index);
-                Copy(BitConverter.GetBytes(boneIndices[i].W), ref index);
+                Copy(boneIndices[i], ref index);
             }
 
             if(HasBoneWeights)
             {
-                Copy(BitConverter.GetBytes(boneWeights[i].X), ref index);
-                Copy(BitConverter.GetBytes(boneWeights[i].Y), ref index);
-                Copy(BitConverter.GetBytes(boneWeights[i].Z), ref index);
-                Copy(BitConverter.GetBytes(boneWeights[i].W), ref index);
+                Copy(boneWeights[i], ref index);
             }
         }
 

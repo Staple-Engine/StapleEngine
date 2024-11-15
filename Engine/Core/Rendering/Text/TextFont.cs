@@ -70,7 +70,7 @@ internal class TextFont : IDisposable
 
         set
         {
-            if(value <= 0)
+            if(value <= 0 || fontSource.FontSize == value)
             {
                 return;
             }
@@ -78,8 +78,6 @@ internal class TextFont : IDisposable
             fontSource.FontSize = value;
 
             changed = true;
-
-            GenerateTextureAtlas();
         }
     }
 
@@ -91,6 +89,11 @@ internal class TextFont : IDisposable
 
         set
         {
+            if(textColor == value)
+            {
+                return;
+            }
+
             textColor = value;
 
             changed = true;
@@ -106,6 +109,11 @@ internal class TextFont : IDisposable
 
         set
         {
+            if (secondaryTextColor == value)
+            {
+                return;
+            }
+
             secondaryTextColor = value;
 
             changed = true;
@@ -120,6 +128,11 @@ internal class TextFont : IDisposable
 
         set
         {
+            if(borderColor == value)
+            {
+                return;
+            }
+
             borderColor = value;
 
             changed = true;
@@ -135,6 +148,11 @@ internal class TextFont : IDisposable
 
         set
         {
+            if(borderSize == value)
+            {
+                return;
+            }
+
             borderSize = value;
 
             changed = true;
@@ -154,6 +172,8 @@ internal class TextFont : IDisposable
                 key = $"{FontSize}:{textureSize}:{TextColor.r},{TextColor.g},{TextColor.b},{TextColor.a}:" +
                     $"{SecondaryTextColor.r},{SecondaryTextColor.g},{SecondaryTextColor.b},{SecondaryTextColor.a}:" +
                     $"{BorderSize}:{BorderColor.r},{BorderColor.g},{BorderColor.b},{BorderColor.a}";
+
+                GenerateTextureAtlas();
             }
 
             return key;
@@ -173,7 +193,7 @@ internal class TextFont : IDisposable
             return false;
         }
 
-        glyphs = new();
+        glyphs = [];
 
         var values = Enum.GetValues<FontCharacterSet>();
 
