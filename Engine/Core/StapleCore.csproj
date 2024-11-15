@@ -322,9 +322,10 @@
 		<Compile Include="Utilities\GuidGenerator.cs" />
 		<Compile Include="Utilities\IntLookupCache.cs" />
 		<Compile Include="Utilities\ObjectCreation.cs" />
-		<Compile Include="Utilities\ObservableBox.cs" />
-		<Compile Include="Utilities\ObservableBoxStrong.cs" />
-		<Compile Include="Utilities\ObservableManager.cs" />
+		<Compile Include="Utilities\Observables\IObservableBox.cs" />
+		<Compile Include="Utilities\Observables\ObservableBox.cs" />
+		<Compile Include="Utilities\Observables\ObservableBoxStrong.cs" />
+		<Compile Include="Utilities\Observables\ObservableManager.cs" />
 		<Compile Include="Utilities\ThreadHelper.cs" />
 		<Compile Include="Utilities\TypeCache.cs" />
 		<Compile Include="World\IWorldChangeReceiver.cs" />

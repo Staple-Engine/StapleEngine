@@ -1,31 +1,32 @@
-﻿
-using Staple.Internal;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System;
+using System.Threading;
 
-internal class ObservableBoxStrong
+namespace Staple.Internal;
+
+internal abstract class ObservableBox : IObservableBox
 {
     class ObserverInfo
     {
         public Assembly assembly;
-        public object observer;
+        public WeakReference<object> observer;
     }
 
-    private List<ObserverInfo> observers = [];
-    private List<object> stagingObservers = [];
-    private object observerLock = new();
+    private readonly List<ObserverInfo> observers = [];
+    private readonly List<object> stagingObservers = [];
+    private readonly Lock observerLock = new();
 
-    public ObservableBoxStrong()
+    public ObservableBox()
     {
         ObservableManager.Add(this);
     }
 
     public void RemoveAll(Assembly assembly)
     {
-        lock (observerLock)
+        lock(observerLock)
         {
-            for (var i = observers.Count - 1; i >= 0; i--)
+            for(var i = observers.Count - 1; i >= 0; i--)
             {
                 if (observers[i].assembly == assembly)
                 {
@@ -37,11 +38,11 @@ internal class ObservableBoxStrong
 
     public void AddObserver(object type)
     {
-        lock (observerLock)
+        lock(observerLock)
         {
-            foreach (var item in observers)
+            foreach(var item in observers)
             {
-                if (item.observer == type)
+                if(item.observer.TryGetTarget(out var o) && o == type)
                 {
                     return;
                 }
@@ -50,7 +51,7 @@ internal class ObservableBoxStrong
             observers.Add(new ObserverInfo()
             {
                 assembly = type.GetType().Assembly,
-                observer = type,
+                observer = new WeakReference<object>(type),
             });
         }
     }
@@ -61,7 +62,7 @@ internal class ObservableBoxStrong
         {
             foreach (var item in observers)
             {
-                if (item.observer == type)
+                if (item.observer.TryGetTarget(out var o) && o == type)
                 {
                     observers.Remove(item);
 
@@ -71,17 +72,19 @@ internal class ObservableBoxStrong
         }
     }
 
-    public void Emit(Action<object> callback)
+    public abstract void EmitAction(object observer);
+
+    public void Emit()
     {
-        lock (observerLock)
+        lock(observerLock)
         {
-            for (var i = observers.Count - 1; i >= 0; i--)
+            for(var i = observers.Count - 1; i >= 0; i--)
             {
                 var item = observers[i];
 
-                if (item.observer != null)
+                if (item.observer.TryGetTarget(out var o))
                 {
-                    stagingObservers.Add(item.observer);
+                    stagingObservers.Add(o);
                 }
                 else
                 {
@@ -91,7 +94,7 @@ internal class ObservableBoxStrong
 
             foreach (var observer in stagingObservers)
             {
-                callback(observer);
+                EmitAction(observer);
             }
 
             stagingObservers.Clear();

@@ -6,7 +6,29 @@ namespace Staple.Internal;
 
 public static class StapleHooks
 {
-    private static readonly Dictionary<StapleHookEvent, ObservableBoxStrong> hooks = [];
+    internal class StapleHookBox : ObservableBoxStrong
+    {
+        public StapleHookEvent e;
+        public object args;
+
+        public override void EmitAction(object observer)
+        {
+            var hook = (IStapleHook)observer;
+
+            try
+            {
+                hook.OnEvent(e, args);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[{e}] Executing hook '{hook.Name}' failed and the hook is being removed: {ex}");
+
+                RemoveObserver(observer);
+            }
+        }
+    }
+
+    private static readonly Dictionary<StapleHookEvent, StapleHookBox> hooks = [];
 
     public static void RegisterHook(IStapleHook hook)
     {
@@ -55,21 +77,10 @@ public static class StapleHooks
             return;
         }
 
-        box.Emit((observer) =>
-        {
-            var hook = (IStapleHook)observer;
+        box.e = e;
+        box.args = args;
 
-            try
-            {
-                hook.OnEvent(e, args);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[{e}] Executing hook '{hook.Name}' failed and the hook is being removed: {ex}");
-
-                box.RemoveObserver(observer);
-            }
-        });
+        box.Emit();
     }
 
     internal static void RemoveAll(Assembly assembly)

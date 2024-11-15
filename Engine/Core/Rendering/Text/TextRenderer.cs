@@ -273,8 +273,8 @@ public class TextRenderer
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
             {
-                var vertexBuffer = VertexBuffer.Create(vertices.AsSpan(), VertexLayout.Value, true);
-                var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None, true);
+                var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), VertexLayout.Value);
+                var indexBuffer = IndexBuffer.CreateTransient(indices);
 
                 if(vertexBuffer == null || indexBuffer == null)
                 {
@@ -291,10 +291,7 @@ public class TextRenderer
 
     public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out PosTexVertex[] vertices, out ushort[] indices)
     {
-        if (text == null)
-        {
-            throw new ArgumentNullException("text");
-        }
+        ArgumentNullException.ThrowIfNull(text);
 
         var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 

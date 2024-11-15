@@ -79,13 +79,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                         animator.mesh.meshAsset.CloneNodes(),
                         animator);
 
-                    animator.evaluator.onFrameEvaluated = () =>
-                    {
-                        SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
-
-                        animator.shouldRender = true;
-                    };
-
                     animator.nodeCache = animator.evaluator.nodes;
 
                     animator.shouldRender = true;

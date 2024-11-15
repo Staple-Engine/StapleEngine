@@ -9,6 +9,8 @@ namespace Staple;
 /// </summary>
 public class IndexBuffer
 {
+    private static IndexBuffer transientBuffer;
+
     /// <summary>
     /// The index buffer's handle
     /// </summary>
@@ -119,43 +121,22 @@ public class IndexBuffer
     /// </summary>
     /// <param name="data">The data</param>
     /// <param name="flags">The buffer flags</param>
-    /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
     /// <returns>The index buffer, or null</returns>
-    public static IndexBuffer Create(Span<ushort> data, RenderBufferFlags flags, bool isTransient = false)
+    public static IndexBuffer Create(Span<ushort> data, RenderBufferFlags flags)
     {
         var size = Marshal.SizeOf<ushort>();
 
-        if(isTransient && bgfx.get_avail_transient_index_buffer((uint)data.Length, false) < data.Length)
-        {
-            return null;
-        }
-
         unsafe
         {
-            if(isTransient)
-            {
-                bgfx.TransientIndexBuffer handle;
+            bgfx.Memory* outData = bgfx.alloc((uint)(size * data.Length));
 
-                bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, false);
+            var target = new Span<ushort>(outData->data, data.Length);
 
-                var target = new Span<ushort>(handle.data, data.Length);
+            data.CopyTo(target);
 
-                data.CopyTo(target);
+            var handle = bgfx.create_index_buffer(outData, (ushort)flags);
 
-                return new IndexBuffer(handle);
-            }
-            else
-            {
-                bgfx.Memory* outData = bgfx.alloc((uint)(size * data.Length));
-
-                var target = new Span<ushort>(outData->data, data.Length);
-
-                data.CopyTo(target);
-
-                var handle = bgfx.create_index_buffer(outData, (ushort)flags);
-
-                return new IndexBuffer(handle);
-            }
+            return new IndexBuffer(handle);
         }
     }
 
@@ -164,38 +145,82 @@ public class IndexBuffer
     /// </summary>
     /// <param name="data">The data</param>
     /// <param name="flags">The buffer flags</param>
-    /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
     /// <returns>The index buffer, or null</returns>
-    public static IndexBuffer Create(Span<uint> data, RenderBufferFlags flags, bool isTransient = false)
+    public static IndexBuffer Create(Span<uint> data, RenderBufferFlags flags)
     {
         var size = Marshal.SizeOf<uint>();
 
         unsafe
         {
-            if (isTransient)
-            {
-                bgfx.TransientIndexBuffer handle;
+            bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
 
-                bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, true);
+            var target = new Span<uint>(outData->data, data.Length);
 
-                var target = new Span<uint>(handle.data, data.Length);
+            data.CopyTo(target);
 
-                data.CopyTo(target);
+            var handle = bgfx.create_index_buffer(outData, (ushort)(flags | RenderBufferFlags.Index32));
 
-                return new IndexBuffer(handle);
-            }
-            else
-            {
-                bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
+            return new IndexBuffer(handle);
+        }
+    }
 
-                var target = new Span<uint>(outData->data, data.Length);
+    /// <summary>
+    /// Creates a transient index buffer from ushort data
+    /// </summary>
+    /// <param name="data">The data</param>
+    /// <returns>The index buffer, or null</returns>
+    public static IndexBuffer CreateTransient(Span<ushort> data)
+    {
+        if (bgfx.get_avail_transient_index_buffer((uint)data.Length, false) < data.Length)
+        {
+            return null;
+        }
 
-                data.CopyTo(target);
+        unsafe
+        {
+            bgfx.TransientIndexBuffer handle;
 
-                var handle = bgfx.create_index_buffer(outData, (ushort)(flags | RenderBufferFlags.Index32));
+            bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, false);
 
-                return new IndexBuffer(handle);
-            }
+            var target = new Span<ushort>(handle.data, data.Length);
+
+            data.CopyTo(target);
+
+            transientBuffer ??= new(handle);
+
+            transientBuffer.transientHandle = handle;
+
+            return transientBuffer;
+        }
+    }
+
+    /// <summary>
+    /// Creates a transient index buffer from uint data
+    /// </summary>
+    /// <param name="data">The data</param>
+    /// <returns>The index buffer, or null</returns>
+    public static IndexBuffer CreateTransient(Span<uint> data)
+    {
+        if (bgfx.get_avail_transient_index_buffer((uint)data.Length, false) < data.Length)
+        {
+            return null;
+        }
+
+        unsafe
+        {
+            bgfx.TransientIndexBuffer handle;
+
+            bgfx.alloc_transient_index_buffer(&handle, (uint)data.Length, true);
+
+            var target = new Span<uint>(handle.data, data.Length);
+
+            data.CopyTo(target);
+
+            transientBuffer ??= new(handle);
+
+            transientBuffer.transientHandle = handle;
+
+            return transientBuffer;
         }
     }
 }

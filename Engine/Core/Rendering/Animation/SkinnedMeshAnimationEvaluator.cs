@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 
-namespace Staple;
+namespace Staple.Internal;
 
 /// <summary>
 /// Calculates the animations for a skinned mesh
 /// </summary>
 internal class SkinnedMeshAnimationEvaluator
 {
-    /// <summary>
-    /// Called every time a frame is evaluated
-    /// </summary>
-    public Action onFrameEvaluated;
-
     /// <summary>
     /// Whether we've finished playing
     /// </summary>
@@ -257,6 +251,8 @@ internal class SkinnedMeshAnimationEvaluator
 
         lastTime = time;
 
-        onFrameEvaluated?.Invoke();
+        SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
+
+        animator.shouldRender = true;
     }
 }

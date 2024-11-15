@@ -101,8 +101,8 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
-            var vertexBuffer = VertexBuffer.Create(vertices, layout, true);
-            var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.Read, true);
+            var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
+            var indexBuffer = IndexBuffer.CreateTransient(indices);
 
             if(vertexBuffer == null || indexBuffer == null)
             {

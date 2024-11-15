@@ -318,9 +318,9 @@ public class SpriteRenderSystem : IRenderSystem
             spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
             spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
 
-            var vertexBuffer = VertexBuffer.Create(spriteVertices.AsSpan(), vertexLayout.Value, true);
+            var vertexBuffer = VertexBuffer.CreateTransient(spriteVertices.AsSpan(), vertexLayout.Value);
 
-            var indexBuffer = IndexBuffer.Create(indices, RenderBufferFlags.None, true);
+            var indexBuffer = IndexBuffer.CreateTransient(indices);
 
             if (vertexBuffer == null || indexBuffer == null)
             {

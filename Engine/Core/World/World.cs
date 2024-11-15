@@ -121,6 +121,32 @@ public partial class World
         }
     }
 
+    private class WorldChangeBox : ObservableBox
+    {
+        public override void EmitAction(object observer)
+        {
+            if(observer is not IWorldChangeReceiver receiver)
+            {
+                return;
+            }
+
+            receiver.WorldChanged();
+        }
+    }
+
+    private class SceneQueryBox : ObservableBox
+    {
+        public override void EmitAction(object observer)
+        {
+            if(observer is not ISceneQuery query)
+            {
+                return;
+            }
+
+            query.WorldChanged();
+        }
+    }
+
     public static World Current { get; internal set; } = new();
 
     private readonly object lockObject = new();
@@ -140,8 +166,8 @@ public partial class World
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
 
-    private static readonly ObservableBox worldChangeReceivers = new();
-    private static readonly ObservableBox sceneQueries = new();
+    private static readonly WorldChangeBox worldChangeReceivers = new();
+    private static readonly SceneQueryBox sceneQueries = new();
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
 
@@ -177,9 +203,9 @@ public partial class World
 
     internal static void EmitWorldChangedEvent()
     {
-        sceneQueries.Emit((t) => ((ISceneQuery)t).WorldChanged());
+        sceneQueries.Emit();
 
-        worldChangeReceivers.Emit((t) => ((IWorldChangeReceiver)t).WorldChanged());
+        worldChangeReceivers.Emit();
     }
 
     internal void RequestWorldUpdate()

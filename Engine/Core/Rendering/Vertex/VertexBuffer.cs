@@ -9,10 +9,12 @@ namespace Staple;
 /// </summary>
 public class VertexBuffer
 {
+    private static VertexBuffer transientBuffer;
+
     internal bgfx.VertexBufferHandle handle;
     internal bgfx.DynamicVertexBufferHandle dynamicHandle;
     internal bgfx.TransientVertexBuffer transientHandle;
-    public readonly VertexLayout layout;
+    internal VertexLayout layout;
     public readonly VertexBufferType type;
 
     /// <summary>
@@ -64,7 +66,7 @@ public class VertexBuffer
 
         Disposed = true;
 
-        switch(type)
+        switch (type)
         {
             case VertexBufferType.Normal:
 
@@ -103,7 +105,7 @@ public class VertexBuffer
             return;
         }
 
-        switch(type)
+        switch (type)
         {
             case VertexBufferType.Normal:
 
@@ -161,7 +163,7 @@ public class VertexBuffer
         {
             bgfx.Memory* outData = bgfx.alloc((uint)lengthInBytes);
 
-            var source = new Span<byte>((void *)data, lengthInBytes);
+            var source = new Span<byte>((void*)data, lengthInBytes);
             var target = new Span<byte>(outData->data, lengthInBytes);
 
             source.CopyTo(target);
@@ -176,7 +178,7 @@ public class VertexBuffer
     /// <typeparam name="T">A vertex type (probably a struct)</typeparam>
     /// <param name="data">An array of new data</param>
     /// <param name="startVertex">The starting vertex</param>
-    public void Update<T>(Span<T> data, int startVertex) where T: unmanaged
+    public void Update<T>(Span<T> data, int startVertex) where T : unmanaged
     {
         if (Disposed)
         {
@@ -276,14 +278,14 @@ public class VertexBuffer
     /// <returns>Whether we have enough space</returns>
     public static bool TransientBufferHasSpace(int vertexCount, VertexLayout layout)
     {
-        if(vertexCount <= 0)
+        if (vertexCount <= 0)
         {
             return false;
         }
 
         unsafe
         {
-            fixed(bgfx.VertexLayout *l = &layout.layout)
+            fixed (bgfx.VertexLayout* l = &layout.layout)
             {
                 return bgfx.get_avail_transient_vertex_buffer((uint)vertexCount, l) >= vertexCount;
             }
@@ -296,13 +298,12 @@ public class VertexBuffer
     /// <typeparam name="T">A struct type</typeparam>
     /// <param name="data">An array of vertices</param>
     /// <param name="layout">The vertex layout to use</param>
-    /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
     /// <returns>The vertex buffer, or null</returns>
-    public static VertexBuffer Create<T>(Span<T> data, VertexLayout layout, bool isTransient = false) where T: unmanaged
+    public static VertexBuffer Create<T>(Span<T> data, VertexLayout layout) where T : unmanaged
     {
         var size = Marshal.SizeOf<T>();
 
-        if(size != layout.layout.stride)
+        if (size != layout.layout.stride)
         {
             return null;
         }
@@ -311,37 +312,17 @@ public class VertexBuffer
         {
             fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
             {
-                if (isTransient)
+                bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
+
+                var target = new Span<T>(outData->data, data.Length);
+
+                data.CopyTo(target);
+
+                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+
+                if (handle.Valid)
                 {
-                    if (bgfx.get_avail_transient_vertex_buffer((uint)data.Length, vertexLayout) < data.Length)
-                    {
-                        return null;
-                    }
-
-                    bgfx.TransientVertexBuffer buffer;
-
-                    bgfx.alloc_transient_vertex_buffer(&buffer, (uint)data.Length, vertexLayout);
-
-                    var target = new Span<T>(buffer.data, data.Length);
-
-                    data.CopyTo(target);
-
-                    return new VertexBuffer(layout, buffer);
-                }
-                else
-                {
-                    bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
-
-                    var target = new Span<T>(outData->data, data.Length);
-
-                    data.CopyTo(target);
-
-                    var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
-
-                    if (handle.Valid)
-                    {
-                        return new VertexBuffer(layout, handle);
-                    }
+                    return new VertexBuffer(layout, handle);
                 }
 
                 return null;
@@ -354,13 +335,12 @@ public class VertexBuffer
     /// </summary>
     /// <param name="data">An array of vertices</param>
     /// <param name="layout">The vertex layout to use</param>
-    /// <param name="isTransient">Whether this buffer is transient (lasts only one frame)</param>
     /// <returns>The vertex buffer, or null</returns>
-    public static VertexBuffer Create(Span<byte> data, VertexLayout layout, bool isTransient = false)
+    public static VertexBuffer Create(Span<byte> data, VertexLayout layout)
     {
         var size = layout.layout.stride;
 
-        if(data == null || data.Length == 0 || data.Length % size != 0)
+        if (data.Length == 0 || data.Length % size != 0)
         {
             return null;
         }
@@ -369,42 +349,107 @@ public class VertexBuffer
         {
             fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
             {
-                if(isTransient)
+                bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
+
+                var target = new Span<byte>(outData->data, data.Length);
+
+                data.CopyTo(target);
+
+                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+
+                if (handle.Valid)
                 {
-                    var vertexCount = (uint)(data.Length / size);
-
-                    if (bgfx.get_avail_transient_vertex_buffer(vertexCount, vertexLayout) < vertexCount)
-                    {
-                        return null;
-                    }
-
-                    bgfx.TransientVertexBuffer buffer;
-
-                    bgfx.alloc_transient_vertex_buffer(&buffer, vertexCount, vertexLayout);
-
-                    var target = new Span<byte>(buffer.data, data.Length);
-
-                    data.CopyTo(target);
-
-                    return new VertexBuffer(layout, buffer);
-                }
-                else
-                {
-                    bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
-
-                    var target = new Span<byte>(outData->data, data.Length);
-
-                    data.CopyTo(target);
-
-                    var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
-
-                    if(handle.Valid)
-                    {
-                        return new VertexBuffer(layout, handle);
-                    }
+                    return new VertexBuffer(layout, handle);
                 }
 
                 return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a transient vertex buffer from an array of data
+    /// </summary>
+    /// <typeparam name="T">A struct type</typeparam>
+    /// <param name="data">An array of vertices</param>
+    /// <param name="layout">The vertex layout to use</param>
+    /// <returns>The transient vertex buffer, or null</returns>
+    public static VertexBuffer CreateTransient<T>(Span<T> data, VertexLayout layout) where T : unmanaged
+    {
+        var size = Marshal.SizeOf<T>();
+
+        if (size != layout.layout.stride)
+        {
+            return null;
+        }
+
+        unsafe
+        {
+            fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
+            {
+                if (bgfx.get_avail_transient_vertex_buffer((uint)data.Length, vertexLayout) < data.Length)
+                {
+                    return null;
+                }
+
+                bgfx.TransientVertexBuffer buffer;
+
+                bgfx.alloc_transient_vertex_buffer(&buffer, (uint)data.Length, vertexLayout);
+
+                var target = new Span<T>(buffer.data, data.Length);
+
+                data.CopyTo(target);
+
+                transientBuffer ??= new(layout, buffer);
+
+                transientBuffer.layout = layout;
+                transientBuffer.transientHandle = buffer;
+
+                return transientBuffer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a transient vertex buffer from an array of data.
+    /// </summary>
+    /// <param name="data">An array of vertices</param>
+    /// <param name="layout">The vertex layout to use</param>
+    /// <returns>The vertex buffer, or null</returns>
+    public static VertexBuffer CreateTransient(Span<byte> data, VertexLayout layout)
+    {
+        var size = layout.layout.stride;
+
+        if (data.Length == 0 || data.Length % size != 0)
+        {
+            return null;
+        }
+
+        unsafe
+        {
+            fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
+            {
+                var vertexCount = (uint)(data.Length / size);
+
+                if (bgfx.get_avail_transient_vertex_buffer(vertexCount, vertexLayout) < vertexCount)
+                {
+                    return null;
+                }
+
+                bgfx.TransientVertexBuffer buffer;
+
+                bgfx.alloc_transient_vertex_buffer(&buffer, vertexCount, vertexLayout);
+
+                var target = new Span<byte>(buffer.data, data.Length);
+
+                data.CopyTo(target);
+
+                transientBuffer ??= new(layout, buffer);
+
+                transientBuffer.layout = layout;
+                transientBuffer.transientHandle = buffer;
+
+                return transientBuffer;
             }
         }
     }

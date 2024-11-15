@@ -81,6 +81,7 @@ public class UIText : UIElement
     private IndexBuffer indexBuffer;
     private int vertexCount;
     private int indexCount;
+    private Vector2Int intrinsicSize;
 
     private bool IsDirty
     {
@@ -116,14 +117,7 @@ public class UIText : UIElement
         adjustToIntrinsicSize = true;
     }
 
-    public override Vector2Int IntrinsicSize()
-    {
-        UpdateFontSize();
-
-        var rect = TextRenderer.instance.MeasureTextSimple(text, Parameters());
-
-        return new Vector2Int(rect.left + rect.Width, rect.top + rect.Height);
-    }
+    public override Vector2Int IntrinsicSize() => intrinsicSize;
 
     private TextParameters Parameters()
     {
@@ -139,6 +133,11 @@ public class UIText : UIElement
 
     private void UpdateFontSize()
     {
+        if(IsDirty == false)
+        {
+            return;
+        }
+
         var parameters = Parameters()
             .FontSize(fontSize);
 
@@ -169,6 +168,11 @@ public class UIText : UIElement
 
     public override void Render(Vector2Int position, ushort viewID)
     {
+        if((text?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
         material ??= ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
 
         UpdateFontSize();
@@ -206,9 +210,15 @@ public class UIText : UIElement
                 vertexCount = vertices.Length;
                 indexCount = indices.Length;
             }
+
+            UpdateFontSize();
+
+            var rect = TextRenderer.instance.MeasureTextSimple(text, Parameters());
+
+            intrinsicSize = new Vector2Int(rect.left + rect.Width, rect.top + rect.Height);
         }
 
-        if(vertexBuffer != null &&
+        if (vertexBuffer != null &&
             indexBuffer != null &&
             vertexBuffer.Disposed == false &&
             indexBuffer.Disposed == false &&

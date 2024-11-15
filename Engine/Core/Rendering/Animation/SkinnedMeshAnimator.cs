@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Staple.Internal;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple;
