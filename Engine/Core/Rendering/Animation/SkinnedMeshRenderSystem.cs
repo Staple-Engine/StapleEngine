@@ -264,10 +264,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var material = renderer.materials[j];
 
+#if STAPLE_USE_EXPERIMENTAL_OPTIMIZATIONS
+                var needsChange = assetGuid != lastMeshAsset ||
+                    material.Guid != (lastMaterial?.Guid ?? "") ||
+                    lastAnimator != animator;
+#else
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.Guid != (lastMaterial?.Guid ?? "") ||
                     lastAnimator != animator ||
                     renderer.lighting != MaterialLighting.Unlit;
+#endif
 
                 if (needsChange)
                 {

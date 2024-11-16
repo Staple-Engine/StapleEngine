@@ -181,6 +181,9 @@ internal class RenderWindow
             if (Paused)
             {
                 fixedTimer = 0;
+
+                //Prevent CPU over-use
+                Thread.Sleep(100);
             }
             else
             {
@@ -349,6 +352,9 @@ internal class RenderWindow
             if (Paused)
             {
                 fixedTimer = 0;
+
+                //Prevent CPU over-use
+                Thread.Sleep(100);
             }
             else
             {
@@ -587,9 +593,23 @@ internal class RenderWindow
                     {
                         Log.Info($"[RenderWindow] {renderer} OK!");
 
-                        CurrentRenderer = renderer;
+                        var capabilities = (bgfx.CapsFlags)init.capabilities;
 
-                        break;
+                        if(capabilities.HasFlag(bgfx.CapsFlags.Compute) == false)
+                        {
+                            Log.Error($"[RenderWindow] Device doesn't have the required features to continue, ignoring...");
+
+                            ok = false;
+
+                            bgfx.shutdown();
+                        }
+
+                        if(ok)
+                        {
+                            CurrentRenderer = renderer;
+
+                            break;
+                        }
                     }
                 }
             }

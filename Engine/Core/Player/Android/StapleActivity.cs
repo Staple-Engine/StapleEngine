@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Staple;
@@ -453,6 +454,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         if (renderWindow.Paused)
         {
             fixedTimer = 0;
+
+            Thread.Sleep(100);
         }
         else
         {
