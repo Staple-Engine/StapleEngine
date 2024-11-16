@@ -914,7 +914,7 @@ public sealed partial class Mesh : IGuidAsset
             return;
         }
 
-        if(vertexBuffer.type == VertexBufferType.Dynamic)
+        if(vertexBuffer.type == RenderBufferType.Dynamic)
         {
             vertexBuffer.Update(vertexBlob, 0);
         }
@@ -924,7 +924,7 @@ public sealed partial class Mesh : IGuidAsset
             case MeshIndexFormat.UInt16:
 
                 {
-                    ushort[] data = new ushort[indices.Length];
+                    var data = new ushort[indices.Length];
 
                     for (var i = 0; i < indices.Length; i++)
                     {
@@ -936,7 +936,7 @@ public sealed partial class Mesh : IGuidAsset
                         data[i] = (ushort)indices[i];
                     }
 
-                    indexBuffer = IndexBuffer.Create(data, RenderBufferFlags.None);
+                    indexBuffer = IndexBuffer.Create(data);
                 }
 
                 break;

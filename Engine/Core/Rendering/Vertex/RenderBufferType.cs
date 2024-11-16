@@ -1,6 +1,6 @@
 ﻿namespace Staple;
 
-public enum VertexBufferType
+public enum RenderBufferType
 {
     Normal,
     Dynamic,

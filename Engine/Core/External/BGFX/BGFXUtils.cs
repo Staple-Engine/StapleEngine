@@ -303,4 +303,220 @@ internal static class BGFXUtils
             _ => bgfx.AttribType.Float,
         };
     }
+
+    public static RenderBufferFlags GetRenderBufferFlags(bgfx.BufferFlags flags)
+    {
+        var outValue = RenderBufferFlags.None;
+
+        if (flags.HasFlag(bgfx.BufferFlags.Index32))
+        {
+            outValue |= RenderBufferFlags.Index32;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.AllowResize))
+        {
+            outValue |= RenderBufferFlags.AllowResize;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat8x1))
+        {
+            outValue |= RenderBufferFlags.Compute8x1;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat8x2))
+        {
+            outValue |= RenderBufferFlags.Compute8x2;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat8x4))
+        {
+            outValue |= RenderBufferFlags.Compute8x4;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat16x1))
+        {
+            outValue |= RenderBufferFlags.Compute16x1;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat16x2))
+        {
+            outValue |= RenderBufferFlags.Compute16x2;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat16x4))
+        {
+            outValue |= RenderBufferFlags.Compute16x4;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat32x1))
+        {
+            outValue |= RenderBufferFlags.Compute32x1;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat32x2))
+        {
+            outValue |= RenderBufferFlags.Compute32x2;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeFormat32x4))
+        {
+            outValue |= RenderBufferFlags.Compute32x4;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeTypeInt))
+        {
+            outValue |= RenderBufferFlags.ComputeTypeInt;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeTypeUint))
+        {
+            outValue |= RenderBufferFlags.ComputeTypeUInt;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeTypeFloat))
+        {
+            outValue |= RenderBufferFlags.ComputeTypeFloat;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeWrite))
+        {
+            outValue |= RenderBufferFlags.ComputeWrite;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeRead))
+        {
+            outValue |= RenderBufferFlags.ComputeRead;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.ComputeReadWrite))
+        {
+            outValue |= RenderBufferFlags.ComputeReadWrite;
+        }
+
+        if (flags.HasFlag(bgfx.BufferFlags.DrawIndirect))
+        {
+            outValue |= RenderBufferFlags.DrawIndirect;
+        }
+
+        return outValue;
+    }
+
+    public static bgfx.BufferFlags GetBGFXBufferFlags(RenderBufferFlags flags)
+    {
+        var outValue = bgfx.BufferFlags.None;
+
+        if (flags.HasFlag(RenderBufferFlags.Index32))
+        {
+            outValue |= bgfx.BufferFlags.Index32;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.AllowResize))
+        {
+            outValue |= bgfx.BufferFlags.AllowResize;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute8x1))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat8x1;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute8x2))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat8x2;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute8x4))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat8x4;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute16x1))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat16x1;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute16x2))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat16x2;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute16x4))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat16x4;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute32x1))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat32x1;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute32x2))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat32x2;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.Compute32x4))
+        {
+            outValue |= bgfx.BufferFlags.ComputeFormat32x4;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeTypeInt))
+        {
+            outValue |= bgfx.BufferFlags.ComputeTypeInt;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeTypeUInt))
+        {
+            outValue |= bgfx.BufferFlags.ComputeTypeUint;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeTypeFloat))
+        {
+            outValue |= bgfx.BufferFlags.ComputeTypeFloat;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
+        {
+            outValue |= bgfx.BufferFlags.ComputeWrite;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
+        {
+            outValue |= bgfx.BufferFlags.ComputeRead;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeReadWrite))
+        {
+            outValue |= bgfx.BufferFlags.ComputeReadWrite;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.DrawIndirect))
+        {
+            outValue |= bgfx.BufferFlags.DrawIndirect;
+        }
+
+        return outValue;
+    }
+
+    public static Access GetAccess(bgfx.Access access)
+    {
+        return access switch
+        {
+            bgfx.Access.Read => Access.Read,
+            bgfx.Access.Write => Access.Write,
+            bgfx.Access.ReadWrite => Access.ReadWrite,
+            _ => Access.Read,
+        };
+    }
+
+    public static bgfx.Access GetBGFXAccess(Access access)
+    {
+        return access switch
+        {
+            Access.Read => bgfx.Access.Read,
+            Access.Write => bgfx.Access.Write,
+            Access.ReadWrite => bgfx.Access.ReadWrite,
+            _ => bgfx.Access.Read,
+        };
+    }
 }

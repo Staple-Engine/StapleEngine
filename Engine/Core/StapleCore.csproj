@@ -167,6 +167,7 @@
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\MaterialLighting.cs" />
+		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
@@ -303,7 +304,7 @@
 		<Compile Include="Rendering\Mesh\MeshIndexFormat.cs" />
 		<Compile Include="Rendering\Mesh\MeshTopology.cs" />
 		<Compile Include="Rendering\Texture\StandardTextureColorComponents.cs" />
-		<Compile Include="Rendering\Vertex\VertexBufferType.cs" />
+		<Compile Include="Rendering\Vertex\RenderBufferType.cs" />
 		<Compile Include="Rendering\Windowing\VideoFlags.cs" />
 		<Compile Include="Rendering\Windowing\WindowMode.cs" />
 		<Compile Include="Resources\ResourcePak.cs" />

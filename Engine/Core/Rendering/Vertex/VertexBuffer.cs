@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Runtime.InteropServices;
 
@@ -15,7 +16,7 @@ public class VertexBuffer
     internal bgfx.DynamicVertexBufferHandle dynamicHandle;
     internal bgfx.TransientVertexBuffer transientHandle;
     internal VertexLayout layout;
-    public readonly VertexBufferType type;
+    public readonly RenderBufferType type;
 
     /// <summary>
     /// Whether this was destroyed
@@ -24,29 +25,28 @@ public class VertexBuffer
 
     internal unsafe VertexBuffer(VertexLayout layout, bgfx.VertexBufferHandle handle)
     {
+        type = RenderBufferType.Normal;
+
         this.layout = layout;
-
         this.handle = handle;
-
-        type = VertexBufferType.Normal;
     }
 
     internal unsafe VertexBuffer(VertexLayout layout, bgfx.DynamicVertexBufferHandle handle)
     {
+        type = RenderBufferType.Dynamic;
+
         this.layout = layout;
 
         dynamicHandle = handle;
-
-        type = VertexBufferType.Dynamic;
     }
 
     internal unsafe VertexBuffer(VertexLayout layout, bgfx.TransientVertexBuffer buffer)
     {
+        type = RenderBufferType.Transient;
+
         this.layout = layout;
 
         transientHandle = buffer;
-
-        type = VertexBufferType.Transient;
     }
 
     ~VertexBuffer()
@@ -68,7 +68,7 @@ public class VertexBuffer
 
         switch (type)
         {
-            case VertexBufferType.Normal:
+            case RenderBufferType.Normal:
 
                 if (handle.Valid)
                 {
@@ -79,7 +79,7 @@ public class VertexBuffer
 
                 break;
 
-            case VertexBufferType.Dynamic:
+            case RenderBufferType.Dynamic:
 
                 if (dynamicHandle.Valid)
                 {
@@ -107,19 +107,19 @@ public class VertexBuffer
 
         switch (type)
         {
-            case VertexBufferType.Normal:
+            case RenderBufferType.Normal:
 
                 bgfx.set_vertex_buffer(stream, handle, start, count);
 
                 break;
 
-            case VertexBufferType.Dynamic:
+            case RenderBufferType.Dynamic:
 
                 bgfx.set_dynamic_vertex_buffer(stream, dynamicHandle, start, count);
 
                 break;
 
-            case VertexBufferType.Transient:
+            case RenderBufferType.Transient:
 
                 unsafe
                 {
@@ -128,6 +128,34 @@ public class VertexBuffer
                         bgfx.set_transient_vertex_buffer(stream, buffer, start, count);
                     }
                 }
+
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Sets this buffer as a compute buffer
+    /// </summary>
+    /// <param name="stage">The buffer stage</param>
+    /// <param name="access">The access mode</param>
+    internal void SetBufferActive(byte stage, Access access)
+    {
+        if(Disposed || type == RenderBufferType.Transient)
+        {
+            return;
+        }
+
+        switch(type)
+        {
+            case RenderBufferType.Normal:
+
+                bgfx.set_compute_vertex_buffer(stage, handle, BGFXUtils.GetBGFXAccess(access));
+
+                break;
+
+            case RenderBufferType.Dynamic:
+
+                bgfx.set_compute_dynamic_vertex_buffer(stage, dynamicHandle, BGFXUtils.GetBGFXAccess(access));
 
                 break;
         }
@@ -146,7 +174,7 @@ public class VertexBuffer
             return;
         }
 
-        if (type != VertexBufferType.Dynamic)
+        if (type != RenderBufferType.Dynamic)
         {
             return;
         }
@@ -180,12 +208,7 @@ public class VertexBuffer
     /// <param name="startVertex">The starting vertex</param>
     public void Update<T>(Span<T> data, int startVertex) where T : unmanaged
     {
-        if (Disposed)
-        {
-            return;
-        }
-
-        if (type != VertexBufferType.Dynamic)
+        if (Disposed || type != RenderBufferType.Dynamic)
         {
             return;
         }
@@ -193,7 +216,6 @@ public class VertexBuffer
         var size = Marshal.SizeOf<T>();
 
         if (dynamicHandle.Valid == false ||
-            data == null ||
             data.Length == 0 ||
             size != layout.layout.stride)
         {
@@ -224,14 +246,14 @@ public class VertexBuffer
             return;
         }
 
-        if (type != VertexBufferType.Dynamic)
+        if (type != RenderBufferType.Dynamic)
         {
             return;
         }
 
         var size = layout.layout.stride;
 
-        if (dynamicHandle.Valid == false || data == null || data.Length == 0 || data.Length % size != 0)
+        if (dynamicHandle.Valid == false || data.Length == 0 || data.Length % size != 0)
         {
             return;
         }
@@ -245,28 +267,6 @@ public class VertexBuffer
             data.CopyTo(target);
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
-        }
-    }
-
-    /// <summary>
-    /// Creates a dynamic vertex buffer
-    /// </summary>
-    /// <param name="layout">The vertex layout to use</param>
-    /// <param name="allowResize">Whether the buffer can be resized</param>
-    /// <param name="elementCount">The element count for the buffer</param>
-    /// <returns>The vertex buffer</returns>
-    public static VertexBuffer CreateDynamic(VertexLayout layout, bool allowResize = true, uint elementCount = 0)
-    {
-        unsafe
-        {
-            fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
-            {
-                var flags = allowResize ? RenderBufferFlags.AllowResize : RenderBufferFlags.None;
-
-                var handle = bgfx.create_dynamic_vertex_buffer(elementCount, vertexLayout, (ushort)flags);
-
-                return new VertexBuffer(layout, handle);
-            }
         }
     }
 
@@ -298,8 +298,9 @@ public class VertexBuffer
     /// <typeparam name="T">A struct type</typeparam>
     /// <param name="data">An array of vertices</param>
     /// <param name="layout">The vertex layout to use</param>
+    /// <param name="flags">Additional flags</param>
     /// <returns>The vertex buffer, or null</returns>
-    public static VertexBuffer Create<T>(Span<T> data, VertexLayout layout) where T : unmanaged
+    public static VertexBuffer Create<T>(Span<T> data, VertexLayout layout, RenderBufferFlags flags = RenderBufferFlags.None) where T : unmanaged
     {
         var size = Marshal.SizeOf<T>();
 
@@ -318,7 +319,7 @@ public class VertexBuffer
 
                 data.CopyTo(target);
 
-                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
 
                 if (handle.Valid)
                 {
@@ -335,8 +336,9 @@ public class VertexBuffer
     /// </summary>
     /// <param name="data">An array of vertices</param>
     /// <param name="layout">The vertex layout to use</param>
+    /// <param name="flags">Additional flags</param>
     /// <returns>The vertex buffer, or null</returns>
-    public static VertexBuffer Create(Span<byte> data, VertexLayout layout)
+    public static VertexBuffer Create(Span<byte> data, VertexLayout layout, RenderBufferFlags flags = RenderBufferFlags.None)
     {
         var size = layout.layout.stride;
 
@@ -355,7 +357,7 @@ public class VertexBuffer
 
                 data.CopyTo(target);
 
-                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)RenderBufferFlags.None);
+                var handle = bgfx.create_vertex_buffer(outData, vertexLayout, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
 
                 if (handle.Valid)
                 {
@@ -363,6 +365,33 @@ public class VertexBuffer
                 }
 
                 return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a dynamic vertex buffer
+    /// </summary>
+    /// <param name="layout">The vertex layout to use</param>
+    /// <param name="flags">Additional flags</param>
+    /// <param name="allowResize">Whether the buffer can be resized</param>
+    /// <param name="elementCount">The element count for the buffer</param>
+    /// <returns>The vertex buffer</returns>
+    public static VertexBuffer CreateDynamic(VertexLayout layout, RenderBufferFlags flags = RenderBufferFlags.None,
+        bool allowResize = true, uint elementCount = 0)
+    {
+        unsafe
+        {
+            fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
+            {
+                if (allowResize)
+                {
+                    flags |= RenderBufferFlags.AllowResize;
+                }
+
+                var handle = bgfx.create_dynamic_vertex_buffer(elementCount, vertexLayout, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
+
+                return new VertexBuffer(layout, handle);
             }
         }
     }

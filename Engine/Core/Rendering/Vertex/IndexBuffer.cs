@@ -1,4 +1,5 @@
 ﻿using Bgfx;
+using Staple.Internal;
 using System;
 using System.Runtime.InteropServices;
 
@@ -11,10 +12,17 @@ public class IndexBuffer
 {
     private static IndexBuffer transientBuffer;
 
+    private RenderBufferType type;
+
     /// <summary>
     /// The index buffer's handle
     /// </summary>
     internal bgfx.IndexBufferHandle handle;
+
+    /// <summary>
+    /// The index buffer's dynamic handle
+    /// </summary>
+    internal bgfx.DynamicIndexBufferHandle dynamicHandle;
 
     /// <summary>
     /// The index buffer's transient handle
@@ -26,27 +34,23 @@ public class IndexBuffer
     /// </summary>
     internal bool Disposed { get; private set; } = false;
 
-    /// <summary>
-    /// Whether this buffer is transient
-    /// </summary>
-    private readonly bool isTransient = false;
-
     internal unsafe IndexBuffer(bgfx.IndexBufferHandle handle)
     {
+        type = RenderBufferType.Normal;
         this.handle = handle;
+    }
 
-        isTransient = false;
+    internal unsafe IndexBuffer(bgfx.DynamicIndexBufferHandle handle)
+    {
+        type = RenderBufferType.Dynamic;
+        dynamicHandle = handle;
     }
 
     internal unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)
     {
-        this.handle = new bgfx.IndexBufferHandle()
-        {
-            idx = ushort.MaxValue,
-        };
+        type = RenderBufferType.Transient;
 
         transientHandle = handle;
-        isTransient = true;
     }
 
     ~IndexBuffer()
@@ -66,9 +70,29 @@ public class IndexBuffer
 
         Disposed = true;
 
-        if (isTransient == false && handle.Valid)
+        switch(type)
         {
-            bgfx.destroy_index_buffer(handle);
+            case RenderBufferType.Normal:
+
+                if(handle.Valid)
+                {
+                    bgfx.destroy_index_buffer(handle);
+                }
+
+                handle = default;
+
+                break;
+
+            case RenderBufferType.Dynamic:
+
+                if(dynamicHandle.Valid)
+                {
+                    bgfx.destroy_dynamic_index_buffer(dynamicHandle);
+                }
+
+                dynamicHandle = default;
+
+                break;
         }
     }
 
@@ -77,26 +101,126 @@ public class IndexBuffer
     /// </summary>
     /// <param name="start">The starting index</param>
     /// <param name="count">The amount of indices to use</param>
-    public void SetActive(uint start, uint count)
+    internal void SetActive(uint start, uint count)
     {
         if (Disposed)
         {
             return;
         }
 
-        if(isTransient)
+        switch(type)
         {
-            unsafe
-            {
-                fixed (bgfx.TransientIndexBuffer* buffer = &transientHandle)
+            case RenderBufferType.Normal:
+
+                bgfx.set_index_buffer(handle, start, count);
+
+                break;
+
+            case RenderBufferType.Dynamic:
+
+                bgfx.set_dynamic_index_buffer(dynamicHandle, start, count);
+
+                break;
+
+            case RenderBufferType.Transient:
+
+                unsafe
                 {
-                    bgfx.set_transient_index_buffer(buffer, start, count);
+                    fixed (bgfx.TransientIndexBuffer* buffer = &transientHandle)
+                    {
+                        bgfx.set_transient_index_buffer(buffer, start, count);
+                    }
                 }
-            }
+
+                break;
         }
-        else
+    }
+
+    /// <summary>
+    /// Sets this buffer as a compute buffer
+    /// </summary>
+    /// <param name="stage">The buffer stage</param>
+    /// <param name="access">The access mode</param>
+    internal void SetBufferActive(byte stage, Access access)
+    {
+        if (Disposed || type == RenderBufferType.Transient)
         {
-            bgfx.set_index_buffer(handle, start, count);
+            return;
+        }
+
+        switch (type)
+        {
+            case RenderBufferType.Normal:
+
+                bgfx.set_compute_index_buffer(stage, handle, BGFXUtils.GetBGFXAccess(access));
+
+                break;
+
+            case RenderBufferType.Dynamic:
+
+                bgfx.set_compute_dynamic_index_buffer(stage, dynamicHandle, BGFXUtils.GetBGFXAccess(access));
+
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates the index buffer's data (if it's dynamic)
+    /// </summary>
+    /// <param name="indices">An array of new data</param>
+    /// <param name="startIndex">The starting index</param>
+    public void Update(Span<ushort> indices, int startIndex)
+    {
+        if(Disposed || type != RenderBufferType.Dynamic)
+        {
+            return;
+        }
+
+        if(dynamicHandle.Valid == false ||
+            indices.Length == 0)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.Memory* outData = bgfx.alloc((uint)(indices.Length * sizeof(ushort)));
+
+            var target = new Span<ushort>(outData->data, indices.Length);
+
+            indices.CopyTo(target);
+
+            bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
+        }
+    }
+
+    /// <summary>
+    /// Updates the index buffer's data (if it's dynamic)
+    /// </summary>
+    /// <param name="indices">An array of new data</param>
+    /// <param name="startIndex">The starting index</param>
+    public void Update(Span<uint> indices, int startIndex)
+    {
+        if (Disposed || type != RenderBufferType.Dynamic)
+        {
+            return;
+        }
+
+        if (dynamicHandle.Valid == false ||
+            indices.Length == 0)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            bgfx.Memory* outData = bgfx.alloc((uint)(indices.Length * sizeof(uint)));
+
+            var target = new Span<uint>(outData->data, indices.Length);
+
+            indices.CopyTo(target);
+
+            bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
         }
     }
 
@@ -120,9 +244,9 @@ public class IndexBuffer
     /// Creates an index buffer from ushort data
     /// </summary>
     /// <param name="data">The data</param>
-    /// <param name="flags">The buffer flags</param>
+    /// <param name="flags">Additional flags</param>
     /// <returns>The index buffer, or null</returns>
-    public static IndexBuffer Create(Span<ushort> data, RenderBufferFlags flags)
+    public static IndexBuffer Create(Span<ushort> data, RenderBufferFlags flags = RenderBufferFlags.None)
     {
         var size = Marshal.SizeOf<ushort>();
 
@@ -134,7 +258,7 @@ public class IndexBuffer
 
             data.CopyTo(target);
 
-            var handle = bgfx.create_index_buffer(outData, (ushort)flags);
+            var handle = bgfx.create_index_buffer(outData, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
 
             return new IndexBuffer(handle);
         }
@@ -144,9 +268,9 @@ public class IndexBuffer
     /// Creates an index buffer from uint data
     /// </summary>
     /// <param name="data">The data</param>
-    /// <param name="flags">The buffer flags</param>
+    /// <param name="flags">Additional flags</param>
     /// <returns>The index buffer, or null</returns>
-    public static IndexBuffer Create(Span<uint> data, RenderBufferFlags flags)
+    public static IndexBuffer Create(Span<uint> data, RenderBufferFlags flags = RenderBufferFlags.None)
     {
         var size = Marshal.SizeOf<uint>();
 
@@ -158,7 +282,29 @@ public class IndexBuffer
 
             data.CopyTo(target);
 
-            var handle = bgfx.create_index_buffer(outData, (ushort)(flags | RenderBufferFlags.Index32));
+            var handle = bgfx.create_index_buffer(outData, (ushort)BGFXUtils.GetBGFXBufferFlags((flags | RenderBufferFlags.Index32)));
+
+            return new IndexBuffer(handle);
+        }
+    }
+
+    /// <summary>
+    /// Creates a dynamic index buffer
+    /// </summary>
+    /// <param name="flags">Additional flags</param>
+    /// <param name="allowResize">Whether the buffer can be resized</param>
+    /// <param name="elementCount">The element count for the buffer</param>
+    /// <returns>The index buffer</returns>
+    public static IndexBuffer CreateDynamic(RenderBufferFlags flags = RenderBufferFlags.None, bool allowResize = true, uint elementCount = 0)
+    {
+        unsafe
+        {
+            if (allowResize)
+            {
+                flags |= RenderBufferFlags.AllowResize;
+            }
+
+            var handle = bgfx.create_dynamic_index_buffer(elementCount, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
 
             return new IndexBuffer(handle);
         }
