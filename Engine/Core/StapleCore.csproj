@@ -196,7 +196,6 @@
 		<Compile Include="UI\UIImage.cs" />
 		<Compile Include="UI\UIText.cs" />
 		<Compile Include="Utilities\CallbackGatherer.cs" />
-		<Compile Include="Utilities\ConcurrentExpandableArray.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
 		<Compile Include="Rendering\Animation\SkinnedMeshAnimationEvaluator.cs" />

@@ -96,7 +96,7 @@ public class TextRenderer
         var min = Vector2Int.Zero;
         var max = Vector2Int.Zero;
 
-        var lines = str.Replace("\r", "").Split(['\n']);
+        var lines = str.Replace("\r", "").Split('\n');
         var first = true;
 
         for(var i = 0; i < lines.Length; i++)
@@ -319,7 +319,7 @@ public class TextRenderer
 
         var initialPosition = position;
 
-        var lines = text.Replace("\r", "").Split(['\n']);
+        var lines = text.Replace("\r", "").Split('\n');
 
         vertexCache.Clear();
         indexCache.Clear();
@@ -430,8 +430,8 @@ public class TextRenderer
             position.Y += lineSpace;
         }
 
-        vertices = vertexCache.Contents.AsSpan(0, vertexCache.Length);
-        indices = indexCache.Contents.AsSpan(0, indexCache.Length);
+        vertices = vertexCache.Contents;
+        indices = indexCache.Contents;
 
         return true;
     }

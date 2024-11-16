@@ -22,9 +22,7 @@ public class UICanvasSystem : IRenderSystem
 
     private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
-    private RenderInfo[] renders = [];
-
-    private int renderCount = 0;
+    private readonly ExpandableContainer<RenderInfo> renders = new();
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 
@@ -44,12 +42,7 @@ public class UICanvasSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if (renders.Length < entities.Length)
-        {
-            Array.Resize(ref renders, entities.Length);
-        }
-
-        var index = 0;
+        renders.Clear();
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -58,23 +51,21 @@ public class UICanvasSystem : IRenderSystem
                 continue;
             }
 
-            renders[index].canvas = canvas;
-            renders[index].canvasTransform = transform;
-            renders[index].projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
-
-            index++;
+            renders.Add(new()
+            {
+                canvas = canvas,
+                canvasTransform = transform,
+                projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1)
+            });
         }
-
-        renderCount = index;
     }
 
     public Type RelatedComponent() => typeof(UICanvas);
 
     public void Submit()
     {
-        for(var i = 0; i < renderCount; i++)
+        foreach(var render in renders.Contents)
         {
-            var render = renders[i];
             var view = Matrix4x4.Identity;
             var projection = render.projection;
 

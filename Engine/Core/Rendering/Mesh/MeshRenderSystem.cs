@@ -1,6 +1,5 @@
 ﻿using Bgfx;
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -36,9 +35,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         public ushort viewID;
     }
 
-    private RenderInfo[] renderers = [];
-
-    private int rendererCount = 0;
+    private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     /// <summary>
     /// Renders a mesh
@@ -152,12 +149,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if(renderers.Length < entities.Length)
-        {
-            Array.Resize(ref renderers, entities.Length);
-        }
-
-        var index = 0;
+        renderers.Clear();
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -184,15 +176,14 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            renderers[index].renderer = r;
-            renderers[index].position = transform.Position;
-            renderers[index].transform = transform.Matrix;
-            renderers[index].viewID = viewId;
-
-            index++;
+            renderers.Add(new()
+            {
+                renderer = r,
+                position = transform.Position,
+                transform = transform.Matrix,
+                viewID = viewId
+            });
         }
-
-        rendererCount = index;
     }
 
     public Type RelatedComponent()
@@ -211,10 +202,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         Material lastMaterial = null;
 
-        for(var i = 0; i < rendererCount; i++)
+        foreach(var pair in renderers.Contents)
         {
-            var pair = renderers[i];
-
             void DrawMesh(int index)
             {
                 var material = pair.renderer.materials[index];

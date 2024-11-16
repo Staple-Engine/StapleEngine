@@ -7,7 +7,6 @@ namespace Staple;
 /// An expandable container for a specific type of element.
 /// Unlike a regular list or array, this is optimized to never actually clear its data
 /// and to not act as IEnumerable, providing the raw array instead, for maximum performance.
-/// You should always use the Length property rather than the Contents Length property when iterating.
 /// This allows for fast reusable iterations with varying amounts of elements over each frame,
 /// reallocating the least amount possible.
 /// </summary>
@@ -25,8 +24,7 @@ public class ExpandableContainer<T>
     /// <summary>
     /// Gets the current contents.
     /// </summary>
-    /// <remarks>Use the Length property of the ExpandableContainer, not the contents's Length</remarks>
-    public T[] Contents => contents;
+    public Span<T> Contents => contents.AsSpan(0, length);
 
     /// <summary>
     /// Clears the contents

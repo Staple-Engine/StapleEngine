@@ -347,9 +347,9 @@ public class AudioSystem : ISubsystem
             }
         }
 
-        for(var i = 0; i < removedAudioSources.Length; i++)
+        foreach(var source in removedAudioSources.Contents)
         {
-            audioSources.Remove(removedAudioSources.Contents[i]);
+            audioSources.Remove(source);
         }
     }
 
