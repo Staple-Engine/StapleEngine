@@ -19,7 +19,10 @@ public enum ShaderUniformType
     Color,
     Texture,
     Matrix3x3,
-    Matrix4x4
+    Matrix4x4,
+    ReadOnlyBuffer,
+    WriteOnlyBuffer,
+    ReadWriteBuffer,
 }
 
 [MessagePackObject]
@@ -30,6 +33,9 @@ public class ShaderUniform
 
     [Key(1)]
     public ShaderUniformType type;
+
+    [Key(2)]
+    public int slot;
 }
 
 [MessagePackObject]

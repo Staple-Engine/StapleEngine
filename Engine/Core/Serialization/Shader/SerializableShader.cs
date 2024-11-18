@@ -42,5 +42,5 @@ public class SerializableShader
     public ShaderMetadata metadata;
 
     [Key(1)]
-    public Dictionary<string, SerializableShaderData> data = new();
+    public Dictionary<string, SerializableShaderData> data = [];
 }

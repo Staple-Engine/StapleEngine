@@ -3960,9 +3960,10 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(2);
+            writer.WriteArrayHeader(3);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Serialize(ref writer, value.type, options);
+            writer.Write(value.slot);
         }
 
         public global::Staple.Internal.ShaderUniform Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3986,6 +3987,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 1:
                         ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Deserialize(ref reader, options);
+                        break;
+                    case 2:
+                        ____result.slot = reader.ReadInt32();
                         break;
                     default:
                         reader.Skip();
