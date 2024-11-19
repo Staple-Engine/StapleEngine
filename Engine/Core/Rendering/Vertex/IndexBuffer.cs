@@ -169,14 +169,12 @@ public class IndexBuffer
     /// </summary>
     /// <param name="indices">An array of new data</param>
     /// <param name="startIndex">The starting index</param>
-    public void Update(Span<ushort> indices, int startIndex)
+    /// <param name="copyMemory">Whether to copy the data to memory (data needs to be available for at least 2 frames)</param>
+    public void Update(Span<ushort> indices, int startIndex, bool copyMemory)
     {
-        if(Disposed || type != RenderBufferType.Dynamic)
-        {
-            return;
-        }
-
-        if(dynamicHandle.Valid == false ||
+        if(Disposed ||
+            type != RenderBufferType.Dynamic ||
+            dynamicHandle.Valid == false ||
             indices.Length == 0)
         {
             return;
@@ -184,13 +182,21 @@ public class IndexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.alloc((uint)(indices.Length * sizeof(ushort)));
+            fixed (void* ptr = indices)
+            {
+                var dataSize = (uint)(indices.Length * sizeof(ushort));
 
-            var target = new Span<ushort>(outData->data, indices.Length);
+                bgfx.Memory* outData = copyMemory ? bgfx.alloc(dataSize) : bgfx.make_ref(ptr, dataSize);
 
-            indices.CopyTo(target);
+                if (copyMemory)
+                {
+                    var target = new Span<ushort>(outData->data, indices.Length);
 
-            bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
+                    indices.CopyTo(target);
+                }
+
+                bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
+            }
         }
     }
 
@@ -199,14 +205,12 @@ public class IndexBuffer
     /// </summary>
     /// <param name="indices">An array of new data</param>
     /// <param name="startIndex">The starting index</param>
-    public void Update(Span<uint> indices, int startIndex)
+    /// <param name="copyMemory">Whether to copy the data to memory (data needs to be available for at least 2 frames)</param>
+    public void Update(Span<uint> indices, int startIndex, bool copyMemory)
     {
-        if (Disposed || type != RenderBufferType.Dynamic)
-        {
-            return;
-        }
-
-        if (dynamicHandle.Valid == false ||
+        if (Disposed ||
+            type != RenderBufferType.Dynamic ||
+            dynamicHandle.Valid == false ||
             indices.Length == 0)
         {
             return;
@@ -214,13 +218,21 @@ public class IndexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.alloc((uint)(indices.Length * sizeof(uint)));
+            fixed (void* ptr = indices)
+            {
+                var dataSize = (uint)(indices.Length * sizeof(uint));
 
-            var target = new Span<uint>(outData->data, indices.Length);
+                bgfx.Memory* outData = copyMemory ? bgfx.alloc(dataSize) : bgfx.make_ref(ptr, dataSize);
 
-            indices.CopyTo(target);
+                if(copyMemory)
+                {
+                    var target = new Span<uint>(outData->data, indices.Length);
 
-            bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
+                    indices.CopyTo(target);
+                }
+
+                bgfx.update_dynamic_index_buffer(dynamicHandle, (uint)startIndex, outData);
+            }
         }
     }
 

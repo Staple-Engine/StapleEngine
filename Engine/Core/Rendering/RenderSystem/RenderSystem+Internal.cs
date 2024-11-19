@@ -177,7 +177,7 @@ public sealed partial class RenderSystem
     {
         foreach (var system in renderSystems)
         {
-            system.Destroy();
+            system.Shutdown();
         }
     }
 

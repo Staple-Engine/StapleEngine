@@ -74,7 +74,11 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly List<SpriteRenderInfo> sprites = new();
 
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 

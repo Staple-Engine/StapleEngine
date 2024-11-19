@@ -57,7 +57,7 @@ public class VertexBuffer
     /// <summary>
     /// Destroys the resource
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         if (Disposed)
         {
@@ -167,19 +167,12 @@ public class VertexBuffer
     /// <param name="data">An array of new data</param>
     /// <param name="lengthInBytes">The amount of bytes for the data</param>
     /// <param name="startVertex">The starting vertex</param>
-    public void Update(nint data, int lengthInBytes, int startVertex)
+    /// <param name="copyMemory">Whether to copy the data to memory (data needs to be available for at least 2 frames)</param>
+    public void Update(nint data, int lengthInBytes, int startVertex, bool copyMemory)
     {
-        if (Disposed)
-        {
-            return;
-        }
-
-        if (type != RenderBufferType.Dynamic)
-        {
-            return;
-        }
-
-        if (dynamicHandle.Valid == false ||
+        if (Disposed ||
+            type != RenderBufferType.Dynamic ||
+            dynamicHandle.Valid == false ||
             data == nint.Zero ||
             lengthInBytes == 0 ||
             lengthInBytes % layout.layout.stride != 0)
@@ -189,12 +182,17 @@ public class VertexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.alloc((uint)lengthInBytes);
+            var size = (uint)lengthInBytes;
 
-            var source = new Span<byte>((void*)data, lengthInBytes);
-            var target = new Span<byte>(outData->data, lengthInBytes);
+            bgfx.Memory* outData = copyMemory ? bgfx.alloc(size) : bgfx.make_ref((void *)data, size);
 
-            source.CopyTo(target);
+            if(copyMemory)
+            {
+                var source = new Span<byte>((void*)data, lengthInBytes);
+                var target = new Span<byte>(outData->data, lengthInBytes);
+
+                source.CopyTo(target);
+            }
 
             bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
         }
@@ -206,16 +204,14 @@ public class VertexBuffer
     /// <typeparam name="T">A vertex type (probably a struct)</typeparam>
     /// <param name="data">An array of new data</param>
     /// <param name="startVertex">The starting vertex</param>
-    public void Update<T>(Span<T> data, int startVertex) where T : unmanaged
+    /// <param name="copyMemory">Whether to copy the data to memory (data needs to be available for at least 2 frames)</param>
+    public void Update<T>(Span<T> data, int startVertex, bool copyMemory) where T : unmanaged
     {
-        if (Disposed || type != RenderBufferType.Dynamic)
-        {
-            return;
-        }
-
         var size = Marshal.SizeOf<T>();
 
-        if (dynamicHandle.Valid == false ||
+        if (Disposed ||
+            type != RenderBufferType.Dynamic ||
+            dynamicHandle.Valid == false ||
             data.Length == 0 ||
             size != layout.layout.stride)
         {
@@ -224,13 +220,21 @@ public class VertexBuffer
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
+            fixed(void *ptr = data)
+            {
+                var dataSize = (uint)(data.Length * size);
 
-            var target = new Span<T>(outData->data, data.Length);
+                bgfx.Memory* outData = copyMemory ? bgfx.alloc(dataSize) : bgfx.make_ref(ptr, dataSize);
 
-            data.CopyTo(target);
+                if(copyMemory)
+                {
+                    var target = new Span<T>(outData->data, data.Length);
 
-            bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
+                    data.CopyTo(target);
+                }
+
+                bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
+            }
         }
     }
 
@@ -239,34 +243,37 @@ public class VertexBuffer
     /// </summary>
     /// <param name="data">An array of new data as bytes</param>
     /// <param name="startVertex">The starting vertex</param>
-    public void Update(Span<byte> data, int startVertex)
+    /// <param name="copyMemory">Whether to copy the data to memory (data needs to be available for at least 2 frames)</param>
+    public void Update(Span<byte> data, int startVertex, bool copyMemory)
     {
-        if (Disposed)
-        {
-            return;
-        }
-
-        if (type != RenderBufferType.Dynamic)
-        {
-            return;
-        }
-
         var size = layout.layout.stride;
 
-        if (dynamicHandle.Valid == false || data.Length == 0 || data.Length % size != 0)
+        if (Disposed ||
+            type != RenderBufferType.Dynamic ||
+            dynamicHandle.Valid == false ||
+            data.Length == 0 ||
+            data.Length % size != 0)
         {
             return;
         }
 
         unsafe
         {
-            bgfx.Memory* outData = bgfx.alloc((uint)data.Length);
+            fixed (void* ptr = data)
+            {
+                var dataSize = (uint)data.Length;
 
-            var target = new Span<byte>(outData->data, data.Length);
+                bgfx.Memory* outData = copyMemory ? bgfx.alloc((uint)data.Length) : bgfx.make_ref(ptr, dataSize);
 
-            data.CopyTo(target);
+                if(copyMemory)
+                {
+                    var target = new Span<byte>(outData->data, data.Length);
 
-            bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
+                    data.CopyTo(target);
+                }
+
+                bgfx.update_dynamic_vertex_buffer(dynamicHandle, (uint)startVertex, outData);
+            }
         }
     }
 

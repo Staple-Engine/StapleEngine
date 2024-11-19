@@ -481,11 +481,17 @@ vec4 i_data7        :   TEXCOORD0;
                         }
                     }
 
-                    string GetNativeShaderType(ShaderUniformType type, string name, string attribute, int index, bool uniform)
+                    string GetNativeShaderType(ShaderParameter parameter, int index, bool uniform)
                     {
                         var uniformString = uniform ? "uniform " : "";
+                        var name = parameter.name;
 
-                        return type switch
+                        if(int.TryParse(parameter.defaultValue, out var bufferIndex) == false)
+                        {
+                            bufferIndex = -1;
+                        }
+
+                        return parameter.type switch
                         {
                             ShaderUniformType.Float => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.x\n" : $"float {name}",
                             ShaderUniformType.Vector2 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xy\n" : $"vec2 {name}",
@@ -494,9 +500,9 @@ vec4 i_data7        :   TEXCOORD0;
                             ShaderUniformType.Texture => $"SAMPLER2D({name}, {index})",
                             ShaderUniformType.Matrix3x3 => $"{uniformString}mat3 {name}",
                             ShaderUniformType.Matrix4x4 => $"{uniformString}mat4 {name}",
-                            ShaderUniformType.ReadOnlyBuffer => $"BUFFER_RO({name}, {attribute}, {index})",
-                            ShaderUniformType.WriteOnlyBuffer => $"BUFFER_WO({name}, {attribute}, {index})",
-                            ShaderUniformType.ReadWriteBuffer => $"BUFFER_RW({name}, {attribute}, {index})",
+                            ShaderUniformType.ReadOnlyBuffer => $"BUFFER_RO({name}, {parameter.attribute}, {bufferIndex})",
+                            ShaderUniformType.WriteOnlyBuffer => $"BUFFER_WO({name}, {parameter.attribute}, {bufferIndex})",
+                            ShaderUniformType.ReadWriteBuffer => $"BUFFER_RW({name}, {parameter.attribute}, {bufferIndex})",
                             _ => $"{uniformString}vec4 {name}",
                         };
                     }
@@ -559,32 +565,20 @@ vec4 i_data7        :   TEXCOORD0;
 
                             var counters = new Dictionary<ShaderUniformType, int>();
 
-                            static ShaderUniformType CounterType(ShaderUniformType t)
-                            {
-                                return t switch
-                                {
-                                    ShaderUniformType.ReadOnlyBuffer or ShaderUniformType.WriteOnlyBuffer or ShaderUniformType.ReadWriteBuffer =>
-                                       ShaderUniformType.ReadWriteBuffer,
-                                    _ => t,
-                                };
-                            }
-
                             foreach (var parameter in shader.parameters)
                             {
                                 if (parameter.semantic == ShaderParameterSemantic.Uniform)
                                 {
                                     var counter = 0;
 
-                                    var counterType = CounterType(parameter.type);
-
-                                    if (counters.ContainsKey(counterType))
+                                    if (counters.ContainsKey(parameter.type))
                                     {
-                                        counter = counters[counterType];
+                                        counter = counters[parameter.type];
                                     }
 
-                                    counters.AddOrSetKey(counterType, counter + 1);
+                                    counters.AddOrSetKey(parameter.type, counter + 1);
 
-                                    code += $"{GetNativeShaderType(parameter.type, parameter.name, parameter.attribute, counter, true)}";
+                                    code += $"{GetNativeShaderType(parameter, counter, true)}";
 
                                     if (ShaderTypeHasEndTerminator(parameter.type))
                                     {
@@ -698,7 +692,7 @@ vec4 i_data7        :   TEXCOORD0;
 
                                             counters.AddOrSetKey(parameter.type, counter + 1);
 
-                                            varying += $"\n{GetNativeShaderType(parameter.type, parameter.name, "", counter, false)}";
+                                            varying += $"\n{GetNativeShaderType(parameter, counter, false)}";
 
                                             if ((parameter.attribute?.Length ?? 0) > 0)
                                             {

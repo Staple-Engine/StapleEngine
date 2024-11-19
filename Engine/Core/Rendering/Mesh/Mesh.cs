@@ -744,11 +744,11 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="meshData">The mesh data as bytes</param>
     /// <param name="vertexLayout">The vertex layout</param>
     /// <remarks>If the vertex buffer is valid and is dynamic, this will immediately update the vertex buffer</remarks>
-    public void SetMeshData(byte[] meshData, VertexLayout vertexLayout)
+    public void SetMeshData(Span<byte> meshData, VertexLayout vertexLayout)
     {
-        if(meshData == null || vertexLayout == null)
+        if(vertexLayout == null)
         {
-            throw new Exception("Mesh Data or Vertex Layout are null");
+            throw new Exception("Vertex Layout is null");
         }
 
         if(meshData.Length % vertexLayout.layout.stride != 0)
@@ -756,12 +756,12 @@ public sealed partial class Mesh : IGuidAsset
             throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.layout.stride})");
         }
 
-        meshDataBlob = meshData;
+        meshDataBlob = meshData.ToArray();
         meshDataVertexLayout = vertexLayout;
 
         if(vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
         {
-            vertexBuffer.Update(meshData, 0);
+            vertexBuffer.Update(meshDataBlob, 0, false);
         }
         else
         {
@@ -775,11 +775,11 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="meshData">The mesh data vertex elements</param>
     /// <param name="vertexLayout">The vertex layout</param>
     /// <remarks>If the vertex buffer is valid and is dynamic, this will immediately update the vertex buffer</remarks>
-    public void SetMeshData<T>(T[] meshData, VertexLayout vertexLayout) where T : unmanaged
+    public void SetMeshData<T>(Span<T> meshData, VertexLayout vertexLayout) where T : unmanaged
     {
-        if (meshData == null || vertexLayout == null)
+        if (vertexLayout == null)
         {
-            throw new Exception("Mesh Data or Vertex Layout are null");
+            throw new Exception("Vertex Layout is null");
         }
 
         var size = Marshal.SizeOf<T>();
@@ -805,7 +805,7 @@ public sealed partial class Mesh : IGuidAsset
 
         if (vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
         {
-            vertexBuffer.Update<T>(meshData, 0);
+            vertexBuffer.Update(meshDataBlob, 0, false);
         }
         else
         {
@@ -916,7 +916,7 @@ public sealed partial class Mesh : IGuidAsset
 
         if(vertexBuffer.type == RenderBufferType.Dynamic)
         {
-            vertexBuffer.Update(vertexBlob, 0);
+            vertexBuffer.Update(vertexBlob, 0, false);
         }
 
         switch (indexFormat)

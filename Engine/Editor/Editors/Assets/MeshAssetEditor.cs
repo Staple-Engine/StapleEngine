@@ -47,7 +47,7 @@ internal class MeshAssetEditor : AssetEditor
 
                 boneCount = meshAsset.BoneCount;
                 meshCount = meshAsset.meshes.Count;
-                hasExcessiveBones = meshAsset.BoneCount > SkinnedMeshRenderSystem.MaxBones;
+                hasExcessiveBones = false;
                 triangleCount = 0;
 
                 foreach (var mesh in meshAsset.meshes)

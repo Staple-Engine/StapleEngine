@@ -16,6 +16,14 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
         }
     }
 
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
+    {
+    }
+
     public Type RelatedComponent()
     {
         return typeof(SkinnedMeshAnimator);
@@ -102,10 +110,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 animator.evaluator = null;
             }
         }
-    }
-
-    public void Destroy()
-    {
     }
 
     public void Submit()

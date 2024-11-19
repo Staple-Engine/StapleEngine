@@ -73,12 +73,7 @@ internal static class ImGuiUtils
                 {
                     unsafe
                     {
-                        var buffer = System.Text.Encoding.UTF8.GetBytes(dragPayload);
-
-                        fixed(byte *b = buffer)
-                        {
-                            ImGui.SetDragDropPayload(b, (void *)0, 0);
-                        }
+                        ImGui.SetDragDropPayload(dragPayload, null, 0);
                     }
 
                     StapleEditor.instance.dragDropPayloads.AddOrSetKey(dragPayload, new StapleEditor.DragDropPayload()
@@ -90,7 +85,7 @@ internal static class ImGuiUtils
 
                     ImGui.EndDragDropSource();
                 }
-                else if (Input.GetMouseButtonDown(MouseButton.Left) == false)
+                else if (Input.GetMouseButton(MouseButton.Left) == false)
                 {
                     StapleEditor.instance.dragDropPayloads.Clear();
                 }

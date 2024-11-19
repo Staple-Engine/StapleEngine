@@ -28,7 +28,11 @@ public class UICanvasSystem : IRenderSystem
 
     public ObserverCallback observer;
 
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 

@@ -271,6 +271,11 @@ public partial class World
                         Destroy(child.entity);
                     }
 
+                    foreach(var pair in info.components)
+                    {
+                        RemoveComponent(e, pair.Value.GetType());
+                    }
+
                     info.components.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);

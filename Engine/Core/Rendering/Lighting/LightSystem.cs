@@ -53,7 +53,11 @@ public sealed class LightSystem : IRenderSystem
         Shader.DefaultUniforms.Add((ViewPosKey, ShaderUniformType.Vector3));
     }
 
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 

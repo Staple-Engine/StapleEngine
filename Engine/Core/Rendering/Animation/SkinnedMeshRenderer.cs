@@ -6,7 +6,7 @@ namespace Staple;
 /// <summary>
 /// Skinned Mesh Renderer component
 /// </summary>
-public sealed class SkinnedMeshRenderer : Renderable
+public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
 {
     /// <summary>
     /// The mesh used for this
@@ -37,6 +37,33 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// Cached animator for this renderer
     /// </summary>
     internal EntityQuery<SkinnedMeshAnimator> animator;
+
+    /// <summary>
+    /// The bone matrix compute buffer
+    /// </summary>
+    internal VertexBuffer boneMatrixBuffer;
+
+    /// <summary>
+    /// The bone matrix compute buffer for updating the matrices
+    /// </summary>
+    internal VertexBuffer stagingBoneMatrixBuffer;
+
+    public void Dispose()
+    {
+        if(boneMatrixBuffer != null)
+        {
+            boneMatrixBuffer.Destroy();
+
+            boneMatrixBuffer = null;
+        }
+
+        if (stagingBoneMatrixBuffer != null)
+        {
+            stagingBoneMatrixBuffer.Destroy();
+
+            stagingBoneMatrixBuffer = null;
+        }
+    }
 
     /// <summary>
     /// Resets the animation state of this renderer

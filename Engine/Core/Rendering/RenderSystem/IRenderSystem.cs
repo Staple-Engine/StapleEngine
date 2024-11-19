@@ -48,7 +48,12 @@ public interface IRenderSystem
     void Submit();
 
     /// <summary>
-    /// Destroys this render system.
+    /// Called when this render system starts up
     /// </summary>
-    void Destroy();
+    void Startup();
+
+    /// <summary>
+    /// Called when this render system shuts down
+    /// </summary>
+    void Shutdown();
 }

@@ -102,7 +102,11 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 

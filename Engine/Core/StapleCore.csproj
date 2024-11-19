@@ -122,6 +122,7 @@
 		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="Entities\EntityPrimitiveType.cs" />
 		<Compile Include="Entities\EntityQuery.cs" />
+		<Compile Include="Entities\IComponentDisposable.cs" />
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\BGFX\BGFXUtils.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />

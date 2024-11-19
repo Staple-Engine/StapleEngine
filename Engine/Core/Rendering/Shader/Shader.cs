@@ -96,9 +96,7 @@ internal partial class Shader : IGuidAsset
     internal readonly ShaderMetadata metadata;
     internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
-    internal static readonly List<(string, ShaderUniformType)> DefaultUniforms = [
-        ($"u_boneMatrices[{SkinnedMeshRenderSystem.MaxBones}]", ShaderUniformType.Matrix4x4),
-    ];
+    internal static readonly List<(string, ShaderUniformType)> DefaultUniforms = [];
 
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
@@ -360,7 +358,7 @@ internal partial class Shader : IGuidAsset
     }
 
     /// <summary>
-    /// Sets a Vector3 uniform's value
+    /// Sets a float uniform's value
     /// </summary>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>

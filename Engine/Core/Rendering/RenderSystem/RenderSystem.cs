@@ -122,7 +122,18 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 }
             }
 
-            if(system is IWorldChangeReceiver receiver)
+            try
+            {
+                system.Startup();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[RenderSystem] Failed to initialize {system.GetType().FullName}: {e}");
+
+                return;
+            }
+
+            if (system is IWorldChangeReceiver receiver)
             {
                 World.AddChangeReceiver(receiver);
             }
@@ -164,6 +175,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             {
                 if (renderSystems[i].GetType().Assembly == assembly)
                 {
+                    renderSystems[i].Shutdown();
+
                     renderSystems.RemoveAt(i);
                 }
             }

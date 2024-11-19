@@ -295,6 +295,11 @@ public partial class World
 
                     EmitRemoveComponentEvent(entity, ref component);
 
+                    if(component is IComponentDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+
                     entityInfo.components[typeName] = component;
                 }
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace Staple.Internal;
 
@@ -9,7 +8,11 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedAnimationPoserSystem : IRenderSystem
 {
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 

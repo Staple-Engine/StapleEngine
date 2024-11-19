@@ -11,11 +11,6 @@ namespace Staple.Internal;
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
     /// <summary>
-    /// Limit bones to 255
-    /// </summary>
-    internal const int MaxBones = 255;
-
-    /// <summary>
     /// Infor for rendering
     /// </summary>
     private struct RenderInfo
@@ -45,7 +40,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<int, Matrix4x4[]> cachedBoneMatrices = [];
 
-    public void Destroy()
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
     {
     }
 
@@ -71,8 +70,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.mesh.meshAssetIndex < 0 ||
                 renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
                 renderer.materials == null ||
-                renderer.materials.Count != renderer.mesh.submeshes.Count ||
-                renderer.mesh.meshAsset.BoneCount >= MaxBones)
+                renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
                 continue;
             }
@@ -136,14 +134,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 var bones = meshAssetMesh.bones[i];
 
-                if (bones.Length > MaxBones)
-                {
-                    Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {bones.Length} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
-
-                    continue;
-                }
-
                 if (renderer.cachedNodes[i].Length != bones.Length)
                 {
                     renderer.cachedNodes[i] = new MeshAsset.Node[bones.Length];
@@ -176,7 +166,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     }
                 }
 
-                if (animator == null || animator.shouldRender)
+                if (animator == null || animator.shouldRender || renderer.stagingBoneMatrixBuffer == null)
                 {
                     for (var j = 0; j < bones.Length; j++)
                     {
@@ -198,6 +188,23 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         }
 
                         boneMatrices[meshAssetMesh.startBoneIndex + j] = bone.offsetMatrix * globalTransform;
+                    }
+
+                    if (renderer.stagingBoneMatrixBuffer?.Disposed ?? true)
+                    {
+                        renderer.stagingBoneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
+
+                        renderer.stagingBoneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                    }
+
+                    if(animator?.shouldRender ?? false)
+                    {
+                        renderer.stagingBoneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
                     }
                 }
             }
@@ -254,6 +261,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var bones = meshAssetMesh.bones[j];
 
+                /*
                 if (bones.Length > MaxBones)
                 {
                     Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
@@ -261,6 +269,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     continue;
                 }
+                */
 
                 var material = renderer.materials[j];
 
@@ -301,8 +310,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     material.ApplyProperties(Material.ApplyMode.All);
 
-                    material.shader.SetMatrix4x4(material.GetShaderHandle("u_boneMatrices"), boneMatrices);
-
                     lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
                         RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
                 }
@@ -321,6 +328,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var flags = bgfx.DiscardFlags.VertexStreams |
                     bgfx.DiscardFlags.IndexBuffer |
                     bgfx.DiscardFlags.Transform;
+
+                if(renderer.stagingBoneMatrixBuffer != null)
+                {
+                    renderer.stagingBoneMatrixBuffer.SetBufferActive(15, Access.Read);
+                }
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

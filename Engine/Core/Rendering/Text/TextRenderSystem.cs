@@ -25,6 +25,15 @@ public class TextRenderSystem : IRenderSystem
 
     private readonly List<TextInfo> texts = [];
 
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
+    {
+        material?.Destroy();
+    }
+
     public Type RelatedComponent() => typeof(Text);
 
     public void Prepare()
@@ -86,10 +95,5 @@ public class TextRenderSystem : IRenderSystem
             TextRenderer.instance.DrawText(text.text, text.transform, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
                 material, text.scale, false, text.viewID);
         }
-    }
-
-    public void Destroy()
-    {
-        material?.Destroy();
     }
 }
