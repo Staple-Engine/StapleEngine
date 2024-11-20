@@ -33,7 +33,7 @@ vec3 StapleLightNormal(vec3 normal)
 float StapleLightScaling(float dotProduct)
 {
 #if HALF_LAMBERT
-	return pow(dotProduct * 0.5 + 0.5, 2);
+	return pow(dotProduct * 0.5 + 0.5, 2.0);
 #else
 	return dotProduct;
 #endif

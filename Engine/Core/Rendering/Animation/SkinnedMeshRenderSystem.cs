@@ -100,7 +100,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             var useAnimator = animator != null && animator.evaluator != null;
 
-            Matrix4x4[] boneMatrices = null;
+            Matrix4x4[] boneMatrices;
 
             if (useAnimator)
             {
@@ -226,6 +226,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         Material lastMaterial = null;
         int lastMeshAsset = 0;
         SkinnedMeshAnimator lastAnimator = null;
+        MaterialLighting lastLighting = MaterialLighting.Unlit;
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
@@ -234,61 +235,25 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var renderer = pair.renderer;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
             var animator = renderer.animator.Content;
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
                 var assetGuid = meshAsset.Guid.GetHashCode();
 
-                var useAnimator = animator != null && animator.evaluator != null;
-
-                Matrix4x4[] boneMatrices = null;
-
-                if (useAnimator)
-                {
-                    boneMatrices = animator.cachedBoneMatrices;
-                }
-                else
-                {
-                    cachedBoneMatrices.TryGetValue(assetGuid, out boneMatrices);
-                }
-
-                if(boneMatrices == null)
-                {
-                    continue;
-                }
-
-                var bones = meshAssetMesh.bones[j];
-
-                /*
-                if (bones.Length > MaxBones)
-                {
-                    Log.Warning($"Skipping skinned mesh render for {meshAssetMesh.name}: " +
-                        $"Bone count of {bones.Length} exceeds limit of {MaxBones}, try setting split large meshes in the import settings!");
-
-                    continue;
-                }
-                */
-
                 var material = renderer.materials[j];
 
-#if STAPLE_USE_EXPERIMENTAL_OPTIMIZATIONS
-                var needsChange = assetGuid != lastMeshAsset ||
-                    material.Guid != (lastMaterial?.Guid ?? "") ||
-                    lastAnimator != animator;
-#else
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.Guid != (lastMaterial?.Guid ?? "") ||
                     lastAnimator != animator ||
-                    renderer.lighting != MaterialLighting.Unlit;
-#endif
+                    lastLighting != renderer.lighting;
 
                 if (needsChange)
                 {
                     lastMeshAsset = assetGuid;
                     lastMaterial = material;
                     lastAnimator = animator;
+                    lastLighting = renderer.lighting;
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
 
@@ -329,10 +294,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     bgfx.DiscardFlags.IndexBuffer |
                     bgfx.DiscardFlags.Transform;
 
-                if(renderer.stagingBoneMatrixBuffer != null)
-                {
-                    renderer.stagingBoneMatrixBuffer.SetBufferActive(15, Access.Read);
-                }
+                renderer.stagingBoneMatrixBuffer?.SetBufferActive(15, Access.Read);
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

@@ -205,6 +205,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             bgfx.StateFlags.DepthTestLequal;
 
         Material lastMaterial = null;
+        MaterialLighting lastLighting = MaterialLighting.Unlit;
 
         foreach(var pair in renderers.Contents)
         {
@@ -212,18 +213,15 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 var material = pair.renderer.materials[index];
 
-#if STAPLE_USE_EXPERIMENTAL_OPTIMIZATIONS
-                var needsChange = lastMaterial?.Guid.GetHashCode() != material?.Guid?.GetHashCode();
-#else
                 var needsChange = lastMaterial?.Guid.GetHashCode() != material?.Guid?.GetHashCode() ||
-                    pair.renderer.lighting != MaterialLighting.Unlit;
-#endif
+                    lastLighting != pair.renderer.lighting;
 
                 if (needsChange)
                 {
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
 
                     lastMaterial = material;
+                    lastLighting = pair.renderer.lighting;
 
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
 

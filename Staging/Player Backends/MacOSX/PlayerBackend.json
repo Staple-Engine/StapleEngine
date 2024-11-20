@@ -4,7 +4,7 @@
 	"redistOutput": ".",
 	"dataDir": "Data",
 	"platformRuntime": "osx-arm64",
-	"framework": "net8.0",
+	"framework": "net9.0",
 	"publish": true,
 	"dataDirIsOutput": true,
 	"renderers": [

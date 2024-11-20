@@ -114,7 +114,7 @@ public class PlayerActivity : StapleActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        TypeCacheRegistration.RegisterAll();
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
         base.OnCreate(savedInstanceState);
     }

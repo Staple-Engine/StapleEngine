@@ -61,7 +61,6 @@ namespace StapleCodeGeneration
     {{
         public static void RegisterAll()
         {{
-            Staple.Internal.TypeCache.Clear();
 ";
 
             var types = new HashSet<string>();
