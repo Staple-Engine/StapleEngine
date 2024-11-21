@@ -38,12 +38,16 @@ public class IndexBuffer
     {
         type = RenderBufferType.Normal;
         this.handle = handle;
+
+        ResourceManager.instance.userCreatedIndexBuffers.Add(new(this));
     }
 
     internal unsafe IndexBuffer(bgfx.DynamicIndexBufferHandle handle)
     {
         type = RenderBufferType.Dynamic;
         dynamicHandle = handle;
+
+        ResourceManager.instance.userCreatedIndexBuffers.Add(new(this));
     }
 
     internal unsafe IndexBuffer(bgfx.TransientIndexBuffer handle)

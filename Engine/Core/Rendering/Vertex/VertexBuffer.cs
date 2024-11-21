@@ -29,6 +29,8 @@ public class VertexBuffer
 
         this.layout = layout;
         this.handle = handle;
+
+        ResourceManager.instance.userCreatedVertexBuffers.Add(new(this));
     }
 
     internal unsafe VertexBuffer(VertexLayout layout, bgfx.DynamicVertexBufferHandle handle)
@@ -38,6 +40,8 @@ public class VertexBuffer
         this.layout = layout;
 
         dynamicHandle = handle;
+
+        ResourceManager.instance.userCreatedVertexBuffers.Add(new(this));
     }
 
     internal unsafe VertexBuffer(VertexLayout layout, bgfx.TransientVertexBuffer buffer)

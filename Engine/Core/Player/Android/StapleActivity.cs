@@ -405,7 +405,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         lock (renderWindow.renderLock)
         {
-            renderWindow.shouldRender = renderWindow.window.Unavailable == false && (AppSettings.Current.runInBackground == true || renderWindow.window.IsFocused == true);
+            renderWindow.shouldRender = renderWindow.window.Unavailable == false && renderWindow.window.IsFocused;
         }
 
         if (renderWindow.window.Unavailable)
@@ -431,7 +431,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         renderWindow.CheckContextLost();
 
-        if (AppSettings.Current.runInBackground == false && renderWindow.window.IsFocused != renderWindow.hasFocus)
+        if (renderWindow.window.IsFocused != renderWindow.hasFocus)
         {
             renderWindow.hasFocus = renderWindow.window.IsFocused;
 
@@ -505,8 +505,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 renderWindow.screenHeight = height;
                 renderWindow.window = nativeWindow;
                 renderWindow.unavailable = false;
-
-                renderWindow.ContextLost = true;
             });
 
             new Handler(Looper.MainLooper).Post(() =>
@@ -551,6 +549,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         AndroidRenderWindow.Instance.Mutate((renderWindow) =>
         {
             renderWindow.unavailable = true;
+            renderWindow.contextLost = true;
         });
     }
 
@@ -574,6 +573,35 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         return outValue.ToArray();
     }
 
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+
+        if(hasFocus)
+        {
+            if(OperatingSystem.IsAndroidVersionAtLeast(35))
+            {
+                Window.InsetsController.Hide(WindowInsets.Type.SystemBars());
+                Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+            else if (OperatingSystem.IsAndroidVersionAtLeast(30))
+            {
+                Window.SetDecorFitsSystemWindows(false);
+                Window.InsetsController.Hide(WindowInsets.Type.SystemBars());
+                Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+            else if (OperatingSystem.IsAndroidVersionAtLeast(19))
+            {
+                Window.DecorView.SystemUiFlags = SystemUiFlags.LayoutStable |
+                    SystemUiFlags.LayoutHideNavigation |
+                    SystemUiFlags.LayoutFullscreen |
+                    SystemUiFlags.HideNavigation |
+                    SystemUiFlags.Fullscreen |
+                    SystemUiFlags.ImmersiveSticky;
+            }
+        }
+    }
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
@@ -586,6 +614,10 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         {
             Java.Lang.JavaSystem.LoadLibrary(library);
         }
+
+        RequestWindowFeature(WindowFeatures.NoTitle);
+
+        Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
 
         if(OperatingSystem.IsAndroidVersionAtLeast(23))
         {
@@ -619,22 +651,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
-        }
-
-        if (OperatingSystem.IsAndroidVersionAtLeast(30))
-        {
-            Window.SetDecorFitsSystemWindows(false);
-            Window.InsetsController.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
-            Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
-        }
-        else if (OperatingSystem.IsAndroidVersionAtLeast(19))
-        {
-            Window.DecorView.SystemUiFlags = SystemUiFlags.HideNavigation |
-                SystemUiFlags.LayoutHideNavigation |
-                SystemUiFlags.LayoutFullscreen |
-                SystemUiFlags.Fullscreen |
-                SystemUiFlags.LayoutStable |
-                SystemUiFlags.ImmersiveSticky;
         }
 
         MessagePackInit.Initialize();

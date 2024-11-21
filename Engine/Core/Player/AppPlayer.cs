@@ -237,6 +237,11 @@ internal class AppPlayer
 
         renderWindow.OnUpdate = () =>
         {
+            if((AppSettings.Current?.allowFullscreenSwitch ?? true) && Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Enter))
+            {
+                Screen.SetResolution(Screen.Width, Screen.Height, Screen.WindowMode == WindowMode.Windowed ? WindowMode.BorderlessFullscreen : WindowMode.Windowed);
+            }
+
             SubsystemManager.instance.Update(SubsystemType.Update);
         };
 

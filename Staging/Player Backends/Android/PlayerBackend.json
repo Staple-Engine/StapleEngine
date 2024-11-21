@@ -8,6 +8,7 @@
 	"publish": false,
 	"dataDirIsOutput": false,
 	"renderers": [
-		"OpenGLES"
+		"OpenGLES",
+		"Vulkan"
 	]
 }

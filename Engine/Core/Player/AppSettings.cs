@@ -174,6 +174,12 @@ public class AppSettings
     [Key(24)]
     public bool enableLighting = true;
 
+    /// <summary>
+    /// Whether to allow switching to fullscreen and back with ALT+Enter
+    /// </summary>
+    [Key(25)]
+    public bool allowFullscreenSwitch = true;
+
     [IgnoreMember]
     public static AppSettings Default
     {

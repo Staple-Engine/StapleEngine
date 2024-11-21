@@ -56,8 +56,10 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        if(mesh.changed)
+        if(mesh.changed || (mesh.vertexBuffer?.Disposed ?? true) || (mesh.indexBuffer?.Disposed ?? true))
         {
+            mesh.changed = true;
+
             mesh.UploadMeshData();
         }
 

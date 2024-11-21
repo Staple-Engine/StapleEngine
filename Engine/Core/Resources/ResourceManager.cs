@@ -24,17 +24,19 @@ internal class ResourceManager
     internal Android.Content.Res.AssetManager assetManager;
 #endif
 
-    internal readonly Dictionary<string, Texture> cachedTextures = new();
-    internal readonly Dictionary<string, Material> cachedMaterials = new();
-    internal readonly Dictionary<string, Shader> cachedShaders = new();
-    internal readonly Dictionary<string, Mesh> cachedMeshes = new();
-    internal readonly Dictionary<string, AudioClip> cachedAudioClips = new();
-    internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = new();
-    internal readonly Dictionary<string, FontAsset> cachedFonts = new();
-    internal readonly Dictionary<string, IStapleAsset> cachedAssets = new();
-    internal readonly Dictionary<string, Prefab> cachedPrefabs = new();
-    internal readonly Dictionary<string, ResourcePak> resourcePaks = new();
-    internal readonly List<WeakReference<Texture>> userCreatedTextures = new();
+    internal readonly Dictionary<string, Texture> cachedTextures = [];
+    internal readonly Dictionary<string, Material> cachedMaterials = [];
+    internal readonly Dictionary<string, Shader> cachedShaders = [];
+    internal readonly Dictionary<string, Mesh> cachedMeshes = [];
+    internal readonly Dictionary<string, AudioClip> cachedAudioClips = [];
+    internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = [];
+    internal readonly Dictionary<string, FontAsset> cachedFonts = [];
+    internal readonly Dictionary<string, IStapleAsset> cachedAssets = [];
+    internal readonly Dictionary<string, Prefab> cachedPrefabs = [];
+    internal readonly Dictionary<string, ResourcePak> resourcePaks = [];
+    internal readonly List<WeakReference<Texture>> userCreatedTextures = [];
+    internal readonly List<WeakReference<VertexBuffer>> userCreatedVertexBuffers = [];
+    internal readonly List<WeakReference<IndexBuffer>> userCreatedIndexBuffers = [];
 
     public static string ShaderPrefix
     {
@@ -141,7 +143,26 @@ internal class ResourceManager
             pair.Value?.Destroy();
         }
 
-        if(final)
+        foreach(var item in userCreatedVertexBuffers)
+        {
+            if(item.TryGetTarget(out var buffer) && buffer.Disposed == false)
+            {
+                buffer.Destroy();
+            }
+        }
+
+        foreach (var item in userCreatedIndexBuffers)
+        {
+            if (item.TryGetTarget(out var buffer) && buffer.Disposed == false)
+            {
+                buffer.Destroy();
+            }
+        }
+
+        userCreatedVertexBuffers.Clear();
+        userCreatedIndexBuffers.Clear();
+
+        if (final)
         {
             foreach (var pair in resourcePaks)
             {

@@ -44,7 +44,7 @@ public static class Gizmo
 
         if(wireCube == null)
         {
-            wireCube = new Mesh
+            wireCube = new Mesh(true, false)
             {
                 MeshTopology = MeshTopology.LineStrip,
             };
