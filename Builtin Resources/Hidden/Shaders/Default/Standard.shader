@@ -15,8 +15,6 @@ varying vec3 v_normal : NORMAL
 varying vec4 a_color0 : COLOR
 varying vec4 v_color : COLOR
 
-uniform color ambientColor
-uniform texture ambientTexture
 uniform texture ambientOcclusionTexture
 uniform color diffuseColor
 uniform texture diffuseTexture
@@ -25,11 +23,8 @@ uniform color emissiveColor
 uniform texture emissiveTexture
 uniform texture heightTexture
 uniform texture normalTexture
-uniform texture opacityTexture
-uniform texture reflectionTexture
 uniform color specularColor
 uniform texture specularTexture
-uniform color transparentColor
 
 End Parameters
 

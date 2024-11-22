@@ -210,7 +210,7 @@ public partial struct Entity
                 break;
         }
 
-        r.materials = [ResourceManager.instance.LoadMaterial("Hidden/Materials/Checkerboard.mat")];
+        r.materials = [ResourceManager.instance.LoadMaterial($"Hidden/Materials/Checkerboard.{AssetSerialization.MaterialExtension}")];
 
         return e;
     }

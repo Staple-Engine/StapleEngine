@@ -4,18 +4,6 @@
 		"LIT"
 	],
 	"parameters": {
-		"ambientColor": {
-			"type": "Color",
-			"colorValue": {
-				"r": 255,
-				"g": 255,
-				"b": 255,
-				"a": 255
-			}
-		},
-		"ambientTexture": {
-			"type": "Texture"
-		},
 		"ambientOcclusionTexture": {
 			"type": "Texture"
 		},
@@ -49,13 +37,7 @@
 		"heightTexture": {
 			"type": "Texture"
 		},
-		"lightmapTexture": {
-			"type": "Texture"
-		},
 		"normalTexture": {
-			"type": "Texture"
-		},
-		"opacityTexture": {
 			"type": "Texture"
 		},
 		"reflectionTexture": {
@@ -72,15 +54,6 @@
 		},
 		"specularTexture": {
 			"type": "Texture"
-		},
-		"transparentColor": {
-			"type": "Color",
-			"colorValue": {
-				"r": 255,
-				"g": 255,
-				"b": 255,
-				"a": 255
-			}
 		}
 	}
 }

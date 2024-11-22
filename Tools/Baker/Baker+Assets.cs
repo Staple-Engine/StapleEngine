@@ -18,7 +18,7 @@ static partial class Program
 
         try
         {
-            assetFiles.AddRange(Directory.GetFiles(inputPath, $"*.asset", SearchOption.AllDirectories));
+            assetFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.AssetExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {

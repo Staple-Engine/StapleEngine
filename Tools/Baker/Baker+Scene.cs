@@ -18,7 +18,7 @@ static partial class Program
 
         try
         {
-            sceneFiles.AddRange(Directory.GetFiles(inputPath, $"*.stsc", SearchOption.AllDirectories));
+            sceneFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.SceneExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {

@@ -18,11 +18,11 @@ internal class ProjectBrowser
     /// </summary>
     public static readonly Dictionary<string, ProjectBrowserResourceType> resourceTypes = new()
     {
-        { ".asset", ProjectBrowserResourceType.Asset },
-        { ".mat", ProjectBrowserResourceType.Material },
-        { ".stsh", ProjectBrowserResourceType.Shader },
-        { ".stsc", ProjectBrowserResourceType.Scene },
-        { ".stpr", ProjectBrowserResourceType.Prefab },
+        { $".{AssetSerialization.AssetExtension}", ProjectBrowserResourceType.Asset },
+        { $".{AssetSerialization.MaterialExtension}", ProjectBrowserResourceType.Material },
+        { $".{AssetSerialization.ShaderExtension}", ProjectBrowserResourceType.Shader },
+        { $".{AssetSerialization.SceneExtension}", ProjectBrowserResourceType.Scene },
+        { $".{AssetSerialization.PrefabExtension}", ProjectBrowserResourceType.Prefab },
     };
 
     public static readonly Dictionary<string, string> DefaultResourceIcons = new()

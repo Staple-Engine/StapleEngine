@@ -800,6 +800,11 @@ internal class ResourceManager
 
         guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
+        if(guid == null)
+        {
+            return null;
+        }
+
         if (ignoreCache == false &&
             cachedShaders.TryGetValue(path, out var shader) &&
             shader != null &&

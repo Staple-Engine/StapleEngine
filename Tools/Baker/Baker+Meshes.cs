@@ -287,11 +287,11 @@ static partial class Program
 
                         if (material.HasName)
                         {
-                            fileName = $"{material.Name}.mat";
+                            fileName = $"{material.Name}.{AssetSerialization.MaterialExtension}";
                         }
                         else
                         {
-                            fileName += $" {++counter}.mat";
+                            fileName += $" {++counter}.{AssetSerialization.MaterialExtension}";
                         }
 
                         var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
@@ -312,7 +312,7 @@ static partial class Program
 
                         var materialMetadata = new MaterialMetadata()
                         {
-                            shader = "Hidden/Shaders/Default/Standard.stsh",
+                            shader = AssetSerialization.DefaultMaterialGuid,
                         };
 
                         if(material.IsTwoSided)

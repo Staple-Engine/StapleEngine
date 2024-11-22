@@ -1,4 +1,6 @@
-﻿namespace Staple.Editor;
+﻿using Staple.Internal;
+
+namespace Staple.Editor;
 
 internal class SpriteTemplate : IEntityTemplate
 {
@@ -11,7 +13,7 @@ internal class SpriteTemplate : IEntityTemplate
         var renderer = entity.GetComponent<SpriteRenderer>();
 
         renderer.texture = Resources.Load<Texture>("Hidden/Textures/Sprites/DefaultSprite.png");
-        renderer.material = Resources.Load<Material>("Hidden/Materials/Sprite.mat");
+        renderer.material = SpriteRenderSystem.DefaultMaterial.Value;
 
         return entity;
     }

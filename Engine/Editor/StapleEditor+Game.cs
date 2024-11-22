@@ -53,7 +53,7 @@ internal partial class StapleEditor
 
         registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
 
-        var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
+        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
         try
         {
@@ -92,7 +92,7 @@ internal partial class StapleEditor
         {
             WeakReference<StapleAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
-            var scenePath = Path.Combine(basePath, "Cache", "LastScene.stsc");
+            var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
             try
             {

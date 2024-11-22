@@ -17,7 +17,7 @@ static partial class Program
 
         try
         {
-            prefabFiles.AddRange(Directory.GetFiles(inputPath, $"*.stpr", SearchOption.AllDirectories));
+            prefabFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.PrefabExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {

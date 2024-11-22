@@ -144,7 +144,7 @@ internal partial class StapleEditor
             }
         }
 
-        wireframeMaterial.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
+        wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
         var renderSystem = RenderSystem.Instance;
 
@@ -244,7 +244,7 @@ internal partial class StapleEditor
                     return;
                 }
 
-                componentIconMaterial ??= new Material(ResourceManager.instance.LoadMaterial("Materials/Sprite.mat"));
+                componentIconMaterial ??= new Material(SpriteRenderSystem.DefaultMaterial.Value);
 
                 componentIconMaterial.MainTexture = icon;
 

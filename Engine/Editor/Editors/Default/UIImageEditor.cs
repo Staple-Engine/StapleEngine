@@ -29,10 +29,7 @@ internal class UIImageEditor : Editor
 
             case nameof(UIImage.material):
 
-                if (image.material == null)
-                {
-                    image.material = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
-                }
+                image.material ??= SpriteRenderSystem.DefaultMaterial.Value;
 
                 return false;
         }

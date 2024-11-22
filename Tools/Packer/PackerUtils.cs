@@ -13,7 +13,7 @@ static class PackerUtils
     {
         typeName = "Unknown";
 
-        if (path.EndsWith(".mat"))
+        if (path.EndsWith($".{AssetSerialization.MaterialExtension}"))
         {
             typeName = typeof(Material).FullName;
 
@@ -42,7 +42,7 @@ static class PackerUtils
                 return null;
             }
         }
-        else if(path.EndsWith(".stsc"))
+        else if(path.EndsWith($".{AssetSerialization.SceneExtension}"))
         {
             typeName = typeof(Scene).FullName;
 
@@ -71,7 +71,7 @@ static class PackerUtils
                 return null;
             }
         }
-        else if(path.EndsWith(".stsh"))
+        else if(path.EndsWith($".{AssetSerialization.ShaderExtension}"))
         {
             typeName = typeof(Shader).FullName;
 
@@ -100,7 +100,7 @@ static class PackerUtils
                 return null;
             }
         }
-        else if (path.EndsWith(".stpr"))
+        else if (path.EndsWith($".{AssetSerialization.PrefabExtension}"))
         {
             typeName = typeof(Prefab).FullName;
 
@@ -129,7 +129,7 @@ static class PackerUtils
                 return null;
             }
         }
-        else if (path.EndsWith(".asset"))
+        else if (path.EndsWith($".{AssetSerialization.AssetExtension}"))
         {
             try
             {

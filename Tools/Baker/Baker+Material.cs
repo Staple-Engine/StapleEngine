@@ -17,7 +17,7 @@ static partial class Program
 
         try
         {
-            materialFiles.AddRange(Directory.GetFiles(inputPath, $"*.mat", SearchOption.AllDirectories));
+            materialFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.MaterialExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {

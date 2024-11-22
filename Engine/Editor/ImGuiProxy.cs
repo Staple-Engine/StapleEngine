@@ -65,8 +65,8 @@ internal class ImGuiProxy
             }
         }
 
-        program = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/ocornut_imgui.stsh");
-        imageProgram = ResourceManager.instance.LoadShader("Hidden/Shaders/UI/imgui_image.stsh");
+        program = ResourceManager.instance.LoadShader($"Hidden/Shaders/UI/ocornut_imgui.{AssetSerialization.ShaderExtension}");
+        imageProgram = ResourceManager.instance.LoadShader($"Hidden/Shaders/UI/imgui_image.{AssetSerialization.ShaderExtension}");
 
         if(program == null || imageProgram == null)
         {

@@ -265,7 +265,11 @@ internal partial class StapleEditor
 
     private bool needsGameRecompile = false;
 
+    private bool needsRefreshStaging = false;
+
     private bool gameLoadDisabled = false;
+
+    private bool buildingGame = false;
 
     private FileSystemWatcher fileSystemWatcher;
 
@@ -426,7 +430,7 @@ internal partial class StapleEditor
 
             Physics3D.Instance.Startup();
 
-            wireframeMaterial = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
+            wireframeMaterial = SpriteRenderSystem.DefaultMaterial.Value;
 
             wireframeMesh = new Mesh(true, true)
             {
@@ -780,15 +784,24 @@ internal partial class StapleEditor
 
             lock(backgroundLock)
             {
-                if (needsGameRecompile && window.HasFocus)
+                if(window.HasFocus)
                 {
-                    needsGameRecompile = false;
+                    if (needsGameRecompile)
+                    {
+                        needsGameRecompile = false;
 
-                    UnloadGame();
+                        UnloadGame();
 
-                    ImGui.OpenPopup("ShowingProgress");
+                        ImGui.OpenPopup("ShowingProgress");
 
-                    RefreshStaging(currentPlatform, null);
+                        RefreshStaging(currentPlatform, null);
+                    }
+                    else if(needsRefreshStaging)
+                    {
+                        ImGui.OpenPopup("ShowingProgress");
+
+                        RefreshStaging(currentPlatform, null, false);
+                    }
                 }
             }
 

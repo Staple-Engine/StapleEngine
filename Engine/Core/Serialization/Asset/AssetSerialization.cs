@@ -10,14 +10,46 @@ namespace Staple.Internal;
 /// </summary>
 internal static partial class AssetSerialization
 {
-    private static Regex cachePathRegex = CachePathRegex();
-    private static Regex assetPathRegex = AssetPathRegex();
+    private static readonly Regex cachePathRegex = CachePathRegex();
+    private static readonly Regex assetPathRegex = AssetPathRegex();
 
+    /// <summary>
+    /// File extension for Scenes
+    /// </summary>
+    public static readonly string SceneExtension = "scene";
+
+    /// <summary>
+    /// File extension for Materials
+    /// </summary>
+    public static readonly string MaterialExtension = "material";
+
+    /// <summary>
+    /// File extension for Shaders
+    /// </summary>
+    public static readonly string ShaderExtension = "shader";
+
+    /// <summary>
+    /// File extension for Assets
+    /// </summary>
+    public static readonly string AssetExtension = "asset";
+
+    /// <summary>
+    /// File extensions for Prefabs
+    /// </summary>
+    public static readonly string PrefabExtension = "prefab";
+
+    /// <summary>
+    /// GUID for the default material
+    /// </summary>
+    public static readonly string DefaultMaterialGuid = "1ca9a72c-161e-44db-ad76-bf0ae432f78b";
+
+    /// <summary>
+    /// All supported texture extensions
+    /// </summary>
     public static readonly string[] TextureExtensions =
     [
         "bmp",
         "dds",
-        "exr",
         "gif",
         "jpg",
         "jpeg",
@@ -29,6 +61,9 @@ internal static partial class AssetSerialization
         "tga"
     ];
 
+    /// <summary>
+    /// All texture extensions we can resize in code
+    /// </summary>
     public static readonly string[] ResizableTextureExtensions =
     [
         "jpg",
@@ -40,6 +75,9 @@ internal static partial class AssetSerialization
         "hdr",
     ];
 
+    /// <summary>
+    /// All 3D model (mesh) extensions
+    /// </summary>
     public static readonly string[] MeshExtensions =
     [
         "3ds",
@@ -55,6 +93,9 @@ internal static partial class AssetSerialization
         "stl",
     ];
 
+    /// <summary>
+    /// All audio file extensions
+    /// </summary>
     public static readonly string[] AudioExtensions =
     [
         "mp3",
@@ -62,6 +103,9 @@ internal static partial class AssetSerialization
         "wav",
     ];
 
+    /// <summary>
+    /// All font file extensions
+    /// </summary>
     public static readonly string[] FontExtensions =
     [
         "ttf",

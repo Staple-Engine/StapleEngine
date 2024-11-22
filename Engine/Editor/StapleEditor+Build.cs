@@ -5,11 +5,78 @@ using System.IO;
 using Staple.Internal;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Staple.Jobs;
 
 namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    private class GameBuildJob(string basePath, Action onFinish) : IJob
+    {
+        public string basePath = basePath;
+        public Action onFinish = onFinish;
+
+        public void Execute()
+        {
+            void Finish()
+            {
+                ThreadHelper.Dispatch(() =>
+                {
+                    try
+                    {
+                        onFinish?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e.ToString());
+                    }
+                });
+            }
+
+            try
+            {
+                using var collection = new ProjectCollection();
+
+                var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+                var projectPath = Path.Combine(projectDirectory, "Game.csproj");
+                var outPath = Path.Combine(projectDirectory, "bin");
+
+                try
+                {
+                    Directory.Delete(outPath, true);
+                }
+                catch (Exception)
+                {
+                }
+
+                var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
+
+                var processInfo = new ProcessStartInfo("dotnet", args)
+                {
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Environment.CurrentDirectory
+                };
+
+                var process = new Process
+                {
+                    StartInfo = processInfo
+                };
+
+                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+
+                Finish();
+            }
+            catch(Exception e)
+            {
+                Log.Error($"Error while building game: {e}");
+
+                Finish();
+            }
+        }
+    }
+
     /// <summary>
     /// Builds the game (Player)
     /// </summary>
@@ -373,42 +440,50 @@ internal partial class StapleEditor
     /// <summary>
     /// Builds the game assembly
     /// </summary>
-    public void BuildGame()
+    public void BuildGame(Action onFinish)
     {
         if (gameLoadDisabled)
         {
+            onFinish();
+
             return;
         }
 
-        using var collection = new ProjectCollection();
+        buildingGame = true;
 
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
-        var projectPath = Path.Combine(projectDirectory, "Game.csproj");
-        var outPath = Path.Combine(projectDirectory, "bin");
+        var finished = false;
 
-        try
+        var handle = JobScheduler.Schedule(new GameBuildJob(basePath, () =>
         {
-            Directory.Delete(outPath, true);
+            finished = true;
+        }));
+
+        IEnumerator<(bool, string, float)> Handle()
+        {
+            yield return (false, "Building game...", 0);
+
+            while(finished == false)
+            {
+                yield return (false, "Building game...", 0);
+            }
+
+            ThreadHelper.Dispatch(() =>
+            {
+                try
+                {
+                    onFinish?.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.ToString());
+                }
+
+                buildingGame = false;
+            });
+
+            yield return (true, "", 1);
         }
-        catch(Exception)
-        {
-        }
 
-        var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
-
-        var processInfo = new ProcessStartInfo("dotnet", args)
-        {
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
-            WorkingDirectory = Environment.CurrentDirectory
-        };
-
-        var process = new Process
-        {
-            StartInfo = processInfo
-        };
-
-        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+        StartBackgroundTask(Handle());
     }
 }

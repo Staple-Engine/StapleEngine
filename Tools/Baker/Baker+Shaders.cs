@@ -56,7 +56,7 @@ vec4 i_data7        :   TEXCOORD0;
 
         try
         {
-            shaderFiles.AddRange(Directory.GetFiles(inputPath, "*.stsh", SearchOption.AllDirectories));
+            shaderFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.ShaderExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {

@@ -948,7 +948,7 @@ internal class ThumbnailCache
         if (extension.Length == 0 ||
             (AssetSerialization.TextureExtensions.Contains(extension.Substring(1)) == false &&
             AssetSerialization.MeshExtensions.Contains(extension.Substring(1)) == false &&
-            extension != ".mat"))
+            extension != $".{AssetSerialization.MaterialExtension}"))
         {
             return null;
         }
@@ -981,7 +981,7 @@ internal class ThumbnailCache
 
             return null;
         }
-        else if(extension == ".mat")
+        else if(extension == $"{AssetSerialization.MaterialExtension}")
         {
             type = RenderRequestType.Material;
 

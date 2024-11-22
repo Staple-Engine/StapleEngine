@@ -28,10 +28,7 @@ internal class SpriteRendererEditor : Editor
 
             case nameof(SpriteRenderer.material):
 
-                if(renderer.material == null)
-                {
-                    renderer.material = ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
-                }
+                renderer.material ??= SpriteRenderSystem.DefaultMaterial.Value;
 
                 return false;
         }

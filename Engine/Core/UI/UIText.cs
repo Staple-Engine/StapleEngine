@@ -169,7 +169,7 @@ public class UIText : UIElement
             return;
         }
 
-        material ??= ResourceManager.instance.LoadMaterial("Hidden/Materials/Sprite.mat");
+        material ??= SpriteRenderSystem.DefaultMaterial.Value;
 
         UpdateFontSize();
 
