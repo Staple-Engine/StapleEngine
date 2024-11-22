@@ -169,12 +169,21 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
+            var skip = false;
+
             for (var i = 0; i < r.materials.Count; i++)
             {
-                if (r.materials[i]?.IsValid == false)
+                if ((r.materials[i]?.IsValid ?? false) == false)
                 {
-                    continue;
+                    skip = true;
+
+                    break;
                 }
+            }
+
+            if(skip)
+            {
+                continue;
             }
 
             if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)

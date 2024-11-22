@@ -75,12 +75,21 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
+            var skip = false;
+
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if (renderer.materials[i]?.IsValid == false)
+                if ((renderer.materials[i]?.IsValid ?? false) == false)
                 {
-                    continue;
+                    skip = true;
+
+                    break;
                 }
+            }
+
+            if(skip)
+            {
+                continue;
             }
 
             renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
