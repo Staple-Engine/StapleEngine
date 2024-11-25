@@ -322,7 +322,6 @@
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />
-		<Compile Include="Utilities\IntLookupCache.cs" />
 		<Compile Include="Utilities\ObjectCreation.cs" />
 		<Compile Include="Utilities\Observables\IObservableBox.cs" />
 		<Compile Include="Utilities\Observables\ObservableBox.cs" />

@@ -100,8 +100,7 @@ internal partial class Shader : IGuidAsset
 
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
-    private UniformInfo[] uniforms = [];
-    private readonly IntLookupCache<int> uniformIndices = new();
+    private readonly Dictionary<int, UniformInfo> uniforms = [];
 
     private int usedTextureStages = 0;
 
@@ -221,11 +220,11 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        if (uniforms.Length > 0)
+        if (uniforms.Count > 0)
         {
-            foreach (var uniform in uniforms)
+            foreach (var pair in uniforms)
             {
-                uniform.Create();
+                pair.Value.Create();
             }
         }
         else
@@ -262,16 +261,7 @@ internal partial class Shader : IGuidAsset
         var nameHash = name.GetHashCode();
         var normalizedHash = normalizedName.GetHashCode();
 
-        var uniformIndex = uniformIndices.IndexOf(nameHash);
-
-        if(uniformIndex >= 0)
-        {
-            return;
-        }
-
-        uniformIndex = uniformIndices.IndexOf(normalizedHash);
-
-        if (uniformIndex >= 0)
+        if(uniforms.ContainsKey(nameHash) || uniforms.ContainsKey(normalizedHash))
         {
             return;
         }
@@ -295,16 +285,11 @@ internal partial class Shader : IGuidAsset
                 usedTextureStages++;
             }
 
-            var i = uniforms.Length;
+            uniforms.Add(normalizedHash, u);
 
-            uniformIndices.Add(normalizedHash, i);
-            uniforms = uniforms.Concat([u]).ToArray();
-
-            if (uniformIndices.IndexOf(nameHash) < 0)
+            if (uniforms.ContainsKey(nameHash) == false)
             {
-                uniformIndices.Add(nameHash, i);
-
-                uniforms = uniforms.Concat([new()
+                uniforms.Add(nameHash, new()
                 {
                     count = u.count,
                     isAlias = true,
@@ -315,7 +300,7 @@ internal partial class Shader : IGuidAsset
                         name = u.uniform.name,
                         type = type,
                     },
-                }]).ToArray();
+                });
             }
         }
     }
@@ -335,14 +320,12 @@ internal partial class Shader : IGuidAsset
 
     internal UniformInfo GetUniform(int hash)
     {
-        if (Disposed)
+        if (Disposed || uniforms.TryGetValue(hash, out var uniform) == false)
         {
             return null;
         }
 
-        var index = uniformIndices.IndexOf(hash);
-
-        return index >= 0 ? uniforms[uniformIndices[index]] : null;
+        return uniform;
     }
 
     internal ShaderHandle GetUniformHandle(int hash)
@@ -351,7 +334,7 @@ internal partial class Shader : IGuidAsset
 
         if(uniform == null)
         {
-            return null;
+            return default;
         }
 
         return new(uniform);
@@ -369,7 +352,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -396,7 +379,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -423,7 +406,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -458,7 +441,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -485,7 +468,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -520,7 +503,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -545,7 +528,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -573,7 +556,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -600,7 +583,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -629,7 +612,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -654,7 +637,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -679,7 +662,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -707,7 +690,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -732,7 +715,7 @@ internal partial class Shader : IGuidAsset
             return;
         }
 
-        var uniform = handle?.uniform;
+        var uniform = handle.uniform;
 
         if (uniform == null)
         {
@@ -773,8 +756,10 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        foreach (var uniform in uniforms)
+        foreach (var pair in uniforms)
         {
+            var uniform = pair.Value;
+
             if(uniform.isAlias)
             {
                 continue;

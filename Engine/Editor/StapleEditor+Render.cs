@@ -189,10 +189,12 @@ internal partial class StapleEditor
                         {
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
+                            /*
                             if(renderable.isVisible)
                             {
                                 renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
                             }
+                            */
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
