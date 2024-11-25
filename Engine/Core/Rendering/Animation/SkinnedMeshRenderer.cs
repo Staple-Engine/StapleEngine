@@ -39,30 +39,15 @@ public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
     internal EntityQuery<SkinnedMeshAnimator> animator;
 
     /// <summary>
-    /// The bone matrix compute buffer
+    /// The bone matrix compute buffer for skinning
     /// </summary>
     internal VertexBuffer boneMatrixBuffer;
 
-    /// <summary>
-    /// The bone matrix compute buffer for updating the matrices
-    /// </summary>
-    internal VertexBuffer stagingBoneMatrixBuffer;
-
-    public void Dispose()
+    public void DisposeComponent()
     {
-        if(boneMatrixBuffer != null)
-        {
-            boneMatrixBuffer.Destroy();
+        boneMatrixBuffer?.Destroy();
 
-            boneMatrixBuffer = null;
-        }
-
-        if (stagingBoneMatrixBuffer != null)
-        {
-            stagingBoneMatrixBuffer.Destroy();
-
-            stagingBoneMatrixBuffer = null;
-        }
+        boneMatrixBuffer = null;
     }
 
     /// <summary>

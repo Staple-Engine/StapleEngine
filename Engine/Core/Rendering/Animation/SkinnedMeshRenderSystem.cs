@@ -125,95 +125,24 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 boneMatrices = new Matrix4x4[meshAsset.BoneCount];
 
                 cachedBoneMatrices.Add(meshAsset.Guid.GetHashCode(), boneMatrices);
-            }
 
-            if (renderer.cachedNodes.Count != renderer.mesh.submeshes.Count)
-            {
-                renderer.cachedNodes.Clear();
-                renderer.cachedAnimatorNodes.Clear();
-
-                for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
-                {
-                    renderer.cachedNodes.Add([]);
-                    renderer.cachedAnimatorNodes.Add([]);
-                }
+                UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
             }
 
             for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
             {
-                var bones = meshAssetMesh.bones[i];
-
-                if (renderer.cachedNodes[i].Length != bones.Length)
+                if (useAnimator == false || (renderer.boneMatrixBuffer?.Disposed ?? true))
                 {
-                    renderer.cachedNodes[i] = new MeshAsset.Node[bones.Length];
-
-                    for (var j = 0; j < bones.Length; j++)
+                    if (renderer.boneMatrixBuffer?.Disposed ?? true)
                     {
-                        var bone = bones[j];
-                        var nodeIndex = bones[j].index;
-
-                        var localNode = nodeIndex >= 0 && nodeIndex < meshAsset.nodes.Length ?
-                            meshAsset.nodes[nodeIndex] : null;
-
-                        renderer.cachedNodes[i][j] = localNode;
-
-                        boneMatrices[meshAssetMesh.startBoneIndex + j] = localNode != null ?
-                            bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
-                    }
-                }
-
-                if (useAnimator && renderer.cachedAnimatorNodes[i].Length != bones.Length)
-                {
-                    renderer.cachedAnimatorNodes[i] = new MeshAsset.Node[bones.Length];
-
-                    for (var j = 0; j < bones.Length; j++)
-                    {
-                        var nodeIndex = bones[j].index;
-
-                        renderer.cachedAnimatorNodes[i][j] = nodeIndex >= 0 && nodeIndex < animator.evaluator.nodes.Length ?
-                            animator.evaluator.nodes[nodeIndex] : null;
-                    }
-                }
-
-                if (animator == null || animator.shouldRender || renderer.stagingBoneMatrixBuffer == null)
-                {
-                    for (var j = 0; j < bones.Length; j++)
-                    {
-                        var bone = bones[j];
-
-                        Matrix4x4 globalTransform;
-
-                        if (useAnimator && renderer.cachedAnimatorNodes[i][j] is MeshAsset.Node localNode)
-                        {
-                            globalTransform = localNode.GlobalTransform;
-                        }
-                        else if (renderer.cachedNodes[i][j] is MeshAsset.Node node)
-                        {
-                            globalTransform = node.GlobalTransform;
-                        }
-                        else
-                        {
-                            globalTransform = Matrix4x4.Identity;
-                        }
-
-                        boneMatrices[meshAssetMesh.startBoneIndex + j] = bone.offsetMatrix * globalTransform;
-                    }
-
-                    if (renderer.stagingBoneMatrixBuffer?.Disposed ?? true)
-                    {
-                        renderer.stagingBoneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                        renderer.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
                             .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
                             .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
                             .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
                             .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
                             .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
 
-                        renderer.stagingBoneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
-                    }
-
-                    if(animator?.shouldRender ?? false)
-                    {
-                        renderer.stagingBoneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                        renderer.boneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
                     }
                 }
             }
@@ -251,6 +180,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var assetGuid = meshAsset.Guid.GetHashCode();
 
                 var material = renderer.materials[j];
+
+                var useAnimator = animator != null && animator.evaluator != null;
 
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.Guid != (lastMaterial?.Guid ?? "") ||
@@ -303,9 +234,50 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     bgfx.DiscardFlags.IndexBuffer |
                     bgfx.DiscardFlags.Transform;
 
-                renderer.stagingBoneMatrixBuffer?.SetBufferActive(15, Access.Read);
+                if (useAnimator)
+                {
+                    animator.boneMatrixBuffer?.SetBufferActive(15, Access.Read);
+                }
+                else
+                {
+                    renderer.boneMatrixBuffer?.SetBufferActive(15, Access.Read);
+                }
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Updates an span of bone matrices. The span must have the same length as a mesh asset's BoneCount
+    /// </summary>
+    /// <param name="meshAsset">The mesh asset to get info from</param>
+    /// <param name="boneMatrices">The bone matrices to update</param>
+    /// <param name="nodes">The node we're updating from</param>
+    public static void UpdateBoneMatrices(MeshAsset meshAsset, Span<Matrix4x4> boneMatrices, MeshAsset.Node[] nodes)
+    {
+        if(boneMatrices.Length != meshAsset.BoneCount)
+        {
+            return;
+        }
+
+        for (var i = 0; i < meshAsset.meshes.Count; i++)
+        {
+            var m = meshAsset.meshes[i];
+
+            for (var j = 0; j < m.bones.Count; j++)
+            {
+                for (var k = 0; k < m.bones[j].Length; k++)
+                {
+                    var bone = m.bones[j][k];
+                    var nodeIndex = bone.index;
+
+                    var localNode = nodeIndex >= 0 && nodeIndex < nodes.Length ?
+                        nodes[nodeIndex] : null;
+
+                    boneMatrices[m.startBoneIndex + k] = localNode != null ?
+                        bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
+                }
             }
         }
     }

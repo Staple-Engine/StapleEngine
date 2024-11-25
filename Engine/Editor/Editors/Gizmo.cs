@@ -46,7 +46,7 @@ public static class Gizmo
         {
             wireCube = new Mesh(true, false)
             {
-                MeshTopology = MeshTopology.LineStrip,
+                meshTopology = MeshTopology.LineStrip,
             };
 
             wireCube.vertices =

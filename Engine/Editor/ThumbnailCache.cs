@@ -222,7 +222,7 @@ internal class ThumbnailCache
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
@@ -447,7 +447,7 @@ internal class ThumbnailCache
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
@@ -981,7 +981,7 @@ internal class ThumbnailCache
 
             return null;
         }
-        else if(extension == $"{AssetSerialization.MaterialExtension}")
+        else if(extension == $".{AssetSerialization.MaterialExtension}")
         {
             type = RenderRequestType.Material;
 

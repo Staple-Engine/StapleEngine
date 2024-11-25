@@ -297,7 +297,7 @@ public partial class World
 
                     if(component is IComponentDisposable disposable)
                     {
-                        disposable.Dispose();
+                        disposable.DisposeComponent();
                     }
 
                     entityInfo.components[typeName] = component;

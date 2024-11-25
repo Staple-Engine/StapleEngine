@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -95,6 +96,25 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 }
 
                 animator.evaluator.Evaluate();
+
+                if(animator.shouldRender)
+                {
+                    if (animator.boneMatrixBuffer?.Disposed ?? true)
+                    {
+                        animator.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)animator.mesh.meshAsset.BoneCount);
+
+                        animator.cachedBoneMatrices = new Matrix4x4[animator.mesh.meshAsset.BoneCount];
+                    }
+
+                    SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.nodeCache);
+
+                    animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
+                }
             }
             else if (animator.playInEditMode == false)
             {

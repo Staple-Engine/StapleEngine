@@ -26,7 +26,7 @@ internal class FrustumCuller
     /// <param name="projection">The projection matrix</param>
     public void Update(Matrix4x4 view, Matrix4x4 projection)
     {
-        var clip = view * projection;
+        var clip = Matrix4x4.Transpose(view * projection);
 
         var vector = new Vector4(clip.M14 - clip.M11,
             clip.M24 - clip.M21,

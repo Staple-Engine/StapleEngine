@@ -7,7 +7,7 @@ namespace Staple;
 /// <summary>
 /// Skinned mesh animator component
 /// </summary>
-public sealed class SkinnedMeshAnimator : IComponent
+public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
 {
     /// <summary>
     /// The mesh to use
@@ -73,6 +73,18 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// A cache of bone matrices
     /// </summary>
     internal Matrix4x4[] cachedBoneMatrices;
+
+    /// <summary>
+    /// The bone matrix compute buffer for skinning
+    /// </summary>
+    internal VertexBuffer boneMatrixBuffer;
+
+    public void DisposeComponent()
+    {
+        boneMatrixBuffer?.Destroy();
+
+        boneMatrixBuffer = null;
+    }
 
     /// <summary>
     /// Sets the current animation

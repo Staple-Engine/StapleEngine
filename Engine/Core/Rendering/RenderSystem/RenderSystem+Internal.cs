@@ -260,9 +260,10 @@ public sealed partial class RenderSystem
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="queue">The render queue for this camera</param>
+    /// <param name="cull">Whether to cull invisible elements</param>
     /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue,
+        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue, bool cull,
         ushort viewID)
     {
         CurrentCamera = (camera, cameraTransform);
@@ -285,8 +286,13 @@ public sealed partial class RenderSystem
             {
                 if (content[j].Item3 is Renderable renderable)
                 {
-                    //TODO: Frustum
-                    renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+                    renderable.isVisible = renderable.enabled &&
+                        renderable.forceRenderingOff == false;
+
+                    if(renderable.isVisible && cull)
+                    {
+                        renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                    }
                 }
             }
 
@@ -304,9 +310,10 @@ public sealed partial class RenderSystem
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="entity">The entity to render</param>
     /// <param name="entityTransform">The transform of the entity to render</param>
+    /// <param name="cull">Whether to cull invisible elements</param>
     /// <param name="viewID">The view ID</param>
     public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        Entity entity, Transform entityTransform, ushort viewID)
+        Entity entity, Transform entityTransform, bool cull, ushort viewID)
     {
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
@@ -337,8 +344,12 @@ public sealed partial class RenderSystem
 
                     if (related is Renderable renderable)
                     {
-                        //TODO: Frustum
                         renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+
+                        if (renderable.isVisible && cull)
+                        {
+                            renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                        }
                     }
 
                     system.Process([(e, t, related)], camera, cameraTransform, viewID);
@@ -447,7 +458,7 @@ public sealed partial class RenderSystem
 
         foreach (var pair in renderQueue)
         {
-            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, CurrentViewID++);
+            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, false, CurrentViewID++);
         }
     }
 
