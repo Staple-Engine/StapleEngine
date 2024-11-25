@@ -60,8 +60,11 @@ public static class StaplePlayer
                 throw new Exception("Failed to deserialize app settings");
             }
 
-            LayerMask.AllLayers = AppSettings.Current.layers;
-            LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
+            LayerMask.AllLayers.Clear();
+            LayerMask.AllSortingLayers.Clear();
+
+            LayerMask.AllLayers.AddRange(AppSettings.Current.layers);
+            LayerMask.AllSortingLayers.AddRange(AppSettings.Current.sortingLayers);
         }
         catch (Exception e)
         {

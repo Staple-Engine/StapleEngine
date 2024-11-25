@@ -145,7 +145,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         { Keycode.AltRight, KeyCode.RightAlt },
     };
 
-    private SurfaceView? surfaceView;
+    private SurfaceView surfaceView;
     private DateTime lastTime;
     private float fixedTimer = 0.0f;
 
@@ -177,7 +177,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
     class TouchCallback : Java.Lang.Object, View.IOnTouchListener
     {
-        public bool OnTouch(View? v, MotionEvent? e)
+        public bool OnTouch(View v, MotionEvent e)
         {
             for (var i = 0; i < e.PointerCount; i++)
             {
@@ -207,7 +207,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
     class KeyCallback : Java.Lang.Object, View.IOnKeyListener
     {
-        public bool OnKey(View? v, [GeneratedEnum] Keycode keyCode, KeyEvent? e)
+        public bool OnKey(View v, [GeneratedEnum] Keycode keyCode, KeyEvent e)
         {
             AppEventModifierKeys Modifiers()
             {
@@ -293,9 +293,9 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         }
     }
 
-    private FrameCallback? frameCallback;
-    private TouchCallback? touchCallback;
-    private KeyCallback? keyCallback;
+    private FrameCallback frameCallback;
+    private TouchCallback touchCallback;
+    private KeyCallback keyCallback;
 
     private void InitIfNeeded()
     {
@@ -602,7 +602,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
         }
     }
 
-    protected override void OnCreate(Bundle? savedInstanceState)
+    protected override void OnCreate(Bundle savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
 
@@ -690,8 +690,11 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 throw new Exception("Failed to deserialize app settings");
             }
 
-            LayerMask.AllLayers = AppSettings.Current.layers;
-            LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
+            LayerMask.AllLayers.Clear();
+            LayerMask.AllSortingLayers.Clear();
+
+            LayerMask.AllLayers.AddRange(AppSettings.Current.layers);
+            LayerMask.AllSortingLayers.AddRange(AppSettings.Current.sortingLayers);
         }
         catch (Exception e)
         {

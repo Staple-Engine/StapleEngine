@@ -313,8 +313,11 @@ internal partial class StapleEditor
         editorSettings.appName = "Staple Editor";
         editorSettings.companyName = "Staple Engine";
 
-        LayerMask.AllLayers = editorSettings.layers;
-        LayerMask.AllSortingLayers = editorSettings.sortingLayers;
+        LayerMask.AllLayers.Clear();
+        LayerMask.AllSortingLayers.Clear();
+
+        LayerMask.AllLayers.AddRange(editorSettings.layers);
+        LayerMask.AllSortingLayers.AddRange(editorSettings.sortingLayers);
 
         AppSettings.Current = editorSettings;
 

@@ -207,11 +207,11 @@ public class TextureMetadataOverride
 
     public override int GetHashCode()
     {
-        return shouldOverride.GetHashCode() ^
-            format.GetHashCode() ^
-            quality.GetHashCode() ^
-            maxSize.GetHashCode() ^
-            premultiplyAlpha.GetHashCode();
+        return HashCode.Combine(shouldOverride,
+            format,
+            quality,
+            maxSize,
+            premultiplyAlpha);
     }
 }
 
@@ -241,8 +241,8 @@ public class TextureSpriteInfo
 public class TextureMetadata
 {
     [IgnoreMember]
-    public static readonly int[] TextureMaxSizes = new int[]
-    {
+    public static readonly int[] TextureMaxSizes =
+    [
         32,
         64,
         128,
@@ -253,7 +253,7 @@ public class TextureMetadata
         4096,
         8192,
         16384,
-    };
+    ];
 
     [HideInInspector]
     [Key(0)]

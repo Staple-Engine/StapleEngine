@@ -19,18 +19,18 @@ public struct TextParameters
     {
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
-        return textColor.GetHashCode() ^
-            secondaryTextColor.GetHashCode() ^
-            borderColor.GetHashCode() ^
-            position.GetHashCode() ^
-            borderSize.GetHashCode() ^
-            rotation.GetHashCode() ^
-            fontSize.GetHashCode();
+        return HashCode.Combine(textColor,
+            secondaryTextColor,
+            borderColor,
+            position,
+            borderSize,
+            rotation,
+            fontSize);
     }
 
-    public TextParameters Clone()
+    public readonly TextParameters Clone()
     {
         return new()
         {

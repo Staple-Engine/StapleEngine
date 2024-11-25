@@ -56,7 +56,7 @@ public struct Vector2Int
 
     public override readonly int GetHashCode()
     {
-        return X.GetHashCode() ^ Y.GetHashCode();
+        return HashCode.Combine(X, Y);
     }
 
     public override readonly bool Equals(object obj)

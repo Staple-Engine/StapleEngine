@@ -1,4 +1,6 @@
-﻿namespace Staple;
+﻿using System;
+
+namespace Staple;
 
 /// <summary>
 /// Represents an entity ID
@@ -43,7 +45,7 @@ public struct EntityID
 
     public override readonly int GetHashCode()
     {
-        return ID.GetHashCode() * 17 + generation.GetHashCode();
+        return HashCode.Combine(ID, generation);
     }
 
     public override readonly string ToString()

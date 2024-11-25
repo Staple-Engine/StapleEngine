@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple;
 
@@ -25,9 +26,9 @@ public struct Matrix3x3
 
     public override readonly int GetHashCode()
     {
-        return M11.GetHashCode() ^ M12.GetHashCode() ^ M13.GetHashCode() ^
-            M21.GetHashCode() ^ M22.GetHashCode() ^ M23.GetHashCode() ^
-            M31.GetHashCode() ^ M32.GetHashCode() ^ M33.GetHashCode();
+        return HashCode.Combine(HashCode.Combine(M11, M12, M13),
+            HashCode.Combine(M21, M22, M23),
+            HashCode.Combine(M31, M32, M33));
     }
 
     public static bool operator==(Matrix3x3 lhs, Matrix3x3 rhs)

@@ -118,8 +118,11 @@ internal partial class StapleEditor
             projectAppSettings = AppSettings.Default;
         }
 
-        LayerMask.AllLayers = new(projectAppSettings.layers);
-        LayerMask.AllSortingLayers = projectAppSettings.sortingLayers;
+        LayerMask.AllLayers.Clear();
+        LayerMask.AllSortingLayers.Clear();
+
+        LayerMask.AllLayers.AddRange(projectAppSettings.layers);
+        LayerMask.AllSortingLayers.AddRange(projectAppSettings.sortingLayers);
 
         AddEditorLayers();
 

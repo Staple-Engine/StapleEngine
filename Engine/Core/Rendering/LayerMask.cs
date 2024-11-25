@@ -9,10 +9,10 @@ namespace Staple;
 public struct LayerMask
 {
     [IgnoreMember]
-    public static List<string> AllLayers = new();
+    public static readonly List<string> AllLayers = [];
 
     [IgnoreMember]
-    public static List<string> AllSortingLayers = new();
+    public static readonly List<string> AllSortingLayers = [];
 
     /// <summary>
     /// The layer mask's value

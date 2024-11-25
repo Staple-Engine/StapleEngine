@@ -128,6 +128,13 @@ public sealed class EntityCallback
 
                         continue;
                     }
+
+                    persistentCache.Add(new()
+                    {
+                        entity = entity,
+                        methodInfo = method,
+                        type = type,
+                    });
                 }
                 catch (Exception e)
                 {

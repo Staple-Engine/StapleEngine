@@ -47,6 +47,8 @@ internal class PlayerSettings
         }
         catch (Exception e)
         {
+            Log.Error($"[PlayerSettings] Failed to load the player settings. Returning default settings. {e}");
+
             return new PlayerSettings()
             {
                 windowMode = appSettings.defaultWindowMode,

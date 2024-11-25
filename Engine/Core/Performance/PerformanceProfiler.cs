@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Staple;
 
-public struct PerformanceProfiler(PerformanceProfilerType type) : IDisposable
+public readonly struct PerformanceProfiler(PerformanceProfilerType type) : IDisposable
 {
     private readonly PerformanceProfilerType type = type;
     private readonly DateTime startTime = DateTime.UtcNow;

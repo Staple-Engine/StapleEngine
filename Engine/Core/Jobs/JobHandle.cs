@@ -47,7 +47,7 @@ public struct JobHandle : IEquatable<JobHandle>
         Schedulers.JobHandle.CompleteAll(allHandles.AsSpan());
     }
 
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals(object obj)
     {
         return obj is JobHandle handle && Equals(handle);
     }
