@@ -13,6 +13,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
 
@@ -313,11 +314,7 @@ internal partial class StapleEditor
         editorSettings.appName = "Staple Editor";
         editorSettings.companyName = "Staple Engine";
 
-        LayerMask.AllLayers.Clear();
-        LayerMask.AllSortingLayers.Clear();
-
-        LayerMask.AllLayers.AddRange(editorSettings.layers);
-        LayerMask.AllSortingLayers.AddRange(editorSettings.sortingLayers);
+        LayerMask.SetLayers(CollectionsMarshal.AsSpan(editorSettings.layers), CollectionsMarshal.AsSpan(editorSettings.sortingLayers));
 
         AppSettings.Current = editorSettings;
 

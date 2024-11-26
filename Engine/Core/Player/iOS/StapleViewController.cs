@@ -6,6 +6,7 @@ using UIKit;
 using System;
 using System.Linq;
 using System.IO;
+using System.Runtime.InteropServices;
 using Staple.Internal;
 
 namespace Staple;
@@ -64,8 +65,7 @@ public class StapleViewController : UIViewController
                     throw new Exception("Failed to deserialize app settings");
                 }
 
-                LayerMask.AllLayers = AppSettings.Current.layers;
-                LayerMask.AllSortingLayers = AppSettings.Current.sortingLayers;
+                LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers), CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
             }
             catch (Exception e)
             {

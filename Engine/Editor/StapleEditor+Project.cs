@@ -9,6 +9,7 @@ using System.Linq;
 using NfdSharp;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 namespace Staple.Editor;
 
@@ -118,11 +119,7 @@ internal partial class StapleEditor
             projectAppSettings = AppSettings.Default;
         }
 
-        LayerMask.AllLayers.Clear();
-        LayerMask.AllSortingLayers.Clear();
-
-        LayerMask.AllLayers.AddRange(projectAppSettings.layers);
-        LayerMask.AllSortingLayers.AddRange(projectAppSettings.sortingLayers);
+        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorSettings.sortingLayers));
 
         AddEditorLayers();
 

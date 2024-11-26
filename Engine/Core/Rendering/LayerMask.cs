@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -65,6 +66,20 @@ public struct LayerMask
         {
             return new LayerMask(uint.MaxValue);
         }
+    }
+
+    /// <summary>
+    /// Sets both layers and sorting layers to specific values
+    /// </summary>
+    /// <param name="layers">The layers</param>
+    /// <param name="sortingLayers">The sorting layers</param>
+    internal static void SetLayers(Span<string> layers, Span<string> sortingLayers)
+    {
+        AllLayers.Clear();
+        AllSortingLayers.Clear();
+
+        AllLayers.AddRange(layers);
+        AllSortingLayers.AddRange(sortingLayers);
     }
 
     /// <summary>

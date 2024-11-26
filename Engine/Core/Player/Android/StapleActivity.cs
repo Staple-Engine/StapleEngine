@@ -690,11 +690,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                 throw new Exception("Failed to deserialize app settings");
             }
 
-            LayerMask.AllLayers.Clear();
-            LayerMask.AllSortingLayers.Clear();
-
-            LayerMask.AllLayers.AddRange(AppSettings.Current.layers);
-            LayerMask.AllSortingLayers.AddRange(AppSettings.Current.sortingLayers);
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers), CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
         }
         catch (Exception e)
         {

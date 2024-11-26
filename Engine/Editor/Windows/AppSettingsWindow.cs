@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using System.Linq;
 using Staple.Internal;
+using System.Runtime.InteropServices;
 
 namespace Staple.Editor;
 
@@ -132,11 +133,7 @@ internal class AppSettingsWindow : EditorWindow
                     }
                 }
 
-                LayerMask.AllLayers.Clear();
-                LayerMask.AllSortingLayers.Clear();
-
-                LayerMask.AllLayers.AddRange(projectAppSettings.layers);
-                LayerMask.AllSortingLayers.AddRange(projectAppSettings.sortingLayers);
+                LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(projectAppSettings.sortingLayers));
 
                 StapleEditor.instance.AddEditorLayers();
             }
