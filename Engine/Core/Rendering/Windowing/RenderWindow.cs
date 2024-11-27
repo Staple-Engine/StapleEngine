@@ -54,8 +54,9 @@ internal class RenderWindow
 
     private bool renderThreadReady = false;
     private Thread renderThread;
-    private bgfx.Init init = new bgfx.Init();
+    private bgfx.Init init = new();
     private AppPlatform currentPlatform;
+    private CursorLockMode lastCursorLockMode;
 
     public bool Paused => hasFocus == false && AppSettings.Current.runInBackground == false;
 
@@ -161,6 +162,20 @@ internal class RenderWindow
             if (window.IsFocused != hasFocus)
             {
                 hasFocus = window.IsFocused;
+
+                if(Platform.IsDesktopPlatform)
+                {
+                    if(hasFocus && lastCursorLockMode != Cursor.LockState)
+                    {
+                        Cursor.LockState = lastCursorLockMode;
+                    }
+                    else
+                    {
+                        lastCursorLockMode = Cursor.LockState;
+
+                        Cursor.LockState = CursorLockMode.None;
+                    }
+                }
 
                 try
                 {
@@ -865,7 +880,6 @@ internal class RenderWindow
     /// <param name="height">The window's height</param>
     /// <param name="resizable">Whether it should be resizable</param>
     /// <param name="windowMode">The window mode</param>
-    /// <param name="appSettings">Application Settings</param>
     /// <param name="maximized">Whether the window should be maximized</param>
     /// <param name="position">A specific position for the window, or null for default</param>
     /// <param name="monitorIndex">The monitor index to use</param>
@@ -938,6 +952,7 @@ internal class RenderWindow
         }
 
         Input.window = renderWindow.window;
+        Cursor.window = renderWindow.window;
 
         //Issue with Metal
         if(Platform.IsMacOS)

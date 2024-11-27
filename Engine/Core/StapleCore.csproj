@@ -139,6 +139,8 @@
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.OldRasterizer.cs" />
 		<Compile Include="Hooks\IStapleHook.cs" />
 		<Compile Include="Hooks\StapleHookEvent.cs" />
+		<Compile Include="Input\Cursor.cs" />
+		<Compile Include="Input\CursorLockMode.cs" />
 		<Compile Include="Input\GamepadAxis.cs" />
 		<Compile Include="Input\GamepadButton.cs" />
 		<Compile Include="Input\GamepadConnectionState.cs" />

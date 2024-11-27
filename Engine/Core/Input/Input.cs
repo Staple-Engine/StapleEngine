@@ -537,14 +537,21 @@ public static class Input
     {
         var newPos = new Vector2(xpos, ypos);
 
-        if(MousePosition == Vector2.Zero)
+        if(Cursor.LockState == CursorLockMode.Locked)
         {
-            previousMousePosition = newPos;
+            MouseRelativePosition = newPos;
         }
+        else
+        {
+            if (MousePosition == Vector2.Zero)
+            {
+                previousMousePosition = newPos;
+            }
 
-        MousePosition = newPos;
+            MousePosition = newPos;
 
-        MouseRelativePosition = newPos - previousMousePosition;
+            MouseRelativePosition = newPos - previousMousePosition;
+        }
     }
 
     internal static void HandleTextEvent(AppEvent appEvent)
@@ -778,38 +785,6 @@ public static class Input
     {
         return new Vector2(GetGamepadAxis(index, GamepadAxis.RightX),
             GetGamepadAxis(index, GamepadAxis.RightY));
-    }
-
-    /// <summary>
-    /// Locks the cursor to the window
-    /// </summary>
-    public static void LockCursor()
-    {
-        window.LockCursor();
-    }
-
-    /// <summary>
-    /// Unlocks the cursor
-    /// </summary>
-    public static void UnlockCursor()
-    {
-        window.UnlockCursor();
-    }
-
-    /// <summary>
-    /// Hides the cursor
-    /// </summary>
-    public static void HideCursor()
-    {
-        window.HideCursor();
-    }
-
-    /// <summary>
-    /// Shows the cursor
-    /// </summary>
-    public static void ShowCursor()
-    {
-        window.ShowCursor();
     }
 
     /// <summary>

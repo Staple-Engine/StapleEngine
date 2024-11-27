@@ -402,7 +402,14 @@ internal class SDL2RenderWindow : IRenderWindow
 
                 case SDL.SDL_EventType.SDL_MOUSEMOTION:
 
-                    Input.CursorPosCallback(_event.motion.x, _event.motion.y);
+                    if(SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE)
+                    {
+                        Input.CursorPosCallback(_event.motion.xrel, _event.motion.yrel);
+                    }
+                    else
+                    {
+                        Input.CursorPosCallback(_event.motion.x, _event.motion.y);
+                    }
 
                     break;
 
@@ -665,12 +672,16 @@ internal class SDL2RenderWindow : IRenderWindow
 
     public void LockCursor()
     {
-        SDL.SDL_SetWindowMouseGrab(window, SDL.SDL_bool.SDL_TRUE);
+        SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
+
+        Cursor.visible = false;
     }
 
     public void UnlockCursor()
     {
-        SDL.SDL_SetWindowMouseGrab(window, SDL.SDL_bool.SDL_FALSE);
+        SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+
+        Cursor.visible = true;
     }
 
     public void HideCursor()
