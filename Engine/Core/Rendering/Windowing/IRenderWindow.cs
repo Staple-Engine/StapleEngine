@@ -43,6 +43,10 @@ internal interface IRenderWindow
 
     void HideCursor();
 
+    bool TryCreateCursorImage(Color32[] pixels, int width, int height, int hotX, int hotY, out CursorImage image);
+
+    void SetCursor(CursorImage image);
+
     void SetIcon(RawTextureData icon);
 
     bool SetResolution(int width, int height, WindowMode windowMode);

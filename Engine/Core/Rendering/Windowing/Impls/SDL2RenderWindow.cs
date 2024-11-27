@@ -11,6 +11,32 @@ internal class SDL2RenderWindow : IRenderWindow
 {
     private const short AxisDeadzone = 8000;
 
+    private class SDL2Cursor : CursorImage
+    {
+        public Color32[] pixels;
+        public nint surface = nint.Zero;
+        public nint cursor = nint.Zero;
+
+        public override void Dispose()
+        {
+            if (cursor != nint.Zero)
+            {
+                SDL.SDL_FreeCursor(cursor);
+
+                cursor = nint.Zero;
+            }
+
+            if(surface != nint.Zero)
+            {
+                SDL.SDL_FreeSurface(surface);
+
+                surface = nint.Zero;
+            }
+
+            pixels = [];
+        }
+    }
+
     private class GamepadState
     {
         public nint instance;
@@ -18,7 +44,9 @@ internal class SDL2RenderWindow : IRenderWindow
 
     public nint window;
 
-    private Dictionary<int, GamepadState> gamepads = new();
+    private readonly Dictionary<int, GamepadState> gamepads = [];
+
+    private readonly List<SDL2Cursor> cursors = [];
 
     private bool movedWindow = false;
     private DateTime movedWindowTimer;
@@ -26,6 +54,7 @@ internal class SDL2RenderWindow : IRenderWindow
     private bool closedWindow = false;
     private bool windowFocused = true;
     private bool windowMaximized = false;
+    private nint defaultCursor = nint.Zero;
 
     private nint metalView = nint.Zero;
 
@@ -142,11 +171,18 @@ internal class SDL2RenderWindow : IRenderWindow
             windowMaximized = true;
         }
 
+        defaultCursor = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
+
         return true;
     }
 
     public void Destroy()
     {
+        foreach (var cursor in cursors)
+        {
+            cursor.Dispose();
+        }
+
         SDL.SDL_DestroyWindow(window);
     }
 
@@ -754,6 +790,60 @@ internal class SDL2RenderWindow : IRenderWindow
         }
 
         return true;
+    }
+
+    public bool TryCreateCursorImage(Color32[] pixels, int width, int height, int hotX, int hotY, out CursorImage image)
+    {
+        unsafe
+        {
+            var outValue = new SDL2Cursor
+            {
+                pixels = pixels
+            };
+
+            fixed (void *ptr = outValue.pixels)
+            {
+                var surface = SDL.SDL_CreateRGBSurfaceFrom((nint)ptr, width, height, 32, width * 4, 0, 0, 0, 0);
+
+                if(surface == nint.Zero)
+                {
+                    image = default;
+
+                    return false;
+                }
+
+                var cursor = SDL.SDL_CreateColorCursor(surface, hotX, hotY);
+
+                if(cursor == nint.Zero)
+                {
+                    SDL.SDL_FreeSurface(surface);
+
+                    image = default;
+
+                    return false;
+                }
+
+                outValue.surface = surface;
+                outValue.cursor = cursor;
+
+                image = outValue;
+
+                return true;
+            }
+        }
+    }
+
+    public void SetCursor(CursorImage image)
+    {
+        if(image is not SDL2Cursor cursor ||
+            cursor.cursor == nint.Zero)
+        {
+            SDL.SDL_SetCursor(defaultCursor);
+
+            return;
+        }
+
+        SDL.SDL_SetCursor(cursor.cursor);
     }
 }
 #endif

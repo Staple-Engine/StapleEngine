@@ -172,5 +172,16 @@ internal class AndroidRenderWindow : IRenderWindow
     {
         return false;
     }
+
+    public bool TryCreateCursorImage(Color32[] pixels, int width, int height, int hotX, int hotY, out CursorImage image)
+    {
+        image = default;
+
+        return false;
+    }
+
+    public void SetCursor(CursorImage image)
+    {
+    }
 }
 #endif

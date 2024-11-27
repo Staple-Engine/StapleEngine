@@ -174,5 +174,16 @@ internal class iOSRenderWindow : IRenderWindow
     {
         return false;
     }
+
+    public bool TryCreateCursorImage(Color32[] pixels, int width, int height, int hotX, int hotY, out ICursorImage image)
+    {
+        image = default;
+
+        return false;
+    }
+
+    public void SetCursor(ICursorImage image)
+    {
+    }
 }
 #endif
