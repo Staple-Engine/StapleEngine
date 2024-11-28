@@ -558,6 +558,30 @@ static partial class Program
                         data = File.ReadAllBytes(outputFileTemp),
                     };
 
+                    if (metadata.keepOnCPU)
+                    {
+                        try
+                        {
+                            var data = File.ReadAllBytes(inputFile);
+
+                            var rawData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+
+                            if (rawData != null)
+                            {
+                                texture.cpuData = new()
+                                {
+                                    colorComponents = rawData.colorComponents,
+                                    data = rawData.data,
+                                    width = rawData.width,
+                                    height = rawData.height,
+                                };
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
                     var header = new SerializableTextureHeader();
 
                     using var stream = File.OpenWrite(outputFile);

@@ -19,6 +19,8 @@ public class Texture : IGuidAsset
     internal string guid;
     internal bool renderTarget = false;
 
+    internal RawTextureData readbackData;
+
     private readonly ITextureCreateMethod createMethod;
 
     public string Guid
@@ -568,5 +570,32 @@ public class Texture : IGuidAsset
                 });
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the pixels in this texture as a Color array, if any
+    /// </summary>
+    /// <returns>The pixels</returns>
+    public Color[] GetPixels()
+    {
+        var c = readbackData?.ToColorArray() ?? [];
+
+        var outValue = new Color[c.Length];
+
+        for(var i = 0; i < outValue.Length; i++)
+        {
+            outValue[i] = c[i];
+        }
+
+        return outValue;
+    }
+
+    /// <summary>
+    /// Gets the pixels in this texture as a Color32 array, if any
+    /// </summary>
+    /// <returns>The pixels</returns>
+    public Color32[] GetPixels32()
+    {
+        return readbackData?.ToColorArray() ?? [];
     }
 }

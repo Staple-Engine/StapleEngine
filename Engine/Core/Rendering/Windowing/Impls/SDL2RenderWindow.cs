@@ -798,12 +798,12 @@ internal class SDL2RenderWindow : IRenderWindow
         {
             var outValue = new SDL2Cursor
             {
-                pixels = pixels
+                pixels = pixels,
             };
 
             fixed (void *ptr = outValue.pixels)
             {
-                var surface = SDL.SDL_CreateRGBSurfaceFrom((nint)ptr, width, height, 32, width * 4, 0, 0, 0, 0);
+                var surface = SDL.SDL_CreateRGBSurfaceWithFormatFrom((nint)ptr, width, height, 32, width * 4, SDL.SDL_PIXELFORMAT_ARGB8888);
 
                 if(surface == nint.Zero)
                 {

@@ -299,25 +299,28 @@ public class TextureMetadata
     public bool readBack = false;
 
     [Key(14)]
-    public SpriteTextureMethod spriteTextureMethod = SpriteTextureMethod.Single;
+    public bool keepOnCPU = false;
 
     [Key(15)]
+    public SpriteTextureMethod spriteTextureMethod = SpriteTextureMethod.Single;
+
+    [Key(16)]
     public Vector2Int spriteTextureGridSize = Vector2Int.Zero;
 
     [HideInInspector]
-    [Key(16)]
+    [Key(17)]
     public List<TextureSpriteInfo> sprites = new();
 
-    [Key(17)]
+    [Key(18)]
     public bool shouldPack = false;
 
-    [Key(18)]
+    [Key(19)]
     public int padding = 0;
 
-    [Key(19)]
+    [Key(20)]
     public bool trimDuplicates = false;
 
-    [Key(20)]
+    [Key(21)]
     public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
     {
         {
@@ -337,7 +340,7 @@ public class TextureMetadata
     };
 
     [HideInInspector]
-    [Key(21)]
+    [Key(22)]
     public string typeName = typeof(Texture).FullName;
 
     public TextureMetadata Clone()
@@ -353,6 +356,7 @@ public class TextureMetadata
             premultiplyAlpha = premultiplyAlpha,
             quality = quality,
             readBack = readBack,
+            keepOnCPU = keepOnCPU,
             type = type,
             useMipmaps = useMipmaps,
             wrapU = wrapU,
@@ -395,6 +399,7 @@ public class TextureMetadata
             lhs.isLinear == rhs.isLinear &&
             lhs.spritePixelsPerUnit == rhs.spritePixelsPerUnit &&
             lhs.readBack == rhs.readBack &&
+            lhs.keepOnCPU == rhs.keepOnCPU &&
             lhs.overrides.Keys.Count == rhs.overrides.Keys.Count &&
             lhs.overrides.Keys.All(x => rhs.overrides.ContainsKey(x) && lhs.overrides[x] == rhs.overrides[x]) &&
             lhs.spriteTextureMethod == rhs.spriteTextureMethod &&
@@ -433,6 +438,7 @@ public class TextureMetadata
             lhs.isLinear != rhs.isLinear ||
             lhs.spritePixelsPerUnit != rhs.spritePixelsPerUnit ||
             lhs.readBack != rhs.readBack ||
+            lhs.keepOnCPU != rhs.keepOnCPU ||
             lhs.overrides.Keys.Count != rhs.overrides.Keys.Count &&
             lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || lhs.overrides[x] != rhs.overrides[x]) ||
             lhs.spriteTextureMethod != rhs.spriteTextureMethod ||

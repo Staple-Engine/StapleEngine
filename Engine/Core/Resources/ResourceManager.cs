@@ -1147,6 +1147,17 @@ internal class ResourceManager
                 return null;
             }
 
+            if(textureData.cpuData != null)
+            {
+                texture.readbackData = new()
+                {
+                    colorComponents = textureData.cpuData.colorComponents,
+                    data = textureData.cpuData.data,
+                    width = textureData.cpuData.width,
+                    height = textureData.cpuData.height,
+                };
+            }
+
             if(ignoreCache == false)
             {
                 cachedTextures.AddOrSetKey(path, texture);

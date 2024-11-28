@@ -25,9 +25,9 @@ public static class AssetDatabase
         }
     }
 
-    internal static readonly List<AssetInfo> assets = new();
+    internal static readonly List<AssetInfo> assets = [];
 
-    internal static List<string> assetDirectories = new();
+    internal static List<string> assetDirectories = [];
 
     /// <summary>
     /// Callback to resolve asset paths, if needed.

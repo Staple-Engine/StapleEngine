@@ -22,6 +22,22 @@ public class SerializableTextureHeader
 }
 
 [MessagePackObject]
+public class SerializableTextureCPUData
+{
+    [Key(0)]
+    public StandardTextureColorComponents colorComponents;
+
+    [Key(1)]
+    public byte[] data;
+
+    [Key(2)]
+    public int width;
+
+    [Key(3)]
+    public int height;
+}
+
+[MessagePackObject]
 public class SerializableTexture
 {
     [Key(0)]
@@ -29,4 +45,7 @@ public class SerializableTexture
 
     [Key(1)]
     public byte[] data;
+
+    [Key(2)]
+    public SerializableTextureCPUData cpuData;
 }

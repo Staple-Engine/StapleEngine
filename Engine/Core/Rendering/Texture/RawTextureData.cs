@@ -12,6 +12,56 @@ public class RawTextureData
     public int height;
     public byte[] data;
 
+    public Color32[] ToColorArray()
+    {
+        var outValue = new Color32[width * height];
+
+        switch(colorComponents)
+        {
+            case StandardTextureColorComponents.Greyscale:
+
+                for(var i = 0; i < data.Length; i++)
+                {
+                    outValue[i] = new(data[i], data[i], data[i], 255);
+                }
+
+                break;
+
+            case StandardTextureColorComponents.GreyscaleAlpha:
+
+                for (int i = 0, index = 0; i < data.Length; i += 2)
+                {
+                    outValue[index++] = new(data[i], data[i], data[i], data[i + 1]);
+                }
+
+                break;
+
+            case StandardTextureColorComponents.RGB:
+
+                for (int i = 0, index = 0; i < data.Length; i += 3)
+                {
+                    outValue[index++] = new(data[i], data[i + 1], data[i + 2], 255);
+                }
+
+                break;
+
+            case StandardTextureColorComponents.RGBA:
+
+                for (int i = 0, index = 0; i < data.Length; i += 4)
+                {
+                    outValue[index++] = new(data[i], data[i + 1], data[i + 2], data[i + 3]);
+                }
+
+                break;
+
+            default:
+
+                return [];
+        }
+
+        return outValue;
+    }
+
     public void Blit(int sourceX, int sourceY, int sourceWidth, int sourceHeight, int sourcePitch, byte[] sourceData, int destX, int destY)
     {
         if(colorComponents != StandardTextureColorComponents.RGBA)
