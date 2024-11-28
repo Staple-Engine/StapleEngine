@@ -21,6 +21,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public SkinnedMeshRenderer renderer;
 
         /// <summary>
+        /// The render cache
+        /// </summary>
+        public RenderCache cache;
+
+        /// <summary>
         /// The current position of the object
         /// </summary>
         public Vector3 position;
@@ -36,9 +41,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public ushort viewID;
     }
 
+    private class RenderCache
+    {
+        public Matrix4x4[] boneMatrices;
+
+        public VertexBuffer boneBuffer;
+    }
+
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
-    private readonly Dictionary<int, Matrix4x4[]> cachedBoneMatrices = [];
+    private readonly Dictionary<int, RenderCache> renderCache = [];
 
     public void Startup()
     {
@@ -94,22 +106,38 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
 
+            var animator = renderer.animator.Content;
+            var mesh = renderer.mesh;
+            var meshAsset = mesh.meshAsset;
+
+            Matrix4x4[] boneMatrices;
+
+            if (renderCache.TryGetValue(meshAsset.Guid.GetHashCode(), out var cache) == false)
+            {
+                boneMatrices = new Matrix4x4[meshAsset.BoneCount];
+
+                cache = new()
+                {
+                    boneMatrices = boneMatrices,
+                };
+
+                renderCache.Add(meshAsset.Guid.GetHashCode(), cache);
+            }
+            else
+            {
+                boneMatrices = cache.boneMatrices;
+            }
+
             renderers.Add(new()
             {
                 renderer = renderer,
+                cache = cache,
                 position = transform.Position,
                 transform = transform.Matrix,
                 viewID = viewId
             });
 
-            var animator = renderer.animator.Content;
-            var mesh = renderer.mesh;
-            var meshAsset = mesh.meshAsset;
-            var meshAssetMesh = meshAsset.meshes[mesh.meshAssetIndex];
-
             var useAnimator = animator != null && animator.evaluator != null;
-
-            Matrix4x4[] boneMatrices;
 
             if (useAnimator)
             {
@@ -120,25 +148,21 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 boneMatrices = animator.cachedBoneMatrices;
             }
-            else if (cachedBoneMatrices.TryGetValue(meshAsset.Guid.GetHashCode(), out boneMatrices) == false)
+            else
             {
-                boneMatrices = new Matrix4x4[meshAsset.BoneCount];
-
-                cachedBoneMatrices.Add(meshAsset.Guid.GetHashCode(), boneMatrices);
-
                 UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
             }
 
-            if (useAnimator == false && (renderer.boneMatrixBuffer?.Disposed ?? true))
+            if (useAnimator == false && (cache.boneBuffer?.Disposed ?? true))
             {
-                renderer.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                cache.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
                     .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
                     .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
 
-                renderer.boneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                cache.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
             }
         }
     }
@@ -165,6 +189,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         foreach(var pair in renderers.Contents)
         {
             var renderer = pair.renderer;
+            var cache = pair.cache;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var animator = renderer.animator.Content;
@@ -228,14 +253,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     bgfx.DiscardFlags.IndexBuffer |
                     bgfx.DiscardFlags.Transform;
 
-                if (useAnimator)
-                {
-                    animator.boneMatrixBuffer?.SetBufferActive(15, Access.Read);
-                }
-                else
-                {
-                    renderer.boneMatrixBuffer?.SetBufferActive(15, Access.Read);
-                }
+                var buffer = useAnimator ? animator.boneMatrixBuffer : cache.boneBuffer;
+
+                buffer?.SetBufferActive(15, Access.Read);
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

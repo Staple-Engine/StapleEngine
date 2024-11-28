@@ -338,6 +338,8 @@ public static class EditorUtils
 
                 nodeTransform.SetParent(baseTransform);
 
+                node.ApplyTo(nodeTransform);
+
                 foreach (var index in node.meshIndices)
                 {
                     if (index < 0 || index >= asset.meshes.Count)

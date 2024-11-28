@@ -479,9 +479,9 @@ public sealed class MeshAsset : IGuidAsset
 
             Matrix4x4.Decompose(GlobalTransform, out var scale, out var rotation, out var position);
 
-            transform.Position = position;
-            transform.Rotation = rotation;
-            transform.Scale = scale;
+            transform.LocalPosition = position;
+            transform.LocalRotation = rotation;
+            transform.LocalScale = scale;
         }
 
         /// <summary>
