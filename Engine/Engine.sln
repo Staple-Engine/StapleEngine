@@ -52,6 +52,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleOpenALAudio", "Staple
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleNetworking", "StapleNetworking\StapleNetworking.csproj", "{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
