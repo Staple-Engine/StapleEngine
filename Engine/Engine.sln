@@ -51,6 +51,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleOpenALAudio", "Staple
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleNetworking", "StapleNetworking\StapleNetworking.csproj", "{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,10 @@ Global
 		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1931566-065A-4ED4-A87D-CF6F9CE3413A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
