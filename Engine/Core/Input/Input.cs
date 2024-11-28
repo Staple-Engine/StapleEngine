@@ -115,6 +115,76 @@ public static class Input
             }
         }
 
+        static bool HandleTouchAxisBehaviour(InputAction.Device device, out Vector2 axis)
+        {
+            if(GetTouch(device.deviceIndex) == false)
+            {
+                device.touch.pressing = false;
+            }
+
+            if(device.touch.pressing == false)
+            {
+                for (var i = 0; i < TouchCount; i++)
+                {
+                    var pointer = GetPointerID(i);
+
+                    if (GetTouchDown(pointer))
+                    {
+                        var position = GetTouchPosition(pointer);
+
+                        var normalizedPosition = new Vector2(position.X / Screen.Width, position.Y / Screen.Height);
+
+                        device.touch.pressing = device.touch.affectedArea.Contains(normalizedPosition);
+
+                        if (device.touch.pressing)
+                        {
+                            device.deviceIndex = pointer;
+
+                            device.touch.lastPosition = position;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            if (device.touch.pressing && GetTouch(device.deviceIndex))
+            {
+                var current = GetTouchPosition(device.deviceIndex);
+
+                var difference = current - device.touch.lastPosition;
+
+                if(difference == Vector2.Zero)
+                {
+                    axis = difference;
+
+                    return true;
+                }
+
+                var direction = Vector2.Normalize(difference);
+
+                direction.Y *= -1;
+
+                if(Math.Abs(direction.X) < 0.5f)
+                {
+                    direction.X = 0;
+                }
+
+                if (Math.Abs(direction.Y) < 0.5f)
+                {
+                    direction.Y = 0;
+                }
+
+                axis = direction;
+
+                return true;
+            }
+
+            axis = default;
+
+            return false;
+        }
+
         foreach (var pair in inputCallbacks)
         {
             switch(pair.Value.action.type)
@@ -166,13 +236,18 @@ public static class Input
 
                             case InputDevice.Touch:
 
-                                if(GetTouchDown(device.deviceIndex))
+                                for(var i = 0; i < TouchCount; i++)
                                 {
-                                    ExecuteSafely(pair.Value.onPress, new()
+                                    if (GetTouchDown(GetPointerID(i)))
                                     {
-                                        device = device.device,
-                                        deviceIndex = device.deviceIndex,
-                                    });
+                                        ExecuteSafely(pair.Value.onPress, new()
+                                        {
+                                            device = device.device,
+                                            deviceIndex = i,
+                                        });
+
+                                        break;
+                                    }
                                 }
 
                                 break;
@@ -228,13 +303,18 @@ public static class Input
 
                             case InputDevice.Touch:
 
-                                if (GetTouch(device.deviceIndex))
+                                for (var i = 0; i < TouchCount; i++)
                                 {
-                                    ExecuteSafely(pair.Value.onPress, new()
+                                    if (GetTouch(GetPointerID(i)))
                                     {
-                                        device = device.device,
-                                        deviceIndex = device.deviceIndex,
-                                    });
+                                        ExecuteSafely(pair.Value.onPress, new()
+                                        {
+                                            device = device.device,
+                                            deviceIndex = i,
+                                        });
+
+                                        break;
+                                    }
                                 }
 
                                 break;
@@ -283,7 +363,17 @@ public static class Input
 
                             case InputDevice.Touch:
 
-                                //Not valid
+                                if(HandleTouchAxisBehaviour(device, out var touchAxis))
+                                {
+                                    if (device.touch.horizontal)
+                                    {
+                                        axis = touchAxis.X;
+                                    }
+                                    else if (device.touch.vertical)
+                                    {
+                                        axis = touchAxis.Y;
+                                    }
+                                }
 
                                 break;
                         }
@@ -352,7 +442,10 @@ public static class Input
 
                             case InputDevice.Touch:
 
-                                //Not valid
+                                if (HandleTouchAxisBehaviour(device, out var touchAxis))
+                                {
+                                    axis = touchAxis;
+                                }
 
                                 break;
                         }

@@ -193,11 +193,6 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
                     _ => AppEventInputState.Repeat
                 };
 
-                if(inputState == AppEventInputState.Repeat)
-                {
-                    continue;
-                }
-
                 AppEventQueue.instance.Add(AppEvent.Touch(ID, new Vector2(coords.X, coords.Y), inputState));
             }
 

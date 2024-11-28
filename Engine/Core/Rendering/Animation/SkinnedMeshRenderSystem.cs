@@ -129,22 +129,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
             }
 
-            for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+            if (useAnimator == false && (renderer.boneMatrixBuffer?.Disposed ?? true))
             {
-                if (useAnimator == false || (renderer.boneMatrixBuffer?.Disposed ?? true))
-                {
-                    if (renderer.boneMatrixBuffer?.Disposed ?? true)
-                    {
-                        renderer.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
+                renderer.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
 
-                        renderer.boneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
-                    }
-                }
+                renderer.boneMatrixBuffer.Update(boneMatrices.AsSpan(), 0, true);
             }
         }
     }
@@ -283,66 +277,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     }
 
     /// <summary>
-    /// Gets all transforms related to animation nodes
+    /// Attempts to get the animation/bone nodes for a mesh asset
     /// </summary>
-    /// <param name="parent">The parent transform</param>
-    /// <param name="transformCache">The transform cache</param>
-    /// <param name="nodes">The nodes</param>
-    public static void GatherNodeTransforms(Transform parent, Dictionary<int, Transform> transformCache, MeshAsset.Node[] nodes)
+    /// <param name="meshAsset">The asset</param>
+    /// <param name="animator">The animator animating the asset, if any</param>
+    /// <returns>The nodes</returns>
+    public static MeshAsset.Node[] GetNodes(MeshAsset meshAsset, SkinnedMeshAnimator animator)
     {
-        if (parent == null || transformCache == null)
-        {
-            return;
-        }
-
-        transformCache.Clear();
-
-        for(var i = 0; i < nodes.Length; i++)
-        {
-            var childTransform = parent.SearchChild(nodes[i].name);
-
-            if(childTransform == null)
-            {
-                continue;
-            }
-
-            transformCache.AddOrSetKey(i, childTransform);
-        }
-    }
-
-    /// <summary>
-    /// Applies the transforms of a node cache into its related entity transforms
-    /// </summary>
-    /// <param name="nodeCache">The node cache</param>
-    /// <param name="transformCache">The transform cache</param>
-    /// <param name="original">Whether we want the original transforms (before animating)</param>
-    public static void ApplyNodeTransform(MeshAsset.Node[] nodeCache, Dictionary<int, Transform> transformCache, bool original = false)
-    {
-        foreach (var pair in transformCache)
-        {
-            var node = nodeCache[pair.Key];
-
-            pair.Value.LocalPosition = original ? node.OriginalPosition : node.Position;
-            pair.Value.LocalRotation = original ? node.OriginalRotation : node.Rotation;
-            pair.Value.LocalScale = original ? node.OriginalScale : node.Scale;
-        }
-    }
-
-    /// <summary>
-    /// Applies transforms to nodes. This lets you override the animation transforms.
-    /// </summary>
-    /// <param name="nodeCache">The node cache</param>
-    /// <param name="transformCache">The transform cache</param>
-    public static void ApplyTransformsToNodes(MeshAsset.Node[] nodeCache, Dictionary<int, Transform> transformCache)
-    {
-        for(var i = 0; i < nodeCache.Length; i++)
-        {
-            if (transformCache.TryGetValue(i, out var transform) == false)
-            {
-                continue;
-            }
-
-            nodeCache[i].Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
-        }
+        return animator?.evaluator?.nodes ?? meshAsset.nodes;
     }
 }

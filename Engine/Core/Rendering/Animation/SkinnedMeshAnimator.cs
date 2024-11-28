@@ -65,9 +65,9 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     internal bool shouldRender = true;
 
     /// <summary>
-    /// A list of all skinned mesh renderers in self and children
+    /// A list of all the mesh renderers in self and children
     /// </summary>
-    internal EntityQuery<SkinnedMeshRenderer> renderers;
+    internal EntityQuery<MeshRenderer> meshRenderers;
 
     /// <summary>
     /// A cache of bone matrices

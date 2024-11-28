@@ -9,11 +9,38 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
-    private static void ResetRenderers(SkinnedMeshAnimator animator)
+    private static void ApplyMeshRendererTransforms(SkinnedMeshAnimator animator)
     {
-        foreach(var renderer in animator.renderers.Contents)
+        var nodes = SkinnedMeshRenderSystem.GetNodes(animator.mesh.meshAsset, animator);
+
+        foreach (var (entity, _) in animator.meshRenderers.ContentEntities)
         {
-            renderer.ResetAnimationState();
+            var transform = entity.GetComponent<Transform>()?.parent;
+            var nodeName = transform?.entity.Name;
+
+            if (nodeName == null)
+            {
+                continue;
+            }
+
+            MeshAsset.Node node = null;
+
+            for (var i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i].name == nodeName)
+                {
+                    node = nodes[i];
+
+                    break;
+                }
+            }
+
+            if (node == null)
+            {
+                continue;
+            }
+
+            node.ApplyTo(transform);
         }
     }
 
@@ -42,7 +69,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             {
                 animator.shouldRender = false;
 
-                animator.renderers ??= new(entity, EntityQueryMode.Children, false);
+                animator.meshRenderers ??= new(entity, EntityQueryMode.Children, true);
             }
         }
     }
@@ -63,11 +90,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 return;
             }
 
-            if (animator.nodeCache.Length == 0 && animator.transformCache.Count == 0)
-            {
-                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.nodes);
-            }
-
             if (Platform.IsPlaying)
             {
                 if (animator.stateMachine != null && animator.animationController == null)
@@ -81,8 +103,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 if (animator.evaluator == null ||
                     animator.evaluator.animation.name != animator.animation)
                 {
-                    ResetRenderers(animator);
-
                     animator.evaluator = new(animator.mesh.meshAsset,
                         animator.mesh.meshAsset.animations[animator.animation],
                         animator.mesh.meshAsset.CloneNodes(),
@@ -114,20 +134,20 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.nodeCache);
 
                     animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
+
+                    ApplyMeshRendererTransforms(animator);
                 }
             }
             else if (animator.playInEditMode == false)
             {
                 if (animator.evaluator != null)
                 {
-                    SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
-
                     animator.shouldRender = true;
 
-                    ResetRenderers(animator);
-                }
+                    animator.evaluator = null;
 
-                animator.evaluator = null;
+                    ApplyMeshRendererTransforms(animator);
+                }
             }
         }
     }

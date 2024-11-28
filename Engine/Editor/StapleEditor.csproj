@@ -63,6 +63,7 @@
     <Compile Include="Editors\Default\SkinnedMeshAnimatorEditor.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
     <Compile Include="Editors\CustomEditorAttribute.cs" />
+    <Compile Include="Editors\Default\SkinnedMeshAttachmentEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
     <Compile Include="Editors\Default\UIImageEditor.cs" />

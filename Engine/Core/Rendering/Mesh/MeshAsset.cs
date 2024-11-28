@@ -468,6 +468,23 @@ public sealed class MeshAsset : IGuidAsset
         }
 
         /// <summary>
+        /// Applies this node's transform to a <see cref="Transform"/>
+        /// </summary>
+        /// <param name="transform">The transform to apply to</param>
+        public void ApplyTo(Transform transform)
+        {
+            changed = true;
+
+            UpdateTransforms();
+
+            Matrix4x4.Decompose(GlobalTransform, out var scale, out var rotation, out var position);
+
+            transform.Position = position;
+            transform.Rotation = rotation;
+            transform.Scale = scale;
+        }
+
+        /// <summary>
         /// Makes a copy of this node
         /// </summary>
         /// <param name="parent">The parent node to set for this</param>

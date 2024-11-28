@@ -89,11 +89,11 @@ internal class AndroidBuildProcessor : IBuildPreprocessor
         {
             if (projectAppSettings.portraitOrientation)
             {
-                orientationType = "Portrait";
+                orientationType = "UserPortrait";
             }
             else if (projectAppSettings.landscapeOrientation)
             {
-                orientationType = "Landscape";
+                orientationType = "UserLandscape";
             }
         }
 

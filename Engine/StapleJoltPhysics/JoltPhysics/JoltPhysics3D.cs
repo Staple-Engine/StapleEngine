@@ -55,7 +55,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 var message = inMessage ?? inExpression;
 
-                var outMessage = $"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}";
+                var outMessage = $"[JoltPhysics] Assertion failure {inExpression} at {inFile}:{inLine}: {message}";
 
                 System.Diagnostics.Debug.WriteLine(outMessage);
 

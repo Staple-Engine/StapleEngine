@@ -37,7 +37,7 @@ public static class JobScheduler
     /// </summary>
     private static readonly Schedulers.JobScheduler jobScheduler = new(new()
     {
-        ThreadPrefixName = "Staple Job Scheduler",
+        ThreadPrefixName = "Staple Job Scheduler ",
         ThreadCount = 0,
         MaxExpectedConcurrentJobs = 64,
         StrictAllocationMode = false,

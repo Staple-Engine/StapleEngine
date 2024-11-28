@@ -100,7 +100,8 @@ internal partial class Shader : IGuidAsset
 
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
-    private readonly Dictionary<int, UniformInfo> uniforms = [];
+    private UniformInfo[] uniforms = [];
+    private readonly IntLookupCache<int> uniformIndices = new();
 
     private int usedTextureStages = 0;
 
@@ -220,11 +221,11 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        if (uniforms.Count > 0)
+        if (uniforms.Length > 0)
         {
-            foreach (var pair in uniforms)
+            foreach (var uniform in uniforms)
             {
-                pair.Value.Create();
+                uniform.Create();
             }
         }
         else
@@ -261,7 +262,16 @@ internal partial class Shader : IGuidAsset
         var nameHash = name.GetHashCode();
         var normalizedHash = normalizedName.GetHashCode();
 
-        if(uniforms.ContainsKey(nameHash) || uniforms.ContainsKey(normalizedHash))
+        var uniformIndex = uniformIndices.IndexOf(nameHash);
+
+        if(uniformIndex >= 0)
+        {
+            return;
+        }
+
+        uniformIndex = uniformIndices.IndexOf(normalizedHash);
+
+        if (uniformIndex >= 0)
         {
             return;
         }
@@ -285,11 +295,16 @@ internal partial class Shader : IGuidAsset
                 usedTextureStages++;
             }
 
-            uniforms.Add(normalizedHash, u);
+            var i = uniforms.Length;
 
-            if (uniforms.ContainsKey(nameHash) == false)
+            uniformIndices.Add(normalizedHash, i);
+            uniforms = uniforms.Concat([u]).ToArray();
+
+            if (uniformIndices.IndexOf(nameHash) < 0)
             {
-                uniforms.Add(nameHash, new()
+                uniformIndices.Add(nameHash, i);
+
+                uniforms = uniforms.Concat([new()
                 {
                     count = u.count,
                     isAlias = true,
@@ -300,7 +315,7 @@ internal partial class Shader : IGuidAsset
                         name = u.uniform.name,
                         type = type,
                     },
-                });
+                }]).ToArray();
             }
         }
     }
@@ -320,12 +335,12 @@ internal partial class Shader : IGuidAsset
 
     internal UniformInfo GetUniform(int hash)
     {
-        if (Disposed || uniforms.TryGetValue(hash, out var uniform) == false)
+        if (Disposed)
         {
             return null;
         }
 
-        return uniform;
+        return uniformIndices.TryGetValue(hash, out var index) ? uniforms[index] : null;
     }
 
     internal ShaderHandle GetUniformHandle(int hash)
@@ -756,10 +771,8 @@ internal partial class Shader : IGuidAsset
             }
         }
 
-        foreach (var pair in uniforms)
+        foreach (var uniform in uniforms)
         {
-            var uniform = pair.Value;
-
             if(uniform.isAlias)
             {
                 continue;

@@ -71,6 +71,18 @@ public struct RectFloat
         }
     }
 
+    public readonly bool Contains(Vector2Int v)
+    {
+        return v.X >= left && v.X <= right &&
+            v.Y >= top && v.Y <= bottom;
+    }
+
+    public readonly bool Contains(Vector2 v)
+    {
+        return v.X >= left && v.X <= right &&
+            v.Y >= top && v.Y <= bottom;
+    }
+
     public static bool operator ==(RectFloat lhs, RectFloat rhs)
     {
         return lhs.left == rhs.left &&

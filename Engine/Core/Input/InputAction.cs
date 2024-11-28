@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple;
 
@@ -91,6 +92,37 @@ public class InputAction
     }
 
     /// <summary>
+    /// Touch parameters
+    /// </summary>
+    public class Touch
+    {
+        /// <summary>
+        /// Affected area in viewport space (0-1) where a touch is valid for an axis
+        /// </summary>
+        public RectFloat affectedArea;
+
+        /// <summary>
+        /// Whether we want to check for horizontal movement for an axis
+        /// </summary>
+        public bool horizontal;
+
+        /// <summary>
+        /// Whether we want to check for vertical movement for an axis
+        /// </summary>
+        public bool vertical;
+
+        /// <summary>
+        /// Whether we started pressing in the affected area
+        /// </summary>
+        internal bool pressing;
+
+        /// <summary>
+        /// The last position in the affected area
+        /// </summary>
+        internal Vector2 lastPosition;
+    }
+
+    /// <summary>
     /// Details for a specific device's settings
     /// </summary>
     public class Device
@@ -104,13 +136,14 @@ public class InputAction
         /// The device index.
         /// In the case of keyboard and mouse, this is ignored.
         /// In the case of Touch, this is the finger index.
-        /// in the case of gamepad, this is the gamepad index.
+        /// In the case of gamepad, this is the gamepad index.
         /// </summary>
         public int deviceIndex;
 
         public Keys keys = new();
         public Gamepad gamepad = new();
         public Mouse mouse = new();
+        public Touch touch = new();
     }
 
     /// <summary>
