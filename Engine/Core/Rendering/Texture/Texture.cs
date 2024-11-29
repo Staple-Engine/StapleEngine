@@ -79,21 +79,6 @@ public class Texture : IGuidAsset
     ~Texture()
     {
         Destroy();
-
-        var removed = new List<WeakReference<Texture>>();
-
-        foreach(var reference in ResourceManager.instance.userCreatedTextures)
-        {
-            if(reference.TryGetTarget(out var texture) && texture == this)
-            {
-                removed.Add(reference);
-            }
-        }
-
-        foreach(var reference in removed)
-        {
-            ResourceManager.instance.userCreatedTextures.Remove(reference);
-        }
     }
 
     internal bool Create()

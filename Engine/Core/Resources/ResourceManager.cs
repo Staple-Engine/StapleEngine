@@ -783,6 +783,70 @@ internal class ResourceManager
     }
 
     /// <summary>
+    /// Attempts to load shader data from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <returns>The shader data, or null</returns>
+    public SerializableShader LoadShaderData(string path)
+    {
+        var prefix = ShaderPrefix;
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        if (path.StartsWith(prefix) == false)
+        {
+            path = prefix + path;
+        }
+
+        guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+
+        if (guid == null)
+        {
+            return null;
+        }
+
+        byte[] data = LoadFile(guid, ShaderPrefix);
+
+        if (data == null)
+        {
+            Log.Error($"[ResourceManager] Failed to load shader at guid {guid}");
+
+            return null;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+
+            if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+                header.version != SerializableShaderHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid header");
+
+                return null;
+            }
+
+            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+
+            if (shaderData == null || shaderData.metadata == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid shader data");
+
+                return null;
+            }
+
+            return shaderData;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: {e}");
+
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Attempts to load a shader from a path
     /// </summary>
     /// <param name="path">The path to load</param>

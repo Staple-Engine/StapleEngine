@@ -93,7 +93,9 @@ static partial class Program
         return lastFromWrite > lastToWrite || assemblyLastWrite > lastToWrite;
     }
 
-    private static Dictionary<string, string> processedTextures = new();
+    private static readonly Dictionary<string, string> processedTextures = [];
+
+    private static readonly Dictionary<string, string> processedShaders = [];
 
     public static void Main(string[] args)
     {
@@ -320,11 +322,11 @@ static partial class Program
             return;
         }
 
-        ProcessMeshes(platform, inputPath, outputPath);
+        ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
 
         WorkScheduler.WaitForTasks();
 
-        ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
+        ProcessMeshes(platform, inputPath, outputPath);
 
         WorkScheduler.WaitForTasks();
 

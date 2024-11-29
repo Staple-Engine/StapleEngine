@@ -4,6 +4,7 @@ using Staple.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 
 namespace Staple.JoltPhysics;
 
@@ -22,14 +23,12 @@ public class JoltPhysics3D : IPhysics3D
     private PhysicsSystem physicsSystem;
 
     //Tracking live bodies
-    private readonly List<JoltBodyPair> bodies = new();
+    private readonly List<JoltBodyPair> bodies = [];
+    private readonly Lock threadLock = new();
+    private readonly CallbackGatherer callbackGatherer = new();
 
     private bool destroyed = false;
-
     private bool locked = false;
-    private object threadLock = new();
-
-    private CallbackGatherer callbackGatherer = new();
 
     public bool Destroyed => destroyed;
 

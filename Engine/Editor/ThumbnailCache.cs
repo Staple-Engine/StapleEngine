@@ -1061,6 +1061,16 @@ internal class ThumbnailCache
     {
         lock(renderRequestLock)
         {
+            try
+            {
+                var thumbnailPath = Path.Combine(basePath, "Cache", "Thumbnails");
+
+                Directory.Delete(thumbnailPath, true);
+            }
+            catch(Exception)
+            {
+            }
+
             foreach (var pair in cachedThumbnails)
             {
                 pendingDestructionTextures.Add(pair.Value.texture);

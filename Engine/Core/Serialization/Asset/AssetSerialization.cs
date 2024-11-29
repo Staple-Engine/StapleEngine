@@ -39,9 +39,9 @@ internal static partial class AssetSerialization
     public static readonly string PrefabExtension = "prefab";
 
     /// <summary>
-    /// GUID for the default material
+    /// GUID for the standard shader
     /// </summary>
-    public static readonly string DefaultMaterialGuid = "1ca9a72c-161e-44db-ad76-bf0ae432f78b";
+    public static readonly string StandardShaderGUID = "1ca9a72c-161e-44db-ad76-bf0ae432f78b";
 
     /// <summary>
     /// All supported texture extensions

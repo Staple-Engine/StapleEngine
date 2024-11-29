@@ -9,14 +9,14 @@ namespace Staple.Editor;
 
 public static class EditorUtils
 {
-    private static readonly string[] byteSizes = new string[]
-    {
+    private static readonly string[] byteSizes =
+    [
         "B",
         "KB",
         "MB",
         "GB",
         "TB"
-    };
+    ];
 
     internal static Lazy<string> EditorPath = new(() =>
     {

@@ -41,7 +41,8 @@ vec4 i_data6        :   TEXCOORD1;
 vec4 i_data7        :   TEXCOORD0;
 """;
 
-    private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
+    private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath,
+        List<string> shaderDefines, List<Renderer> renderers)
     {
         var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
 
@@ -50,7 +51,15 @@ vec4 i_data7        :   TEXCOORD0;
             pieces.RemoveAt(pieces.Count - 1);
         }
 
-        var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Tools", "ShaderIncludes"))}\"";
+        var stapleBase = Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces));
+
+        var resourcesPath = Path.Combine(stapleBase, "DefaultResources", "DefaultResources-Windows.pak");
+
+        ResourceManager.instance.LoadPak(resourcesPath);
+
+        AssetDatabase.Reload();
+
+        var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
 
         var shaderFiles = new List<string>();
 
@@ -126,6 +135,8 @@ vec4 i_data7        :   TEXCOORD0;
 
             var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(currentShader));
             var file = Path.GetFileName(currentShader);
+
+            processedShaders.Add(currentShader.Replace("\\", "/"), guid);
 
             foreach (var renderer in renderers)
             {

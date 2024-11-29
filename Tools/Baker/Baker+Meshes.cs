@@ -87,6 +87,15 @@ static partial class Program
 
         Console.WriteLine($"Processing {meshFiles.Count} meshes...");
 
+        RenderWindow.CurrentRenderer = RendererType.Direct3D11;
+
+        var standardShader = ResourceManager.instance.LoadShaderData(AssetSerialization.StandardShaderGUID);
+
+        bool ShaderHasParameter(string name)
+        {
+            return standardShader?.metadata.uniforms.Any(x => x.name == name) ?? false;
+        }
+
         for (var i = 0; i < meshFiles.Count; i++)
         {
             var meshFileName = meshFiles[i];
@@ -312,7 +321,7 @@ static partial class Program
 
                         var materialMetadata = new MaterialMetadata()
                         {
-                            shader = AssetSerialization.DefaultMaterialGuid,
+                            shader = AssetSerialization.StandardShaderGUID,
                         };
 
                         if(material.IsTwoSided)
@@ -329,6 +338,11 @@ static partial class Program
 
                         void AddColor(string name, bool has, Assimp.Color4D color)
                         {
+                            if(ShaderHasParameter(name) == false)
+                            {
+                                return;
+                            }
+
                             var c = Color.White;
 
                             if (has)
@@ -355,6 +369,11 @@ static partial class Program
 
                         void AddTexture(string name, bool has, Assimp.TextureSlot slot)
                         {
+                            if (ShaderHasParameter(name) == false)
+                            {
+                                return;
+                            }
+
                             var texturePath = "";
 
                             var mappingU = TextureWrap.Clamp;
@@ -519,20 +538,9 @@ static partial class Program
                                     Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
                                     _ => TextureWrap.Clamp,
                                 };
-
-                                materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
-                                {
-                                    type = MaterialParameterType.TextureWrap,
-                                    textureWrapValue = mappingU,
-                                });
-
-                                materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
-                                {
-                                    type = MaterialParameterType.TextureWrap,
-                                    textureWrapValue = mappingV,
-                                });
                             }
-                            else
+
+                            if (ShaderHasParameter($"{name}_UMapping") && ShaderHasParameter($"{name}_VMapping"))
                             {
                                 materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
                                 {
@@ -553,7 +561,7 @@ static partial class Program
                                 textureValue = texturePath,
                             });
                         }
-
+ 
                         AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);
                         AddTexture("ambientOcclusionTexture", material.HasTextureAmbientOcclusion, material.TextureAmbientOcclusion);
                         AddTexture("diffuseTexture", material.HasTextureDiffuse, material.TextureDiffuse);
