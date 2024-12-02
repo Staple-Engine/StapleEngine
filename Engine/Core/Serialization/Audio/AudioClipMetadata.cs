@@ -3,6 +3,12 @@ using System;
 
 namespace Staple.Internal;
 
+public enum AudioRecompression
+{
+    None,
+    Vorbis,
+}
+
 [MessagePackObject]
 public class AudioClipMetadata
 {
@@ -17,11 +23,21 @@ public class AudioClipMetadata
     [Key(2)]
     public bool loadInBackground = false;
 
+    [Key(3)]
+    public AudioRecompression recompression;
+
+    [Key(4)]
+    [Range(0, 1)]
+    public float recompressionQuality = 1.0f;
+
     public AudioClipMetadata Clone()
     {
         return new AudioClipMetadata()
         {
             guid = guid,
+            loadInBackground = loadInBackground,
+            recompression = recompression,
+            recompressionQuality = recompressionQuality,
             typeName = typeName,
         };
     }
@@ -30,14 +46,18 @@ public class AudioClipMetadata
     {
         return lhs.guid == rhs.guid &&
             lhs.typeName == rhs.typeName &&
-            lhs.loadInBackground == rhs.loadInBackground;
+            lhs.loadInBackground == rhs.loadInBackground &&
+            lhs.recompression == rhs.recompression &&
+            lhs.recompressionQuality == rhs.recompressionQuality;
     }
 
     public static bool operator !=(AudioClipMetadata lhs, AudioClipMetadata rhs)
     {
         return lhs.guid != rhs.guid ||
             lhs.typeName != rhs.typeName ||
-            lhs.loadInBackground != rhs.loadInBackground;
+            lhs.loadInBackground != rhs.loadInBackground ||
+            lhs.recompression != rhs.recompression ||
+            lhs.recompressionQuality != rhs.recompressionQuality;
     }
 
     public override bool Equals(object obj)
@@ -53,5 +73,10 @@ public class AudioClipMetadata
         }
 
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(guid, typeName, loadInBackground, recompression, recompressionQuality);
     }
 }

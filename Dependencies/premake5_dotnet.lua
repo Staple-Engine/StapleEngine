@@ -92,3 +92,12 @@ project "ZeroAllocJobScheduler"
 	files {
 		"ZeroAllocJobScheduler/**.cs"
 	}
+
+project "OggVorbisEncoder"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+
+	files {
+		".NET-Ogg-Vorbis-Encoder/**.cs"
+	}

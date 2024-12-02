@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.IO;
 using System.Threading;
 
 namespace Staple.Editor;
@@ -12,7 +13,29 @@ internal class AudioClipEditor : AssetEditor
     private IAudioSource audioSource;
     private IAudioClip audioClip;
     private CancellationTokenSource cancellation;
-    private object lockObject = new();
+    private readonly Lock lockObject = new();
+    private long sizeInDisk;
+    private long sizeUncompressed;
+
+    public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
+    {
+        if(name == nameof(AudioClipMetadata.recompression) ||
+            name == nameof(AudioClipMetadata.recompressionQuality))
+        {
+            var extension = Path.GetExtension(path.Replace(".meta", "")).ToUpperInvariant();
+
+            var skip = extension != ".WAV";
+
+            if(skip)
+            {
+                EditorGUI.Label("Audio compression is only available for uncompressed file formats");
+            }
+
+            return skip;
+        }
+
+        return false;
+    }
 
     public override void Destroy()
     {
@@ -44,6 +67,14 @@ internal class AudioClipEditor : AssetEditor
             {
                 triedLoad = true;
 
+                try
+                {
+                    sizeInDisk = new FileInfo(cachePath.Replace(".meta", "")).Length;
+                }
+                catch(Exception)
+                {
+                }
+
                 clip = ResourceManager.instance.LoadAudioClip(cachePath);
                 cancellation = AudioSystem.Instance.LoadAudioClip(clip, (samples, channels, bits, sampleRate) =>
                 {
@@ -62,6 +93,8 @@ internal class AudioClipEditor : AssetEditor
 
                             if (audioClip.Init(samples, channels, bits, sampleRate))
                             {
+                                sizeUncompressed = samples.Length * sizeof(ushort);
+
                                 if (audioSource.Bind(audioClip) == false)
                                 {
                                     audioClip.Destroy();
@@ -117,6 +150,8 @@ internal class AudioClipEditor : AssetEditor
 
             EditorGUI.Label($"Channels: {clip.channels} ({clip.bitsPerSample} bits, {clip.sampleRate}Hz)");
             EditorGUI.Label($"Duration: {hours}:{minutes}:{seconds.ToString("0.00")}");
+            EditorGUI.Label($"Disk Size: {EditorUtils.ByteSizeString(sizeInDisk)} ({EditorUtils.ByteSizeString(sizeUncompressed)} uncompressed, " +
+                $"{sizeInDisk / (float)sizeUncompressed * 100:0.00}%% ratio)");
 
             if (audioSource != null)
             {

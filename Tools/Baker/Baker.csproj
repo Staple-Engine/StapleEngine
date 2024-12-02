@@ -36,11 +36,21 @@
 		<Reference Include="StapleTooling">
 			<HintPath>..\..\Engine\Tooling\bin\Release\net9.0\StapleTooling.dll</HintPath>
 		</Reference>
+		<Reference Include="NVorbis">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NVorbis.dll</HintPath>
+		</Reference>
+		<Reference Include="NAudio">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NAudio.dll</HintPath>
+		</Reference>
+		<Reference Include="OggVorbisEncoder">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\OggVorbisEncoder.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="StirlingLabs.Assimp.Net" Version="23.4.1" />
 	</ItemGroup>
 	<ItemGroup>
+		<Compile Include="Audio\AudioUtils.cs" />
 		<Compile Include="Baker+AppSettings.cs" />
 		<Compile Include="Baker+Assets.cs" />
 		<Compile Include="Baker+Audio.cs" />

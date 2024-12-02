@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using NAudio.Wave;
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Baker;
 
@@ -63,6 +65,12 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
+            if (ShouldProcessFile(audioFileName, outputFile) == false &&
+                ShouldProcessFile(audioFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
+            {
+                continue;
+            }
+
             WorkScheduler.Dispatch(Path.GetFileName(audioFileName.Replace(".meta", "")), () =>
             {
                 Console.WriteLine($"\t\t -> {outputFile}");
@@ -103,31 +111,68 @@ static partial class Program
 
                     metadata.guid = guid;
 
+                    var audioFormat = extension switch
+                    {
+                        ".MP3" => AudioClipFormat.MP3,
+                        ".OGG" => AudioClipFormat.OGG,
+                        ".WAV" => AudioClipFormat.WAV,
+                        _ => AudioClipFormat.WAV,
+                    };
+
+                    if(audioFormat == AudioClipFormat.WAV)
+                    {
+                        switch (metadata.recompression)
+                        {
+                            case AudioRecompression.Vorbis:
+
+                                try
+                                {
+                                    using var wavReader = new WaveFileReader(audioFileName.Replace(".meta", ""));
+
+                                    var format = wavReader.WaveFormat;
+
+                                    var sampleProvider = wavReader.ToSampleProvider();
+
+                                    var buffer = new float[44100];
+
+                                    var samples = new List<float>();
+
+                                    var count = 0;
+
+                                    while((count = sampleProvider.Read(buffer, 0, buffer.Length)) > 0)
+                                    {
+                                        samples.AddRange(buffer.Take(count));
+                                    }
+
+                                    fileData = AudioUtils.EncodeOGG(CollectionsMarshal.AsSpan(samples), format.Channels, format.SampleRate,
+                                        metadata.recompressionQuality);
+
+                                    audioFormat = AudioClipFormat.OGG;
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+                        }
+                    }
+
                     var audioClip = new SerializableAudioClip()
                     {
                         metadata = metadata,
                         fileData = fileData,
-                        format = extension switch
-                        {
-                            ".MP3" => AudioClipFormat.MP3,
-                            ".OGG" => AudioClipFormat.OGG,
-                            ".WAV" => AudioClipFormat.WAV,
-                            _ => 0,
-                        }
+                        format = audioFormat,
                     };
 
                     var header = new SerializableAudioClipHeader();
 
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(audioClip));
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
 
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(audioClip));
+
+                    writer.Write(encoded.ToArray());
                 }
                 catch (Exception e)
                 {

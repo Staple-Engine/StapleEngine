@@ -1082,6 +1082,23 @@ public static class EditorGUI
         ImGui.Separator();
     }
 
+    /// <summary>
+    /// Sets a tooltip for the next element
+    /// </summary>
+    /// <param name="text">The text for the tooltip</param>
+    public static void Tooltip(string text)
+    {
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip(text);
+        }
+    }
+
+    /// <summary>
+    /// Manages a drop target with a specific type and callback
+    /// </summary>
+    /// <param name="type">The type we want to handle</param>
+    /// <param name="callback">The callback to call with the target</param>
     public static void DragDropTarget(Type type, Action<object> callback)
     {
         if (ImGui.BeginDragDropTarget())
@@ -1096,9 +1113,9 @@ public static class EditorGUI
                     {
                         var e = StapleEditor.instance.draggedEntity;
 
-                        Changed = true;
-
                         StapleEditor.instance.draggedEntity = default;
+
+                        Changed = true;
 
                         callback(e);
                     }
