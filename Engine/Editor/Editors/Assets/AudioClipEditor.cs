@@ -47,6 +47,7 @@ internal class AudioClipEditor : AssetEditor
             audioSource?.Destroy();
             audioClip?.Destroy();
 
+            triedLoad = false;
             clip = null;
             cancellation = null;
             audioSource = null;
@@ -196,7 +197,10 @@ internal class AudioClipEditor : AssetEditor
                 }
             }
 
-            ShowAssetUI(null);
+            ShowAssetUI((() =>
+            {
+                Destroy();
+            }));
         }
     }
 }
