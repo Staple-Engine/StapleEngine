@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Staple.Jobs;
 
@@ -7,41 +9,10 @@ namespace Staple.Jobs;
 /// </summary>
 public static class JobScheduler
 {
-    private class JobProxy : Schedulers.IJob
-    {
-        public IJob job;
-
-        public void Execute() => job.Execute();
-    }
-
-    private class JobParallelForProxy : Schedulers.IJobParallelFor
-    {
-        public IJobParallelFor job;
-
-        public int ThreadCount => job.ThreadCount;
-
-        public int BatchSize => job.BatchSize;
-
-        public void Execute(int index) => job.Execute(index);
-
-        public void Finish() => job.Finish();
-    }
-
     /// <summary>
     /// Amount of threads we can use
     /// </summary>
     private static readonly int Concurrency = System.Math.Max(1, Environment.ProcessorCount - 2);
-
-    /// <summary>
-    /// Internal job scheduler
-    /// </summary>
-    private static readonly Schedulers.JobScheduler jobScheduler = new(new()
-    {
-        ThreadPrefixName = "Staple Job Scheduler ",
-        ThreadCount = 0,
-        MaxExpectedConcurrentJobs = 64,
-        StrictAllocationMode = false,
-    });
 
     /// <summary>
     /// Gets the chunk size of an amount of iterations
@@ -76,41 +47,18 @@ public static class JobScheduler
     /// <returns>A job handle for the job</returns>
     public static JobHandle Schedule(IJob job)
     {
-        var handle = new JobHandle()
+        var task = Task.Run(() =>
         {
-            handle = jobScheduler.Schedule(new JobProxy()
+            try
             {
-                job = job,
-            }),
-        };
-
-        jobScheduler.Flush();
-
-        return handle;
-    }
-
-    /// <summary>
-    /// Schedules a parallel for job to execute
-    /// </summary>
-    /// <param name="job">The job to execute</param>
-    /// <returns>A job handle for the job</returns>
-    public static JobHandle Schedule(IJobParallelFor job, int count)
-    {
-        var handle = new JobHandle()
-        {
-            handle = jobScheduler.Schedule(new JobParallelForProxy()
+                job.Execute();
+            }
+            catch(Exception e)
             {
-                job = job,
-            }, count),
-        };
+                Log.Debug($"[JobScheduler] Failed to execute job {job.GetType().FullName}: {e}");
+            }
+        });
 
-        jobScheduler.Flush();
-
-        return handle;
-    }
-
-    internal static void Dispose()
-    {
-        jobScheduler.Dispose();
+        return new JobHandle(task);
     }
 }

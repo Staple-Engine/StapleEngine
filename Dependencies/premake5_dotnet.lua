@@ -84,15 +84,6 @@ project "MessagePack"
 		"MessagePack/**.cs"
 	}
 
-project "ZeroAllocJobScheduler"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-
-	files {
-		"ZeroAllocJobScheduler/**.cs"
-	}
-
 project "OggVorbisEncoder"
 	kind "SharedLib"
 	language "C#"

@@ -3,7 +3,6 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
 using Staple.Internal;
-using Staple.Jobs;
 using Staple.JoltPhysics;
 using Staple.OpenALAudio;
 using System;
@@ -909,8 +908,6 @@ internal partial class StapleEditor
                     }
                 }
             }
-
-            JobScheduler.Dispose();
 
             imgui.Destroy();
 

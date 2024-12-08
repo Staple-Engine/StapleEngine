@@ -89,27 +89,6 @@ public sealed class EntityQuery<T> : ISceneQuery
         World.AddSceneQuery(this);
     }
 
-    public void IterateThreaded(Action<T, int> callback)
-    {
-        if (Length == 0)
-        {
-            return;
-        }
-
-        World.IterateThreaded(contents, callback);
-    }
-
-    public void IterateThreaded(Action<(Entity, T), int> callback)
-    {
-        if (getEntities == false ||
-            (contentEntities?.Length ?? 0) == 0)
-        {
-            return;
-        }
-
-        World.IterateThreaded(contentEntities, callback);
-    }
-
     public void WorldChanged()
     {
         content = default;

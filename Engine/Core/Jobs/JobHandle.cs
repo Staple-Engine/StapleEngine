@@ -1,50 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Staple.Jobs;
 
 /// <summary>
 /// Contains a handle of a job execution
 /// </summary>
-public struct JobHandle : IEquatable<JobHandle>
+public readonly struct JobHandle : IEquatable<JobHandle>
 {
-    internal Schedulers.JobHandle handle;
+    internal readonly Task task;
+
+    internal JobHandle(Task task)
+    {
+        this.task = task;
+    }
+
+    /// <summary>
+    /// Checks whether the task was completed
+    /// </summary>
+    public bool Completed => task.IsCompleted;
 
     /// <summary>
     /// Waits for the handle to complete
     /// </summary>
-    public readonly void Complete() => handle.Complete();
-
-    /// <summary>
-    /// Waits for a collection of handles to complete
-    /// </summary>
-    /// <param name="jobs">The list of jobs</param>
-    public static void CompleteAll(ReadOnlySpan<JobHandle> jobs)
+    public readonly void Complete()
     {
-        var allHandles = new Schedulers.JobHandle[jobs.Length];
-
-        for (var i = 0; i < jobs.Length; i++)
+        if(task.IsCompleted)
         {
-            allHandles[i] = jobs[i].handle;
+            return;
         }
 
-        Schedulers.JobHandle.CompleteAll(allHandles.AsSpan());
-    }
-
-    /// <summary>
-    /// Waits for a collection of handles to complete
-    /// </summary>
-    /// <param name="jobs">The list of jobs</param>
-    public static void CompleteAll(IReadOnlyList<JobHandle> jobs)
-    {
-        var allHandles = new Schedulers.JobHandle[jobs.Count];
-
-        for (var i = 0; i < jobs.Count; i++)
-        {
-            allHandles[i] = jobs[i].handle;
-        }
-
-        Schedulers.JobHandle.CompleteAll(allHandles.AsSpan());
+        task.Wait();
     }
 
     public override readonly bool Equals(object obj)
@@ -54,17 +40,17 @@ public struct JobHandle : IEquatable<JobHandle>
 
     public readonly bool Equals(JobHandle other)
     {
-        return handle == other.handle;
+        return task == other.task;
     }
 
     public readonly override int GetHashCode()
     {
-        return handle.GetHashCode();
+        return HashCode.Combine(task);
     }
 
     public static bool operator ==(JobHandle left, JobHandle right)
     {
-        return left.handle.Equals(right.handle);
+        return left.task == right.task;
     }
 
     public static bool operator !=(JobHandle left, JobHandle right)
