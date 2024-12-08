@@ -3,80 +3,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Staple.Internal;
+using Staple.Jobs;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Staple.Jobs;
 
 namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
-    private class GameBuildJob(string basePath, Action onFinish) : IJob
-    {
-        public string basePath = basePath;
-        public Action onFinish = onFinish;
-
-        public void Execute()
-        {
-            void Finish()
-            {
-                ThreadHelper.Dispatch(() =>
-                {
-                    try
-                    {
-                        onFinish?.Invoke();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e.ToString());
-                    }
-                });
-            }
-
-            try
-            {
-                using var collection = new ProjectCollection();
-
-                var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
-                var projectPath = Path.Combine(projectDirectory, "Game.csproj");
-                var outPath = Path.Combine(projectDirectory, "bin");
-
-                try
-                {
-                    Directory.Delete(outPath, true);
-                }
-                catch (Exception)
-                {
-                }
-
-                var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
-
-                var processInfo = new ProcessStartInfo("dotnet", args)
-                {
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    WorkingDirectory = Environment.CurrentDirectory
-                };
-
-                var process = new Process
-                {
-                    StartInfo = processInfo
-                };
-
-                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
-
-                Finish();
-            }
-            catch(Exception e)
-            {
-                Log.Error($"Error while building game: {e}");
-
-                Finish();
-            }
-        }
-    }
-
     /// <summary>
     /// Builds the game (Player)
     /// </summary>
@@ -87,10 +21,7 @@ internal partial class StapleEditor
     /// <param name="assetsOnly">Whether to just pack and copy assets</param>
     public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool debugRedists, bool assetsOnly)
     {
-        lock (backgroundLock)
-        {
-            progressFraction = 0;
-        }
+        SetBackgroundProgress(0, "Building...");
 
         void ShowFailureMessage()
         {
@@ -167,10 +98,7 @@ internal partial class StapleEditor
             {
             }
 
-            lock (backgroundLock)
-            {
-                progressFraction = 0.1f;
-            }
+            SetBackgroundProgress(0.1f, "Refreshing Staging...");
 
             try
             {
@@ -240,10 +168,7 @@ internal partial class StapleEditor
                 }
             }
 
-            lock (backgroundLock)
-            {
-                progressFraction = 0.6f;
-            }
+            SetBackgroundProgress(0.6f, "Packing files...");
 
             List<string> CollectPakNames()
             {
@@ -305,7 +230,7 @@ internal partial class StapleEditor
                     StartInfo = processInfo
                 };
 
-                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
 
                 if ((process.HasExited && process.ExitCode == 0) == false)
                 {
@@ -367,9 +292,11 @@ internal partial class StapleEditor
                 StartInfo = processInfo
             };
 
+            SetBackgroundProgress(0.8f, "Compiling...");
+
             Log.Debug($"[Build] dotnet {args}");
 
-            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process);
+            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
 
             if ((process.HasExited && process.ExitCode == 0) == false)
             {
@@ -427,11 +354,6 @@ internal partial class StapleEditor
                 }
             }
 
-            lock (backgroundLock)
-            {
-                progressFraction = 1;
-            }
-
             ShowMessageBox("Player built successfully!", "OK", null);
         },
         false);
@@ -451,39 +373,70 @@ internal partial class StapleEditor
 
         buildingGame = true;
 
-        var finished = false;
-
-        var handle = JobScheduler.Schedule(new GameBuildJob(basePath, () =>
+        var handle = JobScheduler.Schedule(new ActionJob(() =>
         {
-            finished = true;
-        }));
-
-        IEnumerator<(bool, string, float)> Handle()
-        {
-            yield return (false, "Building game...", 0);
-
-            while(finished == false)
+            void Finish()
             {
-                yield return (false, "Building game...", 0);
+                ThreadHelper.Dispatch(() =>
+                {
+                    instance.buildingGame = false;
+
+                    try
+                    {
+                        onFinish?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e.ToString());
+                    }
+                });
             }
 
-            ThreadHelper.Dispatch(() =>
+            instance.SetBackgroundProgress(0, "Building game...");
+
+            try
             {
+                using var collection = new ProjectCollection();
+
+                var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+                var projectPath = Path.Combine(projectDirectory, "Game.csproj");
+                var outPath = Path.Combine(projectDirectory, "bin");
+
                 try
                 {
-                    onFinish?.Invoke();
+                    Directory.Delete(outPath, true);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Log.Error(e.ToString());
                 }
 
-                buildingGame = false;
-            });
+                var args = $" build \"{projectPath}\" -c Debug -o \"{outPath}\"";
 
-            yield return (true, "", 1);
-        }
+                var processInfo = new ProcessStartInfo("dotnet", args)
+                {
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Environment.CurrentDirectory
+                };
 
-        StartBackgroundTask(Handle());
+                var process = new Process
+                {
+                    StartInfo = processInfo
+                };
+
+                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
+
+                Finish();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Error while building game: {e}");
+
+                Finish();
+            }
+        }));
+
+        StartBackgroundTask(handle);
     }
 }

@@ -531,7 +531,7 @@ static partial class Program
                     }
                 };
 
-                Utilities.ExecuteAndCollectProcess(process);
+                Utilities.ExecuteAndCollectProcess(process, null);
 
                 if (process.ExitCode != 0)
                 {

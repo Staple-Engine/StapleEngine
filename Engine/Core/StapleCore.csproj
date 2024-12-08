@@ -146,6 +146,7 @@
 		<Compile Include="Input\InputActionContext.cs" />
 		<Compile Include="Input\InputActionType.cs" />
 		<Compile Include="Input\InputDevice.cs" />
+		<Compile Include="Jobs\ActionJob.cs" />
 		<Compile Include="Math\NoiseGenerator.cs" />
 		<Compile Include="Modules\ModuleInitializer.cs" />
 		<Compile Include="Modules\ModuleType.cs" />

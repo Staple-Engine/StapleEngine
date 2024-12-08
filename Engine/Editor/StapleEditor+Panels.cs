@@ -1310,12 +1310,12 @@ internal partial class StapleEditor
 
             ImGui.EndPopup();
 
-            lock (backgroundLock)
+            lock(backgroundLock)
             {
-                if (backgroundThreads.Count == 0)
-                {
-                    showingProgress = false;
+                showingProgress = backgroundHandles.Count > 0 && backgroundHandles.Any(x => x.Completed == false);
 
+                if (showingProgress == false)
+                {
                     ImGui.CloseCurrentPopup();
                 }
             }

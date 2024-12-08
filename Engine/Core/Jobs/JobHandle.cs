@@ -18,14 +18,14 @@ public readonly struct JobHandle : IEquatable<JobHandle>
     /// <summary>
     /// Checks whether the task was completed
     /// </summary>
-    public bool Completed => task.IsCompleted;
+    public bool Completed => task?.IsCompleted ?? true;
 
     /// <summary>
     /// Waits for the handle to complete
     /// </summary>
     public readonly void Complete()
     {
-        if(task.IsCompleted)
+        if(task?.IsCompleted ?? true)
         {
             return;
         }

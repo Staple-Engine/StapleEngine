@@ -293,6 +293,11 @@ internal class ResourceManager
     /// <returns>The byte array, or null</returns>
     public byte[] LoadFile(string path, string prefix = null)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var pakPath = path.Replace(Path.DirectorySeparatorChar, '/');
 
         var guid = AssetDatabase.GetAssetGuid(pakPath);
@@ -370,6 +375,11 @@ internal class ResourceManager
     /// <returns>The string, or null</returns>
     public string LoadFileString(string path)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if(data == null)
@@ -427,6 +437,11 @@ internal class ResourceManager
     /// <returns>The scene, or null</returns>
     public Scene LoadRawSceneFromPath(string path)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         World.Current = new();
 
         Scene.current = null;
@@ -760,6 +775,11 @@ internal class ResourceManager
     /// <returns>The scene, or null</returns>
     public Scene LoadScene(string name)
     {
+        if ((name?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(name) ??
             name;
 
@@ -789,6 +809,11 @@ internal class ResourceManager
     /// <returns>The shader data, or null</returns>
     public SerializableShader LoadShaderData(string path)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
 
@@ -854,6 +879,11 @@ internal class ResourceManager
     /// <returns>The shader, or null</returns>
     public Shader LoadShader(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
 
@@ -971,7 +1001,12 @@ internal class ResourceManager
     /// <returns>The material, or null</returns>
     public Material LoadMaterial(string path, bool ignoreCache = false)
     {
-        if(ignoreCache == false &&
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        if (ignoreCache == false &&
             cachedMaterials.TryGetValue(path, out var material) &&
             material != null &&
             material.Disposed == false)
@@ -1245,6 +1280,11 @@ internal class ResourceManager
     /// <returns>The audio clip, or null</returns>
     public AudioClip LoadAudioClip(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         if (ignoreCache == false &&
             cachedAudioClips.TryGetValue(path, out var audioClip) &&
             audioClip != null)
@@ -1320,7 +1360,12 @@ internal class ResourceManager
     /// <returns>The mesh, or null</returns>
     public Mesh LoadMesh(string guid, bool ignoreCache = false)
     {
-        if(guid.StartsWith("Internal/", StringComparison.InvariantCulture))
+        if ((guid?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        if (guid.StartsWith("Internal/", StringComparison.InvariantCulture))
         {
             return Mesh.GetDefaultMesh(guid);
         }
@@ -1417,6 +1462,11 @@ internal class ResourceManager
     /// <returns>The mesh asset, or null</returns>
     public MeshAsset LoadMeshAsset(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
@@ -1718,6 +1768,11 @@ internal class ResourceManager
     /// <returns>The asset, or null</returns>
     public T LoadAsset<T>(string path, bool ignoreCache = false) where T: IStapleAsset
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return default;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
@@ -1747,6 +1802,11 @@ internal class ResourceManager
     /// <returns>The asset, or null</returns>
     public IStapleAsset LoadAsset(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return default;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
@@ -1822,6 +1882,11 @@ internal class ResourceManager
     /// <returns>The prefab, or null</returns>
     public Prefab LoadPrefab(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
@@ -1893,6 +1958,11 @@ internal class ResourceManager
     /// <returns>The font, or null</returns>
     public FontAsset LoadFont(string path, bool ignoreCache = false)
     {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;

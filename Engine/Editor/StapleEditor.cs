@@ -3,6 +3,7 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.Jobs;
 using Staple.JoltPhysics;
 using Staple.OpenALAudio;
 using System;
@@ -128,8 +129,17 @@ internal partial class StapleEditor
     internal const int WireframeView = 254;
 
     #region Background Tasks
-    private readonly List<Thread> backgroundThreads = new();
-    private readonly object backgroundLock = new();
+    private readonly Lock backgroundLock = new();
+
+    private readonly List<JobHandle> backgroundHandles = [];
+
+    internal bool showingProgress = false;
+
+    internal bool wasShowingProgress = false;
+
+    internal float progressFraction = 0;
+
+    internal string progressMessage = "";
     #endregion
 
     #region Rendering
@@ -253,14 +263,6 @@ internal partial class StapleEditor
 
     internal bool buildPlayerDebugRedists = false;
 
-    internal bool showingProgress = false;
-
-    internal bool wasShowingProgress = false;
-
-    internal float progressFraction = 0;
-
-    internal string progressMessage = "";
-
     private readonly CSProjManager csProjManager = new();
 
     private bool needsGameRecompile = false;
@@ -291,8 +293,6 @@ internal partial class StapleEditor
 
     private bool refreshingAssets = false;
     #endregion
-
-    private bool shouldTerminate = false;
 
     private static WeakReference<StapleEditor> privInstance;
 
@@ -783,7 +783,7 @@ internal partial class StapleEditor
 
             lock(backgroundLock)
             {
-                if(window.HasFocus)
+                if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
                     if (needsGameRecompile)
                     {
@@ -791,14 +791,10 @@ internal partial class StapleEditor
 
                         UnloadGame();
 
-                        ImGui.OpenPopup("ShowingProgress");
-
                         RefreshStaging(currentPlatform, null);
                     }
-                    else if(needsRefreshStaging)
+                    else if (needsRefreshStaging)
                     {
-                        ImGui.OpenPopup("ShowingProgress");
-
                         RefreshStaging(currentPlatform, null, false);
                     }
                 }
@@ -893,19 +889,12 @@ internal partial class StapleEditor
 
         window.OnCleanup = () =>
         {
-            lock(backgroundLock)
-            {
-                shouldTerminate = true;
-            }
-
             for(; ; )
             {
-                lock(backgroundLock)
+                if (backgroundHandles.Count == 0 ||
+                    backgroundHandles.All(x => x.Completed))
                 {
-                    if(backgroundThreads.Count == 0)
-                    {
-                        break;
-                    }
+                    break;
                 }
             }
 

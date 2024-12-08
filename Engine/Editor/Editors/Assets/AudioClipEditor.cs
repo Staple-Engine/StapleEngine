@@ -43,7 +43,7 @@ internal class AudioClipEditor : AssetEditor
 
         lock (lockObject)
         {
-            cancellation.Cancel();
+            cancellation?.Cancel();
             audioSource?.Destroy();
             audioClip?.Destroy();
 

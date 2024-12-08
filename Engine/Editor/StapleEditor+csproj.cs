@@ -25,8 +25,6 @@ internal partial class StapleEditor
 
         BuildGame(() =>
         {
-            LoadGame();
-
             onFinish();
         });
     }

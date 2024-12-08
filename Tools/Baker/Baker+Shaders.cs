@@ -459,7 +459,7 @@ vec4 i_data7        :   TEXCOORD0;
                             }
                         };
 
-                        Utilities.ExecuteAndCollectProcess(process);
+                        Utilities.ExecuteAndCollectProcess(process, null);
 
                         if (process.ExitCode != 0)
                         {

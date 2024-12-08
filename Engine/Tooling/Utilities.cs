@@ -143,7 +143,7 @@ public class Utilities
         }
     }
 
-    public static void ExecuteAndCollectProcess(Process process)
+    public static void ExecuteAndCollectProcess(Process process, Action<string> messageCallback)
     {
         process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
 
@@ -159,6 +159,14 @@ public class Utilities
             }
 
             Log.Info(args.Data);
+
+            try
+            {
+                messageCallback?.Invoke(args.Data);
+            }
+            catch (Exception)
+            {
+            }
         };
 
         process.Start();

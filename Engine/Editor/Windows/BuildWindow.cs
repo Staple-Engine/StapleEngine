@@ -1,6 +1,7 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using NfdSharp;
+using Staple.Jobs;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -159,17 +160,11 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.UpdateLastSession();
 
-                ImGui.OpenPopup("ShowingProgress");
-
-                IEnumerator<(bool, string, float)> Handle()
+                StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
                         StapleEditor.instance.buildPlayerDebugRedists, false);
-
-                    yield return (true, "", 1);
-                }
-
-                StapleEditor.instance.StartBackgroundTask(Handle());
+                })));
             }
             else
             {
@@ -190,20 +185,11 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.UpdateLastSession();
 
-                StapleEditor.instance.showingProgress = true;
-                StapleEditor.instance.progressFraction = 0;
-
-                ImGui.OpenPopup("ShowingProgress");
-
-                IEnumerator<(bool, string, float)> Handle()
+                StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
                         StapleEditor.instance.buildPlayerDebugRedists, true);
-
-                    yield return (true, "", 1);
-                }
-
-                StapleEditor.instance.StartBackgroundTask(Handle());
+                })));
             }
             else
             {

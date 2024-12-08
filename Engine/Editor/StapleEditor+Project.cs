@@ -10,6 +10,7 @@ using NfdSharp;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using Staple.Jobs;
 
 namespace Staple.Editor;
 
@@ -17,7 +18,8 @@ internal partial class StapleEditor
 {
     private static Regex stagingProgressRegex = StagingProgressRegex();
 
-    private static readonly List<string> excludedStagingRefreshExtensions = [
+    private static readonly List<string> excludedStagingRefreshExtensions =
+    [
         AssetSerialization.SceneExtension,
     ];
 
@@ -176,7 +178,7 @@ internal partial class StapleEditor
 
         fileSystemWatcher = new FileSystemWatcher(Path.Combine(basePath, "Assets"));
 
-        FileSystemEventHandler fileSystemHandler = (object sender, FileSystemEventArgs e) =>
+        void FileSystemHandler(object sender, FileSystemEventArgs e)
         {
             lock(backgroundLock)
             {
@@ -190,7 +192,7 @@ internal partial class StapleEditor
                             needsGameRecompile = true;
                         }
                         else if (Directory.Exists(e.FullPath) == false &&
-                           excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false)
+                            excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false)
                         {
                             needsRefreshStaging = true;
                         }
@@ -201,9 +203,9 @@ internal partial class StapleEditor
                     }
                 }
             }
-        };
+        }
 
-        RenamedEventHandler renamedFileSystemHandler = (object sender, RenamedEventArgs e) =>
+        void RenamedFileSystemHandler(object sender, RenamedEventArgs e)
         {
             lock (backgroundLock)
             {
@@ -221,12 +223,12 @@ internal partial class StapleEditor
                     }
                 }
             }
-        };
+        }
 
-        fileSystemWatcher.Changed += fileSystemHandler;
-        fileSystemWatcher.Created += fileSystemHandler;
-        fileSystemWatcher.Deleted += fileSystemHandler;
-        fileSystemWatcher.Renamed += renamedFileSystemHandler;
+        fileSystemWatcher.Changed += FileSystemHandler;
+        fileSystemWatcher.Created += FileSystemHandler;
+        fileSystemWatcher.Deleted += FileSystemHandler;
+        fileSystemWatcher.Renamed += RenamedFileSystemHandler;
 
         fileSystemWatcher.EnableRaisingEvents = true;
 
@@ -327,9 +329,8 @@ internal partial class StapleEditor
 
             var progress = 0.0f;
             var message = "";
-            var result = false;
 
-            Task.Run(() =>
+            var handle = JobScheduler.Schedule(new ActionJob(() =>
             {
                 try
                 {
@@ -395,11 +396,9 @@ internal partial class StapleEditor
                             StartInfo = processInfo
                         };
 
-                        Staple.Tooling.Utilities.ExecuteAndCollectProcessAsync(process,
+                        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process,
                             (m) =>
                             {
-                                message = m;
-
                                 var match = stagingProgressRegex.Match(m);
 
                                 if (match.Success &&
@@ -409,64 +408,62 @@ internal partial class StapleEditor
                                     progress = left / (float)right;
 
                                     message = match.Groups[3].Value;
-                                }
-                            },
-                            () =>
-                            {
-                                ThreadHelper.Dispatch(() =>
-                                {
-                                    foreach (var pair in ResourceManager.instance.cachedMeshes)
-                                    {
-                                        pair.Value.Destroy();
-                                    }
 
-                                    ResourceManager.instance.cachedMeshAssets.Clear();
-                                    ResourceManager.instance.cachedMeshes.Clear();
-
-                                    if (World.Current != null)
-                                    {
-                                        Scene.IterateEntities((entity) =>
-                                        {
-                                            entity.IterateComponents((ref IComponent component) =>
-                                            {
-                                                var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                                                foreach (var field in fields)
-                                                {
-                                                    if (field.FieldType == typeof(Texture))
-                                                    {
-                                                        var value = (Texture)field.GetValue(component);
-
-                                                        if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
-                                                        {
-                                                            field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
-                                                        }
-                                                    }
-                                                    else if (field.FieldType == typeof(Mesh))
-                                                    {
-                                                        var value = (Mesh)field.GetValue(component);
-
-                                                        if (value != null && (value.Guid?.Length ?? 0) > 0)
-                                                        {
-                                                            field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        });
-                                    }
-
-                                    AssetDatabase.Reload();
-                                    projectBrowser.UpdateProjectBrowserNodes();
-                                });
-
-                                lock (backgroundLock)
-                                {
-                                    refreshingAssets = false;
-
-                                    result = true;
+                                    instance.SetBackgroundProgress(progress, message);
                                 }
                             });
+
+                            ThreadHelper.Dispatch(() =>
+                            {
+                                foreach (var pair in ResourceManager.instance.cachedMeshes)
+                                {
+                                    pair.Value.Destroy();
+                                }
+
+                                ResourceManager.instance.cachedMeshAssets.Clear();
+                                ResourceManager.instance.cachedMeshes.Clear();
+
+                                if (World.Current != null)
+                                {
+                                    Scene.IterateEntities((entity) =>
+                                    {
+                                        entity.IterateComponents((ref IComponent component) =>
+                                        {
+                                            var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+                                            foreach (var field in fields)
+                                            {
+                                                if (field.FieldType == typeof(Texture))
+                                                {
+                                                    var value = (Texture)field.GetValue(component);
+
+                                                    if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
+                                                    {
+                                                        field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
+                                                    }
+                                                }
+                                                else if (field.FieldType == typeof(Mesh))
+                                                {
+                                                    var value = (Mesh)field.GetValue(component);
+
+                                                    if (value != null && (value.Guid?.Length ?? 0) > 0)
+                                                    {
+                                                        field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
+
+                                AssetDatabase.Reload();
+                                projectBrowser.UpdateProjectBrowserNodes();
+                            });
+
+                        lock (backgroundLock)
+                        {
+                            refreshingAssets = false;
+                        }
                     }
                 }
                 catch (Exception)
@@ -474,23 +471,15 @@ internal partial class StapleEditor
                     lock (backgroundLock)
                     {
                         refreshingAssets = false;
-
-                        result = true;
                     }
-                }
-            });
-
-            IEnumerator<(bool, string, float)> Handle()
-            {
-                while (result != true)
-                {
-                    yield return (result, message, progress);
                 }
 
                 ThreadHelper.Dispatch(() =>
                 {
                     try
                     {
+                        LoadGame();
+
                         onFinish?.Invoke();
                     }
                     catch (Exception e)
@@ -498,11 +487,9 @@ internal partial class StapleEditor
                         Log.Error(e.ToString());
                     }
                 });
+            }));
 
-                yield return (true, "", 1);
-            }
-
-            StartBackgroundTask(Handle());
+            StartBackgroundTask(handle);
         }
 
         if (updateProject)
