@@ -25,9 +25,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-	</Reference>
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
@@ -48,6 +45,9 @@
   <ItemGroup>
     <Compile Include="PackerUtils.cs" />
     <Compile Include="Packer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+	<PackageReference Include="MessagePack" Version="3.0.308" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

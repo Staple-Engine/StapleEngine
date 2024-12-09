@@ -313,14 +313,16 @@ static partial class Program
 
                                 if (metadata.trimDuplicates)
                                 {
-                                    Console.WriteLine($"\t\tRemoving duplicates in {spriteTextures.Count} sprites");
+                                    //Console.WriteLine($"\t\tRemoving duplicates in {spriteTextures.Count} sprites");
 
                                     for (var j = 0; j < spriteTextures.Count; j++)
                                     {
                                         var first = spriteTextures[j];
 
+                                        /*
                                         Console.WriteLine($"Validating {j + 1}/{spriteTextures.Count} " +
                                             $"({first.location.left}, {first.location.top}, {first.location.Width}, {first.location.Height})");
+                                        */
 
                                         var stride = first.textureData.width * 4;
 
@@ -337,8 +339,10 @@ static partial class Program
                                             //Remove duplicates
                                             if (first.textureData.data.SequenceEqual(second.textureData.data))
                                             {
+                                                /*
                                                 Console.WriteLine($"\t\tRemoved 1:1 duplicate at index {k} " +
                                                     $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+                                                */
 
                                                 first.duplicates.Add(new DuplicateSpriteInfo()
                                                 {
@@ -376,8 +380,10 @@ static partial class Program
 
                                             if (valid)
                                             {
+                                                /*
                                                 Console.WriteLine($"\t\tRemoved Flipped Y duplicate at index {k} " +
                                                     $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+                                                */
 
                                                 first.duplicates.Add(new DuplicateSpriteInfo()
                                                 {
@@ -421,8 +427,10 @@ static partial class Program
 
                                             if (valid)
                                             {
+                                                /*
                                                 Console.WriteLine($"\t\tRemoved Flipped X duplicate at index {k} " +
                                                     $"({second.location.left}, {second.location.top}, {second.location.Width}, {second.location.Height})");
+                                                */
 
                                                 first.duplicates.Add(new DuplicateSpriteInfo()
                                                 {
