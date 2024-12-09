@@ -35,6 +35,18 @@ dotnet build "StapleOpenALAudio/StapleOpenALAudio.csproj" -c Release -o "../Stag
 #dotnet build "StapleOpenALAudio/StapleOpenALAudio.csproj" -c Release -o "../Staging/Player Backends/iOS/Modules/StapleOpenALAudio/Assembly/Release" /p:STAPLE_IOS=true /p:TargetFramework=net9.0-ios15.0
 dotnet build "StapleOpenALAudio/StapleOpenALAudio.csproj" -c Release -o "../Staging/Player Backends/Android/Modules/StapleOpenALAudio/Assembly/Release" /p:TargetFramework=net9.0-android
 
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Debug -o "../Staging/Player Backends/Windows/Modules/StapleNetworking/Assembly/Debug" /p:STAPLE_WINDOWS=true /p:TargetFramework=net9.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Debug -o "../Staging/Player Backends/Linux/Modules/StapleNetworking/Assembly/Debug" /p:STAPLE_LINUX=true /p:TargetFramework=net9.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Debug -o "../Staging/Player Backends/MacOSX/Modules/StapleNetworking/Assembly/Debug" /p:STAPLE_OSX=true /p:TargetFramework=net9.0
+#dotnet build "StapleNetworking/StapleNetworking.csproj" -c Debug -o "../Staging/Player Backends/iOS/Modules/StapleNetworking/Assembly/Debug" /p:STAPLE_IOS=true /p:TargetFramework=net9.0-ios15.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Debug -o "../Staging/Player Backends/Android/Modules/StapleNetworking/Assembly/Debug" /p:TargetFramework=net9.0-android
+
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Release -o "../Staging/Player Backends/Windows/Modules/StapleNetworking/Assembly/Release" /p:STAPLE_WINDOWS=true /p:TargetFramework=net9.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Release -o "../Staging/Player Backends/Linux/Modules/StapleNetworking/Assembly/Release" /p:STAPLE_LINUX=true /p:TargetFramework=net9.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Release -o "../Staging/Player Backends/MacOSX/Modules/StapleNetworking/Assembly/Release" /p:STAPLE_OSX=true /p:TargetFramework=net9.0
+#dotnet build "StapleNetworking/StapleNetworking.csproj" -c Release -o "../Staging/Player Backends/iOS/Modules/StapleNetworking/Assembly/Release" /p:STAPLE_IOS=true /p:TargetFramework=net9.0-ios15.0
+dotnet build "StapleNetworking/StapleNetworking.csproj" -c Release -o "../Staging/Player Backends/Android/Modules/StapleNetworking/Assembly/Release" /p:TargetFramework=net9.0-android
+
 cp -Rf TypeRegistration "../Staging/Player Backends/Windows/Runtime/"
 cp -Rf TypeRegistration "../Staging/Player Backends/Linux/Runtime/"
 cp -Rf TypeRegistration "../Staging/Player Backends/MacOSX/Runtime/"

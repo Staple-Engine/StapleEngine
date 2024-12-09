@@ -426,7 +426,7 @@
         }
       },
       {
-        "type": "FPSCounterComponent",
+        "type": "TestGame.FPSCounterComponent",
         "data": {}
       }
     ],

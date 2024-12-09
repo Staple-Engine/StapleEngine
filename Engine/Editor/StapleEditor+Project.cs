@@ -7,7 +7,6 @@ using Staple.Internal;
 using System.Reflection;
 using System.Linq;
 using NfdSharp;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using Staple.Jobs;
@@ -273,9 +272,24 @@ internal partial class StapleEditor
 
                 csProjManager.CollectGameScriptModifyStates();
 
-                window.Title = $"Staple Editor - {Path.GetFileName(path)}";
+                UpdateWindowTitle();
             });
         });
+    }
+
+    /// <summary>
+    /// Updates the current window title with the project name and active scene
+    /// </summary>
+    private void UpdateWindowTitle()
+    {
+        if((lastOpenScene?.Length ?? 0) > 0)
+        {
+            window.Title = $"Staple Editor - {Path.GetFileName(basePath)} - {Path.GetFileNameWithoutExtension(lastOpenScene)}";
+        }
+        else
+        {
+            window.Title = $"Staple Editor - {Path.GetFileName(basePath)}";
+        }
     }
 
     /// <summary>

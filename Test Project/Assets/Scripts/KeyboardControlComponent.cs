@@ -1,10 +1,9 @@
 ﻿using Staple;
 
-namespace TestGame
+namespace TestGame;
+
+public class KeyboardControlComponent : IComponent
 {
-    public class KeyboardControlComponent : IComponent
-    {
-        public float speed = 50;
-        public bool is3D = false;
-    }
+    public float speed = 50;
+    public bool is3D = false;
 }

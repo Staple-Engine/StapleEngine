@@ -154,7 +154,7 @@ public class AppSettings
     /// Used modules for the player
     /// </summary>
     [Key(21)]
-    public Dictionary<ModuleType, string> usedModules = new();
+    public HashSet<string> usedModules = [];
 
     /// <summary>
     /// What color to use for ambient lighting
@@ -238,11 +238,10 @@ public class AppSettings
                         }
                     }
                 },
-                usedModules = new()
-                {
-                    { ModuleType.Audio, "StapleOpenALAudio" },
-                    { ModuleType.Physics, "StapleJoltPhysics" },
-                },
+                usedModules = [
+                    "StapleOpenALAudio",
+                    "StapleJoltPhysics",
+                ],
             };
         }
     }

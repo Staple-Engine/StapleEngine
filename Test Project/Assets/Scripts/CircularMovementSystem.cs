@@ -1,37 +1,28 @@
 using Staple;
 using System.Numerics;
 
-namespace TestGame
+namespace TestGame;
+
+public class CircularMovementSystem : IEntitySystemFixedUpdate
 {
-    public class CircularMovementSystem : IEntitySystemFixedUpdate
+    private readonly SceneQuery<CircularMovementComponent, Transform> movements = new();
+
+    public void FixedUpdate(float deltaTime)
     {
-        private readonly SceneQuery<CircularMovementComponent, Transform> movements = new();
-
-        public void Startup()
+        foreach ((_, CircularMovementComponent movement, Transform transform) in movements.Contents)
         {
-        }
+            movement.t += deltaTime * movement.speed;
 
-        public void FixedUpdate(float deltaTime)
-        {
-            foreach ((_, CircularMovementComponent movement, Transform transform) in movements)
+            if (movement.followMouse)
             {
-                movement.t += deltaTime * movement.speed;
-
-                if (movement.followMouse)
-                {
-                    transform.LocalPosition = Input.MousePosition.ToVector3();
-                }
-                else
-                {
-                    transform.LocalPosition = new Vector3(Math.Cos(movement.t * Math.Deg2Rad) * movement.distance,
-                        Math.Sin(movement.t * Math.Deg2Rad) * movement.distance,
-                        0);
-                }
+                transform.LocalPosition = Input.MousePosition.ToVector3();
             }
-        }
-
-        public void Shutdown()
-        {
+            else
+            {
+                transform.LocalPosition = new Vector3(Math.Cos(movement.t * Math.Deg2Rad) * movement.distance,
+                    Math.Sin(movement.t * Math.Deg2Rad) * movement.distance,
+                    0);
+            }
         }
     }
 }

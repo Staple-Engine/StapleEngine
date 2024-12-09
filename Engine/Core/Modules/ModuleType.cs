@@ -8,4 +8,5 @@ public enum ModuleType
     Audio,
     Physics,
     Hook,
+    Other,
 }

@@ -1,8 +1,7 @@
 ﻿using Staple;
 
-namespace TestGame
+namespace TestGame;
+
+public class HighlightableComponent : IComponent
 {
-    public class HighlightableComponent : IComponent
-    {
-    }
 }

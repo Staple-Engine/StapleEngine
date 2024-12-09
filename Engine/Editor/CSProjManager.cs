@@ -164,16 +164,14 @@ internal class CSProjManager
         DeleteAll("dylib*");
         DeleteAll("so*");
 
-        foreach (var pair in appSettings.usedModules)
+        foreach (var module in appSettings.usedModules)
         {
-            var moduleName = pair.Value;
-
-            if ((moduleName?.Length ?? 0) == 0)
+            if ((module?.Length ?? 0) == 0)
             {
                 continue;
             }
 
-            if (EditorUtils.CopyDirectory(Path.Combine(backendBasePath, "Modules", moduleName, "Redist", configurationName), targetPath) == false)
+            if (EditorUtils.CopyDirectory(Path.Combine(backendBasePath, "Modules", module, "Redist", configurationName), targetPath) == false)
             {
                 return false;
             }
@@ -607,13 +605,10 @@ internal class CSProjManager
 
         foreach(var pair in projectAppSettings.usedModules)
         {
-            if(pair.Value.Length > 0)
-            {
-                p.AddItem("Reference", pair.Value,
-                    [
-                        new("HintPath", Path.Combine(backend.basePath, "Modules", pair.Value, "Assembly", configurationName, $"{pair.Value}.dll"))
-                    ]);
-            }
+            p.AddItem("Reference", pair,
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", configurationName, $"{pair}.dll"))
+                ]);
         }
 
         var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");

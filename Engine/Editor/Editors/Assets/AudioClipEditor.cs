@@ -16,22 +16,14 @@ internal class AudioClipEditor : AssetEditor
     private readonly Lock lockObject = new();
     private long sizeInDisk;
     private long sizeUncompressed;
+    private bool allowsRecompression = false;
 
     public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         if(name == nameof(AudioClipMetadata.recompression) ||
             name == nameof(AudioClipMetadata.recompressionQuality))
         {
-            var extension = Path.GetExtension(path.Replace(".meta", "")).ToUpperInvariant();
-
-            var skip = extension != ".WAV";
-
-            if(skip)
-            {
-                EditorGUI.Label("Audio compression is only available for uncompressed file formats");
-            }
-
-            return skip;
+            return allowsRecompression == false;
         }
 
         return false;
@@ -75,8 +67,13 @@ internal class AudioClipEditor : AssetEditor
                 catch(Exception)
                 {
                 }
+                
+                var extension = Path.GetExtension(path.Replace(".meta", "")).ToUpperInvariant();
+
+                allowsRecompression = extension == ".WAV";
 
                 clip = ResourceManager.instance.LoadAudioClip(cachePath);
+
                 cancellation = AudioSystem.Instance.LoadAudioClip(clip, (samples, channels, bits, sampleRate) =>
                 {
                     if (samples == default)
@@ -147,6 +144,11 @@ internal class AudioClipEditor : AssetEditor
                 minutes -= 60;
 
                 hours++;
+            }
+
+            if(allowsRecompression == false)
+            {
+                EditorGUI.Label("Recompression not allowed for compressed files");
             }
 
             EditorGUI.Label($"Channels: {clip.channels} ({clip.bitsPerSample} bits, {clip.sampleRate}Hz)");

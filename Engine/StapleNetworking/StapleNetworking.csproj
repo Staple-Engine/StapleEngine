@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFrameworks>net9.0</TargetFrameworks>
+		<TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
@@ -54,6 +54,7 @@
 	  <Compile Include="INetworkMessage.cs" />
 	  <Compile Include="INetworkReader.cs" />
 	  <Compile Include="INetworkWriter.cs" />
+	  <Compile Include="Init.cs" />
 	  <Compile Include="LocalClient.cs" />
 	  <Compile Include="NetworkBatcher.cs" />
 	  <Compile Include="NetworkCompression.cs" />

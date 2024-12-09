@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Numerics;
-using System.Reflection;
 
 namespace Staple.Editor;
 
@@ -79,8 +78,6 @@ internal class SpriteAnimationEditor : StapleAssetEditor
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-
-        ShowAssetUI(null);
 
         var asset = (SpriteAnimation)target;
 

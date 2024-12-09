@@ -1268,6 +1268,8 @@ internal partial class StapleEditor
                         ResetScenePhysics(true);
 
                         UpdateLastSession();
+
+                        UpdateWindowTitle();
                     }
 
                     break;

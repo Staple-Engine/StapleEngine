@@ -1,4 +1,7 @@
 {
   "guid": "d6219b06-0f70-4287-9879-53ffb4f678b9",
-  "typeName": "Staple.AudioClip"
+  "typeName": "Staple.AudioClip",
+  "loadInBackground": false,
+  "recompression": "Vorbis",
+  "recompressionQuality": 1.0
 }

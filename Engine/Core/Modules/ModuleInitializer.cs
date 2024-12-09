@@ -10,7 +10,7 @@ namespace Staple.Internal;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public abstract class ModuleInitializer
 {
-    private static List<ModuleInitializer> loadedInitializers = [];
+    private static readonly List<ModuleInitializer> loadedInitializers = [];
 
     /// <summary>
     /// Called to initialize the module on startup
@@ -33,6 +33,20 @@ public abstract class ModuleInitializer
     /// </summary>
     /// <returns>The type</returns>
     public abstract ModuleType Kind();
+
+    /// <summary>
+    /// Whether a module type is unique
+    /// </summary>
+    /// <param name="type">The module type</param>
+    /// <returns>Whether it is unique</returns>
+    public static bool IsModuleTypeUnique(ModuleType type)
+    {
+        return type switch
+        {
+            ModuleType.Physics or ModuleType.Audio => true,
+            _ => false,
+        };
+    }
 
     internal static void UnloadAll()
     {

@@ -2,72 +2,63 @@
 using System.Linq;
 using System.Numerics;
 
-namespace TestGame
+namespace TestGame;
+
+public class HighlightableSystem : IEntitySystemUpdate
 {
-    public class HighlightableSystem : IEntitySystemUpdate
+    private readonly SceneQuery<HighlightableComponent, SpriteRenderer> highlightables = new();
+
+    public void Update(float deltaTime)
     {
-        private readonly SceneQuery<HighlightableComponent, SpriteRenderer> highlightables = new();
+        var sortedCameras = Scene.SortedCameras;
 
-        public void Startup()
+        var c = sortedCameras.FirstOrDefault();
+
+        if(c == null)
         {
+            return;
         }
 
-        public void Update(float deltaTime)
+        var mousePosition = Vector2.Zero;
+
+        if(Platform.IsDesktopPlatform)
         {
-            var sortedCameras = Scene.SortedCameras;
-
-            var c = sortedCameras.FirstOrDefault();
-
-            if(c == null)
+            mousePosition = Input.MousePosition;
+        }
+        else
+        {
+            if(Input.TouchCount > 0)
             {
-                return;
-            }
+                var pointer = Input.GetPointerID(0);
 
-            var mousePosition = Vector2.Zero;
-
-            if(Platform.IsDesktopPlatform)
-            {
-                mousePosition = Input.MousePosition;
-            }
-            else
-            {
-                if(Input.TouchCount > 0)
-                {
-                    var pointer = Input.GetPointerID(0);
-
-                    mousePosition = Input.GetTouchPosition(pointer);
-                }
-            }
-
-            var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
-
-            foreach((_, _, SpriteRenderer renderer) in highlightables)
-            {
-                renderer.color = Color.White;
-            }
-
-            if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out _, LayerMask.Everything, maxDistance: 5))
-            {
-                var entity = body.Entity;
-
-                var renderer = entity.GetComponent<SpriteRenderer>();
-
-                if(renderer != null)
-                {
-                    renderer.color = new Color(0.5f, 0.5f, 0, 1);
-                }
-
-                if(Input.GetMouseButtonDown(MouseButton.Left) || Input.GetTouchDown(0))
-                {
-                    var audioSource = entity.GetComponent<AudioSource>();
-
-                    audioSource?.Play();
-                }
+                mousePosition = Input.GetTouchPosition(pointer);
             }
         }
 
-        public void Shutdown()
+        var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
+
+        foreach((_, _, SpriteRenderer renderer) in highlightables.Contents)
         {
+            renderer.color = Color.White;
+        }
+
+        if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out _, LayerMask.Everything, maxDistance: 5))
+        {
+            var entity = body.Entity;
+
+            var renderer = entity.GetComponent<SpriteRenderer>();
+
+            if(renderer != null)
+            {
+                renderer.color = new Color(0.5f, 0.5f, 0, 1);
+            }
+
+            if(Input.GetMouseButtonDown(MouseButton.Left) || Input.GetTouchDown(0))
+            {
+                var audioSource = entity.GetComponent<AudioSource>();
+
+                audioSource?.Play();
+            }
         }
     }
 }
