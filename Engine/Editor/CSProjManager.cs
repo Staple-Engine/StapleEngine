@@ -11,7 +11,7 @@ namespace Staple.Editor;
 /// </summary>
 internal class CSProjManager
 {
-    private readonly Dictionary<string, DateTime> fileModifyStates = new();
+    private readonly Dictionary<string, DateTime> fileModifyStates = [];
 
     private readonly Dictionary<AppPlatform, string[]> platformDefines = new()
     {
@@ -184,9 +184,10 @@ internal class CSProjManager
     /// Generates the game project file
     /// </summary>
     /// <param name="backend">The current backend</param>
+    /// <param name="projectAppSettings">The project app settings</param>
     /// <param name="platform">The current platform</param>
     /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
-    public void GenerateGameCSProj(PlayerBackend backend, AppPlatform platform, bool sandbox)
+    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox)
     {
         using var collection = new ProjectCollection();
 
@@ -246,7 +247,15 @@ internal class CSProjManager
         p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
         p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
-        if(sandbox)
+        foreach (var pair in projectAppSettings.usedModules)
+        {
+            p.AddItem("Reference", pair,
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", "Debug", $"{pair}.dll"))
+                ]);
+        }
+
+        if (sandbox)
         {
             string[] elements =
             [

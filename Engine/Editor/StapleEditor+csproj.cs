@@ -20,8 +20,8 @@ internal partial class StapleEditor
             return;
         }
 
-        csProjManager.GenerateGameCSProj(backend, platform, false);
-        csProjManager.GenerateGameCSProj(backend, platform, true);
+        csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, false);
+        csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, true);
 
         BuildGame(() =>
         {

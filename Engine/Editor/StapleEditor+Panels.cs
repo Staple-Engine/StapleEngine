@@ -216,7 +216,7 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    csProjManager.GenerateGameCSProj(backend, currentPlatform, true);
+                    csProjManager.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true);
                     csProjManager.OpenGameSolution();
                 });
 

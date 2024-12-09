@@ -6,6 +6,8 @@
 		<TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net9.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -30,6 +32,14 @@
 
 	<PropertyGroup Condition="'$(STAPLE_OSX)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_OSX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_ANDROID)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_ANDROID</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
