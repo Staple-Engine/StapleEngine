@@ -76,9 +76,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-		</Reference>
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
@@ -409,5 +406,6 @@
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
+	  <PackageReference Include="MessagePack" Version="3.0.308" />
 	</ItemGroup>
 </Project>

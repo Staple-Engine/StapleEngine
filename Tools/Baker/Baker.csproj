@@ -27,9 +27,6 @@
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
-		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-		</Reference>
 		<Reference Include="StapleCore">
 			<HintPath>..\..\Engine\Core\bin\Release\net9.0\StapleCore.dll</HintPath>
 		</Reference>
@@ -74,6 +71,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Update="StirlingLabs.assimp.native.win-x64" Version="5.2.5.4" />
+	  <PackageReference Include="MessagePack" Version="3.0.308" />
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>
