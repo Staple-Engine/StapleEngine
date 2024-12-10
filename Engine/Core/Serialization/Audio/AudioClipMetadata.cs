@@ -44,6 +44,16 @@ public class AudioClipMetadata
 
     public static bool operator ==(AudioClipMetadata lhs, AudioClipMetadata rhs)
     {
+        if (lhs is null && rhs is null)
+        {
+            return true;
+        }
+
+        if (lhs is null || rhs is null)
+        {
+            return false;
+        }
+
         return lhs.guid == rhs.guid &&
             lhs.typeName == rhs.typeName &&
             lhs.loadInBackground == rhs.loadInBackground &&
@@ -53,6 +63,16 @@ public class AudioClipMetadata
 
     public static bool operator !=(AudioClipMetadata lhs, AudioClipMetadata rhs)
     {
+        if (lhs is null && rhs is null)
+        {
+            return false;
+        }
+
+        if (lhs is null || rhs is null)
+        {
+            return true;
+        }
+
         return lhs.guid != rhs.guid ||
             lhs.typeName != rhs.typeName ||
             lhs.loadInBackground != rhs.loadInBackground ||
