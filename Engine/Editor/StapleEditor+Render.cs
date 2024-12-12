@@ -11,6 +11,8 @@ namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
+    private const float MinComponentIconDistance = 2;
+
     /// <summary>
     /// Renders the scene
     /// </summary>
@@ -189,12 +191,15 @@ internal partial class StapleEditor
                         {
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
-                            /*
                             if(renderable.isVisible)
                             {
-                                renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                                renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+
+                                if(renderable.isVisible == false)
+                                {
+                                    RenderSystem.CulledRenderers++;
+                                }
                             }
-                            */
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
                         }
@@ -240,7 +245,7 @@ internal partial class StapleEditor
             {
                 var transform = entity.GetComponent<Transform>();
 
-                if(transform == null || Vector3.Distance(transform.Position, cameraTransform.Position) < 3)
+                if(transform == null || Vector3.Distance(transform.Position, cameraTransform.Position) < MinComponentIconDistance)
                 {
                     return;
                 }
@@ -252,10 +257,16 @@ internal partial class StapleEditor
 
                 componentIconMaterial ??= new Material(SpriteRenderSystem.DefaultMaterial.Value);
 
+                componentIconMaterial.MainColor = Color.Lerp(Color.Clear, Color.White,
+                    Math.Clamp01(Vector3.Distance(transform.Position, cameraTransform.Position) - MinComponentIconDistance));
                 componentIconMaterial.MainTexture = icon;
 
-                MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, Quaternion.Identity, Vector3.One, componentIconMaterial,
-                    MaterialLighting.Unlit, WireframeView);
+                ReplaceEntityBodyIfNeeded(entity, transform, new AABB(Vector3.Zero, Vector3.One));
+
+                var rotation = Math.LookAt(Vector3.Normalize(cameraTransform.Position - transform.Position), Vector3.UnitY) *
+                    Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 180 * Math.Deg2Rad);
+
+                MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, rotation, Vector3.One, componentIconMaterial, MaterialLighting.Unlit, WireframeView);
             });
         }
     }

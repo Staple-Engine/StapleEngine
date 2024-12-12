@@ -458,14 +458,4 @@ public static class Math
 
         return quaternion;
     }
-
-    /// <summary>
-    /// Extension to normalize Vector3
-    /// </summary>
-    /// <param name="self">This vector</param>
-    /// <returns>This vector, normalized</returns>
-    public static Vector3 Normalized(this Vector3 self)
-    {
-        return Vector3.Normalize(self);
-    }
 }

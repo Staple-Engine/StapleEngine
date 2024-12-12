@@ -50,6 +50,14 @@ public struct Color
         a = A;
     }
 
+    public Color(Vector4 v)
+    {
+        r = v.X;
+        g = v.Y;
+        b = v.Z;
+        a = v.W;
+    }
+
     /// <summary>
     /// Converts a HTML hex string to a Color.
     /// </summary>

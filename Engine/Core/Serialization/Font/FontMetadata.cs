@@ -83,4 +83,9 @@ public class FontMetadata
 
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(guid, expectedSizes, includedCharacterSets, textureSize, useAntiAliasing, typeName);
+    }
 }

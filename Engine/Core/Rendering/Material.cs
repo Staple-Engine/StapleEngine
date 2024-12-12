@@ -232,15 +232,25 @@ public sealed class Material : IGuidAsset
 
     public Material(Material sourceMaterial)
     {
+        foreach (var parameter in sourceMaterial.parameters)
+        {
+            parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
+        }
+
         metadata = sourceMaterial.metadata;
         guid = sourceMaterial.guid;
         shader = sourceMaterial.shader;
         shaderHandles = new(sourceMaterial.shaderHandles);
         CullingMode = sourceMaterial.CullingMode;
 
-        foreach (var parameter in sourceMaterial.parameters)
+        if(sourceMaterial.hasMainColor)
         {
-            parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
+            MainColor = sourceMaterial.MainColor;
+        }
+
+        if(sourceMaterial.hasMainTexture)
+        {
+            MainTexture = sourceMaterial.MainTexture;
         }
     }
 

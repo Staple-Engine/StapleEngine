@@ -26,6 +26,8 @@ internal partial class StapleEditor
 
         if(World.Current != null)
         {
+            World.EmitWorldChangedEvent();
+
             Scene.IterateEntities((entity) =>
             {
                 var gotIcon = false;
@@ -44,7 +46,7 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    var icon = ThumbnailCache.GetTexture(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Component Icons", attribute.path), true);
+                    var icon = ThumbnailCache.GetTexture(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Component Icons", attribute.path), false, true);
 
                     if(icon != null)
                     {

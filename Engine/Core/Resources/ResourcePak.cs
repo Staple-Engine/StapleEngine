@@ -3,12 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Staple.Internal;
 
-public class ResourcePak : IDisposable
+public sealed class ResourcePak : IDisposable
 {
-    public readonly static char[] ValidHeader = new char[] { 'S', 'T', 'P', 'A', 'K' };
+    public readonly static char[] ValidHeader = [ 'S', 'T', 'P', 'A', 'K' ];
     public const byte ValidVersion = 1;
 
     [MessagePackObject]
@@ -145,19 +146,20 @@ public class ResourcePak : IDisposable
         }
     }
 
-    public class FileInfo
+    public readonly struct FileInfo(string guid, string path, long size, string typeName)
     {
-        public string guid;
-        public string path;
-        public long size;
-        public string typeName;
+        public readonly string guid = guid;
+        public readonly string path = path;
+        public readonly long size = size;
+        public readonly string typeName = typeName;
     }
 
-    private List<Entry> entries = new();
-    private List<long> offsets = new();
-    private List<FileInfo> files = new();
+    internal static readonly Lock fileLock = new();
+
+    private readonly List<Entry> entries = [];
+    private readonly List<long> offsets = [];
+    private readonly List<FileInfo> files = [];
     private Stream backend;
-    internal static object fileLock = new();
 
     public IEnumerable<FileInfo> Files => files;
 
@@ -264,6 +266,8 @@ public class ResourcePak : IDisposable
         }
         catch(Exception e)
         {
+            Log.Error($"[ResourcePak] Error serializing: {e}");
+
             return false;
         }
 
@@ -327,13 +331,7 @@ public class ResourcePak : IDisposable
                 entries.Add(entry);
                 offsets.Add(reader.Position);
 
-                files.Add(new FileInfo()
-                {
-                    guid = new Guid(entry.guid).ToString(),
-                    path = entry.path,
-                    size = entry.size,
-                    typeName = entry.typeName,
-                });
+                files.Add(new FileInfo(new Guid(entry.guid).ToString(), entry.path, entry.size, entry.typeName));
 
                 reader.Position += entry.size;
             }
@@ -352,9 +350,6 @@ public class ResourcePak : IDisposable
 
     public void Dispose()
     {
-        if(backend != null)
-        {
-            backend.Dispose();
-        }
+        backend?.Dispose();
     }
 }

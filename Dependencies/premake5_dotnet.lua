@@ -31,15 +31,6 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
-project "TiledCS"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	
-	files {
-		"TiledCS/**.cs"
-	}
-
 project "SDL2-CS"
 	kind "SharedLib"
 	language "C#"
@@ -73,15 +64,6 @@ project "NfdSharp"
 	
 	files {
 		"NfdSharp/**.cs"
-	}
-
-project "MessagePack"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-
-	files {
-		"MessagePack/**.cs"
 	}
 
 project "OggVorbisEncoder"

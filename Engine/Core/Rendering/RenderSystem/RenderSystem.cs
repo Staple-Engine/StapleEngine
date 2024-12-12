@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
+using System.Threading;
 
 namespace Staple.Internal;
 
@@ -42,6 +43,11 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public static bool UseDrawcallInterpolator = false;
 
     /// <summary>
+    /// The amount of renderers that were culled
+    /// </summary>
+    public static int CulledRenderers { get; internal set; }
+
+    /// <summary>
     /// The current view ID that is being rendered
     /// </summary>
     public static ushort CurrentViewID { get; private set; }
@@ -64,7 +70,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Render thread lock
     /// </summary>
-    private readonly object lockObject = new();
+    private readonly Lock lockObject = new();
 
     /// <summary>
     /// The frustum culler to use with a camera

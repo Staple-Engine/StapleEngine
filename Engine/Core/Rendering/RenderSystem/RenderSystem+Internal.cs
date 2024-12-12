@@ -124,6 +124,8 @@ public sealed partial class RenderSystem
     /// <param name="frame">The current frame</param>
     internal void OnFrame(uint frame)
     {
+        CulledRenderers = 0;
+
         List<Action> callbacks = null;
 
         lock (lockObject)
@@ -291,7 +293,12 @@ public sealed partial class RenderSystem
 
                     if(renderable.isVisible && cull)
                     {
-                        renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                        renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+
+                        if(renderable.isVisible == false)
+                        {
+                            CulledRenderers++;
+                        }
                     }
                 }
             }
@@ -348,7 +355,12 @@ public sealed partial class RenderSystem
 
                         if (renderable.isVisible && cull)
                         {
-                            renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumAABBResult.Invisible;
+                            renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+
+                            if (renderable.isVisible == false)
+                            {
+                                CulledRenderers++;
+                            }
                         }
                     }
 
@@ -458,7 +470,7 @@ public sealed partial class RenderSystem
 
         foreach (var pair in renderQueue)
         {
-            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, false, CurrentViewID++);
+            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
         }
     }
 
@@ -515,12 +527,20 @@ public sealed partial class RenderSystem
                     {
                         if (contents[j].Item3 is Renderable renderable)
                         {
-                            //TODO: Frustum
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                             if(renderable.isVisible)
                             {
-                                AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
+                                renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+
+                                if (renderable.isVisible)
+                                {
+                                    AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
+                                }
+                                else
+                                {
+                                    CulledRenderers++;
+                                }
                             }
                         }
                     }

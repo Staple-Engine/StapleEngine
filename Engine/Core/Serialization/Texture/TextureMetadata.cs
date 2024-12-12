@@ -466,6 +466,37 @@ public class TextureMetadata
 
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+
+        hash.Add(guid);
+        hash.Add(type);
+        hash.Add(format);
+        hash.Add(quality);
+        hash.Add(filter);
+        hash.Add(wrapU);
+        hash.Add(wrapV);
+        hash.Add(wrapW);
+        hash.Add(premultiplyAlpha);
+        hash.Add(maxSize);
+        hash.Add(useMipmaps);
+        hash.Add(isLinear);
+        hash.Add(spritePixelsPerUnit);
+        hash.Add(readBack);
+        hash.Add(keepOnCPU);
+        hash.Add(spriteTextureMethod);
+        hash.Add(spriteTextureGridSize);
+        hash.Add(sprites);
+        hash.Add(shouldPack);
+        hash.Add(padding);
+        hash.Add(trimDuplicates);
+        hash.Add(overrides);
+        hash.Add(typeName);
+
+        return hash.ToHashCode();
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]

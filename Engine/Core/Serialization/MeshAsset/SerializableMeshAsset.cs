@@ -29,10 +29,10 @@ public enum MeshAssetRotation
 public class SerializableMeshAssetHeader
 {
     [IgnoreMember]
-    public readonly static char[] ValidHeader = new char[]
-    {
+    public readonly static char[] ValidHeader =
+    [
         'S', 'M', 'E', 'A'
-    };
+    ];
 
     [IgnoreMember]
     public const byte ValidVersion = 1;
@@ -151,6 +151,30 @@ public class MeshAssetMetadata
         }
 
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+
+        hash.Add(guid);
+        hash.Add(makeLeftHanded);
+        hash.Add(splitLargeMeshes);
+        hash.Add(preTransformVertices);
+        hash.Add(flipUVs);
+        hash.Add(flipWindingOrder);
+        hash.Add(splitByBoneCount);
+        hash.Add(debone);
+        hash.Add(convertUnits);
+        hash.Add(regenerateNormals);
+        hash.Add(useSmoothNormals);
+        hash.Add(rotation);
+        hash.Add(scale);
+        hash.Add(lighting);
+        hash.Add(frameRate);
+        hash.Add(typeName);
+
+        return hash.ToHashCode();
     }
 }
 

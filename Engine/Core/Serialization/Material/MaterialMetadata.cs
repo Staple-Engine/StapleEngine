@@ -92,6 +92,11 @@ public class Vector2Holder
 
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(x, y);
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -192,6 +197,11 @@ public class Vector3Holder
 
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(x, y, z);
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -290,6 +300,11 @@ public class Vector4Holder
         }
 
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(x, y, z, w);
     }
 }
 
@@ -444,6 +459,11 @@ public class MaterialParameter
 
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(type, vec2Value, vec3Value, vec4Value, textureValue, colorValue, floatValue, textureWrapValue);
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -544,6 +564,11 @@ public class MaterialMetadata
         }
 
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(guid, shader, parameters, enabledShaderVariants, cullingMode, typeName);
     }
 }
 

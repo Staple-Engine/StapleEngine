@@ -203,6 +203,11 @@ public partial class World
 
     internal static void EmitWorldChangedEvent()
     {
+        if(Current != null)
+        {
+            Current.cachedEntityList = Current.entities.ToArray();
+        }
+
         sceneQueries.Emit();
 
         worldChangeReceivers.Emit();
@@ -220,10 +225,7 @@ public partial class World
     {
         lock(lockObject)
         {
-            if (cameras == null)
-            {
-                cameras = new();
-            }
+            cameras ??= new();
 
             if (sortedCamerasHolder == null)
             {
@@ -295,8 +297,6 @@ public partial class World
 
             if(needsEmitWorldChange)
             {
-                cachedEntityList = entities.ToArray();
-
                 needsEmitWorldChange = false;
 
                 EmitWorldChangedEvent();

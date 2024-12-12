@@ -818,6 +818,8 @@ internal partial class StapleEditor
                 ImGui.Checkbox("Hit", ref hit);
 
                 ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
+
+                ImGui.Text($"Culled Renderers: {RenderSystem.CulledRenderers}");
             }
 
             ImGui.End();
