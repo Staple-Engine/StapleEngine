@@ -99,11 +99,6 @@ public class SpriteRenderSystem : IRenderSystem
         {
             var r = relatedComponent as SpriteRenderer;
 
-            if(r.isVisible == false)
-            {
-                continue;
-            }
-
             var hasValidAnimation = r.animation != null &&
                 r.animation.texture != null &&
                 r.animation.texture.Disposed == false &&

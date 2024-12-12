@@ -66,6 +66,45 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
+        foreach (var (_, transform, relatedComponent) in entities)
+        {
+            var renderer = relatedComponent as SkinnedMeshRenderer;
+
+            if (renderer.mesh == null ||
+                renderer.mesh.meshAsset == null ||
+                renderer.mesh.meshAssetIndex < 0 ||
+                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+                renderer.materials == null ||
+                renderer.materials.Count != renderer.mesh.submeshes.Count)
+            {
+                continue;
+            }
+
+            var skip = false;
+
+            for (var i = 0; i < renderer.materials.Count; i++)
+            {
+                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                {
+                    skip = true;
+
+                    break;
+                }
+            }
+
+            if (skip)
+            {
+                continue;
+            }
+
+            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
+            {
+                continue;
+            }
+
+            renderer.localBounds = renderer.mesh.bounds;
+            renderer.bounds = new AABB(transform.Position + renderer.mesh.bounds.center, renderer.mesh.bounds.extents * 2 * transform.Scale);
+        }
     }
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)

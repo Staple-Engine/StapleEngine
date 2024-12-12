@@ -122,20 +122,28 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             var r = relatedComponent as MeshRenderer;
 
-            if (r.isVisible == false ||
-                r.mesh == null ||
+            if (r.mesh == null ||
                 r.materials == null ||
                 r.materials.Count == 0)
             {
                 continue;
             }
 
+            var skip = false;
+
             for (var i = 0; i < r.materials.Count; i++)
             {
-                if (r.materials[i]?.IsValid == false)
+                if ((r.materials[i]?.IsValid ?? false) == false)
                 {
-                    continue;
+                    skip = true;
+
+                    break;
                 }
+            }
+
+            if(skip)
+            {
+                continue;
             }
 
             if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
