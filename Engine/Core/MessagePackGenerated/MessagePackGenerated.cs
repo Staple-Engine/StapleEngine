@@ -8,11 +8,14 @@
 #pragma warning disable 168
 #pragma warning disable CS1591 // document public APIs
 
+#pragma warning disable SA1200 // Using directives should be placed correctly
 #pragma warning disable SA1312 // Variable names should begin with lower-case letter
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace MessagePack.Resolvers
 {
+    using System;
+
     public class GeneratedResolver : global::MessagePack.IFormatterResolver
     {
         public static readonly global::MessagePack.IFormatterResolver Instance = new GeneratedResolver();
@@ -43,11 +46,11 @@ namespace MessagePack.Resolvers
 
     internal static class GeneratedResolverGetFormatterHelper
     {
-        private static readonly global::System.Collections.Generic.Dictionary<global::System.Type, int> lookup;
+        private static readonly global::System.Collections.Generic.Dictionary<Type, int> lookup;
 
         static GeneratedResolverGetFormatterHelper()
         {
-            lookup = new global::System.Collections.Generic.Dictionary<global::System.Type, int>(114)
+            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(114)
             {
                 { typeof(global::Staple.Internal.MeshAssetNode[]), 0 },
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 1 },
@@ -166,7 +169,7 @@ namespace MessagePack.Resolvers
             };
         }
 
-        internal static object GetFormatter(global::System.Type t)
+        internal static object GetFormatter(Type t)
         {
             int key;
             if (!lookup.TryGetValue(t, out key))
@@ -302,6 +305,7 @@ namespace MessagePack.Resolvers
 #pragma warning restore 612
 
 #pragma warning restore SA1312 // Variable names should begin with lower-case letter
+#pragma warning restore SA1200 // Using directives should be placed correctly
 #pragma warning restore SA1649 // File name should match first type name
 
 
@@ -315,20 +319,24 @@ namespace MessagePack.Resolvers
 #pragma warning disable 168
 #pragma warning disable CS1591 // document public APIs
 
+#pragma warning disable SA1200 // Using directives should be placed correctly
 #pragma warning disable SA1403 // File may only contain a single namespace
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace MessagePack.Formatters.Staple
 {
+    using System;
+    using System.Buffers;
+    using MessagePack;
 
     public sealed class AppPlatformFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AppPlatform>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.AppPlatform value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.AppPlatform value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.AppPlatform Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.AppPlatform Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.AppPlatform)reader.ReadInt32();
         }
@@ -336,12 +344,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class AppSettings_ProfilingModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AppSettings.ProfilingMode>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.AppSettings.ProfilingMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.AppSettings.ProfilingMode value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.AppSettings.ProfilingMode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.AppSettings.ProfilingMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.AppSettings.ProfilingMode)reader.ReadInt32();
         }
@@ -349,12 +357,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class BlendModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.BlendMode>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.BlendMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.BlendMode value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.UInt64)value);
+            writer.Write((UInt64)value);
         }
 
-        public global::Staple.BlendMode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.BlendMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.BlendMode)reader.ReadUInt64();
         }
@@ -362,12 +370,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class CullingModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.CullingMode>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.CullingMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.CullingMode value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.CullingMode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.CullingMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.CullingMode)reader.ReadInt32();
         }
@@ -375,12 +383,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class MaterialLightingFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.MaterialLighting>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.MaterialLighting value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.MaterialLighting value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.MaterialLighting Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.MaterialLighting Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.MaterialLighting)reader.ReadInt32();
         }
@@ -388,12 +396,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class MeshTopologyFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.MeshTopology>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.MeshTopology value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.MeshTopology value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.UInt64)value);
+            writer.Write((UInt64)value);
         }
 
-        public global::Staple.MeshTopology Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.MeshTopology Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.MeshTopology)reader.ReadUInt64();
         }
@@ -401,12 +409,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class RendererTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.RendererType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.RendererType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.RendererType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.RendererType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.RendererType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.RendererType)reader.ReadInt32();
         }
@@ -414,12 +422,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class StandardTextureColorComponentsFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.StandardTextureColorComponents>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.StandardTextureColorComponents value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.StandardTextureColorComponents value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.StandardTextureColorComponents Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.StandardTextureColorComponents Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.StandardTextureColorComponents)reader.ReadInt32();
         }
@@ -427,12 +435,12 @@ namespace MessagePack.Formatters.Staple
 
     public sealed class WindowModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.WindowMode>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.WindowMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.WindowMode value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.WindowMode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.WindowMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.WindowMode)reader.ReadInt32();
         }
@@ -444,6 +452,7 @@ namespace MessagePack.Formatters.Staple
 #pragma warning restore 618
 #pragma warning restore 612
 
+#pragma warning restore SA1200 // Using directives should be placed correctly
 #pragma warning restore SA1403 // File may only contain a single namespace
 #pragma warning restore SA1649 // File name should match first type name
 
@@ -457,20 +466,24 @@ namespace MessagePack.Formatters.Staple
 #pragma warning disable 168
 #pragma warning disable CS1591 // document public APIs
 
+#pragma warning disable SA1200 // Using directives should be placed correctly
 #pragma warning disable SA1403 // File may only contain a single namespace
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace MessagePack.Formatters.Staple.Internal
 {
+    using System;
+    using System.Buffers;
+    using MessagePack;
 
     public sealed class AudioClipFormatFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.AudioClipFormat>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.AudioClipFormat value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.AudioClipFormat value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.AudioClipFormat Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.AudioClipFormat Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.AudioClipFormat)reader.ReadInt32();
         }
@@ -478,12 +491,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class AudioRecompressionFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.AudioRecompression>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.AudioRecompression value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.AudioRecompression value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.AudioRecompression Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.AudioRecompression Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.AudioRecompression)reader.ReadInt32();
         }
@@ -491,12 +504,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class FontCharacterSetFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.FontCharacterSet>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.FontCharacterSet value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.FontCharacterSet value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.FontCharacterSet Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.FontCharacterSet Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.FontCharacterSet)reader.ReadInt32();
         }
@@ -504,12 +517,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class MaterialParameterTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.MaterialParameterType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MaterialParameterType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.MaterialParameterType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.MaterialParameterType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.MaterialParameterType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.MaterialParameterType)reader.ReadInt32();
         }
@@ -517,12 +530,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class MeshAssetAnimationStateBehaviourFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.MeshAssetAnimationStateBehaviour>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetAnimationStateBehaviour value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.MeshAssetAnimationStateBehaviour value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.MeshAssetAnimationStateBehaviour Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.MeshAssetAnimationStateBehaviour Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.MeshAssetAnimationStateBehaviour)reader.ReadInt32();
         }
@@ -530,12 +543,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class MeshAssetRotationFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.MeshAssetRotation>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetRotation value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.MeshAssetRotation value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.MeshAssetRotation Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.MeshAssetRotation Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.MeshAssetRotation)reader.ReadInt32();
         }
@@ -543,12 +556,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class MeshAssetTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.MeshAssetType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.MeshAssetType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.MeshAssetType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.MeshAssetType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.MeshAssetType)reader.ReadInt32();
         }
@@ -556,12 +569,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class SceneComponentParameterTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.SceneComponentParameterType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.SceneComponentParameterType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.SceneComponentParameterType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.SceneComponentParameterType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.SceneComponentParameterType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.SceneComponentParameterType)reader.ReadInt32();
         }
@@ -569,12 +582,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class SceneObjectKindFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.SceneObjectKind>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.SceneObjectKind value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.SceneObjectKind value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.SceneObjectKind Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.SceneObjectKind Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.SceneObjectKind)reader.ReadInt32();
         }
@@ -582,12 +595,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class ShaderTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.ShaderType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.ShaderType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.ShaderType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.ShaderType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.ShaderType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.ShaderType)reader.ReadInt32();
         }
@@ -595,12 +608,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class ShaderUniformTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.ShaderUniformType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.ShaderUniformType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.ShaderUniformType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.ShaderUniformType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.ShaderUniformType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.ShaderUniformType)reader.ReadInt32();
         }
@@ -608,12 +621,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class SpriteTextureMethodFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.SpriteTextureMethod>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.SpriteTextureMethod value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.SpriteTextureMethod value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.SpriteTextureMethod Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.SpriteTextureMethod Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.SpriteTextureMethod)reader.ReadInt32();
         }
@@ -621,12 +634,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureFilterFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureFilter>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureFilter value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureFilter value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureFilter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureFilter Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureFilter)reader.ReadInt32();
         }
@@ -634,12 +647,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureMetadataFormatFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureMetadataFormat>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureMetadataFormat value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureMetadataFormat value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureMetadataFormat Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureMetadataFormat Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureMetadataFormat)reader.ReadInt32();
         }
@@ -647,12 +660,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureMetadataQualityFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureMetadataQuality>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureMetadataQuality value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureMetadataQuality value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureMetadataQuality Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureMetadataQuality Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureMetadataQuality)reader.ReadInt32();
         }
@@ -660,12 +673,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureSpriteRotationFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureSpriteRotation>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureSpriteRotation value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureSpriteRotation value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureSpriteRotation Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureSpriteRotation Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureSpriteRotation)reader.ReadInt32();
         }
@@ -673,12 +686,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureTypeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureType>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureType value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureType value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureType Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureType Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureType)reader.ReadInt32();
         }
@@ -686,12 +699,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
     public sealed class TextureWrapFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.TextureWrap>
     {
-        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.TextureWrap value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.Internal.TextureWrap value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            writer.Write((global::System.Int32)value);
+            writer.Write((Int32)value);
         }
 
-        public global::Staple.Internal.TextureWrap Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.Internal.TextureWrap Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
             return (global::Staple.Internal.TextureWrap)reader.ReadInt32();
         }
@@ -703,6 +716,7 @@ namespace MessagePack.Formatters.Staple.Internal
 #pragma warning restore 618
 #pragma warning restore 612
 
+#pragma warning restore SA1200 // Using directives should be placed correctly
 #pragma warning restore SA1403 // File may only contain a single namespace
 #pragma warning restore SA1649 // File name should match first type name
 
@@ -719,6 +733,7 @@ namespace MessagePack.Formatters.Staple.Internal
 #pragma warning disable CS1591 // document public APIs
 
 #pragma warning disable SA1129 // Do not use default value type constructor
+#pragma warning disable SA1200 // Using directives should be placed correctly
 #pragma warning disable SA1309 // Field names should not begin with underscore
 #pragma warning disable SA1312 // Variable names should begin with lower-case letter
 #pragma warning disable SA1403 // File may only contain a single namespace
@@ -726,6 +741,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
 namespace MessagePack.Formatters.Staple
 {
+    using global::System.Buffers;
+    using global::MessagePack;
+
     public sealed class AABBFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AABB>
     {
 
@@ -733,8 +751,8 @@ namespace MessagePack.Formatters.Staple
         {
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Numerics.Vector3>(formatterResolver).Serialize(ref writer, value.center, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Numerics.Vector3>(formatterResolver).Serialize(ref writer, value.extents, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Serialize(ref writer, value.center, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Serialize(ref writer, value.extents, options);
         }
 
         public global::Staple.AABB Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -755,10 +773,10 @@ namespace MessagePack.Formatters.Staple
                 switch (i)
                 {
                     case 0:
-                        __center__ = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Numerics.Vector3>(formatterResolver).Deserialize(ref reader, options);
+                        __center__ = formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        __extents__ = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Numerics.Vector3>(formatterResolver).Deserialize(ref reader, options);
+                        __extents__ = formatterResolver.GetFormatterWithVerify<global::System.Numerics.Vector3>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -786,29 +804,29 @@ namespace MessagePack.Formatters.Staple
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(26);
             writer.Write(value.runInBackground);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.appName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.companyName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
             writer.Write(value.fixedTimeFrameRate);
             writer.Write(value.multiThreadedRenderer);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Serialize(ref writer, value.layers, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Serialize(ref writer, value.sortingLayers, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>>(formatterResolver).Serialize(ref writer, value.renderers, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.WindowMode>(formatterResolver).Serialize(ref writer, value.defaultWindowMode, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.layers, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.sortingLayers, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>>().Serialize(ref writer, value.renderers, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.WindowMode>().Serialize(ref writer, value.defaultWindowMode, options);
             writer.Write(value.defaultWindowWidth);
             writer.Write(value.defaultWindowHeight);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>(formatterResolver).Serialize(ref writer, value.colliderMask, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.appBundleID, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>().Serialize(ref writer, value.colliderMask, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appBundleID, options);
             writer.Write(value.appVersion);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.appDisplayVersion, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appDisplayVersion, options);
             writer.Write(value.androidMinSDK);
             writer.Write(value.iOSDeploymentTarget);
             writer.Write(value.portraitOrientation);
             writer.Write(value.landscapeOrientation);
             writer.Write(value.maximumFixedTimestepTime);
             writer.Write(value.physicsFrameRate);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.HashSet<string>>(formatterResolver).Serialize(ref writer, value.usedModules, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Color>(formatterResolver).Serialize(ref writer, value.ambientLight, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>(formatterResolver).Serialize(ref writer, value.profilingMode, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.HashSet<string>>().Serialize(ref writer, value.usedModules, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Serialize(ref writer, value.ambientLight, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Serialize(ref writer, value.profilingMode, options);
             writer.Write(value.enableLighting);
             writer.Write(value.allowFullscreenSwitch);
         }
@@ -833,10 +851,10 @@ namespace MessagePack.Formatters.Staple
                         ____result.runInBackground = reader.ReadBoolean();
                         break;
                     case 1:
-                        ____result.appName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.appName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.companyName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.companyName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 3:
                         ____result.fixedTimeFrameRate = reader.ReadInt32();
@@ -845,16 +863,16 @@ namespace MessagePack.Formatters.Staple
                         ____result.multiThreadedRenderer = reader.ReadBoolean();
                         break;
                     case 5:
-                        ____result.layers = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.layers = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.sortingLayers = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.sortingLayers = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.renderers = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.renderers = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>>().Deserialize(ref reader, options);
                         break;
                     case 8:
-                        ____result.defaultWindowMode = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.WindowMode>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.defaultWindowMode = formatterResolver.GetFormatterWithVerify<global::Staple.WindowMode>().Deserialize(ref reader, options);
                         break;
                     case 9:
                         ____result.defaultWindowWidth = reader.ReadInt32();
@@ -863,16 +881,16 @@ namespace MessagePack.Formatters.Staple
                         ____result.defaultWindowHeight = reader.ReadInt32();
                         break;
                     case 11:
-                        ____result.colliderMask = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.colliderMask = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>>().Deserialize(ref reader, options);
                         break;
                     case 12:
-                        ____result.appBundleID = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.appBundleID = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 13:
                         ____result.appVersion = reader.ReadInt32();
                         break;
                     case 14:
-                        ____result.appDisplayVersion = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.appDisplayVersion = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 15:
                         ____result.androidMinSDK = reader.ReadInt32();
@@ -893,13 +911,13 @@ namespace MessagePack.Formatters.Staple
                         ____result.physicsFrameRate = reader.ReadInt32();
                         break;
                     case 21:
-                        ____result.usedModules = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.HashSet<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.usedModules = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.HashSet<string>>().Deserialize(ref reader, options);
                         break;
                     case 22:
-                        ____result.ambientLight = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Color>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.ambientLight = formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Deserialize(ref reader, options);
                         break;
                     case 23:
-                        ____result.profilingMode = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.profilingMode = formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Deserialize(ref reader, options);
                         break;
                     case 24:
                         ____result.enableLighting = reader.ReadBoolean();
@@ -1229,7 +1247,6 @@ namespace MessagePack.Formatters.Staple
             return ____result;
         }
     }
-
 }
 
 #pragma warning restore 168
@@ -1238,6 +1255,7 @@ namespace MessagePack.Formatters.Staple
 #pragma warning restore 612
 
 #pragma warning restore SA1129 // Do not use default value type constructor
+#pragma warning restore SA1200 // Using directives should be placed correctly
 #pragma warning restore SA1309 // Field names should not begin with underscore
 #pragma warning restore SA1312 // Variable names should begin with lower-case letter
 #pragma warning restore SA1403 // File may only contain a single namespace
@@ -1254,6 +1272,7 @@ namespace MessagePack.Formatters.Staple
 #pragma warning disable CS1591 // document public APIs
 
 #pragma warning disable SA1129 // Do not use default value type constructor
+#pragma warning disable SA1200 // Using directives should be placed correctly
 #pragma warning disable SA1309 // Field names should not begin with underscore
 #pragma warning disable SA1312 // Variable names should begin with lower-case letter
 #pragma warning disable SA1403 // File may only contain a single namespace
@@ -1261,6 +1280,9 @@ namespace MessagePack.Formatters.Staple
 
 namespace MessagePack.Formatters.Staple.Internal
 {
+    using global::System.Buffers;
+    using global::MessagePack;
+
     public sealed class AppSettingsHeaderFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Internal.AppSettingsHeader>
     {
 
@@ -1274,7 +1296,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -1295,7 +1317,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -1324,8 +1346,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.AssetHolder Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1345,10 +1367,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1374,10 +1396,10 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(5);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
             writer.Write(value.loadInBackground);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioRecompression>(formatterResolver).Serialize(ref writer, value.recompression, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioRecompression>().Serialize(ref writer, value.recompression, options);
             writer.Write(value.recompressionQuality);
         }
 
@@ -1398,16 +1420,16 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.loadInBackground = reader.ReadBoolean();
                         break;
                     case 3:
-                        ____result.recompression = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioRecompression>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.recompression = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioRecompression>().Deserialize(ref reader, options);
                         break;
                     case 4:
                         ____result.recompressionQuality = reader.ReadSingle();
@@ -1436,9 +1458,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.pakName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.pakName, options);
         }
 
         public global::Staple.Internal.FolderAsset Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1458,13 +1480,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.pakName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.pakName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1494,7 +1516,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.xAdvance);
             writer.Write(value.xOffset);
             writer.Write(value.yOffset);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Serialize(ref writer, value.bounds, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.bounds, options);
         }
 
         public global::Staple.Internal.FontGlyphInfo Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1526,7 +1548,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.yOffset = reader.ReadInt32();
                         break;
                     case 4:
-                        ____result.bounds = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.bounds = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1552,12 +1574,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Serialize(ref writer, value.expectedSizes, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>(formatterResolver).Serialize(ref writer, value.includedCharacterSets, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.expectedSizes, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>().Serialize(ref writer, value.includedCharacterSets, options);
             writer.Write(value.textureSize);
             writer.Write(value.useAntiAliasing);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.FontMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1577,13 +1599,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.expectedSizes = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.expectedSizes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.includedCharacterSets = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.includedCharacterSets = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontCharacterSet>().Deserialize(ref reader, options);
                         break;
                     case 3:
                         ____result.textureSize = reader.ReadInt32();
@@ -1592,7 +1614,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.useAntiAliasing = reader.ReadBoolean();
                         break;
                     case 5:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1618,12 +1640,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.shader, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>(formatterResolver).Serialize(ref writer, value.parameters, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Serialize(ref writer, value.enabledShaderVariants, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.CullingMode>(formatterResolver).Serialize(ref writer, value.cullingMode, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.shader, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Serialize(ref writer, value.parameters, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.enabledShaderVariants, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.CullingMode>().Serialize(ref writer, value.cullingMode, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.MaterialMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1643,22 +1665,22 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.shader = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.shader = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.parameters = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.enabledShaderVariants = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.enabledShaderVariants = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.cullingMode = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.CullingMode>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.cullingMode = formatterResolver.GetFormatterWithVerify<global::Staple.CullingMode>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1684,14 +1706,14 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(8);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MaterialParameterType>(formatterResolver).Serialize(ref writer, value.type, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>(formatterResolver).Serialize(ref writer, value.vec2Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.vec3Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Serialize(ref writer, value.vec4Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.textureValue, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Color32>(formatterResolver).Serialize(ref writer, value.colorValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MaterialParameterType>().Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Serialize(ref writer, value.vec2Value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.vec3Value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.vec4Value, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.textureValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Color32>().Serialize(ref writer, value.colorValue, options);
             writer.Write(value.floatValue);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Serialize(ref writer, value.textureWrapValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Serialize(ref writer, value.textureWrapValue, options);
         }
 
         public global::Staple.Internal.MaterialParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1711,28 +1733,28 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MaterialParameterType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MaterialParameterType>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.vec2Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vec2Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.vec3Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vec3Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.vec4Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vec4Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.textureValue = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.textureValue = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.colorValue = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Color32>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.colorValue = formatterResolver.GetFormatterWithVerify<global::Staple.Color32>().Deserialize(ref reader, options);
                         break;
                     case 6:
                         ____result.floatValue = reader.ReadSingle();
                         break;
                     case 7:
-                        ____result.textureWrapValue = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.textureWrapValue = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1758,10 +1780,10 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.duration);
             writer.Write(value.ticksPerSecond);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>(formatterResolver).Serialize(ref writer, value.channels, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Serialize(ref writer, value.channels, options);
         }
 
         public global::Staple.Internal.MeshAssetAnimation Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1781,7 +1803,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.duration = reader.ReadSingle();
@@ -1790,7 +1812,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.ticksPerSecond = reader.ReadSingle();
                         break;
                     case 3:
-                        ____result.channels = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.channels = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1816,12 +1838,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.nodeName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>(formatterResolver).Serialize(ref writer, value.positionKeys, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>>(formatterResolver).Serialize(ref writer, value.rotationKeys, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>(formatterResolver).Serialize(ref writer, value.scaleKeys, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>(formatterResolver).Serialize(ref writer, value.preState, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>(formatterResolver).Serialize(ref writer, value.postState, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.nodeName, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Serialize(ref writer, value.positionKeys, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>>().Serialize(ref writer, value.rotationKeys, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Serialize(ref writer, value.scaleKeys, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>().Serialize(ref writer, value.preState, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>().Serialize(ref writer, value.postState, options);
         }
 
         public global::Staple.Internal.MeshAssetAnimationChannel Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1841,22 +1863,22 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.nodeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.nodeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.positionKeys = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.positionKeys = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.rotationKeys = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rotationKeys = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.scaleKeys = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.scaleKeys = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.preState = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.preState = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.postState = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.postState = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationStateBehaviour>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1882,10 +1904,10 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.offsetPosition, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.offsetRotation, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.offsetScale, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetPosition, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetRotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetScale, options);
         }
 
         public global::Staple.Internal.MeshAssetBone Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1905,16 +1927,16 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.offsetPosition = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.offsetPosition = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.offsetRotation = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.offsetRotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.offsetScale = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.offsetScale = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1940,29 +1962,29 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(23);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.materialGuid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.MeshTopology>(formatterResolver).Serialize(ref writer, value.topology, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Serialize(ref writer, value.vertices, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Serialize(ref writer, value.colors, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Serialize(ref writer, value.normals, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Serialize(ref writer, value.tangents, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Serialize(ref writer, value.bitangents, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Serialize(ref writer, value.indices, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.boundsCenter, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.boundsExtents, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV1, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV2, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV3, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV4, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV5, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV6, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV7, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Serialize(ref writer, value.UV8, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>(formatterResolver).Serialize(ref writer, value.type, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>(formatterResolver).Serialize(ref writer, value.bones, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Serialize(ref writer, value.boneIndices, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Serialize(ref writer, value.boneWeights, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.materialGuid, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.MeshTopology>().Serialize(ref writer, value.topology, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.vertices, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.colors, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.normals, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.tangents, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.bitangents, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.indices, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.boundsCenter, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.boundsExtents, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV1, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV2, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV3, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV4, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV5, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV6, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV7, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV8, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>().Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>().Serialize(ref writer, value.bones, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.boneIndices, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.boneWeights, options);
         }
 
         public global::Staple.Internal.MeshAssetMeshInfo Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -1982,73 +2004,73 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.materialGuid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.materialGuid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.topology = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.MeshTopology>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.topology = formatterResolver.GetFormatterWithVerify<global::Staple.MeshTopology>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.vertices = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vertices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.colors = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.colors = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.normals = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.normals = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.tangents = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.tangents = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.bitangents = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.bitangents = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
                         break;
                     case 8:
-                        ____result.indices = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.indices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     case 9:
-                        ____result.boundsCenter = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.boundsCenter = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 10:
-                        ____result.boundsExtents = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.boundsExtents = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 11:
-                        ____result.UV1 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV1 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 12:
-                        ____result.UV2 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV2 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 13:
-                        ____result.UV3 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV3 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 14:
-                        ____result.UV4 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV4 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 15:
-                        ____result.UV5 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV5 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 16:
-                        ____result.UV6 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV6 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 17:
-                        ____result.UV7 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV7 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 18:
-                        ____result.UV8 = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.UV8 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
                         break;
                     case 19:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>().Deserialize(ref reader, options);
                         break;
                     case 20:
-                        ____result.bones = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.bones = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>().Deserialize(ref reader, options);
                         break;
                     case 21:
-                        ____result.boneIndices = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.boneIndices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
                         break;
                     case 22:
-                        ____result.boneWeights = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.boneWeights = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2074,7 +2096,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(16);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
             writer.Write(value.preTransformVertices);
@@ -2085,11 +2107,11 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.convertUnits);
             writer.Write(value.regenerateNormals);
             writer.Write(value.useSmoothNormals);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>(formatterResolver).Serialize(ref writer, value.rotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Serialize(ref writer, value.rotation, options);
             writer.Write(value.scale);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.MaterialLighting>(formatterResolver).Serialize(ref writer, value.lighting, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
             writer.Write(value.frameRate);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.MeshAssetMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2109,7 +2131,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.makeLeftHanded = reader.ReadBoolean();
@@ -2142,19 +2164,19 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.useSmoothNormals = reader.ReadBoolean();
                         break;
                     case 11:
-                        ____result.rotation = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Deserialize(ref reader, options);
                         break;
                     case 12:
                         ____result.scale = reader.ReadSingle();
                         break;
                     case 13:
-                        ____result.lighting = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.MaterialLighting>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.lighting = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Deserialize(ref reader, options);
                         break;
                     case 14:
                         ____result.frameRate = reader.ReadInt32();
                         break;
                     case 15:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2180,12 +2202,12 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.position, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.rotation, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.scale, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Serialize(ref writer, value.children, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Serialize(ref writer, value.meshIndices, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.position, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.rotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.scale, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.children, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.meshIndices, options);
         }
 
         public global::Staple.Internal.MeshAssetNode Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2205,22 +2227,22 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.position = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.position = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.rotation = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.scale = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.scale = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.children = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.children = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.meshIndices = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.meshIndices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2247,7 +2269,7 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
             writer.Write(value.time);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Serialize(ref writer, value.value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.value, options);
         }
 
         public global::Staple.Internal.MeshAssetQuaternionAnimationKey Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2270,7 +2292,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.time = reader.ReadSingle();
                         break;
                     case 1:
-                        ____result.value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2297,7 +2319,7 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
             writer.Write(value.time);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.value, options);
         }
 
         public global::Staple.Internal.MeshAssetVectorAnimationKey Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2320,7 +2342,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.time = reader.ReadSingle();
                         break;
                     case 1:
-                        ____result.value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2347,9 +2369,9 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
             writer.Write(value.guid);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.path, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.path, options);
             writer.Write(value.size);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.ResourcePak.Entry Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2369,16 +2391,16 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.guid = reader.ReadBytes()?.ToArray();
                         break;
                     case 1:
-                        ____result.path = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.path = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.size = reader.ReadInt64();
                         break;
                     case 3:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2404,7 +2426,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -2425,7 +2447,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -2454,8 +2476,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.type, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>>(formatterResolver).Serialize(ref writer, value.parameters, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>>().Serialize(ref writer, value.parameters, options);
         }
 
         public global::Staple.Internal.SceneComponent Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2475,10 +2497,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.parameters = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponentParameter>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2504,17 +2526,17 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(11);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>(formatterResolver).Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Serialize(ref writer, value.type, options);
             writer.Write(value.boolValue);
             writer.Write(value.intValue);
             writer.Write(value.floatValue);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.stringValue, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>(formatterResolver).Serialize(ref writer, value.vector2Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.vector3Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Serialize(ref writer, value.vector4Value, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<object>(formatterResolver).Serialize(ref writer, value.arrayValue, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>(formatterResolver).Serialize(ref writer, value.arrayType, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.stringValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Serialize(ref writer, value.vector2Value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.vector3Value, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Serialize(ref writer, value.vector4Value, options);
+            formatterResolver.GetFormatterWithVerify<object>().Serialize(ref writer, value.arrayValue, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Serialize(ref writer, value.arrayType, options);
         }
 
         public global::Staple.Internal.SceneComponentParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2534,10 +2556,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.boolValue = reader.ReadBoolean();
@@ -2549,22 +2571,22 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.floatValue = reader.ReadSingle();
                         break;
                     case 5:
-                        ____result.stringValue = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.stringValue = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.vector2Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vector2Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.vector3Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vector3Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 8:
-                        ____result.vector4Value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.vector4Value = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder>().Deserialize(ref reader, options);
                         break;
                     case 9:
-                        ____result.arrayValue = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<object>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.arrayValue = formatterResolver.GetFormatterWithVerify<object>().Deserialize(ref reader, options);
                         break;
                     case 10:
-                        ____result.arrayType = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.arrayType = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneComponentParameterType>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2590,7 +2612,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(1);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Serialize(ref writer, value.scenes, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.scenes, options);
         }
 
         public global::Staple.Internal.SceneList Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2610,7 +2632,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.scenes = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.scenes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2636,7 +2658,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -2657,7 +2679,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -2686,15 +2708,15 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(10);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>(formatterResolver).Serialize(ref writer, value.kind, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>().Serialize(ref writer, value.kind, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.ID);
             writer.Write(value.parent);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>(formatterResolver).Serialize(ref writer, value.transform, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>(formatterResolver).Serialize(ref writer, value.components, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.layer, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>().Serialize(ref writer, value.transform, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>().Serialize(ref writer, value.components, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.layer, options);
             writer.Write(value.enabled);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.prefabGuid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.prefabGuid, options);
             writer.Write(value.prefabLocalID);
         }
 
@@ -2715,10 +2737,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.kind = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.kind = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectKind>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.ID = reader.ReadInt32();
@@ -2727,19 +2749,19 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.parent = reader.ReadInt32();
                         break;
                     case 4:
-                        ____result.transform = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.transform = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObjectTransform>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.components = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.components = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.layer = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.layer = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 7:
                         ____result.enabled = reader.ReadBoolean();
                         break;
                     case 8:
-                        ____result.prefabGuid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.prefabGuid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 9:
                         ____result.prefabLocalID = reader.ReadInt32();
@@ -2768,9 +2790,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.position, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.rotation, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Serialize(ref writer, value.scale, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.position, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.rotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.scale, options);
         }
 
         public global::Staple.Internal.SceneObjectTransform Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2790,13 +2812,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.position = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.position = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.rotation = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.scale = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.scale = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2822,8 +2844,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioClipMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioClipFormat>(formatterResolver).Serialize(ref writer, value.format, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioClipMetadata>().Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioClipFormat>().Serialize(ref writer, value.format, options);
             writer.Write(value.fileData);
         }
 
@@ -2844,13 +2866,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioClipMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioClipMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.format = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.AudioClipFormat>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.AudioClipFormat>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.fileData = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.fileData = reader.ReadBytes()?.ToArray();
                         break;
                     default:
                         reader.Skip();
@@ -2876,7 +2898,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -2897,7 +2919,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -2926,7 +2948,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.FontMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontMetadata>().Serialize(ref writer, value.metadata, options);
             writer.Write(value.fontData);
         }
 
@@ -2947,10 +2969,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.FontMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.FontMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.fontData = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.fontData = reader.ReadBytes()?.ToArray();
                         break;
                     default:
                         reader.Skip();
@@ -2976,7 +2998,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -2997,7 +3019,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3026,7 +3048,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(1);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MaterialMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MaterialMetadata>().Serialize(ref writer, value.metadata, options);
         }
 
         public global::Staple.Internal.SerializableMaterial Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3046,7 +3068,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MaterialMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MaterialMetadata>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3072,7 +3094,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3093,7 +3115,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3122,10 +3144,10 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>(formatterResolver).Serialize(ref writer, value.meshes, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>(formatterResolver).Serialize(ref writer, value.nodes, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>>(formatterResolver).Serialize(ref writer, value.animations, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Serialize(ref writer, value.meshes, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>().Serialize(ref writer, value.nodes, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>>().Serialize(ref writer, value.animations, options);
         }
 
         public global::Staple.Internal.SerializableMeshAsset Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3145,16 +3167,16 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.meshes = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.meshes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.nodes = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.nodes = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.animations = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.animations = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3180,7 +3202,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3201,7 +3223,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3230,10 +3252,10 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObject>(formatterResolver).Serialize(ref writer, value.mainObject, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>(formatterResolver).Serialize(ref writer, value.children, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObject>().Serialize(ref writer, value.mainObject, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Serialize(ref writer, value.children, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.SerializablePrefab Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3253,16 +3275,16 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.mainObject = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SceneObject>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.mainObject = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SceneObject>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.children = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.children = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3288,7 +3310,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3309,7 +3331,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3338,9 +3360,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>(formatterResolver).Serialize(ref writer, value.objects, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Serialize(ref writer, value.objects, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.SerializableScene Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3360,13 +3382,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.objects = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.objects = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3392,7 +3414,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3413,7 +3435,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3442,8 +3464,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>>(formatterResolver).Serialize(ref writer, value.data, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderMetadata>().Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>>().Serialize(ref writer, value.data, options);
         }
 
         public global::Staple.Internal.SerializableShader Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3463,10 +3485,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.data = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.data = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3512,13 +3534,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.vertexShader = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.vertexShader = reader.ReadBytes()?.ToArray();
                         break;
                     case 1:
-                        ____result.fragmentShader = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.fragmentShader = reader.ReadBytes()?.ToArray();
                         break;
                     case 2:
-                        ____result.computeShader = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.computeShader = reader.ReadBytes()?.ToArray();
                         break;
                     default:
                         reader.Skip();
@@ -3544,7 +3566,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3565,7 +3587,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3594,9 +3616,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>(formatterResolver).Serialize(ref writer, value.parameters, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>().Serialize(ref writer, value.parameters, options);
         }
 
         public global::Staple.Internal.SerializableStapleAsset Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3616,13 +3638,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.parameters = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3648,8 +3670,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>(formatterResolver).Serialize(ref writer, value.parameters, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>().Serialize(ref writer, value.parameters, options);
         }
 
         public global::Staple.Internal.SerializableStapleAssetContainer Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3669,10 +3691,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.parameters = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.parameters = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3698,7 +3720,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3719,7 +3741,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3748,8 +3770,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<object>(formatterResolver).Serialize(ref writer, value.value, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<object>().Serialize(ref writer, value.value, options);
         }
 
         public global::Staple.Internal.SerializableStapleAssetParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3769,10 +3791,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.value = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<object>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.value = formatterResolver.GetFormatterWithVerify<object>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3798,9 +3820,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadata>(formatterResolver).Serialize(ref writer, value.metadata, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadata>().Serialize(ref writer, value.metadata, options);
             writer.Write(value.data);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>(formatterResolver).Serialize(ref writer, value.cpuData, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>().Serialize(ref writer, value.cpuData, options);
         }
 
         public global::Staple.Internal.SerializableTexture Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3820,13 +3842,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.metadata = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadata>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.data = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.data = reader.ReadBytes()?.ToArray();
                         break;
                     case 2:
-                        ____result.cpuData = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.cpuData = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -3852,7 +3874,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.StandardTextureColorComponents>(formatterResolver).Serialize(ref writer, value.colorComponents, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.StandardTextureColorComponents>().Serialize(ref writer, value.colorComponents, options);
             writer.Write(value.data);
             writer.Write(value.width);
             writer.Write(value.height);
@@ -3875,10 +3897,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.colorComponents = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.StandardTextureColorComponents>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.colorComponents = formatterResolver.GetFormatterWithVerify<global::Staple.StandardTextureColorComponents>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.data = global::MessagePack.Internal.CodeGenHelpers.GetArrayFromNullableSequence(reader.ReadBytes());
+                        ____result.data = reader.ReadBytes()?.ToArray();
                         break;
                     case 2:
                         ____result.width = reader.ReadInt32();
@@ -3910,7 +3932,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Serialize(ref writer, value.header, options);
+            formatterResolver.GetFormatterWithVerify<char[]>().Serialize(ref writer, value.header, options);
             writer.Write(value.version);
         }
 
@@ -3931,7 +3953,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.header = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<char[]>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.header = formatterResolver.GetFormatterWithVerify<char[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         ____result.version = reader.ReadByte();
@@ -3960,13 +3982,13 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(7);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderType>(formatterResolver).Serialize(ref writer, value.type, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Serialize(ref writer, value.variants, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>(formatterResolver).Serialize(ref writer, value.uniforms, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.BlendMode>(formatterResolver).Serialize(ref writer, value.sourceBlend, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.BlendMode>(formatterResolver).Serialize(ref writer, value.destinationBlend, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderType>().Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.variants, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>().Serialize(ref writer, value.uniforms, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Serialize(ref writer, value.sourceBlend, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Serialize(ref writer, value.destinationBlend, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.ShaderMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3986,25 +4008,25 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderType>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.variants = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.variants = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.uniforms = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.uniforms = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.sourceBlend = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.BlendMode>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.sourceBlend = formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.destinationBlend = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.BlendMode>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.destinationBlend = formatterResolver.GetFormatterWithVerify<global::Staple.BlendMode>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -4030,8 +4052,8 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.name, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>(formatterResolver).Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Serialize(ref writer, value.type, options);
             writer.Write(value.slot);
         }
 
@@ -4052,10 +4074,10 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.slot = reader.ReadInt32();
@@ -4084,14 +4106,14 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(23);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.guid, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureType>(formatterResolver).Serialize(ref writer, value.type, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>(formatterResolver).Serialize(ref writer, value.format, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>(formatterResolver).Serialize(ref writer, value.quality, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>(formatterResolver).Serialize(ref writer, value.filter, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Serialize(ref writer, value.wrapU, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Serialize(ref writer, value.wrapV, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Serialize(ref writer, value.wrapW, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Serialize(ref writer, value.type, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Serialize(ref writer, value.format, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Serialize(ref writer, value.quality, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>().Serialize(ref writer, value.filter, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Serialize(ref writer, value.wrapU, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Serialize(ref writer, value.wrapV, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Serialize(ref writer, value.wrapW, options);
             writer.Write(value.premultiplyAlpha);
             writer.Write(value.maxSize);
             writer.Write(value.useMipmaps);
@@ -4099,14 +4121,14 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.spritePixelsPerUnit);
             writer.Write(value.readBack);
             writer.Write(value.keepOnCPU);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SpriteTextureMethod>(formatterResolver).Serialize(ref writer, value.spriteTextureMethod, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Vector2Int>(formatterResolver).Serialize(ref writer, value.spriteTextureGridSize, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>>(formatterResolver).Serialize(ref writer, value.sprites, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SpriteTextureMethod>().Serialize(ref writer, value.spriteTextureMethod, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Vector2Int>().Serialize(ref writer, value.spriteTextureGridSize, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>>().Serialize(ref writer, value.sprites, options);
             writer.Write(value.shouldPack);
             writer.Write(value.padding);
             writer.Write(value.trimDuplicates);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>(formatterResolver).Serialize(ref writer, value.overrides, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Serialize(ref writer, value.typeName, options);
+            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>().Serialize(ref writer, value.overrides, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
         public global::Staple.Internal.TextureMetadata Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4126,28 +4148,28 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.guid = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.guid = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.type = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureType>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureType>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.format = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.quality = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.filter = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.filter = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureFilter>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.wrapU = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.wrapU = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.wrapV = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.wrapV = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.wrapW = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.wrapW = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureWrap>().Deserialize(ref reader, options);
                         break;
                     case 8:
                         ____result.premultiplyAlpha = reader.ReadBoolean();
@@ -4171,13 +4193,13 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.keepOnCPU = reader.ReadBoolean();
                         break;
                     case 15:
-                        ____result.spriteTextureMethod = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.SpriteTextureMethod>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.spriteTextureMethod = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SpriteTextureMethod>().Deserialize(ref reader, options);
                         break;
                     case 16:
-                        ____result.spriteTextureGridSize = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Vector2Int>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.spriteTextureGridSize = formatterResolver.GetFormatterWithVerify<global::Staple.Vector2Int>().Deserialize(ref reader, options);
                         break;
                     case 17:
-                        ____result.sprites = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.sprites = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>>().Deserialize(ref reader, options);
                         break;
                     case 18:
                         ____result.shouldPack = reader.ReadBoolean();
@@ -4189,10 +4211,10 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.trimDuplicates = reader.ReadBoolean();
                         break;
                     case 21:
-                        ____result.overrides = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.overrides = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>>().Deserialize(ref reader, options);
                         break;
                     case 22:
-                        ____result.typeName = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<string>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -4219,8 +4241,8 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(5);
             writer.Write(value.shouldOverride);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>(formatterResolver).Serialize(ref writer, value.format, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>(formatterResolver).Serialize(ref writer, value.quality, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Serialize(ref writer, value.format, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Serialize(ref writer, value.quality, options);
             writer.Write(value.maxSize);
             writer.Write(value.premultiplyAlpha);
         }
@@ -4245,10 +4267,10 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.shouldOverride = reader.ReadBoolean();
                         break;
                     case 1:
-                        ____result.format = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.format = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataFormat>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.quality = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.quality = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadataQuality>().Deserialize(ref reader, options);
                         break;
                     case 3:
                         ____result.maxSize = reader.ReadInt32();
@@ -4280,9 +4302,9 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Rect>(formatterResolver).Serialize(ref writer, value.rect, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>(formatterResolver).Serialize(ref writer, value.rotation, options);
-            global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Rect>(formatterResolver).Serialize(ref writer, value.originalRect, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Serialize(ref writer, value.rect, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>().Serialize(ref writer, value.rotation, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Serialize(ref writer, value.originalRect, options);
         }
 
         public global::Staple.Internal.TextureSpriteInfo Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4302,13 +4324,13 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.rect = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Rect>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rect = formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.rotation = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureSpriteRotation>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.originalRect = global::MessagePack.FormatterResolverExtensions.GetFormatterWithVerify<global::Staple.Rect>(formatterResolver).Deserialize(ref reader, options);
+                        ____result.originalRect = formatterResolver.GetFormatterWithVerify<global::Staple.Rect>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -4476,7 +4498,6 @@ namespace MessagePack.Formatters.Staple.Internal
             return ____result;
         }
     }
-
 }
 
 #pragma warning restore 168
@@ -4485,6 +4506,7 @@ namespace MessagePack.Formatters.Staple.Internal
 #pragma warning restore 612
 
 #pragma warning restore SA1129 // Do not use default value type constructor
+#pragma warning restore SA1200 // Using directives should be placed correctly
 #pragma warning restore SA1309 // Field names should not begin with underscore
 #pragma warning restore SA1312 // Variable names should begin with lower-case letter
 #pragma warning restore SA1403 // File may only contain a single namespace
