@@ -246,11 +246,4 @@ internal class SkinnedAnimationStateMachineEditor : StapleAssetEditor
 
         return false;
     }
-
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-
-        ShowAssetUI(null);
-    }
 }
