@@ -119,13 +119,11 @@ public sealed partial class RenderSystem
     }
 
     /// <summary>
-    /// Called at the start of each frame
+    /// Called at the end of each frame
     /// </summary>
     /// <param name="frame">The current frame</param>
     internal void OnFrame(uint frame)
     {
-        CulledRenderers = 0;
-
         List<Action> callbacks = null;
 
         lock (lockObject)
@@ -189,6 +187,8 @@ public sealed partial class RenderSystem
         {
             return;
         }
+
+        CulledRenderers = 0;
 
         if (UseDrawcallInterpolator)
         {
