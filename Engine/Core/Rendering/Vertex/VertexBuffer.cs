@@ -8,7 +8,7 @@ namespace Staple;
 /// <summary>
 /// Vertex Buffer resource
 /// </summary>
-public class VertexBuffer
+public sealed class VertexBuffer
 {
     private static VertexBuffer transientBuffer;
 

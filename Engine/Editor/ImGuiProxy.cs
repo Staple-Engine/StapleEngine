@@ -27,6 +27,7 @@ internal class ImGuiProxy
     public ImFontPtr editorFont;
 
     private bool frameBegun = false;
+    private bool destroyed = false;
 
     private readonly KeyCode[] keyCodes = Enum.GetValues<KeyCode>();
 
@@ -116,7 +117,14 @@ internal class ImGuiProxy
 
     public void Destroy()
     {
-        if(textureUniform.Valid)
+        if(destroyed)
+        {
+            return;
+        }
+
+        destroyed = true;
+
+        if (textureUniform.Valid)
         {
             bgfx.destroy_uniform(textureUniform);
         }
@@ -231,6 +239,11 @@ internal class ImGuiProxy
 
     public void BeginFrame()
     {
+        if(destroyed)
+        {
+            return;
+        }
+
         var io = ImGui.GetIO();
 
         io.DeltaTime = Time.unscaledDeltaTime;
@@ -279,6 +292,11 @@ internal class ImGuiProxy
 
     public void EndFrame()
     {
+        if (destroyed)
+        {
+            return;
+        }
+
         if (frameBegun)
         {
             frameBegun = false;
@@ -293,6 +311,11 @@ internal class ImGuiProxy
 
     private void Render(ImDrawDataPtr drawData)
     {
+        if (destroyed)
+        {
+            return;
+        }
+
         unsafe
         {
             var fbWidth = drawData.DisplaySize.X * drawData.FramebufferScale.X;

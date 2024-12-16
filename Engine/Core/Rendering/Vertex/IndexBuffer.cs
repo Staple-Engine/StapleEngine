@@ -8,7 +8,7 @@ namespace Staple;
 /// <summary>
 /// Index Buffer resource
 /// </summary>
-public class IndexBuffer
+public sealed class IndexBuffer
 {
     private static IndexBuffer transientBuffer;
 
