@@ -13,13 +13,21 @@ namespace CoreTests
 
         internal class SimplePathAsset : IGuidAsset
         {
-            internal string guid = "a/b/c";
+            private int guidHash;
+            private string guid;
+
+            public int GuidHash => guidHash;
 
             public string Guid
             {
                 get => guid;
 
-                set => guid = value;
+                set
+                {
+                    guid = value;
+
+                    guidHash = guid?.GetHashCode() ?? 0;
+                }
             }
 
             public static object Create(string guid)
@@ -36,7 +44,12 @@ namespace CoreTests
             public int intValue = 1;
             public string stringValue = "test";
             public List<int> numbers = new(new int[] { 1, 2, 3 });
-            public IGuidAsset pathAsset = new SimplePathAsset();
+
+            public IGuidAsset pathAsset = new SimplePathAsset()
+            {
+                Guid = "a/b/c",
+            };
+
             public NewEnum enumValue = NewEnum.A;
 
             internal int notSerialized = 0;

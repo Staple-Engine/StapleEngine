@@ -27,9 +27,24 @@ public sealed class SpriteAnimation : IStapleAsset, IGuidAsset
     /// <summary>
     /// The list of all animation frames
     /// </summary>
-    public List<int> frames = new();
+    public List<int> frames = [];
 
-    public string Guid { get; set; }
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
+    public string Guid
+    {
+        get => guid;
+
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
+    }
 
     /// <summary>
     /// IPathAsset implementation. Loads a Sprite Animation from path.

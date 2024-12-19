@@ -1069,7 +1069,7 @@ internal class ResourceManager
             {
                 metadata = materialData.metadata,
                 shader = shader,
-                guid = guid ?? path,
+                Guid = guid ?? path,
                 CullingMode = materialData.metadata.cullingMode,
             };
 

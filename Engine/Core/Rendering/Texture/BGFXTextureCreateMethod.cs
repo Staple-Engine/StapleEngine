@@ -34,7 +34,7 @@ internal class BGFXTextureCreateMethod(string path, byte[] data, TextureMetadata
                 return false;
             }
 
-            texture.guid = path;
+            texture.Guid = path;
             texture.metadata = metadata;
             texture.info = info;
 

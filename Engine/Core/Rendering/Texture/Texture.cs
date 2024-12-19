@@ -16,18 +16,27 @@ public class Texture : IGuidAsset
     internal bgfx.TextureHandle handle;
     internal bgfx.TextureInfo info;
     internal TextureMetadata metadata;
-    internal string guid;
     internal bool renderTarget = false;
 
     internal RawTextureData readbackData;
 
     private readonly ITextureCreateMethod createMethod;
 
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
     public string Guid
     {
         get => guid;
 
-        set => guid = value;
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
     }
 
     public bool Disposed { get; private set; } = false;

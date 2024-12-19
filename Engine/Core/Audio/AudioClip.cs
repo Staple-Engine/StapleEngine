@@ -57,7 +57,21 @@ public sealed class AudioClip : IGuidAsset
 
     private string guid;
 
-    public string Guid { get => guid; set => guid = value; }
+    private int guidHash;
+
+    public int GuidHash => guidHash;
+
+    public string Guid
+    {
+        get => guid;
+        
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
+    }
 
     /// <summary>
     /// Gets an internal audio stream for the audio.

@@ -6,7 +6,12 @@
 public interface IGuidAsset
 {
     /// <summary>
-    /// The asset's path (if any)
+    /// The asset's guid hash (or 0)
+    /// </summary>
+    int GuidHash { get; }
+
+    /// <summary>
+    /// The asset's guid (if any)
     /// </summary>
     string Guid { get; set; }
 

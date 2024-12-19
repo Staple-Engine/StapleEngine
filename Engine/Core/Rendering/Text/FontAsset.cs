@@ -5,7 +5,23 @@ namespace Staple;
 
 public class FontAsset : IGuidAsset
 {
-    public string Guid { get; set; }
+
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
+    public string Guid
+    {
+        get => guid;
+
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
+    }
 
     internal FontMetadata metadata;
 

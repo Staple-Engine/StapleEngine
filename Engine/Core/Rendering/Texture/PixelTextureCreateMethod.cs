@@ -34,7 +34,7 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
                 return false;
             }
 
-            texture.guid = path;
+            texture.Guid = path;
             texture.metadata = metadata;
             texture.info = new bgfx.TextureInfo()
             {

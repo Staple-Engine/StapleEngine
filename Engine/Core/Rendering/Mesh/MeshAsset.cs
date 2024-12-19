@@ -635,10 +635,22 @@ public sealed class MeshAsset : IGuidAsset
     /// </summary>
     public int BoneCount { get; internal set; }
 
-    /// <summary>
-    /// Asset GUID
-    /// </summary>
-    public string Guid { get; set; }
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
+    public string Guid
+    {
+        get => guid;
+
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
+    }
 
     /// <summary>
     /// Attempts to get an animation by name

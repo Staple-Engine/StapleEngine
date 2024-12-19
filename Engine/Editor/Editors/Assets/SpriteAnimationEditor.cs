@@ -56,7 +56,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                             var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid));
 
-                            if (assetPath != asset.texture.guid && Path.IsPathRooted(assetPath) == false)
+                            if (assetPath != asset.texture.Guid && Path.IsPathRooted(assetPath) == false)
                             {
                                 assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                             }

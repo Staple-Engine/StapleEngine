@@ -9,7 +9,22 @@ public class Prefab : IGuidAsset
 {
     internal SerializablePrefab data;
 
-    public string Guid { get; set; }
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
+    public string Guid
+    {
+        get => guid;
+
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
+    }
 
     public static object Create(string guid)
     {

@@ -674,16 +674,21 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     public int IndexCount => indices?.Length ?? 0;
 
-    internal string guid;
+    private int guidHash;
+    private string guid;
 
-    /// <summary>
-    /// Asset GUID
-    /// </summary>
+    public int GuidHash => guidHash;
+
     public string Guid
     {
         get => guid;
 
-        set => guid = value;
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
     }
 
     /// <summary>

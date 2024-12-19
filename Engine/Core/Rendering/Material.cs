@@ -98,7 +98,6 @@ public sealed class Material : IGuidAsset
     }
 
     internal Shader shader;
-    internal string guid;
     internal MaterialMetadata metadata;
 
     internal Dictionary<int, ParameterInfo> parameters = [];
@@ -185,14 +184,21 @@ public sealed class Material : IGuidAsset
         }
     }
 
-    /// <summary>
-    /// The asset's guid (if any)
-    /// </summary>
+    private int guidHash;
+    private string guid;
+
+    public int GuidHash => guidHash;
+
     public string Guid
     {
         get => guid;
 
-        set => guid = value;
+        set
+        {
+            guid = value;
+
+            guidHash = guid?.GetHashCode() ?? 0;
+        }
     }
 
     /// <summary>
