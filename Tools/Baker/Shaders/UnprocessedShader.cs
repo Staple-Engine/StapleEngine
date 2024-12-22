@@ -11,9 +11,10 @@ internal class UnprocessedShader
     public ShaderType type;
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
-    public List<ShaderParameter> parameters = new List<ShaderParameter>();
+    public List<ShaderParameter> parameters = [];
+    public List<ShaderInstancingParameter> instancingParameters = [];
     public ShaderPiece vertex;
     public ShaderPiece fragment;
     public ShaderPiece compute;
-    public List<string> variants = new();
+    public List<string> variants = [];
 }

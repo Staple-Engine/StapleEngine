@@ -37,7 +37,7 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants,
+        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
 
         Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
@@ -49,6 +49,7 @@ End Compute
         Assert.That(variants[2], Is.EqualTo("C"));
     
         Assert.That(blend, Is.Null);
+        Assert.That(instanceParameters, Is.Null);
 
         Assert.That(parameters.Count, Is.EqualTo(3));
 
@@ -100,6 +101,11 @@ varying vec2 v_texcoord1: TEXCOORD1
 uniform vec2 v_texcoord2=vec2(1.0, 1.0)
 End Parameters
 
+Begin Instancing
+float rotation
+vec4 color
+End Instancing
+
 Begin Vertex
 $input v_texcoord0
 $output v_texcoord1, v_texcoord2
@@ -118,7 +124,7 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants,
+        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
 
         Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
@@ -130,6 +136,16 @@ End Compute
         Assert.That(variants[2], Is.EqualTo("C"));
 
         Assert.That(blend, Is.Null);
+
+        Assert.That(instanceParameters, Is.Not.Null);
+
+        Assert.That(instanceParameters.Count, Is.EqualTo(2));
+
+        Assert.That(instanceParameters[0].name, Is.EqualTo("rotation"));
+        Assert.That(instanceParameters[0].type, Is.EqualTo("float"));
+
+        Assert.That(instanceParameters[1].name, Is.EqualTo("color"));
+        Assert.That(instanceParameters[1].type, Is.EqualTo("vec4"));
 
         Assert.That(parameters.Count, Is.EqualTo(3));
 
@@ -182,6 +198,11 @@ uniform vec2 v_texcoord2
 ROBuffer<vec4> myBuffer:0
 End Parameters
 
+Begin Instancing
+float rotation
+vec4 color
+End Instancing
+
 Begin Vertex
 $input v_texcoord0
 $output v_texcoord1, v_texcoord2
@@ -200,7 +221,7 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants,
+        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
 
         Assert.That(type, Is.EqualTo(ShaderType.Compute));
@@ -208,6 +229,8 @@ End Compute
         Assert.That(variants.Count, Is.EqualTo(0));
 
         Assert.That(blend, Is.Null);
+
+        Assert.That(instanceParameters, Is.Null);
 
         Assert.That(parameters.Count, Is.EqualTo(4));
 
@@ -239,5 +262,36 @@ End Compute
 
         Assert.That(compute, Is.Not.Null);
         Assert.That(compute.content, Is.EqualTo("compute A\ncompute B"));
+    }
+
+    [Test]
+    public void TestParseEmptyInstancing()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute));
+
+        Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
+
+        Assert.That(blend, Is.Null);
+
+        Assert.That(instanceParameters, Is.Not.Null);
+
+        Assert.That(instanceParameters.Count, Is.EqualTo(0));
     }
 }

@@ -7,12 +7,21 @@ uniform color mainColor
 
 End Parameters
 
+Begin Instancing
+End Instancing
+
 Begin Vertex
 $input a_position
 
 void main()
 {
-	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);
+	mat4 model = StapleModelMatrix;
+
+	#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
+	#endif
+
+	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
 
 	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
 

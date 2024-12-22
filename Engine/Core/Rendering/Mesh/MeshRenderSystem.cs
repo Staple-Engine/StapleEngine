@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -73,6 +74,8 @@ public sealed class MeshRenderSystem : IRenderSystem
         mesh.SetActive();
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+        material.DisableShaderKeyword(Shader.InstancingKeyword);
 
         var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
@@ -249,9 +252,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         foreach(var (viewId, pairs) in instanceCache)
         {
-            foreach(var (_, contents) in pairs)
+            foreach (var (_, contents) in pairs)
             {
-                if(contents.Length == 0)
+                if (contents.Length == 0)
                 {
                     continue;
                 }
@@ -281,26 +284,57 @@ public sealed class MeshRenderSystem : IRenderSystem
                 lightSystem?.ApplyLightProperties(contents.Contents[0].position, contents.Contents[0].transform, material,
                     RenderSystem.CurrentCamera.Item2.Position, contents.Contents[0].lighting);
 
-                for(var i = 0; i < contents.Length; i++)
+                material.EnableShaderKeyword(Shader.InstancingKeyword);
+
+                if(material.Keywords.Contains(Shader.InstancingKeyword))
                 {
-                    var content = contents.Contents[i];
-
-                    unsafe
-                    {
-                        var transform = content.transform;
-
-                        _ = bgfx.set_transform(&transform, 1);
-                    }
-
-                    content.mesh.SetActive(content.submeshIndex);
+                    contents.Contents[0].mesh.SetActive(contents.Contents[0].submeshIndex);
 
                     var program = material.ShaderProgram;
 
+                    var matrices = new Matrix4x4[contents.Length];
+
+                    for (var i = 0; i < contents.Length; i++)
+                    {
+                        matrices[i] = contents.Contents[i].transform;
+                    }
+
+                    var instanceBuffer = InstanceBuffer.Create(contents.Length, 16 * sizeof(float));
+
+                    instanceBuffer.SetData(matrices.AsSpan());
+
+                    instanceBuffer.Bind(0, instanceBuffer.count);
+
                     var flags = bgfx.DiscardFlags.VertexStreams |
                         bgfx.DiscardFlags.IndexBuffer |
+                        bgfx.DiscardFlags.InstanceData |
                         bgfx.DiscardFlags.Transform;
 
                     bgfx.submit(viewId, program, 0, (byte)flags);
+                }
+                else
+                {
+                    for (var i = 0; i < contents.Length; i++)
+                    {
+                        var content = contents.Contents[i];
+
+                        unsafe
+                        {
+                            var transform = content.transform;
+
+                            _ = bgfx.set_transform(&transform, 1);
+                        }
+
+                        content.mesh.SetActive(content.submeshIndex);
+
+                        var program = material.ShaderProgram;
+
+                        var flags = bgfx.DiscardFlags.VertexStreams |
+                            bgfx.DiscardFlags.IndexBuffer |
+                            bgfx.DiscardFlags.Transform;
+
+                        bgfx.submit(viewId, program, 0, (byte)flags);
+                    }
                 }
 
                 contents.Clear();

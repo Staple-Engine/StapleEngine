@@ -257,6 +257,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     material.EnableShaderKeyword(Shader.SkinningKeyword);
 
+                    material.DisableShaderKeyword(Shader.InstancingKeyword);
+
                     var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
                     lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);

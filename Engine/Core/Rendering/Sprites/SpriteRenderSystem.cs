@@ -343,6 +343,7 @@ public class SpriteRenderSystem : IRenderSystem
             s.material.shader.SetTexture(s.material.GetShaderHandle(Material.MainTextureProperty), s.texture);
 
             s.material.DisableShaderKeyword(Shader.SkinningKeyword);
+            s.material.DisableShaderKeyword(Shader.InstancingKeyword);
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 

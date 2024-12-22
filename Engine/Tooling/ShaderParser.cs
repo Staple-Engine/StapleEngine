@@ -17,6 +17,12 @@ public static partial class ShaderParser
         public string initializer;
     }
 
+    public class InstanceParameter
+    {
+        public string name;
+        public string type;
+    }
+
     public class ShaderPiece
     {
         public string content;
@@ -35,6 +41,8 @@ public static partial class ShaderParser
     private static Regex blendRegex = BlendRegex();
     private static Regex variantsRegex = VariantsRegex();
     private static Regex bufferRegex = BufferRegex();
+    private static Regex instancingRegex = InstancingRegex();
+    private static Regex instancingParameterRegex = InstancingParameterRegex();
 
     [GeneratedRegex("(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
@@ -54,6 +62,12 @@ public static partial class ShaderParser
     [GeneratedRegex("Begin Parameters((.|\\n)*)End Parameters")]
     private static partial Regex ParametersRegex();
 
+    [GeneratedRegex("Begin Instancing((.|\\n)*)End Instancing")]
+    private static partial Regex InstancingRegex();
+
+    [GeneratedRegex("(\\w+) (\\w+)")]
+    private static partial Regex InstancingParameterRegex();
+
     [GeneratedRegex("Type (\\w+)")]
     private static partial Regex TypeRegex();
 
@@ -70,11 +84,12 @@ public static partial class ShaderParser
     private static partial Regex VariantsRegex();
 
     public static bool Parse(string source, out ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out List<string> variants, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out List<string> variants, out List<InstanceParameter> instanceParameters, out ShaderPiece vertex, out ShaderPiece fragment,
+        out ShaderPiece compute)
     {
         var typeMatch = typeRegex.Match(source);
 
-        if(typeMatch == null ||
+        if(typeMatch.Success == false ||
             Enum.TryParse(typeMatch.Groups[1].Value.Trim(), true, out type) == false)
         {
             type = default;
@@ -84,6 +99,7 @@ public static partial class ShaderParser
             fragment = default;
             compute = default;
             blendMode = default;
+            instanceParameters = default;
 
             return false;
         }
@@ -92,7 +108,7 @@ public static partial class ShaderParser
         {
             var variantsMatch = variantsRegex.Match(source);
 
-            if (variantsMatch != null && variantsMatch.Length > 0)
+            if (variantsMatch.Success && variantsMatch.Length > 0)
             {
                 variants = variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
             }
@@ -103,7 +119,7 @@ public static partial class ShaderParser
 
             var blendMatch = blendRegex.Match(source);
 
-            if (blendMatch == null ||
+            if (blendMatch.Success == false ||
                 Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) == false ||
                 Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to) == false)
             {
@@ -122,7 +138,7 @@ public static partial class ShaderParser
 
         var parametersMatch = parametersRegex.Match(source);
 
-        if (parametersMatch != null)
+        if (parametersMatch.Success)
         {
             var content = parametersMatch.Groups[1].Value;
 
@@ -166,6 +182,7 @@ public static partial class ShaderParser
                     fragment = default;
                     compute = default;
                     blendMode = default;
+                    instanceParameters = default;
 
                     return false;
                 }
@@ -192,7 +209,7 @@ public static partial class ShaderParser
         {
             var match = regex.Match(source);
 
-            if (match != null)
+            if (match.Success)
             {
                 var content = match.Groups[1].Value.Replace("\r", "").Trim();
 
@@ -210,7 +227,7 @@ public static partial class ShaderParser
 
                 var inputMatch = inputRegex.Match(piece.content);
 
-                if(inputMatch != null && inputMatch.Length > 0)
+                if(inputMatch.Success && inputMatch.Length > 0)
                 {
                     piece.inputs = inputMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
 
@@ -219,7 +236,7 @@ public static partial class ShaderParser
 
                 var outputMatch = outputRegex.Match(piece.content);
 
-                if (outputMatch != null && outputMatch.Length > 0)
+                if (outputMatch.Success && outputMatch.Length > 0)
                 {
                     piece.outputs = outputMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
 
@@ -240,6 +257,34 @@ public static partial class ShaderParser
             HandleContent(fragmentRegex, out fragment);
 
             compute = default;
+
+            var instanceParametersMatch = instancingRegex.Match(source);
+
+            if (instanceParametersMatch.Success)
+            {
+                var content = instanceParametersMatch.Groups[1].Value;
+
+                var parameterMatches = instancingParameterRegex.Matches(content);
+
+                var parameterList = new List<InstanceParameter>();
+
+                foreach (Match m in parameterMatches)
+                {
+                    var parameter = new InstanceParameter()
+                    {
+                        name = m.Groups[2].Value,
+                        type = m.Groups[1].Value,
+                    };
+
+                    parameterList.Add(parameter);
+                }
+
+                instanceParameters = parameterList;
+            }
+            else
+            {
+                instanceParameters = default;
+            }
         }
         else
         {
@@ -247,6 +292,7 @@ public static partial class ShaderParser
 
             vertex = default;
             fragment = default;
+            instanceParameters = default;
         }
 
         return true;

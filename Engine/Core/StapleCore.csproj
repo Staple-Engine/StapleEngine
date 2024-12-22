@@ -172,6 +172,7 @@
 		<Compile Include="Rendering\Camera\CameraViewMode.cs" />
 		<Compile Include="Rendering\CullingMode.cs" />
 		<Compile Include="Rendering\Graphics.cs" />
+		<Compile Include="Rendering\Instancing\InstanceBuffer.cs" />
 		<Compile Include="Rendering\Lighting\Light.cs" />
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />

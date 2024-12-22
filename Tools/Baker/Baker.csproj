@@ -65,11 +65,12 @@
 		<Compile Include="Baker+Texture.cs" />
 		<Compile Include="Baker.cs" />
 		<Compile Include="Renderer.cs" />
-		<Compile Include="ShaderCompilerType.cs" />
-		<Compile Include="ShaderParameter.cs" />
-		<Compile Include="ShaderParameterSemantic.cs" />
-		<Compile Include="ShaderPiece.cs" />
-		<Compile Include="UnprocessedShader.cs" />
+		<Compile Include="Shaders\ShaderCompilerType.cs" />
+		<Compile Include="Shaders\ShaderInstancingParameter.cs" />
+		<Compile Include="Shaders\ShaderParameter.cs" />
+		<Compile Include="Shaders\ShaderParameterSemantic.cs" />
+		<Compile Include="Shaders\ShaderPiece.cs" />
+		<Compile Include="Shaders\UnprocessedShader.cs" />
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>

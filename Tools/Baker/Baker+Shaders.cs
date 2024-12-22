@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Baker;
 
@@ -36,9 +37,6 @@ vec4 i_data1        :   TEXCOORD6;
 vec4 i_data2        :   TEXCOORD5;
 vec4 i_data3        :   TEXCOORD4;
 vec4 i_data4        :   TEXCOORD3;
-vec4 i_data5        :   TEXCOORD2;
-vec4 i_data6        :   TEXCOORD1;
-vec4 i_data7        :   TEXCOORD0;
 """;
 
     private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath,
@@ -188,7 +186,7 @@ vec4 i_data7        :   TEXCOORD0;
                     }
 
                     if (ShaderParser.Parse(text, out shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                        out var vertex, out var fragment, out var compute) == false)
+                        out var instancingParameters, out var vertex, out var fragment, out var compute) == false)
                     {
                         Console.WriteLine("\t\tError: File has invalid format");
 
@@ -269,6 +267,45 @@ vec4 i_data7        :   TEXCOORD0;
                         shader.parameters.Add(p);
                     }
 
+                    if (instancingParameters != null)
+                    {
+                        foreach (var parameter in instancingParameters)
+                        {
+                            var p = new ShaderInstancingParameter()
+                            {
+                                name = parameter.name,
+                            };
+
+                            var typeValue = parameter.type switch
+                            {
+                                "float" => (int)ShaderUniformType.Float,
+                                "vec2" => (int)ShaderUniformType.Vector2,
+                                "vec3" => (int)ShaderUniformType.Vector3,
+                                "vec4" => (int)ShaderUniformType.Vector4,
+                                "color" => (int)ShaderUniformType.Color,
+                                "mat3" => (int)ShaderUniformType.Matrix3x3,
+                                "mat4" => (int)ShaderUniformType.Matrix4x4,
+                                _ => -1
+                            };
+
+
+                            if (typeValue < 0)
+                            {
+                                Console.WriteLine($"\t\tError: Instancing Parameter has invalid type: {parameter.name} {parameter.type}");
+
+                                return;
+                            }
+
+                            p.dataType = (ShaderUniformType)typeValue;
+
+                            shader.instancingParameters.Add(p);
+                        }
+                    }
+                    else
+                    {
+                        shader.instancingParameters = null;
+                    }
+
                     switch (shader.type)
                     {
                         case ShaderType.Compute:
@@ -301,9 +338,15 @@ vec4 i_data7        :   TEXCOORD0;
                             break;
                     }
 
+                    if (shader.instancingParameters != default)
+                    {
+                        shader.variants.Add(Shader.InstancingKeyword);
+                    }
+
                     var variants = shader.type == ShaderType.VertexFragment ?
-                        Utilities.Combinations(shader.variants.Concat(Shader.DefaultVariants).ToList()) :
-                        [];
+                        Utilities.Combinations(shader.variants
+                            .Concat(Shader.DefaultVariants)
+                            .ToList()) : [];
 
                     Console.WriteLine($"\t\tCompiling {variants.Count} variants");
 
@@ -540,9 +583,16 @@ vec4 i_data7        :   TEXCOORD0;
                         {
                             code = "";
 
+                            var instancing = variantKey.Contains(Shader.InstancingKeyword);
+
                             if (type == ShaderCompilerType.vertex)
                             {
-                                code += $"$input a_weight, a_indices ";
+                                code += $"$input a_weight, a_indices";
+
+                                if (instancing)
+                                {
+                                    code += ", i_data0, i_data1, i_data2, i_data3, i_data4";
+                                }
 
                                 if ((piece.inputs?.Count ?? 0) > 0)
                                 {
@@ -551,9 +601,11 @@ vec4 i_data7        :   TEXCOORD0;
                             }
                             else if(type == ShaderCompilerType.fragment)
                             {
+                                code += $"$input ";
+
                                 if ((piece.inputs?.Count ?? 0) > 0)
                                 {
-                                    code += $"$input {string.Join(", ", piece.inputs)}";
+                                    code += $"{string.Join(", ", piece.inputs)}";
                                 }
                             }
 
@@ -571,6 +623,232 @@ vec4 i_data7        :   TEXCOORD0;
                             }
                             else
                             {
+                                if(type == ShaderCompilerType.vertex && instancing)
+                                {
+                                    var fieldIndex = 0;
+
+                                    foreach(var instanceParameter in shader.instancingParameters)
+                                    {
+                                        var dataIndex = fieldIndex / 4;
+                                        var componentIndex = fieldIndex % 4;
+
+                                        code += $"#define {instanceParameter.name} ";
+
+                                        switch (instanceParameter.dataType)
+                                        {
+                                            case ShaderUniformType.Float:
+
+                                                code += $"i_data{dataIndex}";
+
+                                                switch(componentIndex)
+                                                {
+                                                    case 0:
+                                                        code += ".x\n";
+
+                                                        break;
+
+                                                    case 1:
+                                                        code += ".y\n";
+
+                                                        break;
+
+                                                    case 2:
+                                                        code += ".z\n";
+
+                                                        break;
+
+                                                    case 3:
+                                                        code += ".w\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex++;
+
+                                                break;
+
+                                            case ShaderUniformType.Color:
+                                            case ShaderUniformType.Vector4:
+
+                                                switch(componentIndex)
+                                                {
+                                                    case 0:
+
+                                                        code += $"i_data{dataIndex}\n";
+
+                                                        break;
+
+                                                    case 1:
+
+                                                        code += $"vec4(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
+
+                                                        break;
+
+                                                    case 2:
+
+                                                        code += $"vec4(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)\n";
+
+                                                        break;
+
+                                                    case 3:
+
+                                                        code += $"vec4(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z)\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex += 4;
+
+                                                break;
+
+                                            case ShaderUniformType.Vector2:
+
+                                                switch (componentIndex)
+                                                {
+                                                    case 0:
+
+                                                        code += $"i_data{dataIndex}.xy\n";
+
+                                                        break;
+
+                                                    case 1:
+
+                                                        code += $"i_data{dataIndex}.yz\n";
+
+                                                        break;
+
+                                                    case 2:
+
+                                                        code += $"i_data{dataIndex}.zw\n";
+
+                                                        break;
+
+                                                    case 3:
+
+                                                        code += $"vec2(i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex += 2;
+
+                                                break;
+
+                                            case ShaderUniformType.Vector3:
+
+                                                switch (componentIndex)
+                                                {
+                                                    case 0:
+
+                                                        code += $"i_data{dataIndex}.xyz\n";
+
+                                                        break;
+
+                                                    case 1:
+
+                                                        code += $"i_data{dataIndex}.yzw\n";
+
+                                                        break;
+
+                                                    case 2:
+
+                                                        code += $"vec3(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
+
+                                                        break;
+
+                                                    case 3:
+
+                                                        code += $"vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex += 3;
+
+                                                break;
+
+                                            case ShaderUniformType.Matrix3x3:
+
+                                                switch (componentIndex)
+                                                {
+                                                    case 0:
+
+                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)" + 
+                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x))\n";
+
+                                                        break;
+
+                                                    case 1:
+
+                                                        code += $"mtxFromCols(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w), " +
+                                                            $"vec3(i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z)" +
+                                                            $"vec3(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y))\n";
+
+                                                        break;
+
+                                                    case 2:
+
+                                                        code += $"mtxFromCols(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
+                                                            $"vec3(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w)" +
+                                                            $"vec3(i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z))\n";
+
+                                                        break;
+
+                                                    case 3:
+
+                                                        code += $"mtxFromCols(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
+                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x)" +
+                                                            $"vec3(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w))\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex += 9;
+
+                                                break;
+
+                                            case ShaderUniformType.Matrix4x4:
+
+                                                switch (componentIndex)
+                                                {
+                                                    case 0:
+
+                                                        code += $"mtxFromCols(i_data{dataIndex}, i_data{dataIndex + 1}, i_data{dataIndex + 2}, i_data{dataIndex + 3})\n";
+
+                                                        break;
+
+                                                    case 1:
+
+                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
+                                                            $"vec4(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x)" +
+                                                            $"vec4(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x))\n";
+
+                                                        break;
+
+                                                    case 2:
+
+                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
+                                                            $"vec4(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y)" +
+                                                            $"vec4(i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y))\n";
+
+                                                        break;
+
+                                                    case 3:
+
+                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z), " +
+                                                            $"vec4(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z)" +
+                                                            $"vec4(i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y, i_data{dataIndex + 3}.z))\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex += 16;
+
+                                                break;
+                                        }
+                                    }
+                                }
+
                                 code += "#include <StapleShader.sh>\n";
                             }
 

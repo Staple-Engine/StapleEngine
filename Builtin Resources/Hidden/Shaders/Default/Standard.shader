@@ -28,6 +28,9 @@ uniform texture specularTexture
 
 End Parameters
 
+Begin Instancing
+End Instancing
+
 Begin Vertex
 
 $input a_position, a_texcoord0, a_normal, a_color0
@@ -37,10 +40,10 @@ $output v_texcoord0, v_fragPos, v_normal, v_color
 
 void main()
 {
-	mat4 model = u_model[0];
+	mat4 model = StapleModelMatrix;
 
 	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(a_indices, a_weight);
+	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
 	#endif
 
 	mat4 projViewWorld = mul(mul(u_proj, u_view), model);

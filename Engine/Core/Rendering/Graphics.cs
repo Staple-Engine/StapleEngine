@@ -70,6 +70,8 @@ namespace Staple
                 material.ApplyProperties(Material.ApplyMode.All);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
             }
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
@@ -136,6 +138,8 @@ namespace Staple
                 material.ApplyProperties(Material.ApplyMode.All);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
             }
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();

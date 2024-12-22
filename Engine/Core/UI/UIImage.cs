@@ -39,7 +39,7 @@ public class UIImage : UIElement
         return Vector2Int.Zero;
     }
 
-    private static SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
+    private static readonly SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
 
     private static readonly ushort[] indices = [0, 1, 2, 2, 3, 0];
 
@@ -49,6 +49,7 @@ public class UIImage : UIElement
         material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), texture);
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
+        material.DisableShaderKeyword(Shader.InstancingKeyword);
     }
 
     public override void Render(Vector2Int position, ushort viewID)
