@@ -5,4 +5,4 @@
 /// Direct access to a shader uniform, used for caching.
 /// </summary>
 /// <param name="uniform">The uniform to store</param>
-internal readonly record struct ShaderHandle(Shader.UniformInfo uniform);
+public readonly record struct ShaderHandle(Shader.UniformInfo uniform);

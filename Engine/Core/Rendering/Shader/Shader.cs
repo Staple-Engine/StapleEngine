@@ -10,7 +10,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Shader resource
 /// </summary>
-internal partial class Shader : IGuidAsset
+public partial class Shader : IGuidAsset
 {
     public static readonly string SkinningKeyword = "SKINNING";
     public static readonly string LitKeyword = "LIT";
@@ -22,15 +22,15 @@ internal partial class Shader : IGuidAsset
         SkinningKeyword,
     ];
 
-    internal class UniformInfo
+    public class UniformInfo
     {
-        public ShaderUniform uniform;
-        public bgfx.UniformHandle handle;
-        public byte stage;
-        public int count = 1;
-        public bool isAlias = false;
+        internal ShaderUniform uniform;
+        internal bgfx.UniformHandle handle;
+        internal byte stage;
+        internal int count = 1;
+        internal bool isAlias = false;
 
-        public bool Create()
+        internal bool Create()
         {
             if(isAlias)
             {
@@ -369,6 +369,25 @@ internal partial class Shader : IGuidAsset
         }
 
         return new(uniform);
+    }
+
+    /// <summary>
+    /// Dispatches this shader (if it is a compute shader)
+    /// </summary>
+    /// <param name="viewId">The view ID to dispatch at</param>
+    /// <param name="x">The amount of X threads</param>
+    /// <param name="y">The amount of Y threads</param>
+    /// <param name="z">The amount of Z threads</param>
+    public void Dispatch(ushort viewId, int x, int y, int z)
+    {
+        if(Disposed ||
+            metadata.type != ShaderType.Compute ||
+            instances.TryGetValue("", out var instance) == false)
+        {
+            return;
+        }
+
+        bgfx.dispatch(viewId, instance.program, (uint)x, (uint)y, (uint)z, (byte)bgfx.DiscardFlags.All);
     }
 
     /// <summary>

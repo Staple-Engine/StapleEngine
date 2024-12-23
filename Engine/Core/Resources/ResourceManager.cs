@@ -1113,31 +1113,31 @@ internal class ResourceManager
 
                     case MaterialParameterType.Matrix3x3:
 
-                        material.SetMatrix3x3(parameter.Key, new());
+                        material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
 
                         break;
 
                     case MaterialParameterType.Matrix4x4:
 
-                        material.SetMatrix4x4(parameter.Key, new());
+                        material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
 
                         break;
 
                     case MaterialParameterType.Vector2:
 
-                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2());
+                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
 
                         break;
 
                     case MaterialParameterType.Vector3:
 
-                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3());
+                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
 
                         break;
 
                     case MaterialParameterType.Vector4:
 
-                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4());
+                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
 
                         break;
 
@@ -1149,14 +1149,14 @@ internal class ResourceManager
                         }
                         else
                         {
-                            material.SetColor(parameter.Key, parameter.Value.colorValue);
+                            material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
                         }
 
                         break;
 
                     case MaterialParameterType.Float:
 
-                        material.SetFloat(parameter.Key, parameter.Value.floatValue);
+                        material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
 
                         break;
                 }
@@ -1529,6 +1529,7 @@ internal class ResourceManager
                 asset.nodes[i] = new MeshAsset.Node()
                 {
                     name = node.name,
+                    index = i,
                     Transform = transform,
                     OriginalTransform = transform,
                     meshIndices = node.meshIndices.ToArray(),

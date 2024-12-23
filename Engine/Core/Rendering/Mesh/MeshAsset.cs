@@ -209,6 +209,11 @@ public sealed class MeshAsset : IGuidAsset
         public Node parent;
 
         /// <summary>
+        /// The index of this node
+        /// </summary>
+        public int index;
+
+        /// <summary>
         /// The child nodes
         /// </summary>
         public int[] children = [];
@@ -282,11 +287,6 @@ public sealed class MeshAsset : IGuidAsset
         /// Whether we need to calculate the original matrices
         /// </summary>
         private bool needsOriginalCalculation = true;
-
-        /// <summary>
-        /// Threading lock
-        /// </summary>
-        private static readonly object lockObject = new();
 
         /// <summary>
         /// Updates our transforms
@@ -495,6 +495,7 @@ public sealed class MeshAsset : IGuidAsset
             {
                 name = name,
                 parent = parent,
+                index = index,
                 meshIndices = meshIndices,
                 children = children,
                 changed = changed,

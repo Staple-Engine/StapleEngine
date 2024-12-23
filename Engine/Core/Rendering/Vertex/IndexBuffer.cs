@@ -145,7 +145,7 @@ public sealed class IndexBuffer
     /// </summary>
     /// <param name="stage">The buffer stage</param>
     /// <param name="access">The access mode</param>
-    internal void SetBufferActive(byte stage, Access access)
+    public void SetBufferActive(byte stage, Access access)
     {
         if (Disposed || type == RenderBufferType.Transient)
         {
