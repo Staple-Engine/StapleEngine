@@ -374,6 +374,18 @@ vec4 i_data4        :   TEXCOORD3;
                             }).ToList();
                     }
 
+                    if(shader.instancingParameters != null)
+                    {
+                        generatedShader.metadata.instanceParameters = shader.instancingParameters
+                            .Where(x => x != null)
+                            .Select(x => new ShaderInstanceParameter()
+                            {
+                                name = x.name,
+                                type = x.dataType,
+                            })
+                            .ToList();
+                    }
+
                     byte[] ProcessShader(string varyingFileName, string shaderFileName, List<string> extraDefines, ShaderCompilerType shaderType, Renderer renderer)
                     {
                         var shaderPlatform = "";

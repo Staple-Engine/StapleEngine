@@ -39,6 +39,16 @@ public class ShaderUniform
 }
 
 [MessagePackObject]
+public class ShaderInstanceParameter
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public ShaderUniformType type;
+}
+
+[MessagePackObject]
 public class ShaderMetadata
 {
     [HideInInspector]
@@ -55,12 +65,15 @@ public class ShaderMetadata
     public List<ShaderUniform> uniforms = [];
 
     [Key(4)]
-    public BlendMode sourceBlend = BlendMode.Off;
+    public List<ShaderInstanceParameter> instanceParameters = [];
 
     [Key(5)]
+    public BlendMode sourceBlend = BlendMode.Off;
+
+    [Key(6)]
     public BlendMode destinationBlend = BlendMode.Off;
 
     [HideInInspector]
-    [Key(6)]
+    [Key(7)]
     public string typeName = typeof(Shader).FullName;
 }

@@ -178,7 +178,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             callbackGatherer.AddCallback(() =>
             {
-                Physics3D.ContactAdded(b1, b2);
+                Physics3D.Instance.ContactAdded(b1, b2);
             });
         }
 
@@ -199,7 +199,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             callbackGatherer.AddCallback(() =>
             {
-                Physics3D.ContactPersisted(b1, b2);
+                Physics3D.Instance.ContactPersisted(b1, b2);
             });
         }
 
@@ -221,7 +221,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             callbackGatherer.AddCallback(() =>
             {
-                Physics3D.ContactRemoved(b1, b2);
+                Physics3D.Instance.ContactRemoved(b1, b2);
             });
         }
 
@@ -240,7 +240,7 @@ public class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
-            if(Physics3D.ContactValidate(b1, b2) == false)
+            if(Physics3D.Instance.ContactValidate(b1, b2) == false)
             {
                 lock (threadLock)
                 {
@@ -270,7 +270,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             callbackGatherer.AddCallback(() =>
             {
-                Physics3D.BodyActivated(body);
+                Physics3D.Instance.BodyActivated(body);
             });
         }
 
@@ -291,7 +291,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             callbackGatherer.AddCallback(() =>
             {
-                Physics3D.BodyDeactivated(body);
+                Physics3D.Instance.BodyDeactivated(body);
             });
         }
 

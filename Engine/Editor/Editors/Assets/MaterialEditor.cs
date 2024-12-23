@@ -220,8 +220,10 @@ internal class MaterialEditor : AssetEditor
                                     ShaderUniformType.Vector3 => MaterialParameterType.Vector3,
                                     ShaderUniformType.Vector4 => MaterialParameterType.Vector4,
                                     ShaderUniformType.Color => MaterialParameterType.Color,
+                                    /*
                                     ShaderUniformType.Matrix3x3 => MaterialParameterType.Matrix3x3,
                                     ShaderUniformType.Matrix4x4 => MaterialParameterType.Matrix4x4,
+                                    */
                                     _ => (MaterialParameterType)(-1),
                                 };
                             }
@@ -245,6 +247,32 @@ internal class MaterialEditor : AssetEditor
                                 var p = new MaterialParameter()
                                 {
                                     type = type,
+                                    source = MaterialParameterSource.Uniform,
+                                };
+
+                                material.parameters.Add(parameter.name, p);
+                            }
+
+                            foreach (var parameter in s.metadata.instanceParameters)
+                            {
+                                if (parameter.type == ShaderUniformType.Float &&
+                                    parameter.name.EndsWith("Set") && s.metadata.uniforms.Any(x => x.type == ShaderUniformType.Texture &&
+                                    x.name == parameter.name[..^"Set".Length]))
+                                {
+                                    continue;
+                                }
+
+                                var type = ParameterType(parameter.type);
+
+                                if (type == (MaterialParameterType)(-1))
+                                {
+                                    continue;
+                                }
+
+                                var p = new MaterialParameter()
+                                {
+                                    type = type,
+                                    source = MaterialParameterSource.Instance,
                                 };
 
                                 material.parameters.Add(parameter.name, p);

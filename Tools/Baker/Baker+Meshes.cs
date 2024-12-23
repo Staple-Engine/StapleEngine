@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Baker;
 
@@ -68,7 +69,7 @@ class Vector4Filler
 
 static partial class Program
 {
-    private static object meshMaterialLock = new();
+    private static readonly Lock meshMaterialLock = new();
 
     private static void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
@@ -336,6 +337,63 @@ static partial class Program
                             basePath = basePath.Substring(1);
                         }
 
+                        foreach(var p in standardShader?.metadata?.instanceParameters ?? [])
+                        {
+                            switch(p.type)
+                            {
+                                case ShaderUniformType.Color:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Color,
+                                        source = MaterialParameterSource.Instance,
+                                        colorValue = Color.White,
+                                    });
+
+                                    break;
+
+                                case ShaderUniformType.Float:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Float,
+                                        source = MaterialParameterSource.Instance,
+                                    });
+
+                                    break;
+
+                                case ShaderUniformType.Vector2:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Vector2,
+                                        source = MaterialParameterSource.Instance,
+                                    });
+
+                                    break;
+
+                                case ShaderUniformType.Vector3:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Vector3,
+                                        source = MaterialParameterSource.Instance,
+                                    });
+
+                                    break;
+
+                                case ShaderUniformType.Vector4:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Vector4,
+                                        source = MaterialParameterSource.Instance,
+                                    });
+
+                                    break;
+                            }
+                        }
+
                         void AddColor(string name, bool has, Assimp.Color4D color)
                         {
                             if(ShaderHasParameter(name) == false)
@@ -356,6 +414,7 @@ static partial class Program
                             materialMetadata.parameters.Add(name, new MaterialParameter()
                             {
                                 type = MaterialParameterType.Color,
+                                source = MaterialParameterSource.Uniform,
                                 colorValue = c,
                             });
                         }
@@ -545,12 +604,14 @@ static partial class Program
                                 materialMetadata.parameters.Add($"{name}_UMapping", new MaterialParameter()
                                 {
                                     type = MaterialParameterType.TextureWrap,
+                                    source = MaterialParameterSource.Uniform,
                                     textureWrapValue = mappingU,
                                 });
 
                                 materialMetadata.parameters.Add($"{name}_VMapping", new MaterialParameter()
                                 {
                                     type = MaterialParameterType.TextureWrap,
+                                    source = MaterialParameterSource.Uniform,
                                     textureWrapValue = mappingV,
                                 });
                             }
@@ -558,6 +619,7 @@ static partial class Program
                             materialMetadata.parameters.Add(name, new MaterialParameter()
                             {
                                 type = MaterialParameterType.Texture,
+                                source = MaterialParameterSource.Uniform,
                                 textureValue = texturePath,
                             });
                         }

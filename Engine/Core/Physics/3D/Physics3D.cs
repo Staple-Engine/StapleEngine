@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Threading;
 
 namespace Staple.Internal;
 
@@ -36,7 +37,11 @@ public sealed class Physics3D : ISubsystem
     internal static float PhysicsDeltaTime = 1 / 60.0f;
 
     private float deltaTimer = 0.0f;
+    private bool needsSubsystemCheck = true;
     private readonly bool implIsValid;
+    private readonly Lock lockObject = new();
+
+    private IPhysicsReceiver3D[] physicsReceivers = [];
 
     public delegate void OnBodyActivated3D(IBody3D body);
     public delegate void OnBodyDeactivated3D(IBody3D body);
@@ -81,6 +86,8 @@ public sealed class Physics3D : ISubsystem
     {
         Impl = impl;
         implIsValid = impl != null;
+
+        EntitySystemManager.Instance.onSubsystemsModified += () => needsSubsystemCheck = true;
     }
 
     #region API
@@ -590,6 +597,16 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        if(needsSubsystemCheck)
+        {
+            needsSubsystemCheck = false;
+
+            lock(lockObject)
+            {
+                physicsReceivers = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
+            }
+        }
+
         deltaTimer += Time.unscaledDeltaTime;
 
         if(deltaTimer >= PhysicsDeltaTime)
@@ -600,65 +617,71 @@ public sealed class Physics3D : ISubsystem
         }
     }
 
-    public static void BodyActivated(IBody3D body)
+    public void BodyActivated(IBody3D body)
     {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
+        lock (lockObject)
         {
-            system.OnBodyActivated(body);
-        }
-    }
-
-    public static void BodyDeactivated(IBody3D body)
-    {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
-        {
-            system.OnBodyDeactivated(body);
-        }
-    }
-
-    public static void ContactAdded(IBody3D A, IBody3D B)
-    {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
-        {
-            system.OnContactAdded(A, B);
-        }
-    }
-
-    public static void ContactPersisted(IBody3D A, IBody3D B)
-    {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
-        {
-            system.OnContactPersisted(A, B);
-        }
-    }
-
-    public static void ContactRemoved(IBody3D A, IBody3D B)
-    {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
-        {
-            system.OnContactRemoved(A, B);
-        }
-    }
-
-    public static bool ContactValidate(IBody3D A, IBody3D B)
-    {
-        var systems = EntitySystemManager.Instance.FindEntitySystemsSubclassing<IPhysicsReceiver3D>();
-
-        foreach (var system in systems)
-        {
-            if(system.OnContactValidate(A, B) == false)
+            foreach (var system in physicsReceivers)
             {
-                return false;
+                system.OnBodyActivated(body);
+            }
+        }
+    }
+
+    public void BodyDeactivated(IBody3D body)
+    {
+        lock (lockObject)
+        {
+            foreach (var system in physicsReceivers)
+            {
+                system.OnBodyDeactivated(body);
+            }
+        }
+    }
+
+    public void ContactAdded(IBody3D A, IBody3D B)
+    {
+        lock (lockObject)
+        {
+            foreach (var system in physicsReceivers)
+            {
+                system.OnContactAdded(A, B);
+            }
+        }
+    }
+
+    public void ContactPersisted(IBody3D A, IBody3D B)
+    {
+        lock (lockObject)
+        {
+            foreach (var system in physicsReceivers)
+            {
+                system.OnContactPersisted(A, B);
+            }
+        }
+    }
+
+    public void ContactRemoved(IBody3D A, IBody3D B)
+    {
+        lock (lockObject)
+        {
+            foreach (var system in physicsReceivers)
+            {
+                system.OnContactRemoved(A, B);
+            }
+        }
+    }
+
+    public bool ContactValidate(IBody3D A, IBody3D B)
+    {
+        lock (lockObject)
+        {
+            foreach (var system in physicsReceivers)
+            {
+                if (system.OnContactValidate(A, B) == false)
+                {
+                    return false;
+                }
             }
         }
 

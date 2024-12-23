@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Staple;
 
@@ -21,7 +22,9 @@ internal sealed class EntitySystemManager : ISubsystem
 
     private readonly Dictionary<string, object> cachedSubclasses = [];
 
-    private readonly object lockObject = new();
+    private readonly Lock lockObject = new();
+
+    internal Action onSubsystemsModified;
 
     public static readonly EntitySystemManager Instance = new();
 
@@ -121,6 +124,15 @@ internal sealed class EntitySystemManager : ISubsystem
             }
 
             cachedSubclasses.Clear();
+
+            try
+            {
+                onSubsystemsModified?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[EntitySystemManager] Subsystem modified event exception: {e}");
+            }
         }
     }
 
@@ -181,6 +193,15 @@ internal sealed class EntitySystemManager : ISubsystem
             }
 
             cachedSubclasses.Clear();
+
+            try
+            {
+                onSubsystemsModified?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[EntitySystemManager] Subsystem modified event exception: {e}");
+            }
         }
     }
 

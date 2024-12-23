@@ -21,6 +21,13 @@ public enum MaterialParameterType
     TextureWrap,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<MaterialParameterSource>))]
+public enum MaterialParameterSource
+{
+    Uniform,
+    Instance,
+}
+
 [Serializable]
 [MessagePackObject]
 public class Vector2Holder
@@ -343,6 +350,9 @@ public class MaterialParameter
     [Key(7)]
     public TextureWrap textureWrapValue;
 
+    [Key(8)]
+    public MaterialParameterSource source;
+
     public bool ShouldSerializevec2Value() => vec2Value != null && type == MaterialParameterType.Vector2;
 
     public bool ShouldSerializevec3Value() => vec3Value != null && type == MaterialParameterType.Vector3;
@@ -366,6 +376,7 @@ public class MaterialParameter
             colorValue = colorValue,
             floatValue = floatValue,
             textureWrapValue = textureWrapValue,
+            source = source,
         };
 
         if(vec2Value != null)
@@ -420,7 +431,8 @@ public class MaterialParameter
             lhs.textureValue == rhs.textureValue &&
             lhs.colorValue == rhs.colorValue &&
             lhs.floatValue == rhs.floatValue &&
-            lhs.textureWrapValue == rhs.textureWrapValue;
+            lhs.textureWrapValue == rhs.textureWrapValue &&
+            lhs.source == rhs.source;
     }
 
     public static bool operator !=(MaterialParameter lhs, MaterialParameter rhs)
@@ -442,7 +454,8 @@ public class MaterialParameter
             lhs.textureValue != rhs.textureValue ||
             lhs.colorValue != rhs.colorValue ||
             lhs.floatValue != rhs.floatValue ||
-            lhs.textureWrapValue != rhs.textureWrapValue;
+            lhs.textureWrapValue != rhs.textureWrapValue ||
+            lhs.source != rhs.source;
     }
 
     public override bool Equals(object obj)
@@ -462,12 +475,25 @@ public class MaterialParameter
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(type, vec2Value, vec3Value, vec4Value, textureValue, colorValue, floatValue, textureWrapValue);
+        var hash = new HashCode();
+
+        hash.Add(type);
+        hash.Add(vec2Value);
+        hash.Add(vec3Value);
+        hash.Add(vec4Value);
+        hash.Add(textureValue);
+        hash.Add(colorValue);
+        hash.Add(floatValue);
+        hash.Add(textureWrapValue);
+        hash.Add(source);
+
+        return hash.ToHashCode();
     }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterType>))]
+[JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterSource>))]
 [JsonSerializable(typeof(float))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(Color32))]

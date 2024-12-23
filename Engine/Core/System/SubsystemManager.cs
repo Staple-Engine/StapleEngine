@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Staple.Internal;
 
@@ -14,21 +15,27 @@ internal class SubsystemManager
     /// </summary>
     public static readonly SubsystemManager instance = new();
 
-    private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = [];
     private bool needsRecalculation = true;
+
+    private readonly SortedDictionary<byte, HashSet<ISubsystem>> subsystems = [];
     private readonly ExpandableContainer<ISubsystem> collapsedSystems = new();
+
+    private readonly Lock lockObject = new();
 
     /// <summary>
     /// Destroys each subsystem
     /// </summary>
     internal void Destroy()
     {
-        //Shutdown in reverse order
-        foreach (var key in subsystems.Keys.Reverse())
+        lock (lockObject)
         {
-            foreach (var subsystem in subsystems[key])
+            //Shutdown in reverse order
+            foreach (var key in subsystems.Keys.Reverse())
             {
-                subsystem?.Shutdown();
+                foreach (var subsystem in subsystems[key])
+                {
+                    subsystem?.Shutdown();
+                }
             }
         }
     }
@@ -40,23 +47,26 @@ internal class SubsystemManager
     /// <param name="priority">The priority</param>
     public void RegisterSubsystem(ISubsystem subsystem, byte priority)
     {
-        if (subsystems.TryGetValue(priority, out var list) == false)
+        lock (lockObject)
         {
-            list = [];
+            if (subsystems.TryGetValue(priority, out var list) == false)
+            {
+                list = [];
 
-            subsystems.Add(priority, list);
+                subsystems.Add(priority, list);
+            }
+
+            list.Add(subsystem);
+
+            subsystem.Startup();
+
+            if (subsystem is IWorldChangeReceiver worldChangeReceiver)
+            {
+                World.AddChangeReceiver(worldChangeReceiver);
+            }
+
+            needsRecalculation = true;
         }
-
-        list.Add(subsystem);
-
-        subsystem.Startup();
-
-        if(subsystem is IWorldChangeReceiver worldChangeReceiver)
-        {
-            World.AddChangeReceiver(worldChangeReceiver);
-        }
-
-        needsRecalculation = true;
     }
 
     /// <summary>
@@ -69,25 +79,31 @@ internal class SubsystemManager
         {
             needsRecalculation = false;
 
-            collapsedSystems.Clear();
-
-            foreach(var pair in subsystems)
+            lock (lockObject)
             {
-                foreach(var subsystem in pair.Value)
+                collapsedSystems.Clear();
+
+                foreach (var pair in subsystems)
                 {
-                    collapsedSystems.Add(subsystem);
+                    foreach (var subsystem in pair.Value)
+                    {
+                        collapsedSystems.Add(subsystem);
+                    }
                 }
             }
         }
 
-        foreach(var subsystem in collapsedSystems.Contents)
+        lock (lockObject)
         {
-            if(subsystem.type != type)
+            foreach (var subsystem in collapsedSystems.Contents)
             {
-                continue;
-            }
+                if (subsystem.type != type)
+                {
+                    continue;
+                }
 
-            subsystem.Update();
+                subsystem.Update();
+            }
         }
     }
 }
