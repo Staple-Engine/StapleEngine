@@ -45,7 +45,7 @@ public class RigidBody3D : IComponent
     /// <summary>
     /// The friction factor of this body
     /// </summary>
-    public float friction = 0;
+    public float friction = 0.2f;
 
     /// <summary>
     /// The restitution factor of this body
@@ -55,5 +55,5 @@ public class RigidBody3D : IComponent
     /// <summary>
     /// The mass of this body
     /// </summary>
-    public float mass = 1;
+    public float mass = 80;
 }

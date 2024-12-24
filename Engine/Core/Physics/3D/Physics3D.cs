@@ -518,18 +518,30 @@ public sealed class Physics3D : ISubsystem
     /// <param name="entity">The entity to recreate the body of (if able)</param>
     public void RecreateBody(Entity entity)
     {
-        if (implIsValid == false ||
-            entity.TryGetComponent<RigidBody3D>(out var rigidBody) == false)
+        if (implIsValid == false)
         {
             return;
         }
 
-        if (rigidBody.body != null)
+        if(entity.TryGetComponent<RigidBody3D>(out var rigidBody))
         {
-            DestroyBody(rigidBody.body);
+            if (rigidBody.body != null)
+            {
+                DestroyBody(rigidBody.body);
+            }
+
+            rigidBody.body = CreateBody(entity, World.Current);
         }
 
-        rigidBody.body = CreateBody(entity, World.Current);
+        if (entity.TryGetComponent<Character3D>(out var character))
+        {
+            if (character.body != null)
+            {
+                DestroyBody(character.body);
+            }
+
+            character.body = CreateBody(entity, World.Current);
+        }
     }
 
     #endregion
@@ -554,6 +566,18 @@ public sealed class Physics3D : ISubsystem
             rigidBody.body = CreateBody(entity, world);
         });
 
+        World.AddComponentAddedCallback(typeof(Character3D), (World world, Entity entity, ref IComponent component) =>
+        {
+            if (Platform.IsPlaying == false)
+            {
+                return;
+            }
+
+            var character = (Character3D)component;
+
+            character.body = CreateBody(entity, world);
+        });
+
         World.AddComponentRemovedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
         {
             if (Platform.IsPlaying == false)
@@ -566,6 +590,20 @@ public sealed class Physics3D : ISubsystem
             DestroyBody(rigidBody.body);
 
             rigidBody.body = null;
+        });
+
+        World.AddComponentRemovedCallback(typeof(Character3D), (World world, Entity entity, ref IComponent component) =>
+        {
+            if (Platform.IsPlaying == false)
+            {
+                return;
+            }
+
+            var character = (Character3D)component;
+
+            DestroyBody(character.body);
+
+            character.body = null;
         });
 
         Impl.Startup();

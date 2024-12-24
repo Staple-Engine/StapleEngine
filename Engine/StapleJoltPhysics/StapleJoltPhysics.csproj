@@ -61,6 +61,7 @@
 	<ItemGroup>
 	  <Compile Include="Init.cs" />
 	  <Compile Include="JoltPhysics\JoltBodyPair.cs" />
+	  <Compile Include="JoltPhysics\JoltCharacterPair.cs" />
 	  <Compile Include="JoltPhysics\JoltPhysics3D.cs" />
 	  <Compile Include="JoltPhysics\JoltPhysicsBodyFilter.cs" />
 	  <Compile Include="JoltPhysics\JoltPhysicsBroadPhaseLayerFilter.cs" />

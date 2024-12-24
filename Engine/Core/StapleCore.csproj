@@ -161,6 +161,7 @@
 		<Compile Include="Performance\PerformanceProfiler.cs" />
 		<Compile Include="Performance\PerformanceProfilerSystem.cs" />
 		<Compile Include="Performance\PerformanceProfilerType.cs" />
+		<Compile Include="Physics\3D\Components\Character3D.cs" />
 		<Compile Include="Physics\3D\Components\HeightMapCollider3D.cs" />
 		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
