@@ -222,6 +222,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         int lastMeshAsset = 0;
         SkinnedMeshAnimator lastAnimator = null;
         MaterialLighting lastLighting = MaterialLighting.Unlit;
+        MeshTopology lastTopology = MeshTopology.Triangles;
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
@@ -244,7 +245,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.GuidHash != (lastMaterial?.GuidHash ?? 0) ||
                     lastAnimator != animator ||
-                    lastLighting != renderer.lighting;
+                    lastLighting != renderer.lighting ||
+                    lastTopology != renderer.mesh.MeshTopology;
 
                 if (needsChange)
                 {
@@ -252,6 +254,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastMaterial = material;
                     lastAnimator = animator;
                     lastLighting = renderer.lighting;
+                    lastTopology = renderer.mesh.MeshTopology;
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
 
@@ -301,6 +304,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }
         }
+
+        bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 
     /// <summary>

@@ -340,5 +340,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 contents.Clear();
             }
         }
+
+        bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 }
