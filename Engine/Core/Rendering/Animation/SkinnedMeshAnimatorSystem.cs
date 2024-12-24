@@ -100,22 +100,25 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
             if (Platform.IsPlaying || animator.playInEditMode)
             {
-                if (animator.evaluator == null ||
-                    animator.evaluator.animation.name != animator.animation)
+                if ((animator.evaluator == null ||
+                    animator.evaluator.animation.name != animator.animation) &&
+                    animator.animation != null)
                 {
-                    animator.evaluator = new(animator.mesh.meshAsset,
-                        animator.mesh.meshAsset.animations[animator.animation],
-                        animator.mesh.meshAsset.CloneNodes(),
-                        animator);
+                    if(animator.mesh.meshAsset.animations.TryGetValue(animator.animation, out var animation))
+                    {
+                        animator.evaluator = new(animator.mesh.meshAsset, animation,
+                            animator.mesh.meshAsset.CloneNodes(),
+                            animator);
 
-                    animator.nodeCache = animator.evaluator.nodes;
+                        animator.nodeCache = animator.evaluator.nodes;
 
-                    animator.shouldRender = true;
+                        animator.shouldRender = true;
 
-                    animator.playTime = 0;
+                        animator.playTime = 0;
+                    }
                 }
 
-                animator.evaluator.Evaluate();
+                animator.evaluator?.Evaluate();
 
                 if(animator.shouldRender)
                 {

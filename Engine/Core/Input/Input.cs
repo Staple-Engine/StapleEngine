@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Threading;
 
 namespace Staple;
 
@@ -50,6 +51,8 @@ public static class Input
     private static readonly Dictionary<int, GamepadState> gamepads = [];
 
     private static readonly Dictionary<int, InputCallback> inputCallbacks = [];
+
+    private static readonly Lock lockObject = new();
 
     private static int inputCallbackCounter = 0;
 
@@ -479,183 +482,228 @@ public static class Input
             }
         }
 
-        touchKeysToRemove.Clear();
-
-        foreach(var key in touchStates.Keys)
+        lock(lockObject)
         {
-            if (touchStates[key] == InputState.Release)
+            touchKeysToRemove.Clear();
+
+            foreach (var key in touchStates.Keys)
             {
-                touchKeysToRemove.Add(key);
+                if (touchStates[key] == InputState.Release)
+                {
+                    touchKeysToRemove.Add(key);
+                }
             }
+
+            foreach (var key in touchKeysToRemove)
+            {
+                touchStates.Remove(key);
+                touchPositions.Remove(key);
+            }
+
+            Handle(keyStates);
+            Handle(mouseButtonStates);
+            Handle(touchStates);
+
+            Character = 0;
+            MouseDelta = Vector2.Zero;
+            MouseRelativePosition = Vector2.Zero;
+
+            previousMousePosition = MousePosition;
         }
-
-        foreach(var key in touchKeysToRemove)
-        {
-            touchStates.Remove(key);
-            touchPositions.Remove(key);
-        }
-
-        Handle(keyStates);
-        Handle(mouseButtonStates);
-        Handle(touchStates);
-
-        Character = 0;
-        MouseDelta = Vector2.Zero;
-        MouseRelativePosition = Vector2.Zero;
-
-        previousMousePosition = MousePosition;
     }
 
     private static void HandleInputStateChange<Key>(Key key, AppEventInputState state, Dictionary<Key, InputState> states)
     {
-        bool pressed = state == AppEventInputState.Press;
-
-        var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
-
-        if (states.ContainsKey(key))
+        lock (lockObject)
         {
-            buttonState = states[key];
+            bool pressed = state == AppEventInputState.Press;
 
-            if (pressed)
+            var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
+
+            if (states.ContainsKey(key))
             {
-                if (buttonState == InputState.FirstPress)
+                buttonState = states[key];
+
+                if (pressed)
                 {
-                    buttonState = InputState.Press;
+                    if (buttonState == InputState.FirstPress)
+                    {
+                        buttonState = InputState.Press;
+                    }
+                    else
+                    {
+                        buttonState = InputState.FirstPress;
+                    }
                 }
                 else
                 {
-                    buttonState = InputState.FirstPress;
+                    if (buttonState == InputState.FirstRelease)
+                    {
+                        buttonState = InputState.Release;
+                    }
+                    else
+                    {
+                        buttonState = InputState.FirstRelease;
+                    }
                 }
+
+                states[key] = buttonState;
             }
             else
             {
-                if (buttonState == InputState.FirstRelease)
-                {
-                    buttonState = InputState.Release;
-                }
-                else
-                {
-                    buttonState = InputState.FirstRelease;
-                }
+                states.Add(key, buttonState);
             }
-
-            states[key] = buttonState;
-        }
-        else
-        {
-            states.Add(key, buttonState);
         }
     }
 
     internal static void GamepadConnect(AppEvent appEvent)
     {
-        if(gamepads.TryGetValue(appEvent.gamepadConnect.index, out var gamepad) == false)
+        lock (lockObject)
         {
-            gamepad = new();
+            if (gamepads.TryGetValue(appEvent.gamepadConnect.index, out var gamepad) == false)
+            {
+                gamepad = new();
 
-            gamepads.Add(appEvent.gamepadConnect.index, gamepad);
+                gamepads.Add(appEvent.gamepadConnect.index, gamepad);
+            }
+
+            gamepad.state = appEvent.gamepadConnect.state;
+
+            gamepad.axis.Clear();
         }
-
-        gamepad.state = appEvent.gamepadConnect.state;
-
-        gamepad.axis.Clear();
     }
 
     internal static void GamepadButton(AppEvent appEvent)
     {
-        if(gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+        lock (lockObject)
         {
-            return;
-        }
+            if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+            {
+                return;
+            }
 
-        HandleInputStateChange(appEvent.gamepadButton.button, appEvent.gamepadButton.state, gamepad.buttonStates);
+            HandleInputStateChange(appEvent.gamepadButton.button, appEvent.gamepadButton.state, gamepad.buttonStates);
+        }
     }
 
     internal static void GamepadMovement(AppEvent appEvent)
     {
-        if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+        lock (lockObject)
         {
-            return;
-        }
+            if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+            {
+                return;
+            }
 
-        gamepad.axis.AddOrSetKey(appEvent.gamepadMovement.axis, appEvent.gamepadMovement.movement);
+            gamepad.axis.AddOrSetKey(appEvent.gamepadMovement.axis, appEvent.gamepadMovement.movement);
+        }
     }
 
     internal static void HandleMouseDeltaEvent(AppEvent appEvent)
     {
-        MouseDelta = appEvent.mouseDelta.delta;
+        lock (lockObject)
+        {
+            MouseDelta = appEvent.mouseDelta.delta;
+        }
     }
 
     internal static void MouseScrollCallback(float xOffset, float yOffset)
     {
-        AppEventQueue.instance.Add(AppEvent.MouseDelta(new Vector2(xOffset, yOffset)));
+        lock (lockObject)
+        {
+            AppEventQueue.instance.Add(AppEvent.MouseDelta(new Vector2(xOffset, yOffset)));
+        }
     }
 
     internal static void HandleTouchEvent(AppEvent appEvent)
     {
-        if (touchPositions.ContainsKey(appEvent.touch.touchID))
+        lock (lockObject)
         {
-            touchPositions[appEvent.touch.touchID] = appEvent.touch.position;
-        }
-        else
-        {
-            touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
-        }
+            if (touchPositions.ContainsKey(appEvent.touch.touchID))
+            {
+                touchPositions[appEvent.touch.touchID] = appEvent.touch.position;
+            }
+            else
+            {
+                touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
+            }
 
-        if (appEvent.touch.state == AppEventInputState.Repeat)
-        {
-            return;
-        }
+            if (appEvent.touch.state == AppEventInputState.Repeat)
+            {
+                return;
+            }
 
-        HandleInputStateChange(appEvent.touch.touchID, appEvent.touch.state, touchStates);
+            HandleInputStateChange(appEvent.touch.touchID, appEvent.touch.state, touchStates);
+        }
     }
 
     internal static void HandleMouseButtonEvent(AppEvent appEvent)
     {
-        var mouseButton = (MouseButton)appEvent.mouse.button;
+        lock (lockObject)
+        {
+            var mouseButton = (MouseButton)appEvent.mouse.button;
 
-        HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? AppEventInputState.Press : AppEventInputState.Release,
-            mouseButtonStates);
+            HandleInputStateChange(mouseButton, appEvent.type == AppEventType.MouseDown ? AppEventInputState.Press : AppEventInputState.Release,
+                mouseButtonStates);
+        }
     }
 
     internal static void HandleKeyEvent(AppEvent appEvent)
     {
-        var code = appEvent.key.key;
+        lock (lockObject)
+        {
+            var code = appEvent.key.key;
 
-        HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? AppEventInputState.Press : AppEventInputState.Release,
-            keyStates);
+            HandleInputStateChange(code, appEvent.type == AppEventType.KeyDown ? AppEventInputState.Press : AppEventInputState.Release,
+                keyStates);
+        }
     }
 
     internal static void CursorPosCallback(float xpos, float ypos)
     {
-        var newPos = new Vector2(xpos, ypos);
+        lock (lockObject)
+        {
+            var newPos = new Vector2(xpos, ypos);
 
-        if(Cursor.LockState == CursorLockMode.Locked)
-        {
-            MouseRelativePosition = newPos;
-        }
-        else
-        {
-            if (MousePosition == Vector2.Zero)
+            if (Cursor.LockState == CursorLockMode.Locked)
             {
-                previousMousePosition = newPos;
+                MouseRelativePosition = newPos;
             }
+            else
+            {
+                if (MousePosition == Vector2.Zero)
+                {
+                    previousMousePosition = newPos;
+                }
 
-            MousePosition = newPos;
+                MousePosition = newPos;
 
-            MouseRelativePosition = newPos - previousMousePosition;
+                MouseRelativePosition = newPos - previousMousePosition;
+            }
         }
     }
 
     internal static void HandleTextEvent(AppEvent appEvent)
     {
-        Character = appEvent.character;
+        lock (lockObject)
+        {
+            Character = appEvent.character;
+        }
     }
 
     /// <summary>
     /// How many fingers are currently active
     /// </summary>
-    public static int TouchCount => touchStates.Count;
+    public static int TouchCount
+    {
+        get
+        {
+            lock (lockObject)
+            {
+                return touchStates.Count;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the pointer ID at a touch index. Used to query the correct pointer ID from an index based off TouchCount
@@ -664,7 +712,10 @@ public static class Input
     /// <returns>The Pointer ID associated with the index</returns>
     public static int GetPointerID(int index)
     {
-        return touchStates.Keys.Skip(index).FirstOrDefault();
+        lock (lockObject)
+        {
+            return touchStates.Keys.Skip(index).FirstOrDefault();
+        }
     }
 
     /// <summary>
@@ -674,7 +725,10 @@ public static class Input
     /// <returns>The position</returns>
     public static Vector2 GetTouchPosition(int pointerIndex)
     {
-        return touchPositions.TryGetValue(pointerIndex, out var position) ? position : Vector2.Zero;
+        lock (lockObject)
+        {
+            return touchPositions.TryGetValue(pointerIndex, out var position) ? position : Vector2.Zero;
+        }
     }
 
     /// <summary>
@@ -684,7 +738,10 @@ public static class Input
     /// <returns>Whether pressed</returns>
     public static bool GetTouch(int pointerIndex)
     {
-        return touchStates.TryGetValue(pointerIndex, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        lock (lockObject)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        }
     }
 
     /// <summary>
@@ -694,7 +751,10 @@ public static class Input
     /// <returns>Whether pressed</returns>
     public static bool GetTouchDown(int pointerIndex)
     {
-        return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstPress;
+        lock (lockObject)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstPress;
+        }
     }
 
     /// <summary>
@@ -704,7 +764,10 @@ public static class Input
     /// <returns>Whether just released</returns>
     public static bool GetTouchUp(int pointerIndex)
     {
-        return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstRelease;
+        lock (lockObject)
+        {
+            return touchStates.TryGetValue(pointerIndex, out var state) && state == InputState.FirstRelease;
+        }
     }
 
     /// <summary>
@@ -714,7 +777,10 @@ public static class Input
     /// <returns>Whether the key was pressed</returns>
     public static bool GetKey(KeyCode key)
     {
-        return keyStates.TryGetValue(key, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        lock (lockObject)
+        {
+            return keyStates.TryGetValue(key, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        }
     }
 
     /// <summary>
@@ -724,7 +790,10 @@ public static class Input
     /// <returns>Whether the key was just pressed</returns>
     public static bool GetKeyDown(KeyCode key)
     {
-        return keyStates.TryGetValue(key, out var state) && state == InputState.FirstPress;
+        lock (lockObject)
+        {
+            return keyStates.TryGetValue(key, out var state) && state == InputState.FirstPress;
+        }
     }
 
     /// <summary>
@@ -734,7 +803,10 @@ public static class Input
     /// <returns>Whether the key was just released</returns>
     public static bool GetKeyUp(KeyCode key)
     {
-        return keyStates.TryGetValue(key, out var state) && state == InputState.FirstRelease;
+        lock (lockObject)
+        {
+            return keyStates.TryGetValue(key, out var state) && state == InputState.FirstRelease;
+        }
     }
 
     /// <summary>
@@ -744,7 +816,10 @@ public static class Input
     /// <returns>Whether the key was pressed</returns>
     public static bool GetMouseButton(MouseButton button)
     {
-        return mouseButtonStates.TryGetValue(button, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        lock (lockObject)
+        {
+            return mouseButtonStates.TryGetValue(button, out var state) && (state == InputState.Press || state == InputState.FirstPress);
+        }
     }
 
     /// <summary>
@@ -754,7 +829,10 @@ public static class Input
     /// <returns>Whether the button was just pressed</returns>
     public static bool GetMouseButtonDown(MouseButton button)
     {
-        return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstPress;
+        lock (lockObject)
+        {
+            return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstPress;
+        }
     }
 
     /// <summary>
@@ -764,7 +842,10 @@ public static class Input
     /// <returns>Whether the button was just released</returns>
     public static bool GetMouseButtonUp(MouseButton button)
     {
-        return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstRelease;
+        lock (lockObject)
+        {
+            return mouseButtonStates.TryGetValue(button, out var state) && state == InputState.FirstRelease;
+        }
     }
 
     /// <summary>
@@ -773,7 +854,10 @@ public static class Input
     /// <returns>How many gamepads are connected</returns>
     public static int GetGamepadCount()
     {
-        return gamepads.Count;
+        lock (lockObject)
+        {
+            return gamepads.Count;
+        }
     }
 
     /// <summary>
@@ -783,7 +867,10 @@ public static class Input
     /// <returns>Whether the gamepad is available for use</returns>
     public static bool IsGamepadAvailable(int index)
     {
-        return gamepads.TryGetValue(index, out var gamepad) && gamepad.state == GamepadConnectionState.Connected;
+        lock (lockObject)
+        {
+            return gamepads.TryGetValue(index, out var gamepad) && gamepad.state == GamepadConnectionState.Connected;
+        }
     }
 
     /// <summary>
@@ -794,14 +881,17 @@ public static class Input
     /// <returns>Whether it is currently being pressed</returns>
     public static bool GetGamepadButton(int index, GamepadButton button)
     {
-        if(gamepads.TryGetValue(index, out var gamepad) == false ||
-            gamepad.state == GamepadConnectionState.Disconnected ||
-            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        lock (lockObject)
         {
-            return false;
-        }
+            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+                gamepad.state == GamepadConnectionState.Disconnected ||
+                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+            {
+                return false;
+            }
 
-        return state == InputState.Press || state == InputState.FirstPress;
+            return state == InputState.Press || state == InputState.FirstPress;
+        }
     }
 
     /// <summary>
@@ -812,14 +902,17 @@ public static class Input
     /// <returns>Whether it was just pressed</returns>
     public static bool GetGamepadButtonDown(int index, GamepadButton button)
     {
-        if (gamepads.TryGetValue(index, out var gamepad) == false ||
-            gamepad.state == GamepadConnectionState.Disconnected ||
-            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        lock (lockObject)
         {
-            return false;
-        }
+            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+                gamepad.state == GamepadConnectionState.Disconnected ||
+                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+            {
+                return false;
+            }
 
-        return state == InputState.FirstPress;
+            return state == InputState.FirstPress;
+        }
     }
 
     /// <summary>
@@ -830,14 +923,17 @@ public static class Input
     /// <returns>Whether it was just released</returns>
     public static bool GetGamepadButtonUp(int index, GamepadButton button)
     {
-        if (gamepads.TryGetValue(index, out var gamepad) == false ||
-            gamepad.state == GamepadConnectionState.Disconnected ||
-            gamepad.buttonStates.TryGetValue(button, out var state) == false)
+        lock (lockObject)
         {
-            return false;
-        }
+            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+                gamepad.state == GamepadConnectionState.Disconnected ||
+                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+            {
+                return false;
+            }
 
-        return state == InputState.FirstRelease;
+            return state == InputState.FirstRelease;
+        }
     }
 
     /// <summary>
@@ -848,14 +944,17 @@ public static class Input
     /// <returns>The axis movement</returns>
     public static float GetGamepadAxis(int index, GamepadAxis axis)
     {
-        if (gamepads.TryGetValue(index, out var gamepad) == false ||
-            gamepad.state == GamepadConnectionState.Disconnected ||
-            gamepad.axis.TryGetValue(axis, out var state) == false)
+        lock (lockObject)
         {
-            return 0;
-        }
+            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+                gamepad.state == GamepadConnectionState.Disconnected ||
+                gamepad.axis.TryGetValue(axis, out var state) == false)
+            {
+                return 0;
+            }
 
-        return state;
+            return state;
+        }
     }
 
     /// <summary>
@@ -865,8 +964,11 @@ public static class Input
     /// <returns>The movement</returns>
     public static Vector2 GetGamepadLeftAxis(int index)
     {
-        return new Vector2(GetGamepadAxis(index, GamepadAxis.LeftX),
-            GetGamepadAxis(index, GamepadAxis.LeftY));
+        lock (lockObject)
+        {
+            return new Vector2(GetGamepadAxis(index, GamepadAxis.LeftX),
+                GetGamepadAxis(index, GamepadAxis.LeftY));
+        }
     }
 
     /// <summary>
@@ -876,8 +978,11 @@ public static class Input
     /// <returns>The movement</returns>
     public static Vector2 GetGamepadRightAxis(int index)
     {
-        return new Vector2(GetGamepadAxis(index, GamepadAxis.RightX),
-            GetGamepadAxis(index, GamepadAxis.RightY));
+        lock (lockObject)
+        {
+            return new Vector2(GetGamepadAxis(index, GamepadAxis.RightX),
+                GetGamepadAxis(index, GamepadAxis.RightY));
+        }
     }
 
     /// <summary>
@@ -886,16 +991,19 @@ public static class Input
     /// <param name="action">The action</param>
     /// <param name="callback">The callback</param>
     /// <returns>An ID for the action to be used for removing the action later</returns>
-    public static int AddAction(InputAction action, Action<InputActionContext> callback)
+    public static int AddPressedAction(InputAction action, Action<InputActionContext> callback)
     {
-        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        lock (lockObject)
         {
-            assembly = callback.Target.GetType().Assembly,
-            action = action,
-            onPress = callback,
-        });
+            inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+            {
+                assembly = callback.Target.GetType().Assembly,
+                action = action,
+                onPress = callback,
+            });
 
-        return inputCallbackCounter++;
+            return inputCallbackCounter++;
+        }
     }
 
     /// <summary>
@@ -904,16 +1012,19 @@ public static class Input
     /// <param name="action">The action</param>
     /// <param name="callback">The callback</param>
     /// <returns>An ID for the action to be used for removing the action later</returns>
-    public static int AddAction(InputAction action, Action<InputActionContext, float> callback)
+    public static int AddSingleAxisAction(InputAction action, Action<InputActionContext, float> callback)
     {
-        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        lock (lockObject)
         {
-            assembly = callback.Target.GetType().Assembly,
-            action = action,
-            onAxis = callback,
-        });
+            inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+            {
+                assembly = callback.Target.GetType().Assembly,
+                action = action,
+                onAxis = callback,
+            });
 
-        return inputCallbackCounter++;
+            return inputCallbackCounter++;
+        }
     }
 
     /// <summary>
@@ -922,16 +1033,19 @@ public static class Input
     /// <param name="action">The action</param>
     /// <param name="callback">The callback</param>
     /// <returns>An ID for the action to be used for removing the action later</returns>
-    public static int AddAction(InputAction action, Action<InputActionContext, Vector2> callback)
+    public static int AddDualAxisAction(InputAction action, Action<InputActionContext, Vector2> callback)
     {
-        inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+        lock (lockObject)
         {
-            assembly = callback.Target.GetType().Assembly,
-            action = action,
-            onDualAxis = callback,
-        });
+            inputCallbacks.Add(inputCallbackCounter, new InputCallback()
+            {
+                assembly = callback.Target.GetType().Assembly,
+                action = action,
+                onDualAxis = callback,
+            });
 
-        return inputCallbackCounter++;
+            return inputCallbackCounter++;
+        }
     }
 
     /// <summary>
@@ -940,7 +1054,10 @@ public static class Input
     /// <param name="ID">The action ID to clear</param>
     public static void ClearAction(int ID)
     {
-        inputCallbacks.Remove(ID);
+        lock (lockObject)
+        {
+            inputCallbacks.Remove(ID);
+        }
     }
 
     /// <summary>
@@ -949,19 +1066,22 @@ public static class Input
     /// <param name="assembly">The assembly to clear</param>
     internal static void ClearAssemblyActions(Assembly assembly)
     {
-        var cleared = new HashSet<int>();
-
-        foreach(var pair in inputCallbacks)
+        lock (lockObject)
         {
-            if(pair.Value.assembly == assembly)
+            var cleared = new HashSet<int>();
+
+            foreach (var pair in inputCallbacks)
             {
-                cleared.Add(pair.Key);
+                if (pair.Value.assembly == assembly)
+                {
+                    cleared.Add(pair.Key);
+                }
             }
-        }
 
-        foreach(var key in cleared)
-        {
-            inputCallbacks.Remove(key);
+            foreach (var key in cleared)
+            {
+                inputCallbacks.Remove(key);
+            }
         }
     }
 }
