@@ -413,6 +413,11 @@ public class JoltPhysics3D : IPhysics3D
 
             foreach (var pair in characters)
             {
+                if (pair.enabled)
+                {
+                    pair.character.PostSimulation(0.05f);
+                }
+
                 var transform = pair.entity.GetComponent<Transform>();
 
                 if (transform != null)
