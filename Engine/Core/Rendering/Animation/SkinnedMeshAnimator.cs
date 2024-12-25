@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using Staple.Jobs;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -78,6 +79,11 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     /// The bone matrix compute buffer for skinning
     /// </summary>
     internal VertexBuffer boneMatrixBuffer;
+
+    /// <summary>
+    /// THe handle for the last bone update job
+    /// </summary>
+    internal JobHandle boneUpdateHandle;
 
     public void DisposeComponent()
     {

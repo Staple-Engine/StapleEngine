@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Jobs;
+using System;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -134,11 +135,22 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                         animator.cachedBoneMatrices = new Matrix4x4[animator.mesh.meshAsset.BoneCount];
                     }
 
-                    SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.nodeCache);
+                    if(animator.boneUpdateHandle.Valid && animator.boneUpdateHandle.Completed == false)
+                    {
+                        animator.boneUpdateHandle.Complete();
+                    }
 
-                    animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
+                    animator.boneUpdateHandle = JobScheduler.Schedule(new ActionJob(() =>
+                    {
+                        SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.nodeCache);
 
-                    ApplyMeshRendererTransforms(animator);
+                        ThreadHelper.Dispatch(() =>
+                        {
+                            animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
+
+                            ApplyMeshRendererTransforms(animator);
+                        });
+                    }));
                 }
             }
             else if (animator.playInEditMode == false)

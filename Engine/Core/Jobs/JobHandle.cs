@@ -21,6 +21,11 @@ public readonly struct JobHandle : IEquatable<JobHandle>
     public bool Completed => task?.IsCompleted ?? true;
 
     /// <summary>
+    /// Checks whether the handle is valid
+    /// </summary>
+    public bool Valid => task != null;
+
+    /// <summary>
     /// Waits for the handle to complete
     /// </summary>
     public readonly void Complete()

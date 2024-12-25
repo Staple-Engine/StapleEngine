@@ -324,12 +324,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         for (var i = 0; i < meshAsset.meshes.Count; i++)
         {
             var m = meshAsset.meshes[i];
+            var c = m.bones.Count;
 
-            for (var j = 0; j < m.bones.Count; j++)
+            for (var j = 0; j < c; j++)
             {
-                for (var k = 0; k < m.bones[j].Length; k++)
+                var bones = m.bones[j];
+                var l = bones.Length;
+
+                for (var k = 0; k < l; k++)
                 {
-                    var bone = m.bones[j][k];
+                    var bone = bones[k];
                     var nodeIndex = bone.index;
 
                     var localNode = nodeIndex >= 0 && nodeIndex < nodes.Length ?
