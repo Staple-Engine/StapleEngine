@@ -10,41 +10,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
-    private static void ApplyMeshRendererTransforms(SkinnedMeshAnimator animator)
-    {
-        var nodes = SkinnedMeshRenderSystem.GetNodes(animator.mesh.meshAsset, animator);
-
-        foreach (var (entity, _) in animator.meshRenderers.ContentEntities)
-        {
-            var transform = entity.GetComponent<Transform>()?.parent;
-            var nodeName = transform?.entity.Name;
-
-            if (nodeName == null)
-            {
-                continue;
-            }
-
-            MeshAsset.Node node = null;
-
-            for (var i = 0; i < nodes.Length; i++)
-            {
-                if (nodes[i].name == nodeName)
-                {
-                    node = nodes[i];
-
-                    break;
-                }
-            }
-
-            if (node == null)
-            {
-                continue;
-            }
-
-            node.ApplyTo(transform);
-        }
-    }
-
     public void Startup()
     {
     }
@@ -70,7 +35,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             {
                 animator.shouldRender = false;
 
-                animator.meshRenderers ??= new(entity, EntityQueryMode.Children, true);
+                animator.renderers ??= new(entity, EntityQueryMode.Children, false);
             }
         }
     }
@@ -89,6 +54,13 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false)
             {
                 return;
+            }
+
+            if (animator.nodeCache.Length == 0 && animator.transformCache.Length == 0)
+            {
+                animator.transformCache = new Transform[animator.mesh.meshAsset.nodes.Length];
+
+                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.nodes);
             }
 
             if (Platform.IsPlaying)
@@ -147,8 +119,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                         ThreadHelper.Dispatch(() =>
                         {
                             animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
-
-                            ApplyMeshRendererTransforms(animator);
                         });
                     }));
                 }
@@ -157,11 +127,11 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             {
                 if (animator.evaluator != null)
                 {
+                    SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
+
                     animator.shouldRender = true;
 
                     animator.evaluator = null;
-
-                    ApplyMeshRendererTransforms(animator);
                 }
             }
         }

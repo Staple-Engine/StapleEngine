@@ -170,6 +170,8 @@
 		<Compile Include="Rendering\Animation\SkinnedMeshAttachment.cs" />
 		<Compile Include="Rendering\Animation\SkinnedMeshAttachmentSystem.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationStateMachine.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationPoser.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationPoserSystem.cs" />
 		<Compile Include="Rendering\Camera\CameraViewMode.cs" />
 		<Compile Include="Rendering\CullingMode.cs" />
 		<Compile Include="Rendering\Graphics.cs" />

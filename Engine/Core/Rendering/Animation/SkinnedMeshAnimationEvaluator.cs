@@ -251,6 +251,8 @@ internal class SkinnedMeshAnimationEvaluator
 
         lastTime = time;
 
+        SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
+
         animator.shouldRender = true;
     }
 }

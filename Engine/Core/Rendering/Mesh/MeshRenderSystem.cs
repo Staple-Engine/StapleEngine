@@ -45,6 +45,8 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
+        bgfx.discard((byte)bgfx.DiscardFlags.All);
+
         if(mesh.changed || (mesh.vertexBuffer?.Disposed ?? true) || (mesh.indexBuffer?.Disposed ?? true))
         {
             mesh.changed = true;
@@ -69,13 +71,13 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         bgfx.set_state((ulong)state, 0);
 
-        material.ApplyProperties(Material.ApplyMode.All);
-
         mesh.SetActive();
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
         material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+        material.ApplyProperties(Material.ApplyMode.All);
 
         var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
@@ -305,12 +307,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     instanceBuffer.Bind(0, instanceBuffer.count);
 
-                    var flags = bgfx.DiscardFlags.VertexStreams |
-                        bgfx.DiscardFlags.IndexBuffer |
-                        bgfx.DiscardFlags.InstanceData |
-                        bgfx.DiscardFlags.Transform;
-
-                    bgfx.submit(viewId, program, 0, (byte)flags);
+                    bgfx.submit(viewId, program, 0, (byte)bgfx.DiscardFlags.All);
                 }
                 else
                 {

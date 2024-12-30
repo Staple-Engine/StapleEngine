@@ -48,7 +48,7 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     /// <summary>
     /// A cache for transforms
     /// </summary>
-    internal Dictionary<int, Transform> transformCache = [];
+    internal Transform[] transformCache = [];
 
     /// <summary>
     /// A cache for nodes
@@ -66,9 +66,9 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     internal bool shouldRender = true;
 
     /// <summary>
-    /// A list of all the mesh renderers in self and children
+    /// A list of all the renderers in self and children
     /// </summary>
-    internal EntityQuery<MeshRenderer> meshRenderers;
+    internal EntityQuery<SkinnedMeshRenderer> renderers;
 
     /// <summary>
     /// A cache of bone matrices

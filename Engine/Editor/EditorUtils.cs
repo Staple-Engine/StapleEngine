@@ -323,22 +323,25 @@ public static class EditorUtils
 
         if ((asset.nodes?.Length ?? 0) > 0)
         {
-            for(var i = 0; i < asset.nodes.Length; i++)
+            var parents = new Transform[asset.nodes.Length];
+
+            for (var i = 0; i < asset.nodes.Length; i++)
             {
                 var node = asset.nodes[i];
-
-                if(node.meshIndices.Length == 0)
-                {
-                    continue;
-                }
 
                 var nodeParent = Entity.Create(node.name, typeof(Transform));
 
                 var nodeTransform = nodeParent.GetComponent<Transform>();
 
-                nodeTransform.SetParent(baseTransform);
+                parents[i] = nodeTransform;
 
-                node.ApplyTo(nodeTransform);
+                var parentIndex = node.parent?.index ?? -1;
+
+                nodeTransform.SetParent(parentIndex >= 0 ? parents[parentIndex] : baseTransform);
+
+                nodeTransform.LocalPosition = node.Position;
+                nodeTransform.LocalRotation = node.Rotation;
+                nodeTransform.LocalScale = node.Scale;
 
                 foreach (var index in node.meshIndices)
                 {

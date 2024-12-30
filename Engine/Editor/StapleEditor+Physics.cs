@@ -46,7 +46,7 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    var icon = ThumbnailCache.GetTexture(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Component Icons", attribute.path), false, true);
+                    var icon = ThumbnailCache.GetTexture(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Component Icons", attribute.path), true, true);
 
                     if(icon != null)
                     {

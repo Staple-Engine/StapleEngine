@@ -26,4 +26,9 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// Cached animator for this renderer
     /// </summary>
     internal EntityQuery<SkinnedMeshAnimator> animator;
+
+    /// <summary>
+    /// Cached poser for this renderer
+    /// </summary>
+    internal EntityQuery<SkinnedAnimationPoser> poser;
 }

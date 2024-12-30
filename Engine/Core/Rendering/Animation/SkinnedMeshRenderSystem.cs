@@ -144,8 +144,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
 
             renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
+            renderer.poser ??= new(entity, EntityQueryMode.Parent, false);
 
-            var animator = renderer.animator.Content;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
 
@@ -161,38 +161,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 };
 
                 renderCache.Add(meshAsset.GuidHash, cache);
+
+                UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
             }
             else
             {
                 boneMatrices = cache.boneMatrices;
             }
 
-            renderers.Add(new()
-            {
-                renderer = renderer,
-                cache = cache,
-                position = transform.Position,
-                transform = transform.Matrix,
-                viewID = viewId
-            });
-
-            var useAnimator = animator != null && animator.evaluator != null;
-
-            if (useAnimator)
-            {
-                if((animator?.cachedBoneMatrices?.Length ?? 0) == 0)
-                {
-                    animator.cachedBoneMatrices = new Matrix4x4[meshAsset.BoneCount];
-                }
-
-                boneMatrices = animator.cachedBoneMatrices;
-            }
-            else
-            {
-                UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
-            }
-
-            if (useAnimator == false && (cache.boneBuffer?.Disposed ?? true))
+            if ((cache.boneBuffer?.Disposed ?? true))
             {
                 cache.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
                     .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
@@ -203,6 +180,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 cache.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
             }
+
+            renderers.Add(new()
+            {
+                renderer = renderer,
+                cache = cache,
+                position = transform.Position,
+                transform = transform.Matrix,
+                viewID = viewId
+            });
         }
     }
 
@@ -233,6 +219,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
             var animator = renderer.animator.Content;
+            var poser = renderer.poser.Content;
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
@@ -242,11 +229,24 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var useAnimator = animator != null && animator.evaluator != null;
 
+                var usePoser = poser != null;
+
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.GuidHash != (lastMaterial?.GuidHash ?? 0) ||
                     lastAnimator != animator ||
                     lastLighting != renderer.lighting ||
                     lastTopology != renderer.mesh.MeshTopology;
+
+                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+                void SetupMaterial()
+                {
+                    material.EnableShaderKeyword(Shader.SkinningKeyword);
+
+                    material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                    lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+                }
 
                 if (needsChange)
                 {
@@ -258,16 +258,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
 
-                    material.EnableShaderKeyword(Shader.SkinningKeyword);
-
-                    material.DisableShaderKeyword(Shader.InstancingKeyword);
-
-                    var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-                    lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+                    SetupMaterial();
 
                     if(material.ShaderProgram.Valid == false)
                     {
+                        bgfx.discard((byte)bgfx.DiscardFlags.All);
+
                         continue;
                     }
 
@@ -277,9 +273,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         material.CullingFlag), 0);
 
                     material.ApplyProperties(Material.ApplyMode.All);
+                }
 
-                    lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
-                        RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+                SetupMaterial();
+
+                if(material.ShaderProgram.Valid == false)
+                {
+                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+
+                    continue;
                 }
 
                 unsafe
@@ -291,13 +293,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(j);
 
+                lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                    RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+
                 var program = material.ShaderProgram;
 
                 var flags = bgfx.DiscardFlags.VertexStreams |
                     bgfx.DiscardFlags.IndexBuffer |
                     bgfx.DiscardFlags.Transform;
 
-                var buffer = useAnimator ? animator.boneMatrixBuffer : cache.boneBuffer;
+                var buffer = useAnimator ? animator.boneMatrixBuffer :
+                    usePoser ? poser.boneMatrixBuffer :
+                    cache.boneBuffer;
 
                 buffer?.SetBufferActive(15, Access.Read);
 
@@ -355,5 +362,95 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     public static MeshAsset.Node[] GetNodes(MeshAsset meshAsset, SkinnedMeshAnimator animator)
     {
         return animator?.evaluator?.nodes ?? meshAsset.nodes;
+    }
+
+    /// <summary>
+    /// Gets all transforms related to animation nodes
+    /// </summary>
+    /// <param name="parent">The parent transform</param>
+    /// <param name="transformCache">The transform cache</param>
+    /// <param name="nodes">The nodes</param>
+    public static void GatherNodeTransforms(Transform parent, Transform[] transformCache, MeshAsset.Node[] nodes)
+    {
+        if (parent == null ||
+            transformCache == null ||
+            nodes == null ||
+            transformCache.Length != nodes.Length)
+        {
+            return;
+        }
+
+        for (var i = 0; i < nodes.Length; i++)
+        {
+            var childTransform = parent.SearchChild(nodes[i].name);
+
+            if (childTransform == null)
+            {
+                transformCache[i] = null;
+
+                continue;
+            }
+
+            transformCache[i] = childTransform;
+        }
+    }
+
+    /// <summary>
+    /// Applies the transforms of a node cache into its related entity transforms
+    /// </summary>
+    /// <param name="nodeCache">The node cache</param>
+    /// <param name="transformCache">The transform cache</param>
+    /// <param name="original">Whether we want the original transforms (before animating)</param>
+    public static void ApplyNodeTransform(MeshAsset.Node[] nodeCache, Transform[] transformCache, bool original = false)
+    {
+        if (nodeCache == null ||
+            transformCache == null ||
+            nodeCache.Length != transformCache.Length)
+        {
+            return;
+        }
+
+        for(var i = 0; i < nodeCache.Length; i++)
+        {
+            var transform = transformCache[i];
+
+            if(transform == null)
+            {
+                continue;
+            }
+
+            var node = nodeCache[i];
+
+            transform.LocalPosition = original ? node.OriginalPosition : node.Position;
+            transform.LocalRotation = original ? node.OriginalRotation : node.Rotation;
+            transform.LocalScale = original ? node.OriginalScale : node.Scale;
+        }
+    }
+
+    /// <summary>
+    /// Applies transforms to nodes. This lets you override the animation transforms.
+    /// </summary>
+    /// <param name="nodeCache">The node cache</param>
+    /// <param name="transformCache">The transform cache</param>
+    public static void ApplyTransformsToNodes(MeshAsset.Node[] nodeCache, Transform[] transformCache)
+    {
+        if(nodeCache == null ||
+            transformCache == null ||
+            nodeCache.Length != transformCache.Length)
+        {
+            return;
+        }
+
+        for (var i = 0; i < nodeCache.Length; i++)
+        {
+            var transform = transformCache[i];
+
+            if (transform == null)
+            {
+                continue;
+            }
+
+            nodeCache[i].Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
+        }
     }
 }
