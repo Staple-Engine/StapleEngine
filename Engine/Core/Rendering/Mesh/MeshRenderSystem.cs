@@ -276,11 +276,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                     continue;
                 }
 
-                bgfx.set_state((ulong)(state |
-                    contents.Contents[0].mesh.PrimitiveFlag() |
-                    material.shader.BlendingFlag |
-                    material.CullingFlag), 0);
-
                 material.ApplyProperties(Material.ApplyMode.All);
 
                 lightSystem?.ApplyLightProperties(contents.Contents[0].position, contents.Contents[0].transform, material,
@@ -290,6 +285,11 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 if(material.Keywords.Contains(Shader.InstancingKeyword))
                 {
+                    bgfx.set_state((ulong)(state |
+                        contents.Contents[0].mesh.PrimitiveFlag() |
+                        material.shader.BlendingFlag |
+                        material.CullingFlag), 0);
+
                     contents.Contents[0].mesh.SetActive(contents.Contents[0].submeshIndex);
 
                     var program = material.ShaderProgram;
@@ -313,6 +313,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     for (var i = 0; i < contents.Length; i++)
                     {
+                        bgfx.set_state((ulong)(state |
+                            contents.Contents[0].mesh.PrimitiveFlag() |
+                            material.shader.BlendingFlag |
+                            material.CullingFlag), 0);
+
                         var content = contents.Contents[i];
 
                         unsafe
@@ -326,9 +331,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                         var program = material.ShaderProgram;
 
-                        var flags = bgfx.DiscardFlags.VertexStreams |
-                            bgfx.DiscardFlags.IndexBuffer |
-                            bgfx.DiscardFlags.Transform;
+                        var flags = bgfx.DiscardFlags.State;
 
                         bgfx.submit(viewId, program, 0, (byte)flags);
                     }

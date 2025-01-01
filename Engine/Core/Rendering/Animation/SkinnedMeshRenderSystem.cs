@@ -267,11 +267,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         continue;
                     }
 
-                    bgfx.set_state((ulong)(state |
-                        renderer.mesh.PrimitiveFlag() |
-                        material.shader.BlendingFlag |
-                        material.CullingFlag), 0);
-
                     material.ApplyProperties(Material.ApplyMode.All);
                 }
 
@@ -298,9 +293,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var program = material.ShaderProgram;
 
-                var flags = bgfx.DiscardFlags.VertexStreams |
-                    bgfx.DiscardFlags.IndexBuffer |
-                    bgfx.DiscardFlags.Transform;
+                bgfx.set_state((ulong)(state |
+                    renderer.mesh.PrimitiveFlag() |
+                    material.shader.BlendingFlag |
+                    material.CullingFlag), 0);
+
+                var flags = bgfx.DiscardFlags.State;
 
                 var buffer = useAnimator ? animator.boneMatrixBuffer :
                     usePoser ? poser.boneMatrixBuffer :
