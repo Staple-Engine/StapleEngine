@@ -642,6 +642,11 @@ internal class ResourceManager
                 if(localIDs.TryGetValue(pair.Key, out var self) && self != null && localIDs.TryGetValue(pair.Value, out var parent))
                 {
                     self.SetParent(parent);
+
+                    if(World.Current?.TryGetEntity(self.entity, out var entityInfo) ?? false)
+                    {
+                        entityInfo.enabledInHierarchy = parent.entity.EnabledInHierarchy;
+                    }
                 }
             }
 
