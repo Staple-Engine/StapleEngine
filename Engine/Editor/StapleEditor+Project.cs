@@ -361,7 +361,9 @@ internal partial class StapleEditor
             return;
         }
 
-        lock(backgroundLock)
+        RecordScene();
+
+        lock (backgroundLock)
         {
             refreshingAssets = true;
             needsRefreshStaging = false;
