@@ -66,10 +66,16 @@ internal class ImGuiProxy
             }
         }
 
-        program = ResourceManager.instance.LoadShader($"Hidden/Shaders/UI/ocornut_imgui.{AssetSerialization.ShaderExtension}");
-        imageProgram = ResourceManager.instance.LoadShader($"Hidden/Shaders/UI/imgui_image.{AssetSerialization.ShaderExtension}");
+        var programPath = $"Hidden/Shaders/UI/ocornut_imgui.{AssetSerialization.ShaderExtension}";
+        var imageProgramPath = $"Hidden/Shaders/UI/imgui_image.{AssetSerialization.ShaderExtension}";
 
-        if(program == null || imageProgram == null)
+        program = ResourceManager.instance.LoadShader(programPath);
+        imageProgram = ResourceManager.instance.LoadShader(imageProgramPath);
+
+        ResourceManager.instance.LockAsset(programPath);
+        ResourceManager.instance.LockAsset(imageProgramPath);
+
+        if (program == null || imageProgram == null)
         {
             Log.Error("Failed to load imgui shaders");
 
@@ -103,6 +109,8 @@ internal class ImGuiProxy
             {
                 useMipmaps = false,
             }, TextureFormat.BGRA8);
+
+            ResourceManager.instance.LockAsset("FONT");
         }
 
         if(fontTexture == null)

@@ -92,33 +92,10 @@ internal partial class StapleEditor
         {
             WeakReference<StapleAssemblyLoadContext> game = new(gameAssemblyLoadContext);
 
-            var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
-
-            try
-            {
-                File.Delete(scenePath);
-            }
-            catch (Exception)
-            {
-            }
+            RecordScene();
 
             if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                if (Scene.current != null)
-                {
-                    try
-                    {
-                        var scene = Scene.current.Serialize();
-
-                        var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
-
-                        File.WriteAllText(scenePath, json);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-
                 RenderSystem.Instance.RemoveAllSubsystems(assembly);
 
                 Input.ClearAssemblyActions(assembly);

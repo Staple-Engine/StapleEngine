@@ -45,34 +45,46 @@ public class SpriteRenderSystem : IRenderSystem
 
     public static Lazy<Material> DefaultMaterial = new(() =>
     {
-        return ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
+        var material = ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
+
+        if(material != null)
+        {
+            ResourceManager.instance.LockAsset(material.Guid);
+
+            if(material.MainTexture is Texture t)
+            {
+                ResourceManager.instance.LockAsset(t.Guid);
+            }
+        }
+
+        return material;
     });
 
-    private static readonly Vector3[] vertices = new Vector3[]
-    {
+    private static readonly Vector3[] vertices =
+    [
         new Vector3(-0.5f, -0.5f, 0),
         new Vector3(-0.5f, 0.5f, 0),
         new Vector3(0.5f, 0.5f, 0),
         new Vector3(0.5f, -0.5f, 0),
-    };
+    ];
 
-    private static readonly ushort[] indices = new ushort[]
-    {
+    private static readonly ushort[] indices =
+    [
         0, 1, 2, 2, 3, 0
-    };
+    ];
 
-    private static readonly SpriteVertex[] spriteVertices = new SpriteVertex[4]
-    {
+    private static readonly SpriteVertex[] spriteVertices =
+    [
         new SpriteVertex() { position = vertices[0] },
         new SpriteVertex() { position = vertices[1] },
         new SpriteVertex() { position = vertices[2] },
         new SpriteVertex() { position = vertices[3] },
-    };
+    ];
 
     /// <summary>
     /// Contains a list of all sprites queued for rendering
     /// </summary>
-    private readonly List<SpriteRenderInfo> sprites = new();
+    private readonly List<SpriteRenderInfo> sprites = [];
 
     public void Startup()
     {

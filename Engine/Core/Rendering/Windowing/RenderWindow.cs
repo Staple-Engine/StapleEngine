@@ -86,7 +86,7 @@ internal class RenderWindow
             forceContextLoss = false;
             window.ContextLost = false;
 
-            ResourceManager.instance.Destroy(false);
+            ResourceManager.instance.Destroy(ResourceManager.DestroyMode.Normal);
 
             bgfx.shutdown();
 

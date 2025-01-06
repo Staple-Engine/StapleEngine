@@ -43,6 +43,50 @@ internal partial class StapleEditor
         }
     }
 
+    private void RecordScene()
+    {
+        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
+
+        try
+        {
+            File.Delete(scenePath);
+        }
+        catch (Exception)
+        {
+        }
+
+        if (Scene.current != null)
+        {
+            try
+            {
+                var scene = Scene.current.Serialize();
+
+                var json = JsonConvert.SerializeObject(scene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                File.WriteAllText(scenePath, json);
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+
+    private bool LoadRecordedScene()
+    {
+        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
+
+        var scene = ResourceManager.instance.LoadRawSceneFromPath(scenePath);
+
+        if(scene != null)
+        {
+            Scene.SetActiveScene(scene);
+
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Loads a project at a specific path
     /// </summary>
@@ -427,52 +471,29 @@ internal partial class StapleEditor
                                 }
                             });
 
-                            ThreadHelper.Dispatch(() =>
+                        ThreadHelper.Dispatch(() =>
+                        {
+                            ResourceManager.instance.Clear();
+
+                            AssetDatabase.Reload();
+                            projectBrowser.UpdateProjectBrowserNodes();
+
+                            if(LoadRecordedScene() == false)
                             {
-                                foreach (var pair in ResourceManager.instance.cachedMeshes)
+                                if ((lastOpenScene?.Length ?? 0) > 0)
                                 {
-                                    pair.Value.Destroy();
+                                    var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+
+                                    Scene.SetActiveScene(scene);
                                 }
-
-                                ResourceManager.instance.cachedMeshAssets.Clear();
-                                ResourceManager.instance.cachedMeshes.Clear();
-
-                                if (World.Current != null)
+                                else
                                 {
-                                    Scene.IterateEntities((entity) =>
-                                    {
-                                        entity.IterateComponents((ref IComponent component) =>
-                                        {
-                                            var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                                            foreach (var field in fields)
-                                            {
-                                                if (field.FieldType == typeof(Texture))
-                                                {
-                                                    var value = (Texture)field.GetValue(component);
-
-                                                    if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
-                                                    {
-                                                        field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
-                                                    }
-                                                }
-                                                else if (field.FieldType == typeof(Mesh))
-                                                {
-                                                    var value = (Mesh)field.GetValue(component);
-
-                                                    if (value != null && (value.Guid?.Length ?? 0) > 0)
-                                                    {
-                                                        field.SetValue(component, ResourceManager.instance.LoadMesh(value.Guid));
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    });
+                                    Scene.SetActiveScene(null);
                                 }
+                            }
 
-                                AssetDatabase.Reload();
-                                projectBrowser.UpdateProjectBrowserNodes();
-                            });
+                            ResetScenePhysics(false);
+                        });
 
                         lock (backgroundLock)
                         {

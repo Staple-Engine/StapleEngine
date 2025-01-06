@@ -15,10 +15,17 @@ namespace Staple.Internal;
 /// </summary>
 internal class ResourceManager
 {
+    public enum DestroyMode
+    {
+        Normal,
+        Final,
+        UserOnly,
+    }
+
     /// <summary>
     /// Resource paths to load resources from
     /// </summary>
-    public List<string> resourcePaths = new();
+    public List<string> resourcePaths = [];
 
 #if ANDROID
     internal Android.Content.Res.AssetManager assetManager;
@@ -37,6 +44,11 @@ internal class ResourceManager
     internal readonly List<WeakReference<Texture>> userCreatedTextures = [];
     internal readonly List<WeakReference<VertexBuffer>> userCreatedVertexBuffers = [];
     internal readonly List<WeakReference<IndexBuffer>> userCreatedIndexBuffers = [];
+
+    /// <summary>
+    /// Assets that must not be destroyed when using UserOnly mode
+    /// </summary>
+    internal readonly HashSet<int> lockedAssets = [];
 
     public static string ShaderPrefix
     {
@@ -112,38 +124,165 @@ internal class ResourceManager
     }
 
     /// <summary>
+    /// Clears all assets that are not locked
+    /// </summary>
+    internal void Clear()
+    {
+        Destroy(DestroyMode.UserOnly);
+
+        var destroyed = new HashSet<string>();
+
+        foreach (var pair in cachedTextures)
+        {
+            if(lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedMaterials)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedShaders)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedMeshes)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedAudioClips)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedMeshAssets)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedFonts)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedAssets)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach (var pair in cachedPrefabs)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
+        foreach(var key in destroyed)
+        {
+            cachedTextures.Remove(key);
+            cachedMaterials.Remove(key);
+            cachedShaders.Remove(key);
+            cachedMeshes.Remove(key);
+            cachedAudioClips.Remove(key);
+            cachedMeshAssets.Remove(key);
+            cachedFonts.Remove(key);
+            cachedAssets.Remove(key);
+            cachedPrefabs.Remove(key);
+        }
+    }
+
+    /// <summary>
     /// Destroys all resources
     /// </summary>
-    internal void Destroy(bool final)
+    /// <param name="mode">The kind of destruction to perform</param>
+    internal void Destroy(DestroyMode mode)
     {
-        Material.WhiteTexture?.Destroy();
-
-        foreach(var pair in cachedTextures)
+        if(mode != DestroyMode.UserOnly)
         {
+            Material.WhiteTexture?.Destroy();
+        }
+
+        foreach (var pair in cachedTextures)
+        {
+            if(mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            {
+                continue;
+            }
+
             pair.Value?.Destroy();
         }
 
         foreach (var pair in cachedMaterials)
         {
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            {
+                continue;
+            }
+
             pair.Value?.Destroy();
         }
 
         foreach (var pair in cachedShaders)
         {
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            {
+                continue;
+            }
+
             pair.Value?.Destroy();
         }
 
         foreach (var pair in cachedMeshes)
         {
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            {
+                continue;
+            }
+
             pair.Value?.Destroy();
         }
 
-        foreach(var pair in Mesh.defaultMeshes)
+        if(mode != DestroyMode.UserOnly)
         {
-            pair.Value?.Destroy();
+            foreach (var pair in Mesh.defaultMeshes)
+            {
+                if (lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+                {
+                    continue;
+                }
+
+                pair.Value?.Destroy();
+            }
         }
 
-        foreach(var item in userCreatedVertexBuffers)
+        foreach (var item in userCreatedVertexBuffers)
         {
             if(item.TryGetTarget(out var buffer) && buffer.Disposed == false)
             {
@@ -162,7 +301,7 @@ internal class ResourceManager
         userCreatedVertexBuffers.Clear();
         userCreatedIndexBuffers.Clear();
 
-        if (final)
+        if (mode == DestroyMode.Final)
         {
             foreach (var pair in resourcePaks)
             {
@@ -2028,5 +2167,28 @@ internal class ResourceManager
 
             return default;
         }
+    }
+
+    /// <summary>
+    /// Locks an asset guid so it's not cleared when reloading the scene
+    /// </summary>
+    /// <param name="guid">The asset guid</param>
+    public void LockAsset(string guid)
+    {
+        var localGuid = AssetDatabase.GetAssetGuid(guid);
+
+        if(localGuid != null)
+        {
+            lockedAssets.Add(localGuid.GetHashCode());
+        }
+
+        localGuid = AssetDatabase.GetAssetGuid(guid, ShaderPrefix);
+
+        if (localGuid != null)
+        {
+            lockedAssets.Add(localGuid.GetHashCode());
+        }
+
+        lockedAssets.Add(guid.GetHashCode());
     }
 }

@@ -272,7 +272,7 @@ internal class AppPlayer
 
             SubsystemManager.instance.Destroy();
 
-            ResourceManager.instance.Destroy(true);
+            ResourceManager.instance.Destroy(ResourceManager.DestroyMode.Final);
 
             ModuleInitializer.UnloadAll();
 

@@ -120,6 +120,8 @@ public class Texture : IGuidAsset
         if (handle.Valid)
         {
             bgfx.destroy_texture(handle);
+
+            handle.idx = ushort.MaxValue;
         }
     }
 
