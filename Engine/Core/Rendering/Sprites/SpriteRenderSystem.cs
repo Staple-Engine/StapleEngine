@@ -47,13 +47,18 @@ public class SpriteRenderSystem : IRenderSystem
     {
         var material = ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
 
-        if(material != null)
+        if (material != null)
         {
             ResourceManager.instance.LockAsset(material.Guid);
 
-            if(material.MainTexture is Texture t)
+            if (material.MainTexture is Texture t)
             {
                 ResourceManager.instance.LockAsset(t.Guid);
+            }
+
+            if (material.shader is Shader s)
+            {
+                ResourceManager.instance.LockAsset(s.Guid);
             }
         }
 
