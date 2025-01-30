@@ -152,7 +152,7 @@ public static class EditorGUI
     /// <param name="text">The text to show</param>
     public static void Label(string text)
     {
-        ImGui.Text(text);
+        ImGui.LabelText(text, "");
     }
 
     /// <summary>
@@ -300,7 +300,7 @@ public static class EditorGUI
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="value">The current value of the field</param>
     /// <returns>The new value</returns>
-    public static T EnumDropdown<T>(string label, string key, T value) where T: struct, Enum
+    public static T EnumDropdown<T>(string label, string key, T value, bool simple = false) where T: struct, Enum
     {
         if(cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
         {
@@ -329,7 +329,7 @@ public static class EditorGUI
 
         Changed = false;
 
-        var newValue = values[Dropdown(label, key, valueStrings, current)];
+        var newValue = values[Dropdown(label, key, valueStrings, current, simple)];
 
         if (isFlags)
         {
@@ -369,7 +369,7 @@ public static class EditorGUI
     /// <param name="value">The current value of the field</param>
     /// <param name="values">The valid values for the field</param>
     /// <returns>The new value</returns>
-    public static T EnumDropdown<T>(string label, string key, T value, List<T> values) where T : struct, Enum
+    public static T EnumDropdown<T>(string label, string key, T value, List<T> values, bool simple = false) where T : struct, Enum
     {
         var isFlags = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
 
@@ -388,7 +388,7 @@ public static class EditorGUI
 
         Changed = false;
 
-        var newValue = values[Dropdown(label, key, valueStrings, current)];
+        var newValue = values[Dropdown(label, key, valueStrings, current, simple)];
 
         if (isFlags)
         {
@@ -495,14 +495,21 @@ public static class EditorGUI
     /// <param name="options">The options for the field</param>
     /// <param name="current">The current value index for the field</param>
     /// <returns>The index of the selected value</returns>
-    public static int Dropdown(string label, string key, string[] options, int current)
+    public static int Dropdown(string label, string key, string[] options, int current, bool simple = false)
     {
-        Changed |= IdentifierColumns(label, () =>
+        if(simple)
         {
-            return ImGui.Combo(MakeIdentifier("", key), ref current, $"{string.Join("\0", options)}\0");
-        });
+            Changed |= ImGui.Combo(MakeIdentifier(label, key), ref current, $"{string.Join("\0", options)}\0");
+        }
+        else
+        {
+            Changed |= IdentifierColumns(label, () =>
+            {
+                return ImGui.Combo(MakeIdentifier("", key), ref current, $"{string.Join("\0", options)}\0");
+            });
+        }
 
-        if(current < 0)
+        if (current < 0)
         {
             current = 0;
         }
@@ -517,15 +524,23 @@ public static class EditorGUI
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="value">The current value</param>
     /// <param name="maxLength">The maximum amount of characters</param>
+    /// <param name="simple">Whether to use the simplest rendering mode</param>
     /// <returns>The new value</returns>
-    public static string TextField(string label, string key, string value, int maxLength = 1000)
+    public static string TextField(string label, string key, string value, int maxLength = 1000, bool simple = false)
     {
         value ??= "";
 
-        Changed |= IdentifierColumns(label, () =>
+        if(simple)
         {
-            return ImGui.InputText(MakeIdentifier("", key), ref value, (uint)maxLength);
-        });
+            Changed |= ImGui.InputText(MakeIdentifier(label, key), ref value, (uint)maxLength);
+        }
+        else
+        {
+            Changed |= IdentifierColumns(label, () =>
+            {
+                return ImGui.InputText(MakeIdentifier("", key), ref value, (uint)maxLength);
+            });
+        }
 
         return value;
     }
@@ -1142,5 +1157,15 @@ public static class EditorGUI
 
             ImGui.EndDragDropTarget();
         }
+    }
+
+    public static void WindowFrame(string key, Vector2 size, Action handler)
+    {
+        if(ImGui.BeginChild(key, size))
+        {
+            ExecuteHandler(handler, $"Window {key}");
+        }
+
+        ImGui.EndChild();
     }
 }

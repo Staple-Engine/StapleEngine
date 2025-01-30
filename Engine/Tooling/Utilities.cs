@@ -12,6 +12,66 @@ namespace Staple.Tooling;
 
 public class Utilities
 {
+    public static bool TryGetShaderUniformType(string name, out ShaderUniformType type)
+    {
+        switch(name)
+        {
+            case "float":
+
+                type = ShaderUniformType.Float;
+
+                return true;
+
+            case "vec2":
+
+                type = ShaderUniformType.Vector2;
+
+                return true;
+
+            case "vec3":
+
+                type = ShaderUniformType.Vector3;
+
+                return true;
+
+            case "vec4":
+
+                type = ShaderUniformType.Vector4;
+
+                return true;
+
+            case "color":
+
+                type = ShaderUniformType.Color;
+
+                return true;
+
+            case "texture":
+
+                type = ShaderUniformType.Texture;
+
+                return true;
+
+            case "mat3":
+
+                type = ShaderUniformType.Matrix3x3;
+
+                return true;
+
+            case "mat4":
+
+                type = ShaderUniformType.Matrix4x4;
+
+                return true;
+
+            default:
+
+                type = default;
+
+                return false;
+        }
+    }
+
     private static readonly Dictionary<Type, string[]> JsonIgnoredProperties = new()
     {
         { typeof(Color), [nameof(Color.HexValue), nameof(Color.UIntValue)] },

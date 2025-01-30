@@ -118,6 +118,44 @@ internal partial class StapleEditor
             }
         });
 
+        foreach(var pair in GeneratorManager.generators)
+        {
+            var name = pair.Value.instance.GetType().Name.ExpandCamelCaseName();
+            var fileName = pair.Value.instance.GetType().Name;
+            var extension = pair.Value.extension;
+
+            EditorGUI.MenuItem(name, $"{pair.Key}Create", () =>
+            {
+                var currentPath = projectBrowser.currentContentNode?.path ?? Path.Combine(projectBrowser.basePath, "Assets");
+                var assetPath = GetProperFileName(currentPath, fileName, Path.Combine(currentPath, $"{fileName}.{extension}"), extension);
+
+                try
+                {
+                    var result = pair.Value.instance.CreateNew();
+
+                    if(result != null)
+                    {
+                        if(pair.Value.isText)
+                        {
+                            var text = Encoding.UTF8.GetString(result);
+
+                            File.WriteAllText(assetPath, text);
+                        }
+                        else
+                        {
+                            File.WriteAllBytes(assetPath, result);
+                        }
+
+                        RefreshAssets(assetPath.EndsWith(".cs"), null);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to create asset at {assetPath}: {e}");
+                }
+            });
+        }
+
         foreach (var pair in registeredAssetTemplates)
         {
             var name = pair.Key;
@@ -988,6 +1026,47 @@ internal partial class StapleEditor
                 object original = null;
 
                 var cachePath = EditorUtils.GetAssetCachePath(basePath, item.path, currentPlatform);
+
+                bool GetAssetGUID(out string guid)
+                {
+                    try
+                    {
+                        var holder = JsonConvert.DeserializeObject<AssetHolder>(data);
+
+                        if((holder?.guid?.Length ?? 0) > 0)
+                        {
+                            guid = holder.guid;
+
+                            return true;
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    guid = default;
+
+                    return false;
+                }
+
+                if(GetAssetGUID(out var guid) && GeneratorManager.TryGetGenerator(guid, out var generator))
+                {
+                    original = generator;
+                    selectedProjectNodeData = generator;
+
+                    var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                    if(editor != null)
+                    {
+                        editor.original = original;
+                        editor.path = item.path;
+                        editor.cachePath = cachePath;
+
+                        cachedEditors.Add("", editor);
+
+                        return;
+                    }
+                }
 
                 if (item.typeName == typeof(Texture).FullName)
                 {

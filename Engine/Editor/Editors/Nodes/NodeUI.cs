@@ -94,7 +94,7 @@ public partial class NodeUI
         this.observer = observer;
     }
 
-    public void Draw()
+    public void DoLayout()
     {
         RenderNodes(() =>
         {

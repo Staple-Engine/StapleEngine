@@ -36,6 +36,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
+    <Compile Include="Generators\GeneratorManager.cs" />
+    <Compile Include="Generators\IGenerator.cs" />
+    <Compile Include="Assets\VisualShaderAsset.cs" />
     <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\AndroidBuildProcessor.cs" />
     <Compile Include="Backends\BuildInfo.cs" />
@@ -122,6 +126,7 @@
     <Compile Include="Windows\AppSettingsWindow.cs" />
     <Compile Include="Windows\AssetPickerWindow.cs" />
     <Compile Include="Windows\BuildWindow.cs" />
+    <Compile Include="Windows\VisualShaderAssetWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.12.6" />

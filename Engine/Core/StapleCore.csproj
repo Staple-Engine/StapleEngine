@@ -96,6 +96,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Include="Assets\TextAsset.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
