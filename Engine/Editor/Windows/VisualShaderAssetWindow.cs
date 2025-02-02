@@ -64,17 +64,17 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
         nodeUI.DoLayout();
     }
 
-    public (bool, Action) OnLinkRightClick(NodeUI nodeUI, (NodeUI.NodeSocket, NodeUI.NodeSocket) link)
+    public (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button)
     {
         return (false, null);
     }
 
-    public (bool, Action) OnNodeRightClick(NodeUI nodeUI, NodeUI.Node node)
+    public (bool, Action) OnNodeClick(NodeUI nodeUI, NodeUI.Node node, MouseButton button)
     {
         return (false, null);
     }
 
-    public (bool, Action) OnWorkspaceRightClick(NodeUI nodeUI)
+    public (bool, Action) OnWorkspaceClick(NodeUI nodeUI, MouseButton button)
     {
         return (false, null);
     }

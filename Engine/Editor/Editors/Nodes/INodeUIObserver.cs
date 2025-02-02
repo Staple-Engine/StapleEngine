@@ -6,9 +6,9 @@ public interface INodeUIObserver
 {
     bool ValidateConnection(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to);
 
-    (bool, Action) OnNodeRightClick(NodeUI nodeUI, NodeUI.Node node);
+    (bool, Action) OnNodeClick(NodeUI nodeUI, NodeUI.Node node, MouseButton button);
 
-    (bool, Action) OnLinkRightClick(NodeUI nodeUI, (NodeUI.NodeSocket, NodeUI.NodeSocket) link);
+    (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button);
 
-    (bool, Action) OnWorkspaceRightClick(NodeUI nodeUI);
+    (bool, Action) OnWorkspaceClick(NodeUI nodeUI, MouseButton button);
 }

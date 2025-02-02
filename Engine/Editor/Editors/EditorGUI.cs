@@ -146,13 +146,50 @@ public static class EditorGUI
         ImGui.Spacing();
     }
 
+    public static void Columns(int count, Func<int, float> columnWidth, Action<int> action)
+    {
+        ImGui.Columns(count, false);
+
+        for(var i = 0; i < count; i++)
+        {
+            var width = 1.0f;
+
+            try
+            {
+                width = columnWidth(i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[EditorGUI] Failed to execute width handler for Column {i}: {e}");
+            }
+
+            ImGui.SetColumnWidth(i, width);
+
+            try
+            {
+                action(i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[EditorGUI] Failed to execute action handler for Column {i}: {e}");
+            }
+
+            if(i + 1 < count)
+            {
+                ImGui.NextColumn();
+            }
+        }
+
+        ImGui.Columns(1);
+    }
+
     /// <summary>
     /// Shows a text label
     /// </summary>
     /// <param name="text">The text to show</param>
     public static void Label(string text)
     {
-        ImGui.LabelText(text, "");
+        ImGui.Text(text);
     }
 
     /// <summary>
@@ -299,10 +336,11 @@ public static class EditorGUI
     /// <param name="label">The label for the field</param>
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="value">The current value of the field</param>
+    /// <param name="simple">Whether to use simple mode</param>
     /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, string key, T value, bool simple = false) where T: struct, Enum
     {
-        if(cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
+        if (cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
         {
             v = Enum.GetValues<T>()
                 .ToList();
@@ -433,7 +471,7 @@ public static class EditorGUI
 
         var values = new List<object>();
 
-        foreach(var t in v)
+        foreach (var t in v)
         {
             values.Add(t);
         }
@@ -459,7 +497,7 @@ public static class EditorGUI
 
         if (isFlags)
         {
-            if(Changed)
+            if (Changed)
             {
                 if (value.HasFlag(newValue))
                 {
@@ -497,7 +535,7 @@ public static class EditorGUI
     /// <returns>The index of the selected value</returns>
     public static int Dropdown(string label, string key, string[] options, int current, bool simple = false)
     {
-        if(simple)
+        if (simple)
         {
             Changed |= ImGui.Combo(MakeIdentifier(label, key), ref current, $"{string.Join("\0", options)}\0");
         }
@@ -526,13 +564,31 @@ public static class EditorGUI
     /// <param name="maxLength">The maximum amount of characters</param>
     /// <param name="simple">Whether to use the simplest rendering mode</param>
     /// <returns>The new value</returns>
-    public static string TextField(string label, string key, string value, int maxLength = 1000, bool simple = false)
+    public static string TextField(string label, string key, string value, bool simple = false, int maxLength = 1000)
+    {
+        return TextField(label, key, value, Vector2.Zero, simple, maxLength);
+    }
+
+    /// <summary>
+    /// Shows a text field
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="value">The current value</param>
+    /// <param name="maxLength">The maximum amount of characters</param>
+    /// <param name="size">How large to make the text field</param>
+    /// <param name="simple">Whether to use the simplest rendering mode</param>
+    /// <returns>The new value</returns>
+    public static string TextField(string label, string key, string value, Vector2 size, bool simple = false, int maxLength = 1000)
     {
         value ??= "";
 
         if(simple)
         {
-            Changed |= ImGui.InputText(MakeIdentifier(label, key), ref value, (uint)maxLength);
+            unsafe
+            {
+                Changed |= ImGui.InputTextEx(MakeIdentifier(label, key), "", ref value, maxLength, size, ImGuiInputTextFlags.None, null, null);
+            }
         }
         else
         {

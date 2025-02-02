@@ -50,6 +50,13 @@ public partial class NodeUI
         public PinShape Shape => connector.shape;
 
         public SocketType SocketType => connector.socketType;
+
+        public void Connect(NodeSocket target)
+        {
+            connector.connections.Add(target.connector.ID);
+
+            targets.Add(target.Node);
+        }
     }
 
     public class Node
@@ -59,6 +66,13 @@ public partial class NodeUI
         internal List<NodeSocket> outputs = [];
 
         public int ID => node.ID;
+
+        public string Title
+        {
+            get => node.title;
+
+            set => node.title = value;
+        }
 
         public int InputCount => inputs.Count;
 
@@ -83,11 +97,15 @@ public partial class NodeUI
 
     public IEnumerable<Node> Nodes => userNodes;
 
+    public int NodeCount => userNodes.Count;
+
     public bool showMinimap = false;
 
     public MinimapCorner minimapCorner = MinimapCorner.BottomLeft;
 
     public float minimapFraction = 0.1f;
+
+    public float usedSpace;
 
     public NodeUI(INodeUIObserver observer)
     {
@@ -146,23 +164,22 @@ public partial class NodeUI
             if (nodes.TryGetValue(startNode, out var start) &&
                 nodes.TryGetValue(endNode, out var end))
             {
-                var startConnector = start.outputs.FirstOrDefault(x => x.ID == startAttribute);
-                var endConnector = end.inputs.FirstOrDefault(x => x.ID == endAttribute);
                 var startConnectorUser = start.node.GetOutputById(startAttribute);
                 var endConnectorUser = end.node.GetInputById(endAttribute);
 
-                if (startConnector != null && endConnector != null &&
-                    startConnectorUser != null &&
-                    endConnectorUser != null &&
+                if (startConnectorUser != null && endConnectorUser != null &&
                     (observer?.ValidateConnection(this, startConnectorUser, endConnectorUser) ?? true))
                 {
-                    ConnectNodes(startConnector, startConnectorUser, endConnector, endConnectorUser);
+                    CreateLink(startConnectorUser, endConnectorUser);
                 }
             }
         }
 
-        if (Input.GetMouseButtonUp(MouseButton.Right))
+        if (Input.GetMouseButtonUp(MouseButton.Left) ||
+            Input.GetMouseButtonUp(MouseButton.Right))
         {
+            var button = Input.GetMouseButtonUp(MouseButton.Left) ? MouseButton.Left : MouseButton.Right;
+
             void ShowPopup((bool, Action) handler)
             {
                 if (handler.Item1)
@@ -180,7 +197,7 @@ public partial class NodeUI
                 if (observer != null &&
                     nodes.TryGetValue(hovered, out var i))
                 {
-                    var r = observer.OnNodeRightClick(this, i.node);
+                    var r = observer.OnNodeClick(this, i.node, button);
 
                     ShowPopup(r);
                 }
@@ -193,31 +210,48 @@ public partial class NodeUI
                     connectors.TryGetValue(link.Item1, out var from) &&
                     connectors.TryGetValue(link.Item2, out var to))
                 {
-                    var r = observer.OnLinkRightClick(this, (from.socket, to.socket));
+                    var r = observer.OnLinkClick(this, from.socket, to.socket, button);
 
                     ShowPopup(r);
                 }
             }
             else if(observer != null)
             {
-                var r = observer.OnWorkspaceRightClick(this);
+                (bool, Action) r = (false, null);
+
+                for (var i = 0; i < links.Count; i++)
+                {
+                    if (ImNodes.IsLinkSelected(i) &&
+                        connectors.TryGetValue(links[i].Item1, out var from) &&
+                        connectors.TryGetValue(links[i].Item2, out var to))
+                    {
+                        r = observer.OnLinkClick(this, from.socket, to.socket, button);
+
+                        ShowPopup(r);
+
+                        return;
+                    }
+                }
+
+                r = observer.OnWorkspaceClick(this, button);
 
                 ShowPopup(r);
             }
         }
 
-        ImGui.BeginPopup("NODEUIPOPUP");
-
-        try
+        if (ImGui.BeginPopup("NODEUIPOPUP"))
         {
-            popupContent?.Invoke();
-        }
-        catch(Exception e)
-        {
-            Log.Error($"[{GetType().Name}]: {e}");
-        }
+            try
+            {
+                popupContent?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[{GetType().Name}]: {e}");
+            }
 
-        ImGui.EndPopup();
+            ImGui.EndPopup();
+        }
     }
 
     #region User API
@@ -301,6 +335,17 @@ public partial class NodeUI
         return outNode;
     }
 
+    public void CreateLink(NodeSocket start, NodeSocket end)
+    {
+        start.connector.connections.Add(end.connector.ID);
+        end.connector.connections.Add(start.connector.ID);
+
+        start.targets.Add(end.Node);
+        end.targets.Add(start.Node);
+
+        links.Add((start.connector.ID, end.connector.ID));
+    }
+
     public void DeleteNode(Node node)
     {
         if (node == null ||
@@ -350,12 +395,12 @@ public partial class NodeUI
         }
     }
 
-    public void DeleteLink((NodeSocket, NodeSocket) link)
+    public void DeleteLink(NodeSocket from, NodeSocket to)
     {
         for (var i = 0; i < links.Count; i++)
         {
-            if (links[i].Item1 == link.Item1.connector.ID &&
-                links[i].Item2 == link.Item2.connector.ID)
+            if (links[i].Item1 == from.connector.ID &&
+                links[i].Item2 == to.connector.ID)
             {
                 links.RemoveAt(i);
 

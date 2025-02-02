@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using Hexa.NET.ImNodes;
+using System.Numerics;
 
 namespace Staple.Editor;
 
@@ -36,17 +37,6 @@ public partial class NodeUI
     private int connectorCounter = 0;
     private Action popupContent;
 
-    private void ConnectNodes(NodeConnector start, NodeSocket startUser, NodeConnector end, NodeSocket endUser)
-    {
-        start.connections.Add(end.ID);
-        end.connections.Add(start.ID);
-
-        startUser.targets.Add(endUser.Node);
-        endUser.targets.Add(startUser.Node);
-
-        links.Add((start.ID, end.ID));
-    }
-
     private ImNodesPinShape GetPinShape(PinShape pinShape)
     {
         return pinShape switch
@@ -63,18 +53,21 @@ public partial class NodeUI
 
     private void RenderNodes(Action content)
     {
-        ImNodes.BeginNodeEditor();
-
-        try
+        EditorGUI.WindowFrame($"NodeEditor{observer?.GetType().FullName ?? ""}", new Vector2(usedSpace, 0), () =>
         {
-            content?.Invoke();
-        }
-        catch (Exception e)
-        {
-            Log.Error($"[{GetType().Name}] {e.Message}");
-        }
+            ImNodes.BeginNodeEditor();
 
-        ImNodes.EndNodeEditor();
+            try
+            {
+                content?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[{GetType().Name}] {e.Message}");
+            }
+
+            ImNodes.EndNodeEditor();
+        });
     }
 
     private void MakeNode(int ID, Action title, Action body)
