@@ -29,27 +29,6 @@ public static class EditorGUI
 
     private static string MakeIdentifier(string identifier, string key) => $"{identifier}##{key}";
 
-    private static bool IdentifierColumns(string identifier, Func<bool> callback)
-    {
-        var width = RemainingHorizontalSpace();
-
-        ImGui.Columns(2, false);
-
-        var w = width / 3;
-
-        ImGui.SetColumnWidth(0, w);
-
-        ImGui.Text(identifier);
-
-        ImGui.NextColumn();
-
-        var changed = callback();
-
-        ImGui.Columns(1);
-
-        return changed;
-    }
-
     internal static void ExecuteHandler(Action handler, string label)
     {
         try
@@ -146,7 +125,33 @@ public static class EditorGUI
         ImGui.Spacing();
     }
 
-    public static void Columns(int count, Func<int, float> columnWidth, Action<int> action)
+    /// <summary>
+    /// Sets the next item's width
+    /// </summary>
+    /// <param name="width">The width in pixels</param>
+    /// <param name="content">The content of the item</param>
+    public static void ItemWidth(float width, Action content)
+    {
+        if(width > 0)
+        {
+            ImGui.PushItemWidth(width);
+        }
+
+        ExecuteHandler(content, $"ItemWidth {width}");
+
+        if (width > 0)
+        {
+            ImGui.PopItemWidth();
+        }
+    }
+
+    /// <summary>
+    /// Creates a line of columns of elements.
+    /// </summary>
+    /// <param name="count">Amount of columns</param>
+    /// <param name="columnWidth">Callback for the width of each column. The parameter is the column index.</param>
+    /// <param name="content">Content for each column. The parameter is the column index.</param>
+    public static void Columns(int count, Func<int, float> columnWidth, Action<int> content)
     {
         ImGui.Columns(count, false);
 
@@ -167,7 +172,7 @@ public static class EditorGUI
 
             try
             {
-                action(i);
+                content(i);
             }
             catch (Exception e)
             {
@@ -235,10 +240,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntField(string label, string key, int value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputInt(MakeIdentifier("", key), ref value);
-        });
+        Changed |= ImGui.InputInt(MakeIdentifier(label, key), ref value, 0);
 
         return value;
     }
@@ -252,10 +254,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatField(string label, string key, float value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputFloat(MakeIdentifier("", key), ref value);
-        });
+        Changed |= ImGui.InputFloat(MakeIdentifier(label, key), ref value, 0.0f);
 
         return value;
     }
@@ -269,10 +268,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector2 Vector2Field(string label, string key, Vector2 value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputFloat2(MakeIdentifier("", key), ref value);
-        });
+        Changed |= ImGui.InputFloat2(MakeIdentifier(label, key), ref value);
 
         return value;
     }
@@ -288,10 +284,7 @@ public static class EditorGUI
     {
         var values = new int[] { value.X, value.Y };
 
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputInt2(MakeIdentifier("", key), ref values[0]);
-        });
+        Changed |= ImGui.InputInt2(MakeIdentifier(label, key), ref values[0]);
 
         return new Vector2Int(values[0], values[1]);
     }
@@ -305,10 +298,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector3 Vector3Field(string label, string key, Vector3 value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputFloat3(MakeIdentifier("", key), ref value);
-        });
+        Changed |= ImGui.InputFloat3(MakeIdentifier(label, key), ref value);
 
         return value;
     }
@@ -322,10 +312,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector4 Vector4Field(string label, string key, Vector4 value)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputFloat4(MakeIdentifier("", key), ref value);
-        });
+        Changed |= ImGui.InputFloat4(MakeIdentifier(label, key), ref value);
 
         return value;
     }
@@ -336,9 +323,8 @@ public static class EditorGUI
     /// <param name="label">The label for the field</param>
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="value">The current value of the field</param>
-    /// <param name="simple">Whether to use simple mode</param>
     /// <returns>The new value</returns>
-    public static T EnumDropdown<T>(string label, string key, T value, bool simple = false) where T: struct, Enum
+    public static T EnumDropdown<T>(string label, string key, T value) where T: struct, Enum
     {
         if (cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
         {
@@ -367,7 +353,7 @@ public static class EditorGUI
 
         Changed = false;
 
-        var newValue = values[Dropdown(label, key, valueStrings, current, simple)];
+        var newValue = values[Dropdown(label, key, valueStrings, current)];
 
         if (isFlags)
         {
@@ -407,7 +393,7 @@ public static class EditorGUI
     /// <param name="value">The current value of the field</param>
     /// <param name="values">The valid values for the field</param>
     /// <returns>The new value</returns>
-    public static T EnumDropdown<T>(string label, string key, T value, List<T> values, bool simple = false) where T : struct, Enum
+    public static T EnumDropdown<T>(string label, string key, T value, List<T> values) where T : struct, Enum
     {
         var isFlags = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
 
@@ -426,7 +412,7 @@ public static class EditorGUI
 
         Changed = false;
 
-        var newValue = values[Dropdown(label, key, valueStrings, current, simple)];
+        var newValue = values[Dropdown(label, key, valueStrings, current)];
 
         if (isFlags)
         {
@@ -533,19 +519,9 @@ public static class EditorGUI
     /// <param name="options">The options for the field</param>
     /// <param name="current">The current value index for the field</param>
     /// <returns>The index of the selected value</returns>
-    public static int Dropdown(string label, string key, string[] options, int current, bool simple = false)
+    public static int Dropdown(string label, string key, string[] options, int current)
     {
-        if (simple)
-        {
-            Changed |= ImGui.Combo(MakeIdentifier(label, key), ref current, $"{string.Join("\0", options)}\0");
-        }
-        else
-        {
-            Changed |= IdentifierColumns(label, () =>
-            {
-                return ImGui.Combo(MakeIdentifier("", key), ref current, $"{string.Join("\0", options)}\0");
-            });
-        }
+        Changed |= ImGui.Combo(MakeIdentifier(label, key), ref current, $"{string.Join("\0", options)}\0");
 
         if (current < 0)
         {
@@ -562,11 +538,10 @@ public static class EditorGUI
     /// <param name="key">A unique key for this UI element</param>
     /// <param name="value">The current value</param>
     /// <param name="maxLength">The maximum amount of characters</param>
-    /// <param name="simple">Whether to use the simplest rendering mode</param>
     /// <returns>The new value</returns>
-    public static string TextField(string label, string key, string value, bool simple = false, int maxLength = 1000)
+    public static string TextField(string label, string key, string value, int maxLength = 1000)
     {
-        return TextField(label, key, value, Vector2.Zero, simple, maxLength);
+        return TextField(label, key, value, Vector2.Zero, maxLength);
     }
 
     /// <summary>
@@ -577,25 +552,14 @@ public static class EditorGUI
     /// <param name="value">The current value</param>
     /// <param name="maxLength">The maximum amount of characters</param>
     /// <param name="size">How large to make the text field</param>
-    /// <param name="simple">Whether to use the simplest rendering mode</param>
     /// <returns>The new value</returns>
-    public static string TextField(string label, string key, string value, Vector2 size, bool simple = false, int maxLength = 1000)
+    public static string TextField(string label, string key, string value, Vector2 size, int maxLength = 1000)
     {
         value ??= "";
 
-        if(simple)
+        unsafe
         {
-            unsafe
-            {
-                Changed |= ImGui.InputTextEx(MakeIdentifier(label, key), "", ref value, maxLength, size, ImGuiInputTextFlags.None, null, null);
-            }
-        }
-        else
-        {
-            Changed |= IdentifierColumns(label, () =>
-            {
-                return ImGui.InputText(MakeIdentifier("", key), ref value, (uint)maxLength);
-            });
+            Changed |= ImGui.InputTextEx(MakeIdentifier(label, key), "", ref value, maxLength, size, ImGuiInputTextFlags.None, null, null);
         }
 
         return value;
@@ -614,10 +578,7 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.InputTextMultiline(MakeIdentifier("", key), ref value, (uint)maxLength, size);
-        });
+        Changed |= ImGui.InputTextMultiline(MakeIdentifier("", key), ref value, (uint)maxLength, size);
 
         return value;
     }
@@ -647,10 +608,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.ColorEdit4(MakeIdentifier("", key), ref v);
-        });
+        Changed |= ImGui.ColorEdit4(MakeIdentifier("", key), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -666,10 +624,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.ColorPicker4(MakeIdentifier("", key), ref v);
-        });
+        Changed |= ImGui.ColorPicker4(MakeIdentifier("", key), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -828,10 +783,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntSlider(string label, string key, int value, int min, int max)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.SliderInt(MakeIdentifier("", key), ref value, min, max);
-        });
+        Changed |= ImGui.SliderInt(MakeIdentifier("", key), ref value, min, max);
 
         return value;
     }
@@ -845,10 +797,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatSlider(string label, string key, float value, float min, float max)
     {
-        Changed |= IdentifierColumns(label, () =>
-        {
-            return ImGui.SliderFloat(MakeIdentifier("", key), ref value, min, max);
-        });
+        Changed |= ImGui.SliderFloat(MakeIdentifier("", key), ref value, min, max);
 
         return value;
     }
@@ -1114,6 +1063,20 @@ public static class EditorGUI
     {
         ImGui.GetWindowDrawList().AddText(position, ImGuiProxy.ImGuiRGBA(color.r, color.g, color.b, color.a),
             text);
+    }
+
+    /// <summary>
+    /// Creates a menu bar
+    /// </summary>
+    /// <param name="handler">The content of the menu bar. You probably want to call Menu and MenuItem</param>
+    public static void MenuBar(Action handler)
+    {
+        if(ImGui.BeginMenuBar())
+        {
+            ExecuteHandler(handler, $"MenuBar");
+
+            ImGui.EndMenuBar();
+        }
     }
 
     /// <summary>

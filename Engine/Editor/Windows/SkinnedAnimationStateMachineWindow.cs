@@ -111,13 +111,13 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
                         {
                             case 0:
 
-                                p.name = EditorGUI.TextField("", $"SkinnedAnimationStateMachineWindow.ParameterName{i}", p.name, new Vector2(100, 0), simple: true);
+                                p.name = EditorGUI.TextField("", $"SkinnedAnimationStateMachineWindow.ParameterName{i}", p.name, new Vector2(100, 0));
 
                                 break;
 
                             case 1:
 
-                                p.parameterType = EditorGUI.EnumDropdown("", $"SkinnedAnimationStateMachineWindow.ParameterType{i}", p.parameterType, true);
+                                p.parameterType = EditorGUI.EnumDropdown("", $"SkinnedAnimationStateMachineWindow.ParameterType{i}", p.parameterType);
 
                                 break;
                         }
@@ -127,72 +127,86 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
         EditorGUI.SameLine();
 
-        nodeUI.usedSpace = EditorGUI.RemainingHorizontalSpace() - 200;
+        nodeUI.usedSpace = selectedConnection != null ? EditorGUI.RemainingHorizontalSpace() - 300 : 0;
 
         nodeUI.DoLayout();
 
-        EditorGUI.SameLine();
-
-        EditorGUI.WindowFrame("SkinnedAnimationStateMachineWindow.Selected", new Vector2(200, 0), () =>
+        if(selectedConnection != null)
         {
-            if (selectedConnection != null)
+            EditorGUI.SameLine();
+
+            EditorGUI.WindowFrame("SkinnedAnimationStateMachineWindow.Selected", new Vector2(300, 0), () =>
             {
-                EditorGUI.Label("Parameters");
-
-                EditorGUI.SameLine();
-
-                EditorGUI.Button("+", "SkinnedAnimationStateMachineWindow.Selected.Parameters.Add", () =>
+                if (selectedConnection != null)
                 {
-                    selectedConnection.parameters.Add(new());
-                });
+                    EditorGUI.Label("Parameters");
 
-                for (var i = 0; i < selectedConnection.parameters.Count; i++)
-                {
-                    var p = selectedConnection.parameters[i];
+                    EditorGUI.SameLine();
 
-                    var names = asset.parameters.Select(x => x.name).ToArray();
-
-                    var currentIndex = Array.IndexOf(names, p.name);
-
-                    var newIndex = EditorGUI.Dropdown("Parameter", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Name",
-                        names, currentIndex, true);
-
-                    if(newIndex != currentIndex && newIndex >= 0)
+                    EditorGUI.Button("+", "SkinnedAnimationStateMachineWindow.Selected.Parameters.Add", () =>
                     {
-                        p.name = names[newIndex];
+                        selectedConnection.parameters.Add(new());
+                    });
+
+                    for (var i = 0; i < selectedConnection.parameters.Count; i++)
+                    {
+                        var p = selectedConnection.parameters[i];
+
+                        var names = asset.parameters.Select(x => x.name).ToArray();
+
+                        var currentIndex = Array.IndexOf(names, p.name);
+
+                        var newIndex = EditorGUI.Dropdown("", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Name",
+                            names, currentIndex);
+
+                        if (newIndex != currentIndex && newIndex >= 0)
+                        {
+                            p.name = names[newIndex];
+                        }
+
+                        var parameter = asset.parameters.FirstOrDefault(x => x.name == p.name);
+
+                        EditorGUI.SameLine();
+
+                        switch (parameter.parameterType)
+                        {
+                            case SkinnedAnimationStateMachine.AnimationParameterType.Bool:
+
+                                EditorGUI.ItemWidth(60, () =>
+                                {
+                                    p.boolValue = EditorGUI.Toggle("", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.boolValue);
+                                });
+
+                                break;
+
+                            case SkinnedAnimationStateMachine.AnimationParameterType.Int:
+
+                                EditorGUI.ItemWidth(60, () =>
+                                {
+                                    p.intValue = EditorGUI.IntField("", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.intValue);
+                                });
+
+                                break;
+
+                            case SkinnedAnimationStateMachine.AnimationParameterType.Float:
+
+                                EditorGUI.ItemWidth(60, () =>
+                                {
+                                    p.floatValue = EditorGUI.FloatField("", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.floatValue);
+                                });
+
+                                break;
+                        }
                     }
 
-                    var parameter = asset.parameters.FirstOrDefault(x => x.name == p.name);
+                    selectedConnection.onFinish = EditorGUI.Toggle("On Finish", $"SkinnedAnimationStateMachineWindow.Selected.OnFinish",
+                        selectedConnection.onFinish);
 
-                    switch(parameter.parameterType)
-                    {
-                        case SkinnedAnimationStateMachine.AnimationParameterType.Bool:
-
-                            p.boolValue = EditorGUI.Toggle("Value", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.boolValue);
-
-                            break;
-
-                        case SkinnedAnimationStateMachine.AnimationParameterType.Int:
-
-                            p.intValue = EditorGUI.IntField("Value", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.intValue);
-
-                            break;
-
-                        case SkinnedAnimationStateMachine.AnimationParameterType.Float:
-
-                            p.floatValue = EditorGUI.FloatField("Value", $"SkinnedAnimationStateMachineWindow.Selected.Parameters{i}.Value", p.floatValue);
-
-                            break;
-                    }
+                    selectedConnection.any = EditorGUI.Toggle("On Any", $"SkinnedAnimationStateMachineWindow.Selected.Any",
+                        selectedConnection.any);
                 }
-
-                selectedConnection.onFinish = EditorGUI.Toggle("On Finish", $"SkinnedAnimationStateMachineWindow.Selected.OnFinish",
-                    selectedConnection.onFinish);
-
-                selectedConnection.any = EditorGUI.Toggle("On Any", $"SkinnedAnimationStateMachineWindow.Selected.Any",
-                    selectedConnection.any);
-            }
-        });
+            });
+        }
     }
 
     public (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button)

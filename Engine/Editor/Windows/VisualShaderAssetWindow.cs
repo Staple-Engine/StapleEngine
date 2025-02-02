@@ -50,11 +50,11 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
             {
                 if(p.varying == false)
                 {
-                    p.name = EditorGUI.TextField("", $"VisualShaderAssetWindow.ParameterName{p.GetHashCode()}", p.name, simple: true);
+                    p.name = EditorGUI.TextField("", $"VisualShaderAssetWindow.ParameterName{p.GetHashCode()}", p.name);
 
                     EditorGUI.SameLine();
 
-                    p.uniformType = EditorGUI.EnumDropdown("", $"VisualShaderAssetWindow.ParameterType{p.GetHashCode()}", p.uniformType, simple: true);
+                    p.uniformType = EditorGUI.EnumDropdown("", $"VisualShaderAssetWindow.ParameterType{p.GetHashCode()}", p.uniformType);
                 }
             }
         });
