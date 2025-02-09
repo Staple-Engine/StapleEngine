@@ -42,6 +42,11 @@ internal static class StapleSerializer
             return false;
         }
 
+        if(type.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false)
+        {
+            return false;
+        }
+
         if (IsDirectParameter(type))
         {
             return true;
@@ -328,6 +333,11 @@ internal static class StapleSerializer
             return;
         }
 
+        if (field.FieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false)
+        {
+            return;
+        }
+
         if (IsValidType(field.FieldType))
         {
             var value = field.GetValue(instance);
@@ -594,7 +604,8 @@ internal static class StapleSerializer
     /// <returns>The container, or null</returns>
     public static SerializableStapleAssetContainer SerializeContainer(object instance, bool targetText)
     {
-        if (instance == null || instance.GetType().IsNestedFamORAssem)
+        if (instance == null || instance.GetType().IsNestedFamORAssem ||
+            (instance.GetType().GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
         {
             return null;
         }
@@ -630,7 +641,8 @@ internal static class StapleSerializer
     {
         var type = TypeCache.GetType(container.typeName);
 
-        if (type == null)
+        if (type == null ||
+            (type.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
         {
             return null;
         }
@@ -650,6 +662,8 @@ internal static class StapleSerializer
 
                     if (valueType == null ||
                         field == null ||
+                        ((field.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
+                        field.FieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && Platform.IsEditor == false) ||
                         (field.FieldType.FullName != pair.Value.typeName && valueType.GetInterface(field.FieldType.FullName) == null))
                     {
                         continue;
@@ -913,6 +927,11 @@ internal static class StapleSerializer
                             var fail = false;
                             var fieldType = field.FieldType.GenericTypeArguments[0];
 
+                            if(IsValidType(fieldType) == false)
+                            {
+                                continue;
+                            }
+
                             if (pair.Value.value is object[] array)
                             {
                                 foreach (var item in array)
@@ -1157,6 +1176,14 @@ internal static class StapleSerializer
                 v.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
                 t is string tName)
             {
+                var localType = TypeCache.GetType(tName);
+
+                if (localType == null ||
+                    (localType.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
+                {
+                    continue;
+                }
+
                 if (v.TryGetValue(nameof(SerializableStapleAssetContainer.parameters), out var p) &&
                     p is Dictionary<object, object> pDictionary)
                 {

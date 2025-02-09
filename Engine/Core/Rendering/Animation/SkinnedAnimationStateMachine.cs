@@ -152,6 +152,7 @@ public sealed class SkinnedAnimationStateMachine : IStapleAsset, IGuidAsset
     /// Contains data on editing this state machine
     /// </summary>
     [Serializable]
+    [SerializeInEditor]
     public class EditorData
     {
         public NodePosition[] nodePositions = [];

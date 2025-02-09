@@ -106,6 +106,7 @@
 		<Compile Include="Attributes\RangeAttribute.cs" />
 		<Compile Include="Attributes\SerializeAsBase64Attribute.cs" />
 		<Compile Include="Attributes\SerializeFieldAttribute.cs" />
+		<Compile Include="Attributes\SerializeInEditorAttribute.cs" />
 		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
