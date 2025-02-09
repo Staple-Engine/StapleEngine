@@ -14,7 +14,7 @@ internal class BuildWindow : EditorWindow
 
     public static WeakReference<BuildWindow> instance;
 
-    internal List<string> scenes = new();
+    internal List<string> scenes = [];
 
     private bool needsLoadScenes = true;
 
@@ -24,7 +24,7 @@ internal class BuildWindow : EditorWindow
 
         instance = new WeakReference<BuildWindow>(this);
 
-        allowDocking = false;
+        windowFlags = EditorWindowFlags.Resizable;
     }
 
     public void AddScene(string guid)
@@ -63,8 +63,6 @@ internal class BuildWindow : EditorWindow
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         if(needsLoadScenes)
         {
             needsLoadScenes = false;

@@ -13,8 +13,8 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
     {
         title = "Visual Shader Editor";
         size = new Vector2Int(300, 400);
-        allowDocking = true;
-        allowResize = true;
+
+        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable | EditorWindowFlags.HasMenuBar;
 
         nodeUI = new(this)
         {
@@ -24,8 +24,6 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         if(owner == null || owner.target is not VisualShaderAsset asset)
         {
             return;

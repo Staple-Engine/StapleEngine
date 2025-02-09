@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Reflection;
 using System.Collections;
-using System.Runtime.InteropServices;
 using System.Linq;
 
 namespace Staple.Internal;
@@ -595,7 +594,7 @@ internal static class StapleSerializer
     /// <returns>The container, or null</returns>
     public static SerializableStapleAssetContainer SerializeContainer(object instance, bool targetText)
     {
-        if (instance == null)
+        if (instance == null || instance.GetType().IsNestedFamORAssem)
         {
             return null;
         }
@@ -609,6 +608,13 @@ internal static class StapleSerializer
 
         foreach (var field in fields)
         {
+            if(field.IsFamilyOrAssembly ||
+                field.FieldType.IsNestedFamORAssem ||
+                field.FieldType.IsNestedAssembly)
+            {
+                continue;
+            }
+
             SerializeField(field, instance, outValue, targetText);
         }
 
@@ -686,6 +692,31 @@ internal static class StapleSerializer
 
                             continue;
                         }
+                        else if (IsDirectParameter(field.FieldType.GetType()) == false &&
+                            field.FieldType.GetCustomAttribute<SerializableAttribute>() != null &&
+                            pair.Value.value is Dictionary<object, object> pairs &&
+                            pairs.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
+                            t is string typeName &&
+                            pairs.TryGetValue(nameof(SerializableStapleAssetContainer.parameters), out var p) &&
+                            p is Dictionary<object, object> parameters)
+                        {
+                            try
+                            {
+                                var decodedContainer = DecodeContainer(typeName, parameters);
+
+                                var value = DeserializeContainer(decodedContainer);
+
+                                if(value != null)
+                                {
+                                    field.SetValue(instance, value);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            continue;
+                        }
                     }
 
                     if (field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
@@ -738,6 +769,41 @@ internal static class StapleSerializer
                                         if (array is byte[] buffer)
                                         {
                                             DeserializePrimitiveArray(buffer, newValue);
+                                        }
+                                    }
+                                    else if(elementType.GetCustomAttribute<SerializableAttribute>() != null &&
+                                        array is object[] arrayData)
+                                    {
+                                        newValue = TypeCache.CreateArray(elementType.FullName, arrayData.Length);
+
+                                        if (newValue != null)
+                                        {
+                                            for (var i = 0; i < arrayData.Length; i++)
+                                            {
+                                                if (arrayData[i] is Dictionary<object, object> content)
+                                                {
+                                                    if(content.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var atn) &&
+                                                        atn is string arrayTypeName &&
+                                                        content.TryGetValue(nameof(SerializableStapleAssetContainer.parameters), out var ap) &&
+                                                        ap is Dictionary<object, object> arrayParameters)
+                                                    {
+                                                        try
+                                                        {
+                                                            var c = DecodeContainer(arrayTypeName, arrayParameters);
+
+                                                            var itemValue = DeserializeContainer(c);
+
+                                                            if (itemValue != null)
+                                                            {
+                                                                newValue.SetValue(itemValue, i);
+                                                            }
+                                                        }
+                                                        catch (Exception)
+                                                        {
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1076,5 +1142,48 @@ internal static class StapleSerializer
         }
 
         return instance;
+    }
+
+    public static SerializableStapleAssetContainer DecodeContainer(string typeName, Dictionary<object, object> parameters)
+    {
+        var decodedContainer = new SerializableStapleAssetContainer()
+        {
+            typeName = typeName,
+        };
+
+        foreach (var paramPair in parameters)
+        {
+            if (paramPair.Key is string parameterName && paramPair.Value is Dictionary<object, object> v &&
+                v.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
+                t is string tName)
+            {
+                if (v.TryGetValue(nameof(SerializableStapleAssetContainer.parameters), out var p) &&
+                    p is Dictionary<object, object> pDictionary)
+                {
+                    var container = DecodeContainer(tName, pDictionary);
+
+                    if (container != null)
+                    {
+                        decodedContainer.parameters.Add(parameterName, new()
+                        {
+                            typeName = tName,
+                            value = container,
+                        });
+                    }
+                }
+                else if(v.TryGetValue(nameof(SerializableStapleAssetParameter.value), out var value))
+                {
+                    var parameter = new SerializableStapleAssetParameter()
+                    {
+                        typeName = tName,
+                        value = value,
+                    };
+
+                    decodedContainer.parameters.Add(parameterName, parameter);
+                }
+            }
+        }
+
+        return decodedContainer;
     }
 }

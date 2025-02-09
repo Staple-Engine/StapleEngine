@@ -42,7 +42,7 @@ internal class AppSettingsWindow : EditorWindow
     {
         title = "Settings";
 
-        allowDocking = false;
+        windowFlags = EditorWindowFlags.Resizable;
 
         moduleKinds = Enum.GetValues<ModuleType>().ToList();
         moduleKindStrings = moduleKinds.Select(x => x.ToString().ExpandCamelCaseName()).ToArray();
@@ -346,8 +346,6 @@ internal class AppSettingsWindow : EditorWindow
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         EditorGUI.Label("* - Shared setting between platforms");
 
         EditorGUI.TabBar(sections, "AppSettings.Sections", (tabIndex) =>

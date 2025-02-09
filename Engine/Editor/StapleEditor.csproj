@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
+    <Compile Include="Editors\EditorWindowFlags.cs" />
     <Compile Include="Generators\GeneratorManager.cs" />
     <Compile Include="Generators\IGenerator.cs" />
     <Compile Include="Assets\VisualShaderAsset.cs" />

@@ -139,6 +139,25 @@ public sealed class SkinnedAnimationStateMachine : IStapleAsset, IGuidAsset
     }
 
     /// <summary>
+    /// Represents the position of a node in the editor
+    /// </summary>
+    [Serializable]
+    public class NodePosition
+    {
+        public float x;
+        public float y;
+    }
+
+    /// <summary>
+    /// Contains data on editing this state machine
+    /// </summary>
+    [Serializable]
+    public class EditorData
+    {
+        public NodePosition[] nodePositions = [];
+    }
+
+    /// <summary>
     /// The mesh associated with this state machine
     /// </summary>
     public Mesh mesh;
@@ -152,6 +171,12 @@ public sealed class SkinnedAnimationStateMachine : IStapleAsset, IGuidAsset
     /// List of parameters
     /// </summary>
     public List<AnimationParameter> parameters = [];
+
+    /// <summary>
+    /// Editor Data
+    /// </summary>
+    [SerializeField]
+    public EditorData editorData = new();
 
     private int guidHash;
     private string guid;

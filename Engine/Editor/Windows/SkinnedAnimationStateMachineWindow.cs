@@ -18,8 +18,8 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
     {
         title = "Animation State Editor";
         size = new Vector2Int(300, 400);
-        allowDocking = true;
-        allowResize = true;
+
+        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable | EditorWindowFlags.HasMenuBar;
 
         nodeUI = new(this)
         {
@@ -42,12 +42,33 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         if (owner == null || owner.target is not SkinnedAnimationStateMachine asset)
         {
             return;
         }
+
+        EditorGUI.MenuBar(() =>
+        {
+            EditorGUI.Menu("File", $"{GetType().Name}.File", () =>
+            {
+                EditorGUI.MenuItem("Save", $"{GetType().Name}.Save", () =>
+                {
+                    asset.editorData.nodePositions = new SkinnedAnimationStateMachine.NodePosition[nodes.Count];
+
+                    for(var i = 0; i < nodes.Count; i++)
+                    {
+                        var pos = asset.editorData.nodePositions[i] = new();
+
+                        var nodePos = nodeUI.GetNodePosition(nodes[i]);
+
+                        pos.x = nodePos.X;
+                        pos.y = nodePos.Y;
+                    }
+
+                    EditorUtils.SaveAsset(asset);
+                });
+            });
+        });
 
         if(asset.states.Count > 0 && nodeUI.NodeCount == 0)
         {
@@ -55,12 +76,19 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
             {
                 var state = asset.states[i];
 
-                nodes.Add(nodeUI.CreateNode(state.name, [new("In", NodeUI.PinShape.Circle)], [new("Out", NodeUI.PinShape.Circle)], (node) =>
+                var node = nodeUI.CreateNode(state.name, [new("In", NodeUI.PinShape.Circle)], [new("Out", NodeUI.PinShape.Circle)], (node) =>
                 {
                     //state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStateMachineWindow.State{i}.Name", state.name);
 
                     //state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{i}.Repeat", state.repeat);
-                }));
+                });
+
+                nodes.Add(node);
+
+                if((asset.editorData.nodePositions?.Length ?? 0) > i)
+                {
+                    nodeUI.SetNodePosition(node, new(asset.editorData.nodePositions[i].x, asset.editorData.nodePositions[i].y));
+                }
             }
 
             for(var i = 0; i < asset.states.Count; i++)

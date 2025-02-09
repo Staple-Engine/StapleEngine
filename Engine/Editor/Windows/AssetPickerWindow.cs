@@ -17,14 +17,13 @@ internal class AssetPickerWindow : EditorWindow
 
     public AssetPickerWindow()
     {
-        allowDocking = false;
+        windowFlags = EditorWindowFlags.Centered;
+
         windowType = EditorWindowType.Popup;
     }
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         string newValue = assetPickerSearch;
 
         assetPickerSearch = EditorGUI.TextField("Search", "AssetPickerSearch", newValue);

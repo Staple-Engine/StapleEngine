@@ -6,7 +6,7 @@ namespace Staple.Editor;
 /// Represents an editor window.
 /// Use this to create custom windows for the editor
 /// </summary>
-public class EditorWindow
+public abstract class EditorWindow
 {
     /// <summary>
     /// The window title
@@ -14,9 +14,9 @@ public class EditorWindow
     public string title;
 
     /// <summary>
-    /// Whether to allow docking this window
+    /// Flags for the window's presentation
     /// </summary>
-    public bool allowDocking = true;
+    public EditorWindowFlags windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable;
 
     /// <summary>
     /// The window type
@@ -24,28 +24,16 @@ public class EditorWindow
     public EditorWindowType windowType = EditorWindowType.Normal;
 
     /// <summary>
-    /// Whether to allow resizing
-    /// </summary>
-    public bool allowResize = true;
-
-    /// <summary>
     /// The window's size
     /// </summary>
     public Vector2Int size = new(200, 300);
-
-    /// <summary>
-    /// Whether to center the window
-    /// </summary>
-    public bool centerWindow = false;
 
     internal bool opened = false;
 
     /// <summary>
     /// Override this to add content using EditorGUI
     /// </summary>
-    public virtual void OnGUI()
-    {
-    }
+    public abstract void OnGUI();
 
     /// <summary>
     /// Closes this window

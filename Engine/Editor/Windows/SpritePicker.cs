@@ -14,14 +14,13 @@ internal class SpritePicker : EditorWindow
 
     public SpritePicker()
     {
-        allowDocking = false;
+        windowFlags = EditorWindowFlags.Centered;
+
         windowType = EditorWindowType.Popup;
     }
 
     public override void OnGUI()
     {
-        base.OnGUI();
-
         if (texture == null || sprites == null)
         {
             return;

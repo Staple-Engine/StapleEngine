@@ -688,18 +688,23 @@ internal partial class StapleEditor
 
                 var flags = ImGuiWindowFlags.None;
 
-                if(window.allowDocking == false)
+                if(window.windowFlags.HasFlag(EditorWindowFlags.HasMenuBar))
+                {
+                    flags |= ImGuiWindowFlags.MenuBar;
+                }
+
+                if(window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoDocking;
                 }
 
-                if(window.allowResize == false)
+                if(window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoResize;
 
                     ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
 
-                    if(window.centerWindow)
+                    if(window.windowFlags.HasFlag(EditorWindowFlags.Centered))
                     {
                         ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
                     }
@@ -707,7 +712,7 @@ internal partial class StapleEditor
 
                 var isOpen = true;
 
-                switch(window.windowType)
+                switch (window.windowType)
                 {
                     case EditorWindowType.Modal:
                     case EditorWindowType.Popup:
