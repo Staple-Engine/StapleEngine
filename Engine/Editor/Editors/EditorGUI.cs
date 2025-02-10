@@ -1178,6 +1178,12 @@ public static class EditorGUI
         }
     }
 
+    /// <summary>
+    /// Creates a window frame as part of a window
+    /// </summary>
+    /// <param name="key">>A unique key for the window</param>
+    /// <param name="size">The size of the window. A size of 0,0 will auto resize</param>
+    /// <param name="handler">Content for the window frame</param>
     public static void WindowFrame(string key, Vector2 size, Action handler)
     {
         if(ImGui.BeginChild(key, size))
@@ -1186,5 +1192,29 @@ public static class EditorGUI
         }
 
         ImGui.EndChild();
+    }
+
+    /// <summary>
+    /// Opens a popup. You should use <see cref="Popup(string, Action)" /> for the popup contents later in the window.
+    /// </summary>
+    /// <param name="key">A unique key for the popup</param>
+    public static void OpenPopup(string key)
+    {
+        ImGui.OpenPopup(key);
+    }
+
+    /// <summary>
+    /// Creates a popup
+    /// </summary>
+    /// <param name="key">>A unique key for the popup</param>
+    /// <param name="handler">Content for the popup</param>
+    public static void Popup(string key, Action handler)
+    {
+        if (ImGui.BeginPopup(key))
+        {
+            ExecuteHandler(handler, $"Window {key}");
+
+            ImGui.EndPopup();
+        }
     }
 }

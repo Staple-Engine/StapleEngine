@@ -7,12 +7,18 @@ namespace Staple.Editor;
 
 internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserver
 {
+    private static string NodePopup = "SkinnedAnimationStateMachineWindow.NodePopup";
+    private static string LinkPopup = "SkinnedAnimationStateMachineWindow.LinkPopup";
+    private static string WorkspacePopup = "SkinnedAnimationStateMachineWindow.WorkspacePopup";
+
     public SkinnedAnimationStateMachineEditor owner;
     public NodeUI nodeUI;
 
     private readonly List<NodeUI.Node> nodes = [];
 
     private SkinnedAnimationStateMachine.AnimationStateConnection selectedConnection;
+    private (NodeUI.NodeSocket, NodeUI.NodeSocket) selectedNodes;
+    private NodeUI.Node selectedNode;
 
     public SkinnedAnimationStateMachineWindow()
     {
@@ -74,13 +80,44 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
         {
             for(var i = 0; i < asset.states.Count; i++)
             {
+                for(int j = 0, counter = 0; j < i; j++)
+                {
+                    if(asset.states[j].name == asset.states[i].name)
+                    {
+                        asset.states[i].name = $"{asset.states[i].name}{++counter}";
+                    }
+                }
+            }
+
+            for(var i = 0; i < asset.states.Count; i++)
+            {
                 var state = asset.states[i];
+                var index = i;
 
                 var node = nodeUI.CreateNode(state.name, [new("In", NodeUI.PinShape.Circle)], [new("Out", NodeUI.PinShape.Circle)], (node) =>
                 {
-                    //state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStateMachineWindow.State{i}.Name", state.name);
+                    state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStateMachineWindow.State{index}.Name", state.name, new Vector2(100, 0));
 
-                    //state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{i}.Repeat", state.repeat);
+                    state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{index}.Repeat", state.repeat);
+
+                    var animations = asset.mesh?.meshAsset?.animations;
+
+                    if (animations != null)
+                    {
+                        var animationNames = animations.Keys.ToArray();
+
+                        var currentIndex = Array.IndexOf(animationNames, state.animation);
+
+                        EditorGUI.ItemWidth(100, () =>
+                        {
+                            var newIndex = EditorGUI.Dropdown("Animation", "SkinnedAnimationStateMachineWindow.Selected.Animation", animationNames, currentIndex);
+
+                            if (newIndex != currentIndex && newIndex >= 0 && newIndex < animationNames.Length)
+                            {
+                                state.animation = animationNames[newIndex];
+                            }
+                        });
+                    }
                 });
 
                 nodes.Add(node);
@@ -155,7 +192,7 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
         EditorGUI.SameLine();
 
-        nodeUI.usedSpace = selectedConnection != null ? EditorGUI.RemainingHorizontalSpace() - 300 : 0;
+        nodeUI.usedSpace = (selectedConnection != null) ? EditorGUI.RemainingHorizontalSpace() - 300 : 0;
 
         nodeUI.DoLayout();
 
@@ -167,6 +204,8 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
             {
                 if (selectedConnection != null)
                 {
+                    EditorGUI.Label($"{selectedNodes.Item1.Node.Title} to {selectedNodes.Item2.Node.Title}");
+
                     EditorGUI.Label("Parameters");
 
                     EditorGUI.SameLine();
@@ -235,34 +274,112 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
                 }
             });
         }
-    }
 
-    public (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button)
-    {
-        switch (button)
+        EditorGUI.Popup(NodePopup, () =>
         {
-            case MouseButton.Left:
-
-                if (owner == null || owner.target is not SkinnedAnimationStateMachine asset)
+            EditorGUI.MenuItem("Delete", $"SkinnedAnimationStateMachineWindow.Selected.Delete", () =>
+            {
+                if(selectedNode != null)
                 {
-                    return (false, null);
+                    nodeUI.DeleteNode(selectedNode);
+
+                    foreach (var state in asset.states)
+                    {
+                        if (state.name == selectedNode.Title)
+                        {
+                            foreach(var s in asset.states)
+                            {
+                                for(var i = s.connections.Count - 1; i >= 0; i--)
+                                {
+                                    if(s.connections[i].name == selectedNode.Title)
+                                    {
+                                        s.connections.RemoveAt(i);
+                                    }
+                                }
+                            }
+
+                            asset.states.Remove(state);
+
+                            selectedNode = null;
+
+                            return;
+                        }
+                    }
                 }
+            });
+        });
+
+        EditorGUI.Popup(LinkPopup, () =>
+        {
+            EditorGUI.MenuItem("Delete", $"SkinnedAnimationStateMachineWindow.Selected.Delete", () =>
+            {
+                var fromNode = selectedNodes.Item1.Node.Title;
+                var toNode = selectedNodes.Item2.node.Title;
+
+                nodeUI.DeleteLink(selectedNodes.Item1, selectedNodes.Item2);
+
+                selectedConnection = null;
 
                 foreach (var state in asset.states)
                 {
-                    if(state.name == from.Node.Title)
+                    if(state.name == fromNode)
                     {
-                        foreach(var connection in state.connections)
+                        foreach (var connection in state.connections)
                         {
-                            if(connection.name == to.Node.Title)
+                            if (connection.name == toNode)
                             {
-                                selectedConnection = connection;
+                                state.connections.Remove(connection);
 
-                                return (false, null);
+                                return;
                             }
                         }
                     }
                 }
+            });
+        });
+
+        EditorGUI.Popup(WorkspacePopup, () =>
+        {
+
+        });
+    }
+
+    public (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button)
+    {
+        if (owner == null || owner.target is not SkinnedAnimationStateMachine asset)
+        {
+            return (false, null);
+        }
+
+        selectedConnection = null;
+        selectedNodes = (from, to);
+
+        foreach (var state in asset.states)
+        {
+            if (state.name == from.Node.Title)
+            {
+                foreach (var connection in state.connections)
+                {
+                    if (connection.name == to.Node.Title)
+                    {
+                        selectedConnection = connection;
+
+                        break;
+                    }
+                }
+            }
+
+            if(selectedConnection != null)
+            {
+                break;
+            }
+        }
+
+        switch (button)
+        {
+            case MouseButton.Right:
+
+                EditorGUI.OpenPopup(LinkPopup);
 
                 break;
         }
@@ -272,6 +389,22 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
     public (bool, Action) OnNodeClick(NodeUI nodeUI, NodeUI.Node node, MouseButton button)
     {
+        if (owner == null || owner.target is not SkinnedAnimationStateMachine asset)
+        {
+            return (false, null);
+        }
+
+        selectedNode = node;
+
+        switch(button)
+        {
+            case MouseButton.Right:
+
+                EditorGUI.OpenPopup(NodePopup);
+
+                break;
+        }
+
         return (false, null);
     }
 
@@ -284,6 +417,12 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
                 selectedConnection = null;
 
                 break;
+
+            case MouseButton.Right:
+
+                EditorGUI.OpenPopup(WorkspacePopup);
+
+                break;
         }
 
         return (false, null);
@@ -291,6 +430,13 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
     public bool ValidateConnection(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to)
     {
+        if(from.Name != "Out" || to.Name != "In")
+        {
+            return false;
+        }
+
+        //TODO: Add logic
+
         return false;
     }
 }

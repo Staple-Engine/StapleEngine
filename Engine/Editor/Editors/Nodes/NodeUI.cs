@@ -190,34 +190,25 @@ public partial class NodeUI
                 }
             }
 
-            var hovered = 0;
-
-            if (ImNodes.IsNodeHovered(ref hovered))
-            {
-                if (observer != null &&
-                    nodes.TryGetValue(hovered, out var i))
-                {
-                    var r = observer.OnNodeClick(this, i.node, button);
-
-                    ShowPopup(r);
-                }
-            }
-            else if (ImNodes.IsLinkHovered(ref hovered))
-            {
-                var link = links[hovered];
-
-                if (observer != null &&
-                    connectors.TryGetValue(link.Item1, out var from) &&
-                    connectors.TryGetValue(link.Item2, out var to))
-                {
-                    var r = observer.OnLinkClick(this, from.socket, to.socket, button);
-
-                    ShowPopup(r);
-                }
-            }
-            else if(observer != null)
+            if(observer != null)
             {
                 (bool, Action) r = (false, null);
+
+                foreach (var pair in nodes)
+                {
+                    if (ImNodes.IsNodeSelected(pair.Key))
+                    {
+                        if (observer != null &&
+                            nodes.TryGetValue(pair.Key, out var i))
+                        {
+                            r = observer.OnNodeClick(this, i.node, button);
+
+                            ShowPopup(r);
+
+                            return;
+                        }
+                    }
+                }
 
                 for (var i = 0; i < links.Count; i++)
                 {
