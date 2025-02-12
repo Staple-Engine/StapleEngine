@@ -60,6 +60,8 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
         EditorGUI.SameLine();
 
         nodeUI.DoLayout();
+
+        nodeUI.EndFrame();
     }
 
     public (bool, Action) OnLinkClick(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to, MouseButton button)

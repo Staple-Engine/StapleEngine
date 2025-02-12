@@ -186,7 +186,7 @@ public partial class NodeUI
                 {
                     popupContent = handler.Item2;
 
-                    ImGui.OpenPopup("NODEUIPOPUP");
+                    ImGui.OpenPopup("NodeUI.Popup");
                 }
             }
 
@@ -229,8 +229,11 @@ public partial class NodeUI
                 ShowPopup(r);
             }
         }
+    }
 
-        if (ImGui.BeginPopup("NODEUIPOPUP"))
+    public void EndFrame()
+    {
+        if (ImGui.BeginPopup("NodeUI.Popup"))
         {
             try
             {
