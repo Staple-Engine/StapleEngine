@@ -15,6 +15,7 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
     private SkinnedAnimationStateMachine.AnimationStateConnection selectedConnection;
     private (NodeUI.NodeSocket, NodeUI.NodeSocket) selectedNodes;
     private NodeUI.Node selectedNode;
+    private int counter = 0;
 
     public SkinnedAnimationStateMachineWindow()
     {
@@ -40,6 +41,38 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
         }
 
         return null;
+    }
+
+    private NodeUI.Node CreateNode(SkinnedAnimationStateMachine.AnimationState state, SkinnedAnimationStateMachine asset)
+    {
+        var index = counter++;
+
+        return nodeUI.CreateNode(state.name, [new("In", NodeUI.PinShape.Circle)], [new("Out", NodeUI.PinShape.Circle)],
+            (node) =>
+            {
+                state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStateMachineWindow.State{index}.Name", state.name, new Vector2(100, 0));
+
+                state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{index}.Repeat", state.repeat);
+
+                var animations = asset.mesh?.meshAsset?.animations;
+
+                if (animations != null)
+                {
+                    var animationNames = animations.Keys.ToArray();
+
+                    var currentIndex = Array.IndexOf(animationNames, state.animation);
+
+                    EditorGUI.ItemWidth(100, () =>
+                    {
+                        var newIndex = EditorGUI.Dropdown("Animation", $"SkinnedAnimationStateMachineWindow.State{index}.Animation", animationNames, currentIndex);
+
+                        if (newIndex != currentIndex && newIndex >= 0 && newIndex < animationNames.Length)
+                        {
+                            state.animation = animationNames[newIndex];
+                        }
+                    });
+                }
+            });
     }
 
     public override void OnGUI()
@@ -90,31 +123,7 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
                 var state = asset.states[i];
                 var index = i;
 
-                var node = nodeUI.CreateNode(state.name, [new("In", NodeUI.PinShape.Circle)], [new("Out", NodeUI.PinShape.Circle)], (node) =>
-                {
-                    state.name = EditorGUI.TextField("Name", $"SkinnedAnimationStateMachineWindow.State{index}.Name", state.name, new Vector2(100, 0));
-
-                    state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{index}.Repeat", state.repeat);
-
-                    var animations = asset.mesh?.meshAsset?.animations;
-
-                    if (animations != null)
-                    {
-                        var animationNames = animations.Keys.ToArray();
-
-                        var currentIndex = Array.IndexOf(animationNames, state.animation);
-
-                        EditorGUI.ItemWidth(100, () =>
-                        {
-                            var newIndex = EditorGUI.Dropdown("Animation", "SkinnedAnimationStateMachineWindow.Selected.Animation", animationNames, currentIndex);
-
-                            if (newIndex != currentIndex && newIndex >= 0 && newIndex < animationNames.Length)
-                            {
-                                state.animation = animationNames[newIndex];
-                            }
-                        });
-                    }
-                });
+                var node = CreateNode(state, asset);
 
                 nodes.Add(node);
 
@@ -397,7 +406,12 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
     public (bool, Action) OnWorkspaceClick(NodeUI nodeUI, MouseButton button)
     {
-        switch(button)
+        if (owner == null || owner.target is not SkinnedAnimationStateMachine asset)
+        {
+            return (false, null);
+        }
+
+        switch (button)
         {
             case MouseButton.Left:
 
@@ -409,7 +423,41 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
                 return (true, () =>
                 {
+                    EditorGUI.MenuItem("Create State", "", () =>
+                    {
+                        asset.states.Add(new());
 
+                        var counter = 1;
+
+                        var name = $"State";
+
+                        var found = true;
+
+                        while(found)
+                        {
+                            found = false;
+
+                            for (var i = 0; i < asset.states.Count; i++)
+                            {
+                                if (asset.states[i].name == name)
+                                {
+                                    name = $"State{counter++}";
+
+                                    found = true;
+                                }
+                            }
+                        }
+
+                        var state = asset.states.Last();
+
+                        state.name = name;
+
+                        var node = CreateNode(state, asset);
+
+                        nodes.Add(node);
+
+                        nodeUI.SetNodePosition(node, EditorGUI.MousePositionOnPopup - new Vector2(400, 150));
+                    });
                 });
         }
 
@@ -418,13 +466,30 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
     public bool ValidateConnection(NodeUI nodeUI, NodeUI.NodeSocket from, NodeUI.NodeSocket to)
     {
-        if(from.Name != "Out" || to.Name != "In")
+        if (owner == null ||
+            owner.target is not SkinnedAnimationStateMachine asset ||
+            from.Name != "Out" ||
+            to.Name != "In")
         {
             return false;
         }
 
-        //TODO: Add logic
+        var fromIndex = nodes.IndexOf(from.Node);
+        var toIndex = nodes.IndexOf(to.Node);
 
-        return false;
+        if(fromIndex < 0 || toIndex < 0 || fromIndex == toIndex)
+        {
+            return false;
+        }
+
+        var fromState = asset.states[fromIndex];
+        var toState = asset.states[toIndex];
+
+        fromState.connections.Add(new()
+        {
+            name = toState.name,
+        });
+
+        return true;
     }
 }

@@ -82,6 +82,10 @@ public static class EditorGUI
         }
     }
 
+    public static Vector2 MousePosition => ImGui.GetMousePos();
+
+    public static Vector2 MousePositionOnPopup => ImGui.GetMousePosOnOpeningCurrentPopup();
+
     /// <summary>
     /// How much horizontal space is left in the current window
     /// </summary>

@@ -196,7 +196,13 @@ public partial class NodeUI
 
                 foreach (var pair in nodes)
                 {
-                    if (ImNodes.IsNodeSelected(pair.Key))
+                    var pos = ImNodes.GetNodeScreenSpacePos(pair.Key);
+                    var size = ImNodes.GetNodeDimensions(pair.Key);
+
+                    var rect = new RectFloat(pos, size);
+
+                    if ((ImNodes.IsNodeSelected(pair.Key) || button == MouseButton.Left) &&
+                        rect.Contains(EditorGUI.MousePosition))
                     {
                         if (observer != null &&
                             nodes.TryGetValue(pair.Key, out var i))
