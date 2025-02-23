@@ -47,18 +47,42 @@ namespace CrossCopy
                 {
                     var process = new Process();
 
+                    var commandArgs = "";
+                    var isDirectory = false;
+
+                    if (Directory.Exists(args[0]))
+                    {
+                        isDirectory = true;
+
+                        var directoryName = Path.GetFileName(args[0]);
+
+                        if (args[1].EndsWith(directoryName) == false)
+                        {
+                            args[1] += $"{Path.DirectorySeparatorChar}{directoryName}";
+                        }
+                    }
+
                     var argsString = "";
 
-                    foreach(var arg in args)
+                    foreach (var arg in args)
                     {
                         argsString += $"\"{arg}\" ";
+                    }
+
+                    if (isDirectory)
+                    {
+                        commandArgs = $"/C robocopy {argsString} /E /NJH /NJS /NP /NS /NC";
+                    }
+                    else
+                    {
+                        commandArgs = $"/C copy /B /Y {argsString}";
                     }
 
                     var startInfo = new ProcessStartInfo
                     {
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = "cmd.exe",
-                        Arguments = $"/C copy /B /Y {argsString}",
+                        Arguments = commandArgs,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true,
                     };
@@ -78,7 +102,7 @@ namespace CrossCopy
 
                     process.WaitForExit();
 
-                    Environment.Exit(process.ExitCode);
+                    Environment.Exit(isDirectory && process.ExitCode < 8 ? 0 : process.ExitCode);
                 }
                 catch(Exception e)
                 {

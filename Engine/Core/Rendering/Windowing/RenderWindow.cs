@@ -656,16 +656,16 @@ internal class RenderWindow
         bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 1, 0);
         bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
 
-        switch(AppSettings.Current?.profilingMode ?? AppSettings.ProfilingMode.None)
+        switch(AppSettings.Current?.profilingMode ?? AppProfilingMode.None)
         {
-            case AppSettings.ProfilingMode.None:
-            case AppSettings.ProfilingMode.Profiler:
+            case AppProfilingMode.None:
+            case AppProfilingMode.Profiler:
 
                 bgfx.set_debug((uint)bgfx.DebugFlags.Text);
 
                 break;
 
-            case AppSettings.ProfilingMode.RenderStats:
+            case AppProfilingMode.RenderStats:
 
                 bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
 
@@ -792,9 +792,9 @@ internal class RenderWindow
 
         bgfx.dbg_text_clear(0, false);
 
-        switch(AppSettings.Current?.profilingMode ?? AppSettings.ProfilingMode.None)
+        switch(AppSettings.Current?.profilingMode ?? AppProfilingMode.None)
         {
-            case AppSettings.ProfilingMode.Profiler:
+            case AppProfilingMode.Profiler:
 
                 {
                     var counters = PerformanceProfilerSystem.AverageFrameCounters

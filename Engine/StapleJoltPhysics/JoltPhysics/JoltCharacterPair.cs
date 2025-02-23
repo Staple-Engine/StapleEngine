@@ -1,7 +1,5 @@
 ﻿using JoltPhysicsSharp;
-using Staple.Internal;
 using System.Numerics;
-using System;
 
 namespace Staple.JoltPhysics;
 

@@ -1,5 +1,4 @@
 ﻿using MessagePack;
-using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +13,6 @@ namespace Staple;
 [Serializable]
 public class AppSettings
 {
-    /// <summary>
-    /// What kind of profiling to use
-    /// </summary>
-    public enum ProfilingMode
-    {
-        None,
-        Profiler,
-        RenderStats,
-    }
-
     /// <summary>
     /// Whether to run in the background (not pause)
     /// </summary>
@@ -166,7 +155,7 @@ public class AppSettings
     /// Whether to show the performance profiler overlay
     /// </summary>
     [Key(23)]
-    public ProfilingMode profilingMode = ProfilingMode.None;
+    public AppProfilingMode profilingMode = AppProfilingMode.None;
 
     /// <summary>
     /// Whether to enable lighting
@@ -204,38 +193,33 @@ public class AppSettings
                 {
                     {
                         AppPlatform.Windows,
-                        new()
-                        {
+                        [
                             RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan
-                        }
+                        ]
                     },
                     {
                         AppPlatform.Linux,
-                        new()
-                        {
+                        [
                             RendererType.Vulkan, RendererType.OpenGL
-                        }
+                        ]
                     },
                     {
                         AppPlatform.MacOSX,
-                        new()
-                        {
+                        [
                             RendererType.Metal
-                        }
+                        ]
                     },
                     {
                         AppPlatform.Android,
-                        new()
-                        {
+                        [
                             RendererType.Vulkan, RendererType.OpenGLES
-                        }
+                        ]
                     },
                     {
                         AppPlatform.iOS,
-                        new()
-                        {
+                        [
                             RendererType.Metal
-                        }
+                        ]
                     }
                 },
                 usedModules = [
@@ -284,6 +268,8 @@ public class AppSettings
             maximumFixedTimestepTime = maximumFixedTimestepTime,
             physicsFrameRate = physicsFrameRate,
             profilingMode = profilingMode,
+            allowFullscreenSwitch = allowFullscreenSwitch,
+            enableLighting = enableLighting,
         };
     }
 }
@@ -291,6 +277,7 @@ public class AppSettings
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<AppPlatform, List<RendererType>>))]
+[JsonSerializable(typeof(JsonStringEnumConverter<AppProfilingMode>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<RendererType>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<WindowMode>))]

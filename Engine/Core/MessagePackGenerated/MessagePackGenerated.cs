@@ -79,7 +79,7 @@ namespace MessagePack.Resolvers
                 { typeof(global::System.Collections.Generic.List<int>), 24 },
                 { typeof(global::System.Collections.Generic.List<string>), 25 },
                 { typeof(global::Staple.AppPlatform), 26 },
-                { typeof(global::Staple.AppSettings.ProfilingMode), 27 },
+                { typeof(global::Staple.AppProfilingMode), 27 },
                 { typeof(global::Staple.BlendMode), 28 },
                 { typeof(global::Staple.CullingMode), 29 },
                 { typeof(global::Staple.Internal.AudioClipFormat), 30 },
@@ -209,7 +209,7 @@ namespace MessagePack.Resolvers
                 case 24: return new global::MessagePack.Formatters.ListFormatter<int>();
                 case 25: return new global::MessagePack.Formatters.ListFormatter<string>();
                 case 26: return new MessagePack.Formatters.Staple.AppPlatformFormatter();
-                case 27: return new MessagePack.Formatters.Staple.AppSettings_ProfilingModeFormatter();
+                case 27: return new MessagePack.Formatters.Staple.AppProfilingModeFormatter();
                 case 28: return new MessagePack.Formatters.Staple.BlendModeFormatter();
                 case 29: return new MessagePack.Formatters.Staple.CullingModeFormatter();
                 case 30: return new MessagePack.Formatters.Staple.Internal.AudioClipFormatFormatter();
@@ -348,16 +348,16 @@ namespace MessagePack.Formatters.Staple
         }
     }
 
-    public sealed class AppSettings_ProfilingModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AppSettings.ProfilingMode>
+    public sealed class AppProfilingModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.AppProfilingMode>
     {
-        public void Serialize(ref MessagePackWriter writer, global::Staple.AppSettings.ProfilingMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, global::Staple.AppProfilingMode value, global::MessagePack.MessagePackSerializerOptions options)
         {
             writer.Write((Int32)value);
         }
 
-        public global::Staple.AppSettings.ProfilingMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public global::Staple.AppProfilingMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
         {
-            return (global::Staple.AppSettings.ProfilingMode)reader.ReadInt32();
+            return (global::Staple.AppProfilingMode)reader.ReadInt32();
         }
     }
 
@@ -845,7 +845,7 @@ namespace MessagePack.Formatters.Staple
             writer.Write(value.physicsFrameRate);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.HashSet<string>>().Serialize(ref writer, value.usedModules, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Serialize(ref writer, value.ambientLight, options);
-            formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Serialize(ref writer, value.profilingMode, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.AppProfilingMode>().Serialize(ref writer, value.profilingMode, options);
             writer.Write(value.enableLighting);
             writer.Write(value.allowFullscreenSwitch);
         }
@@ -936,7 +936,7 @@ namespace MessagePack.Formatters.Staple
                         ____result.ambientLight = formatterResolver.GetFormatterWithVerify<global::Staple.Color>().Deserialize(ref reader, options);
                         break;
                     case 23:
-                        ____result.profilingMode = formatterResolver.GetFormatterWithVerify<global::Staple.AppSettings.ProfilingMode>().Deserialize(ref reader, options);
+                        ____result.profilingMode = formatterResolver.GetFormatterWithVerify<global::Staple.AppProfilingMode>().Deserialize(ref reader, options);
                         break;
                     case 24:
                         ____result.enableLighting = reader.ReadBoolean();
