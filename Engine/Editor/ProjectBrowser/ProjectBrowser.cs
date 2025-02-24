@@ -36,6 +36,7 @@ internal class ProjectBrowser
         { "TextIcon", "Textures/text.png" },
         { "AssetIcon", "Textures/asset.png" },
         { "AudioIcon", "Textures/audio.png" },
+        { "ShaderIcon", "Textures/shader.png" },
     };
 
     static ProjectBrowser()
@@ -76,7 +77,7 @@ internal class ProjectBrowser
     /// <summary>
     /// The current list of project browser nodes/items
     /// </summary>
-    internal List<ProjectBrowserNode> projectBrowserNodes = new();
+    internal List<ProjectBrowserNode> projectBrowserNodes = [];
 
     /// <summary>
     /// The currently selected project browser node
@@ -86,17 +87,17 @@ internal class ProjectBrowser
     /// <summary>
     /// The currently browsable project browser nodes
     /// </summary>
-    private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = new();
+    private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = [];
 
     /// <summary>
     /// All nodes in the project
     /// </summary>
-    private List<ProjectBrowserNode> allNodes = new();
+    private List<ProjectBrowserNode> allNodes = [];
 
     /// <summary>
     /// Local editor resources for rendering
     /// </summary>
-    internal Dictionary<string, Texture> editorResources = new();
+    internal Dictionary<string, Texture> editorResources = [];
 
     /// <summary>
     /// Gets an editor resource if able
@@ -182,8 +183,8 @@ internal class ProjectBrowser
 
             void Recursive(string p, List<ProjectBrowserNode> nodes)
             {
-                string[] directories = Array.Empty<string>();
-                string[] files = Array.Empty<string>();
+                string[] directories = [];
+                string[] files = [];
 
                 try
                 {
