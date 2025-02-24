@@ -13,17 +13,9 @@ internal class UIImageEditor : Editor
 
         switch (name)
         {
-            case nameof(UIImage.texture):
+            case nameof(UIImage.sprite):
 
-                {
-                    var value = (Texture)getter();
-
-                    EditorUtils.SpritePicker(name, ref value, ref image.spriteIndex, setter);
-                }
-
-                return true;
-
-            case nameof(UIImage.spriteIndex):
+                setter(EditorGUI.SpritePicker(name, getter() as Sprite));
 
                 return true;
 

@@ -12,7 +12,9 @@ internal class UIImageTemplate : IEntityTemplate
 
         var image = entity.GetComponent<UIImage>();
 
-        image.texture = Resources.Load<Texture>("Hidden/Textures/Sprites/DefaultSprite.png");
+        var texture = Resources.Load<Texture>("Hidden/Textures/Sprites/DefaultSprite.png");
+
+        image.sprite = texture != null && texture.Sprites.Length > 0 ? texture.Sprites[0] : null;
         image.size = new Vector2Int(50, 50);
 
         return entity;

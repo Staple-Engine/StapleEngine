@@ -188,6 +188,7 @@
 		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
+		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />

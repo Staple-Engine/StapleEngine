@@ -1221,4 +1221,59 @@ public static class EditorGUI
             ImGui.EndPopup();
         }
     }
+
+    /// <summary>
+    /// Shows a sprite picker
+    /// </summary>
+    /// <param name="name">The label to use</param>
+    /// <param name="value">The current value</param>
+    /// <param name="spriteIndex">The current sprite index</param>
+    /// <param name="setter">Action to use when changing the value</param>
+    public static Sprite SpritePicker(string name, Sprite value)
+    {
+        var texture = value?.texture;
+
+        texture = (Texture)ObjectPicker(typeof(Texture), name.ExpandCamelCaseName(), texture);
+
+        if (texture != null)
+        {
+            value ??= new();
+
+            value.texture = texture;
+
+            Label("Selected Sprite");
+
+            SameLine();
+
+            if (value.spriteIndex >= 0 && value.spriteIndex < value.texture.metadata.sprites.Count)
+            {
+                var sprite = value.texture.metadata.sprites[value.spriteIndex];
+
+                TextureRect(value.texture, sprite.rect, new Vector2(32, 32), sprite.rotation);
+            }
+            else
+            {
+                Label("(none)");
+            }
+
+            SameLine();
+
+            Button("O", $"{name}Picker", () =>
+            {
+                var editor = StapleEditor.instance;
+                var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.texture.Guid));
+
+                if (assetPath != value.texture.Guid && Path.IsPathRooted(assetPath) == false)
+                {
+                    assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
+                }
+
+                editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? value.texture,
+                    value.texture.metadata.sprites,
+                    (index) => value.spriteIndex = index);
+            });
+        }
+
+        return value;
+    }
 }

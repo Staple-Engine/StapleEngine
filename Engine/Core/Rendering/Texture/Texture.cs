@@ -57,6 +57,11 @@ public class Texture : IGuidAsset
     public float SpriteScale => 1.0f / (float)metadata.spritePixelsPerUnit;
 
     /// <summary>
+    /// The contained sprites of this texture
+    /// </summary>
+    public Sprite[] Sprites { get; internal set; } = [];
+
+    /// <summary>
     /// Create a texture from an existing bgfx texture
     /// </summary>
     /// <param name="textureHandle">The handle</param>
@@ -100,6 +105,26 @@ public class Texture : IGuidAsset
         if(renderTarget || createMethod.Create(this))
         {
             Disposed = false;
+        }
+
+        if((metadata?.sprites?.Count ?? 0) > 0)
+        {
+            var sprites = Sprites;
+
+            if ((Sprites?.Length ?? 0) != metadata.sprites.Count)
+            {
+                sprites = new Sprite[metadata.sprites.Count];
+            }
+
+            for (var i = 0; i < metadata.sprites.Count; i++)
+            {
+                sprites[i] ??= new();
+
+                sprites[i].texture = this;
+                sprites[i].spriteIndex = i;
+            }
+
+            Sprites = sprites;
         }
 
         return true;

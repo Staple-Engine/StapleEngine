@@ -12,7 +12,10 @@ internal class SpriteTemplate : IEntityTemplate
 
         var renderer = entity.GetComponent<SpriteRenderer>();
 
-        renderer.texture = Resources.Load<Texture>("Hidden/Textures/Sprites/DefaultSprite.png");
+        var texture = Resources.Load<Texture>("Hidden/Textures/Sprites/DefaultSprite.png");
+
+        renderer.sprite = texture != null && texture.Sprites.Length > 0 ? texture.Sprites[0] : null;
+
         renderer.material = SpriteRenderSystem.DefaultMaterial.Value;
 
         return entity;

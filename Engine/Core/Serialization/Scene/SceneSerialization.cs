@@ -244,6 +244,21 @@ internal static class SceneSerialization
 
             setter(value);
         }
+        else if(fieldType == typeof(Sprite) && element.ValueKind == JsonValueKind.String)
+        {
+            var pieces = element.GetString()?.Split(":");
+
+            if((pieces?.Length ?? 0) == 2 &&
+                int.TryParse(pieces[1], out var spriteIndex))
+            {
+                var texture = ResourceManager.instance.LoadTexture(pieces[0]);
+
+                if(texture != null && spriteIndex >= 0 && spriteIndex < texture.Sprites.Length)
+                {
+                    setter(texture.Sprites[spriteIndex]);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -491,6 +506,23 @@ internal static class SceneSerialization
                     }
 
                     setter(value);
+                }
+                else if(fieldType == typeof(Sprite))
+                {
+                    var pieces = parameter.stringValue.Split(":");
+
+                    if(pieces.Length != 2 ||
+                        int.TryParse(pieces[1], out var spriteIndex) == false)
+                    {
+                        return;
+                    }
+
+                    var texture = ResourceManager.instance.LoadTexture(pieces[0]);
+
+                    if(texture != null && spriteIndex >= 0 && spriteIndex < texture.Sprites.Length)
+                    {
+                        setter(texture.Sprites[spriteIndex]);
+                    }
                 }
 
                 break;
@@ -938,6 +970,31 @@ internal static class SceneSerialization
             else
             {
                 sceneComponent.data.Add(name, compacted);
+            }
+        }
+        else if(fieldType == typeof(Sprite))
+        {
+            var sprite = (Sprite)getter();
+
+            if((sprite?.IsValid ?? false) == false)
+            {
+                return;
+            }
+
+            var value = $"{sprite.texture.Guid}:{sprite.spriteIndex}";
+
+            if (parameters)
+            {
+                sceneComponent.parameters.Add(new SceneComponentParameter()
+                {
+                    name = name,
+                    type = SceneComponentParameterType.String,
+                    stringValue = value,
+                });
+            }
+            else
+            {
+                sceneComponent.data.Add(name, value);
             }
         }
     }

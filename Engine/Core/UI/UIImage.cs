@@ -10,14 +10,9 @@ namespace Staple.UI;
 public class UIImage : UIElement
 {
     /// <summary>
-    /// The UI image texture. Should be a sprite type texture.
+    /// The UI image sprite.
     /// </summary>
-    public Texture texture;
-
-    /// <summary>
-    /// The sprite index in the texture
-    /// </summary>
-    public int spriteIndex = 0;
+    public Sprite sprite;
 
     /// <summary>
     /// The color to use for displaying the sprite
@@ -46,7 +41,7 @@ public class UIImage : UIElement
     private void SetMaterial()
     {
         material.shader.SetColor(material.GetShaderHandle(Material.MainColorProperty), color);
-        material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), texture);
+        material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), sprite.texture);
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
@@ -54,28 +49,26 @@ public class UIImage : UIElement
 
     public override void Render(Vector2Int position, ushort viewID)
     {
-        if (texture == null ||
-            texture.Disposed ||
+        if (sprite == null ||
+            sprite.IsValid == false ||
             material == null ||
             material.Disposed ||
             material.shader == null ||
-            material.shader.Disposed ||
-            spriteIndex < 0 ||
-            spriteIndex >= texture.metadata.sprites.Count)
+            material.shader.Disposed)
         {
             return;
         }
 
-        var sprite = texture.metadata.sprites[spriteIndex];
+        var rect = sprite.Rect;
 
         vertices[0].position = new(0, size.Y, 0);
-        vertices[0].uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.bottom / (float)texture.Height);
+        vertices[0].uv = new(rect.left / (float)sprite.texture.Width, rect.bottom / (float)sprite.texture.Height);
         vertices[1].position = Vector3.Zero;
-        vertices[1].uv = new(sprite.rect.left / (float)texture.Width, sprite.rect.top / (float)texture.Height);
+        vertices[1].uv = new(rect.left / (float)sprite.texture.Width, rect.top / (float)sprite.texture.Height);
         vertices[2].position = new(size.X, 0, 0);
-        vertices[2].uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.top / (float)texture.Height);
+        vertices[2].uv = new(rect.right / (float)sprite.texture.Width, rect.top / (float)sprite.texture.Height);
         vertices[3].position = new(size.X, size.Y, 0);
-        vertices[3].uv = new(sprite.rect.right / (float)texture.Width, sprite.rect.bottom / (float)texture.Height);
+        vertices[3].uv = new(rect.right / (float)sprite.texture.Width, rect.bottom / (float)sprite.texture.Height);
 
         var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
 

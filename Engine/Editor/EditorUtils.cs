@@ -389,53 +389,6 @@ public static class EditorUtils
         return baseEntity;
     }
 
-    public static void SpritePicker(string name, ref Texture value, ref int spriteIndex, Action<object> setter)
-    {
-        value = (Texture)EditorGUI.ObjectPicker(typeof(Texture), name.ExpandCamelCaseName(), value);
-
-        setter(value);
-
-        if (value != null)
-        {
-            var v = value;
-            var si = spriteIndex;
-
-            EditorGUI.Label("Selected Sprite");
-
-            EditorGUI.SameLine();
-
-            if (spriteIndex >= 0 && spriteIndex < value.metadata.sprites.Count)
-            {
-                var sprite = value.metadata.sprites[spriteIndex];
-
-                EditorGUI.TextureRect(value, sprite.rect, new Vector2(32, 32), sprite.rotation);
-            }
-            else
-            {
-                EditorGUI.Label("(none)");
-            }
-
-            EditorGUI.SameLine();
-
-            EditorGUI.Button("O", $"{name}Picker", () =>
-            {
-                var editor = StapleEditor.instance;
-                var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(v.Guid));
-
-                if (assetPath != v.Guid && Path.IsPathRooted(assetPath) == false)
-                {
-                    assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
-                }
-
-                editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? v,
-                    v.metadata.sprites,
-                    (index) => si = index);
-            });
-
-            spriteIndex = si;
-        }
-    }
-
     public static void SaveAsset(IStapleAsset asset)
     {
         if(asset == null ||

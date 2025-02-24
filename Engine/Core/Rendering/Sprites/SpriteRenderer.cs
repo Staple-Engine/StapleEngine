@@ -11,14 +11,9 @@ public sealed class SpriteRenderer : Renderable
     public Material material;
 
     /// <summary>
-    /// The sprite texture to use
+    /// The sprite to use
     /// </summary>
-    public Texture texture;
-
-    /// <summary>
-    /// The sprite index to use
-    /// </summary>
-    public int spriteIndex = 0;
+    public Sprite sprite;
 
     /// <summary>
     /// The sprite's color

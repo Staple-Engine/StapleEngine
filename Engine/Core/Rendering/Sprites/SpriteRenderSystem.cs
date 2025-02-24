@@ -121,7 +121,7 @@ public class SpriteRenderSystem : IRenderSystem
                 r.animation.texture.Disposed == false &&
                 r.animation.frames.Count > 0;
 
-            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+            var hasValidTexture = (r.sprite?.IsValid ?? false) ||
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
@@ -133,13 +133,10 @@ public class SpriteRenderSystem : IRenderSystem
                 continue;
             }
 
-            TextureSpriteInfo sprite;
-            Texture texture;
+            Sprite sprite = null;
 
             if (hasValidAnimation)
             {
-                texture = r.animation.texture;
-
                 if (Platform.IsPlaying)
                 {
                     r.timer += Time.deltaTime;
@@ -171,20 +168,20 @@ public class SpriteRenderSystem : IRenderSystem
                     continue;
                 }
 
-                sprite = r.animation.texture.metadata.sprites[frame];
+                sprite = (r.animation.texture?.Sprites?.Length ?? 0) > 0 && frame < r.animation.texture.Sprites.Length ?
+                    r.animation.texture.Sprites[frame] : null;
             }
             else
             {
-                if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
-                {
-                    continue;
-                }
-
-                texture = r.texture;
-                sprite = r.texture.metadata.sprites[r.spriteIndex];
+                sprite = r.sprite;
             }
 
-            var size = new Vector3(sprite.rect.Width * texture.SpriteScale, sprite.rect.Height * texture.SpriteScale, 0);
+            if(sprite == null)
+            {
+                return;
+            }
+
+            var size = new Vector3(sprite.Rect.Width * sprite.texture.SpriteScale, sprite.Rect.Height * sprite.texture.SpriteScale, 0);
 
             r.localBounds = new AABB(Vector3.Zero, size);
 
@@ -208,7 +205,7 @@ public class SpriteRenderSystem : IRenderSystem
                 r.animation.texture.Disposed == false &&
                 r.animation.frames.Count > 0;
 
-            var hasValidTexture = (r.texture != null && r.texture.Disposed == false) ||
+            var hasValidTexture = (r.sprite?.IsValid ?? false) ||
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
@@ -220,13 +217,10 @@ public class SpriteRenderSystem : IRenderSystem
                 continue;
             }
 
-            TextureSpriteInfo sprite;
-            Texture texture;
+            Sprite sprite = null;
 
             if (hasValidAnimation)
             {
-                texture = r.animation.texture;
-
                 if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
                 {
                     continue;
@@ -239,28 +233,28 @@ public class SpriteRenderSystem : IRenderSystem
                     continue;
                 }
 
-                sprite = r.animation.texture.metadata.sprites[frame];
+                sprite = (r.animation.texture?.Sprites?.Length ?? 0) > 0 && frame < r.animation.texture.Sprites.Length ?
+                    r.animation.texture.Sprites[frame] : null;
             }
             else
             {
-                if (r.spriteIndex < 0 || r.spriteIndex >= r.texture.metadata.sprites.Count)
-                {
-                    continue;
-                }
+                sprite = r.sprite;
+            }
 
-                texture = r.texture;
-                sprite = r.texture.metadata.sprites[r.spriteIndex];
+            if (sprite == null)
+            {
+                return;
             }
 
             var scale = Vector3.Zero;
 
-            if (texture != null)
+            if (sprite != null)
             {
-                scale.X = sprite.rect.Width * texture.SpriteScale;
-                scale.Y = sprite.rect.Height * texture.SpriteScale;
+                scale.X = sprite.Rect.Width * sprite.texture.SpriteScale;
+                scale.Y = sprite.Rect.Height * sprite.texture.SpriteScale;
             }
 
-            switch (sprite.rotation)
+            switch (sprite.Rotation)
             {
                 case TextureSpriteRotation.FlipY:
 
@@ -291,8 +285,8 @@ public class SpriteRenderSystem : IRenderSystem
             {
                 color = r.color,
                 material = r.material,
-                texture = texture,
-                textureRect = sprite.rect,
+                texture = sprite.texture,
+                textureRect = sprite.Rect,
                 position = transform.Position,
                 transform = matrix,
                 viewID = viewId,

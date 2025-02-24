@@ -12,17 +12,9 @@ internal class SpriteRendererEditor : Editor
 
         switch(name)
         {
-            case nameof(SpriteRenderer.texture):
+            case nameof(SpriteRenderer.sprite):
 
-                {
-                    var value = (Texture)getter();
-
-                    EditorUtils.SpritePicker(name, ref value, ref renderer.spriteIndex, setter);
-                }
-
-                return true;
-
-            case nameof(SpriteRenderer.spriteIndex):
+                setter(EditorGUI.SpritePicker(name, getter() as Sprite));
 
                 return true;
 
