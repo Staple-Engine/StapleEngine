@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple;
@@ -6,12 +7,14 @@ namespace Staple;
 /// <summary>
 /// Contains information of how an input action can be handled, for each device it supports.
 /// </summary>
-public class InputAction
+[Serializable]
+public sealed class InputAction
 {
     /// <summary>
     /// Keyboard parameters
     /// </summary>
-    public class Keys
+    [Serializable]
+    public sealed class Keys
     {
         /// <summary>
         /// Key that acts as a positive value if this is used for an axis, otherwise it's just the key field for a key press.
@@ -26,12 +29,12 @@ public class InputAction
         /// <summary>
         /// Key that acts as a positive value if this is used for two axis. Defaults to null.
         /// </summary>
-        public KeyCode? secondPositive;
+        public KeyCode secondPositive;
 
         /// <summary>
         /// Key that acts as a negative value if this is used for two axis. Defaults to null.
         /// </summary>
-        public KeyCode? secondNegative;
+        public KeyCode secondNegative;
 
         /// <summary>
         /// The key associated with this if used for a press event
@@ -47,7 +50,8 @@ public class InputAction
     /// <summary>
     /// Gamepad parameters
     /// </summary>
-    public class Gamepad
+    [Serializable]
+    public sealed class Gamepad
     {
         /// <summary>
         /// Button to check if this is used for a press event
@@ -68,7 +72,8 @@ public class InputAction
     /// <summary>
     /// Mouse parameters
     /// </summary>
-    public class Mouse
+    [Serializable]
+    public sealed class Mouse
     {
         /// <summary>
         /// Button to check if this is a press event
@@ -94,7 +99,8 @@ public class InputAction
     /// <summary>
     /// Touch parameters
     /// </summary>
-    public class Touch
+    [Serializable]
+    public sealed class Touch
     {
         /// <summary>
         /// Affected area in viewport space (0-1) where a touch is valid for an axis
@@ -125,7 +131,8 @@ public class InputAction
     /// <summary>
     /// Details for a specific device's settings
     /// </summary>
-    public class Device
+    [Serializable]
+    public sealed class Device
     {
         /// <summary>
         /// The kind of device
@@ -140,11 +147,25 @@ public class InputAction
         /// </summary>
         public int deviceIndex;
 
-        public Keys keys = new();
-        public Gamepad gamepad = new();
-        public Mouse mouse = new();
-        public Touch touch = new();
+        public Keys keys = null;
+        public Gamepad gamepad = null;
+        public Mouse mouse = null;
+        public Touch touch = null;
+
+        public bool IsValid => device switch
+        {
+            InputDevice.Keyboard => keys != null,
+            InputDevice.Gamepad => gamepad != null,
+            InputDevice.Mouse => mouse != null,
+            InputDevice.Touch => touch != null,
+            _ => false,
+        };
     }
+
+    /// <summary>
+    /// The name of the action
+    /// </summary>
+    public string name;
 
     /// <summary>
     /// Type of action
@@ -152,7 +173,7 @@ public class InputAction
     public InputActionType type;
 
     /// <summary>
-    /// Devices that can handle this device
+    /// Devices that can handle this action
     /// </summary>
     public List<Device> devices = [];
 }

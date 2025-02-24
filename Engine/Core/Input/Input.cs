@@ -413,11 +413,8 @@ public static class Input
                                 axis.X += GetKey(device.keys.firstPositive) ? 1 : 0;
                                 axis.X -= GetKey(device.keys.firstNegative) ? 1 : 0;
 
-                                if(device.keys.secondPositive.HasValue && device.keys.secondNegative.HasValue)
-                                {
-                                    axis.Y += GetKey(device.keys.secondPositive.Value) ? 1 : 0;
-                                    axis.Y -= GetKey(device.keys.secondNegative.Value) ? 1 : 0;
-                                }
+                                axis.Y += GetKey(device.keys.secondPositive) ? 1 : 0;
+                                axis.Y -= GetKey(device.keys.secondNegative) ? 1 : 0;
 
                                 break;
 

@@ -69,97 +69,110 @@ public class Editor
     /// </summary>
     public virtual void OnInspectorGUI()
     {
-        FieldInspector(target);
+        FieldInspector(target, "", "", false);
     }
 
     public virtual void Destroy()
     {
     }
 
-    private void FieldInspector(object target, string IDSuffix = "")
+    private void FieldInspector(object target, string targetName, string IDSuffix, bool indent)
     {
         if(target == null)
         {
             return;
         }
 
-        var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (var field in fields)
+        void Content()
         {
-            if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
+
+            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var field in fields)
             {
-                continue;
-            }
-
-            if (DrawProperty(field.FieldType, field.Name,
-                () => field.GetValue(target),
-                (value) => field.SetValue(target, value),
-                field.GetCustomAttribute))
-            {
-                continue;
-            }
-
-            var type = field.FieldType;
-            var name = field.Name.ExpandCamelCaseName();
-
-            PropertyInspector(type, name, IDSuffix,
-                () => field.GetValue(target),
-                (value) => field.SetValue(target, value),
-                (attribute) =>
+                if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
                 {
-                    if (attribute.IsSubclassOf(typeof(Attribute)))
+                    continue;
+                }
+
+                if (DrawProperty(field.FieldType, field.Name,
+                    () => field.GetValue(target),
+                    (value) => field.SetValue(target, value),
+                    field.GetCustomAttribute))
+                {
+                    continue;
+                }
+
+                var type = field.FieldType;
+                var name = field.Name.ExpandCamelCaseName();
+
+                PropertyInspector(type, name, $"{targetName}{IDSuffix}",
+                    () => field.GetValue(target),
+                    (value) => field.SetValue(target, value),
+                    (attribute) =>
                     {
-                        return field.GetCustomAttribute(attribute);
-                    }
+                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                        {
+                            return field.GetCustomAttribute(attribute);
+                        }
 
-                    return null;
-                });
+                        return null;
+                    });
 
-            var tooltip = field.GetCustomAttribute<TooltipAttribute>();
+                var tooltip = field.GetCustomAttribute<TooltipAttribute>();
 
-            if (tooltip != null && ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(tooltip.caption);
+                if (tooltip != null && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(tooltip.caption);
+                }
             }
+
+            /*
+            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var property in properties)
+            {
+                if (property.CanWrite == false ||
+                    property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
+                    property.GetCustomAttribute<NonSerializedAttribute>() != null)
+                {
+                    continue;
+                }
+
+                if (DrawProperty(property.PropertyType, property.Name,
+                    () => property.GetValue(target),
+                    (value) => property.SetValue(target, value),
+                    property.GetCustomAttribute))
+                {
+                    continue;
+                }
+
+                var type = property.PropertyType;
+                var name = property.Name.ExpandCamelCaseName();
+
+                PropertyInspector(type, name,
+                    () => property.GetValue(target),
+                    (value) => property.SetValue(target, value),
+                    property.GetCustomAttribute);
+
+                var tooltip = property.GetCustomAttribute<TooltipAttribute>();
+
+                if (tooltip != null && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(tooltip.caption);
+                }
+            }
+            */
         }
 
-        /*
-        var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (var property in properties)
+        if (indent)
         {
-            if (property.CanWrite == false ||
-                property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
-                property.GetCustomAttribute<NonSerializedAttribute>() != null)
-            {
-                continue;
-            }
-
-            if (DrawProperty(property.PropertyType, property.Name,
-                () => property.GetValue(target),
-                (value) => property.SetValue(target, value),
-                property.GetCustomAttribute))
-            {
-                continue;
-            }
-
-            var type = property.PropertyType;
-            var name = property.Name.ExpandCamelCaseName();
-
-            PropertyInspector(type, name,
-                () => property.GetValue(target),
-                (value) => property.SetValue(target, value),
-                property.GetCustomAttribute);
-
-            var tooltip = property.GetCustomAttribute<TooltipAttribute>();
-
-            if (tooltip != null && ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(tooltip.caption);
-            }
+            EditorGUI.Indent(Content);
         }
-        */
+        else
+        {
+            Content();
+        }
     }
 
     private void PropertyInspector(Type type, string name, string IDSuffix, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
@@ -237,6 +250,8 @@ public class Editor
                             {
                                 var entry = list[i];
 
+                                EditorGUI.Label($"{name} {i + 1}");
+
                                 var result = EditorGUI.ObjectPicker(listType, "", entry);
 
                                 if (result != entry)
@@ -287,15 +302,25 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                PropertyInspector(listType, "", $"{i}{IDSuffix}", () => entry, (value) =>
-                                {
-                                    if (value != entry)
+                                PropertyInspector(listType, "", $"{i}{IDSuffix}", () => entry,
+                                    (value) =>
                                     {
-                                        changed = true;
+                                        if (value != entry)
+                                        {
+                                            changed = true;
 
-                                        list[i] = value;
-                                    }
-                                }, attributes);
+                                            list[i] = value;
+                                        }
+                                    },
+                                    (attribute) =>
+                                    {
+                                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                                        {
+                                            return listType.GetCustomAttribute(attribute);
+                                        }
+
+                                        return null;
+                                    });
 
                                 EditorGUI.SameLine();
 
@@ -338,7 +363,7 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                FieldInspector(entry, $"{i}{IDSuffix}");
+                                FieldInspector(entry, name, $"{i}{IDSuffix}", true);
 
                                 list[i] = entry;
 
@@ -911,6 +936,24 @@ public class Editor
                             {
                             }
                         });
+                    }
+                }
+
+                break;
+
+            case Type t when t.GetCustomAttribute<SerializableAttribute>() != null:
+
+                {
+                    if (getter() is object o)
+                    {
+                        EditorGUI.Label(name);
+
+                        FieldInspector(o, name, IDSuffix, true);
+
+                        if (EditorGUI.Changed)
+                        {
+                            setter(o);
+                        }
                     }
                 }
 

@@ -515,7 +515,11 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        LoadGame();
+                        if(updateProject)
+                        {
+                            UnloadGame();
+                            LoadGame();
+                        }
 
                         onFinish?.Invoke();
                     }

@@ -148,6 +148,19 @@ public static class EditorGUI
             ImGui.PopItemWidth();
         }
     }
+    
+    /// <summary>
+    /// Indents content
+    /// </summary>
+    /// <param name="content">The content to indent</param>
+    public static void Indent(Action content)
+    {
+        ImGui.Indent();
+
+        ExecuteHandler(content, $"Indent");
+
+        ImGui.Unindent();
+    }
 
     /// <summary>
     /// Creates a line of columns of elements.

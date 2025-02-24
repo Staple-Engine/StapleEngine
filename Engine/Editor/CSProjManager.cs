@@ -350,65 +350,60 @@ internal class CSProjManager
 
         var fileName = sandbox ? "Sandbox.sln" : "Game.sln";
 
-        try
+        if(File.Exists(Path.Combine(projectDirectory, fileName)) == false)
         {
-            File.Delete(Path.Combine(projectDirectory, fileName));
-        }
-        catch(Exception)
-        {
-        }
+            var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
+            {
+                WorkingDirectory = projectDirectory
+            };
 
-        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
-        {
-            WorkingDirectory = projectDirectory
-        };
+            var process = new Process
+            {
+                StartInfo = startInfo
+            };
 
-        var process = new Process
-        {
-            StartInfo = startInfo
-        };
+            if (process.Start())
+            {
+                while (process.HasExited == false) ;
 
-        if (process.Start())
-        {
-            while (process.HasExited == false) ;
-
-            if(process.ExitCode != 0)
+                if (process.ExitCode != 0)
+                {
+                    return;
+                }
+            }
+            else
             {
                 return;
             }
-        }
-        else
-        {
-            return;
-        }
-
-        if(process.ExitCode != 0)
-        {
-            return;
-        }
-
-        startInfo = new ProcessStartInfo("dotnet", "sln add Game.csproj")
-        {
-            WorkingDirectory = projectDirectory
-        };
-
-        process = new Process
-        {
-            StartInfo = startInfo
-        };
-
-        if (process.Start())
-        {
-            while (process.HasExited == false) ;
 
             if (process.ExitCode != 0)
             {
                 return;
             }
-        }
-        else
-        {
-            return;
+
+            startInfo = new ProcessStartInfo("dotnet", "sln add Game.csproj")
+            {
+                WorkingDirectory = projectDirectory
+            };
+
+            process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false) ;
+
+                if (process.ExitCode != 0)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
         }
     }
 

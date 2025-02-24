@@ -36,6 +36,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Editors\Assets\InputActionsEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
     <Compile Include="Generators\GeneratorManager.cs" />

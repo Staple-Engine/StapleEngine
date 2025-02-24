@@ -155,6 +155,7 @@
 		<Compile Include="Input\GamepadConnectionState.cs" />
 		<Compile Include="Input\InputAction.cs" />
 		<Compile Include="Input\InputActionContext.cs" />
+		<Compile Include="Input\InputActions.cs" />
 		<Compile Include="Input\InputActionType.cs" />
 		<Compile Include="Input\InputDevice.cs" />
 		<Compile Include="Jobs\ActionJob.cs" />
