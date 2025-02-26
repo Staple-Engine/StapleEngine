@@ -185,13 +185,13 @@ public class InputActionsEditor : StapleAssetEditor
                                     case InputActionType.Axis:
                                     case InputActionType.DualAxis:
 
-                                        device.mouse.scroll = EditorGUI.Toggle("Horizontal", $"InputActionsEditor.Action{i}.Device{j}.Scroll",
+                                        device.mouse.scroll = EditorGUI.Toggle("Scroll", $"InputActionsEditor.Action{i}.Device{j}.Scroll",
                                             device.mouse.scroll);
 
                                         device.mouse.horizontal = EditorGUI.Toggle("Horizontal", $"InputActionsEditor.Action{i}.Device{j}.Horizontal",
                                             device.mouse.horizontal);
 
-                                        device.mouse.vertical = EditorGUI.Toggle("Horizontal", $"InputActionsEditor.Action{i}.Device{j}.Vertical",
+                                        device.mouse.vertical = EditorGUI.Toggle("Vertical", $"InputActionsEditor.Action{i}.Device{j}.Vertical",
                                             device.mouse.vertical);
 
                                         break;
@@ -217,7 +217,7 @@ public class InputActionsEditor : StapleAssetEditor
                                         device.touch.horizontal = EditorGUI.Toggle("Horizontal", $"InputActionsEditor.Action{i}.Device{j}.Horizontal",
                                             device.touch.horizontal);
 
-                                        device.touch.vertical = EditorGUI.Toggle("Horizontal", $"InputActionsEditor.Action{i}.Device{j}.Vertical",
+                                        device.touch.vertical = EditorGUI.Toggle("Vertical", $"InputActionsEditor.Action{i}.Device{j}.Vertical",
                                             device.touch.vertical);
 
                                         var area = new Vector4(device.touch.affectedArea.left, device.touch.affectedArea.top,

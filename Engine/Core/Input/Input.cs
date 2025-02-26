@@ -204,6 +204,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -217,6 +218,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -230,6 +232,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -245,6 +248,7 @@ public static class Input
                                     {
                                         ExecuteSafely(pair.Value.onPress, new()
                                         {
+                                            name = pair.Value.action.name,
                                             device = device.device,
                                             deviceIndex = i,
                                         });
@@ -271,6 +275,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -284,6 +289,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -297,6 +303,7 @@ public static class Input
                                 {
                                     ExecuteSafely(pair.Value.onPress, new()
                                     {
+                                        name = pair.Value.action.name,
                                         device = device.device,
                                         deviceIndex = device.deviceIndex,
                                     });
@@ -312,6 +319,7 @@ public static class Input
                                     {
                                         ExecuteSafely(pair.Value.onPress, new()
                                         {
+                                            name = pair.Value.action.name,
                                             device = device.device,
                                             deviceIndex = i,
                                         });
@@ -385,6 +393,7 @@ public static class Input
                         {
                             ExecuteSafelyAxis(pair.Value.onAxis, new()
                             {
+                                name = pair.Value.action.name,
                                 device = device.device,
                                 deviceIndex = device.deviceIndex,
                             }, axis);
@@ -454,6 +463,7 @@ public static class Input
                         {
                             ExecuteSafelyDualAxis(pair.Value.onDualAxis, new()
                             {
+                                name = pair.Value.action.name,
                                 device = device.device,
                                 deviceIndex = device.deviceIndex,
                             }, axis);

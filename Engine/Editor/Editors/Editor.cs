@@ -85,7 +85,6 @@ public class Editor
 
         void Content()
         {
-
             var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (var field in fields)
@@ -187,15 +186,16 @@ public class Editor
             }
 
             if (a.targetType == type ||
+                (type.IsGenericType && type.GetGenericTypeDefinition() == a.targetType) ||
                 attributes(a.targetType) != null)
             {
-                if(cachedPropertyDrawers.TryGetValue(a.targetType.FullName, out var drawer) == false)
+                if(cachedPropertyDrawers.TryGetValue(type.FullName, out var drawer) == false)
                 {
                     try
                     {
                         drawer = (PropertyDrawer)Activator.CreateInstance(t);
 
-                        cachedPropertyDrawers.Add(a.targetType.FullName, drawer);
+                        cachedPropertyDrawers.Add(type.FullName, drawer);
                     }
                     catch(Exception e)
                     {
@@ -856,42 +856,7 @@ public class Editor
                 {
                     var value = (Entity)getter();
 
-                    EditorGUI.Label($"{name} ({t.Name})");
-
-                    EditorGUI.SameLine();
-
-                    if(value.IsValid)
-                    {
-                        EditorGUI.Label(value.Name);
-                    }
-                    else
-                    {
-                        EditorGUI.Label("(None)");
-                    }
-
-                    EditorGUI.DragDropTarget(t, (v) =>
-                    {
-                        if(v is Entity e)
-                        {
-                            setter(e);
-                        }
-                    });
-
-                    if (value.IsValid)
-                    {
-                        EditorGUI.SameLine();
-
-                        EditorGUI.Button("X", $"{name}_CLEAR{IDSuffix}", () =>
-                        {
-                            try
-                            {
-                                setter(new Entity());
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        });
-                    }
+                    setter(EditorGUI.EntityField(value, t.Name, IDSuffix));
                 }
 
                 break;
@@ -901,42 +866,7 @@ public class Editor
                 {
                     var value = (IComponent)getter();
 
-                    EditorGUI.Label($"{name} ({t.Name})");
-
-                    EditorGUI.SameLine();
-
-                    if(World.Current.TryGetComponentEntity(value, out var target))
-                    {
-                        EditorGUI.Label($"{target.Name} ({value.GetType().Name})");
-                    }
-                    else
-                    {
-                        EditorGUI.Label("(None)");
-                    }
-
-                    EditorGUI.DragDropTarget(t, (v) =>
-                    {
-                        if (v is IComponent c)
-                        {
-                            setter(c);
-                        }
-                    });
-
-                    if(value != null)
-                    {
-                        EditorGUI.SameLine();
-
-                        EditorGUI.Button("X", $"{name}_CLEAR{IDSuffix}", () =>
-                        {
-                            try
-                            {
-                                setter(null);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        });
-                    }
+                    setter(EditorGUI.ComponentField(value, name, IDSuffix));
                 }
 
                 break;

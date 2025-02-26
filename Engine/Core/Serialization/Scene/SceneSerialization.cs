@@ -206,29 +206,82 @@ internal static class SceneSerialization
 
             setter(mask);
         }
-        else if(fieldType == typeof(EntityCallback) && element.ValueKind == JsonValueKind.Object)
+        else if((fieldType == typeof(EntityCallback) ||
+            (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>))) &&
+            element.ValueKind == JsonValueKind.String)
         {
-            var persistentCallbacks = element.GetProperty("persistentCallbacks");
+            var pieces = element.GetString().Split(":").ToList();
 
-            if(persistentCallbacks.ValueKind != JsonValueKind.Array)
+            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>))
             {
-                return;
-            }
+                var arguments = fieldType.GetGenericArguments();
 
-            var value = new EntityCallback();
-
-            foreach(var e in element.EnumerateArray())
-            {
-                if(e.ValueKind != JsonValueKind.Object)
+                for (var i = 0; i < arguments.Length; i++)
                 {
-                    continue;
+                    var type = pieces[0];
+
+                    pieces.RemoveAt(0);
+
+                    if (fieldType.GetGenericArguments()[i].FullName != type)
+                    {
+                        return;
+                    }
                 }
 
-                try
+                var value = ObjectCreation.CreateObject(fieldType);
+
+                if (value == null)
                 {
-                    var id = e.GetProperty("entityID").GetInt32();
-                    var className = e.GetProperty("className").GetString();
-                    var methodName = e.GetProperty("methodName").GetString();
+                    return;
+                }
+
+                var addPersistentCallbackMethod = value.GetType().GetMethod(nameof(EntityCallback.AddPersistentCallback),
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (addPersistentCallbackMethod == null)
+                {
+                    return;
+                }
+
+                foreach (var piece in pieces)
+                {
+                    var parts = piece.Split("|");
+
+                    if (parts.Length != 3 ||
+                        int.TryParse(parts[0], out var id) == false)
+                    {
+                        continue;
+                    }
+
+                    var className = parts[1];
+                    var methodName = parts[2];
+
+                    addPersistentCallbackMethod.Invoke(value, [new EntityCallback.EntityCallbackEntry()
+                    {
+                        entityID = id,
+                        className = className,
+                        methodName = methodName,
+                    }]);
+                }
+
+                setter(value);
+            }
+            else
+            {
+                var value = new EntityCallback();
+
+                foreach (var piece in pieces)
+                {
+                    var parts = piece.Split("|");
+
+                    if (parts.Length != 3 ||
+                        int.TryParse(parts[0], out var id) == false)
+                    {
+                        continue;
+                    }
+
+                    var className = parts[1];
+                    var methodName = parts[2];
 
                     value.AddPersistentCallback(new()
                     {
@@ -237,12 +290,9 @@ internal static class SceneSerialization
                         methodName = methodName,
                     });
                 }
-                catch(Exception)
-                {
-                }
-            }
 
-            setter(value);
+                setter(value);
+            }
         }
         else if(fieldType == typeof(Sprite) && element.ValueKind == JsonValueKind.String)
         {
@@ -478,34 +528,91 @@ internal static class SceneSerialization
                         setter(value);
                     }
                 }
-                else if(fieldType == typeof(EntityCallback))
+                else if(fieldType == typeof(EntityCallback) || (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>)))
                 {
-                    var pieces = parameter.stringValue.Split(":");
+                    var pieces = parameter.stringValue.Split(":").ToList();
 
-                    var value = new EntityCallback();
-
-                    foreach(var piece in pieces)
+                    if(fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>))
                     {
-                        var parts = piece.Split("|");
+                        var arguments = fieldType.GetGenericArguments();
 
-                        if(parts.Length != 3 ||
-                            int.TryParse(parts[0], out var id) == false)
+                        for (var i = 0; i < arguments.Length; i++)
                         {
-                            continue;
+                            var type = pieces[0];
+
+                            pieces.RemoveAt(0);
+
+                            if (fieldType.GetGenericArguments()[i].FullName != type)
+                            {
+                                return;
+                            }
                         }
 
-                        var className = parts[1];
-                        var methodName = parts[2];
+                        var value = ObjectCreation.CreateObject(fieldType);
 
-                        value.AddPersistentCallback(new()
+                        if (value == null)
                         {
-                            entityID = id,
-                            className = className,
-                            methodName = methodName,
-                        });
-                    }
+                            return;
+                        }
 
-                    setter(value);
+                        var addPersistentCallbackMethod = value.GetType().GetMethod(nameof(EntityCallback.AddPersistentCallback),
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        if (addPersistentCallbackMethod == null)
+                        {
+                            return;
+                        }
+
+                        foreach (var piece in pieces)
+                        {
+                            var parts = piece.Split("|");
+
+                            if (parts.Length != 3 ||
+                                int.TryParse(parts[0], out var id) == false)
+                            {
+                                continue;
+                            }
+
+                            var className = parts[1];
+                            var methodName = parts[2];
+
+                            addPersistentCallbackMethod.Invoke(value, [new EntityCallback.EntityCallbackEntry()
+                            {
+                                entityID = id,
+                                className = className,
+                                methodName = methodName,
+                            }]);
+                        }
+
+                        setter(value);
+                    }
+                    else
+                    {
+                        var value = new EntityCallback();
+
+                        foreach (var piece in pieces)
+                        {
+                            var parts = piece.Split("|");
+
+                            if (parts.Length != 3 ||
+                                int.TryParse(parts[0], out var id) == false)
+                            {
+                                continue;
+                            }
+
+                            var className = parts[1];
+                            var methodName = parts[2];
+
+                            value.AddPersistentCallback(new()
+                            {
+                                entityID = id,
+                                className = className,
+                                methodName = methodName,
+                            });
+                        }
+
+                        setter(value);
+                    }
                 }
                 else if(fieldType == typeof(Sprite))
                 {
@@ -940,36 +1047,92 @@ internal static class SceneSerialization
                 sceneComponent.data.Add(name, mask.value);
             }
         }
-        else if(fieldType == typeof(EntityCallback))
+        else if(fieldType == typeof(EntityCallback) || (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>)))
         {
-            var callback = (EntityCallback)getter();
-
-            if(callback == null)
+            if(fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(EntityCallback<>))
             {
-                return;
-            }
+                var callback = getter();
 
-            var pieces = new List<string>();
-
-            foreach(var c in callback.PersistentCallbacks())
-            {
-                pieces.Add($"{c.entityID}|{c.className}|{c.methodName}");
-            }
-
-            var compacted = string.Join(":", pieces);
-
-            if(parameters)
-            {
-                sceneComponent.parameters.Add(new SceneComponentParameter()
+                if(callback == null)
                 {
-                    name = name,
-                    type = SceneComponentParameterType.String,
-                    stringValue = compacted,
-                });
+                    return;
+                }
+
+                var pieces = new List<string>
+                {
+                    fieldType.GetGenericArguments()[0].FullName
+                };
+
+                var persistentCallbacksMethod = fieldType.GetMethod(nameof(EntityCallback.PersistentCallbacks),
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if(persistentCallbacksMethod == null)
+                {
+                    return;
+                }
+
+                var result = persistentCallbacksMethod.Invoke(callback, null);
+
+                if(result is IEnumerable enumerable)
+                {
+                    foreach(var item in enumerable)
+                    {
+                        if(item is not EntityCallback.EntityCallbackEntry entry)
+                        {
+                            continue;
+                        }
+
+                        pieces.Add($"{entry.entityID}|{entry.className}|{entry.methodName}");
+                    }
+                }
+
+                var compacted = string.Join(":", pieces);
+
+                if (parameters)
+                {
+                    sceneComponent.parameters.Add(new SceneComponentParameter()
+                    {
+                        name = name,
+                        type = SceneComponentParameterType.String,
+                        stringValue = compacted,
+                    });
+                }
+                else
+                {
+                    sceneComponent.data.Add(name, compacted);
+                }
             }
             else
             {
-                sceneComponent.data.Add(name, compacted);
+                var callback = (EntityCallback)getter();
+
+                if (callback == null)
+                {
+                    return;
+                }
+
+                var pieces = new List<string>();
+
+                foreach (var c in callback.PersistentCallbacks())
+                {
+                    pieces.Add($"{c.entityID}|{c.className}|{c.methodName}");
+                }
+
+                var compacted = string.Join(":", pieces);
+
+                if (parameters)
+                {
+                    sceneComponent.parameters.Add(new SceneComponentParameter()
+                    {
+                        name = name,
+                        type = SceneComponentParameterType.String,
+                        stringValue = compacted,
+                    });
+                }
+                else
+                {
+                    sceneComponent.data.Add(name, compacted);
+                }
             }
         }
         else if(fieldType == typeof(Sprite))

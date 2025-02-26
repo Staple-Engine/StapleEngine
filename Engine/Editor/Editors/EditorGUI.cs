@@ -1289,4 +1289,76 @@ public static class EditorGUI
 
         return value;
     }
+
+    public static Entity EntityField(Entity value, string name, string identifier)
+    {
+        Label($"{name} (Entity)");
+
+        SameLine();
+
+        if (value.IsValid)
+        {
+            Label(value.Name);
+        }
+        else
+        {
+            Label("(None)");
+        }
+
+        DragDropTarget(typeof(Entity), (v) =>
+        {
+            if (v is Entity e)
+            {
+                value = e;
+            }
+        });
+
+        if (value.IsValid)
+        {
+            SameLine();
+
+            Button("X", $"{name}_CLEAR{identifier}", () =>
+            {
+                value = default;
+            });
+        }
+
+        return value;
+    }
+
+    public static T ComponentField<T>(T value, string name, string identifier) where T: IComponent
+    {
+        Label($"{name} ({typeof(T).Name})");
+
+        SameLine();
+
+        if (World.Current.TryGetComponentEntity(value, out var target))
+        {
+            Label($"{target.Name} ({value.GetType().Name})");
+        }
+        else
+        {
+            Label("(None)");
+        }
+
+        DragDropTarget(typeof(T), (v) =>
+        {
+            if (v is T c)
+            {
+                value = c;
+            }
+        });
+
+        if (value != null)
+        {
+            SameLine();
+
+            Button("X", $"{name}_CLEAR{identifier}", () =>
+            {
+                value = default;
+            });
+        }
+
+        return value;
+    }
 }

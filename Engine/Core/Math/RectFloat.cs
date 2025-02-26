@@ -9,6 +9,7 @@ namespace Staple;
 /// Represents a rectangle with float values
 /// </summary>
 [MessagePackObject]
+[Serializable]
 public struct RectFloat
 {
     [Key(0)]

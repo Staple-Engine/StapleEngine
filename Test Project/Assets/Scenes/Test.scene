@@ -81,8 +81,6 @@
         "type": "Staple.SpriteRenderer",
         "data": {
           "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
-          "texture": "fe19196d-0c54-413a-a0fd-6ef91124007a",
-          "spriteIndex": 0,
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
@@ -131,13 +129,6 @@
         }
       },
       {
-        "type": "TestGame.KeyboardControlComponent",
-        "data": {
-          "speed": 5.0,
-          "is3D": false
-        }
-      },
-      {
         "type": "Staple.RigidBody3D",
         "data": {
           "motionType": "Dynamic",
@@ -150,6 +141,19 @@
           "friction": 0.0,
           "restitution": 0.0,
           "mass": 1.0
+        }
+      },
+      {
+        "type": "TestGame.PlayerControlComponent",
+        "data": {
+          "speed": 5.0,
+          "is3D": false
+        }
+      },
+      {
+        "type": "Staple.EntityInput",
+        "data": {
+          "actions": "c610ff76-ab69-4723-95ac-66fcf8284ea4"
         }
       }
     ],
@@ -185,8 +189,6 @@
         "type": "Staple.SpriteRenderer",
         "data": {
           "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
-          "texture": "9b7be2ee-9523-4aee-8008-274c86673226",
-          "spriteIndex": 0,
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,

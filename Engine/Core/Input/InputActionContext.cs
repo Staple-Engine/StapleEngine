@@ -6,6 +6,11 @@
 public struct InputActionContext
 {
     /// <summary>
+    /// The name of the action
+    /// </summary>
+    public string name;
+
+    /// <summary>
     /// The device type
     /// </summary>
     public InputDevice device;

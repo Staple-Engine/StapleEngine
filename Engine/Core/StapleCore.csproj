@@ -150,9 +150,12 @@
 		<Compile Include="Input\Cursor.cs" />
 		<Compile Include="Input\CursorImage.cs" />
 		<Compile Include="Input\CursorLockMode.cs" />
+		<Compile Include="Input\EntityInput.cs" />
+		<Compile Include="Input\EntityInputSystem.cs" />
 		<Compile Include="Input\GamepadAxis.cs" />
 		<Compile Include="Input\GamepadButton.cs" />
 		<Compile Include="Input\GamepadConnectionState.cs" />
+		<Compile Include="Input\IInputReceiver.cs" />
 		<Compile Include="Input\InputAction.cs" />
 		<Compile Include="Input\InputActionContext.cs" />
 		<Compile Include="Input\InputActions.cs" />

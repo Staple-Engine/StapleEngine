@@ -3,29 +3,29 @@ using System.Numerics;
 
 namespace TestGame;
 
-public class KeyboardControlSystem : IEntitySystemUpdate
+public class PlayerControlSystem : IEntitySystemUpdate
 {
-    private readonly SceneQuery<KeyboardControlComponent, Transform> keyboards = new();
+    private readonly SceneQuery<PlayerControlComponent, Transform> keyboards = new();
 
     public void Update(float deltaTime)
     {
-        foreach((Entity entity, KeyboardControlComponent component, Transform transform) in keyboards.Contents)
+        foreach((Entity entity, PlayerControlComponent component, Transform transform) in keyboards.Contents)
         {
             var targetRotation = Quaternion.Identity;
 
             var direction = Vector3.Zero;
 
-            if (Input.GetKey(KeyCode.A))
+            if (component.movement.X < 0)
             {
                 direction = transform.Left;
             }
 
-            if (Input.GetKey(KeyCode.D))
+            if (component.movement.X > 0)
             {
                 direction = transform.Right;
             }
 
-            if (Input.GetKey(KeyCode.W))
+            if (component.movement.Y > 0)
             {
                 if(component.is3D)
                 {
@@ -37,7 +37,7 @@ public class KeyboardControlSystem : IEntitySystemUpdate
                 }
             }
 
-            if (Input.GetKey(KeyCode.S))
+            if (component.movement.Y < 0)
             {
                 if (component.is3D)
                 {
@@ -53,8 +53,8 @@ public class KeyboardControlSystem : IEntitySystemUpdate
             {
                 var rotation = Math.ToEulerAngles(transform.LocalRotation);
 
-                rotation.X -= Input.MouseRelativePosition.Y;
-                rotation.Y -= Input.MouseRelativePosition.X;
+                rotation.X -= component.rotation.Y;
+                rotation.Y -= component.rotation.X;
 
                 targetRotation = Math.FromEulerAngles(rotation);
             }
@@ -73,6 +73,9 @@ public class KeyboardControlSystem : IEntitySystemUpdate
                 transform.LocalPosition += targetDirection * deltaTime;
                 transform.LocalRotation = targetRotation;
             }
+
+            component.rotation = Vector2.Zero;
+            component.movement = Vector2.Zero;
         }
     }
 }
