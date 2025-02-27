@@ -273,6 +273,8 @@ internal partial class StapleEditor
         fileSystemWatcher.Deleted += FileSystemHandler;
         fileSystemWatcher.Renamed += RenamedFileSystemHandler;
 
+        fileSystemWatcher.IncludeSubdirectories = true;
+
         fileSystemWatcher.EnableRaisingEvents = true;
 
         RefreshStaging(currentPlatform, () =>

@@ -198,7 +198,7 @@ internal class TextureAssetEditor : AssetEditor
                         newMetadata.guid = Guid.NewGuid().ToString();
                     }
 
-                    var texture = ThumbnailCache.GetThumbnail(file.Replace(".meta", ""));
+                    var texture = ThumbnailCache.GetThumbnail(file.Replace("\\", "/").Replace(".meta", ""));
 
                     if (texture != null)
                     {
