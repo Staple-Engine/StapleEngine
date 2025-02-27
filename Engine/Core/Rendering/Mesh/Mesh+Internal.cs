@@ -725,10 +725,7 @@ public sealed partial class Mesh
     /// <returns>Whether it was set active</returns>
     internal bool SetActive(int submeshIndex = 0)
     {
-        if(changed)
-        {
-            UploadMeshData();
-        }
+        UploadMeshData();
 
         if(vertexBuffer == null || indexBuffer == null)
         {

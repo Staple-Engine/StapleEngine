@@ -25,6 +25,8 @@ public class TextRenderSystem : IRenderSystem
 
     private readonly List<TextInfo> texts = [];
 
+    public bool WorldVisibilityChanged { get; set; }
+
     public void Startup()
     {
     }

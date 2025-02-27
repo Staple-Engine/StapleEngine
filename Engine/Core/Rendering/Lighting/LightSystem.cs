@@ -36,9 +36,9 @@ public sealed class LightSystem : IRenderSystem
     private readonly Vector4[] cachedLightDiffuse = new Vector4[MaxLights];
     private readonly Vector4[] cachedLightSpotDirection = new Vector4[MaxLights];
 
-    private readonly Dictionary<int, (ShaderHandle, ShaderHandle, ShaderHandle,
-        ShaderHandle, ShaderHandle, ShaderHandle,
-        ShaderHandle, ShaderHandle, ShaderHandle)> cachedMaterialInfo = [];
+    private readonly Dictionary<int, ShaderHandle[]> cachedMaterialInfo = [];
+
+    public bool WorldVisibilityChanged { get; set; }
 
     public LightSystem()
     {
@@ -187,9 +187,22 @@ public sealed class LightSystem : IRenderSystem
 
         var key = material.shader.GuidHash;
 
-        if(cachedMaterialInfo.TryGetValue(key, out var handles) == false)
+        static bool HandlesValid(Span<ShaderHandle> handles)
         {
-            handles = (material.GetShaderHandle(ViewPosKey),
+            for(var i = 0; i < handles.Length; i++)
+            {
+                if (handles[i].IsValid == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if(cachedMaterialInfo.TryGetValue(key, out var handles) == false || HandlesValid(handles) == false)
+        {
+            handles = [material.GetShaderHandle(ViewPosKey),
                 material.GetShaderHandle(NormalMatrixKey),
                 material.GetShaderHandle(LightAmbientKey),
                 material.GetShaderHandle(LightCountKey),
@@ -197,20 +210,20 @@ public sealed class LightSystem : IRenderSystem
                 material.GetShaderHandle(LightDiffuseKey),
                 material.GetShaderHandle(LightSpecularKey),
                 material.GetShaderHandle(LightSpotDirectionKey),
-                material.GetShaderHandle(LightSpotValuesKey));
+                material.GetShaderHandle(LightSpotValuesKey)];
 
-            cachedMaterialInfo.Add(key, handles);
+            cachedMaterialInfo.AddOrSetKey(key, handles);
         }
 
-        var viewPosHandle = handles.Item1;
-        var normalMatrixHandle = handles.Item2;
-        var lightAmbientHandle = handles.Item3;
-        var lightCountHandle = handles.Item4;
-        var lightTypePositionHandle = handles.Item5;
-        var lightDiffuseHandle = handles.Item6;
-        var lightSpecularHandle = handles.Item7;
-        var lightSpotDirectionHandle = handles.Item8;
-        var lightSpotValues = handles.Item9;
+        var viewPosHandle = handles[0];
+        var normalMatrixHandle = handles[1];
+        var lightAmbientHandle = handles[2];
+        var lightCountHandle = handles[3];
+        var lightTypePositionHandle = handles[4];
+        var lightDiffuseHandle = handles[5];
+        var lightSpecularHandle = handles[6];
+        var lightSpotDirectionHandle = handles[7];
+        var lightSpotValues = handles[8];
 
         material.shader.SetVector3(viewPosHandle, cameraPosition);
         material.shader.SetMatrix3x3(normalMatrixHandle, normalMatrix);

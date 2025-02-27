@@ -153,8 +153,8 @@ internal class FrustumCuller
     {
         var result = FrustumResult.Visible;
 
-        var min = aabb.Min;
-        var max = aabb.Max;
+        var min = aabb.min;
+        var max = aabb.max;
 
         for (var i = 0; i < 6; i++)
         {
@@ -168,9 +168,9 @@ internal class FrustumCuller
                 normal.Z > 0 ? max.Z : min.Z,
                 1.0f);
                 
-            var negative = new Vector4(normal.X < 0 ? max.X : min.X,
-                normal.Y < 0 ? max.Y : min.Y,
-                normal.Z < 0 ? max.Z : min.Z,
+            var negative = new Vector4(normal.X > 0 ? min.X : max.X,
+                normal.Y > 0 ? min.Y : max.Y,
+                normal.Z > 0 ? min.Z : max.Z,
                 1.0f);
 
             var t = Vector4.Dot(positive, planeVector);

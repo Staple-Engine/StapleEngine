@@ -823,7 +823,9 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     public void UploadMeshData()
     {
-        if(changed == false)
+        if (changed == false &&
+            (vertexBuffer?.Disposed ?? true) == false &&
+            (indexBuffer?.Disposed ?? true) == false)
         {
             return;
         }

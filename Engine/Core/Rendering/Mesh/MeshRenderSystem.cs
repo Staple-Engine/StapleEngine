@@ -26,6 +26,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<ushort, Dictionary<int, ExpandableContainer<InstanceInfo>>> instanceCache = [];
 
+    public bool WorldVisibilityChanged { get; set; }
+
     /// <summary>
     /// Renders a mesh
     /// </summary>
@@ -47,12 +49,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
-        if(mesh.changed || (mesh.vertexBuffer?.Disposed ?? true) || (mesh.indexBuffer?.Disposed ?? true))
-        {
-            mesh.changed = true;
-
-            mesh.UploadMeshData();
-        }
+        mesh.UploadMeshData();
 
         var matrix = Math.TransformationMatrix(position, scale, rotation);
 
@@ -144,10 +141,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (r.mesh.changed)
-            {
-                r.mesh.UploadMeshData();
-            }
+            r.mesh.UploadMeshData();
 
             r.localBounds = r.mesh.bounds;
             r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
@@ -156,6 +150,11 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
+        if (WorldVisibilityChanged == false)
+        {
+            return;
+        }
+
         instanceCache.Clear();
 
         foreach (var (_, transform, relatedComponent) in entities)
@@ -182,7 +181,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 }
             }
 
-            if(skip)
+            if (skip)
             {
                 continue;
             }
@@ -195,7 +194,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             var t = transform.Matrix;
             var p = transform.Position;
 
-            if(instanceCache.TryGetValue(viewId, out var cache) == false)
+            if (instanceCache.TryGetValue(viewId, out var cache) == false)
             {
                 cache = [];
 
@@ -204,9 +203,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             void Add(Material material, int submeshIndex)
             {
-                var key = r.mesh.GuidHash ^ material.GuidHash ^ (int)r.lighting;
+                var key = r.mesh.GuidHash ^ material.StateHash ^ (int)r.lighting;
 
-                if(cache.TryGetValue(key, out var meshCache) == false)
+                if (cache.TryGetValue(key, out var meshCache) == false)
                 {
                     meshCache = new();
 
@@ -336,8 +335,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                         bgfx.submit(viewId, program, 0, (byte)flags);
                     }
                 }
-
-                contents.Clear();
             }
         }
 

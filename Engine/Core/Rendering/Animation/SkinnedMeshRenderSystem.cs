@@ -52,6 +52,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<int, RenderCache> renderCache = [];
 
+    public bool WorldVisibilityChanged { get; set; }
+
     public void Startup()
     {
     }
@@ -109,6 +111,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
+        if(WorldVisibilityChanged == false)
+        {
+            return;
+        }
+
         renderers.Clear();
 
         foreach (var (entity, transform, relatedComponent) in entities)
@@ -232,7 +239,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var usePoser = poser != null;
 
                 var needsChange = assetGuid != lastMeshAsset ||
-                    material.GuidHash != (lastMaterial?.GuidHash ?? 0) ||
+                    material.StateHash != (lastMaterial?.StateHash ?? 0) ||
                     lastAnimator != animator ||
                     lastLighting != renderer.lighting ||
                     lastTopology != renderer.mesh.MeshTopology;

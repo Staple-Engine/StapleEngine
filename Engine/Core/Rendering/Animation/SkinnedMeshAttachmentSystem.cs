@@ -8,6 +8,8 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshAttachmentSystem : IRenderSystem
 {
+    public bool WorldVisibilityChanged { get; set; }
+
     public void Startup()
     {
     }

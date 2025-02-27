@@ -34,6 +34,6 @@ internal class SpriteRendererEditor : Editor
 
         var renderer = (SpriteRenderer)target;
 
-        EditorGUI.Label($"Bounds: Center: {renderer.bounds.center} Size: {renderer.bounds.Size}");
+        EditorGUI.Label($"Bounds: Center: {renderer.bounds.center} Size: {renderer.bounds.size}");
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Bgfx;
 using System;
-using System.Linq;
 using System.Numerics;
 using Staple.UI;
 
@@ -23,6 +22,8 @@ public class UICanvasSystem : IRenderSystem
     private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
     private readonly ExpandableContainer<RenderInfo> renders = new();
+
+    public bool WorldVisibilityChanged { get; set; }
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 

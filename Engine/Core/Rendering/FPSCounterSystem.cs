@@ -1,6 +1,6 @@
 ﻿using Staple.UI;
 
-namespace Staple;
+namespace Staple.Internal;
 
 public class FPSCounterSystem : IEntitySystemFixedUpdate
 {

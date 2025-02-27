@@ -207,6 +207,11 @@ public sealed partial class RenderSystem
         {
             renderQueue.Clear();
 
+            foreach(var system in renderSystems)
+            {
+                system.WorldVisibilityChanged = true;
+            }
+
             var cameras = World.Current.SortedCameras;
 
             if (cameras.Length > 0)
@@ -289,6 +294,8 @@ public sealed partial class RenderSystem
             {
                 if (content[j].Item3 is Renderable renderable)
                 {
+                    var wasVisible = renderable.isVisible;
+
                     renderable.isVisible = renderable.enabled &&
                         renderable.forceRenderingOff == false;
 
@@ -301,12 +308,19 @@ public sealed partial class RenderSystem
                             CulledRenderers++;
                         }
                     }
+
+                    if(wasVisible != renderable.isVisible)
+                    {
+                        system.WorldVisibilityChanged = true;
+                    }
                 }
             }
 
             system.Process(content, camera, cameraTransform, viewID);
 
             system.Submit();
+
+            system.WorldVisibilityChanged = false;
         }
     }
 
@@ -336,6 +350,9 @@ public sealed partial class RenderSystem
 
         foreach (var system in systems)
         {
+            //Force the world visibility to change
+            system.WorldVisibilityChanged = true;
+
             system.Prepare();
         }
 
@@ -380,6 +397,8 @@ public sealed partial class RenderSystem
         foreach (var system in systems)
         {
             system.Submit();
+
+            system.WorldVisibilityChanged = false;
         }
     }
 
@@ -457,6 +476,8 @@ public sealed partial class RenderSystem
         foreach (var system in systems)
         {
             system.Submit();
+
+            system.WorldVisibilityChanged = false;
         }
     }
 
@@ -528,6 +549,8 @@ public sealed partial class RenderSystem
                     {
                         if (contents[j].Item3 is Renderable renderable)
                         {
+                            var wasVisible = renderable.isVisible;
+
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                             if(renderable.isVisible)
@@ -542,6 +565,11 @@ public sealed partial class RenderSystem
                                 {
                                     CulledRenderers++;
                                 }
+                            }
+
+                            if(wasVisible != renderable.isVisible)
+                            {
+                                system.WorldVisibilityChanged = true;
                             }
                         }
                     }

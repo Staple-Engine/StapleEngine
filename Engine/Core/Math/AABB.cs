@@ -1,6 +1,4 @@
-﻿using MessagePack;
-using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Staple;
@@ -8,40 +6,33 @@ namespace Staple;
 /// <summary>
 /// Axis Aligned Bounding Box
 /// </summary>
-[Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
-[MessagePackObject]
 public struct AABB
 {
     /// <summary>
     /// The center of the box
     /// </summary>
-    [Key(0)]
-    public Vector3 center;
+    public readonly Vector3 center;
 
     /// <summary>
     /// The extents of the box (distance from the box as a radius)
     /// </summary>
-    [Key(1)]
-    public Vector3 extents;
+    public readonly Vector3 extents;
 
     /// <summary>
     /// The minimum position of the box
     /// </summary>
-    [IgnoreMember]
-    public readonly Vector3 Min => new(center.X - extents.X, center.Y - extents.Y, center.Z - extents.Z);
+    public readonly Vector3 min;
 
     /// <summary>
     /// The maximum position of the box
     /// </summary>
-    [IgnoreMember]
-    public readonly Vector3 Max => new(center.X + extents.X, center.Y + extents.Y, center.Z + extents.Z);
+    public readonly Vector3 max;
 
     /// <summary>
     /// The size of the box
     /// </summary>
-    [IgnoreMember]
-    public readonly Vector3 Size => extents * 2;
+    public readonly Vector3 size;
 
     /// <summary>
     /// Creates an Axis Aligned Bounding Box from a center and size
@@ -51,8 +42,12 @@ public struct AABB
     public AABB(Vector3 center, Vector3 size)
     {
         this.center = center;
+        this.size = size;
 
         extents = size / 2;
+
+        min = new(center.X - extents.X, center.Y - extents.Y, center.Z - extents.Z);
+        max = new(center.X + extents.X, center.Y + extents.Y, center.Z + extents.Z);
     }
 
     public override readonly string ToString()
@@ -67,30 +62,26 @@ public struct AABB
     /// <returns>Whether it contains a point</returns>
     public readonly bool Contains(Vector3 point)
     {
-        //Slight optimization to prevent many function calls
-        var min = Min;
-        var max = Max;
-
         return point.X >= min.X && point.Y >= min.Y && point.Z >= min.Z &&
             point.X <= max.X && point.Y <= max.Y && point.Z <= max.Z;
     }
 
     /// <summary>
-    /// Expands the box's size by an amount
+    /// Creates an expanded form of this box with an increased size
     /// </summary>
     /// <param name="amount">The amount as a float</param>
-    public void Expand(float amount)
+    public readonly AABB Expanded(float amount)
     {
-        extents += Vector3.One * (amount / 2);
+        return new AABB(center, size * amount);
     }
 
     /// <summary>
-    /// Expands the box's size by an amount
+    /// Creates an expanded form of this box with an increased size
     /// </summary>
     /// <param name="amount">The amount as a Vector3</param>
-    public void Expand(Vector3 amount)
+    public readonly AABB Expanded(Vector3 amount)
     {
-        extents += amount / 2;
+        return new AABB(center, size + amount);
     }
 
     /// <summary>

@@ -79,17 +79,17 @@ public struct Ray(Vector3 position, Vector3 direction)
             return true;
         }
 
-        if(RaySlabIntersect(ray.position.X, ray.direction.X, aabb.Min.X, aabb.Max.X) == false)
+        if(RaySlabIntersect(ray.position.X, ray.direction.X, aabb.min.X, aabb.max.X) == false)
         {
             return false;
         }
 
-        if (RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.Min.Y, aabb.Max.Y) == false)
+        if (RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.min.Y, aabb.max.Y) == false)
         {
             return false;
         }
 
-        if (RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.Min.Z, aabb.Max.Z) == false)
+        if (RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.min.Z, aabb.max.Z) == false)
         {
             return false;
         }
@@ -152,27 +152,26 @@ public struct Ray(Vector3 position, Vector3 direction)
             switch (i)
             {
                 case 0:
-                    boxMin = aabb.Min.X;
-                    boxMax = aabb.Max.X;
+                    boxMin = aabb.min.X;
+                    boxMax = aabb.max.X;
 
                     break;
 
                 case 1:
-                    boxMin = aabb.Min.Y;
-                    boxMax = aabb.Max.Y;
+                    boxMin = aabb.min.Y;
+                    boxMax = aabb.max.Y;
 
                     break;
 
                 case 2:
-                    boxMin = aabb.Min.Z;
-                    boxMax = aabb.Max.Z;
+                    boxMin = aabb.min.Z;
+                    boxMax = aabb.max.Z;
 
                     break;
             }
 
             if (Math.Abs(denominatorLength) > 0.00001)
             {
-
                 var min = (nominatorLength + boxMin) / denominatorLength;
                 var max = (nominatorLength + boxMax) / denominatorLength;
 

@@ -123,6 +123,18 @@ public static class EditorUtils
     /// <returns>Whether it did so successfully</returns>
     public static bool CopyDirectory(string source, string destination)
     {
+        try
+        {
+            if(Directory.Exists(source) == false)
+            {
+                //Silently succeed
+                return true;
+            }
+        }
+        catch(Exception)
+        {
+        }
+
         CreateDirectory(destination);
 
         try

@@ -10,6 +10,12 @@ namespace Staple;
 public interface IRenderSystem
 {
     /// <summary>
+    /// Lets the render system know that the visibility of a renderer changed since the last frame, or the world changed since the last frame.
+    /// This will trigger for each renderer that changed, so if you need to perform heavy computations, you should do so on <see cref="Prepare" />.
+    /// </summary>
+    bool WorldVisibilityChanged { get; set; }
+
+    /// <summary>
     /// The type of the component that this render system uses
     /// </summary>
     /// <returns>The component type</returns>

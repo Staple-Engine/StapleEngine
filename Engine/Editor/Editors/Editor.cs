@@ -252,7 +252,7 @@ public class Editor
 
                                 EditorGUI.Label($"{name} {i + 1}");
 
-                                var result = EditorGUI.ObjectPicker(listType, "", entry);
+                                var result = EditorGUI.ObjectPicker(listType, "", entry, $"{name} {i} {IDSuffix}");
 
                                 if (result != entry)
                                 {
@@ -302,7 +302,7 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                PropertyInspector(listType, "", $"{i}{IDSuffix}", () => entry,
+                                PropertyInspector(listType, "", $"{name}{i}{IDSuffix}", () => entry,
                                     (value) =>
                                     {
                                         if (value != entry)
@@ -363,7 +363,7 @@ public class Editor
                             {
                                 var entry = list[i];
 
-                                FieldInspector(entry, name, $"{i}{IDSuffix}", true);
+                                FieldInspector(entry, name, $"{name}{i}{IDSuffix}", true);
 
                                 list[i] = entry;
 

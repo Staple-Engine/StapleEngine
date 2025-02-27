@@ -1824,19 +1824,19 @@ internal class ResourceManager
                         min.Z = m.bounds.center.Z;
                     }
 
-                    if (max.X < m.bounds.center.X + m.bounds.Size.X)
+                    if (max.X < m.bounds.center.X + m.bounds.size.X)
                     {
-                        max.X = m.bounds.center.X + m.bounds.Size.X;
+                        max.X = m.bounds.center.X + m.bounds.size.X;
                     }
 
-                    if (max.Y < m.bounds.center.Y + m.bounds.Size.Y)
+                    if (max.Y < m.bounds.center.Y + m.bounds.size.Y)
                     {
-                        max.Y = m.bounds.center.Y + m.bounds.Size.Y;
+                        max.Y = m.bounds.center.Y + m.bounds.size.Y;
                     }
 
-                    if (max.Z < m.bounds.center.Z + m.bounds.Size.Z)
+                    if (max.Z < m.bounds.center.Z + m.bounds.size.Z)
                     {
-                        max.Z = m.bounds.center.Z + m.bounds.Size.Z;
+                        max.Z = m.bounds.center.Z + m.bounds.size.Z;
                     }
                 }
 
