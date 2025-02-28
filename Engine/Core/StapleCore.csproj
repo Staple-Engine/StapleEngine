@@ -97,6 +97,7 @@
 
 	<ItemGroup>
 		<Compile Include="AppSettings\AppProfilingMode.cs" />
+		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
 		<Compile Include="Assets\TextAsset.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />

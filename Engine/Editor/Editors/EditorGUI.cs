@@ -654,7 +654,7 @@ public static class EditorGUI
     /// <param name="current">The current value</param>
     /// <param name="identifier">Extra identifier if needed</param>
     /// <returns>The new value</returns>
-    public static object ObjectPicker(Type type, string name, object current, string identifier = "")
+    public static object ObjectPicker(Type type, string name, object current, string identifier)
     {
         ImGui.Text(name);
 
@@ -1240,13 +1240,12 @@ public static class EditorGUI
     /// </summary>
     /// <param name="name">The label to use</param>
     /// <param name="value">The current value</param>
-    /// <param name="spriteIndex">The current sprite index</param>
-    /// <param name="setter">Action to use when changing the value</param>
-    public static Sprite SpritePicker(string name, Sprite value)
+    /// <param name="key">A unique key for this UI element</param>
+    public static Sprite SpritePicker(string name, Sprite value, string key)
     {
         var texture = value?.texture;
 
-        texture = (Texture)ObjectPicker(typeof(Texture), name.ExpandCamelCaseName(), texture);
+        texture = (Texture)ObjectPicker(typeof(Texture), name.ExpandCamelCaseName(), texture, $"{key}.Texture");
 
         if (texture != null)
         {
@@ -1271,7 +1270,7 @@ public static class EditorGUI
 
             SameLine();
 
-            Button("O", $"{name}Picker", () =>
+            Button("O", $"{key}.Browse", () =>
             {
                 var editor = StapleEditor.instance;
                 var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.texture.Guid));
@@ -1290,7 +1289,14 @@ public static class EditorGUI
         return value;
     }
 
-    public static Entity EntityField(Entity value, string name, string identifier)
+    /// <summary>
+    /// Shows a field where an entity can be dragged into
+    /// </summary>
+    /// <param name="name">The name of the field</param>
+    /// <param name="value">The current entity</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <returns>The selected entity, if any</returns>
+    public static Entity EntityField(string name, Entity value, string key)
     {
         Label($"{name} (Entity)");
 
@@ -1317,7 +1323,7 @@ public static class EditorGUI
         {
             SameLine();
 
-            Button("X", $"{name}_CLEAR{identifier}", () =>
+            Button("X", $"{name}_CLEAR{key}", () =>
             {
                 value = default;
             });
@@ -1326,7 +1332,15 @@ public static class EditorGUI
         return value;
     }
 
-    public static T ComponentField<T>(T value, string name, string identifier) where T: IComponent
+    /// <summary>
+    /// Shows a field where a component can be dragged into
+    /// </summary>
+    /// <typeparam name="T">The component type</typeparam>
+    /// <param name="name">The name of the field</param>
+    /// <param name="value">The current value of the component</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <returns>The new value of the component, if any</returns>
+    public static T ComponentField<T>(string name, T value, string key) where T: IComponent
     {
         Label($"{name} ({typeof(T).Name})");
 
@@ -1353,7 +1367,7 @@ public static class EditorGUI
         {
             SameLine();
 
-            Button("X", $"{name}_CLEAR{identifier}", () =>
+            Button("X", $"{name}_CLEAR{key}", () =>
             {
                 value = default;
             });

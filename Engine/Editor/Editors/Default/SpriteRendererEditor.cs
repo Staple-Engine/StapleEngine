@@ -14,7 +14,7 @@ internal class SpriteRendererEditor : Editor
         {
             case nameof(SpriteRenderer.sprite):
 
-                setter(EditorGUI.SpritePicker(name, getter() as Sprite));
+                setter(EditorGUI.SpritePicker(name, getter() as Sprite, $"{name}.SpritePicker"));
 
                 return true;
 

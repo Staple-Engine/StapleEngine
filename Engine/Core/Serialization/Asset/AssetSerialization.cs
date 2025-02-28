@@ -198,29 +198,7 @@ internal static partial class AssetSerialization
             return default;
         }
 
-        try
-        {
-            var container = StapleSerializer.SerializeContainer(instance, targetText);
-
-            if (container == null)
-            {
-                return default;
-            }
-
-            var outValue = new SerializableStapleAsset()
-            {
-                typeName = instance.GetType().FullName,
-                parameters = container.parameters,
-            };
-
-            return outValue;
-        }
-        catch(Exception e)
-        {
-            Log.Debug($"[AssetSerialization] Failed to serialize {instance.GetType().FullName}: {e}");
-
-            return default;
-        }
+        return StapleSerializer.SerializeObject(instance, targetText);
     }
 
     /// <summary>
@@ -235,11 +213,7 @@ internal static partial class AssetSerialization
             return null;
         }
 
-        var instance = StapleSerializer.DeserializeContainer(new()
-        {
-            parameters = asset.parameters,
-            typeName = asset.typeName,
-        });
+        var instance = StapleSerializer.DeserializeObject(asset);
 
         if(instance is IStapleAsset stapleAsset)
         {

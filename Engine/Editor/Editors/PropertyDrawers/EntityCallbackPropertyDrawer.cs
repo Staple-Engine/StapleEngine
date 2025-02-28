@@ -42,7 +42,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 var entity = Scene.FindEntity(callback.entityID);
 
-                entity = EditorGUI.EntityField(entity, "Entity", $"{name}{GetType().FullName}{i}");
+                entity = EditorGUI.EntityField("Entity", entity, $"{name}{GetType().FullName}{i}");
 
                 callback.entityID = entity.Identifier.ID;
 
@@ -199,7 +199,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     var entity = Scene.FindEntity(entry.entityID);
 
-                    entity = EditorGUI.EntityField(entity, "Entity", $"{name}{GetType().FullName}{counter}");
+                    entity = EditorGUI.EntityField("Entity", entity, $"{name}{GetType().FullName}{counter}");
 
                     entry.entityID = entity.Identifier.ID;
 

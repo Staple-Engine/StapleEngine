@@ -7,10 +7,10 @@ namespace Staple.Internal;
 public class SerializableStapleAssetHeader
 {
     [IgnoreMember]
-    public readonly static char[] ValidHeader = new char[]
-    {
-        'S', 'S', 'A', 'S'
-    };
+    public readonly static char[] ValidHeader =
+        [
+            'S', 'S', 'A', 'S'
+        ];
 
     [IgnoreMember]
     public const byte ValidVersion = 1;
@@ -39,7 +39,7 @@ public class SerializableStapleAssetContainer
     public string typeName;
 
     [Key(1)]
-    public Dictionary<string, SerializableStapleAssetParameter> parameters = new();
+    public Dictionary<string, SerializableStapleAssetParameter> parameters = [];
 }
 
 [MessagePackObject]
@@ -52,5 +52,5 @@ public class SerializableStapleAsset
     public string typeName;
 
     [Key(2)]
-    public Dictionary<string, SerializableStapleAssetParameter> parameters = new();
+    public Dictionary<string, SerializableStapleAssetParameter> parameters = [];
 }

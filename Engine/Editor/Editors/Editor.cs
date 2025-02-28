@@ -773,7 +773,7 @@ public class Editor
                 {
                     var value = (IGuidAsset)getter();
 
-                    var newValue = EditorGUI.ObjectPicker(t, name, value);
+                    var newValue = EditorGUI.ObjectPicker(t, name, value, IDSuffix);
 
                     setter(newValue);
                 }
@@ -856,7 +856,7 @@ public class Editor
                 {
                     var value = (Entity)getter();
 
-                    setter(EditorGUI.EntityField(value, t.Name, IDSuffix));
+                    setter(EditorGUI.EntityField(t.Name, value, IDSuffix));
                 }
 
                 break;
@@ -866,7 +866,7 @@ public class Editor
                 {
                     var value = (IComponent)getter();
 
-                    setter(EditorGUI.ComponentField(value, name, IDSuffix));
+                    setter(EditorGUI.ComponentField(name, value, IDSuffix));
                 }
 
                 break;

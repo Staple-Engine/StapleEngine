@@ -71,6 +71,26 @@ internal static class SceneSerialization
         {
             setter(element.GetSingle());
         }
+        else if (fieldType == typeof(byte) && element.ValueKind == JsonValueKind.Number)
+        {
+            setter(element.GetByte());
+        }
+        else if (fieldType == typeof(sbyte) && element.ValueKind == JsonValueKind.Number)
+        {
+            setter(element.GetSByte());
+        }
+        else if (fieldType == typeof(ushort) && element.ValueKind == JsonValueKind.Number)
+        {
+            setter(element.GetUInt16());
+        }
+        else if (fieldType == typeof(short) && element.ValueKind == JsonValueKind.Number)
+        {
+            setter(element.GetInt16());
+        }
+        else if (fieldType == typeof(uint) && element.ValueKind == JsonValueKind.Number)
+        {
+            setter(element.GetUInt32());
+        }
         else if (fieldType == typeof(int) && element.ValueKind == JsonValueKind.Number)
         {
             setter(element.GetInt32());
@@ -692,8 +712,12 @@ internal static class SceneSerialization
         if (fieldType == typeof(bool) ||
             fieldType == typeof(float) ||
             fieldType == typeof(double) ||
-            fieldType == typeof(int) ||
+            fieldType == typeof(byte) ||
+            fieldType == typeof(sbyte) ||
+            fieldType == typeof(ushort) ||
+            fieldType == typeof(short) ||
             fieldType == typeof(uint) ||
+            fieldType == typeof(int) ||
             fieldType == typeof(string))
         {
             if (parameters)
@@ -733,13 +757,46 @@ internal static class SceneSerialization
 
                         break;
 
-                    case Type t when t == typeof(int):
+                    case Type t when t == typeof(byte):
 
                         sceneComponent.parameters.Add(new SceneComponentParameter()
                         {
                             name = name,
                             type = SceneComponentParameterType.Int,
-                            intValue = (int)getter(),
+                            intValue = (byte)getter(),
+                        });
+
+                        break;
+
+                    case Type t when t == typeof(sbyte):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (sbyte)getter(),
+                        });
+
+                        break;
+
+                    case Type t when t == typeof(ushort):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (ushort)getter(),
+                        });
+
+                        break;
+
+                    case Type t when t == typeof(short):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (short)getter(),
                         });
 
                         break;
@@ -755,6 +812,38 @@ internal static class SceneSerialization
 
                         break;
 
+                    case Type t when t == typeof(int):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (int)getter(),
+                        });
+
+                        break;
+
+                    case Type t when t == typeof(ulong):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (int)(ulong)getter(),
+                        });
+
+                        break;
+
+                    case Type t when t == typeof(long):
+
+                        sceneComponent.parameters.Add(new SceneComponentParameter()
+                        {
+                            name = name,
+                            type = SceneComponentParameterType.Int,
+                            intValue = (int)(long)getter(),
+                        });
+
+                        break;
 
                     case Type t when t == typeof(string):
 

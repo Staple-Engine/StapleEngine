@@ -15,7 +15,7 @@ internal class UIImageEditor : Editor
         {
             case nameof(UIImage.sprite):
 
-                setter(EditorGUI.SpritePicker(name, getter() as Sprite));
+                setter(EditorGUI.SpritePicker(name, getter() as Sprite, $"{name}.SpritePicker"));
 
                 return true;
 

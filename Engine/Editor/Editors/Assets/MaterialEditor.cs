@@ -53,7 +53,7 @@ internal class MaterialEditor : AssetEditor
 
                                 cachedTextures.TryGetValue(key, out var texture);
 
-                                var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture);
+                                var newValue = EditorGUI.ObjectPicker(typeof(Texture), label, texture, $"{material.guid}.{key}.Picker");
 
                                 if(newValue != texture)
                                 {
@@ -198,7 +198,7 @@ internal class MaterialEditor : AssetEditor
                         }
                     }
 
-                    var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader);
+                    var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader, $"{material.guid}.{key}.Picker");
 
                     if (newValue != shader)
                     {

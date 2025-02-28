@@ -1213,4 +1213,68 @@ internal static class StapleSerializer
 
         return decodedContainer;
     }
+
+    /// <summary>
+    /// Attempts to serialize an object into a SerializableStapleAsset
+    /// </summary>
+    /// <param name="instance">The object's instance</param>
+    /// <param name="targetText">Whether we're targeting a text serializer</param>
+    /// <returns>The SerializableStapleAsset, or null</returns>
+    public static SerializableStapleAsset SerializeObject(object instance, bool targetText)
+    {
+        if (instance == null)
+        {
+            return default;
+        }
+
+        try
+        {
+            var container = SerializeContainer(instance, targetText);
+
+            if (container == null)
+            {
+                return default;
+            }
+
+            var outValue = new SerializableStapleAsset()
+            {
+                typeName = instance.GetType().FullName,
+                parameters = container.parameters,
+            };
+
+            return outValue;
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[AssetSerialization] Failed to serialize {instance.GetType().FullName}: {e}");
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Deserializes an asset into an object instance
+    /// </summary>
+    /// <param name="asset">The asset data</param>
+    /// <returns>The instance, or null</returns>
+    public static object DeserializeObject(SerializableStapleAsset asset)
+    {
+        if (asset == null)
+        {
+            return null;
+        }
+
+        var instance = DeserializeContainer(new()
+        {
+            parameters = asset.parameters,
+            typeName = asset.typeName,
+        });
+
+        if (instance is IGuidAsset guidAsset)
+        {
+            guidAsset.Guid = asset.guid;
+        }
+
+        return instance;
+    }
 }
