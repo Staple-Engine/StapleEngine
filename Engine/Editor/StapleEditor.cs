@@ -505,10 +505,13 @@ internal partial class StapleEditor
 
             lastProjects ??= new();
 
+            //Might re-enable this later
+            /*
             if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
             {
                 LoadProject(lastProjects.lastOpenProject);
             }
+            */
         };
 
         window.OnUpdate = () =>
@@ -635,33 +638,57 @@ internal partial class StapleEditor
 
                 ImGui.Spacing();
 
-                if(ImGui.BeginListBox("##ProjectList"))
+                if(ImGui.BeginTable("##ProjectsList", 3))
                 {
-                    for(var i = 0; i < lastProjects.items.Count; i++)
+                    var items = lastProjects.items.OrderByDescending(x => x.date).ToArray();
+
+                    for (var i = 0; i < items.Length; i++)
                     {
+                        var item = items[i];
+
                         try
                         {
-                            if (Directory.Exists(lastProjects.items[i].path) == false)
+                            if (Directory.Exists(item.path) == false)
                             {
                                 continue;
                             }
                         }
-                        catch(Exception)
+                        catch (Exception)
                         {
                             continue;
                         }
 
-                        ImGui.Selectable($"{lastProjects.items[i].name}##PL{i}");
+                        ImGui.TableNextRow();
 
-                        if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                        ImGui.TableSetColumnIndex(0);
+
+                        var selected = false;
+
+                        ImGui.Selectable($"{item.name}##PL{i}0");
+
+                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
+
+                        ImGui.TableSetColumnIndex(1);
+
+                        ImGui.Selectable(item.path);
+
+                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
+
+                        ImGui.TableSetColumnIndex(2);
+
+                        ImGui.Selectable(item.date.ToShortDateString());
+
+                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
+
+                        if (selected)
                         {
-                            LoadProject(lastProjects.items[i].path);
+                            LoadProject(item.path);
 
                             break;
                         }
                     }
 
-                    ImGui.EndListBox();
+                    ImGui.EndTable();
                 }
 
                 ImGui.End();
