@@ -205,12 +205,15 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
-		<Compile Include="Serialization\Asset\StapleSerializer.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializer.cs" />
 		<Compile Include="Serialization\Font\FontMetadata.cs" />
 		<Compile Include="Serialization\Font\SerializableFontAsset.cs" />
 		<Compile Include="Jobs\IJob.cs" />
 		<Compile Include="Jobs\JobHandle.cs" />
 		<Compile Include="Jobs\JobSheduler.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerContainer.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerContext.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerField.cs" />
 		<Compile Include="UI\UIInteractible.cs" />
 		<Compile Include="UI\UIButton.cs" />
 		<Compile Include="UI\UICanvas.cs" />

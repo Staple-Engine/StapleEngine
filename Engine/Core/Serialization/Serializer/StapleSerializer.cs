@@ -321,7 +321,7 @@ internal static class StapleSerializer
     /// <param name="instance">The instance of the object we're handling</param>
     /// <param name="container">The container to store into</param>
     /// <param name="targetText">Whether we're targeting a text serializer</param>
-    public static void SerializeField(FieldInfo field, object instance, SerializableStapleAssetContainer container, bool targetText)
+    public static void SerializeField(FieldInfo field, object instance, StapleSerializerContext context, bool targetText)
     {
         if (field.GetCustomAttribute<NonSerializedAttribute>() != null)
         {
@@ -349,11 +349,7 @@ internal static class StapleSerializer
 
             if (value is IGuidAsset guidAsset)
             {
-                container.parameters.Add(field.Name, new SerializableStapleAssetParameter()
-                {
-                    typeName = value.GetType().FullName,
-                    value = guidAsset.Guid,
-                });
+                context.setField(field, value.GetType().FullName, AssetSerialization.GetAssetPathFromCache(guidAsset.Guid));
 
                 return;
             }
@@ -373,7 +369,7 @@ internal static class StapleSerializer
                     {
                         if(item is IGuidAsset asset)
                         {
-                            assetList.Add(asset.Guid);
+                            assetList.Add(AssetSerialization.GetAssetPathFromCache(asset.Guid));
                         }
                         else
                         {
@@ -381,19 +377,11 @@ internal static class StapleSerializer
                         }
                     }
 
-                    container.parameters.Add(field.Name, new()
-                    {
-                        typeName = value.GetType().FullName,
-                        value = assetList.ToArray(),
-                    });
+                    context.setField(field, field.FieldType.FullName, assetList.ToArray());
                 }
                 else if(elementType == typeof(string))
                 {
-                    container.parameters.Add(field.Name, new()
-                    {
-                        typeName = value.GetType().FullName,
-                        value = array,
-                    });
+                    context.setField(field, field.FieldType.FullName, array);
                 }
                 else if(elementType.IsPrimitive)
                 {
@@ -403,49 +391,34 @@ internal static class StapleSerializer
 
                         if (buffer != null)
                         {
-                            container.parameters.Add(field.Name, new()
-                            {
-                                typeName = value.GetType().FullName,
-                                value = Convert.ToBase64String(buffer, Base64FormattingOptions.None),
-                            });
+                            context.setField(field, field.FieldType.FullName, Convert.ToBase64String(buffer, Base64FormattingOptions.None));
                         }
                     }
                     else
                     {
-                        container.parameters.Add(field.Name, new()
-                        {
-                            typeName = value.GetType().FullName,
-                            value = value,
-                        });
+                        context.setField(field, field.FieldType.FullName, value);
                     }
                 }
                 else if(elementType.GetCustomAttribute<SerializableAttribute>() != null)
                 {
                     try
                     {
-                        var newList = new List<SerializableStapleAssetContainer>();
+                        var newList = new List<object>();
 
                         foreach (var item in array)
                         {
                             try
                             {
-                                var innerContainer = SerializeContainer(item, targetText);
+                                var container = SerializeContainer(item, targetText);
 
-                                if (innerContainer != null)
-                                {
-                                    newList.Add(innerContainer);
-                                }
+                                newList.Add(container);
                             }
                             catch (Exception)
                             {
                             }
                         }
 
-                        container.parameters.Add(field.Name, new()
-                        {
-                            typeName = value.GetType().FullName,
-                            value = newList,
-                        });
+                        context.setField(field, field.FieldType.FullName, newList);
                     }
                     catch (Exception)
                     {
@@ -474,7 +447,7 @@ internal static class StapleSerializer
                             {
                                 if (item is IGuidAsset g)
                                 {
-                                    newList.Add(g.Guid);
+                                    newList.Add(AssetSerialization.GetAssetPathFromCache(g.Guid));
                                 }
                                 else
                                 {
@@ -482,21 +455,13 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            container.parameters.Add(field.Name, new()
-                            {
-                                typeName = value.GetType().FullName,
-                                value = newList,
-                            });
+                            context.setField(field, field.FieldType.FullName, newList);
 
                             return;
                         }
                         else if (listType == typeof(string))
                         {
-                            container.parameters.Add(field.Name, new()
-                            {
-                                typeName = value.GetType().FullName,
-                                value = value,
-                            });
+                            context.setField(field, field.FieldType.FullName, value);
                         }
                         else if (listType.IsPrimitive)
                         {
@@ -508,27 +473,19 @@ internal static class StapleSerializer
 
                                 if (buffer != null)
                                 {
-                                    container.parameters.Add(field.Name, new()
-                                    {
-                                        typeName = value.GetType().FullName,
-                                        value = Convert.ToBase64String(buffer, Base64FormattingOptions.None),
-                                    });
+                                    context.setField(field, field.FieldType.FullName, Convert.ToBase64String(buffer, Base64FormattingOptions.None));
                                 }
                             }
                             else
                             {
-                                container.parameters.Add(field.Name, new()
-                                {
-                                    typeName = value.GetType().FullName,
-                                    value = value,
-                                });
+                                context.setField(field, field.FieldType.FullName, value);
                             }
                         }
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
                         {
                             try
                             {
-                                var newList = new List<SerializableStapleAssetContainer>();
+                                var newList = new List<object>();
 
                                 var inList = (IList)value;
 
@@ -536,11 +493,11 @@ internal static class StapleSerializer
                                 {
                                     try
                                     {
-                                        var innerContainer = SerializeContainer(item, targetText);
+                                        var container = SerializeContainer(item, targetText);
 
-                                        if (innerContainer != null)
+                                        if(container != null)
                                         {
-                                            newList.Add(innerContainer);
+                                            newList.Add(container);
                                         }
                                     }
                                     catch (Exception)
@@ -548,11 +505,7 @@ internal static class StapleSerializer
                                     }
                                 }
 
-                                container.parameters.Add(field.Name, new()
-                                {
-                                    typeName = value.GetType().FullName,
-                                    value = newList,
-                                });
+                                context.setField(field, field.FieldType.FullName, newList);
                             }
                             catch (Exception)
                             {
@@ -574,11 +527,7 @@ internal static class StapleSerializer
 
                     if (innerContainer != null)
                     {
-                        container.parameters.Add(field.Name, new()
-                        {
-                            typeName = value.GetType().FullName,
-                            value = innerContainer,
-                        });
+                        context.setField(field, field.FieldType.FullName, innerContainer);
                     }
                 }
                 catch (Exception)
@@ -588,11 +537,7 @@ internal static class StapleSerializer
                 return;
             }
 
-            container.parameters.Add(field.Name, new()
-            {
-                typeName = value.GetType().FullName,
-                value = value,
-            });
+            context.setField(field, value.GetType().FullName, value);
         }
     }
 
@@ -602,7 +547,7 @@ internal static class StapleSerializer
     /// <param name="instance">The object instance we're handling</param>
     /// <param name="targetText">Whether we're targeting a text serializer</param>
     /// <returns>The container, or null</returns>
-    public static SerializableStapleAssetContainer SerializeContainer(object instance, bool targetText)
+    public static StapleSerializerContainer SerializeContainer(object instance, bool targetText)
     {
         if (instance == null || instance.GetType().IsNestedFamORAssem ||
             (instance.GetType().GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
@@ -610,10 +555,17 @@ internal static class StapleSerializer
             return null;
         }
 
-        var outValue = new SerializableStapleAssetContainer()
+        var outValue = new StapleSerializerContainer()
         {
             typeName = instance.GetType().FullName,
         };
+
+        var context = new StapleSerializerContext(() => instance,
+            (field, typeName, value) => outValue.fields.Add(field.Name, new()
+            {
+                typeName = typeName,
+                value = value,
+            }));
 
         var fields = instance.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -626,7 +578,7 @@ internal static class StapleSerializer
                 continue;
             }
 
-            SerializeField(field, instance, outValue, targetText);
+            SerializeField(field, instance, context, targetText);
         }
 
         return outValue;
@@ -637,7 +589,7 @@ internal static class StapleSerializer
     /// </summary>
     /// <param name="container">The container to deserialize</param>
     /// <returns>the object instance, or null</returns>
-    public static object DeserializeContainer(SerializableStapleAssetContainer container)
+    public static object DeserializeContainer(StapleSerializerContainer container)
     {
         var type = TypeCache.GetType(container.typeName);
 
@@ -651,9 +603,14 @@ internal static class StapleSerializer
 
         try
         {
-            instance = Activator.CreateInstance(type);
+            instance = ObjectCreation.CreateObject(type);
 
-            foreach (var pair in container.parameters)
+            if(instance == null)
+            {
+                return null;
+            }
+
+            foreach (var pair in container.fields)
             {
                 try
                 {
@@ -669,7 +626,8 @@ internal static class StapleSerializer
                         continue;
                     }
 
-                    if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                    if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                        valueType == typeof(IGuidAsset))
                     {
                         if (pair.Value.value is string guid)
                         {
@@ -822,8 +780,11 @@ internal static class StapleSerializer
                                     }
                                 }
                             }
-                            catch(Exception)
+                            catch (Exception e)
                             {
+                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
+                                continue;
                             }
                         }
                         else if(pair.Value.value is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
@@ -873,7 +834,7 @@ internal static class StapleSerializer
                                     {
                                         try
                                         {
-                                            var itemValue = DeserializeContainer(containers[i]);
+                                            var itemValue = DeserializeContainer(containers[i].ToSerializerContainer());
 
                                             if (itemValue != null)
                                             {
@@ -886,8 +847,11 @@ internal static class StapleSerializer
                                     }
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
+                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
+                                continue;
                             }
                         }
 
@@ -1032,7 +996,7 @@ internal static class StapleSerializer
 
                                                 itemContainer.parameters = containerParameters;
 
-                                                var itemInstance = DeserializeContainer(itemContainer);
+                                                var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer());
 
                                                 if (itemInstance != null)
                                                 {
@@ -1067,7 +1031,10 @@ internal static class StapleSerializer
                                     continue;
                                 }
 
-                                field.SetValue(instance, list);
+                                if(instance != null)
+                                {
+                                    field.SetValue(instance, list);
+                                }
                             }
                             else if (pair.Value.value is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
                             {
@@ -1123,7 +1090,7 @@ internal static class StapleSerializer
                     {
                         try
                         {
-                            var value = DeserializeContainer(innerContainer);
+                            var value = DeserializeContainer(innerContainer.ToSerializerContainer());
 
                             if (value != null)
                             {
@@ -1137,7 +1104,7 @@ internal static class StapleSerializer
                         continue;
                     }
 
-                    if(field.FieldType.IsEnum && pair.Value.value is string str)
+                    if (field.FieldType.IsEnum && pair.Value.value is string str)
                     {
                         if(Enum.TryParse(field.FieldType, str, true, out var enumValue))
                         {
@@ -1163,9 +1130,9 @@ internal static class StapleSerializer
         return instance;
     }
 
-    public static SerializableStapleAssetContainer DecodeContainer(string typeName, Dictionary<object, object> parameters)
+    public static StapleSerializerContainer DecodeContainer(string typeName, Dictionary<object, object> parameters)
     {
-        var decodedContainer = new SerializableStapleAssetContainer()
+        var decodedContainer = new StapleSerializerContainer()
         {
             typeName = typeName,
         };
@@ -1191,7 +1158,7 @@ internal static class StapleSerializer
 
                     if (container != null)
                     {
-                        decodedContainer.parameters.Add(parameterName, new()
+                        decodedContainer.fields.Add(parameterName, new()
                         {
                             typeName = tName,
                             value = container,
@@ -1200,13 +1167,11 @@ internal static class StapleSerializer
                 }
                 else if(v.TryGetValue(nameof(SerializableStapleAssetParameter.value), out var value))
                 {
-                    var parameter = new SerializableStapleAssetParameter()
+                    decodedContainer.fields.Add(parameterName, new()
                     {
                         typeName = tName,
                         value = value,
-                    };
-
-                    decodedContainer.parameters.Add(parameterName, parameter);
+                    });
                 }
             }
         }
@@ -1220,7 +1185,7 @@ internal static class StapleSerializer
     /// <param name="instance">The object's instance</param>
     /// <param name="targetText">Whether we're targeting a text serializer</param>
     /// <returns>The SerializableStapleAsset, or null</returns>
-    public static SerializableStapleAsset SerializeObject(object instance, bool targetText)
+    public static SerializableStapleAsset SerializeAssetObject(object instance, bool targetText)
     {
         if (instance == null)
         {
@@ -1229,7 +1194,7 @@ internal static class StapleSerializer
 
         try
         {
-            var container = SerializeContainer(instance, targetText);
+            var container = SerializeContainer(instance, targetText)?.ToSerializableContainer();
 
             if (container == null)
             {
@@ -1257,24 +1222,41 @@ internal static class StapleSerializer
     /// </summary>
     /// <param name="asset">The asset data</param>
     /// <returns>The instance, or null</returns>
-    public static object DeserializeObject(SerializableStapleAsset asset)
+    public static object DeserializeAssetObject(SerializableStapleAsset asset)
     {
         if (asset == null)
         {
             return null;
         }
 
-        var instance = DeserializeContainer(new()
-        {
-            parameters = asset.parameters,
-            typeName = asset.typeName,
-        });
+        var innerContainer = asset.ToSerializerContainer(out var guid);
+
+        var instance = DeserializeContainer(innerContainer);
 
         if (instance is IGuidAsset guidAsset)
         {
-            guidAsset.Guid = asset.guid;
+            guidAsset.Guid = guid;
         }
 
         return instance;
+    }
+
+    public static object JsonConvertField(StapleSerializerField field)
+    {
+        var localType = TypeCache.GetType(field.typeName);
+
+        if(localType is null)
+        {
+            return null;
+        }
+
+        switch(localType)
+        {
+            default:
+
+                Log.Warning($"[Serialization] Unable to handle Json data for type {localType.FullName}");
+
+                return null;
+        }
     }
 }

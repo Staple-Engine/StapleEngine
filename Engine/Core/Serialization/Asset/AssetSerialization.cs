@@ -198,7 +198,7 @@ internal static partial class AssetSerialization
             return default;
         }
 
-        return StapleSerializer.SerializeObject(instance, targetText);
+        return StapleSerializer.SerializeAssetObject(instance, targetText);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ internal static partial class AssetSerialization
             return null;
         }
 
-        var instance = StapleSerializer.DeserializeObject(asset);
+        var instance = StapleSerializer.DeserializeAssetObject(asset);
 
         if(instance is IStapleAsset stapleAsset)
         {

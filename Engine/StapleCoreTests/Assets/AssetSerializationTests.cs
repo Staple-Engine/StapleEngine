@@ -5,7 +5,7 @@ namespace CoreTests
 {
     internal class AssetSerializationTests
     {
-        internal enum NewEnum
+        public enum NewEnum
         {
             A,
             B

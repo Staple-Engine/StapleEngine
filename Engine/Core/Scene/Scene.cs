@@ -91,83 +91,53 @@ public class Scene
                 continue;
             }
 
-            var componentInstance = TypeCache.AddComponent(entity, component.type);
+            var container = new StapleSerializerContainer()
+            {
+                typeName = component.type,
+            };
 
-            if (componentInstance == null)
+            if(component.data != null)
+            {
+                foreach(var pair in component.data)
+                {
+                    var field = type.GetField(pair.Key);
+
+                    if (field is null)
+                    {
+                        continue;
+                    }
+
+                    container.fields.Add(pair.Key, new()
+                    {
+                        typeName = field.FieldType.FullName,
+                        value = pair.Value,
+                    });
+                }
+            }
+            else if(component.parameters != null)
+            {
+                foreach(var pair in component.parameters)
+                {
+                    var field = type.GetField(pair.name);
+
+                    if(field is null)
+                    {
+                        continue;
+                    }
+
+                    container.fields.Add(pair.name, new()
+                    {
+                        typeName = field.FieldType.FullName,
+                        value = pair.value,
+                    });
+                }
+            }
+
+            var componentInstance = (IComponent)StapleSerializer.DeserializeContainer(container);
+
+            if(componentInstance is null)
             {
                 continue;
-            }
-
-            if (component.data != null)
-            {
-                foreach (var pair in component.data)
-                {
-                    if(pair.Value == null || pair.Value is not JsonElement element)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        var field = type.GetField(pair.Key);
-
-                        if (field != null)
-                        {
-                            SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), element);
-                        }
-
-                        /*
-                        var property = type.GetProperty(pair.Key);
-
-                        if(property != null && property.CanWrite)
-                        {
-                            SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), element);
-                        }
-                        */
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"[Entity Instantiate] Failed to deserialize {pair.Key} of {entity}: {e}");
-
-                        return default;
-                    }
-                }
-            }
-
-            if (component.parameters != null)
-            {
-                foreach (var parameter in component.parameters)
-                {
-                    if (parameter.name == null)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        var field = type.GetField(parameter.name);
-
-                        if (field != null)
-                        {
-                            SceneSerialization.DeserializeProperty(field.FieldType, (value) => field.SetValue(componentInstance, value), parameter);
-                        }
-
-                        /*
-                        var property = type.GetProperty(parameter.name);
-
-                        if (property != null && property.CanWrite)
-                        {
-                            SceneSerialization.DeserializeProperty(property.PropertyType, (value) => property.SetValue(componentInstance, value), parameter);
-                        }
-                        */
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"[Entity Instantiate] Failed to deserialize {parameter.name} of {entity}: {e}");
-
-                        return default;
-                    }
-                }
             }
 
             entity.SetComponent(componentInstance);

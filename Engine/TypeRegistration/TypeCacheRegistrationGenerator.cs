@@ -65,6 +65,7 @@ namespace StapleCodeGeneration
 
             var types = new HashSet<string>();
             var constructibleTypes = new HashSet<string>();
+            var sizableTypes = new HashSet<string>();
             var componentTypes = new HashSet<string>();
             var typeSizes = new Dictionary<string, int>();
 
@@ -77,7 +78,6 @@ namespace StapleCodeGeneration
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
-                        t.TypeKind == TypeKind.Enum ||
                         t.TypeKind == TypeKind.Delegate)
                     {
                         if(verbose)
@@ -116,12 +116,20 @@ namespace StapleCodeGeneration
 
                     if(t.IsStatic == false &&
                         (t.Constructors.Any(x => x.Parameters.Length == 0) ||
-                        t.TypeKind == TypeKind.Struct))
+                        t.TypeKind == TypeKind.Struct ||
+                        t.TypeKind == TypeKind.Interface))
                     {
                         constructibleTypes.Add(typeName);
                     }
 
-                    if(t.AllInterfaces.Any(x => x.ContainingNamespace?.Name == "Staple" && x.Name == "IComponent"))
+                    if (t.IsStatic == false &&
+                        (t.Constructors.Any(x => x.Parameters.Length == 0) ||
+                        t.TypeKind == TypeKind.Struct))
+                    {
+                        sizableTypes.Add(typeName);
+                    }
+
+                    if (t.AllInterfaces.Any(x => x.ContainingNamespace?.Name == "Staple" && x.Name == "IComponent"))
                     {
                         componentTypes.Add(typeName);
                     }
@@ -144,7 +152,6 @@ namespace StapleCodeGeneration
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
-                        t.ContainingType.TypeKind == TypeKind.Enum ||
                         t.ContainingType.TypeKind == TypeKind.Delegate)
                     {
                         if (verbose)
@@ -220,7 +227,15 @@ namespace StapleCodeGeneration
                         types.Add(typeName);
 
                         if (symbol.IsStatic == false &&
-                            new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct]).Contains(symbol.TypeKind))
+                            new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct])
+                                .Contains(symbol.TypeKind))
+                        {
+                            sizableTypes.Add(typeName);
+                        }
+
+                        if (symbol.IsStatic == false &&
+                            new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct, TypeKind.Interface])
+                                .Contains(symbol.TypeKind))
                         {
                             constructibleTypes.Add(typeName);
                         }
@@ -318,7 +333,7 @@ namespace StapleCodeGeneration
 
                 var constructorSnippet = "";
 
-                var sizeofSnippet = constructibleTypes.Contains(type) ? $@"
+                var sizeofSnippet = sizableTypes.Contains(type) ? $@"
                 () =>
                 {{
                     return Marshal.SizeOf<{type}>();

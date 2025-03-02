@@ -30,6 +30,15 @@ public class SerializableStapleAssetParameter
 
     [Key(1)]
     public object value;
+
+    internal StapleSerializerField ToSerializerField()
+    {
+        return new()
+        {
+            typeName = typeName,
+            value = value is SerializableStapleAssetContainer container ? container.ToSerializerContainer() : value,
+        };
+    }
 }
 
 [MessagePackObject]
@@ -40,6 +49,21 @@ public class SerializableStapleAssetContainer
 
     [Key(1)]
     public Dictionary<string, SerializableStapleAssetParameter> parameters = [];
+
+    internal StapleSerializerContainer ToSerializerContainer()
+    {
+        var outValue = new StapleSerializerContainer()
+        {
+            typeName = typeName,
+        };
+
+        foreach(var pair in parameters)
+        {
+            outValue.fields.Add(pair.Key, pair.Value.ToSerializerField());
+        }
+
+        return outValue;
+    }
 }
 
 [MessagePackObject]
@@ -53,4 +77,21 @@ public class SerializableStapleAsset
 
     [Key(2)]
     public Dictionary<string, SerializableStapleAssetParameter> parameters = [];
+
+    internal StapleSerializerContainer ToSerializerContainer(out string guid)
+    {
+        guid = this.guid;
+
+        var outValue = new StapleSerializerContainer()
+        {
+            typeName = typeName,
+        };
+
+        foreach (var pair in parameters)
+        {
+            outValue.fields.Add(pair.Key, pair.Value.ToSerializerField());
+        }
+
+        return outValue;
+    }
 }

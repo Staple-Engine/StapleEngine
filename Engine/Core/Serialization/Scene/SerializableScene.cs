@@ -53,34 +53,7 @@ public class SceneComponentParameter
     public string name;
 
     [Key(1)]
-    public SceneComponentParameterType type;
-
-    [Key(2)]
-    public bool boolValue;
-
-    [Key(3)]
-    public int intValue;
-
-    [Key(4)]
-    public float floatValue;
-
-    [Key(5)]
-    public string stringValue;
-
-    [Key(6)]
-    public Vector2Holder vector2Value;
-
-    [Key(7)]
-    public Vector3Holder vector3Value;
-
-    [Key(8)]
-    public Vector4Holder vector4Value;
-
-    [Key(9)]
-    public object arrayValue;
-
-    [Key(10)]
-    public SceneComponentParameterType arrayType;
+    public object value;
 }
 
 [Serializable]
@@ -92,11 +65,11 @@ public class SceneComponent
 
     [Key(1)]
     [JsonIgnore]
-    [System.NonSerialized]
-    public List<SceneComponentParameter> parameters = new();
+    [NonSerialized]
+    public List<SceneComponentParameter> parameters = [];
 
     [IgnoreMember]
-    public Dictionary<string, object> data = new();
+    public Dictionary<string, object> data = [];
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]

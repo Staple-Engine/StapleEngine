@@ -847,9 +847,9 @@ internal class ResourceManager
                                 continue;
                             }
 
-                            if (field.FieldType == typeof(Entity) && parameter.type == SceneComponentParameterType.Int)
+                            if (field.FieldType == typeof(Entity) && parameter.value is int intValue)
                             {
-                                var targetEntity = Scene.FindEntity(parameter.intValue);
+                                var targetEntity = Scene.FindEntity(intValue);
 
                                 if (targetEntity.IsValid)
                                 {
@@ -858,9 +858,9 @@ internal class ResourceManager
                             }
                             else if ((field.FieldType == typeof(IComponent) ||
                                 field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
-                                parameter.type == SceneComponentParameterType.String)
+                                parameter.value is string stringValue)
                             {
-                                var pieces = parameter.stringValue.Split(":");
+                                var pieces = stringValue.Split(":");
 
                                 if (pieces.Length == 2 &&
                                     int.TryParse(pieces[0], out var entityID))
