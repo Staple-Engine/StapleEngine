@@ -1,5 +1,6 @@
 ﻿using Staple;
 using Staple.Internal;
+using System.Text.Json;
 
 namespace CoreTests
 {
@@ -160,7 +161,7 @@ namespace CoreTests
                 Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].value, Is.EqualTo(asset.stringValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.numbers)].value, Is.EqualTo(asset.numbers));
                 Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Guid));
-                Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].value, Is.EqualTo(asset.enumValue));
+                Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].value, Is.EqualTo(asset.enumValue.ToString()));
             });
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
@@ -243,7 +244,7 @@ namespace CoreTests
                     if (parameter.value is SerializableStapleAssetContainer container)
                     {
                         Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
-                        Assert.That(container.parameters, Has.Count.EqualTo(0));
+                        Assert.That(container.fields, Has.Count.EqualTo(0));
                     }
                 }
             });
@@ -265,21 +266,21 @@ namespace CoreTests
                     if (parameter.value is SerializableStapleAssetContainer container)
                     {
                         Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
-                        Assert.That(container.parameters, Has.Count.EqualTo(1));
+                        Assert.That(container.fields, Has.Count.EqualTo(1));
 
-                        Assert.That(container.parameters.ContainsKey(nameof(SerializableAsset.InnerClass.container)), Is.True);
+                        Assert.That(container.fields.ContainsKey(nameof(SerializableAsset.InnerClass.container)), Is.True);
 
-                        Assert.That(container.parameters[nameof(SerializableAsset.InnerClass.container)].value, Is.TypeOf<SerializableStapleAssetContainer>());
+                        Assert.That(container.fields[nameof(SerializableAsset.InnerClass.container)].value, Is.TypeOf<SerializableStapleAssetContainer>());
 
-                        if (container.parameters[nameof(SerializableAsset.InnerClass.container)].value is SerializableStapleAssetContainer innerContainer)
+                        if (container.fields[nameof(SerializableAsset.InnerClass.container)].value is SerializableStapleAssetContainer innerContainer)
                         {
                             Assert.That(innerContainer.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass.InnerInnerClass).FullName));
 
-                            Assert.That(innerContainer.parameters.Count, Is.EqualTo(1));
+                            Assert.That(innerContainer.fields.Count, Is.EqualTo(1));
 
-                            Assert.That(innerContainer.parameters.ContainsKey(nameof(SerializableAsset.InnerClass.InnerInnerClass.value)));
+                            Assert.That(innerContainer.fields.ContainsKey(nameof(SerializableAsset.InnerClass.InnerInnerClass.value)));
 
-                            if (innerContainer.parameters.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
+                            if (innerContainer.fields.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
                             {
                                 Assert.That(innerParameter.typeName, Is.EqualTo(typeof(int).FullName));
 
@@ -469,6 +470,49 @@ namespace CoreTests
                 Assert.That(newAsset.GetHiddenField(), Is.EqualTo(0));
                 Assert.That(newAsset.GetSerializedField(), Is.EqualTo(2));
             }
+        }
+
+        [Test]
+        public void TestDeserializeJson()
+        {
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+            var asset = new SimpleAsset
+            {
+                intValue = 2,
+                stringValue = "different",
+                enumValue = NewEnum.B,
+            };
+
+            asset.numbers.Clear();
+            asset.numbers.Add(123);
+
+            asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
+
+            var result = StapleSerializer.SerializeContainer(asset, true);
+
+            Assert.That(result, Is.Not.EqualTo(null));
+
+            var jsonText = JsonSerializer.Serialize(result, StapleSerializerContainerSerializationContext.Default.StapleSerializerContainer);
+
+            var deserialized = JsonSerializer.Deserialize(jsonText, StapleSerializerContainerSerializationContext.Default.StapleSerializerContainer);
+
+            var newResult = StapleSerializer.DeserializeContainer(deserialized);
+
+            Assert.That(newResult, Is.Not.EqualTo(null));
+
+            Assert.That(newResult, Is.TypeOf<SimpleAsset>());
+
+            var newAsset = newResult as SimpleAsset;
+
+            Assert.That(newAsset, Is.Not.EqualTo(null));
+
+            Assert.That(newAsset.intValue, Is.EqualTo(asset.intValue));
+            Assert.That(newAsset.stringValue, Is.EqualTo(asset.stringValue));
+            Assert.That(newAsset.numbers, Is.EqualTo(asset.numbers));
+            Assert.That(newAsset.pathAsset != null);
+            Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
         }
     }
 }

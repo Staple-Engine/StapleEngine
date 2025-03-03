@@ -48,7 +48,7 @@ public class SerializableStapleAssetContainer
     public string typeName;
 
     [Key(1)]
-    public Dictionary<string, SerializableStapleAssetParameter> parameters = [];
+    public Dictionary<string, SerializableStapleAssetParameter> fields = [];
 
     internal StapleSerializerContainer ToSerializerContainer()
     {
@@ -57,7 +57,7 @@ public class SerializableStapleAssetContainer
             typeName = typeName,
         };
 
-        foreach(var pair in parameters)
+        foreach(var pair in fields)
         {
             outValue.fields.Add(pair.Key, pair.Value.ToSerializerField());
         }

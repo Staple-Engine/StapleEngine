@@ -140,6 +140,8 @@ public class Scene
                 continue;
             }
 
+            entity.AddComponent(type);
+
             entity.SetComponent(componentInstance);
         }
 

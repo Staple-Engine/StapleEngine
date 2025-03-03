@@ -419,7 +419,8 @@ public partial class World
     /// <param name="component">The component instance to replace</param>
     public void SetComponent(Entity entity, IComponent component)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (TryGetEntity(entity, out var entityInfo) == false ||
+            component is null)
         {
             return;
         }
