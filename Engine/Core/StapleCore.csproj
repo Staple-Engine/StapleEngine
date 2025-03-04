@@ -164,6 +164,8 @@
 		<Compile Include="Input\InputDevice.cs" />
 		<Compile Include="Jobs\ActionJob.cs" />
 		<Compile Include="Math\NoiseGenerator.cs" />
+		<Compile Include="Math\Vector3Int.cs" />
+		<Compile Include="Math\Vector4Int.cs" />
 		<Compile Include="Modules\ModuleInitializer.cs" />
 		<Compile Include="Modules\ModuleType.cs" />
 		<Compile Include="Performance\PerformanceProfiler.cs" />
@@ -205,6 +207,9 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
+		<Compile Include="Serialization\Serializer\IStapleTypeSerializer.cs" />
+		<Compile Include="Serialization\Serializer\Serializers\StapleBaseTypeSerializer.cs" />
+		<Compile Include="Serialization\Serializer\Serializers\StapleTypesSerializer.cs" />
 		<Compile Include="Serialization\Serializer\StapleSerializer.cs" />
 		<Compile Include="Serialization\Font\FontMetadata.cs" />
 		<Compile Include="Serialization\Font\SerializableFontAsset.cs" />

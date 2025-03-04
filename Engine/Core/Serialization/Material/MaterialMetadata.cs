@@ -38,6 +38,28 @@ public class Vector2Holder
     [Key(1)]
     public float y;
 
+    public Vector2Holder()
+    {
+    }
+
+    public Vector2Holder(float x, float y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
+    public Vector2Holder(Vector2 v)
+    {
+        x = v.X;
+        y = v.Y;
+    }
+
+    public Vector2Holder(Vector2Int v)
+    {
+        x = v.X;
+        y = v.Y;
+    }
+
     public Vector2 ToVector2()
     {
         return new Vector2(x, y);
@@ -131,6 +153,13 @@ public class Vector3Holder
     }
 
     public Vector3Holder(Vector3 v)
+    {
+        x = v.X;
+        y = v.Y;
+        z = v.Z;
+    }
+
+    public Vector3Holder(Vector3Int v)
     {
         x = v.X;
         y = v.Y;
@@ -253,9 +282,30 @@ public class Vector4Holder
         w = v.W;
     }
 
+    public Vector4Holder(Vector4Int v)
+    {
+        x = v.X;
+        y = v.Y;
+        z = v.Z;
+        w = v.W;
+    }
+
+    public Vector4Holder(Quaternion q)
+    {
+        x = q.X;
+        y = q.Y;
+        z = q.Z;
+        w = q.W;
+    }
+
     public Vector4 ToVector4()
     {
         return new Vector4(x, y, z, w);
+    }
+
+    public Quaternion ToQuaternion()
+    {
+        return new Quaternion(x, y, z, w);
     }
 
     public static bool operator ==(Vector4Holder lhs, Vector4Holder rhs)
