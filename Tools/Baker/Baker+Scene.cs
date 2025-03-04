@@ -149,16 +149,13 @@ static partial class Program
 
                     var header = new SerializableSceneHeader();
 
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(scene));
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
 
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(scene));
+
+                    writer.Write(encoded.ToArray());
                 }
                 catch (Exception e)
                 {
@@ -221,16 +218,13 @@ static partial class Program
                     scenes = sceneList,
                 };
 
-                using (var stream = File.OpenWrite(outputFile))
-                {
-                    using (var writer = new BinaryWriter(stream))
-                    {
-                        var encoded = MessagePackSerializer.Serialize(header)
-                            .Concat(MessagePackSerializer.Serialize(sceneListObject));
+                using var stream = File.OpenWrite(outputFile);
+                using var writer = new BinaryWriter(stream);
 
-                        writer.Write(encoded.ToArray());
-                    }
-                }
+                var encoded = MessagePackSerializer.Serialize(header)
+                    .Concat(MessagePackSerializer.Serialize(sceneListObject));
+
+                writer.Write(encoded.ToArray());
 
                 Console.WriteLine($"\tProcessed scene list");
             }
@@ -269,70 +263,34 @@ static partial class Program
                                 }
                             }
 
-                            component.parameters.Add(new SceneComponentParameter()
-                            {
-                                name = pair.Key,
-                                type = SceneComponentParameterType.Array,
-                                arrayType = SceneComponentParameterType.String,
-                                arrayValue = list.ToArray(),
-                            });
+                            component.parameters.Add(pair.Key, list.ToArray());
 
                             break;
                     }
                 }
                 else if (pair.Value.GetType() == typeof(string))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.String,
-                        stringValue = (string)pair.Value,
-                    });
+                    component.parameters.Add(pair.Key, (string)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(int))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.Int,
-                        intValue = (int)pair.Value,
-                    });
+                    component.parameters.Add(pair.Key, (int)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(float))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.Float,
-                        floatValue = (float)pair.Value,
-                    });
+                    component.parameters.Add(pair.Key, (float)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(long))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.Int,
-                        intValue = (int)((long)pair.Value),
-                    });
+                    component.parameters.Add(pair.Key, (long)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(double))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.Float,
-                        floatValue = (float)((double)pair.Value),
-                    });
+                    component.parameters.Add(pair.Key, (double)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(bool))
                 {
-                    component.parameters.Add(new SceneComponentParameter()
-                    {
-                        name = pair.Key,
-                        type = SceneComponentParameterType.Bool,
-                        boolValue = (bool)pair.Value,
-                    });
+                    component.parameters.Add(pair.Key, (bool)pair.Value);
                 }
                 else if (pair.Value.GetType() == typeof(JObject))
                 {
@@ -345,12 +303,8 @@ static partial class Program
 
                     if (r != null && g != null && b != null && a != null)
                     {
-                        component.parameters.Add(new SceneComponentParameter()
-                        {
-                            name = pair.Key,
-                            type = SceneComponentParameterType.String,
-                            stringValue = $"#{((byte)r.Value).ToString("X2")}{((byte)g.Value).ToString("X2")}{((byte)b.Value).ToString("X2")}{((byte)a.Value).ToString("X2")}",
-                        });
+                        component.parameters.Add(pair.Key,
+                            $"#{((byte)r.Value).ToString("X2")}{((byte)g.Value).ToString("X2")}{((byte)b.Value).ToString("X2")}{((byte)a.Value).ToString("X2")}");
 
                         continue;
                     }
@@ -362,51 +316,39 @@ static partial class Program
 
                     if (x != null && y != null && z != null && w != null)
                     {
-                        component.parameters.Add(new SceneComponentParameter()
-                        {
-                            name = pair.Key,
-                            type = SceneComponentParameterType.Vector4,
-                            vector4Value = new Vector4Holder()
+                        component.parameters.Add(pair.Key,
+                            new Vector4Holder()
                             {
                                 x = x.Value,
                                 y = y.Value,
                                 z = z.Value,
                                 w = w.Value,
-                            }
-                        });
+                            });
 
                         continue;
                     }
 
                     if (x != null && y != null && z != null)
                     {
-                        component.parameters.Add(new SceneComponentParameter()
-                        {
-                            name = pair.Key,
-                            type = SceneComponentParameterType.Vector3,
-                            vector3Value = new Vector3Holder()
+                        component.parameters.Add(pair.Key,
+                            new Vector3Holder()
                             {
                                 x = x.Value,
                                 y = y.Value,
                                 z = z.Value,
-                            }
-                        });
+                            });
 
                         continue;
                     }
 
                     if (x != null && y != null)
                     {
-                        component.parameters.Add(new SceneComponentParameter()
-                        {
-                            name = pair.Key,
-                            type = SceneComponentParameterType.Vector2,
-                            vector2Value = new Vector2Holder()
+                        component.parameters.Add(pair.Key,
+                            new Vector2Holder()
                             {
                                 x = x.Value,
                                 y = y.Value,
-                            }
-                        });
+                            });
 
                         continue;
                     }

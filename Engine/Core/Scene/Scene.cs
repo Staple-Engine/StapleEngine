@@ -118,17 +118,17 @@ public class Scene
             {
                 foreach(var pair in component.parameters)
                 {
-                    var field = type.GetField(pair.name);
+                    var field = type.GetField(pair.Key);
 
                     if(field is null)
                     {
                         continue;
                     }
 
-                    container.fields.Add(pair.name, new()
+                    container.fields.Add(pair.Key, new()
                     {
                         typeName = field.FieldType.FullName,
-                        value = pair.value,
+                        value = pair.Value,
                     });
                 }
             }

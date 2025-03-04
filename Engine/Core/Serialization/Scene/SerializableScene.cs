@@ -46,16 +46,6 @@ internal partial class SceneObjectTransformSerializationContext : JsonSerializer
 {
 }
 
-[MessagePackObject]
-public class SceneComponentParameter
-{
-    [Key(0)]
-    public string name;
-
-    [Key(1)]
-    public object value;
-}
-
 [Serializable]
 [MessagePackObject]
 public class SceneComponent
@@ -66,7 +56,7 @@ public class SceneComponent
     [Key(1)]
     [JsonIgnore]
     [NonSerialized]
-    public List<SceneComponentParameter> parameters = [];
+    public Dictionary<string, object> parameters = [];
 
     [IgnoreMember]
     public Dictionary<string, object> data = [];

@@ -840,14 +840,14 @@ internal class ResourceManager
                     {
                         try
                         {
-                            var field = componentType.GetField(parameter.name, BindingFlags.Public | BindingFlags.Instance);
+                            var field = componentType.GetField(parameter.Key, BindingFlags.Public | BindingFlags.Instance);
 
                             if (field == null)
                             {
                                 continue;
                             }
 
-                            if (field.FieldType == typeof(Entity) && parameter.value is int intValue)
+                            if (field.FieldType == typeof(Entity) && parameter.Value is int intValue)
                             {
                                 var targetEntity = Scene.FindEntity(intValue);
 
@@ -858,7 +858,7 @@ internal class ResourceManager
                             }
                             else if ((field.FieldType == typeof(IComponent) ||
                                 field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
-                                parameter.value is string stringValue)
+                                parameter.Value is string stringValue)
                             {
                                 var pieces = stringValue.Split(":");
 

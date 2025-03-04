@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Collections;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.VisualBasic.FileIO;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -646,6 +648,131 @@ internal static class StapleSerializer
 
     private static object GetJsonValue(Type type, JsonElement element)
     {
+        object DecodeColor()
+        {
+            if(element.ValueKind != JsonValueKind.String)
+            {
+                return null;
+            }
+
+            var str = element.GetString();
+
+            var c = new Color(str);
+
+            if (type == typeof(Color))
+            {
+                return c;
+            }
+            else
+            {
+                return (Color32)c;
+            }
+        }
+
+        object DecodeLayerMask()
+        {
+            if (element.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            var m = element.GetUInt32();
+
+            return new LayerMask(m);
+        }
+
+        object DecodeVector2()
+        {
+            if(element.ValueKind != JsonValueKind.Object ||
+                element.TryGetProperty("x", out var xProp) == false ||
+                element.TryGetProperty("y", out var yProp) == false ||
+                xProp.ValueKind != JsonValueKind.Number ||
+                yProp.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            return new Vector2(xProp.GetSingle(), yProp.GetSingle());
+        }
+
+        object DecodeVector3()
+        {
+            if (element.ValueKind != JsonValueKind.Object ||
+                element.TryGetProperty("x", out var xProp) == false ||
+                element.TryGetProperty("y", out var yProp) == false ||
+                element.TryGetProperty("z", out var zProp) == false ||
+                xProp.ValueKind != JsonValueKind.Number ||
+                yProp.ValueKind != JsonValueKind.Number ||
+                zProp.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            return new Vector3(xProp.GetSingle(), yProp.GetSingle(), zProp.GetSingle());
+        }
+
+        object DecodeVector4()
+        {
+            if (element.ValueKind != JsonValueKind.Object ||
+                element.TryGetProperty("x", out var xProp) == false ||
+                element.TryGetProperty("y", out var yProp) == false ||
+                element.TryGetProperty("z", out var zProp) == false ||
+                element.TryGetProperty("w", out var wProp) == false ||
+                xProp.ValueKind != JsonValueKind.Number ||
+                yProp.ValueKind != JsonValueKind.Number ||
+                zProp.ValueKind != JsonValueKind.Number ||
+                wProp.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            return new Vector4(xProp.GetSingle(), yProp.GetSingle(), zProp.GetSingle(), wProp.GetSingle());
+        }
+
+        object DecodeQuaternion()
+        {
+            if(DecodeVector4() is not Vector4 v)
+            {
+                return null;
+            }
+
+            return new Quaternion(v.X, v.Y, v.Z, v.W);
+        }
+
+        object DecodeVector2Int()
+        {
+            if (element.ValueKind != JsonValueKind.Object ||
+                element.TryGetProperty("x", out var xProp) == false ||
+                element.TryGetProperty("y", out var yProp) == false ||
+                xProp.ValueKind != JsonValueKind.Number ||
+                yProp.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            return new Vector2Int(xProp.GetInt32(), yProp.GetInt32());
+        }
+
+        object DecodeRect()
+        {
+            if(DecodeVector4() is not Vector4 v)
+            {
+                return null;
+            }
+
+            return new Rect((int)v.X, (int)v.Y, (int)v.Z, (int)v.W);
+        }
+
+        object DecodeRectFloat()
+        {
+            if (DecodeVector4() is not Vector4 v)
+            {
+                return null;
+            }
+
+            return new RectFloat(v.X, v.Y, v.Z, v.W);
+        }
+
         return type switch
         {
             Type t when t == typeof(string) && element.ValueKind == JsonValueKind.String => element.GetString(),
@@ -661,8 +788,634 @@ internal static class StapleSerializer
                 element.ValueKind == JsonValueKind.False) => element.GetBoolean(),
             Type t when t.IsEnum && element.ValueKind == JsonValueKind.String => element.GetString(),
             Type t when t.IsArray && element.ValueKind == JsonValueKind.Array => GetJsonArray(t, element),
+            Type t when (t == typeof(Color32) || t == typeof(Color)) => DecodeColor(),
+            Type t when t == typeof(LayerMask) => DecodeLayerMask(),
+            Type t when t == typeof(Vector2) => DecodeVector2(),
+            Type t when t == typeof(Vector3) => DecodeVector3(),
+            Type t when t == typeof(Vector4) => DecodeVector4(),
+            Type t when t == typeof(Quaternion) => DecodeQuaternion(),
+            Type t when t == typeof(Vector2Int) => DecodeVector2Int(),
+            Type t when t == typeof(Rect) => DecodeRect(),
+            Type t when t == typeof(RectFloat) => DecodeRectFloat(),
             _ => null,
         };
+    }
+
+    private static object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo)
+    {
+        try
+        {
+            var valueType = TypeCache.GetType(fieldInfo.typeName);
+
+            if (valueType == null ||
+                field == null ||
+                fieldInfo.value == null ||
+                ((field.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
+                fieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && Platform.IsEditor == false) ||
+                (fieldType.FullName != fieldInfo.typeName && valueType.GetInterface(fieldType.FullName) == null))
+            {
+                return null;
+            }
+
+            if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                valueType == typeof(IGuidAsset))
+            {
+                string v = null;
+
+                if (fieldInfo.value is string str)
+                {
+                    v = str;
+                }
+                else if (fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.String)
+                {
+                    v = element.GetString();
+                }
+
+                if (v is string guid)
+                {
+                    var result = AssetSerialization.GetGuidAsset(valueType, guid);
+
+                    if (result == null || (result.GetType() != fieldType && result.GetType().GetInterface(fieldType.FullName) == null))
+                    {
+                        return null;
+                    }
+
+                    return result;
+                }
+
+                return null;
+            }
+
+            if (fieldType == fieldInfo.value.GetType())
+            {
+                return fieldInfo.value;
+            }
+            else if (fieldInfo.value is JsonElement jsonElement &&
+                GetJsonValue(fieldType, jsonElement) is object jsonObject &&
+                (fieldType == jsonObject.GetType() ||
+                jsonObject.GetType().IsAssignableTo(fieldType) ||
+                (fieldType.IsEnum && jsonObject is string)))
+            {
+                if (fieldType.IsEnum)
+                {
+                    if (Enum.TryParse(fieldType, (string)jsonObject, out var enumValue))
+                    {
+                        return enumValue;
+                    }
+                }
+                else
+                {
+                    return jsonObject;
+                }
+
+                return null;
+            }
+            else if (fieldType.IsPrimitive)
+            {
+                if (fieldInfo.value is JsonElement element)
+                {
+                    var o = GetJsonValue(fieldType, element);
+
+                    return o;
+                }
+
+                return Convert.ChangeType(fieldInfo.value, fieldType);
+            }
+            else if (fieldType == typeof(Color) || fieldType == typeof(Color32))
+            {
+                var str = fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.String ? element.GetString() :
+                    fieldInfo.value is string s ? s : null;
+
+                if (str == null)
+                {
+                    return null;
+                }
+
+                var c = new Color(str);
+
+                if (fieldType == typeof(Color))
+                {
+                    return c;
+                }
+                else
+                {
+                    return (Color32)c;
+                }
+            }
+            else if (fieldType == typeof(LayerMask))
+            {
+                var mask = fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.Number ? element.GetUInt32() :
+                    fieldInfo.value is uint u ? u : 0;
+
+                var m = new LayerMask(mask);
+
+                return m;
+            }
+            else if (IsDirectParameter(fieldType.GetType()) == false &&
+                fieldType.GetCustomAttribute<SerializableAttribute>() != null)
+            {
+                {
+                    if (fieldInfo.value is Dictionary<object, object> pairs &&
+                        pairs.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
+                        t is string typeName &&
+                        pairs.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var p) &&
+                        p is Dictionary<object, object> fields)
+                    {
+                        try
+                        {
+                            var decodedContainer = DecodeContainer(typeName, fields);
+
+                            var value = DeserializeContainer(decodedContainer);
+
+                            return value;
+                        }
+                        catch (Exception)
+                        {
+                            return null;
+                        }
+                    }
+                }
+                {
+                    if (fieldInfo.value is JsonElement element &&
+                        element.ValueKind == JsonValueKind.Object &&
+                        element.TryGetProperty(nameof(SerializableStapleAssetContainer.typeName), out var typeNameProperty) &&
+                        typeNameProperty.ValueKind == JsonValueKind.String &&
+                        typeNameProperty.GetString() is string typeName &&
+                        element.TryGetProperty(nameof(SerializableStapleAssetContainer.fields), out var fieldsProperty) &&
+                        fieldsProperty.ValueKind == JsonValueKind.Object)
+                    {
+                        //TODO
+
+                        return null;
+                    }
+                }
+            }
+
+            if (fieldType.IsArray && IsValidType(fieldType.GetElementType()))
+            {
+                Array newValue = null;
+
+                var elementType = fieldType.GetElementType();
+
+                object sourceValue = fieldInfo.value is Array a ? a : fieldInfo.value is string s ? s : null;
+
+                if (fieldInfo.value is JsonElement element)
+                {
+                    if (element.ValueKind == JsonValueKind.String)
+                    {
+                        sourceValue = element.GetString();
+                    }
+                    else if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > 0)
+                    {
+                        var first = element[0];
+
+                        switch (elementType)
+                        {
+                            case Type t when t.IsPrimitive:
+
+                                sourceValue = a = TypeCache.CreateArray(elementType.FullName, element.GetArrayLength());
+
+                                for (var i = 0; i < element.GetArrayLength(); i++)
+                                {
+                                    var o = GetJsonValue(elementType, element[i]);
+
+                                    if (o is not null)
+                                    {
+                                        a.SetValue(o, i);
+                                    }
+                                }
+
+                                break;
+
+                            case Type t when t.GetInterface(typeof(IGuidAsset).FullName) != null:
+                            case Type t2 when t2 == typeof(IGuidAsset):
+                            case Type t3 when t3 == typeof(string):
+
+                                sourceValue = a = new string[element.GetArrayLength()];
+
+                                for (var i = 0; i < element.GetArrayLength(); i++)
+                                {
+                                    if (element[i].ValueKind == JsonValueKind.String)
+                                    {
+                                        a.SetValue(element[i].GetString(), i);
+                                    }
+                                }
+
+                                break;
+
+                            case Type t when t.GetCustomAttribute<SerializableAttribute>() != null:
+
+                                //TODO
+
+                                break;
+                        }
+                    }
+                }
+
+                if (sourceValue is Array array)
+                {
+                    try
+                    {
+                        if (sourceValue is not string[] &&
+                            fieldType.GetElementType().IsPrimitive &&
+                            fieldType.GetElementType() != typeof(bool))
+                        {
+                            var size = TypeCache.SizeOf(elementType.FullName);
+
+                            newValue = TypeCache.CreateArray(elementType.FullName, array.Length / size);
+                        }
+                        else
+                        {
+                            newValue = TypeCache.CreateArray(elementType.FullName, array.Length);
+                        }
+
+                        if (newValue != null)
+                        {
+                            if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                                elementType == typeof(IGuidAsset))
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    if (array.GetValue(i) is string guid)
+                                    {
+                                        var asset = AssetSerialization.GetGuidAsset(elementType, guid);
+
+                                        newValue.SetValue(asset, i);
+                                    }
+                                }
+                            }
+                            else if (elementType == typeof(string))
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    newValue.SetValue(array.GetValue(i), i);
+                                }
+                            }
+                            else if (elementType.IsPrimitive)
+                            {
+                                if (array is byte[] buffer)
+                                {
+                                    DeserializePrimitiveArray(buffer, newValue);
+                                }
+                            }
+                            else if (elementType.GetCustomAttribute<SerializableAttribute>() != null &&
+                                array is object[] arrayData)
+                            {
+                                newValue = TypeCache.CreateArray(elementType.FullName, arrayData.Length);
+
+                                if (newValue != null)
+                                {
+                                    for (var i = 0; i < arrayData.Length; i++)
+                                    {
+                                        if (arrayData[i] is Dictionary<object, object> content)
+                                        {
+                                            if (content.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var atn) &&
+                                                atn is string arrayTypeName &&
+                                                content.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var ap) &&
+                                                ap is Dictionary<object, object> arrayParameters)
+                                            {
+                                                try
+                                                {
+                                                    var c = DecodeContainer(arrayTypeName, arrayParameters);
+
+                                                    var itemValue = DeserializeContainer(c);
+
+                                                    if (itemValue != null)
+                                                    {
+                                                        newValue.SetValue(itemValue, i);
+                                                    }
+                                                }
+                                                catch (Exception)
+                                                {
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                {
+                    try
+                    {
+                        var bytes = Convert.FromBase64String(base64Encoded);
+
+                        if (bytes != null)
+                        {
+                            if (fieldType.GetElementType().IsPrimitive &&
+                                fieldType.GetElementType() != typeof(bool))
+                            {
+                                var size = TypeCache.SizeOf(elementType.FullName);
+
+                                newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
+                            }
+                            else
+                            {
+                                newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
+                            }
+
+                            if (newValue != null)
+                            {
+                                DeserializePrimitiveArray(bytes, newValue);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (fieldType.GetElementType().GetCustomAttribute<SerializableAttribute>() != null &&
+                    fieldInfo.value is List<SerializableStapleAssetContainer> containers)
+                {
+                    try
+                    {
+                        newValue = TypeCache.CreateArray(fieldType.GetElementType().FullName, containers.Count);
+
+                        if (newValue != null)
+                        {
+                            for (var i = 0; i < containers.Count; i++)
+                            {
+                                try
+                                {
+                                    var itemValue = DeserializeContainer(containers[i].ToSerializerContainer());
+
+                                    if (itemValue != null)
+                                    {
+                                        newValue.SetValue(itemValue, i);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+
+                        return null;
+                    }
+                }
+
+                return newValue;
+            }
+
+            if (fieldType.IsGenericType)
+            {
+                if (fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    IList list = (IList)ObjectCreation.CreateObject(fieldType);
+
+                    if (list == null)
+                    {
+                        return null;
+                    }
+
+                    var fail = false;
+                    var elementType = fieldType.GenericTypeArguments[0];
+
+                    if (IsValidType(elementType) == false)
+                    {
+                        return null;
+                    }
+
+                    var condensed = fieldInfo.value is JsonElement jsonElement ?
+                        GetJsonArray(TypeCache.GetType(fieldInfo.typeName), jsonElement) : fieldInfo.value;
+
+                    object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
+                        s : condensed is object[] a ? a : null;
+
+                    if (sourceValue is object[] array)
+                    {
+                        foreach (var item in array)
+                        {
+                            if (elementType.IsPrimitive)
+                            {
+                                list.Add(item);
+                            }
+                            else if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                            {
+                                if (item is string guid)
+                                {
+                                    var v = AssetSerialization.GetGuidAsset(elementType, guid);
+
+                                    if (v != null)
+                                    {
+                                        list.Add(v);
+                                    }
+                                }
+                            }
+                            else if (elementType.GetCustomAttribute<SerializableAttribute>() != null)
+                            {
+                                try
+                                {
+                                    string innerTypeName = null;
+                                    Dictionary<object, object> parameters = null;
+
+                                    if (item is Dictionary<object, object> itemData &&
+                                        itemData.Count == 2 &&
+                                        itemData.ContainsKey("typeName") &&
+                                        itemData.ContainsKey("parameters") &&
+                                        itemData["typeName"] is string &&
+                                        itemData["parameters"] is Dictionary<object, object>)
+                                    {
+                                        innerTypeName = (string)itemData["typeName"];
+                                        parameters = (Dictionary<object, object>)itemData["parameters"];
+                                    }
+                                    //TODO: Check if still usable. Probably not.
+                                    else if (item is object[] containers &&
+                                        containers.Length == 2 &&
+                                        containers[0] is string &&
+                                        containers[1] is Dictionary<object, object>) //Name and parameters
+                                    {
+                                        innerTypeName = (string)containers[0];
+                                        parameters = (Dictionary<object, object>)containers[1];
+                                    }
+
+                                    if (innerTypeName != null && parameters != null)
+                                    {
+                                        var itemContainer = new SerializableStapleAssetContainer()
+                                        {
+                                            typeName = innerTypeName,
+                                        };
+
+                                        var containerParameters = new Dictionary<string, SerializableStapleAssetParameter>();
+
+                                        foreach (var containerPair in parameters)
+                                        {
+                                            string containerKey = null;
+                                            string parameterTypeName = null;
+                                            object parameterValue = null;
+
+                                            if (containerPair.Key is string &&
+                                                containerPair.Value is Dictionary<object, object> containerData &&
+                                                containerData.Count == 2 &&
+                                                containerData.ContainsKey("typeName") &&
+                                                containerData.ContainsKey("value") &&
+                                                containerData["typeName"] is string)
+                                            {
+                                                containerKey = (string)containerPair.Key;
+                                                parameterTypeName = (string)containerData["typeName"];
+                                                parameterValue = containerData["value"];
+                                            }
+                                            //TODO: Check if still usable. Probably not.
+                                            else if (containerPair.Key is string &&
+                                                containerPair.Value is object[] pieces &&
+                                                pieces.Length == 2 &&
+                                                pieces[0] is string)
+                                            {
+                                                containerKey = (string)containerPair.Key;
+                                                parameterTypeName = (string)((object[])containerPair.Value)[0];
+                                                parameterValue = (string)((object[])containerPair.Value)[1];
+                                            }
+
+                                            if (containerKey != null &&
+                                                parameterTypeName != null &&
+                                                parameterValue != null)
+                                            {
+                                                var tempParameter = new SerializableStapleAssetParameter()
+                                                {
+                                                    typeName = parameterTypeName,
+                                                    value = parameterValue,
+                                                };
+
+                                                containerParameters.Add(containerKey, tempParameter);
+                                            }
+                                        }
+
+                                        itemContainer.fields = containerParameters;
+
+                                        var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer());
+
+                                        if (itemInstance != null)
+                                        {
+                                            list.Add(itemInstance);
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    var value = Convert.ChangeType(item, elementType.GenericTypeArguments[0]);
+
+                                    list.Add(value);
+                                }
+                                catch (Exception)
+                                {
+                                    fail = true;
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (fail)
+                        {
+                            return null;
+                        }
+
+                        return list;
+                    }
+                    else if (sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                    {
+                        Array newValue = null;
+
+                        try
+                        {
+                            var bytes = Convert.FromBase64String(base64Encoded);
+
+                            if (bytes != null)
+                            {
+                                if (elementType.IsPrimitive &&
+                                    elementType != typeof(bool))
+                                {
+                                    var size = TypeCache.SizeOf(elementType.FullName);
+
+                                    newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
+                                }
+                                else
+                                {
+                                    newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
+                                }
+
+                                if (newValue != null)
+                                {
+                                    DeserializePrimitiveArray(bytes, newValue);
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            return null;
+                        }
+
+                        if (newValue != null)
+                        {
+                            foreach (var element in newValue)
+                            {
+                                list.Add(element);
+                            }
+
+                            return list;
+                        }
+                    }
+
+                    return null;
+                }
+            }
+
+            if (fieldType == typeof(SerializableStapleAssetContainer) &&
+                field.GetValue(fieldInfo.value) is SerializableStapleAssetContainer innerContainer)
+            {
+                var value = DeserializeContainer(innerContainer.ToSerializerContainer());
+
+                return value;
+            }
+
+            {
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(fieldType, element) : fieldInfo.value;
+
+                if (fieldType.IsEnum && v is string str)
+                {
+                    if (Enum.TryParse(fieldType, str, true, out var enumValue))
+                    {
+                        return enumValue;
+                    }
+
+                    return null;
+                }
+            }
+
+            {
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(fieldType, element) : fieldInfo.value;
+
+                return v;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[Serialization] Failed to deserialize field {field.Name} for {type.FullName}: {e}");
+
+            return null;
+        }
     }
 
     /// <summary>
@@ -696,636 +1449,19 @@ internal static class StapleSerializer
                 try
                 {
                     var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    var valueType = TypeCache.GetType(pair.Value.typeName);
 
-                    if (valueType == null ||
-                        field == null ||
-                        ((field.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
-                        field.FieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && Platform.IsEditor == false) ||
-                        (field.FieldType.FullName != pair.Value.typeName && valueType.GetInterface(field.FieldType.FullName) == null))
+                    var value = DeserializeField(type, field, field.FieldType, pair.Value);
+
+                    if(value is null)
                     {
                         continue;
                     }
 
-                    if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null ||
-                        valueType == typeof(IGuidAsset))
-                    {
-                        string v = null;
-
-                        if(pair.Value.value is string str)
-                        {
-                            v = str;
-                        }
-                        else if(pair.Value.value is JsonElement element && element.ValueKind == JsonValueKind.String)
-                        {
-                            v = element.GetString();
-                        }
-
-                        if (v is string guid)
-                        {
-                            var result = AssetSerialization.GetGuidAsset(valueType, guid);
-
-                            if (result == null || (result.GetType() != field.FieldType && result.GetType().GetInterface(field.FieldType.FullName) == null))
-                            {
-                                break;
-                            }
-
-                            field.SetValue(instance, result);
-                        }
-
-                        continue;
-                    }
-
-                    if (pair.Value.value != null)
-                    {
-                        if (field.FieldType == pair.Value.value.GetType())
-                        {
-                            field.SetValue(instance, pair.Value.value);
-
-                            continue;
-                        }
-                        else if (pair.Value.value is JsonElement jsonElement &&
-                            GetJsonValue(field.FieldType, jsonElement) is object jsonObject &&
-                            (field.FieldType == jsonObject.GetType() ||
-                            jsonObject.GetType().IsAssignableTo(field.FieldType) ||
-                            (field.FieldType.IsEnum && jsonObject is string)))
-                        {
-                            if(field.FieldType.IsEnum)
-                            {
-                                if(Enum.TryParse(field.FieldType, (string)jsonObject, out var enumValue))
-                                {
-                                    field.SetValue(instance, enumValue);
-                                }
-                            }
-                            else
-                            {
-                                field.SetValue(instance, jsonObject);
-                            }
-
-                            continue;
-                        }
-                        else if(field.FieldType.IsPrimitive)
-                        {
-                            if(pair.Value.value is JsonElement element)
-                            {
-                                var o = GetJsonValue(field.FieldType, element);
-
-                                if(o is not null)
-                                {
-                                    try
-                                    {
-                                        field.SetValue(instance, o);
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    field.SetValue(instance, Convert.ChangeType(pair.Value.value, field.FieldType));
-                                }
-                                catch (Exception)
-                                {
-                                }
-                            }
-
-                            continue;
-                        }
-                        else if (IsDirectParameter(field.FieldType.GetType()) == false &&
-                            field.FieldType.GetCustomAttribute<SerializableAttribute>() != null)
-                        {
-                            {
-                                if (pair.Value.value is Dictionary<object, object> pairs &&
-                                    pairs.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
-                                    t is string typeName &&
-                                    pairs.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var p) &&
-                                    p is Dictionary<object, object> fields)
-                                {
-                                    try
-                                    {
-                                        var decodedContainer = DecodeContainer(typeName, fields);
-
-                                        var value = DeserializeContainer(decodedContainer);
-
-                                        if (value != null)
-                                        {
-                                            field.SetValue(instance, value);
-                                        }
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-
-                                    continue;
-                                }
-                            }
-                            {
-                                if (pair.Value.value is JsonElement element &&
-                                    element.ValueKind == JsonValueKind.Object &&
-                                    element.TryGetProperty(nameof(SerializableStapleAssetContainer.typeName), out var typeNameProperty) &&
-                                    typeNameProperty.ValueKind == JsonValueKind.String &&
-                                    typeNameProperty.GetString() is string typeName &&
-                                    element.TryGetProperty(nameof(SerializableStapleAssetContainer.fields), out var fieldsProperty) &&
-                                    fieldsProperty.ValueKind == JsonValueKind.Object)
-                                {
-                                    //TODO
-
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-
-                    if (field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
-                    {
-                        Array newValue = null;
-
-                        var elementType = field.FieldType.GetElementType();
-
-                        object sourceValue = pair.Value.value is Array a ? a: pair.Value.value is string s ? s : null;
-
-                        if (pair.Value.value is JsonElement element)
-                        {
-                            if(element.ValueKind == JsonValueKind.String)
-                            {
-                                sourceValue = element.GetString();
-                            }
-                            else if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > 0)
-                            {
-                                var first = element[0];
-
-                                switch (elementType)
-                                {
-                                    case Type t when t.IsPrimitive:
-
-                                        sourceValue = a = TypeCache.CreateArray(elementType.FullName, element.GetArrayLength());
-
-                                        for (var i = 0; i < element.GetArrayLength(); i++)
-                                        {
-                                            var o = GetJsonValue(elementType, element[i]);
-
-                                            if (o is not null)
-                                            {
-                                                a.SetValue(o, i);
-                                            }
-                                        }
-
-                                        break;
-
-                                    case Type t when t.GetInterface(typeof(IGuidAsset).FullName) != null:
-                                    case Type t2 when t2 == typeof(IGuidAsset):
-                                    case Type t3 when t3 == typeof(string):
-
-                                        sourceValue = a = new string[element.GetArrayLength()];
-
-                                        for (var i = 0; i < element.GetArrayLength(); i++)
-                                        {
-                                            if (element[i].ValueKind == JsonValueKind.String)
-                                            {
-                                                a.SetValue(element[i].GetString(), i);
-                                            }
-                                        }
-
-                                        break;
-
-                                    case Type t when t.GetCustomAttribute<SerializableAttribute>() != null:
-
-                                        //TODO
-
-                                        break;
-                                }
-                            }
-                        }
-
-                        if (sourceValue is Array array)
-                        {
-                            try
-                            {
-                                if(sourceValue is not string[] &&
-                                    field.FieldType.GetElementType().IsPrimitive &&
-                                    field.FieldType.GetElementType() != typeof(bool))
-                                {
-                                    var size = TypeCache.SizeOf(elementType.FullName);
-
-                                    newValue = TypeCache.CreateArray(elementType.FullName, array.Length / size);
-                                }
-                                else
-                                {
-                                    newValue = TypeCache.CreateArray(elementType.FullName, array.Length);
-                                }
-
-                                if(newValue != null)
-                                {
-                                    if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
-                                        elementType == typeof(IGuidAsset))
-                                    {
-                                        for (var i = 0; i < array.Length; i++)
-                                        {
-                                            if (array.GetValue(i) is string guid)
-                                            {
-                                                var asset = AssetSerialization.GetGuidAsset(elementType, guid);
-
-                                                newValue.SetValue(asset, i);
-                                            }
-                                        }
-                                    }
-                                    else if (elementType == typeof(string))
-                                    {
-                                        for (var i = 0; i < array.Length; i++)
-                                        {
-                                            newValue.SetValue(array.GetValue(i), i);
-                                        }
-                                    }
-                                    else if (elementType.IsPrimitive)
-                                    {
-                                        if (array is byte[] buffer)
-                                        {
-                                            DeserializePrimitiveArray(buffer, newValue);
-                                        }
-                                    }
-                                    else if(elementType.GetCustomAttribute<SerializableAttribute>() != null &&
-                                        array is object[] arrayData)
-                                    {
-                                        newValue = TypeCache.CreateArray(elementType.FullName, arrayData.Length);
-
-                                        if (newValue != null)
-                                        {
-                                            for (var i = 0; i < arrayData.Length; i++)
-                                            {
-                                                if (arrayData[i] is Dictionary<object, object> content)
-                                                {
-                                                    if(content.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var atn) &&
-                                                        atn is string arrayTypeName &&
-                                                        content.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var ap) &&
-                                                        ap is Dictionary<object, object> arrayParameters)
-                                                    {
-                                                        try
-                                                        {
-                                                            var c = DecodeContainer(arrayTypeName, arrayParameters);
-
-                                                            var itemValue = DeserializeContainer(c);
-
-                                                            if (itemValue != null)
-                                                            {
-                                                                newValue.SetValue(itemValue, i);
-                                                            }
-                                                        }
-                                                        catch (Exception)
-                                                        {
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
-
-                                continue;
-                            }
-                        }
-                        else if(sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
-                        {
-                            try
-                            {
-                                var bytes = Convert.FromBase64String(base64Encoded);
-
-                                if(bytes != null)
-                                {
-                                    if (field.FieldType.GetElementType().IsPrimitive &&
-                                        field.FieldType.GetElementType() != typeof(bool))
-                                    {
-                                        var size = TypeCache.SizeOf(elementType.FullName);
-
-                                        newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
-                                    }
-                                    else
-                                    {
-                                        newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
-                                    }
-
-                                    if(newValue != null)
-                                    {
-                                        DeserializePrimitiveArray(bytes, newValue);
-                                    }
-                                }
-                            }
-                            catch(Exception e)
-                            {
-                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
-
-                                continue;
-                            }
-                        }
-                        else if (field.FieldType.GetElementType().GetCustomAttribute<SerializableAttribute>() != null &&
-                            pair.Value.value is List<SerializableStapleAssetContainer> containers)
-                        {
-                            try
-                            {
-                                newValue = TypeCache.CreateArray(field.FieldType.GetElementType().FullName, containers.Count);
-
-                                if(newValue != null)
-                                {
-                                    for (var i = 0; i < containers.Count; i++)
-                                    {
-                                        try
-                                        {
-                                            var itemValue = DeserializeContainer(containers[i].ToSerializerContainer());
-
-                                            if (itemValue != null)
-                                            {
-                                                newValue.SetValue(itemValue, i);
-                                            }
-                                        }
-                                        catch (Exception)
-                                        {
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
-
-                                continue;
-                            }
-                        }
-
-                        try
-                        {
-                            if (newValue != null)
-                            {
-                                field.SetValue(instance, newValue);
-                            }
-                        }
-                        catch(Exception)
-                        {
-                        }
-
-                        continue;
-                    }
-
-                    if (field.FieldType.IsGenericType)
-                    {
-                        if (field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
-                        {
-                            IList list = (IList)ObjectCreation.CreateObject(field.FieldType);
-
-                            if (list == null)
-                            {
-                                continue;
-                            }
-
-                            var fail = false;
-                            var fieldType = field.FieldType.GenericTypeArguments[0];
-
-                            if(IsValidType(fieldType) == false)
-                            {
-                                continue;
-                            }
-
-                            var condensed = pair.Value.value is JsonElement jsonElement ?
-                                GetJsonArray(TypeCache.GetType(pair.Value.typeName), jsonElement) : pair.Value.value;
-
-                            object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
-                                s : condensed is object[] a ? a : null;
-
-                            if (sourceValue is object[] array)
-                            {
-                                foreach (var item in array)
-                                {
-                                    if (fieldType.IsPrimitive)
-                                    {
-                                        list.Add(item);
-                                    }
-                                    else if (fieldType.GetInterface(typeof(IGuidAsset).FullName) != null)
-                                    {
-                                        if (item is string guid)
-                                        {
-                                            var v = AssetSerialization.GetGuidAsset(fieldType, guid);
-
-                                            if (v != null)
-                                            {
-                                                list.Add(v);
-                                            }
-                                        }
-                                    }
-                                    else if (fieldType.GetCustomAttribute<SerializableAttribute>() != null)
-                                    {
-                                        try
-                                        {
-                                            string innerTypeName = null;
-                                            Dictionary<object, object> parameters = null;
-
-                                            if (item is Dictionary<object, object> itemData &&
-                                                itemData.Count == 2 &&
-                                                itemData.ContainsKey("typeName") &&
-                                                itemData.ContainsKey("parameters") &&
-                                                itemData["typeName"] is string &&
-                                                itemData["parameters"] is Dictionary<object, object>)
-                                            {
-                                                innerTypeName = (string)itemData["typeName"];
-                                                parameters = (Dictionary<object, object>)itemData["parameters"];
-                                            }
-                                            //TODO: Check if still usable. Probably not.
-                                            else if (item is object[] containers &&
-                                                containers.Length == 2 &&
-                                                containers[0] is string &&
-                                                containers[1] is Dictionary<object, object>) //Name and parameters
-                                            {
-                                                innerTypeName = (string)containers[0];
-                                                parameters = (Dictionary<object, object>)containers[1];
-                                            }
-
-                                            if (innerTypeName != null && parameters != null)
-                                            {
-                                                var itemContainer = new SerializableStapleAssetContainer()
-                                                {
-                                                    typeName = innerTypeName,
-                                                };
-
-                                                var containerParameters = new Dictionary<string, SerializableStapleAssetParameter>();
-
-                                                foreach (var containerPair in parameters)
-                                                {
-                                                    string containerKey = null;
-                                                    string parameterTypeName = null;
-                                                    object parameterValue = null;
-
-                                                    if (containerPair.Key is string &&
-                                                        containerPair.Value is Dictionary<object, object> containerData &&
-                                                        containerData.Count == 2 &&
-                                                        containerData.ContainsKey("typeName") &&
-                                                        containerData.ContainsKey("value") &&
-                                                        containerData["typeName"] is string)
-                                                    {
-                                                        containerKey = (string)containerPair.Key;
-                                                        parameterTypeName = (string)containerData["typeName"];
-                                                        parameterValue = containerData["value"];
-                                                    }
-                                                    //TODO: Check if still usable. Probably not.
-                                                    else if (containerPair.Key is string &&
-                                                        containerPair.Value is object[] pieces &&
-                                                        pieces.Length == 2 &&
-                                                        pieces[0] is string)
-                                                    {
-                                                        containerKey = (string)containerPair.Key;
-                                                        parameterTypeName = (string)((object[])containerPair.Value)[0];
-                                                        parameterValue = (string)((object[])containerPair.Value)[1];
-                                                    }
-
-                                                    if (containerKey != null &&
-                                                        parameterTypeName != null &&
-                                                        parameterValue != null)
-                                                    {
-                                                        var tempParameter = new SerializableStapleAssetParameter()
-                                                        {
-                                                            typeName = parameterTypeName,
-                                                            value = parameterValue,
-                                                        };
-
-                                                        containerParameters.Add(containerKey, tempParameter);
-                                                    }
-                                                }
-
-                                                itemContainer.fields = containerParameters;
-
-                                                var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer());
-
-                                                if (itemInstance != null)
-                                                {
-                                                    list.Add(itemInstance);
-                                                }
-                                            }
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        try
-                                        {
-                                            var value = Convert.ChangeType(item, field.FieldType.GenericTypeArguments[0]);
-
-                                            list.Add(value);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            fail = true;
-
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (fail)
-                                {
-                                    continue;
-                                }
-
-                                if(instance != null)
-                                {
-                                    field.SetValue(instance, list);
-                                }
-                            }
-                            else if (sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
-                            {
-                                Array newValue = null;
-
-                                try
-                                {
-                                    var bytes = Convert.FromBase64String(base64Encoded);
-
-                                    if (bytes != null)
-                                    {
-                                        if (fieldType.IsPrimitive &&
-                                            fieldType != typeof(bool))
-                                        {
-                                            var size = TypeCache.SizeOf(fieldType.FullName);
-
-                                            newValue = TypeCache.CreateArray(fieldType.FullName, bytes.Length / size);
-                                        }
-                                        else
-                                        {
-                                            newValue = TypeCache.CreateArray(fieldType.FullName, bytes.Length);
-                                        }
-
-                                        if(newValue != null)
-                                        {
-                                            DeserializePrimitiveArray(bytes, newValue);
-                                        }
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                    continue;
-                                }
-
-                                if (newValue != null)
-                                {
-                                    foreach (var element in newValue)
-                                    {
-                                        list.Add(element);
-                                    }
-
-                                    field.SetValue(instance, list);
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    if (field.FieldType == typeof(SerializableStapleAssetContainer) &&
-                        field.GetValue(pair.Value.value) is SerializableStapleAssetContainer innerContainer)
-                    {
-                        try
-                        {
-                            var value = DeserializeContainer(innerContainer.ToSerializerContainer());
-
-                            if (value != null)
-                            {
-                                field.SetValue(instance, value);
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-
-                        continue;
-                    }
-
-                    {
-                        var v = pair.Value.value is JsonElement element ? GetJsonValue(field.FieldType, element) : pair.Value.value;
-
-                        if (field.FieldType.IsEnum && v is string str)
-                        {
-                            if (Enum.TryParse(field.FieldType, str, true, out var enumValue))
-                            {
-                                field.SetValue(instance, enumValue);
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    {
-                        var v = pair.Value.value is JsonElement element ? GetJsonValue(field.FieldType, element) : pair.Value.value;
-
-                        field.SetValue(instance, v);
-                    }
+                    field.SetValue(instance, value);
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to load an asset of type {container.typeName}: {e}");
+                    Log.Error($"[Serialization] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
                 }
             }
         }
