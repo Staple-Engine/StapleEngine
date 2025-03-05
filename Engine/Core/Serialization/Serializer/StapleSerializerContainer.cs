@@ -22,14 +22,31 @@ internal sealed class StapleSerializerContainer
 
         return outValue;
     }
+
+    public Dictionary<string, object> ToRawContainer()
+    {
+        var outValue = new Dictionary<string, object>();
+
+        foreach(var pair in fields)
+        {
+            outValue.Add(pair.Key, pair.Value.ToRawValue());
+        }
+
+        return outValue;
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
+[JsonSerializable(typeof(List<uint>))]
 [JsonSerializable(typeof(List<int>))]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(StapleSerializerContainer))]
 [JsonSerializable(typeof(Dictionary<string, StapleSerializerField>))]
+[JsonSerializable(typeof(Dictionary<string, object>))]
 [JsonSerializable(typeof(StapleSerializerField))]
+[JsonSerializable(typeof(Vector2Holder))]
+[JsonSerializable(typeof(Vector3Holder))]
+[JsonSerializable(typeof(Vector4Holder))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(byte))]

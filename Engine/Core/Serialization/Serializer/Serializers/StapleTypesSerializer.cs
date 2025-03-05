@@ -15,13 +15,17 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             Type t when t == typeof(LayerMask) => true,
             Type t when t == typeof(Rect) || t == typeof(RectFloat) => true,
             Type t when t == typeof(Vector2Int) || t == typeof(Vector3Int) || t == typeof(Vector4Int) => true,
+            Type t when t == typeof(IGuidAsset) || t.GetInterface(typeof(IGuidAsset).FullName) != null => true,
+            Type t when t == typeof(Entity) => true,
+            Type t when t == typeof(IComponent) || t.GetInterface(typeof(IComponent).FullName) != null => true,
+            Type t when t == typeof(Sprite) => true,
             _ => false,
         };
     }
 
-    public object SerializeField(object instance, Type type, FieldInfo field, Type fieldType)
+    public object SerializeField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode)
     {
-        switch (type)
+        switch (fieldType)
         {
             case Type t when t == typeof(Color):
 
@@ -110,14 +114,61 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 }
 
                 break;
-        }
+
+            case Type t when t == typeof(IGuidAsset) ||
+                t.GetInterface(typeof(IGuidAsset).FullName) != null:
+
+                {
+                    if(instance is IGuidAsset a)
+                    {
+                        return AssetSerialization.GetAssetPathFromCache(a.Guid);
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Entity):
+
+                {
+                    if(instance is Entity e)
+                    {
+                        return e.Identifier.ID;
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(IComponent) ||
+                t.GetInterface(typeof(IComponent).FullName) != null:
+
+                {
+                    if(instance is IComponent component &&
+                        (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
+                    {
+                        return $"{e.Identifier.ID}:{component.GetType().FullName}";
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Sprite):
+
+                {
+                    if(instance is Sprite sprite)
+                    {
+                        return $"{sprite.texture?.Guid ?? ""}:{sprite.spriteIndex}";
+                    }
+                }
+
+                break;
+         }
 
         return null;
     }
 
-    public object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo)
+    public object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode)
     {
-        switch (type)
+        switch (fieldType)
         {
             case Type t when t == typeof(Color):
 
@@ -206,14 +257,80 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 }
 
                 break;
+
+            case Type t when t == typeof(IGuidAsset) ||
+                t.GetInterface(typeof(IGuidAsset).FullName) != null:
+
+                {
+                    if (fieldInfo.value is string s)
+                    {
+                        return AssetSerialization.GetGuidAsset(t, s);
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Entity):
+
+                {
+                    if (fieldInfo.value is int i)
+                    {
+                        return i;
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(IComponent) ||
+                t.GetInterface(typeof(IComponent).FullName) != null:
+
+                {
+                    if (fieldInfo.value is string s)
+                    {
+                        return s;
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Sprite):
+
+                {
+                    if(fieldInfo.value is string s)
+                    {
+                        var pieces = s.Split(':');
+
+                        if (pieces.Length != 2 ||
+                            int.TryParse(pieces[1], out var spriteIndex) == false ||
+                            spriteIndex < 0)
+                        {
+                            return null;
+                        }
+
+                        var texture = ResourceManager.instance.LoadTexture(pieces[0]);
+
+                        if (texture == null || spriteIndex >= texture.Sprites.Length)
+                        {
+                            return null;
+                        }
+
+                        return new Sprite()
+                        {
+                            texture = texture,
+                            spriteIndex = spriteIndex,
+                        };
+                    }
+                }
+
+                break;
         }
 
         return null;
     }
 
-    public object SerializeJsonField(object instance, Type type, FieldInfo field, Type fieldType)
+    public object SerializeJsonField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode)
     {
-        switch(type)
+        switch (fieldType)
         {
             case Type t when t == typeof(Color):
 
@@ -302,14 +419,62 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 }
 
                 break;
+
+            case Type t when t == typeof(IGuidAsset) ||
+                t.GetInterface(typeof(IGuidAsset).FullName) != null:
+
+                {
+                    if (instance is IGuidAsset a)
+                    {
+                        return AssetSerialization.GetAssetPathFromCache(a.Guid);
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Entity):
+
+                {
+                    if (instance is Entity e)
+                    {
+                        return e.Identifier.ID;
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(IComponent) ||
+                t.GetInterface(typeof(IComponent).FullName) != null:
+
+                {
+                    if (instance is IComponent component &&
+                        (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
+                    {
+                        return $"{e.Identifier.ID}:{t.FullName}";
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Sprite):
+
+                {
+                    if (instance is Sprite sprite)
+                    {
+                        return $"{sprite.texture?.Guid ?? ""}:{sprite.spriteIndex}";
+                    }
+                }
+
+                break;
         }
 
         return null;
     }
 
-    public object DeserializeJsonField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, JsonElement element)
+    public object DeserializeJsonField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo,
+        JsonElement element, StapleSerializationMode mode)
     {
-        switch (type)
+        switch (fieldType)
         {
             case Type t when t == typeof(Color) && element.ValueKind == JsonValueKind.String:
 
@@ -321,7 +486,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
             case Type t when t == typeof(LayerMask) && element.ValueKind == JsonValueKind.Number:
 
-                return new LayerMask(element.GetUInt32());
+                return new LayerMask(element.GetNumberValue<uint>());
 
             case Type t when t == typeof(Rect) && element.ValueKind == JsonValueKind.Object:
 
@@ -335,7 +500,10 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         zProp.ValueKind == JsonValueKind.Number &&
                         wProp.ValueKind == JsonValueKind.Number)
                     {
-                        return new Rect(xProp.GetInt32(), zProp.GetInt32(), yProp.GetInt32(), wProp.GetInt32());
+                        return new Rect(xProp.GetNumberValue<int>(),
+                            zProp.GetNumberValue<int>(),
+                            yProp.GetNumberValue<int>(),
+                            wProp.GetNumberValue<int>());
                     }
                 }
 
@@ -353,7 +521,10 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         zProp.ValueKind == JsonValueKind.Number &&
                         wProp.ValueKind == JsonValueKind.Number)
                     {
-                        return new RectFloat(xProp.GetSingle(), zProp.GetSingle(), yProp.GetSingle(), wProp.GetSingle());
+                        return new RectFloat(xProp.GetNumberValue<float>(),
+                            zProp.GetNumberValue<float>(),
+                            yProp.GetNumberValue<float>(),
+                            wProp.GetNumberValue<float>());
                     }
                 }
 
@@ -367,7 +538,8 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         xProp.ValueKind == JsonValueKind.Number &&
                         yProp.ValueKind == JsonValueKind.Number)
                     {
-                        return new Vector2Int(xProp.GetInt32(), yProp.GetInt32());
+                        return new Vector2Int(xProp.GetNumberValue<int>(),
+                            yProp.GetNumberValue<int>());
                     }
                 }
 
@@ -383,7 +555,9 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         yProp.ValueKind == JsonValueKind.Number &&
                         zProp.ValueKind == JsonValueKind.Number)
                     {
-                        return new Vector3Int(xProp.GetInt32(), yProp.GetInt32(), zProp.GetInt32());
+                        return new Vector3Int(xProp.GetNumberValue<int>(),
+                            yProp.GetNumberValue<int>(),
+                            zProp.GetNumberValue<int>());
                     }
                 }
 
@@ -401,11 +575,58 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         zProp.ValueKind == JsonValueKind.Number &&
                         wProp.ValueKind == JsonValueKind.Number)
                     {
-                        return new Vector4Int(xProp.GetInt32(), yProp.GetInt32(), zProp.GetInt32(), wProp.GetInt32());
+                        return new Vector4Int(xProp.GetNumberValue<int>(),
+                            yProp.GetNumberValue<int>(),
+                            zProp.GetNumberValue<int>(),
+                            wProp.GetNumberValue<int>());
                     }
                 }
 
                 break;
+
+            case Type t when (t == typeof(IGuidAsset) ||
+                t.GetInterface(typeof(IGuidAsset).FullName) != null) &&
+                element.ValueKind == JsonValueKind.String:
+
+                return AssetSerialization.GetGuidAsset(t, element.GetString());
+
+            case Type t when t == typeof(Entity) &&
+                element.ValueKind == JsonValueKind.Number:
+
+                return element.GetNumberValue<int>();
+
+            case Type t when (t == typeof(IComponent) ||
+                t.GetInterface(typeof(IComponent).FullName) != null) &&
+                element.ValueKind == JsonValueKind.String:
+
+                return element.GetString();
+
+            case Type t when t == typeof(Sprite) &&
+                element.ValueKind == JsonValueKind.String:
+
+                {
+                    var pieces = element.GetString().Split(':');
+
+                    if(pieces.Length != 2 ||
+                        int.TryParse(pieces[1], out var spriteIndex) == false ||
+                        spriteIndex < 0)
+                    {
+                        return null;
+                    }
+
+                    var texture = ResourceManager.instance.LoadTexture(pieces[0]);
+
+                    if(texture == null || spriteIndex >= texture.Sprites.Length)
+                    {
+                        return null;
+                    }
+
+                    return new Sprite()
+                    {
+                        texture = texture,
+                        spriteIndex = spriteIndex,
+                    };
+                }
         }
 
         return null;

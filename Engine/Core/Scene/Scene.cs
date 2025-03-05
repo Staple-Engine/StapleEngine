@@ -133,7 +133,7 @@ public class Scene
                 }
             }
 
-            var componentInstance = (IComponent)StapleSerializer.DeserializeContainer(container);
+            var componentInstance = (IComponent)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Scene);
 
             if(componentInstance is null)
             {

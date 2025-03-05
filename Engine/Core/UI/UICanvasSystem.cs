@@ -23,7 +23,7 @@ public class UICanvasSystem : IRenderSystem
 
     private readonly ExpandableContainer<RenderInfo> renders = new();
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 

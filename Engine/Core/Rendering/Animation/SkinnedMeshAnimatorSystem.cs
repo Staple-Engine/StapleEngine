@@ -10,7 +10,7 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public void Startup()
     {

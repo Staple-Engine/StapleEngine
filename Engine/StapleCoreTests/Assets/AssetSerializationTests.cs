@@ -1,5 +1,6 @@
 ﻿using Staple;
 using Staple.Internal;
+using System.Numerics;
 using System.Text.Json;
 
 namespace CoreTests
@@ -10,6 +11,44 @@ namespace CoreTests
         {
             A,
             B
+        }
+
+        [Flags]
+        public enum NewFlagEnum
+        {
+            A = (1 << 1),
+            B = (1 << 2),
+        }
+
+        internal class StapleTypesAsset : IStapleAsset
+        {
+            public byte b;
+            public sbyte sb;
+            public ushort us;
+            public short s;
+            public uint ui;
+            public int i;
+            public ulong ul;
+            public long l;
+            public float f;
+            public double d;
+            public bool bo;
+            public string str;
+            public Vector2 v2;
+            public Vector3 v3;
+            public Vector4 v4;
+            public Quaternion q;
+            public Vector2Int v2i;
+            public Vector3Int v3i;
+            public Vector4Int v4i;
+            public NewEnum ne;
+            public NewFlagEnum nfe;
+            public Color c;
+            public Color32 c32;
+            public LayerMask lm;
+            public Rect r;
+            public RectFloat rf;
+            public IGuidAsset asset;
         }
 
         internal class SimplePathAsset : IGuidAsset
@@ -132,7 +171,7 @@ namespace CoreTests
             asset.numbers.Clear();
             asset.numbers.Add(123);
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -166,7 +205,7 @@ namespace CoreTests
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
 
-            result = AssetSerialization.Serialize(asset, false);
+            result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo("valid path"));
         }
@@ -188,11 +227,11 @@ namespace CoreTests
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
-            var newResult = AssetSerialization.Deserialize(result);
+            var newResult = AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
 
             Assert.That(newResult, Is.Not.EqualTo(null));
 
@@ -223,7 +262,7 @@ namespace CoreTests
                 }
             };
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -251,7 +290,7 @@ namespace CoreTests
 
             asset.container.container = new();
 
-            result = AssetSerialization.Serialize(asset, false);
+            result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.Multiple(() =>
             {
@@ -311,7 +350,7 @@ namespace CoreTests
                 values = [1, 2, 3]
             };
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.Null);
 
@@ -319,7 +358,7 @@ namespace CoreTests
 
             Assert.That(result.parameters.Count, Is.EqualTo(5));
 
-            var deserialized = AssetSerialization.Deserialize(result);
+            var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
 
             Assert.That(deserialized, Is.Not.Null);
 
@@ -349,7 +388,7 @@ namespace CoreTests
                 values = [1, 2, 3]
             };
 
-            var result = AssetSerialization.Serialize(asset, true);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Text);
 
             Assert.That(result, Is.Not.Null);
 
@@ -357,7 +396,7 @@ namespace CoreTests
 
             Assert.That(result.parameters.Count, Is.EqualTo(5));
 
-            var deserialized = AssetSerialization.Deserialize(result);
+            var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Text);
 
             Assert.That(deserialized, Is.Not.Null);
 
@@ -383,7 +422,7 @@ namespace CoreTests
                 values = [1, 2, 3]
             };
 
-            var result = AssetSerialization.Serialize(asset, true);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Text);
 
             Assert.That(result, Is.Not.Null);
 
@@ -391,7 +430,7 @@ namespace CoreTests
 
             Assert.That(result.parameters.Count, Is.EqualTo(1));
 
-            var deserialized = AssetSerialization.Deserialize(result);
+            var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Text);
 
             Assert.That(deserialized, Is.Not.Null);
 
@@ -417,7 +456,7 @@ namespace CoreTests
                 values = [1, 2, 3]
             };
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.Null);
 
@@ -425,7 +464,7 @@ namespace CoreTests
 
             Assert.That(result.parameters.Count, Is.EqualTo(1));
 
-            var deserialized = AssetSerialization.Deserialize(result);
+            var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
 
             Assert.That(deserialized, Is.Not.Null);
 
@@ -451,7 +490,7 @@ namespace CoreTests
             asset.SetSerializedField(2);
             asset.SetHiddenField(1);
 
-            var result = AssetSerialization.Serialize(asset, false);
+            var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
             Assert.That(result, Is.Not.Null);
 
@@ -459,7 +498,7 @@ namespace CoreTests
 
             Assert.That(result.parameters.Count, Is.EqualTo(1));
 
-            var deserialized = AssetSerialization.Deserialize(result);
+            var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
 
             Assert.That(deserialized, Is.Not.Null);
 
@@ -489,7 +528,7 @@ namespace CoreTests
 
             asset.pathAsset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path");
 
-            var result = StapleSerializer.SerializeContainer(asset, true);
+            var result = StapleSerializer.SerializeContainer(asset, StapleSerializationMode.Text);
 
             Assert.That(result, Is.Not.EqualTo(null));
 
@@ -497,7 +536,7 @@ namespace CoreTests
 
             var deserialized = JsonSerializer.Deserialize(jsonText, StapleSerializerContainerSerializationContext.Default.StapleSerializerContainer);
 
-            var newResult = StapleSerializer.DeserializeContainer(deserialized);
+            var newResult = StapleSerializer.DeserializeContainer(deserialized, StapleSerializationMode.Text);
 
             Assert.That(newResult, Is.Not.EqualTo(null));
 
@@ -513,6 +552,89 @@ namespace CoreTests
             Assert.That(newAsset.pathAsset != null);
             Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
+        }
+
+        [Test]
+        public void TestDeserializeJsonTypes()
+        {
+            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+            var asset = new StapleTypesAsset()
+            {
+                asset = (SimplePathAsset)SimplePathAsset.Create("/abc/Cache/Staging/Windows/valid path"),
+                b = 1,
+                bo = true,
+                c = Color.White,
+                c32 = Color.White,
+                d = 111,
+                f = 123,
+                i = 321,
+                l = 123321,
+                lm = new(123),
+                ne = NewEnum.B,
+                nfe = NewFlagEnum.B | NewFlagEnum.A,
+                q = new(1, 2, 3, 4),
+                r = new(1, 2, 3, 4),
+                rf = new(1, 2, 3, 4),
+                s = 123,
+                sb = 123,
+                ui = 123,
+                ul = 123321,
+                us = 123,
+                v2 = new(1, 2),
+                v2i = new(2, 3),
+                v3 = new(1, 2, 3),
+                v3i = new(4, 5, 6),
+                v4 = new(1, 2, 3, 4),
+                v4i = new(5, 6, 7, 8),
+                str = "asdf",
+            };
+
+            var result = StapleSerializer.SerializeContainer(asset, StapleSerializationMode.Text);
+
+            Assert.That(result, Is.Not.EqualTo(null));
+
+            var jsonText = JsonSerializer.Serialize(result, StapleSerializerContainerSerializationContext.Default.StapleSerializerContainer);
+
+            var deserialized = JsonSerializer.Deserialize(jsonText, StapleSerializerContainerSerializationContext.Default.StapleSerializerContainer);
+
+            var newResult = StapleSerializer.DeserializeContainer(deserialized, StapleSerializationMode.Text);
+
+            Assert.That(newResult, Is.Not.EqualTo(null));
+
+            Assert.That(newResult, Is.TypeOf<StapleTypesAsset>());
+
+            var newAsset = newResult as StapleTypesAsset;
+
+            Assert.That(newAsset, Is.Not.EqualTo(null));
+
+            Assert.That(newAsset.asset?.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.b, Is.EqualTo((byte)1));
+            Assert.That(newAsset.bo, Is.EqualTo(true));
+            Assert.That(newAsset.c, Is.EqualTo(Color.White));
+            Assert.That(newAsset.c32, Is.EqualTo(Color32.White));
+            Assert.That(newAsset.d, Is.EqualTo(111.0));
+            Assert.That(newAsset.f, Is.EqualTo(123.0f));
+            Assert.That(newAsset.i, Is.EqualTo(321));
+            Assert.That(newAsset.l, Is.EqualTo(123321));
+            Assert.That(newAsset.lm, Is.EqualTo(new LayerMask(123)));
+            Assert.That(newAsset.ne, Is.EqualTo(NewEnum.B));
+            Assert.That(newAsset.nfe, Is.EqualTo(NewFlagEnum.A | NewFlagEnum.B));
+            Assert.That(newAsset.q, Is.EqualTo(new Quaternion(1, 2, 3, 4)));
+            Assert.That(newAsset.r, Is.EqualTo(new Rect(1, 2, 3, 4)));
+            Assert.That(newAsset.rf, Is.EqualTo(new RectFloat(1, 2, 3, 4)));
+            Assert.That(newAsset.s, Is.EqualTo((short)123));
+            Assert.That(newAsset.sb, Is.EqualTo((sbyte)123));
+            Assert.That(newAsset.ui, Is.EqualTo((uint)123));
+            Assert.That(newAsset.ul, Is.EqualTo((ulong)123321));
+            Assert.That(newAsset.us, Is.EqualTo((ushort)123));
+            Assert.That(newAsset.v2, Is.EqualTo(new Vector2(1, 2)));
+            Assert.That(newAsset.v2i, Is.EqualTo(new Vector2Int(2, 3)));
+            Assert.That(newAsset.v3, Is.EqualTo(new Vector3(1, 2, 3)));
+            Assert.That(newAsset.v3i, Is.EqualTo(new Vector3Int(4, 5, 6)));
+            Assert.That(newAsset.v4, Is.EqualTo(new Vector4(1, 2, 3, 4)));
+            Assert.That(newAsset.v4i, Is.EqualTo(new Vector4Int(5, 6, 7, 8)));
+            Assert.That(newAsset.str, Is.EqualTo("asdf"));
         }
     }
 }

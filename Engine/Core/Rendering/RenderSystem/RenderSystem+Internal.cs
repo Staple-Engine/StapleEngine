@@ -209,7 +209,7 @@ public sealed partial class RenderSystem
 
             foreach(var system in renderSystems)
             {
-                system.WorldVisibilityChanged = true;
+                system.NeedsUpdate = true;
             }
 
             var cameras = World.Current.SortedCameras;
@@ -309,9 +309,9 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    if(wasVisible != renderable.isVisible)
+                    if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
                     {
-                        system.WorldVisibilityChanged = true;
+                        system.NeedsUpdate = true;
                     }
                 }
             }
@@ -320,7 +320,7 @@ public sealed partial class RenderSystem
 
             system.Submit();
 
-            system.WorldVisibilityChanged = false;
+            system.NeedsUpdate = false;
         }
     }
 
@@ -351,7 +351,7 @@ public sealed partial class RenderSystem
         foreach (var system in systems)
         {
             //Force the world visibility to change
-            system.WorldVisibilityChanged = true;
+            system.NeedsUpdate = true;
 
             system.Prepare();
         }
@@ -398,7 +398,7 @@ public sealed partial class RenderSystem
         {
             system.Submit();
 
-            system.WorldVisibilityChanged = false;
+            system.NeedsUpdate = false;
         }
     }
 
@@ -477,7 +477,7 @@ public sealed partial class RenderSystem
         {
             system.Submit();
 
-            system.WorldVisibilityChanged = false;
+            system.NeedsUpdate = false;
         }
     }
 
@@ -567,9 +567,9 @@ public sealed partial class RenderSystem
                                 }
                             }
 
-                            if(wasVisible != renderable.isVisible)
+                            if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
                             {
-                                system.WorldVisibilityChanged = true;
+                                system.NeedsUpdate = true;
                             }
                         }
                     }

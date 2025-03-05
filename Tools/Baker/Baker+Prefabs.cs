@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
+using Staple.Tooling;
 using System;
 using System.Collections.Generic;
 using System.IO;

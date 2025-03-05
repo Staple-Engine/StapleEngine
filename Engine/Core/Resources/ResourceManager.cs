@@ -1994,7 +1994,7 @@ internal class ResourceManager
                 return default;
             }
 
-            asset = AssetSerialization.Deserialize(assetBundle);
+            asset = AssetSerialization.Deserialize(assetBundle, StapleSerializationMode.Binary);
 
             if (asset != null)
             {

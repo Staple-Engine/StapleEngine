@@ -1267,8 +1267,8 @@ internal partial class StapleEditor
 
                                 if(asset != null)
                                 {
-                                    selectedProjectNodeData = AssetSerialization.Deserialize(asset);
-                                    original = AssetSerialization.Deserialize(asset);
+                                    selectedProjectNodeData = AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
+                                    original = AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
 
                                     if (selectedProjectNodeData != null)
                                     {
@@ -1303,7 +1303,7 @@ internal partial class StapleEditor
 
                                                     if(asset != null)
                                                     {
-                                                        return AssetSerialization.Deserialize(asset);
+                                                        return AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
                                                     }
                                                 }
 

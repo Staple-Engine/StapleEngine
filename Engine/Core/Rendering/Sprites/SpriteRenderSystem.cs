@@ -91,7 +91,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly List<SpriteRenderInfo> sprites = [];
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public void Startup()
     {

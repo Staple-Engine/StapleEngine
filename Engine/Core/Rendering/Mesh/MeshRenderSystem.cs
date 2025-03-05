@@ -26,7 +26,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<ushort, Dictionary<int, ExpandableContainer<InstanceInfo>>> instanceCache = [];
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     /// <summary>
     /// Renders a mesh
@@ -150,7 +150,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if (WorldVisibilityChanged == false)
+        if (NeedsUpdate == false)
         {
             return;
         }

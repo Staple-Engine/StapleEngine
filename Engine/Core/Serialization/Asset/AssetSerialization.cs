@@ -189,31 +189,32 @@ internal static partial class AssetSerialization
     /// Attempts to serialize a Staple Asset into a SerializableStapleAsset
     /// </summary>
     /// <param name="instance">The object's instance. The object must implement IStapleAsset</param>
-    /// <param name="targetText">Whether we're targeting a text serializer</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The SerializableStapleAsset, or null</returns>
-    public static SerializableStapleAsset Serialize(object instance, bool targetText)
+    public static SerializableStapleAsset Serialize(object instance, StapleSerializationMode mode)
     {
         if(instance == null || instance.GetType().GetInterface(typeof(IStapleAsset).FullName) == null)
         {
             return default;
         }
 
-        return StapleSerializer.SerializeAssetObject(instance, targetText);
+        return StapleSerializer.SerializeAssetObject(instance, mode);
     }
 
     /// <summary>
     /// Deserializes an asset into an instance
     /// </summary>
     /// <param name="asset">The asset data</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The asset, or null</returns>
-    public static IStapleAsset Deserialize(SerializableStapleAsset asset)
+    public static IStapleAsset Deserialize(SerializableStapleAsset asset, StapleSerializationMode mode)
     {
         if(asset == null)
         {
             return null;
         }
 
-        var instance = StapleSerializer.DeserializeAssetObject(asset);
+        var instance = StapleSerializer.DeserializeAssetObject(asset, mode);
 
         if(instance is IStapleAsset stapleAsset)
         {

@@ -6,13 +6,19 @@ using System.Reflection;
 using System.Collections;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.VisualBasic.FileIO;
 using System.Numerics;
+using System.ComponentModel;
 
 namespace Staple.Internal;
 
 internal static class StapleSerializer
 {
+    private static readonly IStapleTypeSerializer[] TypeSerializers = [
+
+        new StapleBaseTypeSerializer(),
+        new StapleTypesSerializer(),
+    ];
+
     /// <summary>
     /// Checks whether this is a parameter that can be directly serialized
     /// </summary>
@@ -60,6 +66,21 @@ internal static class StapleSerializer
             return true;
         }
 
+        if(type.IsAssignableTo(typeof(IComponent)))
+        {
+            return true;
+        }
+
+        if(type == typeof(Entity))
+        {
+            return true;
+        }
+
+        if(type == typeof(Sprite))
+        {
+            return true;
+        }
+
         if (type.GetCustomAttribute<MessagePackObjectAttribute>() != null)
         {
             return true;
@@ -88,7 +109,14 @@ internal static class StapleSerializer
             }
         }
 
-        return false;
+        return type switch
+        {
+            Type t when t == typeof(Vector2) => true,
+            Type t when t == typeof(Vector3) => true,
+            Type t when t == typeof(Vector4) => true,
+            Type t when t == typeof(Quaternion) => true,
+            _ => false,
+        };
     }
 
     /// <summary>
@@ -323,8 +351,8 @@ internal static class StapleSerializer
     /// <param name="field">The field to serialize</param>
     /// <param name="instance">The instance of the object we're handling</param>
     /// <param name="context">The serializer context to store into</param>
-    /// <param name="targetText">Whether we're targeting a text serializer</param>
-    public static void SerializeField(FieldInfo field, object instance, StapleSerializerContext context, bool targetText)
+    /// <param name="mode">The serialization mode we want to use</param>
+    public static void SerializeField(FieldInfo field, object instance, StapleSerializerContext context, StapleSerializationMode mode)
     {
         if (field.GetCustomAttribute<NonSerializedAttribute>() != null)
         {
@@ -350,18 +378,20 @@ internal static class StapleSerializer
                 return;
             }
 
-            if(field.FieldType.IsEnum)
+            foreach(var s in TypeSerializers)
             {
-                context.setField(field, value.GetType().FullName, value.ToString());
+                if(s.HandlesType(field.FieldType))
+                {
+                    var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(value, instance.GetType(), field, field.FieldType, mode) :
+                        s.SerializeField(value, instance.GetType(), field, field.FieldType, mode);
 
-                return;
-            }
+                    if(o != null)
+                    {
+                        context.setField(field, value.GetType().FullName, o);
 
-            if (value is IGuidAsset guidAsset)
-            {
-                context.setField(field, value.GetType().FullName, AssetSerialization.GetAssetPathFromCache(guidAsset.Guid));
-
-                return;
+                        return;
+                    }
+                }
             }
 
             if(field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
@@ -395,7 +425,7 @@ internal static class StapleSerializer
                 }
                 else if(elementType.IsPrimitive)
                 {
-                    if(targetText && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                    if(mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
                     {
                         var buffer = SerializePrimitiveArray(array);
 
@@ -419,7 +449,7 @@ internal static class StapleSerializer
                         {
                             try
                             {
-                                var container = SerializeContainer(item, targetText);
+                                var container = SerializeContainer(item, mode);
 
                                 newList.Add(container);
                             }
@@ -436,14 +466,53 @@ internal static class StapleSerializer
                 }
                 else if(elementType.IsEnum)
                 {
-                    var newList = new List<string>();
-
-                    foreach(var item in array)
+                    if(elementType.GetCustomAttribute<FlagsAttribute>() != null)
                     {
-                        newList.Add(item.ToString());
-                    }
+                        var newList = new List<long>();
 
-                    context.setField(field, field.FieldType.FullName, newList);
+                        foreach(var item in array)
+                        {
+                            newList.Add((long)item);
+                        }
+
+                        context.setField(field, field.FieldType.FullName, newList);
+                    }
+                    else
+                    {
+                        var newList = new List<string>();
+
+                        foreach (var item in array)
+                        {
+                            newList.Add(item.ToString());
+                        }
+
+                        context.setField(field, field.FieldType.FullName, newList);
+                    }
+                }
+                else
+                {
+                    foreach(var s in TypeSerializers)
+                    {
+                        if(s.HandlesType(elementType))
+                        {
+                            var newList = new List<object>();
+
+                            foreach(var item in array)
+                            {
+                                var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(item, instance.GetType(), field, elementType, mode) :
+                                    s.SerializeField(item, instance.GetType(), field, elementType, mode);
+
+                                if(o != null)
+                                {
+                                    newList.Add(o);
+                                }
+                            }
+
+                            context.setField(field, field.FieldType.FullName, newList);
+
+                            return;
+                        }
+                    }
                 }
 
                 return;
@@ -484,7 +553,7 @@ internal static class StapleSerializer
                         }
                         else if (listType.IsPrimitive)
                         {
-                            if (targetText && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                            if (mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
                             {
                                 var list = (IList)value;
 
@@ -512,11 +581,18 @@ internal static class StapleSerializer
                                 {
                                     try
                                     {
-                                        var container = SerializeContainer(item, targetText);
+                                        var container = SerializeContainer(item, mode);
 
                                         if(container != null)
                                         {
-                                            newList.Add(container);
+                                            if(mode == StapleSerializationMode.Scene)
+                                            {
+                                                newList.Add(container.ToRawContainer());
+                                            }
+                                            else
+                                            {
+                                                newList.Add(container);
+                                            }
                                         }
                                     }
                                     catch (Exception)
@@ -532,16 +608,32 @@ internal static class StapleSerializer
                         }
                         else if(listType.IsEnum)
                         {
-                            var newList = new List<string>();
-
-                            var inList = (IList)value;
-
-                            foreach (var item in inList)
+                            if(listType.GetCustomAttribute<FlagsAttribute>() != null)
                             {
-                                newList.Add(item.ToString());
-                            }
+                                var newList = new List<long>();
 
-                            context.setField(field, field.FieldType.FullName, newList);
+                                var inList = (IList)value;
+
+                                foreach (var item in inList)
+                                {
+                                    newList.Add((long)item);
+                                }
+
+                                context.setField(field, field.FieldType.FullName, newList);
+                            }
+                            else
+                            {
+                                var newList = new List<string>();
+
+                                var inList = (IList)value;
+
+                                foreach (var item in inList)
+                                {
+                                    newList.Add(item.ToString());
+                                }
+
+                                context.setField(field, field.FieldType.FullName, newList);
+                            }
                         }
 
                         return;
@@ -555,11 +647,18 @@ internal static class StapleSerializer
             {
                 try
                 {
-                    var innerContainer = SerializeContainer(value, targetText);
+                    var innerContainer = SerializeContainer(value, mode);
 
                     if (innerContainer != null)
                     {
-                        context.setField(field, field.FieldType.FullName, innerContainer);
+                        if (mode == StapleSerializationMode.Scene)
+                        {
+                            context.setField(field, field.FieldType.FullName, innerContainer.ToRawContainer());
+                        }
+                        else
+                        {
+                            context.setField(field, field.FieldType.FullName, innerContainer);
+                        }
                     }
                 }
                 catch (Exception)
@@ -577,9 +676,9 @@ internal static class StapleSerializer
     /// Serializes an object into an asset container
     /// </summary>
     /// <param name="instance">The object instance we're handling</param>
-    /// <param name="targetText">Whether we're targeting a text serializer</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The container, or null</returns>
-    public static StapleSerializerContainer SerializeContainer(object instance, bool targetText)
+    public static StapleSerializerContainer SerializeContainer(object instance, StapleSerializationMode mode)
     {
         if (instance == null || instance.GetType().IsNestedFamORAssem ||
             (instance.GetType().GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
@@ -610,21 +709,21 @@ internal static class StapleSerializer
                 continue;
             }
 
-            SerializeField(field, instance, context, targetText);
+            SerializeField(field, instance, context, mode);
         }
 
         return outValue;
     }
 
-    private static Array GetJsonArray(Type type, JsonElement element)
+    private static object[] GetJsonArray(Type type, FieldInfo field, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
         if(element.ValueKind != JsonValueKind.Array)
         {
             return null;
         }
 
-        var elementType = type.IsArray ? type.GetElementType() :
-            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>) ? type.GetGenericArguments()[0] : null;
+        var elementType = fieldType.IsArray ? fieldType.GetElementType() :
+            fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>) ? fieldType.GetGenericArguments()[0] : null;
 
         if(elementType == null)
         {
@@ -635,7 +734,7 @@ internal static class StapleSerializer
 
         for(var i = 0; i < element.GetArrayLength(); i++)
         {
-            var o = GetJsonValue(elementType, element[i]);
+            var o = GetJsonValue(type, field, elementType, element[i], mode);
 
             if(o != null)
             {
@@ -646,162 +745,52 @@ internal static class StapleSerializer
         return array;
     }
 
-    private static object GetJsonValue(Type type, JsonElement element)
+    private static object GetJsonValue(Type type, FieldInfo fieldInfo, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
-        object DecodeColor()
+        foreach(var s in TypeSerializers)
         {
-            if(element.ValueKind != JsonValueKind.String)
+            if(s.HandlesType(fieldType))
             {
-                return null;
-            }
-
-            var str = element.GetString();
-
-            var c = new Color(str);
-
-            if (type == typeof(Color))
-            {
-                return c;
-            }
-            else
-            {
-                return (Color32)c;
+                return s.DeserializeJsonField(type, fieldInfo, fieldType, null, element, mode);
             }
         }
 
-        object DecodeLayerMask()
+        if (IsDirectParameter(fieldType) == false &&
+            fieldType.GetCustomAttribute<SerializableAttribute>() != null &&
+            element.ValueKind == JsonValueKind.Object)
         {
-            if (element.ValueKind != JsonValueKind.Number)
+            var container = new StapleSerializerContainer()
             {
-                return null;
+                typeName = fieldType.FullName,
+            };
+
+            var fields = new Dictionary<string, StapleSerializerField>();
+
+            foreach(var p in element.EnumerateObject())
+            {
+                var localField = fieldType.GetField(p.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if(localField == null)
+                {
+                    continue;
+                }
+
+                fields.Add(p.Name, new()
+                {
+                    typeName = localField.FieldType.FullName,
+                    value = p.Value,
+                });
             }
 
-            var m = element.GetUInt32();
+            container.fields = fields;
 
-            return new LayerMask(m);
+            return DeserializeContainer(container, mode);
         }
 
-        object DecodeVector2()
-        {
-            if(element.ValueKind != JsonValueKind.Object ||
-                element.TryGetProperty("x", out var xProp) == false ||
-                element.TryGetProperty("y", out var yProp) == false ||
-                xProp.ValueKind != JsonValueKind.Number ||
-                yProp.ValueKind != JsonValueKind.Number)
-            {
-                return null;
-            }
-
-            return new Vector2(xProp.GetSingle(), yProp.GetSingle());
-        }
-
-        object DecodeVector3()
-        {
-            if (element.ValueKind != JsonValueKind.Object ||
-                element.TryGetProperty("x", out var xProp) == false ||
-                element.TryGetProperty("y", out var yProp) == false ||
-                element.TryGetProperty("z", out var zProp) == false ||
-                xProp.ValueKind != JsonValueKind.Number ||
-                yProp.ValueKind != JsonValueKind.Number ||
-                zProp.ValueKind != JsonValueKind.Number)
-            {
-                return null;
-            }
-
-            return new Vector3(xProp.GetSingle(), yProp.GetSingle(), zProp.GetSingle());
-        }
-
-        object DecodeVector4()
-        {
-            if (element.ValueKind != JsonValueKind.Object ||
-                element.TryGetProperty("x", out var xProp) == false ||
-                element.TryGetProperty("y", out var yProp) == false ||
-                element.TryGetProperty("z", out var zProp) == false ||
-                element.TryGetProperty("w", out var wProp) == false ||
-                xProp.ValueKind != JsonValueKind.Number ||
-                yProp.ValueKind != JsonValueKind.Number ||
-                zProp.ValueKind != JsonValueKind.Number ||
-                wProp.ValueKind != JsonValueKind.Number)
-            {
-                return null;
-            }
-
-            return new Vector4(xProp.GetSingle(), yProp.GetSingle(), zProp.GetSingle(), wProp.GetSingle());
-        }
-
-        object DecodeQuaternion()
-        {
-            if(DecodeVector4() is not Vector4 v)
-            {
-                return null;
-            }
-
-            return new Quaternion(v.X, v.Y, v.Z, v.W);
-        }
-
-        object DecodeVector2Int()
-        {
-            if (element.ValueKind != JsonValueKind.Object ||
-                element.TryGetProperty("x", out var xProp) == false ||
-                element.TryGetProperty("y", out var yProp) == false ||
-                xProp.ValueKind != JsonValueKind.Number ||
-                yProp.ValueKind != JsonValueKind.Number)
-            {
-                return null;
-            }
-
-            return new Vector2Int(xProp.GetInt32(), yProp.GetInt32());
-        }
-
-        object DecodeRect()
-        {
-            if(DecodeVector4() is not Vector4 v)
-            {
-                return null;
-            }
-
-            return new Rect((int)v.X, (int)v.Y, (int)v.Z, (int)v.W);
-        }
-
-        object DecodeRectFloat()
-        {
-            if (DecodeVector4() is not Vector4 v)
-            {
-                return null;
-            }
-
-            return new RectFloat(v.X, v.Y, v.Z, v.W);
-        }
-
-        return type switch
-        {
-            Type t when t == typeof(string) && element.ValueKind == JsonValueKind.String => element.GetString(),
-            Type t when t == typeof(byte) && element.ValueKind == JsonValueKind.Number => element.GetByte(),
-            Type t when t == typeof(sbyte) && element.ValueKind == JsonValueKind.Number => element.GetSByte(),
-            Type t when t == typeof(ushort) && element.ValueKind == JsonValueKind.Number => element.GetUInt16(),
-            Type t when t == typeof(short) && element.ValueKind == JsonValueKind.Number => element.GetInt16(),
-            Type t when t == typeof(uint) && element.ValueKind == JsonValueKind.Number => element.GetUInt32(),
-            Type t when t == typeof(int) && element.ValueKind == JsonValueKind.Number => element.GetInt32(),
-            Type t when t == typeof(float) && element.ValueKind == JsonValueKind.Number => element.GetSingle(),
-            Type t when t == typeof(double) && element.ValueKind == JsonValueKind.Number => element.GetDouble(),
-            Type t when t == typeof(bool) && (element.ValueKind == JsonValueKind.True ||
-                element.ValueKind == JsonValueKind.False) => element.GetBoolean(),
-            Type t when t.IsEnum && element.ValueKind == JsonValueKind.String => element.GetString(),
-            Type t when t.IsArray && element.ValueKind == JsonValueKind.Array => GetJsonArray(t, element),
-            Type t when (t == typeof(Color32) || t == typeof(Color)) => DecodeColor(),
-            Type t when t == typeof(LayerMask) => DecodeLayerMask(),
-            Type t when t == typeof(Vector2) => DecodeVector2(),
-            Type t when t == typeof(Vector3) => DecodeVector3(),
-            Type t when t == typeof(Vector4) => DecodeVector4(),
-            Type t when t == typeof(Quaternion) => DecodeQuaternion(),
-            Type t when t == typeof(Vector2Int) => DecodeVector2Int(),
-            Type t when t == typeof(Rect) => DecodeRect(),
-            Type t when t == typeof(RectFloat) => DecodeRectFloat(),
-            _ => null,
-        };
+        return null;
     }
 
-    private static object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo)
+    private static object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode)
     {
         try
         {
@@ -846,70 +835,38 @@ internal static class StapleSerializer
                 return null;
             }
 
-            if (fieldType == fieldInfo.value.GetType())
+            if (fieldInfo.value.GetType().IsAssignableTo(fieldType))
             {
                 return fieldInfo.value;
             }
             else if (fieldInfo.value is JsonElement jsonElement &&
-                GetJsonValue(fieldType, jsonElement) is object jsonObject &&
+                GetJsonValue(type, field, fieldType, jsonElement, mode) is object jsonObject &&
                 (fieldType == jsonObject.GetType() ||
-                jsonObject.GetType().IsAssignableTo(fieldType) ||
-                (fieldType.IsEnum && jsonObject is string)))
+                jsonObject.GetType().IsAssignableTo(fieldType)))
             {
-                if (fieldType.IsEnum)
-                {
-                    if (Enum.TryParse(fieldType, (string)jsonObject, out var enumValue))
-                    {
-                        return enumValue;
-                    }
-                }
-                else
-                {
-                    return jsonObject;
-                }
-
-                return null;
+                return jsonObject;
             }
             else if (fieldType.IsPrimitive)
             {
                 if (fieldInfo.value is JsonElement element)
                 {
-                    var o = GetJsonValue(fieldType, element);
+                    var o = GetJsonValue(type, field, fieldType, element, mode);
 
                     return o;
                 }
 
                 return Convert.ChangeType(fieldInfo.value, fieldType);
             }
-            else if (fieldType == typeof(Color) || fieldType == typeof(Color32))
+            else if(TypeSerializers.Any(x => x.HandlesType(fieldType)))
             {
-                var str = fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.String ? element.GetString() :
-                    fieldInfo.value is string s ? s : null;
-
-                if (str == null)
+                foreach(var s in TypeSerializers)
                 {
-                    return null;
+                    if(s.HandlesType(fieldType))
+                    {
+                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, field, fieldType, fieldInfo, element, mode) :
+                            s.DeserializeField(type, field, fieldType, fieldInfo, mode);
+                    }
                 }
-
-                var c = new Color(str);
-
-                if (fieldType == typeof(Color))
-                {
-                    return c;
-                }
-                else
-                {
-                    return (Color32)c;
-                }
-            }
-            else if (fieldType == typeof(LayerMask))
-            {
-                var mask = fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.Number ? element.GetUInt32() :
-                    fieldInfo.value is uint u ? u : 0;
-
-                var m = new LayerMask(mask);
-
-                return m;
             }
             else if (IsDirectParameter(fieldType.GetType()) == false &&
                 fieldType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -925,7 +882,7 @@ internal static class StapleSerializer
                         {
                             var decodedContainer = DecodeContainer(typeName, fields);
 
-                            var value = DeserializeContainer(decodedContainer);
+                            var value = DeserializeContainer(decodedContainer, mode);
 
                             return value;
                         }
@@ -935,6 +892,7 @@ internal static class StapleSerializer
                         }
                     }
                 }
+
                 {
                     if (fieldInfo.value is JsonElement element &&
                         element.ValueKind == JsonValueKind.Object &&
@@ -967,48 +925,7 @@ internal static class StapleSerializer
                     }
                     else if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > 0)
                     {
-                        var first = element[0];
-
-                        switch (elementType)
-                        {
-                            case Type t when t.IsPrimitive:
-
-                                sourceValue = a = TypeCache.CreateArray(elementType.FullName, element.GetArrayLength());
-
-                                for (var i = 0; i < element.GetArrayLength(); i++)
-                                {
-                                    var o = GetJsonValue(elementType, element[i]);
-
-                                    if (o is not null)
-                                    {
-                                        a.SetValue(o, i);
-                                    }
-                                }
-
-                                break;
-
-                            case Type t when t.GetInterface(typeof(IGuidAsset).FullName) != null:
-                            case Type t2 when t2 == typeof(IGuidAsset):
-                            case Type t3 when t3 == typeof(string):
-
-                                sourceValue = a = new string[element.GetArrayLength()];
-
-                                for (var i = 0; i < element.GetArrayLength(); i++)
-                                {
-                                    if (element[i].ValueKind == JsonValueKind.String)
-                                    {
-                                        a.SetValue(element[i].GetString(), i);
-                                    }
-                                }
-
-                                break;
-
-                            case Type t when t.GetCustomAttribute<SerializableAttribute>() != null:
-
-                                //TODO
-
-                                break;
-                        }
+                        sourceValue = GetJsonArray(type, field, fieldType, element, mode);
                     }
                 }
 
@@ -1078,7 +995,7 @@ internal static class StapleSerializer
                                                 {
                                                     var c = DecodeContainer(arrayTypeName, arrayParameters);
 
-                                                    var itemValue = DeserializeContainer(c);
+                                                    var itemValue = DeserializeContainer(c, mode);
 
                                                     if (itemValue != null)
                                                     {
@@ -1148,7 +1065,7 @@ internal static class StapleSerializer
                             {
                                 try
                                 {
-                                    var itemValue = DeserializeContainer(containers[i].ToSerializerContainer());
+                                    var itemValue = DeserializeContainer(containers[i].ToSerializerContainer(), mode);
 
                                     if (itemValue != null)
                                     {
@@ -1192,7 +1109,7 @@ internal static class StapleSerializer
                     }
 
                     var condensed = fieldInfo.value is JsonElement jsonElement ?
-                        GetJsonArray(TypeCache.GetType(fieldInfo.typeName), jsonElement) : fieldInfo.value;
+                        GetJsonArray(type, field, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
 
                     object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
                         s : condensed is object[] a ? a : null;
@@ -1201,7 +1118,8 @@ internal static class StapleSerializer
                     {
                         foreach (var item in array)
                         {
-                            if (elementType.IsPrimitive)
+                            if (item.GetType().IsAssignableTo(elementType) ||
+                                elementType.IsPrimitive)
                             {
                                 list.Add(item);
                             }
@@ -1226,13 +1144,13 @@ internal static class StapleSerializer
 
                                     if (item is Dictionary<object, object> itemData &&
                                         itemData.Count == 2 &&
-                                        itemData.ContainsKey("typeName") &&
-                                        itemData.ContainsKey("parameters") &&
-                                        itemData["typeName"] is string &&
-                                        itemData["parameters"] is Dictionary<object, object>)
+                                        itemData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
+                                        itemData.ContainsKey(nameof(StapleSerializerContainer.fields)) &&
+                                        itemData[nameof(StapleSerializerContainer.typeName)] is string &&
+                                        itemData[nameof(StapleSerializerContainer.fields)] is Dictionary<object, object>)
                                     {
-                                        innerTypeName = (string)itemData["typeName"];
-                                        parameters = (Dictionary<object, object>)itemData["parameters"];
+                                        innerTypeName = (string)itemData[nameof(StapleSerializerContainer.typeName)];
+                                        parameters = (Dictionary<object, object>)itemData[nameof(StapleSerializerContainer.fields)];
                                     }
                                     //TODO: Check if still usable. Probably not.
                                     else if (item is object[] containers &&
@@ -1262,12 +1180,12 @@ internal static class StapleSerializer
                                             if (containerPair.Key is string &&
                                                 containerPair.Value is Dictionary<object, object> containerData &&
                                                 containerData.Count == 2 &&
-                                                containerData.ContainsKey("typeName") &&
+                                                containerData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
                                                 containerData.ContainsKey("value") &&
-                                                containerData["typeName"] is string)
+                                                containerData[nameof(StapleSerializerContainer.typeName)] is string)
                                             {
                                                 containerKey = (string)containerPair.Key;
-                                                parameterTypeName = (string)containerData["typeName"];
+                                                parameterTypeName = (string)containerData[nameof(StapleSerializerContainer.typeName)];
                                                 parameterValue = containerData["value"];
                                             }
                                             //TODO: Check if still usable. Probably not.
@@ -1297,7 +1215,7 @@ internal static class StapleSerializer
 
                                         itemContainer.fields = containerParameters;
 
-                                        var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer());
+                                        var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer(), mode);
 
                                         if (itemInstance != null)
                                         {
@@ -1385,13 +1303,13 @@ internal static class StapleSerializer
             if (fieldType == typeof(SerializableStapleAssetContainer) &&
                 field.GetValue(fieldInfo.value) is SerializableStapleAssetContainer innerContainer)
             {
-                var value = DeserializeContainer(innerContainer.ToSerializerContainer());
+                var value = DeserializeContainer(innerContainer.ToSerializerContainer(), mode);
 
                 return value;
             }
 
             {
-                var v = fieldInfo.value is JsonElement element ? GetJsonValue(fieldType, element) : fieldInfo.value;
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, field, fieldType, element, mode) : fieldInfo.value;
 
                 if (fieldType.IsEnum && v is string str)
                 {
@@ -1405,7 +1323,7 @@ internal static class StapleSerializer
             }
 
             {
-                var v = fieldInfo.value is JsonElement element ? GetJsonValue(fieldType, element) : fieldInfo.value;
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, field, fieldType, element, mode) : fieldInfo.value;
 
                 return v;
             }
@@ -1422,8 +1340,9 @@ internal static class StapleSerializer
     /// Deserializes a container into an object instance
     /// </summary>
     /// <param name="container">The container to deserialize</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>the object instance, or null</returns>
-    public static object DeserializeContainer(StapleSerializerContainer container)
+    public static object DeserializeContainer(StapleSerializerContainer container, StapleSerializationMode mode)
     {
         var type = TypeCache.GetType(container.typeName);
 
@@ -1450,9 +1369,9 @@ internal static class StapleSerializer
                 {
                     var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                    var value = DeserializeField(type, field, field.FieldType, pair.Value);
+                    var value = DeserializeField(type, field, field.FieldType, pair.Value, mode);
 
-                    if(value is null)
+                    if(value is null || value.GetType().IsAssignableTo(field.FieldType) == false)
                     {
                         continue;
                     }
@@ -1526,9 +1445,9 @@ internal static class StapleSerializer
     /// Attempts to serialize an object into a SerializableStapleAsset
     /// </summary>
     /// <param name="instance">The object's instance</param>
-    /// <param name="targetText">Whether we're targeting a text serializer</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The SerializableStapleAsset, or null</returns>
-    public static SerializableStapleAsset SerializeAssetObject(object instance, bool targetText)
+    public static SerializableStapleAsset SerializeAssetObject(object instance, StapleSerializationMode mode)
     {
         if (instance == null)
         {
@@ -1537,7 +1456,7 @@ internal static class StapleSerializer
 
         try
         {
-            var container = SerializeContainer(instance, targetText)?.ToSerializableContainer();
+            var container = SerializeContainer(instance, mode)?.ToSerializableContainer();
 
             if (container == null)
             {
@@ -1564,8 +1483,9 @@ internal static class StapleSerializer
     /// Deserializes an asset into an object instance
     /// </summary>
     /// <param name="asset">The asset data</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The instance, or null</returns>
-    public static object DeserializeAssetObject(SerializableStapleAsset asset)
+    public static object DeserializeAssetObject(SerializableStapleAsset asset, StapleSerializationMode mode)
     {
         if (asset == null)
         {
@@ -1574,7 +1494,7 @@ internal static class StapleSerializer
 
         var innerContainer = asset.ToSerializerContainer(out var guid);
 
-        var instance = DeserializeContainer(innerContainer);
+        var instance = DeserializeContainer(innerContainer, mode);
 
         if (instance is IGuidAsset guidAsset)
         {
@@ -1582,24 +1502,5 @@ internal static class StapleSerializer
         }
 
         return instance;
-    }
-
-    public static object JsonConvertField(StapleSerializerField field)
-    {
-        var localType = TypeCache.GetType(field.typeName);
-
-        if(localType is null)
-        {
-            return null;
-        }
-
-        switch(localType)
-        {
-            default:
-
-                Log.Warning($"[Serialization] Unable to handle Json data for type {localType.FullName}");
-
-                return null;
-        }
     }
 }

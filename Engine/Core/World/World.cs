@@ -149,6 +149,8 @@ public partial class World
 
     public static World Current { get; internal set; } = new();
 
+    internal bool Changed = false;
+
     private readonly object lockObject = new();
     private static readonly object globalLockObject = new();
 
@@ -206,6 +208,7 @@ public partial class World
         if(Current != null)
         {
             Current.cachedEntityList = Current.entities.ToArray();
+            Current.Changed = true;
         }
 
         sceneQueries.Emit();
@@ -301,6 +304,8 @@ public partial class World
 
                 EmitWorldChangedEvent();
             }
+
+            Changed = false;
         }
     }
 }

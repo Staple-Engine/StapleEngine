@@ -578,7 +578,7 @@ internal partial class StapleEditor
                 guid = (string)guidField.GetValue(assetInstance);
             }
 
-            var serialized = AssetSerialization.Serialize(assetInstance, true);
+            var serialized = AssetSerialization.Serialize(assetInstance, StapleSerializationMode.Text);
 
             if (serialized != null)
             {

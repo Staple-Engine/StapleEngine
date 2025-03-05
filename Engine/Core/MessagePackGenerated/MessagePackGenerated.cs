@@ -50,7 +50,7 @@ namespace MessagePack.Resolvers
 
         static GeneratedResolverGetFormatterHelper()
         {
-            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(114)
+            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(117)
             {
                 { typeof(global::Staple.Internal.MeshAssetNode[]), 0 },
                 { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 1 },
@@ -163,9 +163,12 @@ namespace MessagePack.Resolvers
                 { typeof(global::Staple.Internal.Vector2Holder), 108 },
                 { typeof(global::Staple.Internal.Vector3Holder), 109 },
                 { typeof(global::Staple.Internal.Vector4Holder), 110 },
-                { typeof(global::Staple.Rect), 111 },
-                { typeof(global::Staple.RectFloat), 112 },
-                { typeof(global::Staple.Vector2Int), 113 },
+                { typeof(global::Staple.LayerMask), 111 },
+                { typeof(global::Staple.Rect), 112 },
+                { typeof(global::Staple.RectFloat), 113 },
+                { typeof(global::Staple.Vector2Int), 114 },
+                { typeof(global::Staple.Vector3Int), 115 },
+                { typeof(global::Staple.Vector4Int), 116 },
             };
         }
 
@@ -290,9 +293,12 @@ namespace MessagePack.Resolvers
                 case 108: return new MessagePack.Formatters.Staple.Internal.Vector2HolderFormatter();
                 case 109: return new MessagePack.Formatters.Staple.Internal.Vector3HolderFormatter();
                 case 110: return new MessagePack.Formatters.Staple.Internal.Vector4HolderFormatter();
-                case 111: return new MessagePack.Formatters.Staple.RectFormatter();
-                case 112: return new MessagePack.Formatters.Staple.RectFloatFormatter();
-                case 113: return new MessagePack.Formatters.Staple.Vector2IntFormatter();
+                case 111: return new MessagePack.Formatters.Staple.LayerMaskFormatter();
+                case 112: return new MessagePack.Formatters.Staple.RectFormatter();
+                case 113: return new MessagePack.Formatters.Staple.RectFloatFormatter();
+                case 114: return new MessagePack.Formatters.Staple.Vector2IntFormatter();
+                case 115: return new MessagePack.Formatters.Staple.Vector3IntFormatter();
+                case 116: return new MessagePack.Formatters.Staple.Vector4IntFormatter();
                 default: return null;
             }
         }
@@ -1050,6 +1056,45 @@ namespace MessagePack.Formatters.Staple
         }
     }
 
+    public sealed class LayerMaskFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.LayerMask>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.LayerMask value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(1);
+            writer.Write(value.value);
+        }
+
+        public global::Staple.LayerMask Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            var length = reader.ReadArrayHeader();
+            var __value__ = default(uint);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __value__ = reader.ReadUInt32();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.LayerMask(__value__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
     public sealed class RectFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Rect>
     {
 
@@ -1197,6 +1242,109 @@ namespace MessagePack.Formatters.Staple
             }
 
             var ____result = new global::Staple.Vector2Int(__X__, __Y__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
+    public sealed class Vector3IntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Vector3Int>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Vector3Int value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(3);
+            writer.Write(value.X);
+            writer.Write(value.Y);
+            writer.Write(value.Z);
+        }
+
+        public global::Staple.Vector3Int Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            var length = reader.ReadArrayHeader();
+            var __X__ = default(int);
+            var __Y__ = default(int);
+            var __Z__ = default(int);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __X__ = reader.ReadInt32();
+                        break;
+                    case 1:
+                        __Y__ = reader.ReadInt32();
+                        break;
+                    case 2:
+                        __Z__ = reader.ReadInt32();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.Vector3Int(__X__, __Y__, __Z__);
+            reader.Depth--;
+            return ____result;
+        }
+    }
+
+    public sealed class Vector4IntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::Staple.Vector4Int>
+    {
+
+        public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Vector4Int value, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(4);
+            writer.Write(value.X);
+            writer.Write(value.Y);
+            writer.Write(value.Z);
+            writer.Write(value.W);
+        }
+
+        public global::Staple.Vector4Int Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
+            }
+
+            options.Security.DepthStep(ref reader);
+            var length = reader.ReadArrayHeader();
+            var __X__ = default(int);
+            var __Y__ = default(int);
+            var __Z__ = default(int);
+            var __W__ = default(int);
+
+            for (int i = 0; i < length; i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        __X__ = reader.ReadInt32();
+                        break;
+                    case 1:
+                        __Y__ = reader.ReadInt32();
+                        break;
+                    case 2:
+                        __Z__ = reader.ReadInt32();
+                        break;
+                    case 3:
+                        __W__ = reader.ReadInt32();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var ____result = new global::Staple.Vector4Int(__X__, __Y__, __Z__, __W__);
             reader.Depth--;
             return ____result;
         }
@@ -4294,17 +4442,18 @@ namespace MessagePack.Formatters.Staple.Internal
 
             options.Security.DepthStep(ref reader);
             var length = reader.ReadArrayHeader();
-            var ____result = new global::Staple.Internal.Vector2Holder();
+            var __x__ = default(float);
+            var __y__ = default(float);
 
             for (int i = 0; i < length; i++)
             {
                 switch (i)
                 {
                     case 0:
-                        ____result.x = reader.ReadSingle();
+                        __x__ = reader.ReadSingle();
                         break;
                     case 1:
-                        ____result.y = reader.ReadSingle();
+                        __y__ = reader.ReadSingle();
                         break;
                     default:
                         reader.Skip();
@@ -4312,6 +4461,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 }
             }
 
+            var ____result = new global::Staple.Internal.Vector2Holder(__x__, __y__);
             reader.Depth--;
             return ____result;
         }

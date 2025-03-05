@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -27,6 +26,11 @@ public class Transform : IComponent
             var wasChanged = changed;
 
             changed = value;
+
+            if(changed && World.Current != null)
+            {
+                World.Current.Changed = true;
+            }
 
             if(wasChanged == false && changed)
             {

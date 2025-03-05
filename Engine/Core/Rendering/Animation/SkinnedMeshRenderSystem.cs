@@ -52,7 +52,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<int, RenderCache> renderCache = [];
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public void Startup()
     {
@@ -111,7 +111,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        if(WorldVisibilityChanged == false)
+        if(NeedsUpdate == false)
         {
             return;
         }

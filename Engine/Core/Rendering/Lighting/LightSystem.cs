@@ -38,7 +38,7 @@ public sealed class LightSystem : IRenderSystem
 
     private readonly Dictionary<int, ShaderHandle[]> cachedMaterialInfo = [];
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public LightSystem()
     {

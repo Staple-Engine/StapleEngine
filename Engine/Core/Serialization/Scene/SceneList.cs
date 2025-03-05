@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Staple.Internal;
 
@@ -28,5 +29,13 @@ public class SceneListHeader
 public class SceneList
 {
     [Key(0)]
-    public List<string> scenes = new();
+    public List<string> scenes = [];
+}
+
+[JsonSourceGenerationOptions(IncludeFields = true)]
+[JsonSerializable(typeof(SceneList))]
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(List<string>))]
+internal partial class SceneListSerializationContext : JsonSerializerContext
+{
 }

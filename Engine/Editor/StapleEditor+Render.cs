@@ -203,9 +203,9 @@ internal partial class StapleEditor
                                 }
                             }
 
-                            if(wasVisible != renderable.isVisible)
+                            if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
                             {
-                                system.WorldVisibilityChanged = true;
+                                system.NeedsUpdate = true;
                             }
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
@@ -226,7 +226,7 @@ internal partial class StapleEditor
 
                     pair.Key.Submit();
 
-                    pair.Key.WorldVisibilityChanged = false;
+                    pair.Key.NeedsUpdate = false;
                 });
             }
 

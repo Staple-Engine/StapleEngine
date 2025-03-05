@@ -135,66 +135,55 @@ public class Utilities
         return outValue;
     }
 
-    public static void ExpandSerializedAsset(SerializableStapleAsset asset)
+    public static object ExpandNewtonsoftObject(object target)
     {
-        object HandleValue(object target)
+        if (target is JObject objectValue)
         {
-            if (target is JObject objectValue)
+            var outValue = new Dictionary<object, object>();
+
+            foreach (var pair in objectValue)
             {
-                var outValue = new Dictionary<object, object>();
+                var o = ExpandNewtonsoftObject(pair.Value);
 
-                foreach (var pair in objectValue)
+                if (o != null)
                 {
-                    outValue.Add(pair.Key, HandleValue(pair.Value));
-                }
-
-                return outValue;
-            }
-            else if (target is JArray arrayValue)
-            {
-                var outValue = new List<object>();
-
-                foreach (var value in arrayValue)
-                {
-                    outValue.Add(HandleValue(value));
-                }
-
-                return outValue;
-            }
-            else if (target is JToken token)
-            {
-                switch (token.Type)
-                {
-                    case JTokenType.String:
-
-                        return token.Value<string>();
-
-                    case JTokenType.Boolean:
-
-                        return token.Value<bool>();
-
-                    case JTokenType.Float:
-
-                        return token.Value<float>();
-
-                    case JTokenType.Integer:
-
-                        return token.Value<int>();
-
-                    default:
-
-                        return null;
+                    outValue.Add(pair.Key, o);
                 }
             }
-            else
+
+            return outValue;
+        }
+        else if (target is JArray arrayValue)
+        {
+            var outValue = new List<object>();
+
+            foreach (var value in arrayValue)
             {
-                return target;
+                outValue.Add(ExpandNewtonsoftObject(value));
             }
+
+            return outValue;
+        }
+        else if (target is JToken token)
+        {
+            return token.Type switch
+            {
+                JTokenType.String => token.Value<string>(),
+                JTokenType.Boolean => token.Value<bool>(),
+                JTokenType.Float => token.Value<float>(),
+                JTokenType.Integer => token.Value<int>(),
+                _ => null,
+            };
         }
 
+        return target;
+    }
+
+    public static void ExpandSerializedAsset(SerializableStapleAsset asset)
+    {
         void HandleParameter(SerializableStapleAssetParameter parameter)
         {
-            parameter.value = HandleValue(parameter.value);
+            parameter.value = ExpandNewtonsoftObject(parameter.value);
         }
 
         foreach (var pair in asset.parameters)

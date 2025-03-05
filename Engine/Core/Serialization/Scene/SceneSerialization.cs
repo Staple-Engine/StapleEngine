@@ -21,9 +21,9 @@ internal static class SceneSerialization
                 return;
             }
 
-            var container = StapleSerializer.SerializeContainer(component, false);
+            var container = StapleSerializer.SerializeContainer(component, StapleSerializationMode.Binary);
 
-            var clone = (IComponent)StapleSerializer.DeserializeContainer(container);
+            var clone = (IComponent)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Binary);
 
             if(clone is null)
             {
@@ -40,9 +40,9 @@ internal static class SceneSerialization
     /// Serializes the components of an entity into a SceneObject
     /// </summary>
     /// <param name="entity">The entity to serialize</param>
-    /// <param name="parameters">Whether to store in parameters or data</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The new scene object</returns>
-    public static SceneObject SerializeEntityComponents(Entity entity, bool parameters)
+    public static SceneObject SerializeEntityComponents(Entity entity, StapleSerializationMode mode)
     {
         var components = new List<SceneComponent>();
 
@@ -53,7 +53,7 @@ internal static class SceneSerialization
                 return;
             }
 
-            var container = StapleSerializer.SerializeContainer(component, parameters);
+            var container = StapleSerializer.SerializeContainer(component, mode);
 
             if(container == null)
             {
@@ -65,19 +65,34 @@ internal static class SceneSerialization
                 type = container.typeName,
             };
 
-            if(parameters)
+            switch(mode)
             {
-                foreach(var pair in container.fields)
-                {
-                    sceneComponent.parameters.Add(pair.Key, pair.Value);
-                }
-            }
-            else
-            {
-                foreach(var pair in container.fields)
-                {
-                    sceneComponent.data.Add(pair.Key, pair.Value);
-                }
+                case StapleSerializationMode.Binary:
+
+                    foreach (var pair in container.fields)
+                    {
+                        sceneComponent.parameters.Add(pair.Key, pair.Value.ToRawValue());
+                    }
+
+                    break;
+
+                case StapleSerializationMode.Scene:
+
+                    foreach (var pair in container.fields)
+                    {
+                        sceneComponent.data.Add(pair.Key, pair.Value.ToRawValue());
+                    }
+
+                    break;
+
+                case StapleSerializationMode.Text:
+
+                    foreach (var pair in container.fields)
+                    {
+                        sceneComponent.data.Add(pair.Key, pair.Value);
+                    }
+
+                    break;
             }
 
             components.Add(sceneComponent);
@@ -111,9 +126,9 @@ internal static class SceneSerialization
     /// Serializes an entity into a SceneObject
     /// </summary>
     /// <param name="entity">The entity to serialize</param>
-    /// <param name="parameters">Whether to use parameters instead of data (MessagePack or JSON)</param>
+    /// <param name="mode">The serialization mode we want to use</param>
     /// <returns>The entity, or null</returns>
-    public static SceneObject SerializeEntity(Entity entity, bool parameters)
+    public static SceneObject SerializeEntity(Entity entity, StapleSerializationMode mode)
     {
         if(entity.IsValid == false)
         {
@@ -136,7 +151,7 @@ internal static class SceneSerialization
             };
         }
 
-        var outEntity = SerializeEntityComponents(entity, parameters);
+        var outEntity = SerializeEntityComponents(entity, mode);
 
         outEntity.parent = parent.IsValid ? parent.Identifier.ID : 0;
         outEntity.transform = transform;
@@ -161,7 +176,7 @@ internal static class SceneSerialization
 
         Scene.IterateEntities((Entity entity) =>
         {
-            var outEntity = SerializeEntity(entity, false);
+            var outEntity = SerializeEntity(entity, StapleSerializationMode.Scene);
 
             if(outEntity == null)
             {
@@ -189,7 +204,7 @@ internal static class SceneSerialization
 
         var outValue = new SerializablePrefab
         {
-            mainObject = SerializeEntity(entity, false)
+            mainObject = SerializeEntity(entity, StapleSerializationMode.Scene)
         };
 
         outValue.mainObject.ID = 0;
@@ -212,7 +227,7 @@ internal static class SceneSerialization
         {
             if(first == false)
             {
-                var entityObject = SerializeEntity(transform.entity, false);
+                var entityObject = SerializeEntity(transform.entity, StapleSerializationMode.Scene);
 
                 if(entityObject == null ||
                     localIDs.TryGetValue(transform.entity.Identifier.ID, out var localID) == false ||

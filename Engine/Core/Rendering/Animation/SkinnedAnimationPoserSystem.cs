@@ -12,7 +12,7 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
 {
     private float timer = 0.0f;
 
-    public bool WorldVisibilityChanged { get; set; }
+    public bool NeedsUpdate { get; set; }
 
     public void Startup()
     {

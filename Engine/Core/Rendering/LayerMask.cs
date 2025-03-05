@@ -7,6 +7,7 @@ namespace Staple;
 /// <summary>
 /// A layer mask. Can contain zero or more layers.
 /// </summary>
+[MessagePackObject]
 public struct LayerMask
 {
     [IgnoreMember]
@@ -18,6 +19,7 @@ public struct LayerMask
     /// <summary>
     /// The layer mask's value
     /// </summary>
+    [Key(0)]
     public uint value;
 
     public LayerMask()
@@ -34,7 +36,7 @@ public struct LayerMask
     /// </summary>
     /// <param name="index">The layer's index</param>
     /// <returns>Whether it contains the layer</returns>
-    public bool HasLayer(uint index)
+    public readonly bool HasLayer(uint index)
     {
         return (value & (1 << (int)index)) == (1 << (int)index);
     }
