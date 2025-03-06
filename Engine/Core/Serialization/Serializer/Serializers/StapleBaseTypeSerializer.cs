@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
@@ -52,20 +53,126 @@ internal class StapleBaseTypeSerializer : IStapleTypeSerializer
 
     public object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode)
     {
-        return fieldType switch
+        switch(fieldType)
         {
-            Type t when t == typeof(Vector2) => ((Vector2Holder)fieldInfo.value).ToVector2(),
-            Type t when t == typeof(Vector3) => ((Vector3Holder)fieldInfo.value).ToVector3(),
-            Type t when t == typeof(Vector4) => ((Vector4Holder)fieldInfo.value).ToVector4(),
-            Type t when t == typeof(Quaternion) => ((Vector4Holder)fieldInfo.value).ToQuaternion(),
-            Type t when t.IsEnum => t.GetCustomAttribute<FlagsAttribute>() != null ?
-                (t.GetEnumUnderlyingType() == typeof(int) ? Enum.ToObject(t, (long)(int)fieldInfo.value) :
-                t.GetEnumUnderlyingType() == typeof(uint) ? Enum.ToObject(t, (long)(uint)fieldInfo.value) :
-                t.GetEnumUnderlyingType() == typeof(long) ? Enum.ToObject(t, (long)fieldInfo.value) :
-                t.GetEnumUnderlyingType() == typeof(ulong) ? Enum.ToObject(t, (long)(ulong)fieldInfo.value) : 0) :
-                Enum.TryParse(t, (string)fieldInfo.value, true, out var e) ? e : null,
-            _ => fieldInfo.value,
-        };
+            case Type t when t == typeof(Vector2):
+
+                {
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector2Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector2Holder.y), out var yObject) &&
+                        xObject is float x &&
+                        yObject is float y)
+                    {
+                        return new Vector2(x, y);
+                    }
+                    else if (fieldInfo.value is Vector2Holder h)
+                    {
+                        return h.ToVector2();
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Vector3):
+
+                {
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector3Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector3Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector3Holder.z), out var zObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z)
+                    {
+                        return new Vector3(x, y, z);
+                    }
+                    else if (fieldInfo.value is Vector3Holder h)
+                    {
+                        return h.ToVector3();
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Vector4):
+
+                {
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector4Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.z), out var zObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.w), out var wObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z &&
+                        wObject is float w)
+                    {
+                        return new Vector4(x, y, z, w);
+                    }
+                    else if (fieldInfo.value is Vector4Holder h)
+                    {
+                        return h.ToVector4();
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(Quaternion):
+
+                {
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector4Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.z), out var zObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.w), out var wObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z &&
+                        wObject is float w)
+                    {
+                        return new Quaternion(x, y, z, w);
+                    }
+                    else if (fieldInfo.value is Vector4Holder h)
+                    {
+                        return h.ToQuaternion();
+                    }
+                }
+
+                break;
+
+            case Type t when t.IsEnum:
+
+                {
+                    if (fieldInfo.value is string enumString)
+                    {
+                        if (Enum.TryParse(t, enumString, true, out var eo))
+                        {
+                            return eo;
+                        }
+                    }
+                    else if (fieldInfo.value is uint ui)
+                    {
+                        return Enum.ToObject(t, ui);
+                    }
+                    else if (fieldInfo.value is int i)
+                    {
+                        return Enum.ToObject(t, i);
+                    }
+                    else if (fieldInfo.value is ulong ul)
+                    {
+                        return Enum.ToObject(t, ul);
+                    }
+                    else if (fieldInfo.value is long l)
+                    {
+                        return Enum.ToObject(t, l);
+                    }
+                }
+
+                break;
+        }
+
+        return fieldInfo.value;
     }
 
     public object SerializeJsonField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode)

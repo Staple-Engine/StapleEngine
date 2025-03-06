@@ -99,7 +99,7 @@ public class SceneObject
     public SceneObjectTransform transform = new();
 
     [Key(5)]
-    public List<SceneComponent> components = new();
+    public List<SceneComponent> components = [];
 
     [Key(6)]
     public string layer;

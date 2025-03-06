@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
@@ -177,6 +178,10 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                     {
                         return (Color)new Color32(u);
                     }
+                    else if (fieldInfo.value is string s)
+                    {
+                        return new Color(s);
+                    }
                 }
 
                 break;
@@ -187,6 +192,10 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                     if (fieldInfo.value is uint u)
                     {
                         return new Color32(u);
+                    }
+                    else if(fieldInfo.value is string s)
+                    {
+                        return new Color32(s);
                     }
                 }
 
@@ -206,7 +215,19 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             case Type t when t == typeof(Rect):
 
                 {
-                    if (fieldInfo.value is Vector4Holder h)
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector4Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.z), out var zObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.w), out var wObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z &&
+                        wObject is float w)
+                    {
+                        return new Rect((int)x, (int)z, (int)y, (int)w);
+                    }
+                    else if (fieldInfo.value is Vector4Holder h)
                     {
                         return new Rect((int)h.x, (int)h.z, (int)h.y, (int)h.w);
                     }
@@ -217,7 +238,19 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             case Type t when t == typeof(RectFloat):
 
                 {
-                    if (fieldInfo.value is Vector4Holder h)
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector4Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.z), out var zObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.w), out var wObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z &&
+                        wObject is float w)
+                    {
+                        return new RectFloat(x, z, y, w);
+                    }
+                    else if (fieldInfo.value is Vector4Holder h)
                     {
                         return new RectFloat(h.x, h.z, h.y, h.w);
                     }
@@ -228,7 +261,15 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             case Type t when t == typeof(Vector2Int):
 
                 {
-                    if (fieldInfo.value is Vector2Holder h)
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector2Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector2Holder.y), out var yObject) &&
+                        xObject is float x &&
+                        yObject is float y)
+                    {
+                        return new Vector2Int((int)x, (int)y);
+                    }
+                    else if (fieldInfo.value is Vector2Holder h)
                     {
                         return new Vector2Int((int)h.x, (int)h.y);
                     }
@@ -239,7 +280,17 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             case Type t when t == typeof(Vector3Int):
 
                 {
-                    if (fieldInfo.value is Vector3Holder h)
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector3Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector3Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector3Holder.z), out var zObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z)
+                    {
+                        return new Vector3Int((int)x, (int)y, (int)z);
+                    }
+                    else if (fieldInfo.value is Vector3Holder h)
                     {
                         return new Vector3Int((int)h.x, (int)h.y, (int)h.z);
                     }
@@ -250,7 +301,19 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             case Type t when t == typeof(Vector4Int):
 
                 {
-                    if (fieldInfo.value is Vector4Holder h)
+                    if (fieldInfo.value is Dictionary<object, object> d &&
+                        d.TryGetValue(nameof(Vector4Holder.x), out var xObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.y), out var yObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.z), out var zObject) &&
+                        d.TryGetValue(nameof(Vector4Holder.w), out var wObject) &&
+                        xObject is float x &&
+                        yObject is float y &&
+                        zObject is float z &&
+                        wObject is float w)
+                    {
+                        return new Vector4Int((int)x, (int)y, (int)z, (int)w);
+                    }
+                    else if (fieldInfo.value is Vector4Holder h)
                     {
                         return new Vector4Int((int)h.x, (int)h.y, (int)h.z, (int)h.w);
                     }

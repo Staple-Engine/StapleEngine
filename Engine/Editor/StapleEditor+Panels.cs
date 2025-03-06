@@ -1334,6 +1334,22 @@ internal partial class StapleEditor
             {
                 case ProjectBrowserNodeAction.InspectScene:
 
+                    if(World.Current != null)
+                    {
+                        World.Current.Iterate((entity) =>
+                        {
+                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            {
+                                if(component is IComponentDisposable disposable)
+                                {
+                                    disposable.DisposeComponent();
+                                }
+                            });
+                        });
+                    }
+
+                    ResourceManager.instance.Clear();
+
                     var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
 
                     Scene.SetActiveScene(scene);

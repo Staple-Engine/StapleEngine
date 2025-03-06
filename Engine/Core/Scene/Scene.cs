@@ -96,7 +96,7 @@ public class Scene
                 typeName = component.type,
             };
 
-            if(component.data != null)
+            if((component.data?.Count ?? 0) > 0)
             {
                 foreach(var pair in component.data)
                 {
