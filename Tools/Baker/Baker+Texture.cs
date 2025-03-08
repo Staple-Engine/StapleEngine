@@ -24,7 +24,7 @@ static partial class Program
         public RawTextureData textureData;
         public Rect location;
 
-        public List<DuplicateSpriteInfo> duplicates = new();
+        public List<DuplicateSpriteInfo> duplicates = [];
     }
 
     private static void ProcessTextures(AppPlatform platform, string texturecPath, string inputPath, string outputPath)

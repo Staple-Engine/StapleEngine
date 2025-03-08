@@ -1142,7 +1142,35 @@ internal static class StapleSerializer
                                     string innerTypeName = null;
                                     Dictionary<object, object> parameters = null;
 
-                                    if (item is Dictionary<object, object> itemData &&
+                                    if (mode == StapleSerializationMode.Scene)
+                                    {
+                                        if(item is Dictionary<object, object> contents)
+                                        {
+                                            innerTypeName = elementType.FullName;
+
+                                            parameters = [];
+
+                                            foreach(var pair in contents)
+                                            {
+                                                if(pair.Key is string key)
+                                                {
+                                                    var elementField = elementType.GetField(key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                                                    if(elementField == null)
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    parameters.Add(key, new Dictionary<object, object>()
+                                                    {
+                                                        { nameof(StapleSerializerContainer.typeName), elementField.FieldType.FullName },
+                                                        { nameof(StapleSerializerField.value), pair.Value },
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (item is Dictionary<object, object> itemData &&
                                         itemData.Count == 2 &&
                                         itemData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
                                         itemData.ContainsKey(nameof(StapleSerializerContainer.fields)) &&
@@ -1181,7 +1209,7 @@ internal static class StapleSerializer
                                                 containerPair.Value is Dictionary<object, object> containerData &&
                                                 containerData.Count == 2 &&
                                                 containerData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
-                                                containerData.ContainsKey("value") &&
+                                                containerData.ContainsKey(nameof(StapleSerializerField.value)) &&
                                                 containerData[nameof(StapleSerializerContainer.typeName)] is string)
                                             {
                                                 containerKey = (string)containerPair.Key;

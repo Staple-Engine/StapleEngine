@@ -295,9 +295,11 @@ public class TextureMetadata
     [Key(12)]
     public int spritePixelsPerUnit = 100;
 
+    [Tooltip("Whether the texture should be read back by the CPU (cannot be used for normal rendering)")]
     [Key(13)]
     public bool readBack = false;
 
+    [Tooltip("Whether to keep a copy of the texture data on the CPU for retrieving later")]
     [Key(14)]
     public bool keepOnCPU = false;
 

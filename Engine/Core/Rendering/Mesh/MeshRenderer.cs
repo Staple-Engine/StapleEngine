@@ -6,7 +6,7 @@ namespace Staple;
 /// Mesh Renderer component.
 /// Contains a mesh and its related materials.
 /// </summary>
-public sealed class MeshRenderer : Renderable
+public sealed class MeshRenderer : Renderable, IComponentDisposable
 {
     /// <summary>
     /// The mesh used for this
@@ -22,4 +22,12 @@ public sealed class MeshRenderer : Renderable
     /// Lighting mode
     /// </summary>
     public MaterialLighting lighting = MaterialLighting.Lit;
+
+    public void DisposeComponent()
+    {
+        if(mesh.Guid == null)
+        {
+            mesh.Destroy();
+        }
+    }
 }

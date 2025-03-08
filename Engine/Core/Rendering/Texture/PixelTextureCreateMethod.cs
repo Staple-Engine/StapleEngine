@@ -3,7 +3,8 @@ using System;
 
 namespace Staple.Internal;
 
-internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata, TextureFormat format, TextureFlags flags) : ITextureCreateMethod
+internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata, TextureFormat format, TextureFlags flags) :
+    ITextureCreateMethod
 {
     public string path = path;
     public byte[] data = data;
@@ -27,7 +28,7 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
 
             source.CopyTo(target);
 
-            texture.handle = bgfx.create_texture_2d(width, height, metadata.useMipmaps, 1, BGFXUtils.GetTextureFormat(format), (ulong)flags, memory);
+            texture.handle = bgfx.create_texture_2d(width, height, false, 1, BGFXUtils.GetTextureFormat(format), (ulong)flags, memory);
 
             if (texture.handle.Valid == false)
             {

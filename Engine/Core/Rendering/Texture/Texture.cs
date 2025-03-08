@@ -133,7 +133,7 @@ public class Texture : IGuidAsset
     /// <summary>
     /// Destroys this resource
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         if (Disposed)
         {
@@ -164,6 +164,12 @@ public class Texture : IGuidAsset
     /// <param name="sampler">The sampler uniform</param>
     internal void SetActive(byte stage, bgfx.UniformHandle sampler, TextureFlags flags = (TextureFlags)uint.MaxValue)
     {
+        //CPU-Only
+        if(metadata.readBack)
+        {
+            return;
+        }
+
         bgfx.set_texture(stage, sampler, handle, (uint)flags);
     }
 
@@ -496,7 +502,7 @@ public class Texture : IGuidAsset
         outRects = default;
         outTextureData = default;
 
-        if(textureData.Any(x => x.colorComponents != StandardTextureColorComponents.RGBA))
+        if(textureData.Any(x => x == null || x.colorComponents != StandardTextureColorComponents.RGBA))
         {
             return false;
         }
@@ -564,7 +570,7 @@ public class Texture : IGuidAsset
     /// </summary>
     /// <param name="completion">The completion block when the data is ready. This is an async operation.</param>
     /// <param name="mipLevel">The mip level to read</param>
-    /// <remarks>Render target textures need to use RenderTarget.ReadTexture instead</remarks>
+    /// <remarks>Render target textures need to use <see cref="RenderTarget.ReadTexture"/> instead</remarks>
     public void ReadPixels(Action<Texture, byte[]> completion, byte mipLevel = 0)
     {
         unsafe
@@ -618,5 +624,28 @@ public class Texture : IGuidAsset
     public Color32[] GetPixels32()
     {
         return readbackData?.ToColorArray() ?? [];
+    }
+
+    /// <summary>
+    /// Gets the raw texture data of this texture (if available)
+    /// </summary>
+    /// <remarks>Texture needs to have the <see cref="TextureMetadata.keepOnCPU"/> flag enabled</remarks>
+    /// <returns>The raw texture data, or null</returns>
+    public RawTextureData GetRawTextureData()
+    {
+        if(readbackData == null)
+        {
+            Log.Error($"Texture {Guid} isn't readable (missing readback flag)");
+
+            return null;
+        }
+
+        return new()
+        {
+            colorComponents = readbackData.colorComponents,
+            data = readbackData.data,
+            height = readbackData.height,
+            width = readbackData.width,
+        };
     }
 }

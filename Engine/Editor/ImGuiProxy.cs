@@ -435,7 +435,10 @@ internal class ImGuiProxy
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntPtr GetImGuiTexture(Texture texture)
     {
-        if(texture == null || texture.handle.Valid == false || texture.Disposed)
+        if(texture == null ||
+            texture.handle.Valid == false ||
+            texture.Disposed ||
+            texture.metadata.readBack)
         {
             return IntPtr.Zero;
         }
