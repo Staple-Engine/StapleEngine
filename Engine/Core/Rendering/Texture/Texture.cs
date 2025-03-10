@@ -622,7 +622,7 @@ public class Texture : IGuidAsset
     {
         if(readbackData == null)
         {
-            Log.Error($"Texture {Guid} isn't readable (missing readback flag)");
+            Log.Error($"Texture {Guid.Guid} isn't readable (missing readback flag)");
 
             return null;
         }

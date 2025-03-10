@@ -280,7 +280,7 @@ public class AudioSystem : ISubsystem
                 {
                     if(samples == null || channels == 0 || bits == 0 || sampleRate == 0)
                     {
-                        Log.Debug($"[AudioSystem] Failed to load audio clip for {source.audioClip.Guid}");
+                        Log.Debug($"[AudioSystem] Failed to load audio clip for {source.audioClip.Guid.Guid}");
 
                         return;
                     }
@@ -428,7 +428,7 @@ public class AudioSystem : ISubsystem
 
             if(stream == null)
             {
-                Log.Debug($"[AudioSystem] Failed to get audio stream for {clip.Guid}");
+                Log.Debug($"[AudioSystem] Failed to get audio stream for {clip.Guid.Guid}");
 
                 onFinish?.Invoke(default, 0, 0, 0);
 
@@ -471,7 +471,7 @@ public class AudioSystem : ISubsystem
         }
         catch (Exception e)
         {
-            Log.Debug($"[AudioClip] Failed to load audio clip {clip.Guid}: {e}");
+            Log.Debug($"[AudioClip] Failed to load audio clip {clip.Guid.Guid}: {e}");
         }
 
         return cts;

@@ -25,7 +25,7 @@ public sealed class MeshRenderer : Renderable, IComponentDisposable
 
     public void DisposeComponent()
     {
-        if(mesh != null && mesh.Guid == null)
+        if(mesh != null && mesh.Guid?.Guid == null)
         {
             mesh.Destroy();
         }

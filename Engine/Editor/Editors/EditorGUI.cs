@@ -694,7 +694,7 @@ public static class EditorGUI
             {
                 if(current is IGuidAsset g)
                 {
-                    return g.Guid;
+                    return g.Guid.Guid;
                 }
                 else
                 {

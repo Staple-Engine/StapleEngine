@@ -405,7 +405,7 @@ public static class EditorUtils
     {
         if(asset == null ||
             asset is not IGuidAsset guid ||
-            guid.Guid == null)
+            guid.Guid?.Guid == null)
         {
             return;
         }

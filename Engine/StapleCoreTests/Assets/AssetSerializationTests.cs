@@ -53,7 +53,7 @@ namespace CoreTests
 
         internal class SimplePathAsset : IGuidAsset
         {
-            private readonly GuidHasher guidhasher;
+            private readonly GuidHasher guidhasher = new();
 
             public GuidHasher Guid => guidhasher;
 
@@ -184,7 +184,7 @@ namespace CoreTests
                 Assert.That(result.parameters[nameof(SimpleAsset.intValue)].value, Is.EqualTo(asset.intValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].value, Is.EqualTo(asset.stringValue));
                 Assert.That(result.parameters[nameof(SimpleAsset.numbers)].value, Is.EqualTo(asset.numbers));
-                Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Guid));
+                Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].value, Is.EqualTo(asset.pathAsset.Guid.Guid));
                 Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].value, Is.EqualTo(asset.enumValue.ToString()));
             });
 

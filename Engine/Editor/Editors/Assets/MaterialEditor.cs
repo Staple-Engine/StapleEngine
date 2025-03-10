@@ -59,13 +59,13 @@ internal class MaterialEditor : AssetEditor
                                 {
                                     if(newValue is Texture t)
                                     {
-                                        var guid = t.Guid;
+                                        var guid = t.Guid?.Guid;
 
                                         if(guid != null)
                                         {
-                                            parameter.Value.textureValue = guid.Guid;
+                                            parameter.Value.textureValue = guid;
 
-                                            cachedTextures.AddOrSetKey(guid.Guid, t);
+                                            cachedTextures.AddOrSetKey(guid, t);
                                         }
                                     }
                                     else
