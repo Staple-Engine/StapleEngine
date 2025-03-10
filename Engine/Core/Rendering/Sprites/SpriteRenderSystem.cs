@@ -49,16 +49,16 @@ public class SpriteRenderSystem : IRenderSystem
 
         if (material != null)
         {
-            ResourceManager.instance.LockAsset(material.Guid);
+            ResourceManager.instance.LockAsset(material.Guid.Guid);
 
             if (material.MainTexture is Texture t)
             {
-                ResourceManager.instance.LockAsset(t.Guid);
+                ResourceManager.instance.LockAsset(t.Guid.Guid);
             }
 
             if (material.shader is Shader s)
             {
-                ResourceManager.instance.LockAsset(s.Guid);
+                ResourceManager.instance.LockAsset(s.Guid.Guid);
             }
         }
 

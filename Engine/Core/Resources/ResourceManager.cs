@@ -231,7 +231,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedTextures)
         {
-            if(mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            if(mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
             {
                 continue;
             }
@@ -241,7 +241,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMaterials)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
             {
                 continue;
             }
@@ -251,7 +251,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedShaders)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
             {
                 continue;
             }
@@ -261,7 +261,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshes)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
             {
                 continue;
             }
@@ -273,7 +273,7 @@ internal class ResourceManager
         {
             foreach (var pair in Mesh.defaultMeshes)
             {
-                if (lockedAssets.Contains(pair.Value?.GuidHash ?? 0))
+                if (lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
                 {
                     continue;
                 }
@@ -1119,7 +1119,7 @@ internal class ResourceManager
 
             if (shader != null)
             {
-                shader.Guid = guid;
+                shader.Guid.Guid = guid;
 
                 if(ignoreCache == false)
                 {
@@ -1213,9 +1213,10 @@ internal class ResourceManager
             {
                 metadata = materialData.metadata,
                 shader = shader,
-                Guid = guid ?? path,
                 CullingMode = materialData.metadata.cullingMode,
             };
+
+            material.Guid.Guid = guid ?? path;
 
             foreach(var variant in materialData.metadata.enabledShaderVariants)
             {
@@ -1478,8 +1479,9 @@ internal class ResourceManager
                 metadata = audioData.metadata,
                 fileData = audioData.fileData,
                 format = audioData.format,
-                Guid = path,
             };
+
+            audioClip.Guid.Guid = path;
 
             if(ignoreCache == false)
             {
@@ -1550,7 +1552,6 @@ internal class ResourceManager
 
         mesh = new Mesh(true, false)
         {
-            Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original,
             vertices = m.vertices,
             normals = m.normals,
             tangents = m.tangents,
@@ -1577,6 +1578,8 @@ internal class ResourceManager
             meshAsset = asset,
             meshAssetIndex = index,
         };
+
+        mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original;
 
         if (m.colors.Length > 0)
         {
@@ -1657,10 +1660,11 @@ internal class ResourceManager
 
             var asset = new MeshAsset()
             {
-                Guid = guid,
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
             };
+
+            asset.Guid.Guid = guid;
 
             asset.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
 
@@ -2000,7 +2004,7 @@ internal class ResourceManager
             {
                 if(asset is IGuidAsset guidAsset)
                 {
-                    guidAsset.Guid = path;
+                    guidAsset.Guid.Guid = path;
                 }
 
                 if(ignoreCache == false)
@@ -2077,8 +2081,9 @@ internal class ResourceManager
             prefab = new()
             {
                 data = prefabData,
-                Guid = path,
             };
+
+            prefab.Guid.Guid = guid;
 
             if (ignoreCache == false)
             {
@@ -2153,10 +2158,11 @@ internal class ResourceManager
             font = new()
             {
                 metadata = fontData.metadata,
-                Guid = path,
             };
 
-            font.font = TextFont.FromData(fontData.fontData, font.Guid, fontData.metadata.useAntiAliasing,
+            font.Guid.Guid = path;
+
+            font.font = TextFont.FromData(fontData.fontData, font.Guid.Guid, fontData.metadata.useAntiAliasing,
                 fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
             if (ignoreCache == false)

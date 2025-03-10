@@ -63,9 +63,9 @@ internal class MaterialEditor : AssetEditor
 
                                         if(guid != null)
                                         {
-                                            parameter.Value.textureValue = guid;
+                                            parameter.Value.textureValue = guid.Guid;
 
-                                            cachedTextures.AddOrSetKey(guid, t);
+                                            cachedTextures.AddOrSetKey(guid.Guid, t);
                                         }
                                     }
                                     else
@@ -190,7 +190,7 @@ internal class MaterialEditor : AssetEditor
 
                                 if(shader != null)
                                 {
-                                    material.shader = shader.Guid;
+                                    material.shader = shader.Guid.Guid;
                                 }
 
                                 activeShader = shader;
@@ -206,7 +206,7 @@ internal class MaterialEditor : AssetEditor
                         {
                             cachedShaders.AddOrSetKey(s.metadata.guid, s);
 
-                            material.shader = s.Guid;
+                            material.shader = s.Guid.Guid;
 
                             material.parameters = [];
 

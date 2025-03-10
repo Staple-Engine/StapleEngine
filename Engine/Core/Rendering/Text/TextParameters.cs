@@ -96,7 +96,7 @@ public struct TextParameters
 
     internal TextParameters Font(FontAsset font)
     {
-        this.font = font?.Guid;
+        this.font = font?.Guid.Guid;
 
         return this;
     }

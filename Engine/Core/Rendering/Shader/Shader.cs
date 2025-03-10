@@ -111,22 +111,9 @@ public partial class Shader : IGuidAsset
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private int guidHash;
-    private string guid;
+    private readonly GuidHasher guidHasher = new();
 
-    public int GuidHash => guidHash;
-
-    public string Guid
-    {
-        get => guid;
-
-        set
-        {
-            guid = value;
-
-            guidHash = guid?.GetHashCode() ?? 0;
-        }
-    }
+    public GuidHasher Guid => guidHasher;
 
     /// <summary>
     /// Whether this shader has been disposed

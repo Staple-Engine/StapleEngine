@@ -410,7 +410,7 @@ public static class EditorUtils
             return;
         }
 
-        var entry = AssetDatabase.GetAssetEntry(guid.Guid);
+        var entry = AssetDatabase.GetAssetEntry(guid.Guid.Guid);
 
         if(entry == null)
         {

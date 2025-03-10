@@ -6,14 +6,9 @@
 public interface IGuidAsset
 {
     /// <summary>
-    /// The asset's guid hash (or 0)
+    /// The asset's guid and hash
     /// </summary>
-    int GuidHash { get; }
-
-    /// <summary>
-    /// The asset's guid (if any)
-    /// </summary>
-    string Guid { get; set; }
+    GuidHasher Guid { get; }
 
     static abstract object Create(string guid);
 }

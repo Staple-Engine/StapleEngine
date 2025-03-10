@@ -246,7 +246,7 @@ public sealed partial class Mesh
 
                 _quad = builder.BuildMesh(true);
 
-                _quad.guid = "Internal/Quad";
+                _quad.Guid.Guid = "Internal/Quad";
 
                 _quad.UpdateBounds();
             }
@@ -277,7 +277,7 @@ public sealed partial class Mesh
 
                 _cube = builder.BuildMesh(true);
 
-                _cube.guid = "Internal/Cube";
+                _cube.Guid.Guid = "Internal/Cube";
 
                 _cube.UpdateBounds();
             }
@@ -299,7 +299,7 @@ public sealed partial class Mesh
             {
                 _sphere = GenerateSphere(36, 18, 0.5f);
 
-                _sphere.guid = "Internal/Sphere";
+                _sphere.Guid.Guid = "Internal/Sphere";
 
                 _sphere.UpdateBounds();
             }

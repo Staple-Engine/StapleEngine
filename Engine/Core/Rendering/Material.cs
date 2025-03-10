@@ -208,7 +208,7 @@ public sealed class Material : IGuidAsset
     {
         var hashCode = new HashCode();
 
-        hashCode.Add(guidHash);
+        hashCode.Add(Guid.GuidHash);
 
         void HandleParameter(int key, ParameterInfo parameter)
         {
@@ -243,7 +243,7 @@ public sealed class Material : IGuidAsset
 
                 case MaterialParameterType.Texture:
 
-                    hashCode.Add(parameter.textureValue != null ? parameter.textureValue.GuidHash : 0);
+                    hashCode.Add(parameter.textureValue != null ? parameter.textureValue.Guid.GuidHash : 0);
 
                     break;
 
@@ -286,24 +286,9 @@ public sealed class Material : IGuidAsset
         stateHash = hashCode.ToHashCode();
     }
 
-    private int guidHash;
-    private string guid;
+    private readonly GuidHasher guidHasher = new();
 
-    public int GuidHash => guidHash;
-
-    public string Guid
-    {
-        get => guid;
-
-        set
-        {
-            guid = value;
-
-            guidHash = guid?.GetHashCode() ?? 0;
-
-            needsHashUpdate = true;
-        }
-    }
+    public GuidHasher Guid => guidHasher;
 
     /// <summary>
     /// Whether this material has been disposed and is now invalid.
@@ -348,7 +333,7 @@ public sealed class Material : IGuidAsset
         }
 
         metadata = sourceMaterial.metadata;
-        guid = sourceMaterial.guid;
+        guidHasher = sourceMaterial.guidHasher;
         shader = sourceMaterial.shader;
         shaderHandles = new(sourceMaterial.shaderHandles);
         CullingMode = sourceMaterial.CullingMode;

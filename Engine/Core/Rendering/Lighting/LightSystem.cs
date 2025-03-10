@@ -185,7 +185,7 @@ public sealed class LightSystem : IRenderSystem
             cachedLightSpotDirection[i] = forward.ToVector4();
         }
 
-        var key = material.shader.GuidHash;
+        var key = material.shader.Guid.GuidHash;
 
         static bool HandlesValid(Span<ShaderHandle> handles)
         {

@@ -53,29 +53,17 @@ namespace CoreTests
 
         internal class SimplePathAsset : IGuidAsset
         {
-            private int guidHash;
-            private string guid;
+            private readonly GuidHasher guidhasher;
 
-            public int GuidHash => guidHash;
-
-            public string Guid
-            {
-                get => guid;
-
-                set
-                {
-                    guid = value;
-
-                    guidHash = guid?.GetHashCode() ?? 0;
-                }
-            }
+            public GuidHasher Guid => guidhasher;
 
             public static object Create(string guid)
             {
-                return new SimplePathAsset()
-                {
-                    guid = guid,
-                };
+                var a = new SimplePathAsset();
+
+                a.Guid.Guid = guid;
+
+                return a;
             }
         }
 
@@ -85,10 +73,7 @@ namespace CoreTests
             public string stringValue = "test";
             public List<int> numbers = new(new int[] { 1, 2, 3 });
 
-            public IGuidAsset pathAsset = new SimplePathAsset()
-            {
-                Guid = "a/b/c",
-            };
+            public IGuidAsset pathAsset = (SimplePathAsset)SimplePathAsset.Create("a/b/c");
 
             public NewEnum enumValue = NewEnum.A;
 
@@ -245,7 +230,7 @@ namespace CoreTests
             Assert.That(newAsset.stringValue, Is.EqualTo(asset.stringValue));
             Assert.That(newAsset.numbers, Is.EqualTo(asset.numbers));
             Assert.That(newAsset.pathAsset != null);
-            Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.pathAsset.Guid.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
         }
 
@@ -550,7 +535,7 @@ namespace CoreTests
             Assert.That(newAsset.stringValue, Is.EqualTo(asset.stringValue));
             Assert.That(newAsset.numbers, Is.EqualTo(asset.numbers));
             Assert.That(newAsset.pathAsset != null);
-            Assert.That(newAsset.pathAsset.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.pathAsset.Guid.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.enumValue, Is.EqualTo(asset.enumValue));
         }
 
@@ -608,7 +593,7 @@ namespace CoreTests
 
             Assert.That(newAsset, Is.Not.EqualTo(null));
 
-            Assert.That(newAsset.asset?.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.asset?.Guid.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.b, Is.EqualTo((byte)1));
             Assert.That(newAsset.bo, Is.EqualTo(true));
             Assert.That(newAsset.c, Is.EqualTo(Color.White));
@@ -687,7 +672,7 @@ namespace CoreTests
 
             Assert.That(newAsset, Is.Not.EqualTo(null));
 
-            Assert.That(newAsset.asset?.Guid, Is.EqualTo("valid path"));
+            Assert.That(newAsset.asset?.Guid.Guid, Is.EqualTo("valid path"));
             Assert.That(newAsset.b, Is.EqualTo((byte)1));
             Assert.That(newAsset.bo, Is.EqualTo(true));
             Assert.That(newAsset.c, Is.EqualTo(Color.White));

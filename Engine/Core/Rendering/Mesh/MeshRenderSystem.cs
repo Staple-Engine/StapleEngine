@@ -203,7 +203,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             void Add(Material material, int submeshIndex)
             {
-                var key = r.mesh.GuidHash ^ material.StateHash ^ (int)r.lighting;
+                var key = r.mesh.Guid.GuidHash ^ material.StateHash ^ (int)r.lighting;
 
                 if (cache.TryGetValue(key, out var meshCache) == false)
                 {

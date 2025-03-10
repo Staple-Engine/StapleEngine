@@ -122,7 +122,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if(instance is IGuidAsset a)
                     {
-                        return AssetSerialization.GetAssetPathFromCache(a.Guid);
+                        return AssetSerialization.GetAssetPathFromCache(a.Guid.Guid);
                     }
                 }
 
@@ -157,7 +157,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if(instance is Sprite sprite)
                     {
-                        return $"{sprite.texture?.Guid ?? ""}:{sprite.spriteIndex}";
+                        return $"{sprite.texture?.Guid.Guid ?? ""}:{sprite.spriteIndex}";
                     }
                 }
 
@@ -489,7 +489,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if (instance is IGuidAsset a)
                     {
-                        return AssetSerialization.GetAssetPathFromCache(a.Guid);
+                        return AssetSerialization.GetAssetPathFromCache(a.Guid.Guid);
                     }
                 }
 
@@ -524,7 +524,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if (instance is Sprite sprite)
                     {
-                        return $"{sprite.texture?.Guid ?? ""}:{sprite.spriteIndex}";
+                        return $"{sprite.texture?.Guid.Guid ?? ""}:{sprite.spriteIndex}";
                     }
                 }
 

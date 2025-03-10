@@ -158,7 +158,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             Matrix4x4[] boneMatrices;
 
-            if (renderCache.TryGetValue(meshAsset.GuidHash, out var cache) == false)
+            if (renderCache.TryGetValue(meshAsset.Guid.GuidHash, out var cache) == false)
             {
                 boneMatrices = new Matrix4x4[meshAsset.BoneCount];
 
@@ -167,7 +167,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     boneMatrices = boneMatrices,
                 };
 
-                renderCache.Add(meshAsset.GuidHash, cache);
+                renderCache.Add(meshAsset.Guid.GuidHash, cache);
 
                 UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
             }
@@ -230,7 +230,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
-                var assetGuid = meshAsset.GuidHash;
+                var assetGuid = meshAsset.Guid.GuidHash;
 
                 var material = renderer.materials[j];
 

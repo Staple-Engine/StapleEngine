@@ -455,11 +455,11 @@ internal partial class StapleEditor
                 ],
 
                 MeshTopology = MeshTopology.LineStrip,
-
-                Guid = "WIREFRAME_MESH"
             };
 
-            ResourceManager.instance.LockAsset(wireframeMesh.Guid);
+            wireframeMesh.Guid.Guid = "WIREFRAME_MESH";
+
+            ResourceManager.instance.LockAsset(wireframeMesh.Guid.Guid);
 
             RenderSystem.Instance.Startup();
 

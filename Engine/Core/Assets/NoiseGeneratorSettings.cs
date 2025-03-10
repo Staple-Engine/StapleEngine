@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 
 namespace Staple;
 
@@ -24,9 +23,9 @@ public class NoiseGeneratorSettings : IStapleAsset, IGuidAsset
     public NoiseGenerator.DomainWarpType domainWarpType = NoiseGenerator.DomainWarpType.OpenSimplex2;
     public float domainWarpAmp = 1;
 
-    public int GuidHash { get; set; }
+    private readonly GuidHasher guidHasher = new();
 
-    public string Guid { get; set; }
+    public GuidHasher Guid => guidHasher;
 
     public static object Create(string guid)
     {

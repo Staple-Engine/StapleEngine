@@ -207,6 +207,7 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
+		<Compile Include="Serialization\Asset\GuidHasher.cs" />
 		<Compile Include="Serialization\Serializer\IStapleTypeSerializer.cs" />
 		<Compile Include="Serialization\Serializer\JsonExtensions.cs" />
 		<Compile Include="Serialization\Serializer\Serializers\StapleBaseTypeSerializer.cs" />

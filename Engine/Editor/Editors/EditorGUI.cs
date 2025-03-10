@@ -646,9 +646,9 @@ public static class EditorGUI
 
         if (current is IGuidAsset guidAsset)
         {
-            var guid = guidAsset.Guid;
+            var guid = guidAsset.Guid.Guid;
 
-            if(Path.IsPathRooted(guidAsset.Guid))
+            if(Path.IsPathRooted(guid))
             {
                 var cacheIndex = guid.IndexOf(StapleEditor.instance.currentPlatform.ToString());
 
@@ -1255,9 +1255,9 @@ public static class EditorGUI
             Button("O", $"{key}.Browse", () =>
             {
                 var editor = StapleEditor.instance;
-                var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.texture.Guid));
+                var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.texture.Guid.Guid));
 
-                if (assetPath != value.texture.Guid && Path.IsPathRooted(assetPath) == false)
+                if (assetPath != value.texture.Guid.Guid && Path.IsPathRooted(assetPath) == false)
                 {
                     assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                 }

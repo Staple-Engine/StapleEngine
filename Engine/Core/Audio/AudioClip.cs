@@ -55,23 +55,9 @@ public sealed class AudioClip : IGuidAsset
     /// </summary>
     internal byte[] fileData;
 
-    private string guid;
+    private readonly GuidHasher guidHasher = new();
 
-    private int guidHash;
-
-    public int GuidHash => guidHash;
-
-    public string Guid
-    {
-        get => guid;
-        
-        set
-        {
-            guid = value;
-
-            guidHash = guid?.GetHashCode() ?? 0;
-        }
-    }
+    public GuidHasher Guid => guidHasher;
 
     /// <summary>
     /// Gets an internal audio stream for the audio.
@@ -95,7 +81,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
                     }
                 }
                 catch (Exception)
@@ -118,7 +104,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
                     }
                 }
                 catch(Exception)
@@ -141,7 +127,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {guid}: {e}");
+                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
                     }
                 }
                 catch(Exception)

@@ -80,12 +80,12 @@ public class Transform : IComponent
     /// <summary>
     /// Global scale
     /// </summary>
-    private Vector3 finalScale;
+    private Vector3 finalScale = Vector3.One;
 
     /// <summary>
     /// Global rotation
     /// </summary>
-    private Quaternion finalRotation;
+    private Quaternion finalRotation = Quaternion.Identity;
 
     /// <summary>
     /// The parent of this transform, if any.

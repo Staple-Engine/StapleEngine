@@ -230,7 +230,7 @@ internal static partial class AssetSerialization
         {
             if(stapleAsset is IGuidAsset guidAsset)
             {
-                guidAsset.Guid = asset.guid;
+                guidAsset.Guid.Guid = asset.guid;
             }
 
             return stapleAsset;

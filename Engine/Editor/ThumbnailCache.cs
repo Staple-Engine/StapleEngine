@@ -1043,9 +1043,9 @@ internal class ThumbnailCache
                         {
                             var value = (Texture)field.GetValue(component);
 
-                            if (value != null && value.Disposed && (value.Guid?.Length ?? 0) > 0)
+                            if (value != null && value.Disposed && (value.Guid?.Guid?.Length ?? 0) > 0)
                             {
-                                field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid));
+                                field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid.Guid));
                             }
                         }
                     }

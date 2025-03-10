@@ -13,9 +13,9 @@ public sealed class InputActions : IStapleAsset, IGuidAsset
     /// </summary>
     public List<InputAction> actions = [];
 
-    public int GuidHash { get; set; }
+    private readonly GuidHasher guidHasher = new();
 
-    public string Guid { get; set; }
+    public GuidHasher Guid => guidHasher;
 
     public static object Create(string guid)
     {

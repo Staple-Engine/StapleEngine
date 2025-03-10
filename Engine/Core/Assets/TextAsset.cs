@@ -8,9 +8,9 @@ public class TextAsset : IStapleAsset, IGuidAsset
 
     public byte[] bytes;
 
-    public int GuidHash { get; set; }
+    private readonly GuidHasher guidHasher = new();
 
-    public string Guid { get; set; }
+    public GuidHasher Guid => guidHasher;
 
     public static object Create(string guid)
     {
