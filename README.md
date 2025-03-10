@@ -27,11 +27,11 @@ Status: Early state, usable for small demos
 
 # Installation
 
-You can grab binaries from the releases page. You also need the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+You can grab binaries from the releases page. You also need the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
 # Building
 
-You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
 ## Windows
 
