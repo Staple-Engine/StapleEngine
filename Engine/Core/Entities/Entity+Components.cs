@@ -351,4 +351,22 @@ public partial struct Entity
 
         World.Current.SetComponent(this, component);
     }
+
+    /// <summary>
+    /// Attempts to get a component's entity
+    /// </summary>
+    /// <param name="component">The component</param>
+    /// <param name="entity">The entity</param>
+    /// <returns>Whether the entity was found</returns>
+    public static bool TryGetComponentEntity(IComponent component, out Entity entity)
+    {
+        if(World.Current == null)
+        {
+            entity = default;
+
+            return false;
+        }
+
+        return World.Current.TryGetComponentEntity(component, out entity);
+    }
 }

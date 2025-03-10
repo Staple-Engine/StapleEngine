@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Editors\Assets\InputActionsEditor.cs" />
+    <Compile Include="Editors\Assets\NoiseGeneratorSettingsEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
     <Compile Include="Generators\GeneratorManager.cs" />
@@ -68,7 +69,7 @@
     <Compile Include="Editors\Default\LightGizmoEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshAnimatorEditor.cs" />
     <Compile Include="Editors\Assets\TextureAssetEditor.cs" />
-    <Compile Include="Editors\CustomEditorAttribute.cs" />
+    <Compile Include="Attributes\CustomEditorAttribute.cs" />
     <Compile Include="Editors\Default\SkinnedMeshAttachmentEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
@@ -82,9 +83,9 @@
     <Compile Include="Editors\Nodes\INodeUIObserver.cs" />
     <Compile Include="Editors\Nodes\NodeUI+Internal.cs" />
     <Compile Include="Editors\Nodes\NodeUI.cs" />
-    <Compile Include="Editors\PropertyAttribute.cs" />
+    <Compile Include="Attributes\PropertyAttribute.cs" />
     <Compile Include="Editors\PropertyDrawer.cs" />
-    <Compile Include="Editors\CustomPropertyDrawerAttribute.cs" />
+    <Compile Include="Attributes\CustomPropertyDrawerAttribute.cs" />
     <Compile Include="Editors\PropertyDrawers\EntityCallbackPropertyDrawer.cs" />
     <Compile Include="Editors\PropertyDrawers\RangePropertyDrawer.cs" />
     <Compile Include="EditorUtils.cs" />

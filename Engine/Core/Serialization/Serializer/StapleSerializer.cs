@@ -1118,7 +1118,11 @@ internal static class StapleSerializer
                     {
                         foreach (var item in array)
                         {
-                            if (item.GetType().IsAssignableTo(elementType) ||
+                            if(item == null)
+                            {
+                                list.Add(null);
+                            }
+                            else if (item.GetType().IsAssignableTo(elementType) ||
                                 elementType.IsPrimitive)
                             {
                                 list.Add(item);

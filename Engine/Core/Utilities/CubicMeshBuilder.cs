@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Utilities;
 
@@ -321,6 +322,8 @@ public class CubicMeshBuilder
             meshTopology = MeshTopology.Triangles,
             changed = true,
         };
+
+        mesh.bounds = AABB.CreateFromPoints(CollectionsMarshal.AsSpan(vertices));
 
         if (addUVs)
         {

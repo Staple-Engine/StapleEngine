@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Staple;
@@ -100,7 +101,7 @@ public struct AABB
     /// </summary>
     /// <param name="points">The points to validate</param>
     /// <returns>The AABB</returns>
-    public static AABB CreateFromPoints(params Vector3[] points)
+    public static AABB CreateFromPoints(Span<Vector3> points)
     {
         var min = Vector3.One * 999999;
         var max = Vector3.One * -999999;

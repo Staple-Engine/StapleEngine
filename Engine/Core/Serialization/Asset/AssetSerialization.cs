@@ -118,6 +118,11 @@ internal static partial class AssetSerialization
     /// <returns>The estimatd valid path</returns>
     public static string GetAssetPathFromCache(string path)
     {
+        if(path == null)
+        {
+            return null;
+        }
+
         var matches = cachePathRegex.Matches(path);
 
         if (matches.Count > 0)
@@ -145,6 +150,11 @@ internal static partial class AssetSerialization
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.Interfaces)]
         Type type, string guid)
     {
+        if (guid == null)
+        {
+            return null;
+        }
+
         var methods = type.GetMethods();
 
         foreach (var method in methods)
@@ -160,7 +170,7 @@ internal static partial class AssetSerialization
 
                 try
                 {
-                    var result = method.Invoke(null, new object[] { guid });
+                    var result = method.Invoke(null, [ guid ]);
 
                     if (result == null || (result.GetType() != type && result.GetType().GetInterface(type.FullName) == null))
                     {

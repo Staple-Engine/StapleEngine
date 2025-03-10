@@ -366,10 +366,6 @@ public static class EditorGUI
             })
             .ToArray();
 
-        var prevChanged = Changed;
-
-        Changed = false;
-
         var newValue = values[Dropdown(label, key, valueStrings, current)];
 
         if (isFlags)
@@ -396,8 +392,6 @@ public static class EditorGUI
                 newValue = value;
             }
         }
-
-        Changed = prevChanged;
 
         return newValue;
     }
@@ -425,10 +419,6 @@ public static class EditorGUI
             })
             .ToArray();
 
-        var prevChanged = Changed;
-
-        Changed = false;
-
         var newValue = values[Dropdown(label, key, valueStrings, current)];
 
         if (isFlags)
@@ -455,8 +445,6 @@ public static class EditorGUI
                 newValue = value;
             }
         }
-
-        Changed = prevChanged;
 
         return newValue;
     }
@@ -492,10 +480,6 @@ public static class EditorGUI
             })
             .ToArray();
 
-        var prevChanged = Changed;
-
-        Changed = false;
-
         var newValue = (Enum)values[Dropdown(label, key, valueStrings, current)];
 
         if (isFlags)
@@ -522,8 +506,6 @@ public static class EditorGUI
                 newValue = value;
             }
         }
-
-        Changed = prevChanged;
 
         return newValue;
     }
