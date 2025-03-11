@@ -65,7 +65,7 @@ public sealed class IndexBuffer
     /// <summary>
     /// Destroys the index buffer's resources
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         if (Disposed)
         {

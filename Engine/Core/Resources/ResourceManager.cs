@@ -611,7 +611,7 @@ internal class ResourceManager
                 {
                     case SceneObjectKind.Entity:
 
-                        entity = Scene.Instantiate(sceneObject, out var localID, false);
+                        entity = SceneSerialization.Instantiate(sceneObject, out var localID, false);
 
                         if (entity == default)
                         {
@@ -792,7 +792,7 @@ internal class ResourceManager
                 {
                     case SceneObjectKind.Entity:
 
-                        entity = Scene.Instantiate(sceneObject, out var localID, false);
+                        entity = SceneSerialization.Instantiate(sceneObject, out var localID, false);
 
                         if (entity == default)
                         {

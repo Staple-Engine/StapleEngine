@@ -673,7 +673,7 @@ public partial class Shader : IGuidAsset
     /// <summary>
     /// Destroys this resource
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         if (Disposed)
         {

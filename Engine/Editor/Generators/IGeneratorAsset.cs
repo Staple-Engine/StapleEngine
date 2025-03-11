@@ -1,6 +1,6 @@
 ﻿namespace Staple.Editor;
 
-public interface IGenerator
+public interface IGeneratorAsset
 {
     string Extension { get; }
 
@@ -10,5 +10,5 @@ public interface IGenerator
 
     byte[] Generate();
 
-    abstract static bool Load(string guid, out IGenerator asset);
+    abstract static bool Load(string guid, out IGeneratorAsset asset);
 }

@@ -6,25 +6,25 @@ using System.Reflection;
 
 namespace Staple.Editor;
 
-internal static class GeneratorManager
+internal static class GeneratorAssetManager
 {
-    internal class GeneratorInfo(IGenerator instance)
+    internal class GeneratorAssetInfo(IGeneratorAsset instance)
     {
-        public readonly IGenerator instance = instance;
+        public readonly IGeneratorAsset instance = instance;
         public readonly string extension = instance.Extension;
         public readonly bool isText = instance.IsText;
     }
 
     private static Type[] generatorTypes = [];
 
-    internal static Dictionary<string, GeneratorInfo> generators = [];
+    internal static Dictionary<string, GeneratorAssetInfo> generators = [];
 
-    internal static void UpdateGenerators()
+    internal static void UpdateGeneratorAssets()
     {
         generatorTypes = Assembly.GetCallingAssembly().GetTypes()
                 .Concat(Assembly.GetExecutingAssembly().GetTypes())
                 .Concat(TypeCache.types.Select(x => x.Value))
-                .Where(x => x.IsAssignableTo(typeof(IGenerator)) && x != typeof(IGenerator))
+                .Where(x => x.IsAssignableTo(typeof(IGeneratorAsset)) && x != typeof(IGeneratorAsset))
                 .Distinct()
                 .ToArray();
 
@@ -32,14 +32,14 @@ internal static class GeneratorManager
 
         foreach (var type in generatorTypes)
         {
-            if(ObjectCreation.CreateObject(type) is IGenerator generator)
+            if(ObjectCreation.CreateObject(type) is IGeneratorAsset generator)
             {
                 generators.AddOrSetKey(type.FullName, new(generator));
             }
         }
     }
 
-    public static bool TryGetGenerator(string guid, out IGenerator generator)
+    public static bool TryGetGeneratorAsset(string guid, out IGeneratorAsset generator)
     {
         generator = default;
 
@@ -60,13 +60,13 @@ internal static class GeneratorManager
 
                     foreach (var method in methods)
                     {
-                        if (method.Name == nameof(IGenerator.Load))
+                        if (method.Name == nameof(IGeneratorAsset.Load))
                         {
                             var parameters = method.GetParameters();
 
                             if (parameters.Length != 2 ||
                                 parameters[0].ParameterType != typeof(string) ||
-                                parameters[1].ParameterType.Name != $"{nameof(IGenerator)}&" ||
+                                parameters[1].ParameterType.Name != $"{nameof(IGeneratorAsset)}&" ||
                                 parameters[1].IsOut == false)
                             {
                                 continue;
@@ -76,7 +76,7 @@ internal static class GeneratorManager
 
                             method.Invoke(null, args);
 
-                            if (args[1] is IGenerator g)
+                            if (args[1] is IGeneratorAsset g)
                             {
                                 generator = g;
 

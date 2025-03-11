@@ -8,6 +8,121 @@ namespace Staple.Internal;
 internal static class SceneSerialization
 {
     /// <summary>
+    /// Instantiates a scene object
+    /// </summary>
+    /// <param name="sceneObject">The scene object to instantiate</param>
+    /// <param name="localID">The local ID of the entity</param>
+    /// <param name="activate">Whether to activate the object and call lifecycle callbacks</param>
+    /// <returns>The new entity, or Entity.Empty</returns>
+    internal static Entity Instantiate(SceneObject sceneObject, out int localID, bool activate)
+    {
+        localID = sceneObject.ID;
+
+        Scene.InstancingComponent = true;
+
+        var entity = Entity.Create(sceneObject.name);
+
+        if ((sceneObject.prefabGuid?.Length ?? 0) > 0)
+        {
+            entity.SetPrefab(sceneObject.prefabGuid, sceneObject.prefabLocalID);
+        }
+
+        var transform = entity.AddComponent<Transform>();
+
+        entity.Enabled = sceneObject.enabled;
+
+        var layer = LayerMask.NameToLayer(sceneObject.layer);
+
+        if (layer >= 0)
+        {
+            entity.Layer = (uint)layer;
+        }
+
+        var rotation = sceneObject.transform.rotation.ToVector3();
+
+        transform.LocalPosition = sceneObject.transform.position.ToVector3();
+        transform.LocalRotation = Math.FromEulerAngles(rotation);
+        transform.LocalScale = sceneObject.transform.scale.ToVector3();
+
+        foreach (var component in sceneObject.components)
+        {
+            var type = TypeCache.GetType(component.type);
+
+            if (type == null)
+            {
+                Log.Error($"Failed to create component {component.type} for entity {sceneObject.name}");
+
+                continue;
+            }
+
+            var container = new StapleSerializerContainer()
+            {
+                typeName = component.type,
+            };
+
+            if ((component.data?.Count ?? 0) > 0)
+            {
+                foreach (var pair in component.data)
+                {
+                    var field = type.GetField(pair.Key);
+
+                    if (field is null)
+                    {
+                        continue;
+                    }
+
+                    container.fields.Add(pair.Key, new()
+                    {
+                        typeName = field.FieldType.FullName,
+                        value = pair.Value,
+                    });
+                }
+            }
+            else if (component.parameters != null)
+            {
+                foreach (var pair in component.parameters)
+                {
+                    var field = type.GetField(pair.Key);
+
+                    if (field is null)
+                    {
+                        continue;
+                    }
+
+                    container.fields.Add(pair.Key, new()
+                    {
+                        typeName = field.FieldType.FullName,
+                        value = pair.Value,
+                    });
+                }
+            }
+
+            var componentInstance = (IComponent)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Scene);
+
+            if (componentInstance is null)
+            {
+                continue;
+            }
+
+            entity.AddComponent(type);
+
+            entity.SetComponent(componentInstance);
+        }
+
+        if (activate)
+        {
+            entity.IterateComponents((ref IComponent c) =>
+            {
+                World.Current?.EmitAddComponentEvent(entity, ref c);
+            });
+        }
+
+        Scene.InstancingComponent = false;
+
+        return entity;
+    }
+
+    /// <summary>
     /// Instantiates all components in an entity into another entity
     /// </summary>
     /// <param name="source">The source entity</param>
@@ -168,9 +283,8 @@ internal static class SceneSerialization
     /// <summary>
     /// Serializes a scene into a SerializableScene
     /// </summary>
-    /// <param name="scene">The scene to serialize to</param>
     /// <returns>The serialized scene</returns>
-    public static SerializableScene Serialize(this Scene scene)
+    public static SerializableScene Serialize(this Scene _)
     {
         var outValue = new SerializableScene();
 
@@ -270,7 +384,7 @@ internal static class SceneSerialization
 
         var parentTransform = parent.GetComponent<Transform>();
 
-        var newEntity = Scene.Instantiate(prefab.mainObject, out _, true);
+        var newEntity = Instantiate(prefab.mainObject, out _, true);
 
         newEntity.SetPrefab(prefab.guid, prefab.mainObject.ID);
 
@@ -292,7 +406,7 @@ internal static class SceneSerialization
 
         foreach(var sceneObject in prefab.children)
         {
-            var childEntity = Scene.Instantiate(sceneObject, out _, true);
+            var childEntity = Instantiate(sceneObject, out _, true);
 
             if(childEntity.IsValid)
             {
@@ -386,6 +500,7 @@ internal static class SceneSerialization
                     }
                     catch(Exception e)
                     {
+                        Log.Error($"[SceneSerialization] Failed to deserialize field {parameter.Key} for {component.type}: {e}");
                     }
                 }
             }

@@ -412,7 +412,7 @@ public sealed partial class Mesh
     /// <summary>
     /// Destroys this mesh's resources
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         vertexBuffer?.Destroy();
         indexBuffer?.Destroy();

@@ -475,30 +475,6 @@ internal partial class StapleEditor
                                 }
                             });
 
-                        ThreadHelper.Dispatch(() =>
-                        {
-                            ResourceManager.instance.Clear();
-
-                            AssetDatabase.Reload();
-                            projectBrowser.UpdateProjectBrowserNodes();
-
-                            if(LoadRecordedScene() == false)
-                            {
-                                if ((lastOpenScene?.Length ?? 0) > 0)
-                                {
-                                    var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
-
-                                    Scene.SetActiveScene(scene);
-                                }
-                                else
-                                {
-                                    Scene.SetActiveScene(null);
-                                }
-                            }
-
-                            ResetScenePhysics(false);
-                        });
-
                         lock (backgroundLock)
                         {
                             refreshingAssets = false;
@@ -522,6 +498,27 @@ internal partial class StapleEditor
                             UnloadGame();
                             LoadGame();
                         }
+
+                        ResourceManager.instance.Clear();
+
+                        AssetDatabase.Reload();
+                        projectBrowser.UpdateProjectBrowserNodes();
+
+                        if (LoadRecordedScene() == false)
+                        {
+                            if ((lastOpenScene?.Length ?? 0) > 0)
+                            {
+                                var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+
+                                Scene.SetActiveScene(scene);
+                            }
+                            else
+                            {
+                                Scene.SetActiveScene(null);
+                            }
+                        }
+
+                        ResetScenePhysics(false);
 
                         onFinish?.Invoke();
                     }

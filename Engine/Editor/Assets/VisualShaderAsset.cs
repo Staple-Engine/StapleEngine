@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Staple.Editor;
 
-public class VisualShaderAsset : IGenerator
+public class VisualShaderAsset : IGeneratorAsset
 {
     private enum PairType
     {
@@ -38,7 +38,7 @@ public class VisualShaderAsset : IGenerator
 
     public bool IsText => true;
 
-    public static bool Load(string guid, out IGenerator asset)
+    public static bool Load(string guid, out IGeneratorAsset asset)
     {
         var content = ResourceManager.instance.LoadFileString(guid);
 

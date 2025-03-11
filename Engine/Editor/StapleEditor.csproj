@@ -40,8 +40,8 @@
     <Compile Include="Editors\Assets\NoiseGeneratorSettingsEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
-    <Compile Include="Generators\GeneratorManager.cs" />
-    <Compile Include="Generators\IGenerator.cs" />
+    <Compile Include="Generators\GeneratorAssetManager.cs" />
+    <Compile Include="Generators\IGeneratorAsset.cs" />
     <Compile Include="Assets\VisualShaderAsset.cs" />
     <Compile Include="Attributes\MenuItemAttribute.cs" />
     <Compile Include="Backends\AndroidBuildProcessor.cs" />

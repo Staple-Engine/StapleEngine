@@ -118,7 +118,7 @@ internal partial class StapleEditor
             }
         });
 
-        foreach(var pair in GeneratorManager.generators)
+        foreach(var pair in GeneratorAssetManager.generators)
         {
             var name = pair.Value.instance.GetType().Name.ExpandCamelCaseName();
             var fileName = pair.Value.instance.GetType().Name;
@@ -1049,7 +1049,7 @@ internal partial class StapleEditor
                     return false;
                 }
 
-                if(GetAssetGUID(out var guid) && GeneratorManager.TryGetGenerator(guid, out var generator))
+                if(GetAssetGUID(out var guid) && GeneratorAssetManager.TryGetGeneratorAsset(guid, out var generator))
                 {
                     original = generator;
                     selectedProjectNodeData = generator;

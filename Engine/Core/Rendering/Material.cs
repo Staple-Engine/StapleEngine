@@ -357,7 +357,7 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Destroys this material's resources.
     /// </summary>
-    internal void Destroy()
+    public void Destroy()
     {
         if(Disposed)
         {

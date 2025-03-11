@@ -50,7 +50,7 @@ internal partial class StapleEditor
 
         Editor.UpdateEditorTypes();
         GizmoEditor.UpdateEditorTypes();
-        GeneratorManager.UpdateGenerators();
+        GeneratorAssetManager.UpdateGeneratorAssets();
 
         registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
 
@@ -124,7 +124,7 @@ internal partial class StapleEditor
 
             Editor.UpdateEditorTypes();
             GizmoEditor.UpdateEditorTypes();
-            GeneratorManager.UpdateGenerators();
+            GeneratorAssetManager.UpdateGeneratorAssets();
 
             gameAssemblyLoadContext.Unload();
 
