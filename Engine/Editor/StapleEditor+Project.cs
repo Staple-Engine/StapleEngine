@@ -567,12 +567,12 @@ internal partial class StapleEditor
 
         try
         {
-            var guidField = assetInstance.GetType().GetProperty("Guid");
+            var guidField = assetInstance.GetType().GetProperty(nameof(IGuidAsset.Guid), BindingFlags.Public | BindingFlags.Instance);
             var guid = Guid.NewGuid().ToString();
 
-            if (guidField != null && guidField.PropertyType == typeof(string) && guidField.GetValue(assetInstance) != null)
+            if (guidField != null && guidField.PropertyType == typeof(GuidHasher) && guidField.GetValue(assetInstance) != null)
             {
-                guid = (string)guidField.GetValue(assetInstance);
+                guid = ((GuidHasher)guidField.GetValue(assetInstance)).Guid;
             }
 
             var serialized = AssetSerialization.Serialize(assetInstance, StapleSerializationMode.Text);

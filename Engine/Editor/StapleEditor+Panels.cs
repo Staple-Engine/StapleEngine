@@ -194,9 +194,17 @@ internal partial class StapleEditor
                 {
                     var assetInstance = (IStapleAsset)Activator.CreateInstance(pair.Value);
 
-                    if (assetInstance != null && SaveAsset(assetPath, assetInstance))
+                    if (assetInstance != null)
                     {
-                        RefreshAssets(false, null);
+                        if(assetInstance is IGuidAsset guidAsset)
+                        {
+                            guidAsset.Guid.Guid = GuidGenerator.Generate().ToString();
+                        }
+
+                        if(SaveAsset(assetPath, assetInstance))
+                        {
+                            RefreshAssets(false, null);
+                        }
                     }
                 }
                 catch (Exception e)
