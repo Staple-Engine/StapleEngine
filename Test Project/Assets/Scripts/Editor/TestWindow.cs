@@ -20,11 +20,6 @@ public class TestWindow : EditorWindow
 
     public override void OnGUI()
 	{
-		EditorGUI.Button("X", "Close", () =>
-		{
-			Close();
-		});
-		
 		EditorGUI.Label("Test Window from game!");
 	}
 }

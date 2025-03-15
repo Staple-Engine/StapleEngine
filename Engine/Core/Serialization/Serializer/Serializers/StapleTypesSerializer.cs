@@ -162,7 +162,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 }
 
                 break;
-         }
+        }
 
         return null;
     }

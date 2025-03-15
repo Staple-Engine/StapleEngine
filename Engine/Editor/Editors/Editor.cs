@@ -231,47 +231,50 @@ public class Editor
                     {
                         if (getter() is IList list)
                         {
-                            EditorGUI.Label(name);
-
-                            EditorGUI.SameLine();
-
                             var changed = false;
 
-                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
+                            EditorGUI.TreeNode(name, $"{name}Node{IDSuffix}", false, () =>
                             {
-                                changed = true;
+                                ImGui.BeginGroup();
 
-                                list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
-                            });
-
-                            ImGui.BeginGroup();
-
-                            for (var i = 0; i < list.Count; i++)
-                            {
-                                var entry = list[i];
-
-                                EditorGUI.Label($"{name} {i + 1}");
-
-                                var result = EditorGUI.ObjectPicker(listType, "", entry, $"{name} {i} {IDSuffix}");
-
-                                if (result != entry)
+                                for (var i = 0; i < list.Count; i++)
                                 {
-                                    changed = true;
+                                    var entry = list[i];
 
-                                    list[i] = result;
+                                    EditorGUI.Label($"{name} {i + 1}");
+
+                                    var result = EditorGUI.ObjectPicker(listType, "", entry, $"{name} {i} {IDSuffix}");
+
+                                    if (result != entry)
+                                    {
+                                        changed = true;
+
+                                        list[i] = result;
+                                    }
+
+                                    EditorGUI.SameLine();
+
+                                    EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                    {
+                                        changed = true;
+
+                                        list.RemoveAt(i);
+                                    });
                                 }
 
+                                ImGui.EndGroup();
+
+                            }, null, () =>
+                            {
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                                 {
                                     changed = true;
 
-                                    list.RemoveAt(i);
+                                    list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
                                 });
-                            }
-
-                            ImGui.EndGroup();
+                            });
 
                             if (changed)
                             {
@@ -283,56 +286,59 @@ public class Editor
                     {
                         if (getter() is IList list)
                         {
-                            EditorGUI.Label(name);
-
-                            EditorGUI.SameLine();
-
                             var changed = false;
 
-                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
+                            EditorGUI.TreeNode(name, $"{name}Node{IDSuffix}", false, () =>
                             {
-                                changed = true;
+                                ImGui.BeginGroup();
 
-                                list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
-                            });
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    var entry = list[i];
 
-                            ImGui.BeginGroup();
-
-                            for (var i = 0; i < list.Count; i++)
-                            {
-                                var entry = list[i];
-
-                                PropertyInspector(listType, "", $"{name}{i}{IDSuffix}", () => entry,
-                                    (value) =>
-                                    {
-                                        if (value != entry)
+                                    PropertyInspector(listType, "", $"{name}{i}{IDSuffix}", () => entry,
+                                        (value) =>
                                         {
-                                            changed = true;
+                                            if (value != entry)
+                                            {
+                                                changed = true;
 
-                                            list[i] = value;
-                                        }
-                                    },
-                                    (attribute) =>
-                                    {
-                                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                                                list[i] = value;
+                                            }
+                                        },
+                                        (attribute) =>
                                         {
-                                            return listType.GetCustomAttribute(attribute);
-                                        }
+                                            if (attribute.IsSubclassOf(typeof(Attribute)))
+                                            {
+                                                return listType.GetCustomAttribute(attribute);
+                                            }
 
-                                        return null;
+                                            return null;
+                                        });
+
+                                    EditorGUI.SameLine();
+
+                                    EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                    {
+                                        changed = true;
+
+                                        list.RemoveAt(i);
                                     });
+                                }
 
+                                ImGui.EndGroup();
+                            }, null,
+                            () =>
+                            {
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                                 {
                                     changed = true;
 
-                                    list.RemoveAt(i);
+                                    list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
                                 });
-                            }
-
-                            ImGui.EndGroup();
+                            });
 
                             if (changed)
                             {
@@ -344,40 +350,44 @@ public class Editor
                     {
                         if (getter() is IList list)
                         {
-                            EditorGUI.Label(name);
-
-                            EditorGUI.SameLine();
-
                             var changed = false;
 
-                            EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
+                            EditorGUI.TreeNode(name, $"{name}Node{IDSuffix}", false, () =>
                             {
-                                changed = true;
 
-                                list.Add(Activator.CreateInstance(listType));
-                            });
+                                ImGui.BeginGroup();
 
-                            ImGui.BeginGroup();
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    var entry = list[i];
 
-                            for (var i = 0; i < list.Count; i++)
+                                    FieldInspector(entry, name, $"{name}{i}{IDSuffix}", true);
+
+                                    list[i] = entry;
+
+                                    EditorGUI.SameLine();
+
+                                    EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                    {
+                                        changed = true;
+
+                                        list.RemoveAt(i);
+                                    });
+                                }
+
+                                ImGui.EndGroup();
+                            }, null,
+                            () =>
                             {
-                                var entry = list[i];
-
-                                FieldInspector(entry, name, $"{name}{i}{IDSuffix}", true);
-
-                                list[i] = entry;
-
                                 EditorGUI.SameLine();
 
-                                EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                                 {
                                     changed = true;
 
-                                    list.RemoveAt(i);
+                                    list.Add(Activator.CreateInstance(listType));
                                 });
-                            }
-
-                            ImGui.EndGroup();
+                            });
 
                             if (changed)
                             {
@@ -847,6 +857,16 @@ public class Editor
 
                         setter(value);
                     }
+                }
+
+                break;
+
+            case Type t when t == typeof(Sprite):
+
+                {
+                    var value = (Sprite)getter();
+
+                    setter(EditorGUI.SpritePicker(name, value, IDSuffix));
                 }
 
                 break;

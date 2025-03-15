@@ -15,6 +15,9 @@ internal class AssetPickerWindow : EditorWindow
     public AppPlatform currentPlatform;
     public string basePath;
 
+    private ProjectBrowserNode[] validItems = [];
+    private List<ImGuiUtils.ContentGridItem> gridItems = [];
+
     public AssetPickerWindow()
     {
         windowFlags = EditorWindowFlags.Centered;
@@ -22,18 +25,14 @@ internal class AssetPickerWindow : EditorWindow
         windowType = EditorWindowType.Popup;
     }
 
-    public override void OnGUI()
+    private void Refresh()
     {
-        string newValue = assetPickerSearch;
-
-        assetPickerSearch = EditorGUI.TextField("Search", "AssetPickerSearch", newValue);
-
         var validItems = new List<ProjectBrowserNode>
         {
             null
         };
 
-        foreach(var asset in AssetDatabase.assets)
+        foreach (var asset in AssetDatabase.assets)
         {
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
                 asset.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
@@ -53,15 +52,36 @@ internal class AssetPickerWindow : EditorWindow
             }
         }
 
-        projectBrowser.editorResources.TryGetValue("FileIcon", out var texture);
+        this.validItems = validItems.ToArray();
 
-        var gridItems = validItems
+        projectBrowser.editorResources.TryGetValue("FileIcon", out var fileIcon);
+
+        gridItems = validItems
             .Select(x => new ImGuiUtils.ContentGridItem()
             {
                 name = x?.name ?? "(None)",
-                texture = texture,
-                ensureValidTexture = (_) => texture,
+                ensureValidTexture = (texture) =>
+                {
+                    if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(x.path)))
+                    {
+                        return ThumbnailCache.GetThumbnail(x.path) ?? projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
+                    }
+
+                    return texture ?? fileIcon;
+                },
             }).ToList();
+    }
+
+    public override void OnGUI()
+    {
+        string newValue = assetPickerSearch;
+
+        assetPickerSearch = EditorGUI.TextField("Search", "AssetPickerSearch", newValue);
+
+        if (newValue != assetPickerSearch || validItems.Length == 0)
+        {
+            Refresh();
+        }
 
         ImGuiUtils.ContentGrid(gridItems, ProjectBrowser.contentPanelPadding, ProjectBrowser.contentPanelThumbnailSize,
             null, false,
@@ -112,6 +132,8 @@ internal class AssetPickerWindow : EditorWindow
                 switch (type)
                 {
                     case ProjectBrowserResourceType.Texture:
+
+                        Texture texture = null;
 
                         try
                         {
