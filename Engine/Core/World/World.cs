@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -12,7 +13,7 @@ public partial class World
 
     public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);
 
-    public delegate void CallableComponentCallback(Entity entity, CallbackComponent component);
+    public delegate void CallableComponentCallback(Span<(Entity, CallbackComponent)> content);
 
     /// <summary>
     /// Contains data on an entity

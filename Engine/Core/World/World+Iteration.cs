@@ -631,16 +631,13 @@ public partial class World
                 return;
             }
 
-            foreach ((Entity entity, CallbackComponent component) in callableComponents.Contents)
+            try
             {
-                try
-                {
-                    callback?.Invoke(entity, component);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"[World] Failed to handle callable component callback: {e}");
-                }
+                callback?.Invoke(callableComponents.Contents);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[World] Failed to handle callable component callback: {e}");
             }
         }
     }

@@ -249,15 +249,20 @@ internal sealed class EntitySystemManager : ISubsystem
                 system.FixedUpdate(time);
             }
 
-            World.Current?.IterateCallableComponents((entity, component) =>
+            World.Current?.IterateCallableComponents((contents) =>
             {
-                try
+                for(var i = 0; i < contents.Length; i++)
                 {
-                    component.FixedUpdate();
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
+                    var (entity, component) = contents[i];
+
+                    try
+                    {
+                        component.FixedUpdate();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
+                    }
                 }
             });
         }
@@ -281,41 +286,51 @@ internal sealed class EntitySystemManager : ISubsystem
                 system.Update(time);
             }
 
-            World.Current?.IterateCallableComponents((entity, component) =>
+            World.Current?.IterateCallableComponents((contents) =>
             {
-                if (component.STAPLE_JUST_ADDED)
+                for(var i = 0; i < contents.Length; i++)
                 {
-                    component.STAPLE_JUST_ADDED = false;
+                    var (entity, component) = contents[i];
+
+                    if (component.STAPLE_JUST_ADDED)
+                    {
+                        component.STAPLE_JUST_ADDED = false;
+
+                        try
+                        {
+                            component.Start();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                        }
+                    }
 
                     try
                     {
-                        component.Start();
+                        component.Update();
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
                     }
-                }
-
-                try
-                {
-                    component.Update();
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
                 }
             });
 
-            World.Current?.IterateCallableComponents((entity, component) =>
+            World.Current?.IterateCallableComponents((contents) =>
             {
-                try
+                for (var i = 0; i < contents.Length; i++)
                 {
-                    component.LateUpdate();
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
+                    var (entity, component) = contents[i];
+
+                    try
+                    {
+                        component.LateUpdate();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
+                    }
                 }
             });
         }
