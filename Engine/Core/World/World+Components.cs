@@ -83,7 +83,7 @@ public partial class World
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
-        if(t.GetCustomAttribute(typeof(AbstractComponentAttribute)) != null ||
+        if(t.GetCustomAttribute<AbstractComponentAttribute>() != null ||
             TryGetEntity(entity, out var entityInfo) == false)
         {
             return default;
@@ -94,6 +94,8 @@ public partial class World
             EnsureComponentInfo(t);
 
             var hash = t.FullName.GetHashCode();
+
+            removedComponents.Remove((entity, hash));
 
             if (entityInfo.components.TryGetValue(hash, out var component))
             {
@@ -354,10 +356,10 @@ public partial class World
     /// Attempts to get a component from an entity
     /// </summary>
     /// <param name="entity">The entity to get from</param>
-    /// <param name="component">The component instance</param>
     /// <param name="t">The component type</param>
+    /// <param name="component">The component instance</param>
     /// <returns>Whether the component was found</returns>
-    public bool TryGetComponent(Entity entity, out IComponent component, Type t)
+    public bool TryGetComponent(Entity entity, Type t, out IComponent component)
     {
         if (typeof(IComponent).IsAssignableFrom(t) == false ||
             TryGetEntity(entity, out var entityInfo) == false)
@@ -399,7 +401,7 @@ public partial class World
     /// <returns>Whether the component was found</returns>
     public bool TryGetComponent<T>(Entity entity, out T component) where T: IComponent
     {
-        if(TryGetComponent(entity, out IComponent c, typeof(T)))
+        if(TryGetComponent(entity, typeof(T), out IComponent c))
         {
             component = (T)c;
 
@@ -415,6 +417,7 @@ public partial class World
     /// Updates an entity's component.
     /// This is required if the component type is a struct.
     /// </summary>
+    /// <remarks>If the component doesn't exist, a new instance will be created and replaced with the new one</remarks>
     /// <param name="entity">The entity to update</param>
     /// <param name="component">The component instance to replace</param>
     public void SetComponent(Entity entity, IComponent component)
@@ -423,6 +426,11 @@ public partial class World
             component is null)
         {
             return;
+        }
+
+        if(GetComponent(entity, component.GetType()) == null)
+        {
+            AddComponent(entity, component.GetType());
         }
 
         lock (lockObject)
@@ -436,6 +444,38 @@ public partial class World
             {
                 if(entityInfo.components.ContainsKey(typeName))
                 {
+                    removedComponents.Remove((entity, typeName.GetHashCode()));
+
+                    var t = component.GetType();
+
+                    if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
+                    {
+                        try
+                        {
+                            var field = t.GetField("entity");
+
+                            field?.SetValue(component, entity);
+
+                            var property = t.GetProperty("entity");
+
+                            if (property != null)
+                            {
+                                if (property.CanWrite)
+                                {
+                                    property.SetValue(component, entity);
+                                }
+                                else
+                                {
+                                    Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
+                        }
+                    }
+
                     entityInfo.components[typeName] = component;
 
                     needsEmitWorldChange = true;

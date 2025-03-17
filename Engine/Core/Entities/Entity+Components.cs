@@ -103,14 +103,14 @@ public partial struct Entity
 
         var result = new List<IComponent>();
 
-        if(includeSelf && World.Current.TryGetComponent(this, out var c, t))
+        if(includeSelf && TryGetComponent(t, out var c))
         {
             result.Add(c);
         }
 
         void Recursive(Entity e)
         {
-            if(e.TryGetComponent(out c, t))
+            if(e.TryGetComponent(t, out c))
             {
                 result.Add(c);
             }
@@ -266,7 +266,7 @@ public partial struct Entity
             return default;
         }
 
-        if(transform.parent.entity.TryGetComponent(out var value, t))
+        if(transform.parent.entity.TryGetComponent(t, out var value))
         {
             return value;
         }
@@ -304,10 +304,10 @@ public partial struct Entity
     /// <summary>
     /// Attempts to get a component from an entity
     /// </summary>
-    /// <param name="component">The component instance</param>
     /// <param name="t">The component type</param>
+    /// <param name="component">The component instance</param>
     /// <returns>Whether the component was found</returns>
-    public readonly bool TryGetComponent(out IComponent component, Type t)
+    public readonly bool TryGetComponent(Type t, out IComponent component)
     {
         if (World.Current == null)
         {
@@ -316,7 +316,7 @@ public partial struct Entity
             return false;
         }
 
-        return World.Current.TryGetComponent(this, out component, t);
+        return World.Current.TryGetComponent(this, t, out component);
     }
 
     /// <summary>
