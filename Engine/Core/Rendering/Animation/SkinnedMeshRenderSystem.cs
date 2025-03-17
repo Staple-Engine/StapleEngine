@@ -26,14 +26,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public RenderCache cache;
 
         /// <summary>
-        /// The current position of the object
-        /// </summary>
-        public Vector3 position;
-
-        /// <summary>
         /// The transform of the object
         /// </summary>
-        public Matrix4x4 transform;
+        public Transform transform;
 
         /// <summary>
         /// The render view ID
@@ -192,8 +187,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 renderer = renderer,
                 cache = cache,
-                position = transform.Position,
-                transform = transform.Matrix,
+                transform = transform,
                 viewID = viewId
             });
         }
@@ -288,14 +282,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 unsafe
                 {
-                    var transform = pair.transform;
+                    var transform = pair.transform.Matrix;
 
                     _ = bgfx.set_transform(&transform, 1);
                 }
 
                 renderer.mesh.SetActive(j);
 
-                lightSystem?.ApplyLightProperties(pair.position, pair.transform, material,
+                lightSystem?.ApplyLightProperties(pair.transform.Position, pair.transform.Matrix, material,
                     RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
 
                 var program = material.ShaderProgram;

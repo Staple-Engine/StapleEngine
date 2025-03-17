@@ -309,7 +309,7 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
+                    if (wasVisible != renderable.isVisible)
                     {
                         system.NeedsUpdate = true;
                     }
@@ -567,7 +567,7 @@ public sealed partial class RenderSystem
                                 }
                             }
 
-                            if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
+                            if(wasVisible != renderable.isVisible)
                             {
                                 system.NeedsUpdate = true;
                             }

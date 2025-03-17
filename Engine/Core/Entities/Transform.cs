@@ -27,11 +27,6 @@ public class Transform : IComponent
 
             changed = value;
 
-            if(changed && World.Current != null)
-            {
-                World.Current.Changed = true;
-            }
-
             if(wasChanged == false && changed)
             {
                 for(var i = 0; i < Children.Length; i++)

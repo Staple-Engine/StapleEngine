@@ -20,8 +20,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         public int submeshIndex;
         public Material material;
         public MaterialLighting lighting;
-        public Matrix4x4 transform;
-        public Vector3 position;
+        public Transform transform;
     }
 
     private readonly Dictionary<ushort, Dictionary<int, ExpandableContainer<InstanceInfo>>> instanceCache = [];
@@ -191,9 +190,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            var t = transform.Matrix;
-            var p = transform.Position;
-
             if (instanceCache.TryGetValue(viewId, out var cache) == false)
             {
                 cache = [];
@@ -217,8 +213,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     mesh = r.mesh,
                     material = material,
                     lighting = r.lighting,
-                    position = p,
-                    transform = t,
+                    transform = transform,
                     submeshIndex = submeshIndex,
                 });
             }
@@ -277,7 +272,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 material.ApplyProperties(Material.ApplyMode.All);
 
-                lightSystem?.ApplyLightProperties(contents.Contents[0].position, contents.Contents[0].transform, material,
+                lightSystem?.ApplyLightProperties(contents.Contents[0].transform.Position, contents.Contents[0].transform.Matrix, material,
                     RenderSystem.CurrentCamera.Item2.Position, contents.Contents[0].lighting);
 
                 material.EnableShaderKeyword(Shader.InstancingKeyword);
@@ -297,7 +292,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     for (var i = 0; i < contents.Length; i++)
                     {
-                        matrices[i] = contents.Contents[i].transform;
+                        matrices[i] = contents.Contents[i].transform.Matrix;
                     }
 
                     var instanceBuffer = InstanceBuffer.Create(contents.Length, 16 * sizeof(float));
@@ -321,7 +316,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                         unsafe
                         {
-                            var transform = content.transform;
+                            var transform = content.transform.Matrix;
 
                             _ = bgfx.set_transform(&transform, 1);
                         }

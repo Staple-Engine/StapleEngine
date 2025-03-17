@@ -17,8 +17,8 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private class SpriteRenderInfo
     {
-        public Vector3 position;
-        public Matrix4x4 transform;
+        public Transform transform;
+        public Vector3 scale;
         public Material material;
         public Color color;
         public Texture texture;
@@ -281,16 +281,14 @@ public class SpriteRenderSystem : IRenderSystem
                 scale.Y *= -1;
             }
 
-            var matrix = Matrix4x4.CreateScale(scale) * transform.Matrix;
-
             sprites.Add(new SpriteRenderInfo()
             {
                 color = r.color,
                 material = r.material,
                 texture = sprite.texture,
                 textureRect = sprite.Rect,
-                position = transform.Position,
-                transform = matrix,
+                transform = transform,
+                scale = scale,
                 viewID = viewId,
                 sortingOrder = r.sortingOrder,
                 layer = r.sortingLayer,
@@ -344,7 +342,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             unsafe
             {
-                var transform = s.transform;
+                var transform = Matrix4x4.CreateScale(s.scale) * s.transform.Matrix;
 
                 _ = bgfx.set_transform(&transform, 1);
             }

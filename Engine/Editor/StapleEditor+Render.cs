@@ -203,7 +203,7 @@ internal partial class StapleEditor
                                 }
                             }
 
-                            if(wasVisible != renderable.isVisible || (World.Current?.Changed ?? false))
+                            if (wasVisible != renderable.isVisible)
                             {
                                 system.NeedsUpdate = true;
                             }

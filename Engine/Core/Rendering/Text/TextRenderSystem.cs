@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -12,7 +11,7 @@ public class TextRenderSystem : IRenderSystem
 
         public int fontSize;
 
-        public Matrix4x4 transform;
+        public Transform transform;
 
         public ushort viewID;
 
@@ -77,7 +76,7 @@ public class TextRenderSystem : IRenderSystem
             {
                 text = text.text,
                 fontSize = text.fontSize,
-                transform = transform.Matrix,
+                transform = transform,
                 viewID = viewId,
                 fontAsset = text.font,
                 scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
@@ -94,7 +93,7 @@ public class TextRenderSystem : IRenderSystem
 
         foreach(var text in texts)
         {
-            TextRenderer.instance.DrawText(text.text, text.transform, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
+            TextRenderer.instance.DrawText(text.text, text.transform.Matrix, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
                 material, text.scale, false, text.viewID);
         }
     }

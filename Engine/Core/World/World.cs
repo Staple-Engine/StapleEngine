@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Staple;
 
@@ -150,10 +151,8 @@ public partial class World
 
     public static World Current { get; internal set; } = new();
 
-    internal bool Changed = false;
-
-    private readonly object lockObject = new();
-    private static readonly object globalLockObject = new();
+    private readonly Lock lockObject = new();
+    private static readonly Lock globalLockObject = new();
 
     private readonly List<EntityInfo> entities = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
@@ -209,7 +208,6 @@ public partial class World
         if(Current != null)
         {
             Current.cachedEntityList = Current.entities.ToArray();
-            Current.Changed = true;
         }
 
         sceneQueries.Emit();
@@ -305,8 +303,6 @@ public partial class World
 
                 EmitWorldChangedEvent();
             }
-
-            Changed = false;
         }
     }
 }
