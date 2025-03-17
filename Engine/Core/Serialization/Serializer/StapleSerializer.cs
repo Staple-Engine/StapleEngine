@@ -7,7 +7,6 @@ using System.Collections;
 using System.Linq;
 using System.Text.Json;
 using System.Numerics;
-using System.ComponentModel;
 
 namespace Staple.Internal;
 
@@ -18,6 +17,8 @@ internal static class StapleSerializer
         new StapleBaseTypeSerializer(),
         new StapleTypesSerializer(),
     ];
+
+    private static readonly string LogTag = "Serialization";
 
     /// <summary>
     /// Checks whether this is a parameter that can be directly serialized
@@ -453,15 +454,17 @@ internal static class StapleSerializer
 
                                 newList.Add(container);
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName} element: {e}");
                             }
                         }
 
                         context.setField(field, field.FieldType.FullName, newList);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName} list: {e}");
                     }
                 }
                 else if(elementType.IsEnum)
@@ -595,15 +598,17 @@ internal static class StapleSerializer
                                             }
                                         }
                                     }
-                                    catch (Exception)
+                                    catch (Exception e)
                                     {
+                                        Log.Debug($"[{LogTag}] Failed to deserialize a {listType.FullName} list element: {e}");
                                     }
                                 }
 
                                 context.setField(field, field.FieldType.FullName, newList);
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {listType.FullName} list: {e}");
                             }
                         }
                         else if(listType.IsEnum)
@@ -661,8 +666,9 @@ internal static class StapleSerializer
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Log.Debug($"[{LogTag}] Failed to deserialize a {field.FieldType.FullName} container: {e}");
                 }
 
                 return;
@@ -886,8 +892,10 @@ internal static class StapleSerializer
 
                             return value;
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
+                            Log.Debug($"[{LogTag}] Failed to deserialize a container of type {typeName}: {e}");
+
                             return null;
                         }
                     }
@@ -1002,8 +1010,9 @@ internal static class StapleSerializer
                                                         newValue.SetValue(itemValue, i);
                                                     }
                                                 }
-                                                catch (Exception)
+                                                catch (Exception e)
                                                 {
+                                                    Log.Debug($"[{LogTag}] Failed to deserialize an item of type {arrayTypeName}: {e}");
                                                 }
                                             }
                                         }
@@ -1014,7 +1023,7 @@ internal static class StapleSerializer
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+                        Log.Debug($"[{LogTag}] Failed to deserialize {field.Name}: {e}");
 
                         return null;
                     }
@@ -1047,7 +1056,7 @@ internal static class StapleSerializer
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+                        Log.Debug($"[{LogTag}] Failed to deserialize {field.Name}: {e}");
 
                         return null;
                     }
@@ -1072,15 +1081,16 @@ internal static class StapleSerializer
                                         newValue.SetValue(itemValue, i);
                                     }
                                 }
-                                catch (Exception)
+                                catch (Exception e)
                                 {
+                                    Log.Debug($"[{LogTag}] Failed to decode an item for {fieldType.GetElementType().FullName}: {e}");
                                 }
                             }
                         }
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"[StapleSerializer] Failed to deserialize {field.Name}: {e}");
+                        Log.Debug($"[{LogTag}] Failed to deserialize {field.Name}: {e}");
 
                         return null;
                     }
@@ -1257,6 +1267,8 @@ internal static class StapleSerializer
                                 }
                                 catch (Exception e)
                                 {
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName}: {e}");
+
                                     continue;
                                 }
                             }
@@ -1268,9 +1280,11 @@ internal static class StapleSerializer
 
                                     list.Add(value);
                                 }
-                                catch (Exception)
+                                catch (Exception e)
                                 {
                                     fail = true;
+
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.GenericTypeArguments[0].FullName}: {e}");
 
                                     break;
                                 }
@@ -1312,8 +1326,10 @@ internal static class StapleSerializer
                                 }
                             }
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
+                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.FullName}: {e}");
+
                             return null;
                         }
 
@@ -1362,7 +1378,7 @@ internal static class StapleSerializer
         }
         catch (Exception e)
         {
-            Log.Error($"[Serialization] Failed to deserialize field {field.Name} for {type.FullName}: {e}");
+            Log.Debug($"[{LogTag}] Failed to deserialize field {field.Name} for {type.FullName}: {e}");
 
             return null;
         }
@@ -1373,8 +1389,9 @@ internal static class StapleSerializer
     /// </summary>
     /// <param name="container">The container to deserialize</param>
     /// <param name="mode">The serialization mode we want to use</param>
+    /// <param name="instance">The existing object instance, if any</param>
     /// <returns>the object instance, or null</returns>
-    public static object DeserializeContainer(StapleSerializerContainer container, StapleSerializationMode mode)
+    public static object DeserializeContainer(StapleSerializerContainer container, StapleSerializationMode mode, object instance = null)
     {
         var type = TypeCache.GetType(container.typeName);
 
@@ -1384,13 +1401,11 @@ internal static class StapleSerializer
             return null;
         }
 
-        object instance;
-
         try
         {
-            instance = ObjectCreation.CreateObject(type);
+            instance ??= ObjectCreation.CreateObject(type);
 
-            if(instance == null)
+            if (instance is null)
             {
                 return null;
             }
@@ -1412,12 +1427,14 @@ internal static class StapleSerializer
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[Serialization] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
+                    Log.Debug($"[{LogTag}] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
                 }
             }
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Log.Debug($"[{LogTag}] Failed to deserialize instance for {type.FullName}: {e}");
+
             return null;
         }
 
@@ -1505,7 +1522,7 @@ internal static class StapleSerializer
         }
         catch (Exception e)
         {
-            Log.Debug($"[AssetSerialization] Failed to serialize {instance.GetType().FullName}: {e}");
+            Log.Debug($"[{LogTag}] Failed to serialize {instance.GetType().FullName}: {e}");
 
             return default;
         }

@@ -97,14 +97,14 @@ internal static class SceneSerialization
                 }
             }
 
-            var componentInstance = (IComponent)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Scene);
+            var componentInstance = entity.AddComponent(type);
+
+            StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Scene, componentInstance);
 
             if (componentInstance is null)
             {
                 continue;
             }
-
-            entity.AddComponent(type);
 
             entity.SetComponent(componentInstance);
         }
