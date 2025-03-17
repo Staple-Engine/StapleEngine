@@ -6,6 +6,74 @@ namespace CoreTests
     internal class TransformTests
     {
         [Test]
+        public void TestChanged()
+        {
+            var transform = new Transform();
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.LocalPosition = transform.LocalPosition;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.LocalRotation = transform.LocalRotation;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.LocalScale = transform.LocalScale;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.Position = transform.Position;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.Rotation = transform.Rotation;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.Scale = transform.Scale;
+
+            Assert.IsFalse(transform.Changed);
+
+            transform.LocalPosition = Vector3.One;
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+
+            transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(1, 2, 3);
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+
+            transform.LocalScale = Vector3.Zero;
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+
+            transform.Position = Vector3.Zero;
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+
+            transform.Rotation = Quaternion.Identity;
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+
+            transform.Scale = Vector3.One;
+
+            Assert.IsTrue(transform.Changed);
+
+            transform.Changed = false;
+        }
+
+        [Test]
         public void TestLocalPosition()
         {
             var transform = new Transform();

@@ -124,11 +124,13 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
-
             var parentPosition = parent?.Position ?? Vector3.Zero;
 
-            position = value - parentPosition;
+            var target = value - parentPosition;
+
+            Changed |= target != position;
+
+            position = target;
         }
     }
 
@@ -141,7 +143,7 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
+            Changed |= value != position;
 
             position = value;
         }
@@ -161,11 +163,13 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
-
             var parentScale = parent?.Scale ?? Vector3.One;
 
-            scale = value / parentScale;
+            var target = value / parentScale;
+
+            Changed |= target != scale;
+
+            scale = target;
         }
     }
 
@@ -178,7 +182,7 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
+            Changed |= value != scale;
 
             scale = value;
         }
@@ -198,11 +202,13 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
-
             var parentRotation = parent?.Rotation ?? Quaternion.Identity;
 
-            rotation = Quaternion.Inverse(parentRotation) * value;
+            var target = Quaternion.Inverse(parentRotation) * value;
+
+            Changed |= target != rotation;
+
+            rotation = target;
         }
     }
 
@@ -215,7 +221,7 @@ public class Transform : IComponent
 
         set
         {
-            Changed = true;
+            Changed |= value != rotation;
 
             rotation = value;
         }
