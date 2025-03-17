@@ -660,7 +660,7 @@ internal class ResourceManager
                     var componentType = TypeCache.GetType(component.type);
 
                     if(componentType == null ||
-                        entity.TryGetComponent(out var componentInstance, componentType) == false)
+                        entity.TryGetComponent(componentType, out var componentInstance) == false)
                     {
                         continue;
                     }
@@ -707,7 +707,7 @@ internal class ResourceManager
                                     var targetEntity = Scene.FindEntity(entityID);
 
                                     if (targetEntity.IsValid == false ||
-                                        targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                        targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
                                     {
                                         continue;
                                     }
@@ -831,7 +831,7 @@ internal class ResourceManager
                     var componentType = TypeCache.GetType(component.type);
 
                     if (componentType == null ||
-                        entity.TryGetComponent(out var componentInstance, componentType) == false)
+                        entity.TryGetComponent(componentType, out var componentInstance) == false)
                     {
                         continue;
                     }
@@ -876,7 +876,7 @@ internal class ResourceManager
                                     var targetEntity = Scene.FindEntity(entityID);
 
                                     if (targetEntity.IsValid == false ||
-                                        targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                        targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
                                     {
                                         continue;
                                     }

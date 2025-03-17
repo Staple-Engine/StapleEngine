@@ -231,7 +231,7 @@ public sealed partial class RenderSystem
 
                         foreach (var system in renderSystems)
                         {
-                            if (entityInfo.Item1.TryGetComponent(out var component, system.RelatedComponent()))
+                            if (entityInfo.Item1.TryGetComponent(system.RelatedComponent(), out var component))
                             {
                                 if(collected.TryGetValue(system, out var content) == false)
                                 {
@@ -363,7 +363,7 @@ public sealed partial class RenderSystem
             foreach (var system in systems)
             {
                 if (system.RelatedComponent() != null &&
-                    e.TryGetComponent(out var related, system.RelatedComponent()))
+                    e.TryGetComponent(system.RelatedComponent(), out var related))
                 {
                     system.Preprocess([(e, t, related)], camera, cameraTransform);
 

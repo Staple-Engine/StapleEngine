@@ -434,7 +434,7 @@ internal static class SceneSerialization
             {
                 var componentType = TypeCache.GetType(component.type);
 
-                if(componentType == null || entity.TryGetComponent(out var componentInstance, componentType) == false)
+                if(componentType == null || entity.TryGetComponent(componentType, out var componentInstance) == false)
                 {
                     continue;
                 }
@@ -489,7 +489,7 @@ internal static class SceneSerialization
                                 }
 
                                 if(targetEntity.IsValid == false ||
-                                    targetEntity.TryGetComponent(out var targetComponent, targetComponentType) == false)
+                                    targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
                                 {
                                     continue;
                                 }

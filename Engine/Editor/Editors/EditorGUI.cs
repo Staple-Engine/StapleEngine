@@ -1162,7 +1162,7 @@ public static class EditorGUI
                 unsafe
                 {
                     if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid &&
-                        StapleEditor.instance.draggedEntity.TryGetComponent(out var component, type))
+                        StapleEditor.instance.draggedEntity.TryGetComponent(type, out var component))
                     {
                         StapleEditor.instance.draggedEntity = default;
 

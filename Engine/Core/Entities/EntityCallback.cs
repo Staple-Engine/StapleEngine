@@ -113,7 +113,7 @@ public sealed class EntityCallback
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(out _, type) == false)
+                    if (type == null || entity.TryGetComponent(type, out _) == false)
                     {
                         persistentCache.Add(null);
 
@@ -156,7 +156,7 @@ public sealed class EntityCallback
         foreach(var callback in persistentCache)
         {
             if(callback == null ||
-                callback.entity.TryGetComponent(out var component, callback.type) == false)
+                callback.entity.TryGetComponent(callback.type, out var component) == false)
             {
                 continue;
             }
@@ -276,7 +276,7 @@ public sealed class EntityCallback<T>
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(out _, type) == false)
+                    if (type == null || entity.TryGetComponent(type, out _) == false)
                     {
                         persistentCache.Add(null);
 
@@ -330,7 +330,7 @@ public sealed class EntityCallback<T>
         foreach (var callback in persistentCache)
         {
             if (callback == null ||
-                callback.entity.TryGetComponent(out var component, callback.type) == false)
+                callback.entity.TryGetComponent(callback.type, out var component) == false)
             {
                 continue;
             }
@@ -450,7 +450,7 @@ public sealed class EntityCallback<T, T2>
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(out _, type) == false)
+                    if (type == null || entity.TryGetComponent(type, out _) == false)
                     {
                         persistentCache.Add(null);
 
@@ -506,7 +506,7 @@ public sealed class EntityCallback<T, T2>
         foreach (var callback in persistentCache)
         {
             if (callback == null ||
-                callback.entity.TryGetComponent(out var component, callback.type) == false)
+                callback.entity.TryGetComponent(callback.type, out var component) == false)
             {
                 continue;
             }

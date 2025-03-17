@@ -530,7 +530,7 @@ public partial class World
     {
         var e = FindEntity(name, allowDisabled);
 
-        return TryGetComponent(e, out component, componentType);
+        return TryGetComponent(e, componentType, out component);
     }
 
     /// <summary>
