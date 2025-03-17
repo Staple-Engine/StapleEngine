@@ -473,6 +473,16 @@ public sealed class Material : IGuidAsset
     }
 
     /// <summary>
+    /// Checks whether a shader keyword is enabled for this material
+    /// </summary>
+    /// <param name="name">The keyword</param>
+    /// <returns>Whether it is enabled</returns>
+    public bool IsShaderKeywordEnabled(string name)
+    {
+        return shaderKeywords.Contains(name.GetHashCode());
+    }
+
+    /// <summary>
     /// Sets a color property's value
     /// </summary>
     /// <param name="name">Property name</param>

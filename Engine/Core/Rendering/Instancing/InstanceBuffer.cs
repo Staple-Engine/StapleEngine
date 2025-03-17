@@ -74,6 +74,6 @@ internal class InstanceBuffer
             bgfx.alloc_instance_data_buffer(&buffer, (uint)requested, (ushort)stride);
         }
 
-        return new InstanceBuffer(buffer, stride, requested);
+        return new InstanceBuffer(buffer, buffer.stride, (int)buffer.num);
     }
 }

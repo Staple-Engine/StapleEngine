@@ -1,8 +1,8 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -272,12 +272,13 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 material.ApplyProperties(Material.ApplyMode.All);
 
-                lightSystem?.ApplyLightProperties(contents.Contents[0].transform.Position, contents.Contents[0].transform.Matrix, material,
-                    RenderSystem.CurrentCamera.Item2.Position, contents.Contents[0].lighting);
+                //TODO: Support lighting in instancing
+                if (contents.Contents[0].lighting == MaterialLighting.Unlit)
+                {
+                    material.EnableShaderKeyword(Shader.InstancingKeyword);
+                }
 
-                material.EnableShaderKeyword(Shader.InstancingKeyword);
-
-                if(material.Keywords.Contains(Shader.InstancingKeyword))
+                if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
                 {
                     bgfx.set_state((ulong)(state |
                         contents.Contents[0].mesh.PrimitiveFlag() |
@@ -292,10 +293,12 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     for (var i = 0; i < contents.Length; i++)
                     {
-                        matrices[i] = contents.Contents[i].transform.Matrix;
+                        var content = contents.Contents[i];
+
+                        matrices[i] = content.transform.Matrix;
                     }
 
-                    var instanceBuffer = InstanceBuffer.Create(contents.Length, 16 * sizeof(float));
+                    var instanceBuffer = InstanceBuffer.Create(contents.Length, Marshal.SizeOf<Matrix4x4>());
 
                     instanceBuffer.SetData(matrices.AsSpan());
 
@@ -322,6 +325,9 @@ public sealed class MeshRenderSystem : IRenderSystem
                         }
 
                         content.mesh.SetActive(content.submeshIndex);
+
+                        lightSystem?.ApplyLightProperties(content.transform.Position, content.transform.Matrix, material,
+                            RenderSystem.CurrentCamera.Item2.Position, content.lighting);
 
                         var program = material.ShaderProgram;
 
