@@ -217,6 +217,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                         var typeValue = parameter.dataType switch
                         {
+                            "int" => (int)ShaderUniformType.Int,
                             "float" => (int)ShaderUniformType.Float,
                             "vec2" => (int)ShaderUniformType.Vector2,
                             "vec3" => (int)ShaderUniformType.Vector3,
@@ -278,6 +279,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                             var typeValue = parameter.type switch
                             {
+                                "int" => (int)ShaderUniformType.Int,
                                 "float" => (int)ShaderUniformType.Float,
                                 "vec2" => (int)ShaderUniformType.Vector2,
                                 "vec3" => (int)ShaderUniformType.Vector3,
@@ -287,7 +289,6 @@ vec4 i_data4        :   TEXCOORD3;
                                 "mat4" => (int)ShaderUniformType.Matrix4x4,
                                 _ => -1
                             };
-
 
                             if (typeValue < 0)
                             {
@@ -559,6 +560,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                         return parameter.type switch
                         {
+                            ShaderUniformType.Int => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} int({name}_uniform.x)\n" : $"float {name}",
                             ShaderUniformType.Float => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.x\n" : $"float {name}",
                             ShaderUniformType.Vector2 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xy\n" : $"vec2 {name}",
                             ShaderUniformType.Vector3 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xyz\n" : $"vec3 {name}",
@@ -577,7 +579,7 @@ vec4 i_data4        :   TEXCOORD3;
                     {
                         return type switch
                         {
-                            ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => false,
+                            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => false,
                             _ => true,
                         };
                     }
@@ -648,6 +650,37 @@ vec4 i_data4        :   TEXCOORD3;
 
                                         switch (instanceParameter.dataType)
                                         {
+                                            case ShaderUniformType.Int:
+
+                                                code += $"int(i_data{dataIndex}";
+
+                                                switch (componentIndex)
+                                                {
+                                                    case 0:
+                                                        code += ".x)\n";
+
+                                                        break;
+
+                                                    case 1:
+                                                        code += ".y)\n";
+
+                                                        break;
+
+                                                    case 2:
+                                                        code += ".z)\n";
+
+                                                        break;
+
+                                                    case 3:
+                                                        code += ".w)\n";
+
+                                                        break;
+                                                }
+
+                                                fieldIndex++;
+
+                                                break;
+
                                             case ShaderUniformType.Float:
 
                                                 code += $"i_data{dataIndex}";
@@ -785,7 +818,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                 {
                                                     case 0:
 
-                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)" + 
+                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " + 
                                                             $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x))\n";
 
                                                         break;
@@ -793,7 +826,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 1:
 
                                                         code += $"mtxFromCols(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w), " +
-                                                            $"vec3(i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z)" +
+                                                            $"vec3(i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z), " +
                                                             $"vec3(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y))\n";
 
                                                         break;
@@ -801,7 +834,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 2:
 
                                                         code += $"mtxFromCols(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
-                                                            $"vec3(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w)" +
+                                                            $"vec3(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w), " +
                                                             $"vec3(i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z))\n";
 
                                                         break;
@@ -809,7 +842,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 3:
 
                                                         code += $"mtxFromCols(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
-                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x)" +
+                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x), " +
                                                             $"vec3(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w))\n";
 
                                                         break;
@@ -832,7 +865,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 1:
 
                                                         code += $"mtxFromCols(vec4(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
-                                                            $"vec4(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x)" +
+                                                            $"vec4(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x), " +
                                                             $"vec4(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x))\n";
 
                                                         break;
@@ -840,7 +873,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 2:
 
                                                         code += $"mtxFromCols(vec4(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
-                                                            $"vec4(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y)" +
+                                                            $"vec4(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y), " +
                                                             $"vec4(i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y))\n";
 
                                                         break;
@@ -848,7 +881,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                     case 3:
 
                                                         code += $"mtxFromCols(vec4(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z), " +
-                                                            $"vec4(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z)" +
+                                                            $"vec4(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z), " +
                                                             $"vec4(i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y, i_data{dataIndex + 3}.z))\n";
 
                                                         break;

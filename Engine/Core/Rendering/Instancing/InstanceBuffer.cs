@@ -60,11 +60,25 @@ internal class InstanceBuffer
 
     public static int AvailableInstances(int requested, int stride)
     {
+        if (stride % 16 != 0)
+        {
+            Log.Error($"[InstanceBuffer] Requested stride is not a multiple of 16. Failing...");
+
+            return 0;
+        }
+
         return (int)bgfx.get_avail_instance_data_buffer((uint)requested, (ushort)stride);
     }
 
     public static InstanceBuffer Create(int requested, int stride)
     {
+        if(stride % 16 != 0)
+        {
+            Log.Error($"[InstanceBuffer] Requested stride is not a multiple of 16. Failing...");
+
+            return null;
+        }
+
         requested = AvailableInstances(requested, stride);
 
         var buffer = new bgfx.InstanceDataBuffer();

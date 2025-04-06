@@ -16,6 +16,12 @@ public class Utilities
     {
         switch(name)
         {
+            case "int":
+
+                type = ShaderUniformType.Int;
+
+                return true;
+
             case "float":
 
                 type = ShaderUniformType.Float;

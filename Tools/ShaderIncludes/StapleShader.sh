@@ -5,8 +5,15 @@
 #include <bgfx_shader.sh>
 
 #define STAPLE_SKINNING_STAGE_INDEX 15
+#define STAPLE_LIGHTING_NORMAL_MATRIX_STAGE_INDEX 14
 
-#if INSTANCING
+#ifdef INSTANCING
+#define StapleInstanceID gl_InstanceID
+#else
+#define StapleInstanceID 0.0
+#endif
+
+#ifdef INSTANCING
 #define StapleModelMatrix mtxFromCols(i_data0, i_data1, i_data2, i_data3)
 #else
 #define StapleModelMatrix u_model[0]

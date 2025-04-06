@@ -607,7 +607,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorEdit4(MakeIdentifier("", key), ref v);
+        Changed |= ImGui.ColorEdit4(MakeIdentifier(label, key), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }
@@ -623,7 +623,7 @@ public static class EditorGUI
     {
         var v = new Vector4(value.r, value.g, value.b, value.a);
 
-        Changed |= ImGui.ColorPicker4(MakeIdentifier("", key), ref v);
+        Changed |= ImGui.ColorPicker4(MakeIdentifier(label, key), ref v);
 
         return new Color(v.X, v.Y, v.Z, v.W);
     }

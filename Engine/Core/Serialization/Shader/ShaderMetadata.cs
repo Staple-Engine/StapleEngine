@@ -12,6 +12,7 @@ public enum ShaderType
 
 public enum ShaderUniformType
 {
+    Int,
     Float,
     Vector2,
     Vector3,

@@ -41,6 +41,7 @@ public partial class Shader : IGuidAsset
 
             switch (uniform.type)
             {
+                case ShaderUniformType.Int:
                 case ShaderUniformType.Float:
                 case ShaderUniformType.Vector2:
                 case ShaderUniformType.Vector3:
@@ -157,7 +158,7 @@ public partial class Shader : IGuidAsset
 
         return type switch
         {
-            ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
+            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
             _ => name
         };
     }

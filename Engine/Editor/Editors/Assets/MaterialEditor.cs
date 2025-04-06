@@ -155,6 +155,12 @@ internal class MaterialEditor : AssetEditor
 
                             break;
 
+                        case MaterialParameterType.Int:
+
+                            parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+
+                            break;
+
                         case MaterialParameterType.TextureWrap:
 
                             parameter.Value.textureWrapValue = EditorGUI.EnumDropdown(label, parameter.Key, parameter.Value.textureWrapValue);
@@ -215,6 +221,7 @@ internal class MaterialEditor : AssetEditor
                                 return type switch
                                 {
                                     ShaderUniformType.Texture => MaterialParameterType.Texture,
+                                    ShaderUniformType.Int => MaterialParameterType.Int,
                                     ShaderUniformType.Float => MaterialParameterType.Float,
                                     ShaderUniformType.Vector2 => MaterialParameterType.Vector2,
                                     ShaderUniformType.Vector3 => MaterialParameterType.Vector3,

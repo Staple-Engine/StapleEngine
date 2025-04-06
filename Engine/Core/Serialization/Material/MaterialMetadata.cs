@@ -15,6 +15,7 @@ public enum MaterialParameterType
     Vector4,
     Texture,
     Color,
+    Int,
     Float,
     Matrix3x3,
     Matrix4x4,
@@ -403,6 +404,9 @@ public class MaterialParameter
     [Key(8)]
     public MaterialParameterSource source;
 
+    [Key(9)]
+    public int intValue;
+
     public bool ShouldSerializevec2Value() => vec2Value != null && type == MaterialParameterType.Vector2;
 
     public bool ShouldSerializevec3Value() => vec3Value != null && type == MaterialParameterType.Vector3;
@@ -410,6 +414,8 @@ public class MaterialParameter
     public bool ShouldSerializevec4Value() => vec4Value != null && type == MaterialParameterType.Vector4;
 
     public bool ShouldSerializefloatValue() => type == MaterialParameterType.Float;
+
+    public bool ShouldSerializeintValue() => type == MaterialParameterType.Int;
 
     public bool ShouldSerializetextureValue() => type == MaterialParameterType.Texture;
 
@@ -424,6 +430,7 @@ public class MaterialParameter
             type = type,
             textureValue = textureValue,
             colorValue = colorValue,
+            intValue = intValue,
             floatValue = floatValue,
             textureWrapValue = textureWrapValue,
             source = source,
@@ -481,6 +488,7 @@ public class MaterialParameter
             lhs.textureValue == rhs.textureValue &&
             lhs.colorValue == rhs.colorValue &&
             lhs.floatValue == rhs.floatValue &&
+            lhs.intValue == rhs.intValue &&
             lhs.textureWrapValue == rhs.textureWrapValue &&
             lhs.source == rhs.source;
     }
@@ -504,6 +512,7 @@ public class MaterialParameter
             lhs.textureValue != rhs.textureValue ||
             lhs.colorValue != rhs.colorValue ||
             lhs.floatValue != rhs.floatValue ||
+            lhs.intValue != rhs.intValue ||
             lhs.textureWrapValue != rhs.textureWrapValue ||
             lhs.source != rhs.source;
     }
@@ -533,6 +542,7 @@ public class MaterialParameter
         hash.Add(vec4Value);
         hash.Add(textureValue);
         hash.Add(colorValue);
+        hash.Add(intValue);
         hash.Add(floatValue);
         hash.Add(textureWrapValue);
         hash.Add(source);
@@ -544,6 +554,7 @@ public class MaterialParameter
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterType>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<MaterialParameterSource>))]
+[JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(float))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(Color32))]

@@ -11,6 +11,8 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class MeshRenderSystem : IRenderSystem
 {
+    private const int LightBufferIndex = 14;
+
     /// <summary>
     /// Contains info on a mesh render instance
     /// </summary>
@@ -23,7 +25,16 @@ public sealed class MeshRenderSystem : IRenderSystem
         public Transform transform;
     }
 
-    private readonly Dictionary<ushort, Dictionary<int, ExpandableContainer<InstanceInfo>>> instanceCache = [];
+    private class InstanceData
+    {
+        public ExpandableContainer<InstanceInfo> instanceInfos = new();
+        public Transform[] transforms;
+        public Matrix4x4[] normalMatrices;
+        public Matrix4x4[] transformMatrices;
+        public VertexBuffer normalMatrixBuffer;
+    }
+
+    private readonly Dictionary<ushort, Dictionary<int, InstanceData>> instanceCache = [];
 
     public bool NeedsUpdate { get; set; }
 
@@ -154,7 +165,13 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        instanceCache.Clear();
+        foreach(var pair in instanceCache)
+        {
+            foreach(var p in pair.Value)
+            {
+                p.Value.instanceInfos.Clear();
+            }
+        }
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -208,7 +225,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     cache.Add(key, meshCache);
                 }
 
-                meshCache.Add(new()
+                meshCache.instanceInfos.Add(new()
                 {
                     mesh = r.mesh,
                     material = material,
@@ -230,12 +247,28 @@ public sealed class MeshRenderSystem : IRenderSystem
                 }
             }
         }
+
+        foreach (var pair in instanceCache)
+        {
+            foreach (var p in pair.Value)
+            {
+                if(p.Value.instanceInfos.Length == 0)
+                {
+                    p.Value.normalMatrixBuffer?.Destroy();
+                    p.Value.transforms = [];
+                    p.Value.normalMatrices = [];
+                    p.Value.transformMatrices = [];
+                }
+            }
+        }
     }
 
     public Type RelatedComponent()
     {
         return typeof(MeshRenderer);
     }
+
+    private bool updated = false;
 
     public void Submit()
     {
@@ -250,20 +283,20 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             foreach (var (_, contents) in pairs)
             {
-                if (contents.Length == 0)
+                if (contents.instanceInfos.Length == 0)
                 {
                     continue;
                 }
 
                 bgfx.discard((byte)bgfx.DiscardFlags.All);
 
-                var material = contents.Contents[0].material;
+                var material = contents.instanceInfos.Contents[0].material;
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
-                lightSystem?.ApplyMaterialLighting(material, contents.Contents[0].lighting);
+                lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
                 if (material.ShaderProgram.Valid == false)
                 {
@@ -272,50 +305,82 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 material.ApplyProperties(Material.ApplyMode.All);
 
-                //TODO: Support lighting in instancing
-                if (contents.Contents[0].lighting == MaterialLighting.Unlit)
-                {
-                    material.EnableShaderKeyword(Shader.InstancingKeyword);
-                }
+                material.EnableShaderKeyword(Shader.InstancingKeyword);
 
                 if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
                 {
                     bgfx.set_state((ulong)(state |
-                        contents.Contents[0].mesh.PrimitiveFlag() |
+                        contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
                         material.shader.BlendingFlag |
                         material.CullingFlag), 0);
 
-                    contents.Contents[0].mesh.SetActive(contents.Contents[0].submeshIndex);
+                    contents.instanceInfos.Contents[0].mesh.SetActive(contents.instanceInfos.Contents[0].submeshIndex);
 
                     var program = material.ShaderProgram;
 
-                    var matrices = new Matrix4x4[contents.Length];
-
-                    for (var i = 0; i < contents.Length; i++)
+                    if((contents.transforms?.Length ?? 0) != contents.instanceInfos.Length)
                     {
-                        var content = contents.Contents[i];
+                        contents.transforms = new Transform[contents.instanceInfos.Length];
+                        contents.transformMatrices = new Matrix4x4[contents.instanceInfos.Length];
+                        contents.normalMatrices = new Matrix4x4[contents.instanceInfos.Length];
 
-                        matrices[i] = content.transform.Matrix;
+                        for(var i = 0; i < contents.transforms.Length; i++)
+                        {
+                            contents.transforms[i] = contents.instanceInfos.Contents[i].transform;
+                        }
                     }
 
-                    var instanceBuffer = InstanceBuffer.Create(contents.Length, Marshal.SizeOf<Matrix4x4>());
+                    lightSystem?.ApplyInstancedLightProperties(contents.transforms, contents.normalMatrices, material,
+                        RenderSystem.CurrentCamera.Item2.Position, contents.instanceInfos.Contents[0].lighting);
 
-                    instanceBuffer.SetData(matrices.AsSpan());
+                    if(contents.normalMatrixBuffer?.Disposed ?? true)
+                    {
+                        //TODO: Support Matrix3x3 instead for this
+                        contents.normalMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                            .Build(),
+                            RenderBufferFlags.ComputeRead, true, (uint)contents.transforms.Length);
+                    }
 
-                    instanceBuffer.Bind(0, instanceBuffer.count);
+                    contents.normalMatrixBuffer.Update(contents.normalMatrices.AsSpan(), 0, true);
 
-                    bgfx.submit(viewId, program, 0, (byte)bgfx.DiscardFlags.All);
+                    for (var i = 0; i < contents.transforms.Length; i++)
+                    {
+                        contents.transformMatrices[i] = contents.transforms[i].Matrix;
+                    }
+
+                    var instanceBuffer = InstanceBuffer.Create(contents.transformMatrices.Length, Marshal.SizeOf<Matrix4x4>());
+
+                    if(instanceBuffer != null)
+                    {
+                        instanceBuffer.SetData(contents.transformMatrices.AsSpan());
+
+                        instanceBuffer.Bind(0, instanceBuffer.count);
+
+                        contents.normalMatrixBuffer.SetBufferActive(LightBufferIndex, Access.Read);
+
+                        bgfx.submit(viewId, program, 0, (byte)bgfx.DiscardFlags.All);
+                    }
+                    else
+                    {
+                        Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
+
+                        bgfx.discard((byte)bgfx.DiscardFlags.All);
+                    }
                 }
                 else
                 {
-                    for (var i = 0; i < contents.Length; i++)
+                    for (var i = 0; i < contents.instanceInfos.Length; i++)
                     {
                         bgfx.set_state((ulong)(state |
-                            contents.Contents[0].mesh.PrimitiveFlag() |
+                            contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
                             material.shader.BlendingFlag |
                             material.CullingFlag), 0);
 
-                        var content = contents.Contents[i];
+                        var content = contents.instanceInfos.Contents[i];
 
                         unsafe
                         {

@@ -352,6 +352,16 @@ static partial class Program
 
                                     break;
 
+                                case ShaderUniformType.Int:
+
+                                    materialMetadata.parameters.Add(p.name, new()
+                                    {
+                                        type = MaterialParameterType.Int,
+                                        source = MaterialParameterSource.Instance,
+                                    });
+
+                                    break;
+
                                 case ShaderUniformType.Float:
 
                                     materialMetadata.parameters.Add(p.name, new()

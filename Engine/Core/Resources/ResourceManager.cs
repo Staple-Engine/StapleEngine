@@ -1304,6 +1304,12 @@ internal class ResourceManager
                         material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
 
                         break;
+
+                    case MaterialParameterType.Int:
+
+                        material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
+
+                        break;
                 }
             }
 

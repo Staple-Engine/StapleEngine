@@ -5,15 +5,10 @@ Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING
 Begin Parameters
 
 varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec3 a_position : POSITION
-varying vec3 a_normal : NORMAL
-varying vec2 a_texcoord0 : TEXCOORD0
-varying vec4 a_weight : BLENDWEIGHT
-varying vec4 a_indices : BLENDINDICES
 varying vec3 v_fragPos : TEXCOORD1
 varying vec3 v_normal : NORMAL
-varying vec4 a_color0 : COLOR
 varying vec4 v_color : COLOR
+varying int v_instanceID : TEXCOORD2
 
 uniform texture ambientOcclusionTexture
 uniform color diffuseColor
@@ -34,7 +29,7 @@ End Instancing
 Begin Vertex
 
 $input a_position, a_texcoord0, a_normal, a_color0
-$output v_texcoord0, v_fragPos, v_normal, v_color
+$output v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID
 
 #include "StapleLighting.sh"
 
@@ -57,8 +52,10 @@ void main()
 	v_fragPos = mul(viewWorld, vec4(a_position, 1.0)).xyz;
 	v_normal = a_normal;
 	
+	v_instanceID = StapleInstanceID;
+	
 #if LIT && PER_VERTEX_LIGHTING
-	v_color = vec4(diffuseColor.rgb * StapleProcessLights(u_viewPos, v_fragPos, v_normal), diffuseColor.a);
+	v_color = vec4(diffuseColor.rgb * StapleProcessLights(int(v_instanceID), u_viewPos, v_fragPos, v_normal), diffuseColor.a);
 	
 	#if VERTEX_COLORS
 		v_color = a_color0 * v_color;
@@ -71,7 +68,7 @@ End Vertex
 
 Begin Fragment
 
-$input v_texcoord0, v_fragPos, v_normal, v_color
+$input v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID
 
 #include "StapleLighting.sh"
 
@@ -86,7 +83,7 @@ void main()
 #if LIT && PER_VERTEX_LIGHTING
 	gl_FragColor = diffuse;
 #elif LIT
-	vec3 light = StapleProcessLights(u_viewPos, v_fragPos, v_normal);
+	vec3 light = StapleProcessLights(int(v_instanceID), u_viewPos, v_fragPos, v_normal);
 
 	gl_FragColor = vec4(light, 1) * diffuse;
 #else

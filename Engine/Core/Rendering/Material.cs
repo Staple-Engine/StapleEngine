@@ -19,6 +19,7 @@ public sealed class Material : IGuidAsset
         public ShaderHandle shaderHandle;
         public ShaderHandle[] relatedShaderHandles = [];
         public ParameterInfo[] relatedParameters = [];
+        public int intValue;
         public float floatValue;
         public Vector2 vector2Value;
         public Vector3 vector3Value;
@@ -42,6 +43,7 @@ public sealed class Material : IGuidAsset
                     .Where(x => x != null)
                     .Select(x => x.Clone())
                     .ToArray(),
+                intValue = intValue,
                 floatValue = floatValue,
                 vector2Value = vector2Value,
                 vector3Value = vector3Value,
@@ -217,6 +219,12 @@ public sealed class Material : IGuidAsset
 
             switch (parameter.type)
             {
+                case MaterialParameterType.Int:
+
+                    hashCode.Add(parameter.intValue);
+
+                    break;
+
                 case MaterialParameterType.Color:
 
                     hashCode.Add(parameter.colorValue);
@@ -529,6 +537,59 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Color,
                     colorValue = value,
+                    shaderHandle = shader.GetUniformHandle(hash),
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets an int property's value
+    /// </summary>
+    /// <param name="name">Property name</param>
+    /// <param name="value">The int value</param>
+    public void SetInt(string name, int value, MaterialParameterSource source = MaterialParameterSource.Uniform)
+    {
+        var hash = name.GetHashCode();
+
+        needsHashUpdate = true;
+
+        if (source == MaterialParameterSource.Uniform)
+        {
+            if (parameters.TryGetValue(hash, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Int)
+                {
+                    parameter.intValue = value;
+                }
+            }
+            else
+            {
+                parameters.AddOrSetKey(hash, new ParameterInfo()
+                {
+                    name = name,
+                    type = MaterialParameterType.Int,
+                    intValue = value,
+                    shaderHandle = shader.GetUniformHandle(hash),
+                });
+            }
+        }
+        else
+        {
+            if (instanceParameters.TryGetValue(hash, out var parameter))
+            {
+                if (parameter.type == MaterialParameterType.Int)
+                {
+                    parameter.intValue = value;
+                }
+            }
+            else
+            {
+                instanceParameters.AddOrSetKey(hash, new ParameterInfo()
+                {
+                    name = name,
+                    type = MaterialParameterType.Int,
+                    intValue = value,
                     shaderHandle = shader.GetUniformHandle(hash),
                 });
             }
@@ -1043,6 +1104,15 @@ public sealed class Material : IGuidAsset
                         applyPropertiesCallbacks[counter++] = () =>
                         {
                             shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.floatValue, 0, 0, 0));
+                        };
+
+                        break;
+
+                    case MaterialParameterType.Int:
+
+                        applyPropertiesCallbacks[counter++] = () =>
+                        {
+                            shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.intValue, 0, 0, 0));
                         };
 
                         break;

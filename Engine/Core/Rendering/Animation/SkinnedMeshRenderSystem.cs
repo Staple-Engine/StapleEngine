@@ -10,6 +10,8 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
+    private const int SkinningBufferIndex = 15;
+
     /// <summary>
     /// Infor for rendering
     /// </summary>
@@ -305,7 +307,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     usePoser ? poser.boneMatrixBuffer :
                     cache.boneBuffer;
 
-                buffer?.SetBufferActive(15, Access.Read);
+                buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 
                 bgfx.submit(pair.viewID, program, 0, (byte)flags);
             }

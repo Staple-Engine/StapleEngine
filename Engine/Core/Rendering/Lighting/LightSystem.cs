@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -10,6 +11,14 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class LightSystem : IRenderSystem
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct LightInstance
+    {
+        public Matrix4x4 transform;
+        public Matrix3x3 normalMatrix;
+        public Vector3 padding;
+    }
+
     /// <summary>
     /// Limit to 16 lights
     /// </summary>
@@ -37,6 +46,7 @@ public sealed class LightSystem : IRenderSystem
     private readonly Vector4[] cachedLightSpotDirection = new Vector4[MaxLights];
 
     private readonly Dictionary<int, ShaderHandle[]> cachedMaterialInfo = [];
+    private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
 
     public bool NeedsUpdate { get; set; }
 
@@ -227,6 +237,144 @@ public sealed class LightSystem : IRenderSystem
 
         material.shader.SetVector3(viewPosHandle, cameraPosition);
         material.shader.SetMatrix3x3(normalMatrixHandle, normalMatrix);
+        material.shader.SetColor(lightAmbientHandle, lightAmbient);
+        material.shader.SetVector4(lightCountHandle, lightCount);
+        material.shader.SetVector4(lightTypePositionHandle, cachedLightTypePositions);
+        material.shader.SetVector4(lightDiffuseHandle, cachedLightDiffuse);
+        material.shader.SetVector4(lightSpotDirectionHandle, cachedLightSpotDirection);
+    }
+
+    /// <summary>
+    /// Applies light properties to the next instanced render pass
+    /// </summary>
+    /// <param name="transforms">The transforms of the renderables</param>
+    /// <param name="material">The material to use</param>
+    /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="lighting">What lighting to use</param>
+    /// <returns>Normal Matrix for each transform</returns>
+    public void ApplyInstancedLightProperties(Span<Transform> transforms, Span<Matrix4x4> normalMatrices, Material material, Vector3 cameraPosition,
+        MaterialLighting lighting)
+    {
+        if (Enabled == false ||
+            lighting == MaterialLighting.Unlit ||
+            (material?.IsValid ?? false) == false ||
+            lightQuery.Length == 0 ||
+            transforms.Length == 0 ||
+            normalMatrices.Length != transforms.Length)
+        {
+            return;
+        }
+
+        var targets = lightQuery.Contents;
+
+        var positions = new Vector3[transforms.Length];
+
+        for(var i = 0; i < transforms.Length; i++)
+        {
+            positions[i] = transforms[i].Position;
+        }
+
+        float MinDistance(Vector3 position)
+        {
+            var min = 9999.0f;
+
+            for (var i = 0; i < positions.Length; i++)
+            {
+                var d = Vector3.DistanceSquared(position, positions[i]);
+
+                if (d < min)
+                {
+                    min = d;
+                }
+            }
+
+            return min;
+        }
+
+        if (targets.Length > MaxLights)
+        {
+            targets = targets
+                .OrderBy(x => MinDistance(x.Item2.Position))
+                .Take(MaxLights)
+                .ToArray();
+        }
+
+        var lightAmbient = AppSettings.Current.ambientLight;
+        var lightCount = new Vector4(targets.Length);
+
+        for (var i = 0; i < targets.Length; i++)
+        {
+            var target = targets[i];
+            var light = target.Item3;
+            var t = target.Item2;
+            var p = t.Position;
+            var forward = t.Forward;
+
+            if (light.type == LightType.Directional)
+            {
+                p = -forward;
+            }
+
+            cachedLightTypePositions[i] = new((float)light.type, p.X, p.Y, p.Z);
+
+            cachedLightDiffuse[i] = light.color;
+
+            cachedLightSpotDirection[i] = forward.ToVector4();
+        }
+
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            Matrix4x4.Invert(transforms[i].Matrix, out var invTransform);
+
+            var transTransform = Matrix4x4.Transpose(invTransform);
+
+            //var normalMatrix = transTransform.ToMatrix3x3();
+
+            transTransform.M41 = transTransform.M42 = transTransform.M43 = 0;
+            transTransform.M44 = 1;
+
+            normalMatrices[i] = transTransform; //normalMatrix;
+        }
+
+        var key = material.shader.Guid.GuidHash;
+
+        static bool HandlesValid(Span<ShaderHandle> handles)
+        {
+            for (var i = 0; i < handles.Length; i++)
+            {
+                if (handles[i].IsValid == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (cachedInstancedMaterialInfo.TryGetValue(key, out var handles) == false || HandlesValid(handles) == false)
+        {
+            handles = [material.GetShaderHandle(ViewPosKey),
+                material.GetShaderHandle(LightAmbientKey),
+                material.GetShaderHandle(LightCountKey),
+                material.GetShaderHandle(LightTypePositionKey),
+                material.GetShaderHandle(LightDiffuseKey),
+                material.GetShaderHandle(LightSpecularKey),
+                material.GetShaderHandle(LightSpotDirectionKey),
+                material.GetShaderHandle(LightSpotValuesKey)];
+
+            cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
+        }
+
+        var viewPosHandle = handles[0];
+        var lightAmbientHandle = handles[1];
+        var lightCountHandle = handles[2];
+        var lightTypePositionHandle = handles[3];
+        var lightDiffuseHandle = handles[4];
+        var lightSpecularHandle = handles[5];
+        var lightSpotDirectionHandle = handles[6];
+        var lightSpotValues = handles[7];
+
+        material.shader.SetVector3(viewPosHandle, cameraPosition);
         material.shader.SetColor(lightAmbientHandle, lightAmbient);
         material.shader.SetVector4(lightCountHandle, lightCount);
         material.shader.SetVector4(lightTypePositionHandle, cachedLightTypePositions);
