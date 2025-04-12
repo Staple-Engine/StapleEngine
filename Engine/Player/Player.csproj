@@ -5,6 +5,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	  <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+	  <WasmMainJSPath>main.js</WasmMainJSPath>
+	  <InvariantGlobalization>true</InvariantGlobalization>
+	  <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+	  
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -27,10 +32,12 @@
 
   <PropertyGroup>
 	<StripSymbols>true</StripSymbols>
-	<PublishAot>true</PublishAot>
-	<IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <ItemGroup>
+	<WasmExtraFilesToDeploy Include="index.html" />
+  </ItemGroup>
+	
   <ItemGroup>
 	<ProjectReference Include="..\StapleJoltPhysics\StapleJoltPhysics.csproj" />
 	<ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
