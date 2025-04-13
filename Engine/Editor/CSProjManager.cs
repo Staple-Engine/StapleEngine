@@ -242,9 +242,6 @@ internal class CSProjManager
             p.SetProperty(pair.Key, pair.Value);
         }
 
-        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
-
         string[] elements =
         [
             "Compile",
@@ -302,6 +299,9 @@ internal class CSProjManager
 
         var p = MakeProject(collection, projectDefines, projectProperties);
 
+        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+
         foreach (var pair in projectAppSettings.usedModules)
         {
             p.AddItem("Reference", pair,
@@ -354,7 +354,12 @@ internal class CSProjManager
                                 continue;
                             }
 
-                            pair = (def, MakeProject(collection, projectDefines, projectProperties));
+                            var asmProj = MakeProject(collection, projectDefines, projectProperties);
+
+                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+                            asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+
+                            pair = (def, asmProj);
 
                             projects.Add(projectName, pair);
 
@@ -623,7 +628,11 @@ internal class CSProjManager
                                 continue;
                             }
 
-                            pair = (def, MakeProject(collection, projectDefines, asmDefProjectProperties));
+                            var asmProj = MakeProject(collection, projectDefines, asmDefProjectProperties);
+
+                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))]);
+
+                            pair = (def, asmProj);
 
                             projects.Add(projectName, pair);
 
