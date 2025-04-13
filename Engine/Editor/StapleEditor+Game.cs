@@ -30,7 +30,15 @@ internal partial class StapleEditor
         {
             if(File.Exists(assemblyPath))
             {
-                gameAssemblyLoadContext = new(AppContext.BaseDirectory);
+                var csprojs = Directory.GetFiles(projectDirectory, "*.csproj")
+                    .Select(x => Path.GetFileNameWithoutExtension(x))
+                    .Where(x => x != "Game")
+                    .ToArray();
+
+                gameAssemblyLoadContext = new(AppContext.BaseDirectory, () =>
+                {
+                    return ([outPath], csprojs);
+                });
 
                 using var stream = new MemoryStream(File.ReadAllBytes(assemblyPath));
 
@@ -234,12 +242,8 @@ internal partial class StapleEditor
                 }
             }
 
-            RegisterTypes(TypeCache.AllTypes());
-
             if (gameAssembly?.TryGetTarget(out var assembly) ?? false)
             {
-                RegisterTypes(assembly.GetTypes());
-
                 void HandleRegistration()
                 {
                     try
@@ -270,6 +274,8 @@ internal partial class StapleEditor
 
                 HandleRegistration();
             }
+
+            RegisterTypes(TypeCache.AllTypes());
 
             registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
             registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();

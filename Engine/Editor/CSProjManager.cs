@@ -1,8 +1,10 @@
 ﻿using Microsoft.Build.Evaluation;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Staple.Editor;
 
@@ -180,6 +182,89 @@ internal class CSProjManager
         return true;
     }
 
+    private static string FindAsmDef(string path, string assetsDirectory)
+    {
+        if (path == assetsDirectory)
+        {
+            return null;
+        }
+
+        try
+        {
+            var files = Directory.GetFiles(path, "*.asmdef");
+
+            if (files.Length > 0)
+            {
+                return files[0];
+            }
+
+            var parent = Path.GetDirectoryName(path);
+
+            return FindAsmDef(parent, assetsDirectory);
+        }
+        catch (Exception)
+        {
+        }
+
+        return null;
+    }
+
+    private static Project MakeProject(ProjectCollection collection, string defines, Dictionary<string, string> projectProperties)
+    {
+        var p = new Project(collection);
+
+        p.Xml.Sdk = "Microsoft.NET.Sdk";
+
+        var debugProperty = p.Xml.AddPropertyGroup();
+
+        debugProperty.Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ";
+        debugProperty.AddProperty("PlatformTarget", "AnyCPU");
+        debugProperty.AddProperty("DebugType", "embedded");
+        debugProperty.AddProperty("DebugSymbols", "true");
+        debugProperty.AddProperty("Optimize", "false");
+        debugProperty.AddProperty("DefineConstants", $"_DEBUG;{defines}");
+        debugProperty.AddProperty("ErrorReport", "prompt");
+        debugProperty.AddProperty("WarningLevel", "4");
+
+        var releaseProperty = p.Xml.AddPropertyGroup();
+
+        releaseProperty.Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
+        releaseProperty.AddProperty("PlatformTarget", "AnyCPU");
+        releaseProperty.AddProperty("DebugType", "embedded");
+        releaseProperty.AddProperty("DebugSymbols", "true");
+        releaseProperty.AddProperty("Optimize", "true");
+        releaseProperty.AddProperty("DefineConstants", $"NDEBUG;{defines}");
+        releaseProperty.AddProperty("ErrorReport", "prompt");
+        releaseProperty.AddProperty("WarningLevel", "4");
+
+        foreach (var pair in projectProperties)
+        {
+            p.SetProperty(pair.Key, pair.Value);
+        }
+
+        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+
+        string[] elements =
+        [
+            "Compile",
+            "Content",
+            "None"
+        ];
+
+        var removed = p.Xml.AddItemGroup();
+
+        foreach (var element in elements)
+        {
+            var temp = removed.AddItem(element, " ");
+
+            temp.Include = null;
+            temp.Remove = "**";
+        }
+
+        return p;
+    }
+
     /// <summary>
     /// Generates the game project file
     /// </summary>
@@ -213,39 +298,9 @@ internal class CSProjManager
             platformDefinesString = $";{string.Join(";", defines)}";
         }
 
-        var p = new Project(collection);
+        var projectDefines = $"STAPLE_EDITOR{platformDefinesString}";
 
-        p.Xml.Sdk = "Microsoft.NET.Sdk";
-
-        var debugProperty = p.Xml.AddPropertyGroup();
-
-        debugProperty.Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ";
-        debugProperty.AddProperty("PlatformTarget", "AnyCPU");
-        debugProperty.AddProperty("DebugType", "embedded");
-        debugProperty.AddProperty("DebugSymbols", "true");
-        debugProperty.AddProperty("Optimize", "false");
-        debugProperty.AddProperty("DefineConstants", $"_DEBUG;STAPLE_EDITOR{platformDefinesString}");
-        debugProperty.AddProperty("ErrorReport", "prompt");
-        debugProperty.AddProperty("WarningLevel", "4");
-
-        var releaseProperty = p.Xml.AddPropertyGroup();
-
-        releaseProperty.Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
-        releaseProperty.AddProperty("PlatformTarget", "AnyCPU");
-        releaseProperty.AddProperty("DebugType", "embedded");
-        releaseProperty.AddProperty("DebugSymbols", "true");
-        releaseProperty.AddProperty("Optimize", "true");
-        releaseProperty.AddProperty("DefineConstants", $"NDEBUG;STAPLE_EDITOR{platformDefinesString}");
-        releaseProperty.AddProperty("ErrorReport", "prompt");
-        releaseProperty.AddProperty("WarningLevel", "4");
-
-        foreach (var pair in projectProperties)
-        {
-            p.SetProperty(pair.Key, pair.Value);
-        }
-
-        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+        var p = MakeProject(collection, projectDefines, projectProperties);
 
         foreach (var pair in projectAppSettings.usedModules)
         {
@@ -255,27 +310,10 @@ internal class CSProjManager
                 ]);
         }
 
-        if (sandbox)
-        {
-            string[] elements =
-            [
-                "Compile",
-                "Content",
-                "None"
-            ];
+        var projects = new Dictionary<string, (AssemblyDefinition, Project)>();
+        var excludedAsmDefs = new HashSet<string>();
 
-            var removed = p.Xml.AddItemGroup();
-
-            foreach (var element in elements)
-            {
-                var temp = removed.AddItem(element, " ");
-
-                temp.Include = null;
-                temp.Remove = "**";
-            }
-        }
-
-        void Recursive(string path)
+        void Recursive(string path, string basePath)
         {
             try
             {
@@ -283,18 +321,64 @@ internal class CSProjManager
 
                 foreach (var file in files)
                 {
+                    var parentAsmDef = FindAsmDef(Path.GetDirectoryName(file), basePath);
+
                     var filePath = Path.GetRelativePath(projectDirectory, file);
 
                     fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
 
-                    p.AddItem("Compile", filePath);
+                    if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
+                    {
+                        var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
+
+                        if(projects.TryGetValue(projectName, out var pair) == false)
+                        {
+                            AssemblyDefinition def = null;
+
+                            try
+                            {
+                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef));
+                            }
+                            catch (Exception)
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
+                            if ((def.includedPlatforms.Count != 0 && def.includedPlatforms.Contains(platform) == false) ||
+                                def.excludedPlatforms.Contains(platform))
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
+                            pair = (def, MakeProject(collection, projectDefines, projectProperties));
+
+                            projects.Add(projectName, pair);
+
+                            if(def.autoReferenced)
+                            {
+                                p.AddItem("ProjectReference", $"{projectName}.csproj");
+                            }
+                        }
+
+                        var (asmDef, project) = pair;
+
+                        project.AddItem("Compile", filePath);
+                    }
+                    else
+                    {
+                        p.AddItem("Compile", filePath);
+                    }
                 }
 
                 var directories = Directory.GetDirectories(path);
 
                 foreach (var directory in directories)
                 {
-                    Recursive(directory);
+                    Recursive(directory, basePath);
                 }
             }
             catch (Exception e)
@@ -303,7 +387,7 @@ internal class CSProjManager
             }
         }
 
-        Recursive(assetsDirectory);
+        Recursive(assetsDirectory, assetsDirectory);
 
         if(sandbox == false)
         {
@@ -348,40 +432,54 @@ internal class CSProjManager
 
         p.Save(Path.Combine(projectDirectory, "Game.csproj"));
 
+        foreach(var pair in projects)
+        {
+            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
+        }
+
         var fileName = sandbox ? "Sandbox.sln" : "Game.sln";
 
-        if(File.Exists(Path.Combine(projectDirectory, fileName)) == false)
+        var target = Path.Combine(projectDirectory, fileName);
+
+        if (File.Exists(target))
         {
-            var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
-            {
-                WorkingDirectory = projectDirectory
-            };
+            File.Delete(target);
+        }
 
-            var process = new Process
-            {
-                StartInfo = startInfo
-            };
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
+        {
+            WorkingDirectory = projectDirectory
+        };
 
-            if (process.Start())
-            {
-                while (process.HasExited == false) ;
+        var process = new Process
+        {
+            StartInfo = startInfo
+        };
 
-                if (process.ExitCode != 0)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                return;
-            }
+        if (process.Start())
+        {
+            while (process.HasExited == false) ;
 
             if (process.ExitCode != 0)
             {
                 return;
             }
+        }
+        else
+        {
+            return;
+        }
 
-            startInfo = new ProcessStartInfo("dotnet", "sln add Game.csproj")
+        if (process.ExitCode != 0)
+        {
+            return;
+        }
+
+        var projectFiles = new string[] { "Game" }.Concat(projects.Keys);
+
+        foreach (var file in projectFiles)
+        {
+            startInfo = new ProcessStartInfo("dotnet", $"sln add \"{file}.csproj\"")
             {
                 WorkingDirectory = projectDirectory
             };
@@ -418,37 +516,6 @@ internal class CSProjManager
     public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists)
     {
         using var collection = new ProjectCollection();
-
-        var p = new Project(collection);
-
-        void FindScripts(string path)
-        {
-            try
-            {
-                var files = Directory.GetFiles(path, "*.cs");
-
-                foreach (var file in files)
-                {
-                    if (file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
-                    {
-                        continue;
-                    }
-
-                    p.AddItem("Compile", Path.GetFullPath(file));
-                }
-
-                var directories = Directory.GetDirectories(path);
-
-                foreach (var directory in directories)
-                {
-                    FindScripts(directory);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed generating csproj: {e}");
-            }
-        }
 
         var platform = backend.platform;
 
@@ -497,33 +564,96 @@ internal class CSProjManager
             platformDefinesString = $";{string.Join(";", defines)}";
         }
 
-        p.Xml.Sdk = "Microsoft.NET.Sdk";
+        var projectDefines = platformDefinesString;
 
-        var debugProperty = p.Xml.AddPropertyGroup();
+        var p = MakeProject(collection, projectDefines, projectProperties);
 
-        debugProperty.Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ";
-        debugProperty.AddProperty("PlatformTarget", "AnyCPU");
-        debugProperty.AddProperty("DebugType", "pdbonly");
-        debugProperty.AddProperty("DebugSymbols", "true");
-        debugProperty.AddProperty("Optimize", "false");
-        debugProperty.AddProperty("DefineConstants", $"_DEBUG{platformDefinesString}");
-        debugProperty.AddProperty("ErrorReport", "prompt");
-        debugProperty.AddProperty("WarningLevel", "4");
+        var projects = new Dictionary<string, (AssemblyDefinition, Project)>();
+        var excludedAsmDefs = new HashSet<string>();
 
-        var releaseProperty = p.Xml.AddPropertyGroup();
-
-        releaseProperty.Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ";
-        releaseProperty.AddProperty("PlatformTarget", "AnyCPU");
-        releaseProperty.AddProperty("DebugType", "portable");
-        releaseProperty.AddProperty("DebugSymbols", "true");
-        releaseProperty.AddProperty("Optimize", "true");
-        releaseProperty.AddProperty("DefineConstants", $"NDEBUG{platformDefinesString}");
-        releaseProperty.AddProperty("ErrorReport", "prompt");
-        releaseProperty.AddProperty("WarningLevel", "4");
-
-        foreach (var pair in projectProperties)
+        var asmDefProjectProperties = new Dictionary<string, string>()
         {
-            p.SetProperty(pair.Key, pair.Value);
+            { "OutputType", "Library" },
+            { "TargetFramework", targetFramework },
+            { "StripSymbols", "true" },
+            { "AppDesignerFolder", "Properties" },
+            { "TieredCompilation", "false" },
+            { "PublishReadyToRun", "false" },
+        };
+
+        void FindScripts(string path, string basePath)
+        {
+            try
+            {
+                var files = Directory.GetFiles(path, "*.cs");
+
+                foreach (var file in files)
+                {
+                    if (file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
+                    {
+                        continue;
+                    }
+
+                    var parentAsmDef = FindAsmDef(Path.GetDirectoryName(file), basePath);
+
+                    if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
+                    {
+                        var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
+
+                        if (projects.TryGetValue(projectName, out var pair) == false)
+                        {
+                            AssemblyDefinition def = null;
+
+                            try
+                            {
+                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef));
+                            }
+                            catch (Exception)
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
+                            if ((def.includedPlatforms.Count != 0 && def.includedPlatforms.Contains(platform) == false) ||
+                                def.excludedPlatforms.Contains(platform))
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
+                            pair = (def, MakeProject(collection, projectDefines, asmDefProjectProperties));
+
+                            projects.Add(projectName, pair);
+
+                            if (def.autoReferenced)
+                            {
+                                p.AddItem("ProjectReference", $"{projectName}.csproj");
+                            }
+                        }
+
+                        var (asmDef, project) = pair;
+
+                        project.AddItem("Compile", Path.GetFullPath(file));
+                    }
+                    else
+                    {
+                        p.AddItem("Compile", Path.GetFullPath(file));
+                    }
+                }
+
+                var directories = Directory.GetDirectories(path);
+
+                foreach (var directory in directories)
+                {
+                    FindScripts(directory, basePath);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed generating csproj: {e}");
+            }
         }
 
         if(platform == AppPlatform.Windows)
@@ -699,8 +829,80 @@ internal class CSProjManager
                 break;
         }
 
-        FindScripts(assetsDirectory);
+        FindScripts(assetsDirectory, assetsDirectory);
 
         p.Save(Path.Combine(projectDirectory, "Player.csproj"));
+
+        foreach (var pair in projects)
+        {
+            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
+        }
+
+        var fileName = "Player.sln";
+
+        var target = Path.Combine(projectDirectory, fileName);
+
+        if (File.Exists(target))
+        {
+            File.Delete(target);
+        }
+
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
+        {
+            WorkingDirectory = projectDirectory
+        };
+
+        var process = new Process
+        {
+            StartInfo = startInfo
+        };
+
+        if (process.Start())
+        {
+            while (process.HasExited == false) ;
+
+            if (process.ExitCode != 0)
+            {
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+
+        if (process.ExitCode != 0)
+        {
+            return;
+        }
+
+        var projectFiles = new string[] { "Player" }.Concat(projects.Keys);
+
+        foreach (var file in projectFiles)
+        {
+            startInfo = new ProcessStartInfo("dotnet", $"sln add \"{file}.csproj\"")
+            {
+                WorkingDirectory = projectDirectory
+            };
+
+            process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            if (process.Start())
+            {
+                while (process.HasExited == false) ;
+
+                if (process.ExitCode != 0)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
     }
 }

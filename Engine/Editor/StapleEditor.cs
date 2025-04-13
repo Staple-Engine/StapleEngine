@@ -86,15 +86,19 @@ internal partial class StapleEditor
 
         public Action onClick;
 
-        public List<MenuItemInfo> children = new();
+        public List<MenuItemInfo> children = [];
     }
 
     public class StapleAssemblyLoadContext : AssemblyLoadContext
     {
         private readonly AssemblyDependencyResolver resolver;
 
-        public StapleAssemblyLoadContext(string path) : base(true)
+        private Func<(string[], string[])> assemblyPathsCallback;
+
+        public StapleAssemblyLoadContext(string path, Func<(string[], string[])> assemblyPathsCallback) : base(true)
         {
+            this.assemblyPathsCallback = assemblyPathsCallback;
+
             resolver = new AssemblyDependencyResolver(path);
         }
 
@@ -105,6 +109,29 @@ internal partial class StapleEditor
             if (assemblyPath != null)
             {
                 return LoadFromAssemblyPath(assemblyPath);
+            }
+
+            var (paths, validAssemblies) = assemblyPathsCallback();
+
+            if(Array.IndexOf(validAssemblies, assemblyName.Name) < 0)
+            {
+                return null;
+            }
+
+            foreach(var path in paths)
+            {
+                try
+                {
+                    var p = Path.Combine(path, $"{assemblyName.Name}.dll");
+
+                    if (File.Exists(p))
+                    {
+                        return LoadFromAssemblyPath(p);
+                    }
+                }
+                catch(Exception)
+                {
+                }
             }
 
             return null;
@@ -182,6 +209,8 @@ internal partial class StapleEditor
     private Vector3 transformScale;
 
     private Quaternion transformRotation;
+
+    private Mesh gridMesh;
     #endregion
 
     #region Entities
@@ -1271,9 +1300,9 @@ internal partial class StapleEditor
     {
         try
         {
-            var basePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules");
+            var moduleBasePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules");
 
-            var directories = Directory.GetDirectories(basePath);
+            var directories = Directory.GetDirectories(moduleBasePath);
 
             foreach (var directory in directories)
             {
@@ -1281,7 +1310,10 @@ internal partial class StapleEditor
 
                 try
                 {
-                    var loader = new StapleAssemblyLoadContext(AppContext.BaseDirectory);
+                    var loader = new StapleAssemblyLoadContext(AppContext.BaseDirectory, () =>
+                    {
+                        return ([], []);
+                    });
 
                     using var stream = new MemoryStream(File.ReadAllBytes(file));
 
