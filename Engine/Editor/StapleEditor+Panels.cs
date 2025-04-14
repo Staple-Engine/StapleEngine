@@ -1254,6 +1254,32 @@ internal partial class StapleEditor
                         }
                     }
                 }
+                else if (item.typeName == typeof(AssemblyDefinition).FullName)
+                {
+                    try
+                    {
+                        original = (AssemblyDefinition)AssemblyDefinition.Create(guid);
+                        selectedProjectNodeData = (AssemblyDefinition)AssemblyDefinition.Create(guid);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    if (original != null && selectedProjectNodeData != null)
+                    {
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                        if (editor is AssetEditor e)
+                        {
+                            e.original = original;
+                            e.path = item.path;
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => (AssemblyDefinition)AssemblyDefinition.Create(item.path);
+
+                            cachedEditors.Add("", editor);
+                        }
+                    }
+                }
                 else
                 {
                     var type = TypeCache.GetType(item.typeName);
@@ -1342,19 +1368,16 @@ internal partial class StapleEditor
             {
                 case ProjectBrowserNodeAction.InspectScene:
 
-                    if(World.Current != null)
+                    World.Current?.Iterate((entity) =>
                     {
-                        World.Current.Iterate((entity) =>
+                        World.Current.IterateComponents(entity, (ref IComponent component) =>
                         {
-                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            if(component is IComponentDisposable disposable)
                             {
-                                if(component is IComponentDisposable disposable)
-                                {
-                                    disposable.DisposeComponent();
-                                }
-                            });
+                                disposable.DisposeComponent();
+                            }
                         });
-                    }
+                    });
 
                     ResourceManager.instance.Clear();
 

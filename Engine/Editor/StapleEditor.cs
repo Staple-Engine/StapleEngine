@@ -1194,7 +1194,7 @@ internal partial class StapleEditor
         return path;
     }
 
-    public void ShowAssetPicker(Type type, string key)
+    public void ShowAssetPicker(Type type, string key, string[] ignoredGuids)
     {
         var window = EditorWindow.GetWindow<AssetPickerWindow>();
 
@@ -1204,6 +1204,7 @@ internal partial class StapleEditor
         window.currentPlatform = currentPlatform;
         window.basePath = basePath;
         window.projectBrowser = projectBrowser;
+        window.ignoredGuids = ignoredGuids;
     }
 
     public void ShowSpritePicker(Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)

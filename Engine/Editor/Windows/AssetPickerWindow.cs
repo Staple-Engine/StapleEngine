@@ -14,6 +14,7 @@ internal class AssetPickerWindow : EditorWindow
     public ProjectBrowser projectBrowser;
     public AppPlatform currentPlatform;
     public string basePath;
+    public string[] ignoredGuids = [];
 
     private ProjectBrowserNode[] validItems = [];
     private List<ImGuiUtils.ContentGridItem> gridItems = [];
@@ -36,6 +37,11 @@ internal class AssetPickerWindow : EditorWindow
         {
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
                 asset.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
+            {
+                continue;
+            }
+
+            if(Array.IndexOf(ignoredGuids, asset.guid) >= 0)
             {
                 continue;
             }
@@ -288,6 +294,26 @@ internal class AssetPickerWindow : EditorWindow
                             }
                         }
                         catch (System.Exception)
+                        {
+                        }
+
+                        break;
+
+                    case ProjectBrowserResourceType.AssemblyDefinition:
+
+                        try
+                        {
+                            var asmDef = (AssemblyDefinition)AssemblyDefinition.Create(guid);
+
+                            if(asmDef != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = asmDef;
+                                }
+                            }
+                        }
+                        catch(Exception)
                         {
                         }
 

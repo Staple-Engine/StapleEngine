@@ -39,6 +39,11 @@ internal static partial class AssetSerialization
     public static readonly string PrefabExtension = "prefab";
 
     /// <summary>
+    /// File extensions for Assembly Definitions
+    /// </summary>
+    public static readonly string AssemblyDefinitionExtension = "asmdef";
+
+    /// <summary>
     /// GUID for the standard shader
     /// </summary>
     public static readonly string StandardShaderGUID = "1ca9a72c-161e-44db-ad76-bf0ae432f78b";

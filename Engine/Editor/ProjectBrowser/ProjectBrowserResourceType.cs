@@ -14,5 +14,6 @@ internal enum ProjectBrowserResourceType
     Mesh,
     Prefab,
     Font,
+    AssemblyDefinition,
     Other
 }

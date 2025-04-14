@@ -23,6 +23,7 @@ internal class ProjectBrowser
         { $".{AssetSerialization.ShaderExtension}", ProjectBrowserResourceType.Shader },
         { $".{AssetSerialization.SceneExtension}", ProjectBrowserResourceType.Scene },
         { $".{AssetSerialization.PrefabExtension}", ProjectBrowserResourceType.Prefab },
+        { $".{AssetSerialization.AssemblyDefinitionExtension}", ProjectBrowserResourceType.AssemblyDefinition },
     };
 
     public static readonly Dictionary<string, string> DefaultResourceIcons = new()
@@ -160,6 +161,7 @@ internal class ProjectBrowser
             ProjectBrowserResourceType.Shader => GetEditorResource("ShaderIcon"),
             ProjectBrowserResourceType.Asset => GetEditorResource("AssetIcon"),
             ProjectBrowserResourceType.Audio => GetEditorResource("AudioIcon"),
+            ProjectBrowserResourceType.AssemblyDefinition => GetEditorResource("FileIcon"),
             _ => GetEditorResource("FileIcon"),
         };
 
@@ -310,6 +312,12 @@ internal class ProjectBrowser
                         case ProjectBrowserResourceType.Prefab:
 
                             node.typeName = typeof(Prefab).FullName;
+
+                            break;
+
+                        case ProjectBrowserResourceType.AssemblyDefinition:
+
+                            node.typeName = typeof(AssemblyDefinition).FullName;
 
                             break;
 
@@ -598,6 +606,28 @@ internal class ProjectBrowser
                                         {
                                             guid = Hash(),
                                             typeName = typeof(FontAsset).FullName,
+                                        },
+                                        Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.AssemblyDefinition:
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                        {
+                                            guid = Hash(),
+                                            typeName = typeof(AssemblyDefinition).FullName,
                                         },
                                         Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
