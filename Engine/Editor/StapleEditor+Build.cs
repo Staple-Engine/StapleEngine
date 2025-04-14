@@ -30,7 +30,7 @@ internal partial class StapleEditor
 
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", backend.platform.ToString());
         var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", backend.platform.ToString());
-        var projectPath = Path.Combine(projectDirectory, "Player.csproj");
+        var projectPath = Path.Combine(projectDirectory, "Player.sln");
         var configurationName = debug ? "Debug" : "Release";
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
         var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : projectDirectory, backend.dataDir);

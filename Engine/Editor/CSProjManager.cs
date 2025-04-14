@@ -531,6 +531,19 @@ internal class CSProjManager
         var configurationName = debug ? "Debug" : "Release";
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
 
+        try
+        {
+            var csprojFiles = Directory.GetFiles(projectDirectory, "*.csproj");
+
+            foreach (var file in csprojFiles)
+            {
+                File.Delete(file);
+            }
+        }
+        catch (Exception)
+        {
+        }
+
         EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
 
         if(backend.dataDirIsOutput == false)
@@ -586,6 +599,12 @@ internal class CSProjManager
             { "PublishReadyToRun", "false" },
         };
 
+        var platformUsesSeparateProjects = platform switch
+        {
+            AppPlatform.Android or AppPlatform.iOS  => false,
+            _ => true,
+        };
+
         void FindScripts(string path, string basePath)
         {
             try
@@ -628,15 +647,39 @@ internal class CSProjManager
                                 continue;
                             }
 
-                            var asmProj = MakeProject(collection, projectDefines, asmDefProjectProperties);
+                            Project asmProj = null;
 
-                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))]);
+                            if(platformUsesSeparateProjects)
+                            {
+                                asmProj = MakeProject(collection, projectDefines, asmDefProjectProperties);
+
+                                asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))]);
+
+                                switch (platform)
+                                {
+                                    case AppPlatform.Android:
+
+                                        asmProj.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
+                                        asmProj.SetProperty("RuntimeIdentifiers", "android-arm64");
+                                        asmProj.SetProperty("UseInterpreter", "false");
+
+                                        break;
+
+                                    case AppPlatform.iOS:
+
+                                        asmProj.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
+                                        asmProj.SetProperty("RuntimeIdentifiers", "ios-arm64");
+                                        asmProj.SetProperty("UseInterpreter", "false");
+
+                                        break;
+                                }
+                            }
 
                             pair = (def, asmProj);
 
                             projects.Add(projectName, pair);
 
-                            if (def.autoReferenced)
+                            if (def.autoReferenced && asmProj != null)
                             {
                                 p.AddItem("ProjectReference", $"{projectName}.csproj");
                             }
@@ -644,7 +687,9 @@ internal class CSProjManager
 
                         var (asmDef, project) = pair;
 
-                        project.AddItem("Compile", Path.GetFullPath(file));
+                        project ??= p;
+
+                        project?.AddItem("Compile", Path.GetFullPath(file));
                     }
                     else
                     {
@@ -844,7 +889,7 @@ internal class CSProjManager
 
         foreach (var pair in projects)
         {
-            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
+            pair.Value.Item2?.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
         }
 
         var fileName = "Player.sln";
