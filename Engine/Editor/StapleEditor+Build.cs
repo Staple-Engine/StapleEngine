@@ -399,7 +399,7 @@ internal partial class StapleEditor
                 using var collection = new ProjectCollection();
 
                 var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
-                var projectPath = Path.Combine(projectDirectory, "Game.csproj");
+                var projectPath = Path.Combine(projectDirectory, "Game.sln");
                 var outPath = Path.Combine(projectDirectory, "bin");
 
                 try

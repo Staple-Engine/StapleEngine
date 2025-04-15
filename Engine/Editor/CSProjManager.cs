@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
 using Newtonsoft.Json;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -310,7 +311,7 @@ internal class CSProjManager
                 ]);
         }
 
-        var projects = new Dictionary<string, (AssemblyDefinition, Project)>();
+        var projects = new Dictionary<string, (AssemblyDefinition, Project, int)>();
         var excludedAsmDefs = new HashSet<string>();
 
         void Recursive(string path, string basePath)
@@ -331,13 +332,19 @@ internal class CSProjManager
                     {
                         var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
 
-                        if(projects.TryGetValue(projectName, out var pair) == false)
+                        if(projects.TryGetValue(parentAsmDef, out var pair) == false)
                         {
                             AssemblyDefinition def = null;
 
                             try
                             {
-                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef));
+                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
+
+                                var meta = File.ReadAllText($"{parentAsmDef}.meta");
+
+                                var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
+
+                                def.guid = holder.guid;
                             }
                             catch (Exception)
                             {
@@ -346,8 +353,8 @@ internal class CSProjManager
                                 continue;
                             }
 
-                            if ((def.includedPlatforms.Count != 0 && def.includedPlatforms.Contains(platform) == false) ||
-                                def.excludedPlatforms.Contains(platform))
+                            if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
+                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
                             {
                                 excludedAsmDefs.Add(parentAsmDef);
 
@@ -359,17 +366,22 @@ internal class CSProjManager
                             asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
                             asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
-                            pair = (def, asmProj);
+                            var counter = 0;
 
-                            projects.Add(projectName, pair);
-
-                            if(def.autoReferenced)
+                            foreach(var projectPair in projects)
                             {
-                                p.AddItem("ProjectReference", $"{projectName}.csproj");
+                                if(Path.GetFileNameWithoutExtension(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    counter++;
+                                }
                             }
+
+                            pair = (def, asmProj, counter);
+
+                            projects.Add(parentAsmDef, pair);
                         }
 
-                        var (asmDef, project) = pair;
+                        var (asmDef, project, _) = pair;
 
                         project.AddItem("Compile", filePath);
                     }
@@ -435,12 +447,39 @@ internal class CSProjManager
         {
         }
 
-        p.Save(Path.Combine(projectDirectory, "Game.csproj"));
+        var asmDefNames = new List<string>();
 
         foreach(var pair in projects)
         {
-            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
+            var counter = pair.Value.Item3 == 0 ? "" : pair.Value.Item3.ToString();
+
+            var name = $"{Path.GetFileNameWithoutExtension(pair.Key)}{counter}";
+
+            asmDefNames.Add(name);
+
+            if(pair.Value.Item1.autoReferenced)
+            {
+                p.AddItem("ProjectReference", $"{name}.csproj");
+            }
+
+            foreach (var assembly in pair.Value.Item1.referencedAssemblies)
+            {
+                var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
+
+                if(targetAssembly.Value.Item1 != null)
+                {
+                    counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
+
+                    var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+
+                    pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                }
+            }
+
+            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
         }
+
+        p.Save(Path.Combine(projectDirectory, "Game.csproj"));
 
         var fileName = sandbox ? "Sandbox.sln" : "Game.sln";
 
@@ -480,7 +519,7 @@ internal class CSProjManager
             return;
         }
 
-        var projectFiles = new string[] { "Game" }.Concat(projects.Keys);
+        var projectFiles = new string[] { "Game" }.Concat(asmDefNames);
 
         foreach (var file in projectFiles)
         {
@@ -586,7 +625,7 @@ internal class CSProjManager
 
         var p = MakeProject(collection, projectDefines, projectProperties);
 
-        var projects = new Dictionary<string, (AssemblyDefinition, Project)>();
+        var projects = new Dictionary<string, (AssemblyDefinition, Project, int)>();
         var excludedAsmDefs = new HashSet<string>();
 
         var asmDefProjectProperties = new Dictionary<string, string>()
@@ -624,13 +663,19 @@ internal class CSProjManager
                     {
                         var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
 
-                        if (projects.TryGetValue(projectName, out var pair) == false)
+                        if (projects.TryGetValue(parentAsmDef, out var pair) == false)
                         {
                             AssemblyDefinition def = null;
 
                             try
                             {
-                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef));
+                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
+
+                                var meta = File.ReadAllText($"{parentAsmDef}.meta");
+
+                                var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
+
+                                def.guid = holder.guid;
                             }
                             catch (Exception)
                             {
@@ -639,8 +684,8 @@ internal class CSProjManager
                                 continue;
                             }
 
-                            if ((def.includedPlatforms.Count != 0 && def.includedPlatforms.Contains(platform) == false) ||
-                                def.excludedPlatforms.Contains(platform))
+                            if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
+                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
                             {
                                 excludedAsmDefs.Add(parentAsmDef);
 
@@ -675,17 +720,22 @@ internal class CSProjManager
                                 }
                             }
 
-                            pair = (def, asmProj);
+                            var counter = 0;
 
-                            projects.Add(projectName, pair);
-
-                            if (def.autoReferenced && asmProj != null)
+                            foreach (var projectPair in projects)
                             {
-                                p.AddItem("ProjectReference", $"{projectName}.csproj");
+                                if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    counter++;
+                                }
                             }
+
+                            pair = (def, asmProj, counter);
+
+                            projects.Add(parentAsmDef, pair);
                         }
 
-                        var (asmDef, project) = pair;
+                        var (asmDef, project, _) = pair;
 
                         project ??= p;
 
@@ -885,12 +935,44 @@ internal class CSProjManager
 
         FindScripts(assetsDirectory, assetsDirectory);
 
-        p.Save(Path.Combine(projectDirectory, "Player.csproj"));
+        var asmDefNames = new List<string>();
 
         foreach (var pair in projects)
         {
-            pair.Value.Item2?.Save(Path.Combine(projectDirectory, $"{pair.Key}.csproj"));
+            if(pair.Value.Item2 == null)
+            {
+                continue;
+            }
+
+            var counter = pair.Value.Item3 == 0 ? "" : pair.Value.Item3.ToString();
+
+            var name = $"{Path.GetFileNameWithoutExtension(pair.Key)}{counter}";
+
+            asmDefNames.Add(name);
+
+            if (pair.Value.Item1.autoReferenced)
+            {
+                p.AddItem("ProjectReference", $"{name}.csproj");
+            }
+
+            foreach (var assembly in pair.Value.Item1.referencedAssemblies)
+            {
+                var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
+
+                if (targetAssembly.Value.Item1 != null)
+                {
+                    counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
+
+                    var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+
+                    pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                }
+            }
+
+            pair.Value.Item2.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
         }
+
+        p.Save(Path.Combine(projectDirectory, "Player.csproj"));
 
         var fileName = "Player.sln";
 
@@ -930,7 +1012,7 @@ internal class CSProjManager
             return;
         }
 
-        var projectFiles = new string[] { "Player" }.Concat(projects.Keys);
+        var projectFiles = new string[] { "Player" }.Concat(asmDefNames);
 
         foreach (var file in projectFiles)
         {

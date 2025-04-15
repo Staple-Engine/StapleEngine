@@ -47,7 +47,7 @@ public class AssetEditor : Editor
             {
                 ApplyChanges();
 
-                EditorUtils.RefreshAssets(false, refreshed);
+                EditorUtils.RefreshAssets(path.EndsWith(".asmdef"), refreshed);
 
                 original = RecreateOriginal() ?? original;
             });

@@ -12,18 +12,14 @@ namespace Staple.Editor;
 [Serializable]
 public class AssemblyDefinition
 {
-    [HideInInspector]
-    public string guid = Guid.NewGuid().ToString();
+    public string guid { get; internal set; }
 
-    public List<string> referencedAssemblies = [];
-    public string version;
-    public List<AppPlatform> includedPlatforms = [];
+    public bool anyPlatform = true;
+    public List<AppPlatform> platforms = [];
     public List<AppPlatform> excludedPlatforms = [];
     public bool allowUnsafeCode;
     public bool autoReferenced = true;
-
-    [HideInInspector]
-    public string typeName = typeof(AssemblyDefinition).FullName;
+    public List<string> referencedAssemblies = [];
 
     public static object Create(string guid)
     {

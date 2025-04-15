@@ -146,7 +146,7 @@ internal partial class StapleEditor
                             File.WriteAllBytes(assetPath, result);
                         }
 
-                        RefreshAssets(assetPath.EndsWith(".cs"), null);
+                        RefreshAssets(assetPath.EndsWith(".cs") || assetPath.EndsWith(".asmdef"), null);
                     }
                 }
                 catch (Exception e)

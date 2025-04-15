@@ -7,20 +7,15 @@ using System;
 namespace Staple.Tooling;
 
 /// <summary>
-/// Special JsonConvert resolver that allows you to ignore properties.  See https://stackoverflow.com/a/13588192/1037948
+/// Special JsonConvert resolver that allows you to ignore properties. See https://stackoverflow.com/a/13588192/1037948
 /// </summary>
+/// <remarks>Ignores all properties (only fields), to conform to how System.Text.Json works</remarks>
 public class IgnorableSerializerContractResolver : DefaultContractResolver
 {
     protected readonly Dictionary<Type, HashSet<string>> Ignores = [];
 
-    /// <summary>
-    /// Explicitly ignore the given property(s) for the given type
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="propertyName">one or more properties to ignore.  Leave empty to ignore the type entirely.</param>
     public void Ignore(Type type, params string[] propertyName)
     {
-        // start bucket if DNE
         if (Ignores.TryGetValue(type, out var value) == false)
         {
             value = [];
@@ -56,21 +51,21 @@ public class IgnorableSerializerContractResolver : DefaultContractResolver
         return value.Contains(propertyName);
     }
 
-    /// <summary>
-    /// The decision logic goes here
-    /// </summary>
-    /// <param name="member"></param>
-    /// <param name="memberSerialization"></param>
-    /// <returns></returns>
     protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
     {
         JsonProperty property = base.CreateProperty(member, memberSerialization);
 
-        if (IsIgnored(property.DeclaringType, property.PropertyName)
-        // need to check basetype as well for EF -- @per comment by user576838
-        || IsIgnored(property.DeclaringType.BaseType, property.PropertyName))
+        if (member.MemberType == MemberTypes.Property)
         {
-            property.ShouldSerialize = instance => { return false; };
+            property.ShouldSerialize = instance => false;
+
+            return property;
+        }
+
+        // need to check basetype as well for EF -- @per comment by user576838
+        if (IsIgnored(property.DeclaringType, property.PropertyName) || IsIgnored(property.DeclaringType.BaseType, property.PropertyName))
+        {
+            property.ShouldSerialize = instance => false;
         }
 
         return property;
