@@ -2371,7 +2371,7 @@ namespace Bgfx
 		/// <param name="_normalized">When using fixed point AttribType (f.e. Uint8) value will be normalized for vertex shader usage. When normalized is set to true, AttribType::Uint8 value in range 0-255 will be in range 0.0-1.0 in vertex shader.</param>
 		/// <param name="_asInt">Packaging rule for vertexPack, vertexUnpack, and vertexConvert for AttribType::Uint8 and AttribType::Int16. Unpacking code must be implemented inside vertex shader.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_vertex_layout_addA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_vertex_layout_add")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial VertexLayout* vertex_layout_add(VertexLayout* _this, Attrib _attrib, byte _num, AttribType _type, [MarshalAs(UnmanagedType.Bool)] bool _normalized, [MarshalAs(UnmanagedType.Bool)] bool _asInt);
 
@@ -2418,7 +2418,7 @@ namespace Bgfx
 		/// <param name="_data">Destination vertex stream where data will be packed.</param>
 		/// <param name="_index">Vertex index that will be modified.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_vertex_packA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_vertex_pack")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void vertex_pack(float _input, [MarshalAs(UnmanagedType.Bool)] bool _inputNormalized, Attrib _attr, VertexLayout* _layout, void* _data, uint _index);
 
@@ -2461,7 +2461,7 @@ namespace Bgfx
 		/// <param name="_index32">Set to `true` if input indices are 32-bit.</param>
 		/// <param name="_epsilon">Error tolerance for vertex position comparison.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_weld_verticesA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_weld_vertices")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial uint weld_vertices(void* _output, VertexLayout* _layout, void* _data, uint _num, [MarshalAs(UnmanagedType.Bool)] bool _index32, float _epsilon);
 
@@ -2476,7 +2476,7 @@ namespace Bgfx
 		/// <param name="_numIndices">Number of input indices.</param>
 		/// <param name="_index32">Set to `true` if input indices are 32-bit.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_topology_convertA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_topology_convert")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial uint topology_convert(TopologyConvert _conversion, void* _dst, uint _dstSize, void* _indices, uint _numIndices, [MarshalAs(UnmanagedType.Bool)] bool _index32);
 
@@ -2495,7 +2495,7 @@ namespace Bgfx
 		/// <param name="_numIndices">Number of input indices.</param>
 		/// <param name="_index32">Set to `true` if input indices are 32-bit.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_topology_sort_tri_listA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_topology_sort_tri_list")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void topology_sort_tri_list(TopologySort _sort, void* _dst, uint _dstSize, float _dir, float _pos, void* _vertices, uint _stride, void* _indices, uint _numIndices, [MarshalAs(UnmanagedType.Bool)] bool _index32);
 
@@ -2572,7 +2572,7 @@ namespace Bgfx
 		///
 		/// <param name="_capture">Capture frame with graphics debugger.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_frameA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_frame")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial uint frame([MarshalAs(UnmanagedType.Bool)] bool _capture);
 
@@ -2679,7 +2679,7 @@ namespace Bgfx
 		/// <param name="_attr">Background color.</param>
 		/// <param name="_small">Default 8x16 or 8x8 font.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_dbg_text_clearA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_dbg_text_clear")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void dbg_text_clear(byte _attr, [MarshalAs(UnmanagedType.Bool)] bool _small);
 
@@ -2909,7 +2909,7 @@ namespace Bgfx
 		/// <param name="_num">Number of required indices.</param>
 		/// <param name="_index32">Set to `true` if input indices will be 32-bit.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_get_avail_transient_index_bufferA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_get_avail_transient_index_buffer")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial uint get_avail_transient_index_buffer(uint _num, [MarshalAs(UnmanagedType.Bool)] bool _index32);
 
@@ -2943,7 +2943,7 @@ namespace Bgfx
 		/// <param name="_num">Number of indices to allocate.</param>
 		/// <param name="_index32">Set to `true` if input indices will be 32-bit.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_alloc_transient_index_bufferA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_alloc_transient_index_buffer")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void alloc_transient_index_buffer(TransientIndexBuffer* _tib, uint _num, [MarshalAs(UnmanagedType.Bool)] bool _index32);
 
@@ -2972,7 +2972,7 @@ namespace Bgfx
 		/// <param name="_numIndices">Number of indices to allocate.</param>
 		/// <param name="_index32">Set to `true` if input indices will be 32-bit.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_alloc_transient_buffersA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_alloc_transient_buffers")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		[return: MarshalAs(UnmanagedType.I1)]
 		public static unsafe partial bool alloc_transient_buffers(TransientVertexBuffer* _tvb, VertexLayout* _layout, uint _numVertices, TransientIndexBuffer* _tib, uint _numIndices, [MarshalAs(UnmanagedType.Bool)] bool _index32);
@@ -3067,7 +3067,7 @@ namespace Bgfx
 		/// <param name="_fsh">Fragment shader.</param>
 		/// <param name="_destroyShaders">If true, shaders will be destroyed when program is destroyed.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_programA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_program")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial ProgramHandle create_program(ShaderHandle _vsh, ShaderHandle _fsh, [MarshalAs(UnmanagedType.Bool)] bool _destroyShaders);
 
@@ -3078,7 +3078,7 @@ namespace Bgfx
 		/// <param name="_csh">Compute shader.</param>
 		/// <param name="_destroyShaders">If true, shaders will be destroyed when program is destroyed.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_compute_programA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_compute_program")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial ProgramHandle create_compute_program(ShaderHandle _csh, [MarshalAs(UnmanagedType.Bool)] bool _destroyShaders);
 
@@ -3102,7 +3102,7 @@ namespace Bgfx
 		/// <param name="_format">Texture format. See: `TextureFormat::Enum`.</param>
 		/// <param name="_flags">Texture flags. See `BGFX_TEXTURE_*`.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_is_texture_validA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_is_texture_valid")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		[return: MarshalAs(UnmanagedType.I1)]
 		public static unsafe partial bool is_texture_valid(ushort _depth, [MarshalAs(UnmanagedType.Bool)] bool _cubeMap, ushort _numLayers, TextureFormat _format, ulong _flags);
@@ -3132,7 +3132,7 @@ namespace Bgfx
 		/// <param name="_numLayers">Number of layers in texture array.</param>
 		/// <param name="_format">Texture format. See: `TextureFormat::Enum`.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_calc_texture_sizeA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_calc_texture_size")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void calc_texture_size(TextureInfo* _info, ushort _width, ushort _height, ushort _depth, [MarshalAs(UnmanagedType.Bool)] bool _cubeMap, [MarshalAs(UnmanagedType.Bool)] bool _hasMips, ushort _numLayers, TextureFormat _format);
 
@@ -3161,7 +3161,7 @@ namespace Bgfx
 		/// <param name="_flags">Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`) flags. Default texture sampling mode is linear, and wrap mode is repeat. - `BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]` - Mirror or clamp to edge wrap   mode. - `BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic   sampling.</param>
 		/// <param name="_mem">Texture data. If `_mem` is non-NULL, created texture will be immutable. If `_mem` is NULL content of the texture is uninitialized. When `_numLayers` is more than 1, expected memory layout is texture and all mips together for each array element.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_2dA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_2d")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial TextureHandle create_texture_2d(ushort _width, ushort _height, [MarshalAs(UnmanagedType.Bool)] bool _hasMips, ushort _numLayers, TextureFormat _format, ulong _flags, Memory* _mem);
 
@@ -3176,7 +3176,7 @@ namespace Bgfx
 		/// <param name="_format">Texture format. See: `TextureFormat::Enum`.</param>
 		/// <param name="_flags">Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`) flags. Default texture sampling mode is linear, and wrap mode is repeat. - `BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]` - Mirror or clamp to edge wrap   mode. - `BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic   sampling.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_2d_scaledA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_2d_scaled")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial TextureHandle create_texture_2d_scaled(BackbufferRatio _ratio, [MarshalAs(UnmanagedType.Bool)] bool _hasMips, ushort _numLayers, TextureFormat _format, ulong _flags);
 
@@ -3192,7 +3192,7 @@ namespace Bgfx
 		/// <param name="_flags">Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`) flags. Default texture sampling mode is linear, and wrap mode is repeat. - `BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]` - Mirror or clamp to edge wrap   mode. - `BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic   sampling.</param>
 		/// <param name="_mem">Texture data. If `_mem` is non-NULL, created texture will be immutable. If `_mem` is NULL content of the texture is uninitialized. When `_numLayers` is more than 1, expected memory layout is texture and all mips together for each array element.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_3dA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_3d")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial TextureHandle create_texture_3d(ushort _width, ushort _height, ushort _depth, [MarshalAs(UnmanagedType.Bool)] bool _hasMips, TextureFormat _format, ulong _flags, Memory* _mem);
 
@@ -3207,7 +3207,7 @@ namespace Bgfx
 		/// <param name="_flags">Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`) flags. Default texture sampling mode is linear, and wrap mode is repeat. - `BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]` - Mirror or clamp to edge wrap   mode. - `BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic   sampling.</param>
 		/// <param name="_mem">Texture data. If `_mem` is non-NULL, created texture will be immutable. If `_mem` is NULL content of the texture is uninitialized. When `_numLayers` is more than 1, expected memory layout is texture and all mips together for each array element.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_cubeA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_texture_cube")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial TextureHandle create_texture_cube(ushort _size, [MarshalAs(UnmanagedType.Bool)] bool _hasMips, ushort _numLayers, TextureFormat _format, ulong _flags, Memory* _mem);
 
@@ -3351,7 +3351,7 @@ namespace Bgfx
 		/// <param name="_handles">Texture attachments.</param>
 		/// <param name="_destroyTexture">If true, textures will be destroyed when frame buffer is destroyed.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_frame_buffer_from_handlesA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_frame_buffer_from_handles")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial FrameBufferHandle create_frame_buffer_from_handles(byte _num, TextureHandle* _handles, [MarshalAs(UnmanagedType.Bool)] bool _destroyTexture);
 
@@ -3364,7 +3364,7 @@ namespace Bgfx
 		/// <param name="_attachment">Attachment texture info. See: `bgfx::Attachment`.</param>
 		/// <param name="_destroyTexture">If true, textures will be destroyed when frame buffer is destroyed.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_create_frame_buffer_from_attachmentA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_create_frame_buffer_from_attachment")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial FrameBufferHandle create_frame_buffer_from_attachment(byte _num, Attachment* _attachment, [MarshalAs(UnmanagedType.Bool)] bool _destroyTexture);
 
@@ -3701,7 +3701,7 @@ namespace Bgfx
 		///
 		/// <param name="_forThread">Explicitly request an encoder for a worker thread.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_encoder_beginA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_encoder_begin")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial Encoder* encoder_begin([MarshalAs(UnmanagedType.Bool)] bool _forThread);
 
@@ -3755,7 +3755,7 @@ namespace Bgfx
 		/// <param name="_handle">Occlusion query handle.</param>
 		/// <param name="_visible">Render if occlusion query is visible.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_encoder_set_conditionA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_encoder_set_condition")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void encoder_set_condition(Encoder* _this, OcclusionQueryHandle _handle, [MarshalAs(UnmanagedType.Bool)] bool _visible);
 
@@ -4370,7 +4370,7 @@ namespace Bgfx
 		/// <param name="_handle">Occlusion query handle.</param>
 		/// <param name="_visible">Render if occlusion query is visible.</param>
 		///
-		[LibraryImport(DllName, EntryPoint = "bgfx_set_conditionA")]
+		[LibraryImport(DllName, EntryPoint = "bgfx_set_condition")]
 		[UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
 		public static unsafe partial void set_condition(OcclusionQueryHandle _handle, [MarshalAs(UnmanagedType.Bool)] bool _visible);
 
