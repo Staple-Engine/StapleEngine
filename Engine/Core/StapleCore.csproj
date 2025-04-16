@@ -79,9 +79,6 @@
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
 		</Reference>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-		</Reference>
 		<Reference Include="NVorbis">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NVorbis.dll</HintPath>
 		</Reference>

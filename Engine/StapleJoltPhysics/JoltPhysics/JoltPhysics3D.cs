@@ -265,7 +265,7 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
+    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, in CollideShapeResult collisionResult)
     {
         lock (threadLock)
         {
@@ -731,7 +731,7 @@ public class JoltPhysics3D : IPhysics3D
             freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
 
-    public bool CreateMesh(Entity entity, ReadOnlySpan<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
+    public bool CreateMesh(Entity entity, Span<Triangle> triangles, Vector3 position, Quaternion rotation, BodyMotionType motionType,
         ushort layer, bool isTrigger, float gravityFactor, float friction, float restitution, bool freezeX, bool freezeY, bool freezeZ, bool is2DPlane,
         float mass, out IBody3D body)
     {

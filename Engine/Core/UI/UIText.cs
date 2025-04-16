@@ -197,11 +197,18 @@ public class UIText : UIElement
 
         if (material != null && vertices.Length > 0 && indices.Length > 0)
         {
+            var texture = TextRenderer.instance.FontTexture(parameters);
+
+            if(texture == null)
+            {
+                return;
+            }
+
             var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), TextRenderer.VertexLayout.Value);
 
             var indexBuffer = IndexBuffer.CreateTransient(indices);
 
-            material.MainTexture = TextRenderer.instance.FontTexture(parameters);
+            material.MainTexture = texture;
 
             Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length, material, Vector3.Zero,
                 Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
