@@ -91,6 +91,8 @@ project "bgfx"
 	}
 	
 	links { "bx", "bimg" }
+
+	defines { "BGFX_CONFIG_MAX_DRAW_CALLS=10240" }
 	
 	filter "configurations:Debug"
 		defines { "BX_CONFIG_DEBUG=1" }
