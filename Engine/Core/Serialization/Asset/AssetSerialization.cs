@@ -117,6 +117,26 @@ internal static partial class AssetSerialization
     ];
 
     /// <summary>
+    /// All plugin file extensions
+    /// </summary>
+    public static readonly string[] PluginExtensions =
+    [
+        "dll",
+        "dylib",
+        "so",
+    ];
+
+    /// <summary>
+    /// All plugin folder extension suffixes
+    /// </summary>
+    public static readonly string[] PluginFolderSuffixes =
+    [
+        "androidlib",
+        "bundle",
+        "framework",
+    ];
+
+    /// <summary>
     /// Gets the asset path for an asset from a cache path
     /// </summary>
     /// <param name="path">The asset path</param>

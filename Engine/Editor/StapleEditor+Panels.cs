@@ -1280,6 +1280,32 @@ internal partial class StapleEditor
                         }
                     }
                 }
+                else if (item.typeName == typeof(PluginAsset).FullName)
+                {
+                    try
+                    {
+                        original = JsonConvert.DeserializeObject<PluginAsset>(data);
+                        selectedProjectNodeData = JsonConvert.DeserializeObject<PluginAsset>(data);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    if (original != null && selectedProjectNodeData != null)
+                    {
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                        if (editor is AssetEditor e)
+                        {
+                            e.original = original;
+                            e.path = item.path;
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<PluginAsset>($"{item.path}.meta");
+
+                            cachedEditors.Add("", editor);
+                        }
+                    }
+                }
                 else
                 {
                     var type = TypeCache.GetType(item.typeName);

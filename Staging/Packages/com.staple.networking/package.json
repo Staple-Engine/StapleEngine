@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.networking",
+	"version": "1.0.0",
+	"description": "Staple-flavoured Networking support",
+	"displayName": "Networking",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "template",
+	"license": "MIT"
+}

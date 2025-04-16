@@ -1,0 +1,9 @@
+{
+  "guid": "c4f016e5-7603-411f-b0e7-aa01cff1dd44",
+  "autoReferenced": false,
+  "anyPlatform": false,
+  "platforms": [
+    "Android"
+  ],
+  "typeName": "Staple.Editor.PluginAsset"
+}

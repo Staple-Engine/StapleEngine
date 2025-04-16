@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Staple.Editor;
 
@@ -42,7 +43,7 @@ internal class ProjectBrowser
 
     static ProjectBrowser()
     {
-        void AddAll(string[] extensions, ProjectBrowserResourceType type)
+        static void AddAll(string[] extensions, ProjectBrowserResourceType type)
         {
             foreach (var ext in extensions)
             {
@@ -54,6 +55,8 @@ internal class ProjectBrowser
         AddAll(AssetSerialization.AudioExtensions, ProjectBrowserResourceType.Audio);
         AddAll(AssetSerialization.MeshExtensions, ProjectBrowserResourceType.Mesh);
         AddAll(AssetSerialization.FontExtensions, ProjectBrowserResourceType.Font);
+        AddAll(AssetSerialization.PluginExtensions, ProjectBrowserResourceType.Plugin);
+        AddAll(AssetSerialization.PluginFolderSuffixes, ProjectBrowserResourceType.Plugin);
     }
 
     public const float contentPanelThumbnailSize = 64;
@@ -162,6 +165,7 @@ internal class ProjectBrowser
             ProjectBrowserResourceType.Asset => GetEditorResource("AssetIcon"),
             ProjectBrowserResourceType.Audio => GetEditorResource("AudioIcon"),
             ProjectBrowserResourceType.AssemblyDefinition => GetEditorResource("FileIcon"),
+            ProjectBrowserResourceType.Plugin => GetEditorResource("FileIcon"),
             _ => GetEditorResource("FileIcon"),
         };
 
@@ -206,6 +210,27 @@ internal class ProjectBrowser
 
                 foreach (var directory in directories)
                 {
+                    var pluginExtension = AssetSerialization.PluginFolderSuffixes.FirstOrDefault(x => directory.EndsWith(x));
+
+                    if(pluginExtension != null)
+                    {
+                        var pluginNode = new ProjectBrowserNode()
+                        {
+                            name = Path.GetFileName(directory),
+                            extension = $".{pluginExtension}",
+                            path = directory.Replace("\\", "/"),
+                            type = ProjectBrowserNodeType.File,
+                            subnodes = [],
+                            typeName = typeof(PluginAsset).FullName,
+                        };
+
+                        nodes.Add(pluginNode);
+
+                        allNodes.Add(pluginNode);
+
+                        continue;
+                    }
+
                     var subnodes = new List<ProjectBrowserNode>();
 
                     Recursive(directory, subnodes);
@@ -321,6 +346,12 @@ internal class ProjectBrowser
 
                             break;
 
+                        case ProjectBrowserResourceType.Plugin:
+
+                            node.typeName = typeof(PluginAsset).FullName;
+
+                            break;
+
                         default:
 
                             node.typeName = "Unknown";
@@ -380,9 +411,22 @@ internal class ProjectBrowser
 
                     item.ensureValidTexture = (texture) =>
                     {
-                        if (texture?.Disposed ?? true)
+                        if (texture?.Disposed ?? true || ThumbnailCache.HasCachedThumbnail(node.path))
                         {
-                            return GetEditorResource("FolderIcon");
+                            var resourceType = ResourceTypeForExtension(node.extension);
+
+                            Texture icon = null;
+
+                            if(resourceType == ProjectBrowserResourceType.Other)
+                            {
+                                icon = GetEditorResource("FolderIcon");
+                            }
+                            else
+                            {
+                                icon = GetResourceIcon(resourceType);
+                            }
+
+                            return ThumbnailCache.GetThumbnail(node.path) ?? icon;
                         }
 
                         return texture;
@@ -630,6 +674,89 @@ internal class ProjectBrowser
                                             typeName = typeof(AssemblyDefinition).FullName,
                                         },
                                         Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                        File.WriteAllText($"{node.path}.meta", jsonData);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                break;
+
+                            case ProjectBrowserResourceType.Plugin:
+
+                                try
+                                {
+                                    if (File.Exists($"{node.path}.meta") == false)
+                                    {
+                                        var plugin = new PluginAsset()
+                                        {
+                                            guid = Hash(),
+                                        };
+
+                                        var isAssembly = true;
+
+                                        try
+                                        {
+                                            AssemblyName.GetAssemblyName(node.path);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            isAssembly = false;
+                                        }
+
+                                        if(isAssembly == false)
+                                        {
+                                            plugin.autoReferenced = false;
+                                        }
+
+                                        switch (node.extension)
+                                        {
+                                            case ".dll":
+
+                                                if(isAssembly == false)
+                                                {
+                                                    plugin.anyPlatform = false;
+
+                                                    plugin.platforms.Add(AppPlatform.Windows);
+                                                }
+
+                                                break;
+
+                                            case ".dylib":
+
+                                                plugin.anyPlatform = false;
+                                                plugin.platforms.Add(AppPlatform.MacOSX);
+
+                                                break;
+
+                                            case ".so":
+
+                                                plugin.anyPlatform = false;
+                                                plugin.platforms.Add(node.path.Contains($"/Plugins/Android/") ?
+                                                    AppPlatform.Android : AppPlatform.Linux);
+
+                                                break;
+
+                                            case ".androidlib":
+
+                                                plugin.anyPlatform = false;
+                                                plugin.platforms.Add(AppPlatform.Android);
+
+                                                break;
+
+                                            case ".bundle":
+                                            case ".framework":
+
+                                                plugin.anyPlatform = false;
+                                                plugin.platforms.Add(node.path.Contains($"/Plugins/MacOS/") ?
+                                                    AppPlatform.MacOSX : AppPlatform.iOS);
+
+                                                break;
+                                        }
+
+                                        var jsonData = JsonConvert.SerializeObject(plugin, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                         File.WriteAllText($"{node.path}.meta", jsonData);
                                     }

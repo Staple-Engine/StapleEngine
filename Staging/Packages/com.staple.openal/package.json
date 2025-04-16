@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.openal",
+	"version": "1.0.0",
+	"description": "OpenAL Audio Support",
+	"displayName": "OpenAL",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "template",
+	"license": "MIT"
+}

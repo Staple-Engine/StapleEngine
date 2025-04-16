@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Staple.Internal;
 
 namespace Staple.Editor;
@@ -283,13 +284,13 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var font = ResourceManager.instance.LoadPrefab(guid);
+                            var prefab = ResourceManager.instance.LoadPrefab(guid);
 
-                            if (font != null)
+                            if (prefab != null)
                             {
                                 if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
                                 {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = font;
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = prefab;
                                 }
                             }
                         }
@@ -314,6 +315,28 @@ internal class AssetPickerWindow : EditorWindow
                             }
                         }
                         catch(Exception)
+                        {
+                        }
+
+                        break;
+
+                    case ProjectBrowserResourceType.Plugin:
+
+                        try
+                        {
+                            var text = File.ReadAllText(AssetDatabase.GetAssetPath(guid));
+
+                            var plugin = JsonConvert.DeserializeObject<PluginAsset>(text);
+
+                            if (plugin != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = plugin;
+                                }
+                            }
+                        }
+                        catch (Exception)
                         {
                         }
 

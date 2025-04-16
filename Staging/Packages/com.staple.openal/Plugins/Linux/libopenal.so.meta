@@ -1,0 +1,9 @@
+{
+  "guid": "4850966d-1a9a-464d-870a-788ee0fb2bc8",
+  "autoReferenced": false,
+  "anyPlatform": false,
+  "platforms": [
+    "Linux"
+  ],
+  "typeName": "Staple.Editor.PluginAsset"
+}

@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.joltphysics",
+	"version": "1.0.0",
+	"description": "Jolt Physics implementation for Staple",
+	"displayName": "Jolt Physics",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "template",
+	"license": "MIT"
+}

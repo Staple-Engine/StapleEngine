@@ -36,10 +36,12 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\PluginAsset.cs" />
     <Compile Include="Assets\AssemblyDefinition.cs" />
     <Compile Include="Editors\Assets\AssemblyDefinitionEditor.cs" />
     <Compile Include="Editors\Assets\InputActionsEditor.cs" />
     <Compile Include="Editors\Assets\NoiseGeneratorSettingsEditor.cs" />
+    <Compile Include="Editors\Assets\PluginAssetEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
     <Compile Include="Generators\GeneratorAssetManager.cs" />
