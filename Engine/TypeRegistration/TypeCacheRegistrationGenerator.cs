@@ -16,27 +16,32 @@ namespace Staple
 
         private readonly string[] blacklistedNamespaces =
         [
-            "MessagePack",
-            "NAudio",
-            "JoltPhysicsSharp",
-            "NVorbis",
-            "GLFW",
-            "SDL2",
-            "Bgfx",
-            "DrLibs",
-            "OpenAL",
-            "Newtonsoft",
-            "NUnit",
-            "NuGet",
-            "Hexa",
-            "ImGui",
-            "Android",
-            "Java",
-            "Javax",
-            "Org",
-            "Xamarin",
-            "_Microsoft",
-            "Dalvik",
+            "MessagePack.",
+            "NAudio.",
+            "JoltPhysicsSharp.",
+            "NVorbis.",
+            "GLFW.",
+            "SDL2.",
+            "Bgfx.",
+            "DrLibs.",
+            "OpenAL.",
+            "Newtonsoft.",
+            "NUnit.",
+            "NuGet.",
+            "Hexa.",
+            "ImGui.",
+            "Android.",
+            "Java.",
+            "Javax.",
+            "Org.",
+            "Xamarin.",
+            "_Microsoft.",
+            "Dalvik.",
+            "NfdSharp.",
+            "System.Reflection.",
+            "System.Collections.Generic.I",
+            "System.Func",
+            "System.Action",
         ];
 
         public void Initialize(GeneratorInitializationContext context)
@@ -316,7 +321,7 @@ namespace StapleCodeGeneration
 
                 foreach(var item in blacklistedNamespaces)
                 {
-                    if(type.StartsWith($"{item}."))
+                    if(type.StartsWith(item))
                     {
                         skip = true;
 
