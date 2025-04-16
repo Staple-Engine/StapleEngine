@@ -108,7 +108,11 @@ internal partial class StapleEditor
 
             if (assemblyPath != null)
             {
-                return LoadFromAssemblyPath(assemblyPath);
+                var data = File.ReadAllBytes(assemblyPath);
+
+                using var s = new MemoryStream(data);
+
+                return LoadFromStream(s);
             }
 
             var (paths, validAssemblies) = assemblyPathsCallback();
@@ -126,7 +130,11 @@ internal partial class StapleEditor
 
                     if (File.Exists(p))
                     {
-                        return LoadFromAssemblyPath(p);
+                        var data = File.ReadAllBytes(p);
+
+                        using var s = new MemoryStream(data);
+
+                        return LoadFromStream(s);
                     }
                 }
                 catch(Exception)
