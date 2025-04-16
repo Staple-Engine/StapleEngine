@@ -11,22 +11,6 @@ public sealed class VertexLayout
     internal bgfx.VertexLayout layout;
 
     /// <summary>
-    /// Whether an attribute is located in this layout
-    /// </summary>
-    /// <param name="name">The attribute name</param>
-    /// <returns>Whether the attribute exists</returns>
-    public bool Has(VertexAttribute name)
-    {
-        unsafe
-        {
-            fixed (bgfx.VertexLayout* v = &layout)
-            {
-                return bgfx.vertex_layout_has(v, BGFXUtils.GetBGFXVertexAttribute(name));
-            }
-        }
-    }
-
-    /// <summary>
     /// Decodes attribute data from the vertex layout
     /// </summary>
     /// <param name="name">The attribute name</param>
