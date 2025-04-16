@@ -140,33 +140,27 @@ public class AppSettings
     public int physicsFrameRate = 50;
 
     /// <summary>
-    /// Used modules for the player
-    /// </summary>
-    [Key(21)]
-    public HashSet<string> usedModules = [];
-
-    /// <summary>
     /// What color to use for ambient lighting
     /// </summary>
-    [Key(22)]
+    [Key(21)]
     public Color ambientLight = Color.LightBlue;
 
     /// <summary>
     /// Whether to show the performance profiler overlay
     /// </summary>
-    [Key(23)]
+    [Key(22)]
     public AppProfilingMode profilingMode = AppProfilingMode.None;
 
     /// <summary>
     /// Whether to enable lighting
     /// </summary>
-    [Key(24)]
+    [Key(23)]
     public bool enableLighting = true;
 
     /// <summary>
     /// Whether to allow switching to fullscreen and back with ALT+Enter
     /// </summary>
-    [Key(25)]
+    [Key(24)]
     public bool allowFullscreenSwitch = true;
 
     [IgnoreMember]
@@ -222,10 +216,6 @@ public class AppSettings
                         ]
                     }
                 },
-                usedModules = [
-                    "StapleOpenALAudio",
-                    "StapleJoltPhysics",
-                ],
             };
         }
     }
@@ -263,7 +253,6 @@ public class AppSettings
             renderers = newRenderers,
             runInBackground = runInBackground,
             sortingLayers = sortingLayers.Select(x => x).ToList(),
-            usedModules = new(usedModules),
             ambientLight = ambientLight,
             maximumFixedTimestepTime = maximumFixedTimestepTime,
             physicsFrameRate = physicsFrameRate,

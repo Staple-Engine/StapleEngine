@@ -92,6 +92,10 @@
     <Compile Include="Editors\PropertyDrawers\RangePropertyDrawer.cs" />
     <Compile Include="EditorUtils.cs" />
     <Compile Include="GameRegistration.cs" />
+    <Compile Include="Packages\Package.cs" />
+    <Compile Include="Packages\PackageList.cs" />
+    <Compile Include="Packages\PackageLockFile.cs" />
+    <Compile Include="Packages\PackageManager.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowser.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserDropType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNode.cs" />

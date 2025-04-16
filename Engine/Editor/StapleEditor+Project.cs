@@ -119,6 +119,7 @@ internal partial class StapleEditor
             ThumbnailCache.basePath =
             csProjManager.basePath =
             projectBrowser.basePath =
+            PackageManager.instance.basePath =
             Path.GetFullPath(path);
 
         AssetDatabase.assetDirectories.Clear();
@@ -219,7 +220,9 @@ internal partial class StapleEditor
             fileSystemWatcher = null;
         }
 
-        fileSystemWatcher = new FileSystemWatcher(Path.Combine(basePath, "Assets"));
+        PackageManager.instance.Refresh();
+
+        fileSystemWatcher = new FileSystemWatcher(basePath);
 
         void FileSystemHandler(object sender, FileSystemEventArgs e)
         {
@@ -230,19 +233,21 @@ internal partial class StapleEditor
                     try
                     {
                         if (e.FullPath.EndsWith(".cs") ||
-                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted))
+                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted &&
+                            (e.FullPath.StartsWith(Path.Combine(basePath, "Assets")) ||
+                            e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages")))))
                         {
                             needsGameRecompile = true;
                         }
                         else if (Directory.Exists(e.FullPath) == false &&
-                            excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false)
+                            excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
+                            e.FullPath.StartsWith(Path.Combine(basePath, "Assets")))
                         {
                             needsRefreshStaging = true;
                         }
                     }
                     catch (Exception)
                     {
-
                     }
                 }
             }
@@ -255,12 +260,15 @@ internal partial class StapleEditor
                 if (refreshingAssets == false)
                 {
                     if (e.FullPath.EndsWith(".cs") ||
-                        (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed))
+                        (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
+                        (e.FullPath.StartsWith(Path.Combine(basePath, "Assets")) ||
+                        e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages")))))
                     {
                         needsGameRecompile = true;
                     }
                     else if (Directory.Exists(e.FullPath) == false &&
-                        excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false)
+                        excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
+                        e.FullPath.StartsWith(Path.Combine(basePath, "Assets")))
                     {
                         needsRefreshStaging = true;
                     }

@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using Staple.Internal;
 using System.Runtime.InteropServices;
-using Hexa.NET.ImGui;
 
 namespace Staple.Editor;
 
@@ -23,7 +22,7 @@ internal class AppSettingsWindow : EditorWindow
     private static readonly string TimingKey = "Timing";
     private static readonly string PhysicsKey = "Physics";
     private static readonly string LayersKey = "Layers";
-    private static readonly string ModulesKey = "Modules";
+    private static readonly string PackagesKey = "Packages";
     private static readonly string LightingKey = "Lighting";
     private static readonly string RenderingKey = "Rendering and Presentation";
 
@@ -33,7 +32,7 @@ internal class AppSettingsWindow : EditorWindow
         TimingKey,
         PhysicsKey,
         LayersKey,
-        ModulesKey,
+        PackagesKey,
         LightingKey,
         RenderingKey,
     ];
@@ -165,8 +164,9 @@ internal class AppSettingsWindow : EditorWindow
         Handle(projectAppSettings.sortingLayers);
     }
 
-    private void Modules()
+    private void Packages()
     {
+        /*
         EditorGUI.TabBar(moduleKindStrings, "AppSettings.Modules.TabBar", (tabIndex) =>
         {
             var key = moduleKinds[tabIndex];
@@ -226,6 +226,7 @@ internal class AppSettingsWindow : EditorWindow
                 }
             }
         });
+        */
     }
 
     private void Lighting()
@@ -379,9 +380,9 @@ internal class AppSettingsWindow : EditorWindow
                     break;
 
 
-                case string str when str == ModulesKey:
+                case string str when str == PackagesKey:
 
-                    Modules();
+                    Packages();
 
                     break;
 

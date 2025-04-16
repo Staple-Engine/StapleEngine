@@ -1043,6 +1043,8 @@ internal partial class StapleEditor
             return false;
         }
 
+        PackageManager.InitializeProject(path);
+
         return true;
     }
 

@@ -167,6 +167,7 @@ internal class CSProjManager
         DeleteAll("dylib*");
         DeleteAll("so*");
 
+        /*
         foreach (var module in appSettings.usedModules)
         {
             if ((module?.Length ?? 0) == 0)
@@ -179,6 +180,7 @@ internal class CSProjManager
                 return false;
             }
         }
+        */
 
         return true;
     }
@@ -303,6 +305,7 @@ internal class CSProjManager
         p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
         p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
+        /*
         foreach (var pair in projectAppSettings.usedModules)
         {
             p.AddItem("Reference", pair,
@@ -310,11 +313,12 @@ internal class CSProjManager
                     new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", "Debug", $"{pair}.dll"))
                 ]);
         }
+        */
 
         var projects = new Dictionary<string, (AssemblyDefinition, Project, int)>();
         var excludedAsmDefs = new HashSet<string>();
 
-        void Recursive(string path, string basePath)
+        void Recursive(string path, string basePath, Project target)
         {
             try
             {
@@ -387,7 +391,7 @@ internal class CSProjManager
                     }
                     else
                     {
-                        p.AddItem("Compile", filePath);
+                        target.AddItem("Compile", filePath);
                     }
                 }
 
@@ -395,7 +399,7 @@ internal class CSProjManager
 
                 foreach (var directory in directories)
                 {
-                    Recursive(directory, basePath);
+                    Recursive(directory, basePath, target);
                 }
             }
             catch (Exception e)
@@ -404,7 +408,41 @@ internal class CSProjManager
             }
         }
 
-        Recursive(assetsDirectory, assetsDirectory);
+        void HandlePackages()
+        {
+            try
+            {
+                foreach(var pair in PackageManager.instance.projectPackages)
+                {
+                    var project = MakeProject(collection, projectDefines, projectProperties);
+
+                    project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+                    project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+
+                    var counter = 0;
+
+                    foreach (var projectPair in projects)
+                    {
+                        if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            counter++;
+                        }
+                    }
+
+                    Recursive(pair.Value.Item1, PackageManager.instance.PackagesCacheDirectory, project);
+
+                    projects.Add(pair.Value.Item1, (null, project, counter));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed generating csproj: {e}");
+            }
+        }
+
+        Recursive(assetsDirectory, assetsDirectory, p);
+
+        HandlePackages();
 
         if(sandbox == false)
         {
@@ -457,22 +495,25 @@ internal class CSProjManager
 
             asmDefNames.Add(name);
 
-            if(pair.Value.Item1.autoReferenced)
+            if(pair.Value.Item1?.autoReferenced ?? true)
             {
                 p.AddItem("ProjectReference", $"{name}.csproj");
             }
 
-            foreach (var assembly in pair.Value.Item1.referencedAssemblies)
+            if(pair.Value.Item1 != null)
             {
-                var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
-
-                if(targetAssembly.Value.Item1 != null)
+                foreach (var assembly in pair.Value.Item1.referencedAssemblies)
                 {
-                    counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
+                    var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
 
-                    var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+                    if (targetAssembly.Value.Item1 != null)
+                    {
+                        counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
 
-                    pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                        var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+
+                        pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                    }
                 }
             }
 
@@ -841,6 +882,7 @@ internal class CSProjManager
                 ]);
         }
 
+        /*
         foreach(var pair in projectAppSettings.usedModules)
         {
             p.AddItem("Reference", pair,
@@ -848,6 +890,7 @@ internal class CSProjManager
                     new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", configurationName, $"{pair}.dll"))
                 ]);
         }
+        */
 
         var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 

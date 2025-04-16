@@ -8,7 +8,7 @@ namespace Staple;
 public static class Platform
 {
     public const int StapleVersionMajor = 0;
-    public const int StapleVersionMinor = 1;
+    public const int StapleVersionMinor = 2;
 
     /// <summary>
     /// Gets the current platform. If it's unsupported, it'll return null.
