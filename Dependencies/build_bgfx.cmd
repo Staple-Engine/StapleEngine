@@ -2,8 +2,6 @@
 
 cd bgfx
 
-set BGFX_CONFIG=MAX_DRAW_CALLS=10240
-
 call ..\bx\tools\bin\windows\genie.exe --with-tools --with-shared-lib vs2022
 
 devenv .build\projects\vs2022\bgfx.sln  /Build "Debug|x64"
