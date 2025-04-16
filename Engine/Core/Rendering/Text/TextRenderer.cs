@@ -14,9 +14,6 @@ public class TextRenderer
         public Vector2 uv;
     }
 
-    private ExpandableContainer<PosTexVertex> vertexCache = new();
-    private ExpandableContainer<ushort> indexCache = new();
-
     private TextFont defaultFont;
 
     private TextFont DefaultFont
@@ -63,7 +60,7 @@ public class TextRenderer
     {
         var data = Convert.FromBase64String(FontData.IntelOneMonoRegular);
 
-        defaultFont = TextFont.FromData(data, "DEFAULT", true, 1024, FontCharacterSet.BasicLatin |
+        defaultFont = TextFont.FromData(data, "DEFAULT", true, 512, FontCharacterSet.BasicLatin |
             FontCharacterSet.Latin1Supplement |
             FontCharacterSet.LatinExtendedA |
             FontCharacterSet.LatinExtendedB);
@@ -276,7 +273,7 @@ public class TextRenderer
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
             {
-                var vertexBuffer = VertexBuffer.CreateTransient(vertices, VertexLayout.Value);
+                var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), VertexLayout.Value);
                 var indexBuffer = IndexBuffer.CreateTransient(indices);
 
                 if(vertexBuffer == null || indexBuffer == null)
@@ -292,7 +289,7 @@ public class TextRenderer
         }
     }
 
-    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out Span<PosTexVertex> vertices, out Span<ushort> indices)
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out PosTexVertex[] vertices, out ushort[] indices)
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -321,8 +318,8 @@ public class TextRenderer
 
         var lines = text.Replace("\r", "").Split('\n');
 
-        vertexCache.Clear();
-        indexCache.Clear();
+        var outVertices = new List<PosTexVertex>();
+        var outIndices = new List<ushort>();
 
         foreach (var line in lines)
         {
@@ -355,34 +352,34 @@ public class TextRenderer
 
                             var p = position + new Vector2(glyph.xOffset * scale, yOffset * scale);
 
-                            indexCache.Add((ushort)vertexCache.Length);
-                            indexCache.Add((ushort)(vertexCache.Length + 1));
-                            indexCache.Add((ushort)(vertexCache.Length + 2));
-                            indexCache.Add((ushort)(vertexCache.Length + 2));
-                            indexCache.Add((ushort)(vertexCache.Length + 3));
-                            indexCache.Add((ushort)(vertexCache.Length));
+                            outIndices.Add((ushort)outVertices.Count);
+                            outIndices.Add((ushort)(outVertices.Count + 1));
+                            outIndices.Add((ushort)(outVertices.Count + 2));
+                            outIndices.Add((ushort)(outVertices.Count + 2));
+                            outIndices.Add((ushort)(outVertices.Count + 3));
+                            outIndices.Add((ushort)(outVertices.Count));
 
                             if (flipY)
                             {
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + new Vector2(0, size.Y),
                                     uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p,
                                     uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + new Vector2(size.X, 0),
                                     uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + size,
                                     uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
@@ -390,25 +387,25 @@ public class TextRenderer
                             }
                             else
                             {
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p,
                                     uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + new Vector2(0, size.Y),
                                     uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + size,
                                     uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
                                 });
 
-                                vertexCache.Add(new()
+                                outVertices.Add(new()
                                 {
                                     position = p + new Vector2(size.X, 0),
                                     uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
@@ -430,8 +427,8 @@ public class TextRenderer
             position.Y += lineSpace;
         }
 
-        vertices = vertexCache.Contents;
-        indices = indexCache.Contents;
+        vertices = outVertices.ToArray();
+        indices = outIndices.ToArray();
 
         return true;
     }

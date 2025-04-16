@@ -1,0 +1,8 @@
+{
+	"anyPlatform": true,
+	"platforms": [],
+	"excludedPlatforms": [],
+	"allowUnsafeCode": false,
+	"autoReferenced": true,
+	"referencedAssemblies": []
+}

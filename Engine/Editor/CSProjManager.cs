@@ -502,7 +502,7 @@ internal class CSProjManager
 
         if (process.Start())
         {
-            while (process.HasExited == false) ;
+            process.WaitForExit();
 
             if (process.ExitCode != 0)
             {
@@ -535,7 +535,7 @@ internal class CSProjManager
 
             if (process.Start())
             {
-                while (process.HasExited == false) ;
+                process.WaitForExit();
 
                 if (process.ExitCode != 0)
                 {
@@ -995,7 +995,7 @@ internal class CSProjManager
 
         if (process.Start())
         {
-            while (process.HasExited == false) ;
+            process.WaitForExit();
 
             if (process.ExitCode != 0)
             {
@@ -1028,7 +1028,7 @@ internal class CSProjManager
 
             if (process.Start())
             {
-                while (process.HasExited == false) ;
+                process.WaitForExit();
 
                 if (process.ExitCode != 0)
                 {

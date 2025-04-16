@@ -79,6 +79,9 @@ public class UIText : UIElement
     private Color previousBorderColor;
     private Vector2Int intrinsicSize;
 
+    private TextRenderer.PosTexVertex[] vertices = [];
+    private ushort[] indices = [];
+
     private bool IsDirty
     {
         get
@@ -184,22 +187,25 @@ public class UIText : UIElement
             var rect = TextRenderer.instance.MeasureTextSimple(text, Parameters());
 
             intrinsicSize = new Vector2Int(rect.left + rect.Width, rect.top + rect.Height);
+
+            if(TextRenderer.instance.MakeTextGeometry(text, parameters, 1, true, out vertices, out indices) == false)
+            {
+                vertices = [];
+                indices = [];
+            }
         }
 
-        if (material != null)
+        if (material != null && vertices.Length > 0 && indices.Length > 0)
         {
-            if (TextRenderer.instance.MakeTextGeometry(text, parameters, 1, true, out var vertices, out var indices))
-            {
-                var vertexBuffer = VertexBuffer.CreateTransient(vertices, TextRenderer.VertexLayout.Value);
+            var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), TextRenderer.VertexLayout.Value);
 
-                var indexBuffer = IndexBuffer.CreateTransient(indices);
+            var indexBuffer = IndexBuffer.CreateTransient(indices);
 
-                material.MainTexture = TextRenderer.instance.FontTexture(parameters);
+            material.MainTexture = TextRenderer.instance.FontTexture(parameters);
 
-                Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length, material, Vector3.Zero,
-                    Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-                    viewID);
-            }
+            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length, material, Vector3.Zero,
+                Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
+                viewID);
         }
     }
 }
