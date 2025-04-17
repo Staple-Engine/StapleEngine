@@ -277,4 +277,55 @@ public static class AssetDatabase
 
         return null;
     }
+
+    /// <summary>
+    /// Attempts to find an asset of a specific type name
+    /// </summary>
+    /// <param name="typeName">The full name of the type the asset should have</param>
+    /// <returns>A list of asset guids</returns>
+    public static string[] FindAssetsByType(string typeName)
+    {
+        var outValue = new List<string>();
+        var l = assets.Count;
+
+        for (var i = 0; i < l; i++)
+        {
+            var asset = assets[i];
+
+            if (asset.typeName == typeName)
+            {
+                outValue.Add(asset.guid);
+            }
+        }
+
+        return outValue.ToArray();
+    }
+
+    /// <summary>
+    /// Attempts to resolve the full path of an asset by guid
+    /// </summary>
+    /// <param name="guid">The asset guid</param>
+    /// <returns>The path, or null</returns>
+    public static string ResolveAssetFullPath(string guid, string prefix = "")
+    {
+        var path = GetAssetPath(guid, prefix);
+
+        if(path == null)
+        {
+            return null;
+        }
+
+        foreach(var directory in assetDirectories)
+        {
+            var target = Path.Combine(directory, path);
+
+            if (File.Exists(target) ||
+                Directory.Exists(target))
+            {
+                return target;
+            }
+        }
+
+        return null;
+    }
 }

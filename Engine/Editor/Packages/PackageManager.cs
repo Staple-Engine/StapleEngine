@@ -103,8 +103,8 @@ internal partial class PackageManager
         {
             foreach (var dependency in dependencies)
             {
-                if (packageLock.dependencies.TryGetValue(dependency.Key, out var version) == false ||
-                    version != dependency.Value)
+                if (packageLock.dependencies.TryGetValue(dependency.Key, out var state) == false ||
+                    state.version != dependency.Value)
                 {
                     SetupPackage(dependency.Key, dependency.Value, updatedLock, missingDependencies);
                 }
@@ -243,13 +243,13 @@ internal partial class PackageManager
         }
     }
 
-    public static PackageList ParsePackageLock(string path)
+    public static PackageLockFile ParsePackageLock(string path)
     {
         try
         {
             var text = File.ReadAllText(path);
 
-            return JsonConvert.DeserializeObject<PackageList>(text, Tooling.Utilities.JsonSettings);
+            return JsonConvert.DeserializeObject<PackageLockFile>(text, Tooling.Utilities.JsonSettings);
         }
         catch (Exception e)
         {

@@ -141,10 +141,11 @@ internal class CSProjManager
     /// </summary>
     /// <param name="targetPath">The path to copy to</param>
     /// <param name="appSettings">The project appsettings</param>
+    /// <param name="platform">The current platform to build for</param>
     /// <param name="backendBasePath">The base path of the current backend</param>
     /// <param name="configurationName">The configuration name</param>
     /// <returns>Whether we copied successfully</returns>
-    public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, string backendBasePath, string configurationName)
+    public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, AppPlatform platform, string backendBasePath, string configurationName)
     {
         void DeleteAll(string extension)
         {
@@ -181,6 +182,41 @@ internal class CSProjManager
             }
         }
         */
+
+        var pluginFiles = AssetDatabase.FindAssetsByType(typeof(PluginAsset).FullName);
+
+        foreach(var file in pluginFiles)
+        {
+            var path = AssetDatabase.ResolveAssetFullPath(file);
+
+            try
+            {
+                var text = File.ReadAllText($"{path}.meta");
+
+                var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
+
+                if(plugin.autoReferenced || (plugin.anyPlatform == false && plugin.platforms.Contains(platform) == false))
+                {
+                    continue;
+                }
+
+                if (File.Exists(path))
+                {
+                    File.Copy(path, Path.Combine(targetPath, Path.GetFileName(path)));
+                }
+                else if(Directory.Exists(path))
+                {
+                    if(EditorUtils.CopyDirectory(path, Path.Combine(targetPath, Path.GetFileName(path))) == false)
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+        }
 
         return true;
     }
@@ -290,6 +326,11 @@ internal class CSProjManager
             { "TieredCompilation", "false" },
             { "PublishReadyToRun", "false" },
         };
+
+        if(projectAppSettings.allowUnsafeCode)
+        {
+            projectProperties.Add("AllowUnsafeBlocks", "true");
+        }
 
         var platformDefinesString = "";
 
@@ -443,6 +484,52 @@ internal class CSProjManager
         Recursive(assetsDirectory, assetsDirectory, p);
 
         HandlePackages();
+
+        var assemblies = new List<string>();
+
+        foreach(var directory in AssetDatabase.assetDirectories)
+        {
+            try
+            {
+                assemblies.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
+            }
+            catch(Exception)
+            {
+                continue;
+            }
+        }
+
+        foreach(var assemblyPath in assemblies)
+        {
+            try
+            {
+                var text = File.ReadAllText(assemblyPath);
+
+                var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
+
+                if(plugin.typeName != typeof(PluginAsset).FullName)
+                {
+                    continue;
+                }
+
+                if(plugin.autoReferenced &&
+                    (plugin.anyPlatform || plugin.platforms.Contains(platform)))
+                {
+                    var targetPath = assemblyPath[..^".meta".Length];
+
+                    foreach (var pair in projects)
+                    {
+                        pair.Value.Item2?.AddItem("Reference", Path.GetFileName(targetPath),
+                            [new("HintPath", targetPath)]);
+                    }
+
+                    p.AddItem("Reference", Path.GetFileName(targetPath), [new("HintPath", targetPath)]);
+                }
+            }
+            catch(Exception)
+            {
+            }
+        }
 
         if(sandbox == false)
         {
@@ -628,8 +715,8 @@ internal class CSProjManager
 
         if(backend.dataDirIsOutput == false)
         {
-            CopyModuleRedists(Path.Combine(Path.Combine(projectDirectory, backend.redistOutput), backend.redistOutput),
-                projectAppSettings, backend.basePath, redistConfigurationName);
+            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput, backend.redistOutput), projectAppSettings,
+                platform, backend.basePath, redistConfigurationName);
 
             EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
         }
@@ -650,10 +737,14 @@ internal class CSProjManager
             { "AppDesignerFolder", "Properties" },
             { "OptimizationPreference", "Speed" },
             { "Nullable", "enable" },
-            { "AllowUnsafeBlocks", "true" },
             { "TieredCompilation", "false" },
             { "PublishReadyToRun", "false" },
         };
+
+        if (projectAppSettings.allowUnsafeCode)
+        {
+            projectProperties.Add("AllowUnsafeBlocks", "true");
+        }
 
         var platformDefinesString = "";
 
@@ -679,13 +770,18 @@ internal class CSProjManager
             { "PublishReadyToRun", "false" },
         };
 
+        if (projectAppSettings.allowUnsafeCode)
+        {
+            asmDefProjectProperties.Add("AllowUnsafeBlocks", "true");
+        }
+
         var platformUsesSeparateProjects = platform switch
         {
             AppPlatform.Android or AppPlatform.iOS  => false,
             _ => true,
         };
 
-        void FindScripts(string path, string basePath)
+        void FindScripts(string path, string basePath, Project target)
         {
             try
             {
@@ -784,7 +880,7 @@ internal class CSProjManager
                     }
                     else
                     {
-                        p.AddItem("Compile", Path.GetFullPath(file));
+                        target.AddItem("Compile", Path.GetFullPath(file));
                     }
                 }
 
@@ -792,7 +888,7 @@ internal class CSProjManager
 
                 foreach (var directory in directories)
                 {
-                    FindScripts(directory, basePath);
+                    FindScripts(directory, basePath, target);
                 }
             }
             catch (Exception e)
@@ -976,7 +1072,41 @@ internal class CSProjManager
                 break;
         }
 
-        FindScripts(assetsDirectory, assetsDirectory);
+        void HandlePackages()
+        {
+            try
+            {
+                foreach (var pair in PackageManager.instance.projectPackages)
+                {
+                    var project = MakeProject(collection, projectDefines, projectProperties);
+
+                    project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+                    project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+
+                    var counter = 0;
+
+                    foreach (var projectPair in projects)
+                    {
+                        if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            counter++;
+                        }
+                    }
+
+                    FindScripts(pair.Value.Item1, PackageManager.instance.PackagesCacheDirectory, project);
+
+                    projects.Add(pair.Value.Item1, (null, project, counter));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed generating csproj: {e}");
+            }
+        }
+
+        FindScripts(assetsDirectory, assetsDirectory, p);
+
+        HandlePackages();
 
         var asmDefNames = new List<string>();
 
@@ -993,22 +1123,25 @@ internal class CSProjManager
 
             asmDefNames.Add(name);
 
-            if (pair.Value.Item1.autoReferenced)
+            if (pair.Value.Item1?.autoReferenced ?? true)
             {
                 p.AddItem("ProjectReference", $"{name}.csproj");
             }
 
-            foreach (var assembly in pair.Value.Item1.referencedAssemblies)
+            if(pair.Value.Item1 != null)
             {
-                var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
-
-                if (targetAssembly.Value.Item1 != null)
+                foreach (var assembly in pair.Value.Item1.referencedAssemblies)
                 {
-                    counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
+                    var targetAssembly = projects.FirstOrDefault(x => x.Value.Item1.guid != null && x.Value.Item1.guid == assembly);
 
-                    var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+                    if (targetAssembly.Value.Item1 != null)
+                    {
+                        counter = targetAssembly.Value.Item3 == 0 ? "" : targetAssembly.Value.Item3.ToString();
 
-                    pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                        var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+
+                        pair.Value.Item2.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                    }
                 }
             }
 

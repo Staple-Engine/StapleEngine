@@ -122,8 +122,11 @@ internal partial class StapleEditor
             PackageManager.instance.basePath =
             Path.GetFullPath(path);
 
+        PackageManager.instance.Refresh();
+
         AssetDatabase.assetDirectories.Clear();
         AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
+        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages"));
 
         ResourceManager.instance.resourcePaths.Clear();
         ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString()));
@@ -219,8 +222,6 @@ internal partial class StapleEditor
 
             fileSystemWatcher = null;
         }
-
-        PackageManager.instance.Refresh();
 
         fileSystemWatcher = new FileSystemWatcher(basePath);
 

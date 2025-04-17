@@ -163,6 +163,12 @@ public class AppSettings
     [Key(24)]
     public bool allowFullscreenSwitch = true;
 
+    /// <summary>
+    /// Whether to allow unsafe code in C# scripts
+    /// </summary>
+    [Key(25)]
+    public bool allowUnsafeCode = false;
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -259,6 +265,7 @@ public class AppSettings
             profilingMode = profilingMode,
             allowFullscreenSwitch = allowFullscreenSwitch,
             enableLighting = enableLighting,
+            allowUnsafeCode = allowUnsafeCode,
         };
     }
 }
