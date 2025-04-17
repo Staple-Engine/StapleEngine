@@ -53,6 +53,11 @@ internal partial class PackageManager
         }
     }
 
+    public string PathForPackage(string name, string version)
+    {
+        return Path.Combine(basePath, "Cache", "Packages", $"{name}@{version}");
+    }
+
     public void AddPackage(string name, string version)
     {
         var packageList = ParsePackages(PackagesPath);
@@ -68,7 +73,7 @@ internal partial class PackageManager
         {
             var text = JsonConvert.SerializeObject(packageList, Formatting.Indented, Tooling.Utilities.JsonSettings);
 
-            File.WriteAllText(Path.Combine(basePath, "Settings", "packages.json"), text);
+            File.WriteAllText(PackagesPath, text);
         }
         catch (Exception)
         {
@@ -94,11 +99,67 @@ internal partial class PackageManager
         {
             var text = JsonConvert.SerializeObject(packageList, Formatting.Indented, Tooling.Utilities.JsonSettings);
 
-            File.WriteAllText(Path.Combine(basePath, "Settings", "packages.json"), text);
+            File.WriteAllText(PackagesPath, text);
         }
         catch (Exception)
         {
         }
+
+        Refresh();
+
+        EditorUtils.RefreshAssets(true, null);
+    }
+
+    public void InstallLocalPackage(string path)
+    {
+        var package = ParsePackage(path);
+        var packageList = ParsePackages(PackagesPath);
+
+        if(package == null ||
+            packageList == null)
+        {
+            return;
+        }
+
+        if(packageList.dependencies.ContainsKey(package.name))
+        {
+            return;
+        }
+
+        try
+        {
+            var target = Path.Combine(PackagesCacheDirectory, $"{package.name}@{package.version}");
+
+            if(EditorUtils.CopyDirectory(Path.GetDirectoryName(path), target) == false)
+            {
+                Directory.Delete(target, true);
+
+                return;
+            }
+        }
+        catch(Exception)
+        {
+            return;
+        }
+
+        var dependencies = new Dictionary<string, string>();
+
+        foreach(var d in package.dependencies)
+        {
+            dependencies.AddOrSetKey(d.name, d.version);
+        }
+
+        packageList.dependencies.Add(package.name, package.version);
+
+        lockFile.dependencies.Add(package.name, new()
+        {
+            source = PackageLockFile.Source.Local,
+            version = package.version,
+            dependencies = dependencies,
+        });
+
+        SavePackages(packageList);
+        SavePackageLock(lockFile);
 
         Refresh();
 
@@ -157,7 +218,7 @@ internal partial class PackageManager
         {
             foreach (var dependency in dependencies)
             {
-                SetupPackage(dependency.Key, dependency.Value, packageList, updatedLock, missingDependencies);
+                SetupPackage(dependency.Key, dependency.Value, packageList, lockFile, updatedLock, missingDependencies);
             }
 
             if(missingDependencies.Count > 0)
@@ -172,12 +233,15 @@ internal partial class PackageManager
 
         Handle(packageList.dependencies);
 
+        //Load package files and remove invalid/missing ones
+        var removed = new List<string>();
+
         foreach(var dependency in updatedLock.dependencies)
         {
+            var target = Path.Combine(PackagesCacheDirectory, $"{dependency.Key}@{dependency.Value.version}");
+
             try
             {
-                var target = Path.Combine(PackagesCacheDirectory, $"{dependency.Key}@{dependency.Value.version}");
-
                 var package = JsonConvert.DeserializeObject<Package>(File.ReadAllText(Path.Combine(target, "package.json")), Tooling.Utilities.JsonSettings);
 
                 if (package != null)
@@ -187,10 +251,17 @@ internal partial class PackageManager
             }
             catch (Exception)
             {
+                removed.Add(dependency.Key);
             }
         }
 
-        //Remove unused packages
+        foreach(var r in removed)
+        {
+            packageList.dependencies.Remove(r);
+            updatedLock.dependencies.Remove(r);
+        }
+
+        //Remove leftover unused packages
         try
         {
             var directories = Directory.GetDirectories(Path.Combine(PackagesCacheDirectory));
@@ -231,25 +302,33 @@ internal partial class PackageManager
 
         lockFile.dependencies = updatedLock.dependencies;
 
-        try
-        {
-            File.WriteAllText(LockPath, JsonConvert.SerializeObject(updatedLock, Formatting.Indented, Tooling.Utilities.JsonSettings));
-        }
-        catch(Exception)
-        {
-        }
+        SavePackages(packageList);
+        SavePackageLock(updatedLock);
 
         return true;
     }
 
-    private void SetupPackage(string name, string value, PackageList packageList, PackageLockFile lockFile, Dictionary<string, string> missingDependencies)
+    private void SetupPackage(string name, string value, PackageList packageList, PackageLockFile lockFile, PackageLockFile updatedLockFile,
+        Dictionary<string, string> missingDependencies)
     {
         var version = versionRegex.Match(value);
 
         if(version?.Success ?? false)
         {
+            value = version.Value;
+
             if(builtinPackages.TryGetValue(name, out var p))
             {
+                var shouldOverwrite = false;
+                var oldVersion = value;
+
+                if(p.Item2.version != value)
+                {
+                    shouldOverwrite = true;
+
+                    value = p.Item2.version;
+                }
+
                 var dependencies = new Dictionary<string, string>();
 
                 foreach(var dependency in p.Item2.dependencies)
@@ -257,9 +336,9 @@ internal partial class PackageManager
                     dependencies.Add(dependency.name, dependency.version);
                 }
 
-                if(lockFile.dependencies.ContainsKey(name) == false)
+                if(updatedLockFile.dependencies.ContainsKey(name) == false)
                 {
-                    lockFile.dependencies.Add(name, new()
+                    updatedLockFile.dependencies.Add(name, new()
                     {
                         version = value,
                         source = PackageLockFile.Source.Builtin,
@@ -267,7 +346,23 @@ internal partial class PackageManager
                     });
                 }
 
-                var directory = Path.Combine(basePath, "Cache", "Packages", $"{name}@{version}");
+                var directory = PathForPackage(name, value);
+
+                if(shouldOverwrite)
+                {
+                    var oldDirectory = PathForPackage(name, oldVersion);
+
+                    if(Directory.Exists(oldDirectory))
+                    {
+                        try
+                        {
+                            Directory.Delete(oldDirectory, true);
+                        }
+                        catch(Exception)
+                        {
+                        }
+                    }
+                }
 
                 if (Directory.Exists(directory) == false)
                 {
@@ -301,11 +396,28 @@ internal partial class PackageManager
             }
             else
             {
+                if(lockFile.dependencies.TryGetValue(name, out var state))
+                {
+                    if(state.version == version.Value &&
+                        Directory.Exists(PathForPackage(name, state.version)))
+                    {
+                        updatedLockFile.dependencies.Add(name, state);
+
+                        return;
+                    }
+                }
+
                 //TODO: Get from repo
+
+                packageList.dependencies.Remove(name);
+                lockFile.dependencies.Remove(name);
             }
         }
         else
         {
+            packageList.dependencies.Remove(name);
+            lockFile.dependencies.Remove(name);
+
             var url = urlRegex.Match(value);
 
             if(url?.Success ?? false)
@@ -316,6 +428,34 @@ internal partial class PackageManager
             {
                 //Failed
             }
+        }
+    }
+
+    public void SavePackages(PackageList packageList)
+    {
+        try
+        {
+            var text = JsonConvert.SerializeObject(packageList, Formatting.Indented, Tooling.Utilities.JsonSettings);
+
+            File.WriteAllText(PackagesPath, text);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[Package Manager] Failed to save the package list: {e}");
+        }
+    }
+
+    public void SavePackageLock(PackageLockFile lockFile)
+    {
+        try
+        {
+            var text = JsonConvert.SerializeObject(lockFile, Formatting.Indented, Tooling.Utilities.JsonSettings);
+
+            File.WriteAllText(LockPath, text);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[Package Manager] Failed to save the package lock file: {e}");
         }
     }
 

@@ -23,9 +23,9 @@ internal class PackageLockFile
         public string hash;
         public string url;
 
-        public bool ShouldSerializeHash() => source == Source.Git;
+        public bool ShouldSerializehash() => source == Source.Git;
 
-        public bool ShouldSerializeURL() => source == Source.Repository;
+        public bool ShouldSerializeurl() => source == Source.Repository;
     }
 
     public Dictionary<string, PackageState> dependencies = [];

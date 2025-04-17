@@ -123,6 +123,12 @@ public static class EditorUtils
     /// <returns>Whether it did so successfully</returns>
     public static bool CopyDirectory(string source, string destination)
     {
+        if(Path.GetFileName(source).StartsWith('.'))
+        {
+            //Silently ignore hidden folders
+            return true;
+        }
+
         try
         {
             if(Directory.Exists(source) == false)

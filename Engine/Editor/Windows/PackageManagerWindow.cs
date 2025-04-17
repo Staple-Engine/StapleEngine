@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using NfdSharp;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Editor;
@@ -21,7 +22,7 @@ internal class PackageManagerWindow : EditorWindow
     {
         title = "Package Manager";
 
-        windowFlags = EditorWindowFlags.Resizable;
+        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable | EditorWindowFlags.HasMenuBar;
     }
 
     public override void OnGUI()
@@ -32,6 +33,10 @@ internal class PackageManagerWindow : EditorWindow
             {
                 EditorGUI.MenuItem("From Folder", "PackageManager.AddFolder", () =>
                 {
+                    if(Nfd.OpenDialog("json", "", out var path) == Nfd.NfdResult.NFD_OKAY)
+                    {
+                        PackageManager.instance.InstallLocalPackage(path);
+                    }
                 });
 
                 EditorGUI.MenuItem("From Git", "PackageManager.AddGit", () =>
