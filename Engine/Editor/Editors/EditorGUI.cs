@@ -14,14 +14,21 @@ namespace Staple.Editor;
 /// </summary>
 public static class EditorGUI
 {
+    [Flags]
+    public enum SelectableFlags
+    {
+        None = ImGuiSelectableFlags.None,
+        SpanAllColumns = ImGuiSelectableFlags.SpanAllColumns,
+    }
+
     internal static ImGuiIOPtr io;
     internal static StapleEditor editor;
+
+    private static bool changed = false;
 
     internal static readonly Dictionary<string, object> pendingObjectPickers = [];
 
     private static readonly Dictionary<string, object> cachedEnumValues = [];
-
-    private static bool changed = false;
 
     private static readonly Dictionary<string, bool> treeViewStates = [];
 
@@ -39,6 +46,64 @@ public static class EditorGUI
         {
             Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
         }
+    }
+
+    internal static void ExecuteHandler<T>(Action<T> handler, string label, T a)
+    {
+        try
+        {
+            handler?.Invoke(a);
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
+        }
+    }
+
+    internal static void ExecuteHandler<T, T2>(Action<T, T2> handler, string label, T a, T2 b)
+    {
+        try
+        {
+            handler?.Invoke(a, b);
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
+        }
+    }
+
+    internal static T ExecuteHandler<T>(Func<T> handler, string label)
+    {
+        try
+        {
+            if(handler != null)
+            {
+                return handler.Invoke();
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
+        }
+
+        return default;
+    }
+
+    internal static T2 ExecuteHandler<T, T2>(Func<T, T2> handler, string label, T a)
+    {
+        try
+        {
+            if (handler != null)
+            {
+                return handler.Invoke(a);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[EditorGUI] Failed to execute handler for {label}: {e}");
+        }
+
+        return default;
     }
 
     internal static void OnFrameStart()
@@ -212,6 +277,19 @@ public static class EditorGUI
     public static void Label(string text)
     {
         ImGui.Text(text);
+    }
+
+    /// <summary>
+    /// Shows a header label
+    /// </summary>
+    /// <param name="text">The text to show</param>
+    public static void HeaderLabel(string text)
+    {
+        ImGui.PushFont(ImGuiProxy.instance.headerFont);
+
+        Label(text);
+
+        ImGui.PopFont();
     }
 
     /// <summary>
@@ -1129,6 +1207,20 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Creates a selectable element
+    /// </summary>
+    /// <param name="text">The text to display</param>
+    /// <param name="key">A unique key for the selectable</param>
+    /// <param name="handler">The handler to execute when it's selected</param>
+    public static void Selectable(string text, string key, Action handler, SelectableFlags flags = SelectableFlags.None)
+    {
+        if (ImGui.Selectable(MakeIdentifier(text, key), (ImGuiSelectableFlags)flags))
+        {
+            ExecuteHandler(handler, $"{text} Selectable");
+        }
+    }
+
+    /// <summary>
     /// Manages a drop target with a specific type and callback
     /// </summary>
     /// <param name="type">The type we want to handle</param>
@@ -1181,7 +1273,7 @@ public static class EditorGUI
     /// <summary>
     /// Creates a window frame as part of a window
     /// </summary>
-    /// <param name="key">>A unique key for the window</param>
+    /// <param name="key">A unique key for the window</param>
     /// <param name="size">The size of the window. A size of 0,0 will auto resize</param>
     /// <param name="handler">Content for the window frame</param>
     public static void WindowFrame(string key, Vector2 size, Action handler)
@@ -1357,5 +1449,69 @@ public static class EditorGUI
         }
 
         return value;
+    }
+
+    /// <summary>
+    /// Creates a table
+    /// </summary>
+    /// <param name="key">The tablet's unique ID</param>
+    /// <param name="rows">The amount of rows</param>
+    /// <param name="columns">The amount of columns</param>
+    /// <param name="showHeader">Whether to how a header bar</param>
+    /// <param name="rowHandler">A callback for when a row is done</param>
+    /// <param name="setupColumnHandler">A callback for what header title and width you want for the column</param>
+    /// <param name="rowColumnHandler">a callback for a row and column</param>
+    /// <param name="rowClickHandler">A callback for when a row is clicked</param>
+    public static void Table(string key, int rows, int columns, bool showHeader, Action<int> rowHandler, Func<int, (string, float)> setupColumnHandler,
+        Action<int, int> rowColumnHandler, Action<int> rowClickHandler)
+    {
+        if(ImGui.BeginTable(key, columns))
+        {
+            for(var i = 0; i < columns; i++)
+            {
+                var result = ExecuteHandler(setupColumnHandler, $"{key} column  width", i);
+
+                if (result.Item1 != null)
+                {
+                    if(result.Item2 > 0)
+                    {
+                        ImGui.TableSetupColumn(result.Item1, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, result.Item2);
+                    }
+                    else
+                    {
+                        ImGui.TableSetupColumn(result.Item1);
+                    }
+                }
+                else
+                {
+                    ImGui.TableSetupColumn($"{i}");
+                }
+            }
+
+            if(showHeader)
+            {
+                ImGui.TableHeadersRow();
+            }
+
+            for (var i = 0; i < rows; i++)
+            {
+                ImGui.TableNextRow();
+
+                ExecuteHandler(rowHandler, $"{key} row {i}", i);
+
+                for (var j = 0; j < columns; j++)
+                {
+                    ImGui.TableNextColumn();
+
+                    ExecuteHandler(rowColumnHandler, $"{key} row {i} column {j}", i, j);
+                }
+
+                SameLine();
+
+                Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i), SelectableFlags.SpanAllColumns);
+            }
+
+            ImGui.EndTable();
+        }
     }
 }

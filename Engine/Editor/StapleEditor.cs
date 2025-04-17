@@ -180,8 +180,6 @@ internal partial class StapleEditor
     #region Rendering
     private RenderWindow window;
 
-    private ImGuiProxy imgui;
-
     private readonly FrustumCuller frustumCuller = new();
 
     private int activeBottomTab = 0;
@@ -425,11 +423,9 @@ internal partial class StapleEditor
                 window.window.SetIcon(icon);
             }
 
-            imgui = new ImGuiProxy();
-
-            if (imgui.Initialize() == false)
+            if (ImGuiProxy.instance.Initialize() == false)
             {
-                imgui.Destroy();
+                ImGuiProxy.instance.Destroy();
 
                 window.Cleanup();
 
@@ -567,7 +563,7 @@ internal partial class StapleEditor
 
             ThumbnailCache.OnFrameStart();
             EditorGUI.OnFrameStart();
-            imgui.BeginFrame();
+            ImGuiProxy.instance.BeginFrame();
 
             if (viewportType == ViewportType.Scene)
             {
@@ -901,7 +897,7 @@ internal partial class StapleEditor
             ProgressPopup(io);
             MessageBoxPopup(io);
 
-            imgui.EndFrame();
+            ImGuiProxy.instance.EndFrame();
 
             if (World.Current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false && ImGuizmo.IsUsingAny() == false)
             {
@@ -973,7 +969,7 @@ internal partial class StapleEditor
                 }
             }
 
-            imgui.Destroy();
+            ImGuiProxy.instance.Destroy();
 
             RenderSystem.Instance.Shutdown();
 

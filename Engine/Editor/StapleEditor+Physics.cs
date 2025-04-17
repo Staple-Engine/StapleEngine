@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using Staple.JoltPhysics;
 using System.IO;
 using System.Reflection;
 

@@ -22,11 +22,13 @@ internal partial class PackageManager
     private readonly Regex versionRegex = VersionRegex();
     private readonly Regex urlRegex = URLRegex();
 
-    public Dictionary<string, (string, Package)> builtinPackages = [];
+    public readonly Dictionary<string, (string, Package)> builtinPackages = [];
 
     public string basePath;
 
     public readonly Dictionary<string, (string, Package)> projectPackages = [];
+
+    public readonly PackageLockFile lockFile = new();
 
     public string LockPath => Path.Combine(basePath, "Settings", "packages-lock.json");
 
@@ -103,8 +105,18 @@ internal partial class PackageManager
         {
             foreach (var dependency in dependencies)
             {
-                if (packageLock.dependencies.TryGetValue(dependency.Key, out var state) == false ||
-                    state.version != dependency.Value)
+                if(packageLock.dependencies.TryGetValue(dependency.Key, out var state))
+                {
+                    if(state.version != dependency.Value)
+                    {
+                        SetupPackage(dependency.Key, dependency.Value, updatedLock, missingDependencies);
+                    }
+                    else
+                    {
+                        updatedLock.dependencies.Add(dependency.Key, state);
+                    }
+                }
+                else
                 {
                     SetupPackage(dependency.Key, dependency.Value, updatedLock, missingDependencies);
                 }
@@ -139,6 +151,47 @@ internal partial class PackageManager
             {
             }
         }
+
+        //Remove unused packages
+        try
+        {
+            var directories = Directory.GetDirectories(Path.Combine(PackagesCacheDirectory));
+
+            foreach(var directory in directories)
+            {
+                var name = Path.GetFileName(directory);
+
+                var found = false;
+
+                foreach(var dependency in updatedLock.dependencies)
+                {
+                    if(name == $"{dependency.Key}@{dependency.Value.version}")
+                    {
+                        found = true;
+
+                        break;
+                    }
+                }
+
+                if(found == false)
+                {
+                    try
+                    {
+                        Directory.Delete(directory, true);
+                    }
+                    catch(Exception e)
+                    {
+                        Log.Error($"[Package Manager] Failed to delete the unused package {name} from the project package cache: {e}");
+                    }
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            Log.Error($"[Package Manager] Failed to remove unused packages: {e}");
+        }
+
+        lockFile.dependencies = updatedLock.dependencies;
 
         try
         {

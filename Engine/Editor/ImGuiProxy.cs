@@ -26,10 +26,14 @@ internal class ImGuiProxy
 
     public ImFontPtr editorFont;
 
+    public ImFontPtr headerFont;
+
     private bool frameBegun = false;
     private bool destroyed = false;
 
     private readonly KeyCode[] keyCodes = Enum.GetValues<KeyCode>();
+
+    public static readonly ImGuiProxy instance = new();
 
     public bool Initialize()
     {
@@ -63,6 +67,7 @@ internal class ImGuiProxy
             fixed(byte * ptr = bytes)
             {
                 editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 18);
+                headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 32);
             }
         }
 
@@ -108,7 +113,8 @@ internal class ImGuiProxy
             fontTexture = Texture.CreatePixels("FONT", fontData, (ushort)fontWidth, (ushort)fontHeight, new TextureMetadata()
             {
                 useMipmaps = false,
-            }, TextureFormat.BGRA8);
+            },
+            TextureFormat.BGRA8);
 
             ResourceManager.instance.LockAsset("FONT");
         }
