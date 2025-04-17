@@ -233,10 +233,10 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        if (e.FullPath.EndsWith(".cs") ||
-                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted &&
+                        if ((e.FullPath.EndsWith(".cs") ||
+                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted)) &&
                             (e.FullPath.StartsWith(Path.Combine(basePath, "Assets")) ||
-                            e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages")))))
+                            e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages"))))
                         {
                             needsGameRecompile = true;
                         }

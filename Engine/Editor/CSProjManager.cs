@@ -464,7 +464,7 @@ internal class CSProjManager
 
                     foreach (var projectPair in projects)
                     {
-                        if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+                        if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
                         {
                             counter++;
                         }
@@ -578,7 +578,9 @@ internal class CSProjManager
         {
             var counter = pair.Value.Item3 == 0 ? "" : pair.Value.Item3.ToString();
 
-            var name = $"{Path.GetFileNameWithoutExtension(pair.Key)}{counter}";
+            var projectName = pair.Value.Item1 is null ? Path.GetFileName(pair.Key) : Path.GetFileNameWithoutExtension(pair.Key);
+
+            var name = $"{projectName}{counter}";
 
             asmDefNames.Add(name);
 
@@ -858,10 +860,11 @@ internal class CSProjManager
                             }
 
                             var counter = 0;
+                            var trimmedName = Path.GetFileName(parentAsmDef);
 
                             foreach (var projectPair in projects)
                             {
-                                if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
+                                if (Path.GetFileName(projectPair.Key).Equals(trimmedName, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     counter++;
                                 }
@@ -1078,16 +1081,15 @@ internal class CSProjManager
             {
                 foreach (var pair in PackageManager.instance.projectPackages)
                 {
-                    var project = MakeProject(collection, projectDefines, projectProperties);
+                    var project = MakeProject(collection, projectDefines, asmDefProjectProperties);
 
                     project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-                    project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
                     var counter = 0;
 
                     foreach (var projectPair in projects)
                     {
-                        if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(pair.Key, StringComparison.InvariantCultureIgnoreCase))
+                        if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
                         {
                             counter++;
                         }
@@ -1108,6 +1110,52 @@ internal class CSProjManager
 
         HandlePackages();
 
+        var assemblies = new List<string>();
+
+        foreach (var directory in AssetDatabase.assetDirectories)
+        {
+            try
+            {
+                assemblies.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+        }
+
+        foreach (var assemblyPath in assemblies)
+        {
+            try
+            {
+                var text = File.ReadAllText(assemblyPath);
+
+                var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
+
+                if (plugin.typeName != typeof(PluginAsset).FullName)
+                {
+                    continue;
+                }
+
+                if (plugin.autoReferenced &&
+                    (plugin.anyPlatform || plugin.platforms.Contains(platform)))
+                {
+                    var targetPath = assemblyPath[..^".meta".Length];
+
+                    foreach (var pair in projects)
+                    {
+                        pair.Value.Item2?.AddItem("Reference", Path.GetFileName(targetPath),
+                            [new("HintPath", targetPath)]);
+                    }
+
+                    p.AddItem("Reference", Path.GetFileName(targetPath), [new("HintPath", targetPath)]);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         var asmDefNames = new List<string>();
 
         foreach (var pair in projects)
@@ -1119,7 +1167,9 @@ internal class CSProjManager
 
             var counter = pair.Value.Item3 == 0 ? "" : pair.Value.Item3.ToString();
 
-            var name = $"{Path.GetFileNameWithoutExtension(pair.Key)}{counter}";
+            var projectName = pair.Value.Item1 is null ? Path.GetFileName(pair.Key) : Path.GetFileNameWithoutExtension(pair.Key);
+
+            var name = $"{projectName}{counter}";
 
             asmDefNames.Add(name);
 
