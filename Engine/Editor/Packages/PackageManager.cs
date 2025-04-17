@@ -317,6 +317,8 @@ internal partial class PackageManager
         {
             value = version.Value;
 
+            lockFile.dependencies.TryGetValue(name, out var packageState);
+
             if(builtinPackages.TryGetValue(name, out var p))
             {
                 var shouldOverwrite = false;
@@ -396,12 +398,12 @@ internal partial class PackageManager
             }
             else
             {
-                if(lockFile.dependencies.TryGetValue(name, out var state))
+                if(packageState != null)
                 {
-                    if(state.version == version.Value &&
-                        Directory.Exists(PathForPackage(name, state.version)))
+                    if(packageState.version == version.Value &&
+                        Directory.Exists(PathForPackage(name, packageState.version)))
                     {
-                        updatedLockFile.dependencies.Add(name, state);
+                        updatedLockFile.dependencies.Add(name, packageState);
 
                         return;
                     }

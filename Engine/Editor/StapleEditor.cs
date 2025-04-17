@@ -145,13 +145,6 @@ internal partial class StapleEditor
             return null;
         }
     }
-
-    public class ModuleLoadInfo
-    {
-        public StapleAssemblyLoadContext contextLoader;
-        public ModuleInitializer module;
-        public string moduleName;
-    }
     #endregion
 
     internal static string StapleBasePath => Storage.StapleBasePath;
@@ -324,8 +317,6 @@ internal partial class StapleEditor
 
     private Action messageBoxNoAction;
 
-    internal Dictionary<ModuleType, List<ModuleLoadInfo>> modulesList = [];
-
     private bool refreshingAssets = false;
     #endregion
 
@@ -336,8 +327,6 @@ internal partial class StapleEditor
     public void Run()
     {
         privInstance = new WeakReference<StapleEditor>(this);
-
-        LoadModules();
 
         ReloadTypeCache();
 
@@ -1301,81 +1290,5 @@ internal partial class StapleEditor
     internal void AddEditorLayers()
     {
         LayerMask.AllLayers.Add(RenderTargetLayerName);
-    }
-
-    private void LoadModules()
-    {
-        try
-        {
-            var moduleBasePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends", currentPlatform.ToString(), "Modules");
-
-            var directories = Directory.GetDirectories(moduleBasePath);
-
-            foreach (var directory in directories)
-            {
-                var file = Path.Combine(directory, "Assembly", "Debug", $"{Path.GetFileName(directory)}.dll");
-
-                try
-                {
-                    var loader = new StapleAssemblyLoadContext(AppContext.BaseDirectory, () =>
-                    {
-                        return ([], []);
-                    });
-
-                    using var stream = new MemoryStream(File.ReadAllBytes(file));
-
-                    var assembly = loader.LoadFromStream(stream);
-
-                    if (assembly != null)
-                    {
-                        var initializers = assembly.GetTypes()
-                            .Where(x => x.IsSubclassOf(typeof(ModuleInitializer)))
-                            .ToArray();
-
-                        if (initializers.Length == 0)
-                        {
-                            loader.Unload();
-
-                            continue;
-                        }
-
-                        foreach (var initializer in initializers)
-                        {
-                            var instance = ObjectCreation.CreateObject<ModuleInitializer>(initializer);
-
-                            if (instance == null)
-                            {
-                                loader.Unload();
-
-                                continue;
-                            }
-
-                            if (modulesList.TryGetValue(instance.Kind(), out var list) == false)
-                            {
-                                list = [];
-
-                                modulesList.Add(instance.Kind(), list);
-                            }
-
-                            list.Add(new()
-                            {
-                                contextLoader = loader,
-                                module = instance,
-                                moduleName = Path.GetFileNameWithoutExtension(file),
-                            });
-
-                            System.Console.WriteLine($"Loaded module {Path.GetFileNameWithoutExtension(file)}");
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
-        catch(Exception e)
-        {
-            System.Console.WriteLine($"Failed to load modules: {e}");
-        }
     }
 }

@@ -13,10 +13,6 @@ internal class AppSettingsWindow : EditorWindow
     public string basePath;
     public AppSettings projectAppSettings;
 
-    private readonly List<ModuleType> moduleKinds = [];
-    private readonly string[] moduleKindStrings = [];
-    private readonly Dictionary<ModuleType, string[]> moduleNames = [];
-
     private static readonly string GeneralKey = "General";
     private static readonly string TimingKey = "Timing";
     private static readonly string PhysicsKey = "Physics";
@@ -41,20 +37,6 @@ internal class AppSettingsWindow : EditorWindow
         title = "Settings";
 
         windowFlags = EditorWindowFlags.Resizable;
-
-        moduleKinds = Enum.GetValues<ModuleType>().ToList();
-        moduleKindStrings = moduleKinds.Select(x => x.ToString().ExpandCamelCaseName()).ToArray();
-
-        foreach(var pair in StapleEditor.instance.modulesList)
-        {
-            var names = pair.Value
-                .Select(x => x.moduleName)
-                .ToList();
-
-            names.Insert(0, "(None)");
-
-            moduleNames.Add(pair.Key, names.ToArray());
-        }
     }
 
     private void General()
