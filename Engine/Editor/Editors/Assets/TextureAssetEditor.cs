@@ -226,11 +226,11 @@ internal class TextureAssetEditor : AssetEditor
 
                 var height = width / aspect;
 
-                var currentCursor = EditorGUI.CurrentGUICursorPosition();
+                var currentCursor = EditorGUI.CurrentGUICursorScreenPosition();
 
                 EditorGUI.Texture(texture, new Vector2(width, height));
 
-                var textureCursor = EditorGUI.CurrentGUICursorPosition();
+                var textureCursor = EditorGUI.CurrentGUICursorScreenPosition();
 
                 if (metadata.type == TextureType.Sprite)
                 {

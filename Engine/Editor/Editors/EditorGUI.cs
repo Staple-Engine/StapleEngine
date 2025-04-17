@@ -170,12 +170,30 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Gets the current GUI cursor screen position (where the GUI is currently being filled)
+    /// </summary>
+    /// <returns>The cursor position</returns>
+    public static Vector2 CurrentGUICursorScreenPosition()
+    {
+        return ImGui.GetCursorScreenPos();
+    }
+
+    /// <summary>
     /// Gets the current GUI cursor position (where the GUI is currently being filled)
     /// </summary>
     /// <returns>The cursor position</returns>
     public static Vector2 CurrentGUICursorPosition()
     {
-        return ImGui.GetCursorScreenPos();
+        return ImGui.GetCursorPos();
+    }
+
+    /// <summary>
+    /// Sets the current GUI cursor position (where the GUI is currently being filled)
+    /// </summary>
+    /// <param name="value">The cursor position</param>
+    public static void SetCurrentGUICursorPosition(Vector2 value)
+    {
+        ImGui.SetCursorPos(value);
     }
 
     /// <summary>

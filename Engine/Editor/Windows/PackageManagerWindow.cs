@@ -183,6 +183,103 @@ internal class PackageManagerWindow : EditorWindow
             }
 
             EditorGUI.HeaderLabel(currentPackage.displayName);
+
+            EditorGUI.SameLine();
+
+            EditorGUI.Space();
+
+            EditorGUI.SameLine();
+
+            var textSize = EditorGUI.GetTextSize("Remove");
+
+            textSize.X *= 2;
+
+            EditorGUI.SetCurrentGUICursorPosition(EditorGUI.CurrentGUICursorPosition() + new Vector2(EditorGUI.RemainingHorizontalSpace() - textSize.X, 0));
+
+            if (PackageManager.instance.lockFile.dependencies.TryGetValue(currentPackage.name, out var state))
+            {
+                EditorGUI.Disabled(PackageManager.instance.lockFile.dependencies.Any(x => x.Value.dependencies.ContainsKey(currentPackage.name)), () =>
+                {
+                    EditorGUI.Button("Remove", "PackageManager.Description.Remove", () =>
+                    {
+                        PackageManager.instance.RemovePackage(currentPackage.name);
+                    });
+                });
+            }
+            else
+            {
+                EditorGUI.Button("Install", "PackageManager.Description.Install", () =>
+                {
+                    PackageManager.instance.AddPackage(currentPackage.name, currentPackage.version);
+                });
+            }
+
+            EditorGUI.Label($"{currentPackage.version}");
+
+            var sourceText = state != null ? state.source switch
+            {
+                PackageLockFile.Source.Local => "From local folder",
+                PackageLockFile.Source.Builtin => "Builtin package",
+                PackageLockFile.Source.Repository => "From package repository",
+                PackageLockFile.Source.Git => $"From git at {state.url}",
+                _ => "Unknown",
+            } : section switch
+            {
+                Section.Repository => "From package repository",
+                Section.BuiltIn => "Builtin package",
+                _ => "Unknown",
+            };
+
+            EditorGUI.Label($"{sourceText} by {currentPackage.author}");
+
+            EditorGUI.Label($"{currentPackage.name} ({currentPackage.license} license)");
+
+            EditorGUI.TabBar(["Description", "Dependencies"], "PackageManager.Description.TabBar", (index) =>
+            {
+                switch (index)
+                {
+                    case 0:
+
+                        EditorGUI.Label(currentPackage.description);
+
+                        break;
+
+                    case 1:
+
+                        EditorGUI.Table("PackageManager.Description.DependenciesTable", currentPackage.dependencies.Count, 2, true, null,
+                            (column) =>
+                            {
+                                return column switch
+                                {
+                                    0 => ("Name", 0),
+                                    1 => ("Version", 0),
+                                    _ => (null, 0),
+                                };
+                            },
+                            (row, column) =>
+                            {
+                                var dependency = currentPackage.dependencies[row];
+
+                                switch(column)
+                                {
+                                    case 0:
+
+                                        EditorGUI.Label(dependency.name);
+
+                                        break;
+
+                                    case 1:
+
+                                        EditorGUI.Label(dependency.version);
+
+                                        break;
+                                }
+                            },
+                            null);
+
+                        break;
+                }
+            });
         });
     }
 }

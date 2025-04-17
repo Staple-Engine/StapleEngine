@@ -53,6 +53,58 @@ internal partial class PackageManager
         }
     }
 
+    public void AddPackage(string name, string version)
+    {
+        var packageList = ParsePackages(PackagesPath);
+
+        if(packageList.dependencies.ContainsKey(name))
+        {
+            return;
+        }
+
+        packageList.dependencies.Add(name, version);
+
+        try
+        {
+            var text = JsonConvert.SerializeObject(packageList, Formatting.Indented, Tooling.Utilities.JsonSettings);
+
+            File.WriteAllText(Path.Combine(basePath, "Settings", "packages.json"), text);
+        }
+        catch (Exception)
+        {
+        }
+
+        Refresh();
+
+        EditorUtils.RefreshAssets(true, null);
+    }
+
+    public void RemovePackage(string name)
+    {
+        var packageList = ParsePackages(PackagesPath);
+
+        if (packageList.dependencies.ContainsKey(name) == false)
+        {
+            return;
+        }
+
+        packageList.dependencies.Remove(name);
+
+        try
+        {
+            var text = JsonConvert.SerializeObject(packageList, Formatting.Indented, Tooling.Utilities.JsonSettings);
+
+            File.WriteAllText(Path.Combine(basePath, "Settings", "packages.json"), text);
+        }
+        catch (Exception)
+        {
+        }
+
+        Refresh();
+
+        EditorUtils.RefreshAssets(true, null);
+    }
+
     public bool Refresh()
     {
         EditorUtils.CreateDirectory(PackagesCacheDirectory);
@@ -105,21 +157,7 @@ internal partial class PackageManager
         {
             foreach (var dependency in dependencies)
             {
-                if(packageLock.dependencies.TryGetValue(dependency.Key, out var state))
-                {
-                    if(state.version != dependency.Value)
-                    {
-                        SetupPackage(dependency.Key, dependency.Value, updatedLock, missingDependencies);
-                    }
-                    else
-                    {
-                        updatedLock.dependencies.Add(dependency.Key, state);
-                    }
-                }
-                else
-                {
-                    SetupPackage(dependency.Key, dependency.Value, updatedLock, missingDependencies);
-                }
+                SetupPackage(dependency.Key, dependency.Value, packageList, updatedLock, missingDependencies);
             }
 
             if(missingDependencies.Count > 0)
@@ -204,7 +242,7 @@ internal partial class PackageManager
         return true;
     }
 
-    private void SetupPackage(string name, string value, PackageLockFile lockFile, Dictionary<string, string> missingDependencies)
+    private void SetupPackage(string name, string value, PackageList packageList, PackageLockFile lockFile, Dictionary<string, string> missingDependencies)
     {
         var version = versionRegex.Match(value);
 
@@ -219,12 +257,15 @@ internal partial class PackageManager
                     dependencies.Add(dependency.name, dependency.version);
                 }
 
-                lockFile.dependencies.Add(name, new()
+                if(lockFile.dependencies.ContainsKey(name) == false)
                 {
-                    version = value,
-                    source = PackageLockFile.Source.Builtin,
-                    dependencies = dependencies,
-                });
+                    lockFile.dependencies.Add(name, new()
+                    {
+                        version = value,
+                        source = PackageLockFile.Source.Builtin,
+                        dependencies = dependencies,
+                    });
+                }
 
                 var directory = Path.Combine(basePath, "Cache", "Packages", $"{name}@{version}");
 
@@ -242,7 +283,21 @@ internal partial class PackageManager
                     }
                 }
 
-                //TODO: Dependencies
+                foreach(var pair in dependencies)
+                {
+                    if(packageList.dependencies.TryGetValue(pair.Key, out var v))
+                    {
+                        missingDependencies.Add(pair.Key, v);
+                    }
+                    else if(builtinPackages.TryGetValue(pair.Key, out var b))
+                    {
+                        missingDependencies.Add(pair.Key, b.Item2.version);
+                    }
+                    else
+                    {
+                        //TOOD: Check repos
+                    }
+                }
             }
             else
             {

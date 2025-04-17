@@ -6,6 +6,6 @@
 	"minStapleVersion": "0.2",
 	"author": "Staple Engine",
 	"dependencies": [],
-	"keywords": "template",
+	"keywords": "network",
 	"license": "MIT"
 }
