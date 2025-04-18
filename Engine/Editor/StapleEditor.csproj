@@ -108,6 +108,7 @@
     <Compile Include="StapleEditor+ImGuiStyle.cs" />
     <Compile Include="StapleEditor+MessageBox.cs" />
     <Compile Include="StapleEditor+Prefab.cs" />
+    <Compile Include="StapleEditor+Settings.cs" />
     <Compile Include="Templates\CubeTemplate.cs" />
     <Compile Include="Templates\EntityTemplate.cs" />
     <Compile Include="Templates\IEntityTemplate.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Templates\UIImageTemplate.cs" />
     <Compile Include="Templates\UITextTemplate.cs" />
     <Compile Include="UndoStack.cs" />
+    <Compile Include="Windows\EditorSettingsWindow.cs" />
     <Compile Include="Windows\PackageManagerWindow.cs" />
     <Compile Include="Windows\SkinnedAnimationStateMachineWindow.cs" />
     <Compile Include="Windows\SpritePicker.cs" />

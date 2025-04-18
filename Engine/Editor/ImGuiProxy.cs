@@ -8,6 +8,8 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Staple.Editor;
 
@@ -35,11 +37,44 @@ internal class ImGuiProxy
 
     public static readonly ImGuiProxy instance = new();
 
+    private static GCHandle pinnedClipboardHandle;
+
+    private static unsafe void *GetClipboardText(void *context)
+    {
+        if(pinnedClipboardHandle.IsAllocated)
+        {
+            pinnedClipboardHandle.Free();
+        }
+
+        var clipboard = Encoding.UTF8.GetBytes(Platform.ClipboardText ?? "");
+
+        pinnedClipboardHandle = GCHandle.Alloc(clipboard, GCHandleType.Pinned);
+
+        return (void *)pinnedClipboardHandle.AddrOfPinnedObject();
+    }
+
+    private static unsafe void SetClipboardText(void* context, byte *text)
+    {
+        var counter = 0;
+
+        byte* i = text;
+
+        while(*i != 0)
+        {
+            counter++;
+            i++;
+        }
+
+        var textSpan = new Span<byte>(text, counter);
+
+        var str = Encoding.UTF8.GetString(textSpan);
+
+        Platform.SetClipboardText(str);
+    }
+
     public bool Initialize()
     {
         ImGuiContext = ImGui.CreateContext();
-
-        var io = ImGui.GetIO();
 
         ImGui.SetCurrentContext(ImGuiContext);
 
@@ -55,6 +90,18 @@ internal class ImGuiProxy
         ImPlotContext = ImPlot.CreateContext();
         ImPlot.SetCurrentContext(ImPlotContext);
         ImPlot.StyleColorsDark(ImPlot.GetStyle());
+
+        var io = ImGui.GetIO();
+
+        unsafe
+        {
+            var setPtr = Marshal.GetFunctionPointerForDelegate(SetClipboardText);
+            var getPtr = Marshal.GetFunctionPointerForDelegate(GetClipboardText);
+
+            io.SetClipboardTextFn = (void*)setPtr;
+            io.GetClipboardTextFn = (void*)getPtr;
+            io.ClipboardUserData = (void *)nint.Zero;
+        }
 
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
@@ -146,6 +193,11 @@ internal class ImGuiProxy
         program?.Destroy();
         imageProgram?.Destroy();
         fontTexture?.Destroy();
+
+        if(pinnedClipboardHandle.IsAllocated)
+        {
+            pinnedClipboardHandle.Free();
+        }
     }
 
     public ImGuiKey GetKey(KeyCode key)
@@ -291,6 +343,11 @@ internal class ImGuiProxy
         io.KeyAlt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
         io.KeyShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         io.KeySuper = Input.GetKey(KeyCode.LeftSuper) || Input.GetKey(KeyCode.RightSuper);
+
+        io.AddKeyEvent(ImGuiKey.ModCtrl, io.KeyCtrl);
+        io.AddKeyEvent(ImGuiKey.ModAlt, io.KeyAlt);
+        io.AddKeyEvent(ImGuiKey.ModShift, io.KeyShift);
+        io.AddKeyEvent(ImGuiKey.ModSuper, io.KeySuper);
 
         if(Input.Character != 0)
         {

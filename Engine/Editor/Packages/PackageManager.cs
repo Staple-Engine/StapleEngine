@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -103,6 +104,53 @@ internal partial class PackageManager
         }
         catch (Exception)
         {
+        }
+
+        Refresh();
+
+        EditorUtils.RefreshAssets(true, null);
+    }
+
+    public void InstallGitPackage(string url)
+    {
+        if(TryGitClone(url, out var package, out var path))
+        {
+            var packageList = ParsePackages(PackagesPath);
+            var lockFile = ParsePackageLock(LockPath);
+
+            if(packageList == null ||
+                lockFile == null)
+            {
+                Refresh();
+
+                return;
+            }
+
+            if(packageList.dependencies.ContainsKey(package.name))
+            {
+                Refresh();
+
+                return;
+            }
+
+            packageList.dependencies.Add(package.name, url);
+
+            lockFile.dependencies.Add(package.name, new()
+            {
+                url = url,
+                source = PackageLockFile.Source.Git,
+                version = package.version,
+            });
+
+            if(EditorUtils.CopyDirectory(path, PathForPackage(package.name, package.version)) == false)
+            {
+                Refresh();
+
+                return;
+            }
+
+            SavePackages(packageList);
+            SavePackageLock(lockFile);
         }
 
         Refresh();
@@ -218,7 +266,7 @@ internal partial class PackageManager
         {
             foreach (var dependency in dependencies)
             {
-                SetupPackage(dependency.Key, dependency.Value, packageList, lockFile, updatedLock, missingDependencies);
+                SetupPackage(dependency.Key, dependency.Value, packageList, packageLock, updatedLock, missingDependencies);
             }
 
             if(missingDependencies.Count > 0)
@@ -311,13 +359,13 @@ internal partial class PackageManager
     private void SetupPackage(string name, string value, PackageList packageList, PackageLockFile lockFile, PackageLockFile updatedLockFile,
         Dictionary<string, string> missingDependencies)
     {
+        lockFile.dependencies.TryGetValue(name, out var packageState);
+
         var version = versionRegex.Match(value);
 
-        if(version?.Success ?? false)
+        if (version?.Success ?? false)
         {
             value = version.Value;
-
-            lockFile.dependencies.TryGetValue(name, out var packageState);
 
             if(builtinPackages.TryGetValue(name, out var p))
             {
@@ -417,20 +465,205 @@ internal partial class PackageManager
         }
         else
         {
-            packageList.dependencies.Remove(name);
-            lockFile.dependencies.Remove(name);
-
             var url = urlRegex.Match(value);
 
             if(url?.Success ?? false)
             {
-                //TODO: Git Clone
+                try
+                {
+                    if(packageState == null ||
+                        packageState.source != PackageLockFile.Source.Git ||
+                        Directory.Exists(PathForPackage(name, packageState.version)) == false)
+                    {
+                        packageList.dependencies.Remove(name);
+                        lockFile.dependencies.Remove(name);
+                    }
+                    else
+                    {
+                        updatedLockFile.dependencies.Add(name, packageState);
+                    }
+                }
+                catch(Exception)
+                {
+                    packageList.dependencies.Remove(name);
+                    lockFile.dependencies.Remove(name);
+                }
             }
             else
             {
-                //Failed
+                packageList.dependencies.Remove(name);
+                lockFile.dependencies.Remove(name);
             }
         }
+    }
+
+    private bool TryGitClone(string url, out Package package, out string path)
+    {
+        path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        while(Directory.Exists(path))
+        {
+            path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        }
+
+        EditorUtils.CreateDirectory(path);
+
+        var index = url.IndexOf('#');
+        var tag = "";
+        var options = "";
+        var pathOption = "";
+
+        if(index >= 0)
+        {
+            tag = url[(index + 1)..];
+            url = url[..index];
+        }
+        else
+        {
+            index = url.IndexOf('?');
+
+            if(index >= 0)
+            {
+                options = url[(index + 1)..];
+                url = url[..index];
+            }
+        }
+
+        var commands = new List<string>();
+
+        if(tag.Length > 0)
+        {
+            commands.Add($"clone {url} \"{path}\" --depth 1 --branch {tag} --single-branch --recurse-submodules --shallow-submodules");
+        }
+        else if(options.Length > 0)
+        {
+            var parameters = options.Split('&');
+
+            foreach(var parameter in parameters)
+            {
+                var pieces = parameter.Split('=');
+
+                if(pieces.Length == 2)
+                {
+                    var parameterName = pieces[0];
+                    var parameterValue = pieces[1];
+
+                    if(parameterName.Equals("path", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        pathOption = parameterValue;
+
+                        if(pathOption.StartsWith('/'))
+                        {
+                            pathOption = pathOption[1..];
+                        }
+                    }
+                }
+            }
+
+            if(pathOption.Length > 0)
+            {
+                commands.Add($"clone {url} --no-checkout \"{path}\" --depth 1 --single-branch --recurse-submodules --shallow-submodules");
+                commands.Add("sparse-checkout init --cone");
+                commands.Add($"sparse-checkout set {pathOption}");
+                commands.Add($"checkout");
+            }
+        }
+        else
+        {
+            commands.Add($"clone {url} \"{path}\" --depth 1 --single-branch --recurse-submodules --shallow-submodules");
+        }
+
+        foreach (var command in commands)
+        {
+            var process = new Process()
+            {
+                StartInfo = new(StapleEditor.instance.editorSettings.gitExternalPath, command),
+            };
+
+            process.StartInfo.WorkingDirectory = path;
+
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+
+            if (process.Start())
+            {
+                process.WaitForExit();
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+
+                Log.Info(stdout);
+                Log.Info(stderr);
+
+                if (process.ExitCode != 0)
+                {
+                    Log.Error($"[Package Manager] Failed to clone {url}");
+
+                    package = null;
+
+                    return false;
+                }
+            }
+            else
+            {
+                package = null;
+
+                return false;
+            }
+        }
+
+        if(pathOption.Length > 0)
+        {
+            try
+            {
+                EditorUtils.DeleteDirectory(Path.Combine(path, "..", "STAPLE_STAGING"));
+
+                var directories = Directory.GetDirectories(path);
+
+                foreach(var d in directories)
+                {
+                    if(d == Path.Combine(path, pathOption))
+                    {
+                        continue;
+                    }
+
+                    EditorUtils.DeleteDirectory(d);
+                }
+
+                var files = Directory.GetFiles(path);
+
+                foreach(var f in files)
+                {
+                    try
+                    {
+                        File.Delete(f);
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
+
+                EditorUtils.CopyDirectory(Path.Combine(path, pathOption), Path.Combine(path, "..", "STAPLE_STAGING"));
+
+                EditorUtils.DeleteDirectory(Path.Combine(path, pathOption));
+
+                EditorUtils.CopyDirectory(Path.Combine(path, "..", "STAPLE_STAGING"), Path.Combine(path));
+
+                EditorUtils.DeleteDirectory(Path.Combine(path, "..", "STAPLE_STAGING"));
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        package = ParsePackage(Path.Combine(path, "package.json"));
+
+        if(package == null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public void SavePackages(PackageList packageList)

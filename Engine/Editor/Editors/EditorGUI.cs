@@ -34,6 +34,8 @@ public static class EditorGUI
 
     private static readonly HashSet<int> usedTreeViewStates = [];
 
+    private static readonly List<Action> endFrameCallbacks = [];
+
     private static string MakeIdentifier(string identifier, string key) => $"{identifier}##{key}";
 
     internal static void ExecuteHandler(Action handler, string label)
@@ -127,6 +129,28 @@ public static class EditorGUI
         {
             usedTreeViewStates.Clear();
         }
+    }
+
+    internal static void OnFrameEnd()
+    {
+        var actions = endFrameCallbacks.ToArray();
+
+        endFrameCallbacks.Clear();
+
+        foreach(var action in actions)
+        {
+            action?.Invoke();
+        }
+    }
+
+    private static void QueueFrameEndAction(Action action)
+    {
+        if(action == null)
+        {
+            return;
+        }
+
+        endFrameCallbacks.Add(action);
     }
 
     /// <summary>
@@ -1310,7 +1334,10 @@ public static class EditorGUI
     /// <param name="key">A unique key for the popup</param>
     public static void OpenPopup(string key)
     {
-        ImGui.OpenPopup(key);
+        QueueFrameEndAction(() =>
+        {
+            ImGui.OpenPopup(key);
+        });
     }
 
     /// <summary>
@@ -1320,12 +1347,15 @@ public static class EditorGUI
     /// <param name="handler">Content for the popup</param>
     public static void Popup(string key, Action handler)
     {
-        if (ImGui.BeginPopup(key))
+        QueueFrameEndAction(() =>
         {
-            ExecuteHandler(handler, $"Window {key}");
+            if (ImGui.BeginPopup(key))
+            {
+                ExecuteHandler(handler, $"Popup {key}");
 
-            ImGui.EndPopup();
-        }
+                ImGui.EndPopup();
+            }
+        });
     }
 
     /// <summary>

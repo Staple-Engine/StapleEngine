@@ -116,6 +116,21 @@ public static class EditorUtils
     }
 
     /// <summary>
+    /// Attempts to delete a directory
+    /// </summary>
+    /// <param name="path">The directory's path</param>
+    public static void DeleteDirectory(string path)
+    {
+        try
+        {
+            Directory.Delete(path, true);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    /// <summary>
     /// Attempts to copy a directory and its contents to another location
     /// </summary>
     /// <param name="source">The source path</param>

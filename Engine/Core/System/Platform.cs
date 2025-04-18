@@ -102,4 +102,23 @@ public static class Platform
     /// Whether we're running on a desktop platform
     /// </summary>
     public static bool IsDesktopPlatform => IsWindows || IsLinux || IsMacOS || IsSteamDeck;
+
+    public static string ClipboardText
+    {
+        get
+        {
+            #if !ANDROID && !IOS
+            return SDL2.SDL.SDL_GetClipboardText();
+            #else
+            return "";
+            #endif
+        }
+    }
+
+    public static void SetClipboardText(string text)
+    {
+#if !ANDROID && !IOS
+        SDL2.SDL.SDL_SetClipboardText(text);
+#endif
+    }
 }

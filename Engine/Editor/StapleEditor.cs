@@ -42,6 +42,12 @@ internal partial class StapleEditor
     }
 
     [Serializable]
+    public class EditorSettings
+    {
+        public string gitExternalPath;
+    }
+
+    [Serializable]
     class ProjectInfo
     {
         public string stapleVersion;
@@ -56,7 +62,7 @@ internal partial class StapleEditor
         public bool nativeBuild = false;
         public bool debugRedists = false;
 
-        public Dictionary<AppPlatform, string> lastPickedBuildDirectories = new();
+        public Dictionary<AppPlatform, string> lastPickedBuildDirectories = [];
     }
 
     [Serializable]
@@ -71,7 +77,7 @@ internal partial class StapleEditor
     class LastProjectInfo
     {
         public string lastOpenProject = "";
-        public List<LastProjectItem> items = new();
+        public List<LastProjectItem> items = [];
     }
 
     class EntityBody
@@ -93,7 +99,7 @@ internal partial class StapleEditor
     {
         private readonly AssemblyDependencyResolver resolver;
 
-        private Func<(string[], string[])> assemblyPathsCallback;
+        private readonly Func<(string[], string[])> assemblyPathsCallback;
 
         public StapleAssemblyLoadContext(string path, Func<(string[], string[])> assemblyPathsCallback) : base(true)
         {
@@ -233,7 +239,7 @@ internal partial class StapleEditor
 
     internal Dictionary<AppPlatform, string> lastPickedBuildDirectories = [];
 
-    private readonly AppSettings editorSettings = AppSettings.Default;
+    private readonly AppSettings editorAppSettings = AppSettings.Default;
 
     private AppSettings projectAppSettings;
 
@@ -272,6 +278,8 @@ internal partial class StapleEditor
     private ImGuizmoOperation transformOperation = ImGuizmoOperation.Translate;
 
     internal readonly UndoStack undoStack = new();
+
+    public EditorSettings editorSettings = new();
     #endregion
 
     #region Game
@@ -333,17 +341,17 @@ internal partial class StapleEditor
         Platform.IsPlaying = false;
         Platform.IsEditor = true;
 
-        editorSettings.runInBackground = true;
-        editorSettings.appName = "Staple Editor";
-        editorSettings.companyName = "Staple Engine";
+        editorAppSettings.runInBackground = true;
+        editorAppSettings.appName = "Staple Editor";
+        editorAppSettings.companyName = "Staple Engine";
 
-        LayerMask.SetLayers(CollectionsMarshal.AsSpan(editorSettings.layers), CollectionsMarshal.AsSpan(editorSettings.sortingLayers));
+        LayerMask.SetLayers(CollectionsMarshal.AsSpan(editorAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 
-        AppSettings.Current = editorSettings;
+        AppSettings.Current = editorAppSettings;
 
         AssetDatabase.assetPathResolver = CachePathResolver;
 
-        Storage.Update(editorSettings.appName, editorSettings.companyName);
+        Storage.Update(editorAppSettings.appName, editorAppSettings.companyName);
 
         Log.SetLog(new FSLog(Path.Combine(Storage.PersistentDataPath, "EditorLog.log")));
 
@@ -351,6 +359,8 @@ internal partial class StapleEditor
         {
             System.Console.WriteLine($"[{type}] {message}");
         };
+
+        LoadEditorSettings();
 
         PlayerBackendManager.Instance.Initialize();
 
@@ -376,12 +386,12 @@ internal partial class StapleEditor
 
         ReloadAssetTemplates();
 
-        playerSettings = PlayerSettings.Load(editorSettings);
+        playerSettings = PlayerSettings.Load(editorAppSettings);
 
         if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
         {
-            playerSettings.screenWidth = editorSettings.defaultWindowWidth;
-            playerSettings.screenHeight = editorSettings.defaultWindowHeight;
+            playerSettings.screenWidth = editorAppSettings.defaultWindowWidth;
+            playerSettings.screenHeight = editorAppSettings.defaultWindowHeight;
 
             playerSettings.windowPosition = Vector2Int.Zero;
         }
@@ -882,6 +892,8 @@ internal partial class StapleEditor
 
             ImGui.End();
             */
+
+            EditorGUI.OnFrameEnd();
 
             ProgressPopup(io);
             MessageBoxPopup(io);

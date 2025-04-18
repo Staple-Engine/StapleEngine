@@ -253,6 +253,13 @@ internal partial class StapleEditor
                     window.basePath = basePath;
                 });
 
+                EditorGUI.MenuItem("Editor Settings", "EditorSettings.Menu", () =>
+                {
+                    var window = EditorWindow.GetWindow<EditorSettingsWindow>();
+
+                    window.editorSettings = editorSettings;
+                });
+
                 EditorGUI.MenuItem("Package Manager", "PackageManager.Menu", () =>
                 {
                     var window = EditorWindow.GetWindow<PackageManagerWindow>();

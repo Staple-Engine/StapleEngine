@@ -17,6 +17,7 @@ internal class PackageManagerWindow : EditorWindow
 
     private Section section = Section.Project;
     private Package currentPackage;
+    private string gitCloneURL = "";
 
     public PackageManagerWindow()
     {
@@ -41,6 +42,9 @@ internal class PackageManagerWindow : EditorWindow
 
                 EditorGUI.MenuItem("From Git", "PackageManager.AddGit", () =>
                 {
+                    gitCloneURL = "";
+
+                    EditorGUI.OpenPopup("PackageManager.AddGitPopup");
                 });
             });
         });
@@ -284,6 +288,16 @@ internal class PackageManagerWindow : EditorWindow
 
                         break;
                 }
+            });
+        });
+
+        EditorGUI.Popup("PackageManager.AddGitPopup", () =>
+        {
+            gitCloneURL = EditorGUI.TextField("URL:", "PackageManager.AddGitPopup.URL", gitCloneURL);
+
+            EditorGUI.Button("Clone", "PackageManager.AddGitPopup.Clone", () =>
+            {
+                PackageManager.instance.InstallGitPackage(gitCloneURL);
             });
         });
     }

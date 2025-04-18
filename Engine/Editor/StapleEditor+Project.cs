@@ -168,7 +168,7 @@ internal partial class StapleEditor
             projectAppSettings = AppSettings.Default;
         }
 
-        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorSettings.sortingLayers));
+        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 
         AddEditorLayers();
 

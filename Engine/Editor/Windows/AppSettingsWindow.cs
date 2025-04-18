@@ -17,7 +17,6 @@ internal class AppSettingsWindow : EditorWindow
     private static readonly string TimingKey = "Timing";
     private static readonly string PhysicsKey = "Physics";
     private static readonly string LayersKey = "Layers";
-    private static readonly string PackagesKey = "Packages";
     private static readonly string LightingKey = "Lighting";
     private static readonly string RenderingKey = "Rendering and Presentation";
 
@@ -27,7 +26,6 @@ internal class AppSettingsWindow : EditorWindow
         TimingKey,
         PhysicsKey,
         LayersKey,
-        PackagesKey,
         LightingKey,
         RenderingKey,
     ];
@@ -152,71 +150,6 @@ internal class AppSettingsWindow : EditorWindow
         EditorGUI.Label("Sorting Layers");
 
         Handle(projectAppSettings.sortingLayers);
-    }
-
-    private void Packages()
-    {
-        /*
-        EditorGUI.TabBar(moduleKindStrings, "AppSettings.Modules.TabBar", (tabIndex) =>
-        {
-            var key = moduleKinds[tabIndex];
-
-            if (StapleEditor.instance.modulesList.TryGetValue(key, out var modules))
-            {
-                if (ImGui.BeginTable("AppSettings.Modules.List", 3))
-                {
-                    ImGui.TableNextRow();
-
-                    ImGui.TableSetColumnIndex(0);
-
-                    EditorGUI.Label("Enabled");
-
-                    ImGui.TableSetColumnIndex(1);
-
-                    EditorGUI.Label("Name");
-
-                    for (var i = 0; i < modules.Count; i++)
-                    {
-                        ImGui.TableNextRow();
-
-                        ImGui.TableSetColumnIndex(0);
-
-                        var moduleName = modules[i].moduleName;
-
-                        var had = projectAppSettings.usedModules.Contains(moduleName);
-
-                        var shouldHave = EditorGUI.Toggle("", $"AppSettings.Modules.List.Check{i}", had);
-
-                        if (shouldHave != had)
-                        {
-                            if (shouldHave)
-                            {
-                                if (ModuleInitializer.IsModuleTypeUnique(key))
-                                {
-                                    foreach (var m in modules)
-                                    {
-                                        projectAppSettings.usedModules.Remove(m.moduleName);
-                                    }
-                                }
-
-                                projectAppSettings.usedModules.Add(moduleName);
-                            }
-                            else
-                            {
-                                projectAppSettings.usedModules.Remove(moduleName);
-                            }
-                        }
-
-                        ImGui.TableSetColumnIndex(1);
-
-                        EditorGUI.Label(moduleName);
-                    }
-
-                    ImGui.EndTable();
-                }
-            }
-        });
-        */
     }
 
     private void Lighting()
@@ -366,13 +299,6 @@ internal class AppSettingsWindow : EditorWindow
                 case string str when str == LayersKey:
 
                     Layers();
-
-                    break;
-
-
-                case string str when str == PackagesKey:
-
-                    Packages();
 
                     break;
 
