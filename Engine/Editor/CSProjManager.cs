@@ -22,6 +22,19 @@ internal class CSProjManager
         public int counter;
     }
 
+    [Flags]
+    public enum ProjectGenerationFlags
+    {
+        None = 0,
+        ReferenceEditor = (1 << 1),
+        AllowMultiProject = (1 << 2),
+        RecordFileModifyStates = (1 << 3),
+        IsSandbox = (1 << 4),
+        IsPlayer = (1 << 5),
+        Debug = (1 << 6),
+        NativeAOT = (1 << 7),
+    }
+
     private readonly Dictionary<string, DateTime> fileModifyStates = [];
 
     private readonly Dictionary<AppPlatform, string[]> platformDefines = new()
@@ -309,35 +322,28 @@ internal class CSProjManager
         return p;
     }
 
-    /// <summary>
-    /// Generates the game project file
-    /// </summary>
-    /// <param name="backend">The current backend</param>
-    /// <param name="projectAppSettings">The project app settings</param>
-    /// <param name="platform">The current platform</param>
-    /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
-    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox)
+    public void GenerateProject(string projectDirectory, string assetsDirectory, PlayerBackend backend, Dictionary<string, string> projectProperties, 
+        Dictionary<string, string> asmDefProperties, AppSettings projectAppSettings, AppPlatform platform, ProjectGenerationFlags flags)
     {
         using var collection = new ProjectCollection();
 
-        var projectDirectory = sandbox ? basePath : Path.Combine(basePath, "Cache", "Assembly", "Game");
-        var assetsDirectory = Path.Combine(basePath, "Assets");
-
-        var projectProperties = new Dictionary<string, string>()
+        try
         {
-            { "OutputType", "Library" },
-            { "TargetFramework", "net9.0" },
-            { "StripSymbols", "true" },
-            { "PublishAOT", "true" },
-            { "IsAOTCompatible", "true" },
-            { "AppDesignerFolder", "Properties" },
-            { "TieredCompilation", "false" },
-            { "PublishReadyToRun", "false" },
-        };
+            var csprojFiles = Directory.GetFiles(projectDirectory, "*.csproj");
 
-        if(projectAppSettings.allowUnsafeCode)
+            foreach (var file in csprojFiles)
+            {
+                File.Delete(file);
+            }
+        }
+        catch (Exception)
         {
-            projectProperties.Add("AllowUnsafeBlocks", "true");
+        }
+
+        if (projectAppSettings.allowUnsafeCode)
+        {
+            projectProperties.AddOrSetKey("AllowUnsafeBlocks", "true");
+            asmDefProperties.AddOrSetKey("AllowUnsafeBlocks", "true");
         }
 
         var platformDefinesString = "";
@@ -347,22 +353,17 @@ internal class CSProjManager
             platformDefinesString = $";{string.Join(";", defines)}";
         }
 
-        var projectDefines = $"STAPLE_EDITOR{platformDefinesString}";
+        var projectDefines = flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) ? $"STAPLE_EDITOR{platformDefinesString}" :
+            platformDefinesString;
 
         var p = MakeProject(collection, projectDefines, projectProperties);
 
         p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-        p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
-        /*
-        foreach (var pair in projectAppSettings.usedModules)
+        if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
         {
-            p.AddItem("Reference", pair,
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", "Debug", $"{pair}.dll"))
-                ]);
+            p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
         }
-        */
 
         var projects = new Dictionary<string, ProjectInfo>();
         var excludedAsmDefs = new HashSet<string>();
@@ -375,55 +376,72 @@ internal class CSProjManager
 
                 foreach (var file in files)
                 {
+                    if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) == false &&
+                        file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
+                    {
+                        continue;
+                    }
+
                     var parentAsmDef = FindAsmDef(Path.GetDirectoryName(file), basePath);
 
                     var filePath = Path.GetRelativePath(projectDirectory, file);
 
-                    fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                    if(flags.HasFlag(ProjectGenerationFlags.RecordFileModifyStates))
+                    {
+                        fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                    }
 
                     if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
                     {
                         var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
 
-                        if(projects.TryGetValue(parentAsmDef, out var pair) == false)
+                        if (projects.TryGetValue(parentAsmDef, out var pair) == false)
                         {
                             AssemblyDefinition def = null;
+                            Project asmProj = null;
 
-                            try
+                            if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                             {
-                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
+                                try
+                                {
+                                    def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
 
-                                var meta = File.ReadAllText($"{parentAsmDef}.meta");
+                                    var meta = File.ReadAllText($"{parentAsmDef}.meta");
 
-                                var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
+                                    var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
 
-                                def.guid = holder.guid;
+                                    def.guid = holder.guid;
+                                }
+                                catch (Exception)
+                                {
+                                    excludedAsmDefs.Add(parentAsmDef);
+
+                                    continue;
+                                }
+
+                                if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
+                                    (def.anyPlatform == false && def.platforms.Contains(platform) == false))
+                                {
+                                    excludedAsmDefs.Add(parentAsmDef);
+
+                                    continue;
+                                }
+
+                                asmProj = MakeProject(collection, projectDefines, asmDefProperties);
+
+                                asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+
+                                if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                                {
+                                    asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+                                }
                             }
-                            catch (Exception)
-                            {
-                                excludedAsmDefs.Add(parentAsmDef);
-
-                                continue;
-                            }
-
-                            if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
-                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
-                            {
-                                excludedAsmDefs.Add(parentAsmDef);
-
-                                continue;
-                            }
-
-                            var asmProj = MakeProject(collection, projectDefines, projectProperties);
-
-                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-                            asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
 
                             var counter = 0;
 
-                            foreach(var projectPair in projects)
+                            foreach (var projectPair in projects)
                             {
-                                if(Path.GetFileNameWithoutExtension(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
+                                if (Path.GetFileNameWithoutExtension(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     counter++;
                                 }
@@ -439,11 +457,13 @@ internal class CSProjManager
                             projects.Add(parentAsmDef, pair);
                         }
 
-                        pair.project.AddItem("Compile", filePath);
+                        var targetProject = pair.project ?? target ?? p;
+
+                        targetProject.AddItem("Compile", filePath);
                     }
                     else
                     {
-                        target.AddItem("Compile", filePath);
+                        (target ?? p).AddItem("Compile", filePath);
                     }
                 }
 
@@ -464,31 +484,42 @@ internal class CSProjManager
         {
             try
             {
-                foreach(var pair in PackageManager.instance.projectPackages)
+                foreach (var pair in PackageManager.instance.projectPackages)
                 {
-                    var project = MakeProject(collection, projectDefines, projectProperties);
-
-                    project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-                    project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
-
-                    var counter = 0;
-
-                    foreach (var projectPair in projects)
+                    if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                     {
-                        if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
+                        var project = MakeProject(collection, projectDefines, asmDefProperties);
+
+                        project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+
+                        if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
                         {
-                            counter++;
+                            project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
                         }
+
+                        var counter = 0;
+
+                        foreach (var projectPair in projects)
+                        {
+                            if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                counter++;
+                            }
+                        }
+
+                        Recursive(pair.Value.Item1, pair.Value.Item1, project);
+
+                        projects.Add(pair.Value.Item1, new()
+                        {
+                            project = project,
+                            counter = counter,
+                            package = pair.Value.Item2,
+                        });
                     }
-
-                    Recursive(pair.Value.Item1, pair.Value.Item1, project);
-
-                    projects.Add(pair.Value.Item1, new()
+                    else
                     {
-                         project = project,
-                         counter = counter,
-                         package = pair.Value.Item2,
-                    });
+                        Recursive(pair.Value.Item1, pair.Value.Item1, p);
+                    }
                 }
             }
             catch (Exception e)
@@ -498,661 +529,6 @@ internal class CSProjManager
         }
 
         Recursive(assetsDirectory, assetsDirectory, p);
-
-        HandlePackages();
-
-        var assemblies = new List<string>();
-
-        foreach(var directory in AssetDatabase.assetDirectories)
-        {
-            try
-            {
-                assemblies.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
-            }
-            catch(Exception)
-            {
-                continue;
-            }
-        }
-
-        foreach(var assemblyPath in assemblies)
-        {
-            try
-            {
-                var text = File.ReadAllText(assemblyPath);
-
-                var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
-
-                if(plugin.typeName != typeof(PluginAsset).FullName)
-                {
-                    continue;
-                }
-
-                if(plugin.autoReferenced &&
-                    (plugin.anyPlatform || plugin.platforms.Contains(platform)))
-                {
-                    var targetPath = assemblyPath[..^".meta".Length];
-
-                    foreach (var pair in projects)
-                    {
-                        pair.Value.project?.AddItem("Reference", Path.GetFileName(targetPath),
-                            [new("HintPath", targetPath)]);
-                    }
-
-                    p.AddItem("Reference", Path.GetFileName(targetPath), [new("HintPath", targetPath)]);
-                }
-            }
-            catch(Exception)
-            {
-            }
-        }
-
-        if(sandbox == false)
-        {
-            var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
-
-            p.AddItem("ProjectReference", typeRegistrationPath,
-                [
-                    new("OutputItemType", "Analyzer"),
-                    new("ReferenceOutputAssembly", "false"),
-                ]);
-
-            var registration = Path.Combine(projectDirectory, "GameRegistration.cs");
-
-            p.AddItem("Compile", registration);
-
-            try
-            {
-                File.WriteAllText(registration, $$"""
-                    namespace Staple.Internal;
-
-                    public sealed class GameRegistration
-                    {
-                        public void RegisterAll()
-                        {
-                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
-                        }
-                    }
-                    """);
-            }
-            catch(Exception)
-            {
-            }
-        }
-
-        try
-        {
-            Directory.CreateDirectory(projectDirectory);
-        }
-        catch (Exception)
-        {
-        }
-
-        var asmDefNames = new List<string>();
-
-        foreach(var pair in projects)
-        {
-            var counter = pair.Value.counter == 0 ? "" : pair.Value.counter.ToString();
-
-            var projectName = pair.Value.asmDef is null ? Path.GetFileName(pair.Key) : Path.GetFileNameWithoutExtension(pair.Key);
-
-            var name = $"{projectName}{counter}";
-
-            asmDefNames.Add(name);
-
-            if(pair.Value.asmDef?.autoReferenced ?? true)
-            {
-                p.AddItem("ProjectReference", $"{name}.csproj");
-            }
-
-            if(pair.Value.asmDef != null)
-            {
-                foreach (var assembly in pair.Value.asmDef.referencedAssemblies)
-                {
-                    var targetAssembly = projects.FirstOrDefault(x => x.Value.asmDef.guid != null && x.Value.asmDef.guid == assembly);
-
-                    if (targetAssembly.Value.asmDef != null)
-                    {
-                        counter = targetAssembly.Value.counter == 0 ? "" : targetAssembly.Value.counter.ToString();
-
-                        var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
-
-                        pair.Value.project.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
-                    }
-                }
-            }
-            else if(pair.Value.package != null)
-            {
-                foreach(var dependency in pair.Value.package.dependencies)
-                {
-                    var targetName = $"{dependency.name}@{dependency.version}";
-
-                    foreach(var projectPair in projects)
-                    {
-                        if(Path.GetFileName(projectPair.Key) == targetName)
-                        {
-                            pair.Value.project.AddItem("ProjectReference", $"{targetName}.csproj");
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            pair.Value.project.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
-        }
-
-        p.Save(Path.Combine(projectDirectory, "Game.csproj"));
-
-        var fileName = sandbox ? "Sandbox.sln" : "Game.sln";
-
-        var target = Path.Combine(projectDirectory, fileName);
-
-        if (File.Exists(target))
-        {
-            File.Delete(target);
-        }
-
-        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
-        {
-            WorkingDirectory = projectDirectory
-        };
-
-        var process = new Process
-        {
-            StartInfo = startInfo
-        };
-
-        if (process.Start())
-        {
-            process.WaitForExit();
-
-            if (process.ExitCode != 0)
-            {
-                return;
-            }
-        }
-        else
-        {
-            return;
-        }
-
-        if (process.ExitCode != 0)
-        {
-            return;
-        }
-
-        var projectFiles = new string[] { "Game" }.Concat(asmDefNames);
-
-        foreach (var file in projectFiles)
-        {
-            startInfo = new ProcessStartInfo("dotnet", $"sln add \"{file}.csproj\"")
-            {
-                WorkingDirectory = projectDirectory
-            };
-
-            process = new Process
-            {
-                StartInfo = startInfo
-            };
-
-            if (process.Start())
-            {
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                return;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Generates the player project
-    /// </summary>
-    /// <param name="backend">The player backend</param>
-    /// <param name="projectAppSettings">The project app settings</param>
-    /// <param name="debug">Whether it's a debug build</param>
-    /// <param name="nativeAOT">Whether to build natively</param>
-    /// <param name="debugRedists">Whether to use debug dependencies</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists)
-    {
-        using var collection = new ProjectCollection();
-
-        var platform = backend.platform;
-
-        EditorUtils.CreateDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
-
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
-        var assetsDirectory = Path.Combine(basePath, "Assets");
-        var configurationName = debug ? "Debug" : "Release";
-        var redistConfigurationName = debugRedists ? "Debug" : "Release";
-
-        try
-        {
-            var csprojFiles = Directory.GetFiles(projectDirectory, "*.csproj");
-
-            foreach (var file in csprojFiles)
-            {
-                File.Delete(file);
-            }
-        }
-        catch (Exception)
-        {
-        }
-
-        EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
-
-        if(backend.dataDirIsOutput == false)
-        {
-            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput, backend.redistOutput), projectAppSettings,
-                platform, backend.basePath, redistConfigurationName);
-
-            EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
-        }
-
-        var targetFramework = platformFramework[platform];
-
-        var exeType = platform switch
-        {
-            AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => debug ? "Exe" : "WinExe",
-            _ => "Exe",
-        };
-
-        var projectProperties = new Dictionary<string, string>()
-        {
-            { "OutputType", exeType },
-            { "TargetFramework", targetFramework },
-            { "StripSymbols", debug ? "false" : "true" },
-            { "AppDesignerFolder", "Properties" },
-            { "OptimizationPreference", "Speed" },
-            { "Nullable", "enable" },
-            { "TieredCompilation", "false" },
-            { "PublishReadyToRun", "false" },
-        };
-
-        if (projectAppSettings.allowUnsafeCode)
-        {
-            projectProperties.Add("AllowUnsafeBlocks", "true");
-        }
-
-        var platformDefinesString = "";
-
-        if (platformDefines.TryGetValue(platform, out var defines) && defines.Length > 0)
-        {
-            platformDefinesString = $";{string.Join(";", defines)}";
-        }
-
-        var projectDefines = platformDefinesString;
-
-        var p = MakeProject(collection, projectDefines, projectProperties);
-
-        var projects = new Dictionary<string, ProjectInfo>();
-        var excludedAsmDefs = new HashSet<string>();
-
-        var asmDefProjectProperties = new Dictionary<string, string>()
-        {
-            { "OutputType", "Library" },
-            { "TargetFramework", targetFramework },
-            { "StripSymbols", "true" },
-            { "AppDesignerFolder", "Properties" },
-            { "TieredCompilation", "false" },
-            { "PublishReadyToRun", "false" },
-        };
-
-        if (projectAppSettings.allowUnsafeCode)
-        {
-            asmDefProjectProperties.Add("AllowUnsafeBlocks", "true");
-        }
-
-        var platformUsesSeparateProjects = platform switch
-        {
-            AppPlatform.Android or AppPlatform.iOS  => false,
-            _ => true,
-        };
-
-        void FindScripts(string path, string basePath, Project target)
-        {
-            try
-            {
-                var files = Directory.GetFiles(path, "*.cs");
-
-                foreach (var file in files)
-                {
-                    if (file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
-                    {
-                        continue;
-                    }
-
-                    var parentAsmDef = FindAsmDef(Path.GetDirectoryName(file), basePath);
-
-                    if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
-                    {
-                        var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
-
-                        if (projects.TryGetValue(parentAsmDef, out var pair) == false)
-                        {
-                            AssemblyDefinition def = null;
-
-                            try
-                            {
-                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
-
-                                var meta = File.ReadAllText($"{parentAsmDef}.meta");
-
-                                var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
-
-                                def.guid = holder.guid;
-                            }
-                            catch (Exception)
-                            {
-                                excludedAsmDefs.Add(parentAsmDef);
-
-                                continue;
-                            }
-
-                            if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
-                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
-                            {
-                                excludedAsmDefs.Add(parentAsmDef);
-
-                                continue;
-                            }
-
-                            Project asmProj = null;
-
-                            if(platformUsesSeparateProjects)
-                            {
-                                asmProj = MakeProject(collection, projectDefines, asmDefProjectProperties);
-
-                                asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))]);
-
-                                switch (platform)
-                                {
-                                    case AppPlatform.Android:
-
-                                        asmProj.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
-                                        asmProj.SetProperty("RuntimeIdentifiers", "android-arm64");
-                                        asmProj.SetProperty("UseInterpreter", "false");
-
-                                        break;
-
-                                    case AppPlatform.iOS:
-
-                                        asmProj.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
-                                        asmProj.SetProperty("RuntimeIdentifiers", "ios-arm64");
-                                        asmProj.SetProperty("UseInterpreter", "false");
-
-                                        break;
-                                }
-                            }
-
-                            var counter = 0;
-                            var trimmedName = Path.GetFileName(parentAsmDef);
-
-                            foreach (var projectPair in projects)
-                            {
-                                if (Path.GetFileName(projectPair.Key).Equals(trimmedName, StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    counter++;
-                                }
-                            }
-
-                            pair = new()
-                            {
-                                asmDef = def,
-                                project = asmProj,
-                                counter = counter,
-                            };
-
-                            projects.Add(parentAsmDef, pair);
-                        }
-
-                        var project = pair.project ?? target ?? p;
-
-                        project?.AddItem("Compile", Path.GetFullPath(file));
-                    }
-                    else
-                    {
-                        (target ?? p).AddItem("Compile", Path.GetFullPath(file));
-                    }
-                }
-
-                var directories = Directory.GetDirectories(path);
-
-                foreach (var directory in directories)
-                {
-                    FindScripts(directory, basePath, target);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed generating csproj: {e}");
-            }
-        }
-
-        if(platform == AppPlatform.Windows)
-        {
-            p.SetProperty("ApplicationIcon", $"Icon.ico");
-
-            p.Xml.AddItemGroup().AddItem("Content", $"Icon.ico");
-        }
-
-        switch (platform)
-        {
-            case AppPlatform.Windows:
-            case AppPlatform.Linux:
-            case AppPlatform.MacOSX:
-
-                if(nativeAOT)
-                {
-                    p.SetProperty("PublishAOT", "true");
-                    p.SetProperty("IsAOTCompatible", "true");
-                }
-                else
-                {
-                    p.SetProperty("PublishTrimmed", "true");
-                    p.SetProperty("PublishSingleFile", "true");
-                    p.SetProperty("IsTrimmable", "true");
-                    p.SetProperty("EnableTrimAnalyzer", "true");
-                    p.SetProperty("EnableSingleFileAnalyzer", "true");
-                    p.SetProperty("EnableAotAnalyzer", "true");
-                }
-
-                break;
-
-            case AppPlatform.Android:
-
-                p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
-                p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
-                p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
-                p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                p.SetProperty("RuntimeIdentifiers", "android-arm64");
-                p.SetProperty("UseInterpreter", "false");
-
-                break;
-
-            case AppPlatform.iOS:
-
-                p.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
-                p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
-                p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
-                p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                p.SetProperty("RuntimeIdentifiers", "ios-arm64");
-                p.SetProperty("UseInterpreter", "false");
-
-                break;
-        }
-
-        p.AddItem("Reference", "StapleCore",
-            [
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
-            ]);
-
-        p.AddItem("Reference", "MessagePack",
-            [
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
-            ]);
-
-        p.AddItem("Reference", "NAudio",
-            [
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
-            ]);
-
-        p.AddItem("Reference", "NVorbis",
-            [
-                new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
-            ]);
-
-        if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
-        {
-            p.AddItem("Reference", "SDL2-CS",
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
-                ]);
-        }
-
-        /*
-        foreach(var pair in projectAppSettings.usedModules)
-        {
-            p.AddItem("Reference", pair,
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Modules", pair, "Assembly", configurationName, $"{pair}.dll"))
-                ]);
-        }
-        */
-
-        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
-
-        p.AddItem("ProjectReference", typeRegistrationPath,
-            [
-                new("OutputItemType", "Analyzer"),
-                new("ReferenceOutputAssembly", "false")
-            ]);
-
-        //TODO: Consider re-enabling this at some point if necessary
-        /*
-        var trimmerRootAssemblies = p.Xml.AddItemGroup();
-
-        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "Player")
-            .AddMetadata("RootMode", "library");
-        trimmerRootAssemblies.AddItem("TrimmerRootAssembly", "StapleCore")
-            .AddMetadata("RootMode", "library");
-        */
-
-        switch (platform)
-        {
-            case AppPlatform.Android:
-
-                {
-                    var activityPath = Path.Combine(projectDirectory, "PlayerActivity.cs");
-
-                    p.AddItem("Compile", Path.GetFullPath(activityPath));
-                }
-
-                break;
-
-            case AppPlatform.iOS:
-
-                {
-                    var itemGroup = p.Xml.AddItemGroup();
-
-                    itemGroup.AddItem("BundleResource", "DefaultResources.pak");
-                    itemGroup.AddItem("BundleResource", "Resources.pak");
-
-                    try
-                    {
-                        var redistFiles = Directory.EnumerateFileSystemEntries(Path.Combine(backend.basePath, "Redist", debug ? "Debug" : "Release"));
-
-                        foreach(var file in redistFiles)
-                        {
-                            if(File.GetAttributes(file).HasFlag(FileAttributes.Directory))
-                            {
-                                var item = itemGroup.AddItem("NativeReference", file);
-
-                                item.AddMetadata("Kind", "Framework");
-                            }
-                            else
-                            {
-                                itemGroup.AddItem("BundleResource", Path.GetFileName(file));
-
-                                File.Copy(file, Path.Combine(projectDirectory, Path.GetFileName(file)), true);
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-                    var appDelegatePath = Path.Combine(projectDirectory, "AppDelegate.cs");
-
-                    p.AddItem("Compile", Path.GetFullPath(appDelegatePath));
-
-                    var mainPath = Path.Combine(projectDirectory, "Main.cs");
-
-                    p.AddItem("Compile", Path.GetFullPath(mainPath));
-                }
-
-                break;
-
-            default:
-
-                {
-                    var programPath = Path.Combine(projectDirectory, "Program.cs");
-
-                    p.AddItem("Compile", Path.GetFullPath(programPath));
-                }
-
-                break;
-        }
-
-        void HandlePackages()
-        {
-            try
-            {
-                foreach (var pair in PackageManager.instance.projectPackages)
-                {
-                    Project project = null;
-
-                    if (platformUsesSeparateProjects)
-                    {
-                        project = MakeProject(collection, projectDefines, asmDefProjectProperties);
-
-                        project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-                    }
-
-                    var counter = 0;
-
-                    foreach (var projectPair in projects)
-                    {
-                        if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            counter++;
-                        }
-                    }
-
-                    FindScripts(pair.Value.Item1, pair.Value.Item1, project);
-
-                    projects.Add(pair.Value.Item1, new()
-                    {
-                        counter = counter,
-                        project = project,
-                        package = pair.Value.Item2,
-                    });
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed generating csproj: {e}");
-            }
-        }
-
-        FindScripts(assetsDirectory, assetsDirectory, p);
 
         HandlePackages();
 
@@ -1202,6 +578,47 @@ internal class CSProjManager
             }
         }
 
+        if (flags.HasFlag(ProjectGenerationFlags.IsSandbox) == false)
+        {
+            var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
+
+            p.AddItem("ProjectReference", typeRegistrationPath,
+                [
+                    new("OutputItemType", "Analyzer"),
+                    new("ReferenceOutputAssembly", "false"),
+                ]);
+
+            var registration = Path.Combine(projectDirectory, "GameRegistration.cs");
+
+            p.AddItem("Compile", registration);
+
+            try
+            {
+                File.WriteAllText(registration, $$"""
+                    namespace Staple.Internal;
+
+                    public sealed class GameRegistration
+                    {
+                        public void RegisterAll()
+                        {
+                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+                        }
+                    }
+                    """);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        try
+        {
+            Directory.CreateDirectory(projectDirectory);
+        }
+        catch (Exception)
+        {
+        }
+
         var asmDefNames = new List<string>();
 
         foreach (var pair in projects)
@@ -1224,7 +641,7 @@ internal class CSProjManager
                 p.AddItem("ProjectReference", $"{name}.csproj");
             }
 
-            if(pair.Value.asmDef != null)
+            if (pair.Value.asmDef != null)
             {
                 foreach (var assembly in pair.Value.asmDef.referencedAssemblies)
                 {
@@ -1240,13 +657,185 @@ internal class CSProjManager
                     }
                 }
             }
+            else if (pair.Value.package != null)
+            {
+                foreach (var dependency in pair.Value.package.dependencies)
+                {
+                    var targetName = $"{dependency.name}@{dependency.version}";
+
+                    foreach (var projectPair in projects)
+                    {
+                        if (Path.GetFileName(projectPair.Key) == targetName)
+                        {
+                            pair.Value.project.AddItem("ProjectReference", $"{targetName}.csproj");
+
+                            break;
+                        }
+                    }
+                }
+            }
 
             pair.Value.project.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
         }
 
-        p.Save(Path.Combine(projectDirectory, "Player.csproj"));
+        if(flags.HasFlag(ProjectGenerationFlags.IsPlayer))
+        {
+            if (platform == AppPlatform.Windows)
+            {
+                p.SetProperty("ApplicationIcon", $"Icon.ico");
 
-        var fileName = "Player.sln";
+                p.Xml.AddItemGroup().AddItem("Content", $"Icon.ico");
+            }
+
+            switch (platform)
+            {
+                case AppPlatform.Windows:
+                case AppPlatform.Linux:
+                case AppPlatform.MacOSX:
+
+                    if (flags.HasFlag(ProjectGenerationFlags.NativeAOT))
+                    {
+                        p.SetProperty("PublishAOT", "true");
+                        p.SetProperty("IsAOTCompatible", "true");
+                    }
+                    else
+                    {
+                        p.SetProperty("PublishTrimmed", "true");
+                        p.SetProperty("PublishSingleFile", "true");
+                        p.SetProperty("IsTrimmable", "true");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                    }
+
+                    break;
+
+                case AppPlatform.Android:
+
+                    p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
+                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                    p.SetProperty("RuntimeIdentifiers", "android-arm64");
+                    p.SetProperty("UseInterpreter", "false");
+
+                    break;
+
+                case AppPlatform.iOS:
+
+                    p.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
+                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                    p.SetProperty("RuntimeIdentifiers", "ios-arm64");
+                    p.SetProperty("UseInterpreter", "false");
+
+                    break;
+            }
+
+            var configurationName = flags.HasFlag(ProjectGenerationFlags.Debug) ? "Debug" : "Release";
+
+            p.AddItem("Reference", "StapleCore",
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
+                ]);
+
+            p.AddItem("Reference", "MessagePack",
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
+                ]);
+
+            p.AddItem("Reference", "NAudio",
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
+                ]);
+
+            p.AddItem("Reference", "NVorbis",
+                [
+                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
+                ]);
+
+            if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
+            {
+                p.AddItem("Reference", "SDL2-CS",
+                    [
+                        new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
+                    ]);
+            }
+
+            switch (platform)
+            {
+                case AppPlatform.Android:
+
+                    {
+                        var activityPath = Path.Combine(projectDirectory, "PlayerActivity.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(activityPath));
+                    }
+
+                    break;
+
+                case AppPlatform.iOS:
+
+                    {
+                        var itemGroup = p.Xml.AddItemGroup();
+
+                        itemGroup.AddItem("BundleResource", "DefaultResources.pak");
+                        itemGroup.AddItem("BundleResource", "Resources.pak");
+
+                        try
+                        {
+                            var redistFiles = Directory.EnumerateFileSystemEntries(Path.Combine(backend.basePath, "Redist", configurationName));
+
+                            foreach (var file in redistFiles)
+                            {
+                                if (File.GetAttributes(file).HasFlag(FileAttributes.Directory))
+                                {
+                                    var item = itemGroup.AddItem("NativeReference", file);
+
+                                    item.AddMetadata("Kind", "Framework");
+                                }
+                                else
+                                {
+                                    itemGroup.AddItem("BundleResource", Path.GetFileName(file));
+
+                                    File.Copy(file, Path.Combine(projectDirectory, Path.GetFileName(file)), true);
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        var appDelegatePath = Path.Combine(projectDirectory, "AppDelegate.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(appDelegatePath));
+
+                        var mainPath = Path.Combine(projectDirectory, "Main.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(mainPath));
+                    }
+
+                    break;
+
+                default:
+
+                    {
+                        var programPath = Path.Combine(projectDirectory, "Program.cs");
+
+                        p.AddItem("Compile", Path.GetFullPath(programPath));
+                    }
+
+                    break;
+            }
+        }
+
+        var mainProjectName = flags.HasFlag(ProjectGenerationFlags.IsSandbox) ? "Sandbox" :
+            flags.HasFlag(ProjectGenerationFlags.IsPlayer) ? "Player" : "Game";
+
+        p.Save(Path.Combine(projectDirectory, $"{mainProjectName}.csproj"));
+
+        var fileName = $"{mainProjectName}.sln";
 
         var target = Path.Combine(projectDirectory, fileName);
 
@@ -1255,7 +844,7 @@ internal class CSProjManager
             File.Delete(target);
         }
 
-        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {Path.GetFileNameWithoutExtension(fileName)}")
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {mainProjectName}")
         {
             WorkingDirectory = projectDirectory
         };
@@ -1284,7 +873,7 @@ internal class CSProjManager
             return;
         }
 
-        var projectFiles = new string[] { "Player" }.Concat(asmDefNames);
+        var projectFiles = new string[] { mainProjectName }.Concat(asmDefNames);
 
         foreach (var file in projectFiles)
         {
@@ -1312,5 +901,125 @@ internal class CSProjManager
                 return;
             }
         }
+    }
+
+    /// <summary>
+    /// Generates the game project file
+    /// </summary>
+    /// <param name="backend">The current backend</param>
+    /// <param name="projectAppSettings">The project app settings</param>
+    /// <param name="platform">The current platform</param>
+    /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
+    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox)
+    {
+        var projectDirectory = sandbox ? basePath : Path.Combine(basePath, "Cache", "Assembly", "Game");
+        var assetsDirectory = Path.Combine(basePath, "Assets");
+
+        var projectProperties = new Dictionary<string, string>()
+        {
+            { "OutputType", "Library" },
+            { "TargetFramework", "net9.0" },
+            { "StripSymbols", "true" },
+            { "PublishAOT", "true" },
+            { "IsAOTCompatible", "true" },
+            { "AppDesignerFolder", "Properties" },
+            { "TieredCompilation", "false" },
+            { "PublishReadyToRun", "false" },
+        };
+
+        var flags = ProjectGenerationFlags.RecordFileModifyStates |
+            ProjectGenerationFlags.AllowMultiProject |
+            ProjectGenerationFlags.ReferenceEditor;
+
+        if(sandbox)
+        {
+            flags |= ProjectGenerationFlags.IsSandbox;
+        }
+
+        GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, projectProperties, projectAppSettings, platform, flags);
+    }
+
+    /// <summary>
+    /// Generates the player project
+    /// </summary>
+    /// <param name="backend">The player backend</param>
+    /// <param name="projectAppSettings">The project app settings</param>
+    /// <param name="debug">Whether it's a debug build</param>
+    /// <param name="nativeAOT">Whether to build natively</param>
+    /// <param name="debugRedists">Whether to use debug dependencies</param>
+    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists)
+    {
+        var platform = backend.platform;
+
+        EditorUtils.CreateDirectory(Path.Combine(basePath, "Cache", "Assembly", platform.ToString()));
+
+        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", platform.ToString());
+        var assetsDirectory = Path.Combine(basePath, "Assets");
+        var redistConfigurationName = debugRedists ? "Debug" : "Release";
+
+        EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
+
+        if(backend.dataDirIsOutput == false)
+        {
+            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput, backend.redistOutput), projectAppSettings,
+                platform, backend.basePath, redistConfigurationName);
+
+            EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
+        }
+
+        var targetFramework = platformFramework[platform];
+
+        var exeType = platform switch
+        {
+            AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => debug ? "Exe" : "WinExe",
+            _ => "Exe",
+        };
+
+        var projectProperties = new Dictionary<string, string>()
+        {
+            { "OutputType", exeType },
+            { "TargetFramework", targetFramework },
+            { "StripSymbols", debug ? "false" : "true" },
+            { "AppDesignerFolder", "Properties" },
+            { "OptimizationPreference", "Speed" },
+            { "Nullable", "enable" },
+            { "TieredCompilation", "false" },
+            { "PublishReadyToRun", "false" },
+        };
+
+        var asmDefProjectProperties = new Dictionary<string, string>()
+        {
+            { "OutputType", "Library" },
+            { "TargetFramework", targetFramework },
+            { "StripSymbols", debug ? "false" : "true" },
+            { "AppDesignerFolder", "Properties" },
+            { "TieredCompilation", "false" },
+            { "PublishReadyToRun", "false" },
+        };
+
+        var platformUsesSeparateProjects = platform switch
+        {
+            AppPlatform.Android or AppPlatform.iOS => false,
+            _ => true,
+        };
+
+        var flags = ProjectGenerationFlags.IsPlayer;
+
+        if(debug)
+        {
+            flags |= ProjectGenerationFlags.Debug;
+        }
+
+        if(nativeAOT)
+        {
+            flags |= ProjectGenerationFlags.NativeAOT;
+        }
+        else if (platformUsesSeparateProjects)
+        {
+            flags |= ProjectGenerationFlags.AllowMultiProject;
+        }
+
+        GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, asmDefProjectProperties, projectAppSettings,
+            platform, flags);
     }
 }
