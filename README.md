@@ -23,7 +23,9 @@ Status: Early state, usable for small demos
 * Baking pipeline (Baker) that processes game assets into engine-ready formats
 * Resource Packer that packs multiple files into a single file
 * Text Rendering using FreeType supporting optional gradients and outlines
-* Module system to enable/disable specific engine features such as physics and audio
+* Package manager to manage builtin features, local and git packages
+* Unity-style Assembly Definition system for defining specific projects per parts of the project
+* Unity-style Plugin system for defining native dependencies for specific platforms
 
 # Installation
 
