@@ -26,7 +26,7 @@ public abstract class EditorWindow
     /// <summary>
     /// The window's size
     /// </summary>
-    public Vector2Int size = new(200, 300);
+    public Vector2Int size = new(600, 400);
 
     internal bool opened = false;
 

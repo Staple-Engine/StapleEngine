@@ -14,7 +14,7 @@ internal class SpritePicker : EditorWindow
 
     public SpritePicker()
     {
-        windowFlags = EditorWindowFlags.Centered;
+        windowFlags = EditorWindowFlags.None;
 
         windowType = EditorWindowType.Popup;
     }

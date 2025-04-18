@@ -20,9 +20,6 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
     public SkinnedAnimationStateMachineWindow()
     {
         title = "Animation State Editor";
-        size = new Vector2Int(300, 400);
-
-        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable | EditorWindowFlags.HasMenuBar;
 
         nodeUI = new(this)
         {

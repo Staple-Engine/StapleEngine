@@ -22,7 +22,7 @@ internal class AssetPickerWindow : EditorWindow
 
     public AssetPickerWindow()
     {
-        windowFlags = EditorWindowFlags.Centered;
+        windowFlags = EditorWindowFlags.None;
 
         windowType = EditorWindowType.Popup;
     }

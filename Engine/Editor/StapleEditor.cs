@@ -745,12 +745,7 @@ internal partial class StapleEditor
                 var window = currentWindows[i];
                 var shouldShow = false;
 
-                var flags = ImGuiWindowFlags.None;
-
-                if(window.windowFlags.HasFlag(EditorWindowFlags.HasMenuBar))
-                {
-                    flags |= ImGuiWindowFlags.MenuBar;
-                }
+                var flags = ImGuiWindowFlags.MenuBar;
 
                 if(window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
                 {
@@ -760,13 +755,6 @@ internal partial class StapleEditor
                 if(window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoResize;
-
-                    ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
-
-                    if(window.windowFlags.HasFlag(EditorWindowFlags.Centered))
-                    {
-                        ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
-                    }
                 }
 
                 var isOpen = true;
@@ -805,6 +793,10 @@ internal partial class StapleEditor
                         break;
 
                     default:
+
+                        ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y), ImGuiCond.FirstUseEver);
+
+                        ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2), ImGuiCond.FirstUseEver);
 
                         shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", ref isOpen, flags);
 
