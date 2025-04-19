@@ -72,6 +72,8 @@ static partial class Program
 {
     private static readonly Lock meshMaterialLock = new();
 
+    private const uint GenBoundingBoxes = 0x80000000;
+
     private static unsafe void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
         var meshFiles = new List<string>();
@@ -230,7 +232,7 @@ static partial class Program
 
                 try
                 {
-                    scene = assimp.ImportFile(meshFileName.Replace(".meta", ""), (uint)flags);
+                    scene = assimp.ImportFile(meshFileName.Replace(".meta", ""), (uint)flags | GenBoundingBoxes);
                 }
                 catch (Exception e)
                 {
