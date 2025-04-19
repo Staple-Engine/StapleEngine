@@ -275,10 +275,10 @@ static partial class Program
 
                 lock(meshMaterialLock)
                 {
-                    for (var j = 0; j < scene->MNumMaterials; j++)
-                    {
-                        var material = scene->MMaterials[j];
+                    var materials = scene->GetMaterials();
 
+                    foreach(var material in materials)
+                    {
                         var fileName = Path.GetFileNameWithoutExtension(meshFileName.Replace(".meta", ""));
 
                         if (material->TryGetName(assimp, out var name))
@@ -418,6 +418,7 @@ static partial class Program
                         var pieces = new Dictionary<string, string>()
                         {
                             { "ambientColor", Silk.NET.Assimp.Assimp.MaterialColorAmbientBase },
+                            { "diffuseColor", Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase },
                             { "emissiveColor", Silk.NET.Assimp.Assimp.MaterialColorEmissiveBase },
                             { "reflectiveColor", Silk.NET.Assimp.Assimp.MaterialColorReflectiveBase },
                             { "specularColor", Silk.NET.Assimp.Assimp.MaterialColorSpecularBase },
@@ -486,17 +487,17 @@ static partial class Program
                                         {
                                             var length = 0;
 
-                                            for(var k = 0; k < 9; k++)
+                                            for(var j = 0; j < 9; j++)
                                             {
-                                                if (texture->AchFormatHint[k] == 0)
+                                                if (texture->AchFormatHint[j] == 0)
                                                 {
-                                                    length = k;
+                                                    length = j;
 
                                                     break;
                                                 }
                                             }
 
-                                            extension = Encoding.ASCII.GetString(new Span<byte>(texture->AchFormatHint, length));
+                                            extension = Encoding.UTF8.GetString(new Span<byte>(texture->AchFormatHint, length));
 
                                             textureData = new Span<byte>(texture->PcData, (int)texture->MWidth).ToArray();
                                         }
@@ -735,14 +736,9 @@ static partial class Program
 
                 transformMatrix = Matrix4x4.CreateScale(metadata.scale) * transformMatrix;
 
-                for(var i = 0; i < scene->MNumMeshes; i++)
+                if (scene->HasBones())
                 {
-                    if (scene->MMeshes[i]->MNumBones > 0)
-                    {
-                        transformMatrix = Matrix4x4.Identity;
-
-                        break;
-                    }
+                    transformMatrix = Matrix4x4.Identity;
                 }
 
                 Vector3Holder ApplyTransform(Vector3Holder value)
@@ -754,22 +750,17 @@ static partial class Program
 
                 void RegisterNode(Silk.NET.Assimp.Node *node, int parentIndex)
                 {
-                    Matrix4x4.Decompose(node->MTransformation, out var scale, out var rotation, out var translation);
+                    Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
 
-                    var meshIndices = new List<int>();
-
-                    for(var i = 0; i < node->MNumMeshes; i++)
-                    {
-                        meshIndices.Add((int)node->MMeshes[i]);
-                    }
+                    var meshIndices = new List<int>(node->MeshIndices());
 
                     var newNode = new MeshAssetNode()
                     {
                         name = node->MName.AsString,
                         meshIndices = meshIndices,
-                        position = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
-                        scale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
-                        rotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
+                        position = new Vector3Holder(translation),
+                        scale = new Vector3Holder(scale),
+                        rotation = new Vector3Holder(rotation),
                     };
 
                     if(parentIndex >= 0)
@@ -781,24 +772,22 @@ static partial class Program
 
                     nodes.Add(newNode);
 
-                    for(var i = 0; i < node->MNumChildren; i++)
+                    var children = node->Children();
+
+                    foreach(var child in children)
                     {
-                        RegisterNode(node->MChildren[i], currentIndex);
+                        RegisterNode(child, currentIndex);
                     }
                 }
-
-                Console.Write("Register nodes");
 
                 RegisterNode(scene->MRootNode, -1);
 
                 meshData.nodes = nodes.ToArray();
 
-                Console.Write("Register nodes done");
+                var animations = scene->Animations();
 
-                for (var i = 0; i < scene->MNumAnimations; i++)
+                foreach(var animation in animations)
                 {
-                    var animation = scene->MAnimations[i];
-
                     var a = new MeshAssetAnimation()
                     {
                         duration = (float)animation->MDuration,
@@ -806,46 +795,33 @@ static partial class Program
                         name = animation->MName.AsString,
                     };
 
-                    for(var j = 0; j < animation->MNumChannels; j++)
+                    var channels = animation->Channels();
+
+                    foreach (var channel in channels)
                     {
-                        var channel = animation->MChannels[j];
-
-                        var positionKeys = new List<MeshAssetVectorAnimationKey>();
-                        var rotationKeys = new List<MeshAssetQuaternionAnimationKey>();
-                        var scaleKeys = new List<MeshAssetVectorAnimationKey>();
-
-                        for(var k = 0; k < channel->MNumPositionKeys; k++)
-                        {
-                            var key = channel->MPositionKeys[k];
-
-                            positionKeys.Add(new()
+                        var positionKeys = channel->PositionKeys()
+                            .Select(x => new MeshAssetVectorAnimationKey()
                             {
-                                time = (float)key.MTime,
-                                value = new(key.MValue),
-                            });
-                        }
+                                time = (float)x.MTime,
+                                value = new(x.MValue),
+                            })
+                            .ToList();
 
-                        for (var k = 0; k < channel->MNumRotationKeys; k++)
-                        {
-                            var key = channel->MRotationKeys[k];
-
-                            positionKeys.Add(new()
+                        var rotationKeys = channel->RotationKeys()
+                            .Select(x => new MeshAssetQuaternionAnimationKey()
                             {
-                                time = (float)key.MTime,
-                                value = new(key.MValue.AsQuaternion),
-                            });
-                        }
+                                time = (float)x.MTime,
+                                value = new(x.MValue),
+                            })
+                            .ToList();
 
-                        for (var k = 0; k < channel->MNumScalingKeys; k++)
-                        {
-                            var key = channel->MScalingKeys[k];
-
-                            scaleKeys.Add(new()
+                        var scaleKeys = channel->ScaleKeys()
+                            .Select(x => new MeshAssetVectorAnimationKey()
                             {
-                                time = (float)key.MTime,
-                                value = new(key.MValue),
-                            });
-                        }
+                                time = (float)x.MTime,
+                                value = new(x.MValue),
+                            })
+                            .ToList();
 
                         var c = new MeshAssetAnimationChannel()
                         {
@@ -877,12 +853,10 @@ static partial class Program
                     meshData.animations.Add(a);
                 }
 
-                Console.Write("Handle animations");
+                var meshes = scene->GetMeshes();
 
-                for (var j = 0; j < scene->MNumMeshes; j++)
+                foreach (var mesh in meshes)
                 {
-                    var mesh = scene->MMeshes[j];
-
                     var m = new MeshAssetMeshInfo
                     {
                         name = mesh->MName.AsString,
@@ -926,35 +900,41 @@ static partial class Program
                     var tangents = new List<Vector3Holder>();
                     var bitangents = new List<Vector3Holder>();
                     var indices = new List<int>();
-                    var normals = new Vector3[mesh->MNumVertices];
+                    var normals = mesh->MNormals != null ? new Vector3[mesh->MNumVertices] : [];
 
-                    for(var k = 0; k < mesh->MNumVertices; k++)
+                    for(var j = 0; j < mesh->MNumVertices; j++)
                     {
-                        vertices.Add(ApplyTransform(new Vector3Holder(mesh->MVertices[k])));
-                        tangents.Add(ApplyTransform(new Vector3Holder(mesh->MTangents[k])));
-                        bitangents.Add(ApplyTransform(new Vector3Holder(mesh->MBitangents[k])));
-                        normals[k] = mesh->MNormals[k];
-                    }
+                        vertices.Add(ApplyTransform(new Vector3Holder(mesh->MVertices[j])));
 
-                    for(var k = 0; k < mesh->MNumFaces; k++)
-                    {
-                        var face = mesh->MFaces[k];
-
-                        for(var l = 0; l < face.MNumIndices; l++)
+                        if(mesh->MTangents != null)
                         {
-                            indices.Add((int)face.MIndices[l]);
+                            tangents.Add(ApplyTransform(new Vector3Holder(mesh->MTangents[j])));
+                        }
+
+                        if(mesh->MBitangents != null)
+                        {
+                            bitangents.Add(ApplyTransform(new Vector3Holder(mesh->MBitangents[j])));
+                        }
+
+                        if(mesh->MNormals != null)
+                        {
+                            normals[j] = mesh->MNormals[j];
                         }
                     }
 
-                    if(mesh->MColors.Element0 != null)
+                    var faces = mesh->GetFaces();
+
+                    foreach(var face in faces)
                     {
-                        for(var k = 0; k < mesh->MNumVertices; k++)
-                        {
-                            colors.Add(new Vector4Holder(mesh->MColors.Element0[k]));
-                        }
+                        indices.AddRange(face.GetIndices());
                     }
 
-                    m.vertices =vertices;
+                    if(mesh->TryGetColors(0, out var c))
+                    {
+                        colors.AddRange(c);
+                    }
+
+                    m.vertices = vertices;
 
                     m.colors = colors;
 
@@ -989,16 +969,11 @@ static partial class Program
                         m.UV8,
                     };
 
-                    for (var k = 0; k < 8; k++)
+                    for (var j = 0; j < 8; j++)
                     {
-                        if(mesh->MTextureCoords[k] != null)
+                        if(mesh->TryGetTexCoords(j, out var uv))
                         {
-                            for (var l = 0; l < mesh->MNumVertices; l++)
-                            {
-                                var coord = mesh->MTextureCoords[k][l];
-
-                                uvs[k].Add(new Vector2Holder(coord.X, coord.Y));
-                            }
+                            uvs[j].AddRange(uv);
                         }
                     }
 
@@ -1007,24 +982,38 @@ static partial class Program
                         var boneIndices = new List<Vector4Filler>();
                         var boneWeights = new List<Vector4Filler>();
 
-                        for (var k = 0; k < m.vertices.Count; k++)
+                        for (var j = 0; j < m.vertices.Count; j++)
                         {
                             boneIndices.Add(new());
                             boneWeights.Add(new());
                         }
 
-                        for (var k = 0; k < mesh->MNumBones; k++)
-                        {
-                            var bone = mesh->MBones[k];
+                        var bones = mesh->GetBones();
 
-                            for (var l = 0; l < bone->MNumWeights; l++)
+                        for (var j = 0; j < bones.Length; j++)
+                        {
+                            var bone = bones[j];
+
+                            Matrix4x4.Decompose(Matrix4x4.Transpose(bone->MOffsetMatrix), out var scale, out var rotation, out var translation);
+
+                            m.bones.Add(new()
                             {
-                                var item = bone->MWeights[l];
+                                name = bone->MName.AsString,
+                                offsetPosition = new Vector3Holder(translation),
+                                offsetScale = new Vector3Holder(scale),
+                                offsetRotation = new Vector3Holder(rotation),
+                            });
+
+                            var weights = bone->GetWeights();
+
+                            for (var k = 0; k < weights.Length; k++)
+                            {
+                                var item = weights[k];
 
                                 var boneIndex = boneIndices[(int)item.MVertexId];
                                 var boneWeight = boneWeights[(int)item.MVertexId];
 
-                                boneIndex.Add(k);
+                                boneIndex.Add(j);
                                 boneWeight.Add(item.MWeight);
                             }
                         }
@@ -1036,27 +1025,10 @@ static partial class Program
                         m.boneWeights = boneWeights
                             .Select(x => x.ToHolder())
                             .ToList();
-
-                        for(var k = 0; k < mesh->MNumBones; k++)
-                        {
-                            var bone = mesh->MBones[k];
-
-                            Matrix4x4.Decompose(bone->MOffsetMatrix, out var scale, out var rotation, out var translation);
-
-                            m.bones.Add(new()
-                            {
-                                name = bone->MName.AsString,
-                                offsetPosition = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
-                                offsetScale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
-                                offsetRotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
-                            });
-                        }
                     }
 
                     meshData.meshes.Add(m);
                 }
-
-                Console.Write("Handle meshes");
 
                 try
                 {

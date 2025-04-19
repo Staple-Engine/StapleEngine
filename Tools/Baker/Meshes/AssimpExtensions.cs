@@ -1,7 +1,6 @@
 ﻿using Silk.NET.Assimp;
+using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Baker
 {
@@ -132,6 +131,222 @@ namespace Baker
             slot = null;
 
             return false;
+        }
+
+        public static unsafe Material*[] GetMaterials(this Scene scene)
+        {
+            var outValue = new Material*[(int)scene.MNumMaterials];
+
+            for(var i = 0; i < scene.MNumMaterials; i++)
+            {
+                outValue[i] = scene.MMaterials[i];
+            }
+
+            return outValue;
+        }
+
+        public static bool HasBones(this Scene scene)
+        {
+            unsafe
+            {
+                for (var i = 0; i < scene.MNumMeshes; i++)
+                {
+                    if (scene.MMeshes[i]->MNumBones > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static int[] MeshIndices(this Node node)
+        {
+            var outValue = new int[node.MNumMeshes];
+
+            unsafe
+            {
+                for (var i = 0; i < outValue.Length; i++)
+                {
+                    outValue[i] = (int)node.MMeshes[i];
+                }
+            }
+
+            return outValue;
+        }
+
+        public static unsafe Node*[] Children(this Node node)
+        {
+            var outValue = new Node*[node.MNumChildren];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = node.MChildren[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe Animation*[] Animations(this Scene scene)
+        {
+            var outValue = new Animation*[scene.MNumAnimations];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = scene.MAnimations[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe NodeAnim*[] Channels(this Animation animation)
+        {
+            var outValue = new NodeAnim*[animation.MNumChannels];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = animation.MChannels[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe VectorKey[] PositionKeys(this NodeAnim channel)
+        {
+            var outValue = new VectorKey[channel.MNumPositionKeys];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = channel.MPositionKeys[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe VectorKey[] ScaleKeys(this NodeAnim channel)
+        {
+            var outValue = new VectorKey[channel.MNumScalingKeys];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = channel.MScalingKeys[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe QuatKey[] RotationKeys(this NodeAnim channel)
+        {
+            var outValue = new QuatKey[channel.MNumRotationKeys];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = channel.MRotationKeys[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe Mesh*[] GetMeshes(this Scene scene)
+        {
+            var outValue = new Mesh*[scene.MNumMeshes];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = scene.MMeshes[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe Face[] GetFaces(this Mesh mesh)
+        {
+            var outValue = new Face[mesh.MNumFaces];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = mesh.MFaces[i];
+            }
+
+            return outValue;
+        }
+
+        public static int[] GetIndices(this Face face)
+        {
+            var outValue = new int[face.MNumIndices];
+
+            unsafe
+            {
+                for (var i = 0; i < outValue.Length; i++)
+                {
+                    outValue[i] = (int)face.MIndices[i];
+                }
+            }
+
+            return outValue;
+        }
+
+        public static unsafe bool TryGetColors(this Mesh mesh, int index, out Staple.Internal.Vector4Holder[] colors)
+        {
+            var source = mesh.MColors[index];
+
+            if(source == null)
+            {
+                colors = [];
+
+                return false;
+            }
+
+            colors = new System.Span<Vector4>(source, (int)mesh.MNumVertices)
+                .ToArray()
+                .Select(x => new Staple.Internal.Vector4Holder(x))
+                .ToArray();
+
+            return true;
+        }
+
+        public static unsafe bool TryGetTexCoords(this Mesh mesh, int index, out Staple.Internal.Vector2Holder[] uvs)
+        {
+            var source = mesh.MTextureCoords[index];
+
+            if (source == null)
+            {
+                uvs = [];
+
+                return false;
+            }
+
+            uvs = new System.Span<Vector3>(source, (int)mesh.MNumVertices)
+                .ToArray()
+                .Select(x => new Staple.Internal.Vector2Holder(x.X, x.Y))
+                .ToArray();
+
+            return true;
+        }
+
+        public static unsafe Bone *[] GetBones(this Mesh mesh)
+        {
+            var outValue = new Bone *[mesh.MNumBones];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = mesh.MBones[i];
+            }
+
+            return outValue;
+        }
+
+        public static unsafe VertexWeight[] GetWeights(this Bone bone)
+        {
+            var outValue = new VertexWeight[bone.MNumWeights];
+
+            for (var i = 0; i < outValue.Length; i++)
+            {
+                outValue[i] = bone.MWeights[i];
+            }
+
+            return outValue;
         }
     }
 }
