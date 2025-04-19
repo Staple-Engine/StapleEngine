@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace Baker;
@@ -71,7 +72,7 @@ static partial class Program
 {
     private static readonly Lock meshMaterialLock = new();
 
-    private static void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
+    private static unsafe void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
         var meshFiles = new List<string>();
 
@@ -171,80 +172,65 @@ static partial class Program
                     return;
                 }
 
-                using var context = new Assimp.AssimpContext();
+                var assimp = Silk.NET.Assimp.Assimp.GetApi();
 
-                context.XAxisRotation = metadata.rotation switch
-                {
-                    MeshAssetRotation.NinetyNegative => -90,
-                    MeshAssetRotation.NinetyPositive => 90,
-                    _ => 0
-                };
-
-                context.Scale = metadata.scale;
-
-                var flags = Assimp.PostProcessSteps.CalculateTangentSpace |
-                    Assimp.PostProcessSteps.JoinIdenticalVertices |
-                    Assimp.PostProcessSteps.Triangulate |
-                    Assimp.PostProcessSteps.GenerateSmoothNormals |
-                    Assimp.PostProcessSteps.LimitBoneWeights |
-                    Assimp.PostProcessSteps.ImproveCacheLocality |
-                    Assimp.PostProcessSteps.RemoveRedundantMaterials |
-                    Assimp.PostProcessSteps.FixInFacingNormals |
-                    Assimp.PostProcessSteps.SortByPrimitiveType |
-                    Assimp.PostProcessSteps.FindDegenerates |
-                    Assimp.PostProcessSteps.FindInvalidData |
-                    Assimp.PostProcessSteps.GenerateUVCoords |
-                    Assimp.PostProcessSteps.TransformUVCoords |
-                    Assimp.PostProcessSteps.FindInstances |
-                    Assimp.PostProcessSteps.OptimizeMeshes |
-                    Assimp.PostProcessSteps.OptimizeGraph |
-                    Assimp.PostProcessSteps.GenerateBoundingBoxes;
-
-                if (metadata.convertUnits)
-                {
-                    flags |= Assimp.PostProcessSteps.GlobalScale;
-                }
+                var flags = Silk.NET.Assimp.PostProcessSteps.CalculateTangentSpace |
+                    Silk.NET.Assimp.PostProcessSteps.JoinIdenticalVertices |
+                    Silk.NET.Assimp.PostProcessSteps.Triangulate |
+                    Silk.NET.Assimp.PostProcessSteps.GenerateSmoothNormals |
+                    Silk.NET.Assimp.PostProcessSteps.LimitBoneWeights |
+                    Silk.NET.Assimp.PostProcessSteps.ImproveCacheLocality |
+                    Silk.NET.Assimp.PostProcessSteps.RemoveRedundantMaterials |
+                    Silk.NET.Assimp.PostProcessSteps.FixInFacingNormals |
+                    Silk.NET.Assimp.PostProcessSteps.SortByPrimitiveType |
+                    Silk.NET.Assimp.PostProcessSteps.FindDegenerates |
+                    Silk.NET.Assimp.PostProcessSteps.FindInvalidData |
+                    Silk.NET.Assimp.PostProcessSteps.GenerateUVCoords |
+                    Silk.NET.Assimp.PostProcessSteps.TransformUVCoords |
+                    Silk.NET.Assimp.PostProcessSteps.FindInstances |
+                    Silk.NET.Assimp.PostProcessSteps.OptimizeMeshes |
+                    Silk.NET.Assimp.PostProcessSteps.OptimizeGraph;
 
                 if (metadata.makeLeftHanded)
                 {
-                    flags |= Assimp.PostProcessSteps.MakeLeftHanded;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.MakeLeftHanded;
                 }
 
                 if (metadata.flipUVs)
                 {
-                    flags |= Assimp.PostProcessSteps.FlipUVs;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.FlipUVs;
                 }
 
                 if (metadata.flipWindingOrder || metadata.rotation != MeshAssetRotation.None)
                 {
-                    flags |= Assimp.PostProcessSteps.FlipWindingOrder;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.FlipWindingOrder;
                 }
 
                 if (metadata.splitLargeMeshes)
                 {
-                    flags |= Assimp.PostProcessSteps.SplitLargeMeshes;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.SplitLargeMeshes;
                 }
 
                 if (metadata.preTransformVertices)
                 {
-                    flags |= Assimp.PostProcessSteps.PreTransformVertices;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.PreTransformVertices;
                 }
 
                 if (metadata.debone)
                 {
-                    flags |= Assimp.PostProcessSteps.Debone;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.Debone;
                 }
 
                 if (metadata.splitByBoneCount)
                 {
-                    flags |= Assimp.PostProcessSteps.SplitByBoneCount;
+                    flags |= Silk.NET.Assimp.PostProcessSteps.SplitByBoneCount;
                 }
 
-                Assimp.Scene scene = null;
+                Silk.NET.Assimp.Scene* scene = null;
 
                 try
                 {
-                    scene = context.ImportFile(meshFileName.Replace(".meta", ""), flags);
+                    scene = assimp.ImportFile(meshFileName.Replace(".meta", ""), (uint)flags);
                 }
                 catch (Exception e)
                 {
@@ -258,19 +244,19 @@ static partial class Program
                     metadata = metadata,
                 };
 
-                var globalInverseTransform = scene.RootNode.Transform;
+                Matrix4x4.Invert(scene->MRootNode->MTransformation, out var globalInverseTransform);
 
-                globalInverseTransform.Inverse();
-
-                Assimp.Node FindNode(Assimp.Node node, string name)
+                Silk.NET.Assimp.Node *FindNode(Silk.NET.Assimp.Node* node, string name)
                 {
-                    if (node.Name == name)
+                    if (node->MName == name)
                     {
                         return node;
                     }
 
-                    foreach (var child in node.Children)
+                    for(var i = 0; i < node->MNumChildren; i++)
                     {
+                        var child = node->MChildren[i];
+
                         node = FindNode(child, name);
 
                         if (node != null)
@@ -289,15 +275,15 @@ static partial class Program
 
                 lock(meshMaterialLock)
                 {
-                    for (var j = 0; j < scene.MaterialCount; j++)
+                    for (var j = 0; j < scene->MNumMaterials; j++)
                     {
-                        var material = scene.Materials[j];
+                        var material = scene->MMaterials[j];
 
                         var fileName = Path.GetFileNameWithoutExtension(meshFileName.Replace(".meta", ""));
 
-                        if (material.HasName)
+                        if (material->TryGetName(assimp, out var name))
                         {
-                            fileName = $"{material.Name}.{AssetSerialization.MaterialExtension}";
+                            fileName = $"{name}.{AssetSerialization.MaterialExtension}";
                         }
                         else
                         {
@@ -325,7 +311,7 @@ static partial class Program
                             shader = AssetSerialization.StandardShaderGUID,
                         };
 
-                        if(material.IsTwoSided)
+                        if(material->IsTwoSided(assimp))
                         {
                             materialMetadata.cullingMode = CullingMode.None;
                         }
@@ -404,7 +390,7 @@ static partial class Program
                             }
                         }
 
-                        void AddColor(string name, bool has, Assimp.Color4D color)
+                        void AddColor(string name, bool has, Vector4 color)
                         {
                             if(ShaderHasParameter(name) == false)
                             {
@@ -415,10 +401,10 @@ static partial class Program
 
                             if (has)
                             {
-                                c.r = color.R;
-                                c.g = color.G;
-                                c.b = color.B;
-                                c.a = color.A;
+                                c.r = color.X;
+                                c.g = color.Y;
+                                c.b = color.Z;
+                                c.a = color.W;
                             }
 
                             materialMetadata.parameters.Add(name, new MaterialParameter()
@@ -429,14 +415,39 @@ static partial class Program
                             });
                         }
 
-                        AddColor("ambientColor", material.HasColorAmbient, material.ColorAmbient);
-                        AddColor("diffuseColor", material.HasColorDiffuse, material.ColorDiffuse);
-                        AddColor("emissiveColor", material.HasColorEmissive, material.ColorEmissive);
-                        AddColor("reflectiveColor", material.HasColorReflective, material.ColorReflective);
-                        AddColor("specularColor", material.HasColorSpecular, material.ColorSpecular);
-                        AddColor("transparentColor", material.HasColorTransparent, material.ColorTransparent);
+                        var pieces = new Dictionary<string, string>()
+                        {
+                            { "ambientColor", Silk.NET.Assimp.Assimp.MaterialColorAmbientBase },
+                            { "emissiveColor", Silk.NET.Assimp.Assimp.MaterialColorEmissiveBase },
+                            { "reflectiveColor", Silk.NET.Assimp.Assimp.MaterialColorReflectiveBase },
+                            { "specularColor", Silk.NET.Assimp.Assimp.MaterialColorSpecularBase },
+                            { "transparentColor", Silk.NET.Assimp.Assimp.MaterialColorTransparentBase },
+                        };
 
-                        void AddTexture(string name, bool has, Assimp.TextureSlot slot)
+                        foreach(var pair in pieces)
+                        {
+                            if (material->TryGetColor(pair.Value, assimp, out var color))
+                            {
+                                AddColor(pair.Key, true, color);
+                            }
+                        }
+
+                        var textures = new Dictionary<string, Silk.NET.Assimp.TextureType>()
+                        {
+                            { "ambientTexture", Silk.NET.Assimp.TextureType.Ambient },
+                            { "ambientOcclusionTexture", Silk.NET.Assimp.TextureType.AmbientOcclusion },
+                            { "diffuseTexture", Silk.NET.Assimp.TextureType.Diffuse },
+                            { "displacementTexture", Silk.NET.Assimp.TextureType.Displacement },
+                            { "emissiveTexture", Silk.NET.Assimp.TextureType.Emissive },
+                            { "heightTexture", Silk.NET.Assimp.TextureType.Height },
+                            { "lightmapTexture", Silk.NET.Assimp.TextureType.Lightmap },
+                            { "normalTexture", Silk.NET.Assimp.TextureType.Normals },
+                            { "opacityTexture", Silk.NET.Assimp.TextureType.Opacity },
+                            { "reflectionTexture", Silk.NET.Assimp.TextureType.Reflection },
+                            { "specularTexture", Silk.NET.Assimp.TextureType.Specular },
+                        };
+
+                        void AddTexture(string name, bool has, AssimpExtensions.TextureSlot slot)
                         {
                             if (ShaderHasParameter(name) == false)
                             {
@@ -450,70 +461,113 @@ static partial class Program
 
                             if (has)
                             {
-                                if (slot.FilePath.StartsWith('*'))
+                                var path = slot.path;
+
+                                if (path.StartsWith('*'))
                                 {
-                                    var texture = scene.GetEmbeddedTexture(slot.FilePath);
+                                    if(int.TryParse(path.AsSpan(1), out var textureIndex) == false)
+                                    {
+                                        return;
+                                    }
+
+                                    var texture = scene->MTextures[textureIndex];
 
                                     if (texture != null)
                                     {
-                                        if (texture.IsCompressed)
+                                        byte[] textureData = [];
+
+                                        var guid = GuidGenerator.Generate().ToString();
+
+                                        var innerFileName = texture->MFilename.AsString;
+
+                                        var extension = "png";
+
+                                        if (texture->MHeight == 0) //Compressed
                                         {
-                                            var guid = GuidGenerator.Generate().ToString();
+                                            var length = 0;
 
-                                            if((texture.Filename?.Length ?? 0) > 0)
+                                            for(var k = 0; k < 9; k++)
                                             {
-                                                texturePath = $"{texture.Filename}.{texture.CompressedFormatHint}";
-                                            }
-                                            else if(materialEmbeddedTextures.TryGetValue(slot.FilePath, out texturePath) == false)
-                                            {
-                                                texturePath = $"{guid}.{texture.CompressedFormatHint}";
-
-                                                materialEmbeddedTextures.AddOrSetKey(slot.FilePath, texturePath);
-                                            }
-
-                                            try
-                                            {
-                                                var t = Path.Combine(Path.GetDirectoryName(meshFileName), texturePath);
-
-                                                if (File.Exists(t) == false)
+                                                if (texture->AchFormatHint[k] == 0)
                                                 {
-                                                    File.WriteAllBytes(t, texture.CompressedData);
+                                                    length = k;
+
+                                                    break;
                                                 }
                                             }
-                                            catch (Exception)
-                                            {
-                                            }
 
-                                            try
-                                            {
-                                                var t = Path.Combine(Path.GetDirectoryName(meshFileName), $"{texturePath}.meta");
+                                            extension = Encoding.ASCII.GetString(new Span<byte>(texture->AchFormatHint, length));
 
-                                                if (File.Exists(t) == false)
-                                                {
-                                                    var metadata = new TextureMetadata()
-                                                    {
-                                                        guid = guid,
-                                                    };
-
-                                                    var json = JsonConvert.SerializeObject(metadata, Formatting.Indented,
-                                                        Staple.Tooling.Utilities.JsonSettings);
-
-                                                    File.WriteAllText(t, json);
-                                                }
-                                            }
-                                            catch (Exception)
-                                            {
-                                            }
-
-                                            texturePath = Path.Combine(basePath, texturePath).Replace("\\", "/");
+                                            textureData = new Span<byte>(texture->PcData, (int)texture->MWidth).ToArray();
                                         }
+                                        else //Uncompressed, recompress to PNG
+                                        {
+                                            textureData = new Span<byte>(texture->PcData, (int)(texture->MWidth * texture->MHeight * 4)).ToArray();
+
+                                            var rawData = new RawTextureData()
+                                            {
+                                                colorComponents = StandardTextureColorComponents.RGBA,
+                                                data = textureData,
+                                                width = (int)texture->MWidth,
+                                                height = (int)texture->MHeight,
+                                            };
+
+                                            textureData = rawData.EncodePNG();
+                                        }
+
+                                        if ((innerFileName?.Length ?? 0) > 0)
+                                        {
+                                            texturePath = $"{innerFileName}.{extension}";
+                                        }
+                                        else if (materialEmbeddedTextures.TryGetValue(path, out texturePath) == false)
+                                        {
+                                            texturePath = $"{guid}.{extension}";
+
+                                            materialEmbeddedTextures.AddOrSetKey(path, texturePath);
+                                        }
+
+                                        try
+                                        {
+                                            var t = Path.Combine(Path.GetDirectoryName(meshFileName), texturePath);
+
+                                            if (File.Exists(t) == false)
+                                            {
+                                                File.WriteAllBytes(t, textureData);
+                                            }
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+
+                                        try
+                                        {
+                                            var t = Path.Combine(Path.GetDirectoryName(meshFileName), $"{texturePath}.meta");
+
+                                            if (File.Exists(t) == false)
+                                            {
+                                                var metadata = new TextureMetadata()
+                                                {
+                                                    guid = guid,
+                                                };
+
+                                                var json = JsonConvert.SerializeObject(metadata, Formatting.Indented,
+                                                    Staple.Tooling.Utilities.JsonSettings);
+
+                                                File.WriteAllText(t, json);
+                                            }
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+
+                                        texturePath = Path.Combine(basePath, texturePath).Replace("\\", "/");
                                     }
                                 }
                                 else
                                 {
-                                    var pieces = slot.FilePath.Replace("\\", "/").Split("/").ToList();
+                                    var pieces = path.Replace("\\", "/").Split("/").ToList();
 
-                                    texturePath = slot.FilePath;
+                                    texturePath = path;
 
                                     while (pieces.Count > 0)
                                     {
@@ -581,7 +635,7 @@ static partial class Program
 
                                     if (pieces.Count == 0)
                                     {
-                                        Console.WriteLine($"\t\tUnable to find local texture path for {slot.FilePath}");
+                                        Console.WriteLine($"\t\tUnable to find local texture path for {path}");
 
                                         texturePath = "";
                                     }
@@ -592,21 +646,8 @@ static partial class Program
 
                             if (texturePath.Length > 0)
                             {
-                                mappingU = slot.WrapModeU switch
-                                {
-                                    Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
-                                    Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
-                                    Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
-                                    _ => TextureWrap.Clamp,
-                                };
-
-                                mappingV = slot.WrapModeV switch
-                                {
-                                    Assimp.TextureWrapMode.Wrap => TextureWrap.Repeat,
-                                    Assimp.TextureWrapMode.Clamp => TextureWrap.Clamp,
-                                    Assimp.TextureWrapMode.Mirror => TextureWrap.Mirror,
-                                    _ => TextureWrap.Clamp,
-                                };
+                                mappingU = slot.mapModeU;
+                                mappingV = slot.mapModeV;
                             }
 
                             if (ShaderHasParameter($"{name}_UMapping") && ShaderHasParameter($"{name}_VMapping"))
@@ -633,19 +674,17 @@ static partial class Program
                                 textureValue = texturePath,
                             });
                         }
- 
-                        AddTexture("ambientTexture", material.HasTextureAmbient, material.TextureAmbient);
-                        AddTexture("ambientOcclusionTexture", material.HasTextureAmbientOcclusion, material.TextureAmbientOcclusion);
-                        AddTexture("diffuseTexture", material.HasTextureDiffuse, material.TextureDiffuse);
-                        AddTexture("displacementTexture", material.HasTextureDisplacement, material.TextureDisplacement);
-                        AddTexture("emissiveTexture", material.HasTextureEmissive, material.TextureEmissive);
-                        AddTexture("heightTexture", material.HasTextureHeight, material.TextureHeight);
-                        AddTexture("lightmapTexture", material.HasTextureLightMap, material.TextureLightMap);
-                        AddTexture("normalTexture", material.HasTextureNormal, material.TextureNormal);
-                        AddTexture("opacityTexture", material.HasTextureOpacity, material.TextureOpacity);
-                        AddTexture("reflectionTexture", material.HasTextureReflection, material.TextureReflection);
-                        AddTexture("specularTexture", material.HasTextureSpecular, material.TextureSpecular);
 
+                        foreach(var pair in textures)
+                        {
+                            if(material->TryGetTexture(pair.Value, assimp, out var slot))
+                            {
+                                AddTexture(pair.Key, true, slot);
+                            }
+                        }
+
+                        //TODO
+                        /*
                         if (material.IsPBRMaterial)
                         {
                             AddTexture("baseColorTexture", material.PBR.HasTextureBaseColor, material.PBR.TextureBaseColor);
@@ -654,6 +693,7 @@ static partial class Program
                             AddTexture("normalCameraTexture", material.PBR.HasTextureNormalCamera, material.PBR.TextureNormalCamera);
                             AddTexture("emissionColorTexture", material.PBR.HasTextureEmissionColor, material.PBR.TextureEmissionColor);
                         }
+                        */
 
                         try
                         {
@@ -695,9 +735,14 @@ static partial class Program
 
                 transformMatrix = Matrix4x4.CreateScale(metadata.scale) * transformMatrix;
 
-                if (scene.Meshes.Any(x => x.HasBones))
+                for(var i = 0; i < scene->MNumMeshes; i++)
                 {
-                    transformMatrix = Matrix4x4.Identity;
+                    if (scene->MMeshes[i]->MNumBones > 0)
+                    {
+                        transformMatrix = Matrix4x4.Identity;
+
+                        break;
+                    }
                 }
 
                 Vector3Holder ApplyTransform(Vector3Holder value)
@@ -707,14 +752,21 @@ static partial class Program
 
                 var nodes = new List<MeshAssetNode>();
 
-                void RegisterNode(Assimp.Node node, int parentIndex)
+                void RegisterNode(Silk.NET.Assimp.Node *node, int parentIndex)
                 {
-                    node.Transform.Decompose(out var scale, out var rotation, out var translation);
+                    Matrix4x4.Decompose(node->MTransformation, out var scale, out var rotation, out var translation);
+
+                    var meshIndices = new List<int>();
+
+                    for(var i = 0; i < node->MNumMeshes; i++)
+                    {
+                        meshIndices.Add((int)node->MMeshes[i]);
+                    }
 
                     var newNode = new MeshAssetNode()
                     {
-                        name = node.Name,
-                        meshIndices = node.MeshIndices,
+                        name = node->MName.AsString,
+                        meshIndices = meshIndices,
                         position = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
                         scale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
                         rotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
@@ -729,61 +781,94 @@ static partial class Program
 
                     nodes.Add(newNode);
 
-                    foreach (var n in node.Children)
+                    for(var i = 0; i < node->MNumChildren; i++)
                     {
-                        RegisterNode(n, currentIndex);
+                        RegisterNode(node->MChildren[i], currentIndex);
                     }
                 }
 
-                RegisterNode(scene.RootNode, -1);
+                Console.Write("Register nodes");
+
+                RegisterNode(scene->MRootNode, -1);
 
                 meshData.nodes = nodes.ToArray();
 
-                foreach (var animation in scene.Animations)
+                Console.Write("Register nodes done");
+
+                for (var i = 0; i < scene->MNumAnimations; i++)
                 {
+                    var animation = scene->MAnimations[i];
+
                     var a = new MeshAssetAnimation()
                     {
-                        duration = (float)animation.DurationInTicks,
-                        ticksPerSecond = (float)animation.TicksPerSecond,
-                        name = animation.Name,
+                        duration = (float)animation->MDuration,
+                        ticksPerSecond = (float)animation->MTicksPerSecond,
+                        name = animation->MName.AsString,
                     };
 
-                    foreach (var channel in animation.NodeAnimationChannels)
+                    for(var j = 0; j < animation->MNumChannels; j++)
                     {
+                        var channel = animation->MChannels[j];
+
+                        var positionKeys = new List<MeshAssetVectorAnimationKey>();
+                        var rotationKeys = new List<MeshAssetQuaternionAnimationKey>();
+                        var scaleKeys = new List<MeshAssetVectorAnimationKey>();
+
+                        for(var k = 0; k < channel->MNumPositionKeys; k++)
+                        {
+                            var key = channel->MPositionKeys[k];
+
+                            positionKeys.Add(new()
+                            {
+                                time = (float)key.MTime,
+                                value = new(key.MValue),
+                            });
+                        }
+
+                        for (var k = 0; k < channel->MNumRotationKeys; k++)
+                        {
+                            var key = channel->MRotationKeys[k];
+
+                            positionKeys.Add(new()
+                            {
+                                time = (float)key.MTime,
+                                value = new(key.MValue.AsQuaternion),
+                            });
+                        }
+
+                        for (var k = 0; k < channel->MNumScalingKeys; k++)
+                        {
+                            var key = channel->MScalingKeys[k];
+
+                            scaleKeys.Add(new()
+                            {
+                                time = (float)key.MTime,
+                                value = new(key.MValue),
+                            });
+                        }
+
                         var c = new MeshAssetAnimationChannel()
                         {
-                            nodeName = channel.NodeName,
-                            preState = channel.PreState switch
+                            nodeName = channel->MNodeName.AsString,
+                            preState = channel->MPreState switch
                             {
-                                Assimp.AnimationBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
-                                Assimp.AnimationBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
-                                Assimp.AnimationBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
-                                Assimp.AnimationBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
+                                Silk.NET.Assimp.AnimBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
+                                Silk.NET.Assimp.AnimBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
+                                Silk.NET.Assimp.AnimBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
+                                Silk.NET.Assimp.AnimBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
                                 _ => MeshAssetAnimationStateBehaviour.Default,
                             },
-                            postState = channel.PostState switch
+                            postState = channel->MPostState switch
                             {
-                                Assimp.AnimationBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
-                                Assimp.AnimationBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
-                                Assimp.AnimationBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
-                                Assimp.AnimationBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
+                                Silk.NET.Assimp.AnimBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
+                                Silk.NET.Assimp.AnimBehaviour.Constant => MeshAssetAnimationStateBehaviour.Constant,
+                                Silk.NET.Assimp.AnimBehaviour.Linear => MeshAssetAnimationStateBehaviour.Linear,
+                                Silk.NET.Assimp.AnimBehaviour.Repeat => MeshAssetAnimationStateBehaviour.Repeat,
                                 _ => MeshAssetAnimationStateBehaviour.Default,
                             },
-                            positionKeys = channel.PositionKeys.Select(x => new MeshAssetVectorAnimationKey()
-                            {
-                                time = (float)x.Time,
-                                value = new Vector3Holder(new Vector3(x.Value.X, x.Value.Y, x.Value.Z)),
-                            }).ToList(),
-                            rotationKeys = channel.RotationKeys.Select(x => new MeshAssetQuaternionAnimationKey()
-                            {
-                                time = (float)x.Time,
-                                value = new Vector4Holder(new Vector4(x.Value.X, x.Value.Y, x.Value.Z, x.Value.W)),
-                            }).ToList(),
-                            scaleKeys = channel.ScalingKeys.Select(x => new MeshAssetVectorAnimationKey()
-                            {
-                                time = (float)x.Time,
-                                value = new Vector3Holder(new Vector3(x.Value.X, x.Value.Y, x.Value.Z)),
-                            }).ToList(),
+                            positionKeys = positionKeys,
+                            rotationKeys = rotationKeys,
+                            scaleKeys = scaleKeys,
                         };
 
                         a.channels.Add(c);
@@ -792,37 +877,40 @@ static partial class Program
                     meshData.animations.Add(a);
                 }
 
-                foreach (var mesh in scene.Meshes)
+                Console.Write("Handle animations");
+
+                for (var j = 0; j < scene->MNumMeshes; j++)
                 {
+                    var mesh = scene->MMeshes[j];
+
                     var m = new MeshAssetMeshInfo
                     {
-                        name = mesh.Name,
-                        materialGuid = mesh.MaterialIndex >= 0 && mesh.MaterialIndex < materialMapping.Count ? materialMapping[mesh.MaterialIndex] : "",
-                        type = mesh.HasBones ? MeshAssetType.Skinned : MeshAssetType.Normal,
+                        name = mesh->MName.AsString,
+                        materialGuid = mesh->MMaterialIndex >= 0 && mesh->MMaterialIndex < materialMapping.Count ? materialMapping[(int)mesh->MMaterialIndex] : "",
+                        type = mesh->MNumBones > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
                     };
 
-                    var center = (mesh.BoundingBox.Max + mesh.BoundingBox.Min) / 2;
-
-                    var size = (mesh.BoundingBox.Max - mesh.BoundingBox.Min);
+                    var center = mesh->MAABB.Center;
+                    var size = mesh->MAABB.Size;
 
                     m.boundsCenter = ApplyTransform(new Vector3Holder(new Vector3(center.X, center.Y, center.Z)));
                     m.boundsExtents = ApplyTransform(new Vector3Holder(new Vector3(size.X, size.Y, size.Z)));
 
-                    switch (mesh.PrimitiveType)
+                    switch (mesh->MPrimitiveTypes)
                     {
-                        case Assimp.PrimitiveType.Triangle:
+                        case (uint)Silk.NET.Assimp.PrimitiveType.Triangle:
 
                             m.topology = MeshTopology.Triangles;
 
                             break;
 
-                        case Assimp.PrimitiveType.Line:
+                        case (uint)Silk.NET.Assimp.PrimitiveType.Line:
 
                             m.topology = MeshTopology.Lines;
 
                             break;
 
-                        case Assimp.PrimitiveType.Point:
+                        case (uint)Silk.NET.Assimp.PrimitiveType.Point:
 
                             m.topology = MeshTopology.Points;
 
@@ -833,29 +921,48 @@ static partial class Program
                             continue;
                     }
 
-                    m.vertices = mesh.Vertices
-                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
-                        .ToList();
+                    var vertices = new List<Vector3Holder>();
+                    var colors = new List<Vector4Holder>();
+                    var tangents = new List<Vector3Holder>();
+                    var bitangents = new List<Vector3Holder>();
+                    var indices = new List<int>();
+                    var normals = new Vector3[mesh->MNumVertices];
 
-                    m.colors = mesh.HasVertexColors(0) ? mesh.VertexColorChannels[0]
-                        .Select(x => new Vector4Holder(new Vector4(x.R, x.G, x.B, x.A)))
-                        .ToList() : [];
+                    for(var k = 0; k < mesh->MNumVertices; k++)
+                    {
+                        vertices.Add(ApplyTransform(new Vector3Holder(mesh->MVertices[k])));
+                        tangents.Add(ApplyTransform(new Vector3Holder(mesh->MTangents[k])));
+                        bitangents.Add(ApplyTransform(new Vector3Holder(mesh->MBitangents[k])));
+                        normals[k] = mesh->MNormals[k];
+                    }
 
-                    m.tangents = mesh.Tangents
-                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
-                        .ToList();
+                    for(var k = 0; k < mesh->MNumFaces; k++)
+                    {
+                        var face = mesh->MFaces[k];
 
-                    m.bitangents = mesh.BiTangents
-                        .Select(x => ApplyTransform(new Vector3Holder(new Vector3(x.X, x.Y, x.Z))))
-                        .ToList();
+                        for(var l = 0; l < face.MNumIndices; l++)
+                        {
+                            indices.Add((int)face.MIndices[l]);
+                        }
+                    }
 
-                    m.indices = mesh.Faces
-                        .SelectMany(x => x.Indices)
-                        .ToList();
+                    if(mesh->MColors.Element0 != null)
+                    {
+                        for(var k = 0; k < mesh->MNumVertices; k++)
+                        {
+                            colors.Add(new Vector4Holder(mesh->MColors.Element0[k]));
+                        }
+                    }
 
-                    var normals = mesh.Normals
-                        .Select(x => new Vector3(x.X, x.Y, x.Z))
-                        .ToArray();
+                    m.vertices =vertices;
+
+                    m.colors = colors;
+
+                    m.tangents = tangents;
+
+                    m.bitangents = bitangents;
+
+                    m.indices = indices;
 
                     if(metadata.regenerateNormals)
                     {
@@ -882,43 +989,43 @@ static partial class Program
                         m.UV8,
                     };
 
-                    var uvCount = mesh.TextureCoordinateChannelCount > uvs.Length ? uvs.Length : mesh.TextureCoordinateChannelCount;
-
-                    for (var j = 0; j < uvCount; j++)
+                    for (var k = 0; k < 8; k++)
                     {
-                        uvs[j].AddRange(mesh.TextureCoordinateChannels[j]
-                            .Select(x => new Vector2Holder()
+                        if(mesh->MTextureCoords[k] != null)
+                        {
+                            for (var l = 0; l < mesh->MNumVertices; l++)
                             {
-                                x = x.X,
-                                y = x.Y,
-                            })
-                            .ToList());
+                                var coord = mesh->MTextureCoords[k][l];
+
+                                uvs[k].Add(new Vector2Holder(coord.X, coord.Y));
+                            }
+                        }
                     }
 
-                    if (mesh.HasBones)
+                    if (mesh->MNumBones > 0)
                     {
                         var boneIndices = new List<Vector4Filler>();
                         var boneWeights = new List<Vector4Filler>();
 
-                        for (var j = 0; j < m.vertices.Count; j++)
+                        for (var k = 0; k < m.vertices.Count; k++)
                         {
                             boneIndices.Add(new());
                             boneWeights.Add(new());
                         }
 
-                        for (var j = 0; j < mesh.Bones.Count; j++)
+                        for (var k = 0; k < mesh->MNumBones; k++)
                         {
-                            var bone = mesh.Bones[j];
+                            var bone = mesh->MBones[k];
 
-                            for (var k = 0; k < bone.VertexWeightCount; k++)
+                            for (var l = 0; l < bone->MNumWeights; l++)
                             {
-                                var item = bone.VertexWeights[k];
+                                var item = bone->MWeights[l];
 
-                                var boneIndex = boneIndices[item.VertexID];
-                                var boneWeight = boneWeights[item.VertexID];
+                                var boneIndex = boneIndices[(int)item.MVertexId];
+                                var boneWeight = boneWeights[(int)item.MVertexId];
 
-                                boneIndex.Add(j);
-                                boneWeight.Add(item.Weight);
+                                boneIndex.Add(k);
+                                boneWeight.Add(item.MWeight);
                             }
                         }
 
@@ -930,13 +1037,15 @@ static partial class Program
                             .Select(x => x.ToHolder())
                             .ToList();
 
-                        foreach (var bone in mesh.Bones)
+                        for(var k = 0; k < mesh->MNumBones; k++)
                         {
-                            bone.OffsetMatrix.Decompose(out var scale, out var rotation, out var translation);
+                            var bone = mesh->MBones[k];
+
+                            Matrix4x4.Decompose(bone->MOffsetMatrix, out var scale, out var rotation, out var translation);
 
                             m.bones.Add(new()
                             {
-                                name = bone.Name,
+                                name = bone->MName.AsString,
                                 offsetPosition = new Vector3Holder(new Vector3(translation.X, translation.Y, translation.Z)),
                                 offsetScale = new Vector3Holder(new Vector3(scale.X, scale.Y, scale.Z)),
                                 offsetRotation = new Vector3Holder(new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W)),
@@ -946,6 +1055,8 @@ static partial class Program
 
                     meshData.meshes.Add(m);
                 }
+
+                Console.Write("Handle meshes");
 
                 try
                 {

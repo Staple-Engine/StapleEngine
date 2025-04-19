@@ -47,9 +47,6 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="StirlingLabs.Assimp.Net" Version="23.4.1" />
-	</ItemGroup>
-	<ItemGroup>
 		<Compile Include="Audio\AudioUtils.cs" />
 		<Compile Include="Baker+AppSettings.cs" />
 		<Compile Include="Baker+Assets.cs" />
@@ -58,7 +55,8 @@
 		<Compile Include="Baker+Folders.cs" />
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
-		<Compile Include="Baker+Meshes.cs" />
+		<Compile Include="Meshes\AssimpExtensions.cs" />
+		<Compile Include="Meshes\Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />
@@ -72,6 +70,10 @@
 		<Compile Include="Shaders\ShaderPiece.cs" />
 		<Compile Include="Shaders\UnprocessedShader.cs" />
 		<Compile Include="WorkScheduler.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
+	  <PackageReference Include="System.Text.Json" Version="9.0.4" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Update="StirlingLabs.assimp.native.win-x64" Version="5.2.5.4" />
