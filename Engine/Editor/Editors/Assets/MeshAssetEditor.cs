@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Staple.Editor;
 
@@ -106,11 +105,6 @@ internal class MeshAssetEditor : AssetEditor
             {
                 EditorGUI.Label("Warning: There are one or more meshes with excessive bone count. " +
                     "Please change import settings to reduce bones or split meshes.");
-            }
-
-            if (boneCount > 0 && path.Contains(".fbx"))
-            {
-                EditorGUI.Label("Warning: Skinned FBX models currently import incorrectly,\nplease convert to another format such as gltf/glb");
             }
         }
     }
