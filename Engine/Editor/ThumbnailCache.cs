@@ -190,11 +190,13 @@ internal class ThumbnailCache
 
                         foreach(var r in meshRenderers)
                         {
+                            r.overrideLighting = true;
                             r.lighting = MaterialLighting.Unlit;
                         }
 
                         foreach (var r in skinnedMeshRenderers)
                         {
+                            r.overrideLighting = true;
                             r.lighting = MaterialLighting.Unlit;
                         }
 
@@ -442,6 +444,7 @@ internal class ThumbnailCache
                             LocalRotation = Math.FromEulerAngles(new Vector3(-30, 45, 0)),
                         };
 
+                        meshRenderer.overrideLighting = true;
                         meshRenderer.lighting = MaterialLighting.Unlit;
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>

@@ -18,11 +18,6 @@ public sealed class MeshRenderer : Renderable, IComponentDisposable
     /// </summary>
     public List<Material> materials = [];
 
-    /// <summary>
-    /// Lighting mode
-    /// </summary>
-    public MaterialLighting lighting = MaterialLighting.Lit;
-
     public void DisposeComponent()
     {
         if(mesh != null && mesh.Guid?.Guid == null)

@@ -736,8 +736,11 @@ static partial class Program
 
                 var nodeCounters = new Dictionary<string, int>();
                 var nodeToName = new Dictionary<nint, string>();
+                var nodeToIndex = new Dictionary<nint, int>();
+                var nodeParents = new Dictionary<nint, nint>();
+                var localNodes = new Dictionary<int, nint>();
 
-                void RegisterNode(Silk.NET.Assimp.Node* node, int parentIndex)
+                void RegisterNode(Silk.NET.Assimp.Node* node)
                 {
                     Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
 
@@ -760,8 +763,6 @@ static partial class Program
 
                     nodeName = counter == 0 ? nodeName : $"{nodeName}{counter}";
 
-                    nodeToName.Add((nint)node, nodeName);
-
                     var newNode = new MeshAssetNode()
                     {
                         name = nodeName,
@@ -771,12 +772,16 @@ static partial class Program
                         rotation = new Vector3Holder(rotation),
                     };
 
-                    if(parentIndex >= 0)
-                    {
-                        nodes[parentIndex].children.Add(nodes.Count);
-                    }
-
                     var currentIndex = nodes.Count;
+
+                    nodeToName.Add((nint)node, nodeName);
+                    nodeToIndex.Add((nint)node, currentIndex);
+                    localNodes.Add(currentIndex, (nint)node);
+
+                    if (node->MParent != null)
+                    {
+                        nodeParents.Add((nint)node, (nint)node->MParent);
+                    }
 
                     nodes.Add(newNode);
 
@@ -784,11 +789,23 @@ static partial class Program
 
                     foreach(var child in children)
                     {
-                        RegisterNode(child, currentIndex);
+                        RegisterNode(child);
                     }
                 }
 
-                RegisterNode(scene->MRootNode, -1);
+                RegisterNode(scene->MRootNode);
+
+                foreach(var pair in localNodes)
+                {
+                    if(nodeParents.TryGetValue(pair.Value, out var parent) &&
+                        parent != nint.Zero &&
+                        nodeToIndex.TryGetValue(parent, out var parentNodeIndex))
+                    {
+                        var parentNode = nodes[parentNodeIndex];
+
+                        parentNode.children.Add(pair.Key);
+                    }
+                }
 
                 meshData.nodes = nodes.ToArray();
 

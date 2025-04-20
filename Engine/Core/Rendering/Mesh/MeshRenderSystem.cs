@@ -214,9 +214,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 instanceCache.Add(viewId, cache);
             }
 
+            var lighting = r.overrideLighting ? r.lighting : r.mesh.meshAsset.lighting;
+
             void Add(Material material, int submeshIndex)
             {
-                var key = r.mesh.Guid.GuidHash ^ material.StateHash ^ (int)r.lighting;
+                var key = r.mesh.Guid.GuidHash ^ material.StateHash ^ (int)lighting;
 
                 if (cache.TryGetValue(key, out var meshCache) == false)
                 {
@@ -229,7 +231,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     mesh = r.mesh,
                     material = material,
-                    lighting = r.lighting,
+                    lighting = lighting,
                     transform = transform,
                     submeshIndex = submeshIndex,
                 });

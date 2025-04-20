@@ -223,6 +223,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var meshAsset = mesh.meshAsset;
             var animator = renderer.animator.Content;
             var poser = renderer.poser.Content;
+            var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.lighting;
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
@@ -237,7 +238,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.StateHash != (lastMaterial?.StateHash ?? 0) ||
                     lastAnimator != animator ||
-                    lastLighting != renderer.lighting ||
+                    lastLighting != lighting ||
                     lastTopology != renderer.mesh.MeshTopology;
 
                 var lightSystem = RenderSystem.Instance.Get<LightSystem>();
@@ -248,7 +249,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                     material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-                    lightSystem?.ApplyMaterialLighting(material, pair.renderer.lighting);
+                    lightSystem?.ApplyMaterialLighting(material, lighting);
                 }
 
                 if (needsChange)
@@ -256,7 +257,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastMeshAsset = assetGuid;
                     lastMaterial = material;
                     lastAnimator = animator;
-                    lastLighting = renderer.lighting;
+                    lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
@@ -292,7 +293,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.mesh.SetActive(j);
 
                 lightSystem?.ApplyLightProperties(pair.transform.Position, pair.transform.Matrix, material,
-                    RenderSystem.CurrentCamera.Item2.Position, pair.renderer.lighting);
+                    RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 var program = material.ShaderProgram;
 

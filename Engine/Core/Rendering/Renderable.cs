@@ -46,4 +46,14 @@ public class Renderable : IComponent
     /// Whether this is visible
     /// </summary>
     public bool isVisible { get; internal set; }
+
+    /// <summary>
+    /// Whether to override the lighting for this renderer
+    /// </summary>
+    public bool overrideLighting = false;
+
+    /// <summary>
+    /// Lighting mode
+    /// </summary>
+    public MaterialLighting lighting = MaterialLighting.Unlit;
 }
