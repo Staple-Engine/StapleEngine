@@ -742,6 +742,18 @@ static partial class Program
 
                 void RegisterNode(Silk.NET.Assimp.Node* node)
                 {
+                    var children = node->Children();
+
+                    if (node == scene->MRootNode)
+                    {
+                        foreach(var child in children)
+                        {
+                            RegisterNode(child);
+                        }
+
+                        return;
+                    }
+
                     Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
 
                     var meshIndices = new List<int>(node->MeshIndices());
@@ -778,14 +790,12 @@ static partial class Program
                     nodeToIndex.Add((nint)node, currentIndex);
                     localNodes.Add(currentIndex, (nint)node);
 
-                    if (node->MParent != null)
+                    if (node->MParent != null && node->MParent != scene->MRootNode)
                     {
                         nodeParents.Add((nint)node, (nint)node->MParent);
                     }
 
                     nodes.Add(newNode);
-
-                    var children = node->Children();
 
                     foreach(var child in children)
                     {
