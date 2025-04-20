@@ -21,6 +21,8 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
     {
         title = "Animation State Editor";
 
+        windowFlags |= EditorWindowFlags.MenuBar;
+
         nodeUI = new(this)
         {
             showMinimap = true,

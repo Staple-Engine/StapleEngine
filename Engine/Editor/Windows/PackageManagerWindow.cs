@@ -23,7 +23,9 @@ internal class PackageManagerWindow : EditorWindow
     {
         title = "Package Manager";
 
-        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable;
+        windowFlags = EditorWindowFlags.Resizable |
+            EditorWindowFlags.Dockable |
+            EditorWindowFlags.MenuBar;
     }
 
     public override void OnGUI()

@@ -13,7 +13,9 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
     {
         title = "Visual Shader Editor";
 
-        windowFlags = EditorWindowFlags.Resizable | EditorWindowFlags.Dockable;
+        windowFlags = EditorWindowFlags.Resizable |
+            EditorWindowFlags.Dockable |
+            EditorWindowFlags.MenuBar;
 
         nodeUI = new(this)
         {

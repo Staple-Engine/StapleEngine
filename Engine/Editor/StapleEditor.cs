@@ -745,7 +745,7 @@ internal partial class StapleEditor
                 var window = currentWindows[i];
                 var shouldShow = false;
 
-                var flags = ImGuiWindowFlags.MenuBar;
+                var flags = ImGuiWindowFlags.None;
 
                 if(window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
                 {
@@ -755,6 +755,11 @@ internal partial class StapleEditor
                 if(window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoResize;
+                }
+
+                if(window.windowFlags.HasFlag(EditorWindowFlags.MenuBar))
+                {
+                    flags |= ImGuiWindowFlags.MenuBar;
                 }
 
                 var isOpen = true;
