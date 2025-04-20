@@ -203,7 +203,7 @@ static partial class Program
                     flags |= Silk.NET.Assimp.PostProcessSteps.FlipUVs;
                 }
 
-                if (metadata.flipWindingOrder || metadata.rotation != MeshAssetRotation.None)
+                if (metadata.flipWindingOrder)
                 {
                     flags |= Silk.NET.Assimp.PostProcessSteps.FlipWindingOrder;
                 }
@@ -246,24 +246,23 @@ static partial class Program
                     metadata = metadata,
                 };
 
-                Matrix4x4.Invert(scene->MRootNode->MTransformation, out var globalInverseTransform);
-
-                Silk.NET.Assimp.Node *FindNode(Silk.NET.Assimp.Node* node, string name)
+                Silk.NET.Assimp.Node* FindNode(Silk.NET.Assimp.Node* node, string name, bool ignoreRoot)
                 {
-                    if (node->MName == name)
+                    if (node->MName == name &&
+                        (ignoreRoot == false || node != scene->MRootNode))
                     {
                         return node;
                     }
 
-                    for(var i = 0; i < node->MNumChildren; i++)
+                    var children = node->Children();
+
+                    foreach (var child in children)
                     {
-                        var child = node->MChildren[i];
+                        var target = FindNode(child, name, false);
 
-                        node = FindNode(child, name);
-
-                        if (node != null)
+                        if (target != null)
                         {
-                            return node;
+                            return target;
                         }
                     }
 
@@ -728,37 +727,44 @@ static partial class Program
                     }
                 }
 
-                var transformMatrix = metadata.rotation switch
-                {
-                    MeshAssetRotation.None => Matrix4x4.Identity,
-                    MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * 90),
-                    MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * -90),
-                    _ => Matrix4x4.Identity
-                };
-
-                transformMatrix = Matrix4x4.CreateScale(metadata.scale) * transformMatrix;
-
-                if (scene->HasBones())
-                {
-                    transformMatrix = Matrix4x4.Identity;
-                }
-
                 Vector3Holder ApplyTransform(Vector3Holder value)
                 {
-                    return new Vector3Holder(Vector3.Transform(value.ToVector3(), transformMatrix));
+                    return value;
                 }
 
                 var nodes = new List<MeshAssetNode>();
 
-                void RegisterNode(Silk.NET.Assimp.Node *node, int parentIndex)
+                var nodeCounters = new Dictionary<string, int>();
+                var nodeToName = new Dictionary<nint, string>();
+
+                void RegisterNode(Silk.NET.Assimp.Node* node, int parentIndex)
                 {
                     Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
 
                     var meshIndices = new List<int>(node->MeshIndices());
 
+                    var nodeName = node->MName.AsString;
+
+                    if (nodeCounters.TryGetValue(nodeName, out var counter))
+                    {
+                        counter++;
+
+                        nodeCounters.AddOrSetKey(nodeName, counter);
+                    }
+                    else
+                    {
+                        counter = 0;
+
+                        nodeCounters.Add(nodeName, counter);
+                    }
+
+                    nodeName = counter == 0 ? nodeName : $"{nodeName}{counter}";
+
+                    nodeToName.Add((nint)node, nodeName);
+
                     var newNode = new MeshAssetNode()
                     {
-                        name = node->MName.AsString,
+                        name = nodeName,
                         meshIndices = meshIndices,
                         position = new Vector3Holder(translation),
                         scale = new Vector3Holder(scale),
@@ -785,6 +791,19 @@ static partial class Program
                 RegisterNode(scene->MRootNode, -1);
 
                 meshData.nodes = nodes.ToArray();
+
+                string GetNodeName(string name)
+                {
+                    var node = FindNode(scene->MRootNode, name, true);
+
+                    if (node != null &&
+                        nodeToName.TryGetValue((nint)node, out var newNodeName))
+                    {
+                        return newNodeName;
+                    }
+
+                    return name;
+                }
 
                 var animations = scene->Animations();
 
@@ -827,7 +846,7 @@ static partial class Program
 
                         var c = new MeshAssetAnimationChannel()
                         {
-                            nodeName = channel->MNodeName.AsString,
+                            nodeName = GetNodeName(channel->MNodeName.AsString),
                             preState = channel->MPreState switch
                             {
                                 Silk.NET.Assimp.AnimBehaviour.Default => MeshAssetAnimationStateBehaviour.Default,
@@ -898,7 +917,6 @@ static partial class Program
                     }
 
                     var vertices = new List<Vector3Holder>();
-                    var colors = new List<Vector4Holder>();
                     var tangents = new List<Vector3Holder>();
                     var bitangents = new List<Vector3Holder>();
                     var indices = new List<int>();
@@ -931,14 +949,40 @@ static partial class Program
                         indices.AddRange(face.GetIndices());
                     }
 
-                    if(mesh->TryGetColors(0, out var c))
+                    for(var k = 0; k < 4; k++)
                     {
-                        colors.AddRange(c);
+                        if (mesh->TryGetColors(k, out var c))
+                        {
+                            switch(k)
+                            {
+                                case 0:
+
+                                    m.colors.AddRange(c);
+
+                                    break;
+
+                                case 1:
+
+                                    m.colors2.AddRange(c);
+
+                                    break;
+
+                                case 2:
+
+                                    m.colors3.AddRange(c);
+
+                                    break;
+
+                                case 3:
+
+                                    m.colors4.AddRange(c);
+
+                                    break;
+                            }
+                        }
                     }
 
                     m.vertices = vertices;
-
-                    m.colors = colors;
 
                     m.tangents = tangents;
 
@@ -1000,7 +1044,7 @@ static partial class Program
 
                             m.bones.Add(new()
                             {
-                                name = bone->MName.AsString,
+                                name = GetNodeName(bone->MName.AsString),
                                 offsetPosition = new Vector3Holder(translation),
                                 offsetScale = new Vector3Holder(scale),
                                 offsetRotation = new Vector3Holder(rotation),

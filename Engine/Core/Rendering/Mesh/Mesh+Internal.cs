@@ -78,9 +78,39 @@ public sealed partial class Mesh
     internal Color[] colors;
 
     /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] colors2;
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] colors3;
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] colors4;
+
+    /// <summary>
     /// List of colors (byte version). This is only valid if you don't use SetMeshData.
     /// </summary>
     internal Color32[] colors32;
+
+    /// <summary>
+    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color32[] colors322;
+
+    /// <summary>
+    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color32[] colors323;
+
+    /// <summary>
+    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color32[] colors324;
 
     /// <summary>
     /// List of UVs in the first channel. This is only valid if you don't use SetMeshData.
@@ -195,7 +225,19 @@ public sealed partial class Mesh
 
     internal bool HasColors => (colors?.Length ?? 0) > 0;
 
+    internal bool HasColors2 => (colors2?.Length ?? 0) > 0;
+
+    internal bool HasColors3 => (colors3?.Length ?? 0) > 0;
+
+    internal bool HasColors4 => (colors4?.Length ?? 0) > 0;
+
     internal bool HasColors32 => (colors32?.Length ?? 0) > 0;
+
+    internal bool HasColors322 => (colors322?.Length ?? 0) > 0;
+
+    internal bool HasColors323 => (colors323?.Length ?? 0) > 0;
+
+    internal bool HasColors324 => (colors324?.Length ?? 0) > 0;
 
     internal bool HasUV => (uv?.Length ?? 0) > 0;
 
@@ -451,9 +493,39 @@ public sealed partial class Mesh
             keyBuilder.Append('c');
         }
 
+        if (mesh.HasColors2)
+        {
+            keyBuilder.Append("c2");
+        }
+
+        if (mesh.HasColors3)
+        {
+            keyBuilder.Append("c3");
+        }
+
+        if (mesh.HasColors4)
+        {
+            keyBuilder.Append("c4");
+        }
+
         if (mesh.HasColors32)
         {
             keyBuilder.Append("c32");
+        }
+
+        if (mesh.HasColors322)
+        {
+            keyBuilder.Append("c322");
+        }
+
+        if (mesh.HasColors323)
+        {
+            keyBuilder.Append("c323");
+        }
+
+        if (mesh.HasColors324)
+        {
+            keyBuilder.Append("c324");
         }
 
         if (mesh.HasUV)
@@ -535,6 +607,21 @@ public sealed partial class Mesh
         if (mesh.HasColors || mesh.HasColors32)
         {
             builder.Add(VertexAttribute.Color0, 4, VertexAttributeType.Float);
+        }
+
+        if (mesh.HasColors2 || mesh.HasColors322)
+        {
+            builder.Add(VertexAttribute.Color1, 4, VertexAttributeType.Float);
+        }
+
+        if (mesh.HasColors3 || mesh.HasColors323)
+        {
+            builder.Add(VertexAttribute.Color2, 4, VertexAttributeType.Float);
+        }
+
+        if (mesh.HasColors4 || mesh.HasColors324)
+        {
+            builder.Add(VertexAttribute.Color3, 4, VertexAttributeType.Float);
         }
 
         if (mesh.HasUV)
@@ -664,7 +751,40 @@ public sealed partial class Mesh
                 Copy(c, ref index);
             }
 
-            if(HasUV)
+            if (HasColors2)
+            {
+                Copy(colors2[i], ref index);
+            }
+            else if (HasColors322)
+            {
+                var c = (Color)colors322[i];
+
+                Copy(c, ref index);
+            }
+
+            if (HasColors3)
+            {
+                Copy(colors3[i], ref index);
+            }
+            else if (HasColors323)
+            {
+                var c = (Color)colors323[i];
+
+                Copy(c, ref index);
+            }
+
+            if (HasColors4)
+            {
+                Copy(colors4[i], ref index);
+            }
+            else if (HasColors324)
+            {
+                var c = (Color)colors324[i];
+
+                Copy(c, ref index);
+            }
+
+            if (HasUV)
             {
                 Copy(uv[i], ref index);
             }

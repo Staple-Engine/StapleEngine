@@ -98,6 +98,21 @@ public sealed class MeshAsset : IGuidAsset
         public Color[] colors = [];
 
         /// <summary>
+        /// The mesh colors
+        /// </summary>
+        public Color[] colors2 = [];
+
+        /// <summary>
+        /// The mesh colors
+        /// </summary>
+        public Color[] colors3 = [];
+
+        /// <summary>
+        /// The mesh colors
+        /// </summary>
+        public Color[] colors4 = [];
+
+        /// <summary>
         /// The mesh tangents
         /// </summary>
         public Vector3[] tangents = [];
@@ -605,11 +620,6 @@ public sealed class MeshAsset : IGuidAsset
     /// The nodes of the transform tree
     /// </summary>
     public Node[] nodes;
-
-    /// <summary>
-    /// The inverse root node transform
-    /// </summary>
-    public Matrix4x4 inverseTransform;
 
     /// <summary>
     /// List of all animations

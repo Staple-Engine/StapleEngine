@@ -103,7 +103,13 @@ public sealed partial class Mesh : IGuidAsset
                 tangents = null;
                 bitangents = null;
                 colors = null;
+                colors2 = null;
+                colors3 = null;
+                colors4 = null;
                 colors32 = null;
+                colors322 = null;
+                colors323 = null;
+                colors323 = null;
                 uv = null;
                 uv2 = null;
                 uv3 = null;
@@ -254,6 +260,108 @@ public sealed partial class Mesh : IGuidAsset
     }
 
     /// <summary>
+    /// Sets or gets the current colors.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color[] Colors2
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors2 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors2 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the current colors.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color[] Colors3
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors3 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors3 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the current colors.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color[] Colors4
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors4 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors4 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
     /// Sets or gets the current colors as Color32.
     /// Getting depends on isReadable.
     /// Note: When setting, must have the same size as the current vertices.
@@ -283,6 +391,108 @@ public sealed partial class Mesh : IGuidAsset
             }
 
             colors32 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the current colors as Color32.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color32[] Colors322
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors322 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors322 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the current colors as Color32.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color32[] Colors323
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors323 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors323 = value;
+            changed = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets or gets the current colors as Color32.
+    /// Getting depends on isReadable.
+    /// Note: When setting, must have the same size as the current vertices.
+    /// </summary>
+    public Color32[] Colors324
+    {
+        get
+        {
+            if (isReadable == false || meshDataBlob != null)
+            {
+                return [];
+            }
+
+            return colors324 ?? [];
+        }
+
+        set
+        {
+            if (isWritable == false || meshDataBlob != null)
+            {
+                return;
+            }
+
+            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
+            {
+                throw new ArgumentException("Array length should match vertices length");
+            }
+
+            colors324 = value;
             changed = true;
         }
     }
@@ -700,7 +910,13 @@ public sealed partial class Mesh : IGuidAsset
         vertices = null;
         normals = null;
         colors = null;
+        colors2 = null;
+        colors3 = null;
+        colors4 = null;
         colors32 = null;
+        colors322 = null;
+        colors323 = null;
+        colors324 = null;
         uv = null;
         uv2 = null;
         uv3 = null;

@@ -83,19 +83,13 @@ public class MeshAssetMetadata
     public bool useSmoothNormals;
 
     [Key(11)]
-    public MeshAssetRotation rotation = MeshAssetRotation.None;
-
-    [Key(12)]
-    public float scale = 1.0f;
-
-    [Key(13)]
     public MaterialLighting lighting = MaterialLighting.Lit;
 
-    [Key(14)]
+    [Key(12)]
     public int frameRate = 30;
 
     [HideInInspector]
-    [Key(15)]
+    [Key(13)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -112,8 +106,6 @@ public class MeshAssetMetadata
             lhs.convertUnits == rhs.convertUnits &&
             lhs.regenerateNormals == rhs.regenerateNormals &&
             lhs.useSmoothNormals == rhs.useSmoothNormals &&
-            lhs.rotation == rhs.rotation &&
-            lhs.scale == rhs.scale &&
             lhs.lighting == rhs.lighting &&
             lhs.frameRate == rhs.frameRate;
     }
@@ -132,8 +124,6 @@ public class MeshAssetMetadata
             lhs.convertUnits != rhs.convertUnits ||
             lhs.regenerateNormals != rhs.regenerateNormals ||
             lhs.useSmoothNormals != rhs.useSmoothNormals ||
-            lhs.rotation != rhs.rotation ||
-            lhs.scale != rhs.scale ||
             lhs.lighting != rhs.lighting ||
             lhs.frameRate != rhs.frameRate;
     }
@@ -168,8 +158,6 @@ public class MeshAssetMetadata
         hash.Add(convertUnits);
         hash.Add(regenerateNormals);
         hash.Add(useSmoothNormals);
-        hash.Add(rotation);
-        hash.Add(scale);
         hash.Add(lighting);
         hash.Add(frameRate);
         hash.Add(typeName);
@@ -265,6 +253,15 @@ public class MeshAssetMeshInfo
 
     [Key(22)]
     public List<Vector4Holder> boneWeights = [];
+
+    [Key(23)]
+    public List<Vector4Holder> colors2 = [];
+
+    [Key(24)]
+    public List<Vector4Holder> colors3 = [];
+
+    [Key(25)]
+    public List<Vector4Holder> colors4 = [];
 }
 
 [MessagePackObject]

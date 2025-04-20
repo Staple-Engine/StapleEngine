@@ -358,10 +358,19 @@ public sealed partial class RenderSystem
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
+        var systemQueues = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
+
         void Handle(Entity e, Transform t)
         {
             foreach (var system in systems)
             {
+                if(systemQueues.TryGetValue(system, out var queue) == false)
+                {
+                    queue = new();
+
+                    systemQueues.Add(system, queue);
+                }
+
                 if (system.RelatedComponent() != null &&
                     e.TryGetComponent(system.RelatedComponent(), out var related))
                 {
@@ -382,7 +391,7 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    system.Process([(e, t, related)], camera, cameraTransform, viewID);
+                    queue.Add((e, t, related));
                 }
             }
 
@@ -394,11 +403,13 @@ public sealed partial class RenderSystem
 
         Handle(entity, entityTransform);
 
-        foreach (var system in systems)
+        foreach(var pair in systemQueues)
         {
-            system.Submit();
+            pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, viewID);
 
-            system.NeedsUpdate = false;
+            pair.Key.Submit();
+
+            pair.Key.NeedsUpdate = false;
         }
     }
 

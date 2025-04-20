@@ -1592,7 +1592,22 @@ internal class ResourceManager
             mesh.colors = m.colors;
         }
 
-        foreach(var submesh in m.submeshes)
+        if (m.colors2.Length > 0)
+        {
+            mesh.colors2 = m.colors2;
+        }
+
+        if (m.colors3.Length > 0)
+        {
+            mesh.colors3 = m.colors3;
+        }
+
+        if (m.colors4.Length > 0)
+        {
+            mesh.colors4 = m.colors4;
+        }
+
+        foreach (var submesh in m.submeshes)
         {
             mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
         }
@@ -1719,6 +1734,30 @@ internal class ResourceManager
                         .ToArray(),
 
                     colors = m.colors
+                        .Select(x =>
+                        {
+                            var v = x.ToVector4();
+
+                            return new Color(v.X, v.Y, v.Z, v.W);
+                        }).ToArray(),
+
+                    colors2 = m.colors2
+                        .Select(x =>
+                        {
+                            var v = x.ToVector4();
+
+                            return new Color(v.X, v.Y, v.Z, v.W);
+                        }).ToArray(),
+
+                    colors3 = m.colors3
+                        .Select(x =>
+                        {
+                            var v = x.ToVector4();
+
+                            return new Color(v.X, v.Y, v.Z, v.W);
+                        }).ToArray(),
+
+                    colors4 = m.colors4
                         .Select(x =>
                         {
                             var v = x.ToVector4();
