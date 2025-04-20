@@ -10,6 +10,7 @@ internal class iOSRenderWindow : IRenderWindow
     internal bool shouldClose = false;
     internal int screenWidth;
     internal int screenHeight;
+    internal int refreshRate = 60;
     internal nint window;
     internal bool contextLost = false;
     internal bool unavailable = false;
@@ -26,6 +27,8 @@ internal class iOSRenderWindow : IRenderWindow
     public Vector2Int Position { get; set; }
 
     public string Title { get; set; }
+
+    public int RefreshRate => refreshRate;
 
     public void Mutate(Action<iOSRenderWindow> callback)
     {

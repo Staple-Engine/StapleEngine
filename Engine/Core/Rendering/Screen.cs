@@ -21,6 +21,11 @@ public static class Screen
     public static WindowMode WindowMode => AppPlayer.instance == null ? WindowMode.Windowed : AppPlayer.instance.playerSettings.windowMode;
 
     /// <summary>
+    /// The refresh rate of the screen
+    /// </summary>
+    public static int RefreshRate { get; internal set; }
+
+    /// <summary>
     /// Sets the current screen resolution and window mode
     /// </summary>
     /// <param name="width">The new screen width</param>

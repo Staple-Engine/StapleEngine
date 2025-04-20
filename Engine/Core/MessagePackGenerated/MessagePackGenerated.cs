@@ -2200,7 +2200,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(14);
+            writer.WriteArrayHeader(15);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
@@ -2213,6 +2213,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.Write(value.regenerateNormals);
             writer.Write(value.useSmoothNormals);
             formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
+            writer.Write(value.limitFrameRate);
             writer.Write(value.frameRate);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
@@ -2270,9 +2271,12 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.lighting = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Deserialize(ref reader, options);
                         break;
                     case 12:
-                        ____result.frameRate = reader.ReadInt32();
+                        ____result.limitFrameRate = reader.ReadBoolean();
                         break;
                     case 13:
+                        ____result.frameRate = reader.ReadInt32();
+                        break;
+                    case 14:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:

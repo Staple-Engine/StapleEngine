@@ -1683,6 +1683,7 @@ internal class ResourceManager
             {
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
+                limitFrameRate = meshAssetData.metadata.limitFrameRate,
             };
 
             asset.Guid.Guid = guid;

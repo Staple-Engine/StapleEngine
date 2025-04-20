@@ -632,6 +632,11 @@ public sealed class MeshAsset : IGuidAsset
     public MaterialLighting lighting;
 
     /// <summary>
+    /// Whether to limit the frame rate of the mesh's animation to the screen
+    /// </summary>
+    public bool limitFrameRate = false;
+
+    /// <summary>
     /// The frame rate of the animations in this mesh
     /// </summary>
     public int frameRate = 30;

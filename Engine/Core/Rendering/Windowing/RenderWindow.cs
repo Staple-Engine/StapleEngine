@@ -953,6 +953,7 @@ internal class RenderWindow
 
         Input.window = renderWindow.window;
         Cursor.window = renderWindow.window;
+        Screen.RefreshRate = renderWindow.window.RefreshRate;
 
         //Issue with Metal
         if(Platform.IsMacOS)

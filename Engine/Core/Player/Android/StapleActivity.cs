@@ -634,6 +634,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
             p.PreferredDisplayModeId = maxMode;
 
+            AndroidRenderWindow.Instance.refreshRate = (int)maxHZ;
+
             Window.Attributes = p;
         }
 

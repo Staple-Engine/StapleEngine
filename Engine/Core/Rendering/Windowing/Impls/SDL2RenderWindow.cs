@@ -55,6 +55,7 @@ internal class SDL2RenderWindow : IRenderWindow
     private bool windowFocused = true;
     private bool windowMaximized = false;
     private nint defaultCursor = nint.Zero;
+    private int refreshRate = 60;
 
     private nint metalView = nint.Zero;
 
@@ -67,6 +68,8 @@ internal class SDL2RenderWindow : IRenderWindow
     public bool Unavailable => false;
 
     public bool Maximized => windowMaximized;
+
+    public int RefreshRate => refreshRate;
 
     public string Title
     {
@@ -164,6 +167,11 @@ internal class SDL2RenderWindow : IRenderWindow
         if (window == nint.Zero)
         {
             return false;
+        }
+
+        if(SDL.SDL_GetWindowDisplayMode(window, out var displayMode) == 0)
+        {
+            refreshRate = displayMode.refresh_rate;
         }
 
         if(maximized)

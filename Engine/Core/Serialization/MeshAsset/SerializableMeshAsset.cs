@@ -86,10 +86,13 @@ public class MeshAssetMetadata
     public MaterialLighting lighting = MaterialLighting.Lit;
 
     [Key(12)]
+    public bool limitFrameRate = false;
+
+    [Key(13)]
     public int frameRate = 30;
 
     [HideInInspector]
-    [Key(13)]
+    [Key(14)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -107,7 +110,8 @@ public class MeshAssetMetadata
             lhs.regenerateNormals == rhs.regenerateNormals &&
             lhs.useSmoothNormals == rhs.useSmoothNormals &&
             lhs.lighting == rhs.lighting &&
-            lhs.frameRate == rhs.frameRate;
+            lhs.frameRate == rhs.frameRate &&
+            lhs.limitFrameRate == rhs.limitFrameRate;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -125,7 +129,8 @@ public class MeshAssetMetadata
             lhs.regenerateNormals != rhs.regenerateNormals ||
             lhs.useSmoothNormals != rhs.useSmoothNormals ||
             lhs.lighting != rhs.lighting ||
-            lhs.frameRate != rhs.frameRate;
+            lhs.frameRate != rhs.frameRate ||
+            lhs.limitFrameRate != rhs.limitFrameRate;
     }
 
     public override bool Equals(object obj)
@@ -160,6 +165,7 @@ public class MeshAssetMetadata
         hash.Add(useSmoothNormals);
         hash.Add(lighting);
         hash.Add(frameRate);
+        hash.Add(limitFrameRate);
         hash.Add(typeName);
 
         return hash.ToHashCode();

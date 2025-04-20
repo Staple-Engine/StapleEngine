@@ -13,6 +13,7 @@ internal class AndroidRenderWindow : IRenderWindow
     internal nint window;
     internal bool contextLost = false;
     internal bool unavailable = false;
+    internal int refreshRate = 60;
     internal object lockObject = new();
 
     public static AndroidRenderWindow Instance = new();
@@ -24,6 +25,8 @@ internal class AndroidRenderWindow : IRenderWindow
     public Vector2Int Position { get; set; }
 
     public string Title { get; set; }
+
+    public int RefreshRate => refreshRate;
 
     public void Mutate(Action<AndroidRenderWindow> callback)
     {

@@ -14,6 +14,8 @@ internal interface IRenderWindow
 
     bool Maximized { get; }
 
+    int RefreshRate { get; }
+
     Vector2Int Position { get; set; }
 
     string Title { get; set; }
