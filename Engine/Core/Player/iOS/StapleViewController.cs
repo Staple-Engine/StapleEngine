@@ -77,7 +77,7 @@ public class StapleViewController : UIViewController
             }
 
             iOSRenderWindow.Instance.metalView = View as MetalView;
-            iOSRenderWindow.Instance.refreshRate = UIScreen.MainScreen.MaximumFramesPerSecond;
+            iOSRenderWindow.Instance.refreshRate = (int)UIScreen.MainScreen.MaximumFramesPerSecond;
 
             if (AppPlayer.instance?.renderWindow == null)
             {
