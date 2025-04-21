@@ -151,11 +151,11 @@ internal partial class PackageManager
 
             SavePackages(packageList);
             SavePackageLock(lockFile);
+
+            Refresh();
+
+            EditorUtils.RefreshAssets(true, null);
         }
-
-        Refresh();
-
-        EditorUtils.RefreshAssets(true, null);
     }
 
     public void InstallLocalPackage(string path)

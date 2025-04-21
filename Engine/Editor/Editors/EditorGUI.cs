@@ -1050,7 +1050,7 @@ public static class EditorGUI
 
         ImGui.SameLine();
 
-        var clicked = ImGui.Selectable(label);
+        var clicked = ImGui.Selectable(MakeIdentifier(label, key));
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
