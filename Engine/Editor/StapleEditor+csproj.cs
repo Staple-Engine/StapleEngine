@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Staple.Editor;
 
@@ -8,8 +9,9 @@ internal partial class StapleEditor
     /// Updates the game project and then builds and loads the game
     /// </summary>
     /// <param name="platform">The platform to build for</param>
+    /// <param name="checkBuild">Check whether to build</param>
     /// <param name="onFinish">Called when finished</param>
-    internal void UpdateCSProj(AppPlatform platform, Action onFinish)
+    internal void UpdateCSProj(AppPlatform platform, bool checkBuild, Action onFinish)
     {
         var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
 
@@ -25,9 +27,48 @@ internal partial class StapleEditor
         csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, false);
         csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, true);
 
-        BuildGame(() =>
+        void Build()
         {
-            onFinish();
-        });
+            BuildGame(() =>
+            {
+                onFinish();
+            });
+        }
+
+        if (checkBuild)
+        {
+            try
+            {
+                var gameChange = DateTime.MinValue;
+
+                var targetPath = Path.Combine(basePath, "Cache", "Assembly", "Game", "bin", "Game.dll");
+
+                if (File.Exists(targetPath))
+                {
+                    gameChange = File.GetLastWriteTime(targetPath);
+                }
+
+                var assetsDirectory = Path.Combine(basePath, "Assets");
+
+                var lastChange = csProjManager.GetLastFileChange(assetsDirectory);
+
+                if (lastChange > gameChange)
+                {
+                    Build();
+                }
+                else
+                {
+                    onFinish();
+                }
+            }
+            catch (Exception)
+            {
+                Build();
+            }
+        }
+        else
+        {
+            Build();
+        }
     }
 }

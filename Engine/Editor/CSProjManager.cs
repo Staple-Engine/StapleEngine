@@ -324,6 +324,61 @@ internal class CSProjManager
         return p;
     }
 
+    public DateTime GetLastFileChange(string assetsDirectory)
+    {
+        var highest = DateTime.MinValue;
+
+        void Recursive(string path, string basePath)
+        {
+            try
+            {
+                var files = Directory.GetFiles(path, "*.cs");
+
+                foreach (var file in files)
+                {
+                    var change = File.GetLastWriteTime(file);
+
+                    if(change > highest)
+                    {
+                        highest = change;
+                    }
+                }
+
+                var directories = Directory.GetDirectories(path);
+
+                foreach (var directory in directories)
+                {
+                    Recursive(directory, basePath);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed getting last file change: {e}");
+            }
+        }
+
+        void HandlePackages()
+        {
+            try
+            {
+                foreach (var pair in PackageManager.instance.projectPackages)
+                {
+                    Recursive(pair.Value.Item1, pair.Value.Item1);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed generating csproj: {e}");
+            }
+        }
+
+        Recursive(assetsDirectory, assetsDirectory);
+
+        HandlePackages();
+
+        return highest;
+    }
+
     public void GenerateProject(string projectDirectory, string assetsDirectory, PlayerBackend backend, Dictionary<string, string> projectProperties, 
         Dictionary<string, string> asmDefProperties, AppSettings projectAppSettings, AppPlatform platform, ProjectGenerationFlags flags)
     {

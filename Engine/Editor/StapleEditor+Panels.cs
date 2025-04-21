@@ -343,7 +343,7 @@ internal partial class StapleEditor
                     {
                     }
 
-                    RefreshStaging(currentPlatform, null);
+                    RefreshStaging(currentPlatform, null, false);
                 });
             });
 

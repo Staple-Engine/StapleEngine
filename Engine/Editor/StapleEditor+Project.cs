@@ -358,7 +358,8 @@ internal partial class StapleEditor
     /// <param name="platform">The current platform</param>
     /// <param name="onFinish">Callback when finished</param>
     /// <param name="updateProject">Whether to update the project</param>
-    public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = true)
+    /// <param name="checkBuild">Check whether to build the project</param>
+    public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = true, bool checkBuild = true)
     {
         if(gameLoadDisabled || refreshingAssets)
         {
@@ -553,7 +554,7 @@ internal partial class StapleEditor
 
         if (updateProject)
         {
-            UpdateCSProj(platform, Finish);
+            UpdateCSProj(platform, checkBuild, Finish);
         }
         else
         {
