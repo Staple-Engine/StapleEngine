@@ -108,7 +108,7 @@ public static class AssetDatabase
                         {
                             guid = holder.guid,
                             name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
-                            path = file.Replace($"{pair.Key}{Path.DirectorySeparatorChar}", "").Replace("\\", "/").Replace(".meta", ""),
+                            path = file.Replace($"{pair.Key}", $"{Path.GetFileName(pair.Key)}").Replace("\\", "/").Replace(".meta", ""),
                             typeName = holder.typeName,
                         };
 

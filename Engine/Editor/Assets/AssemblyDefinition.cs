@@ -20,6 +20,8 @@ public class AssemblyDefinition
     public bool allowUnsafeCode;
     public bool autoReferenced = true;
     public List<string> referencedAssemblies = [];
+    public bool overrideReferences = false;
+    public List<string> referencedPlugins = [];
 
     public static object Create(string guid)
     {

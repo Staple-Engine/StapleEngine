@@ -656,6 +656,25 @@ internal class CSProjManager
                         pair.Value.project.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
                     }
                 }
+
+                if(pair.Value.asmDef.overrideReferences)
+                {
+                    foreach(var reference in pair.Value.asmDef.referencedPlugins)
+                    {
+                        try
+                        {
+                            var path = AssetDatabase.GetAssetPath(reference);
+
+                            if (PluginAsset.IsAssembly(path))
+                            {
+                                pair.Value.project.AddItem("Reference", path);
+                            }
+                        }
+                        catch(Exception)
+                        {
+                        }
+                    }
+                }
             }
             else if (pair.Value.package != null)
             {

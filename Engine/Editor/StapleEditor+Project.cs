@@ -124,13 +124,6 @@ internal partial class StapleEditor
 
         PackageManager.instance.Refresh();
 
-        AssetDatabase.assetDirectories.Clear();
-        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
-        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages"));
-
-        ResourceManager.instance.resourcePaths.Clear();
-        ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString()));
-
         csProjManager.stapleBasePath = StapleBasePath;
 
         Log.Info($"Project Path: {basePath}");
@@ -451,7 +444,24 @@ internal partial class StapleEditor
                             }
                         }
 
-                        var args = $"-i \"{basePath}/Assets\" -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
+                        string[] packageDirectories = [];
+
+                        try
+                        {
+                            packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+                        }
+                        catch(Exception)
+                        {
+                        }
+
+                        var packageArgs = "";
+
+                        foreach (var directory in packageDirectories)
+                        {
+                            packageArgs += $"-i \"{directory}\" ";
+                        }
+
+                        var args = $"-i \"{basePath}/Assets\" {packageArgs} -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
 
                         var processInfo = new ProcessStartInfo(bakerPath, args)
                         {

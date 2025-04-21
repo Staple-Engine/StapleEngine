@@ -60,7 +60,7 @@ public class TextRenderer
     {
         var data = Convert.FromBase64String(FontData.IntelOneMonoRegular);
 
-        defaultFont = TextFont.FromData(data, "DEFAULT", true, 512, FontCharacterSet.BasicLatin |
+        defaultFont = TextFont.FromData(data, "DEFAULT", true, 1024, FontCharacterSet.BasicLatin |
             FontCharacterSet.Latin1Supplement |
             FontCharacterSet.LatinExtendedA |
             FontCharacterSet.LatinExtendedB);

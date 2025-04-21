@@ -122,7 +122,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if(instance is IGuidAsset a)
                     {
-                        return AssetSerialization.GetAssetPathFromCache(a.Guid.Guid);
+                        return a.Guid.Guid;
                     }
                 }
 
@@ -489,7 +489,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                 {
                     if (instance is IGuidAsset a)
                     {
-                        return AssetSerialization.GetAssetPathFromCache(a.Guid.Guid);
+                        return a.Guid.Guid;
                     }
                 }
 

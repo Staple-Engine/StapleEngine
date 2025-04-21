@@ -8,6 +8,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
 {
     private AppPlatform[] platformList = [];
     private AssemblyDefinition[] referencedAssemblies = [];
+    private PluginAsset[] referencedPlugins = [];
     private string[][] ignoredGuids = [];
 
     public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
@@ -112,6 +113,97 @@ internal class AssemblyDefinitionEditor : AssetEditor
                                 if (newValue != referencedAssemblies[i])
                                 {
                                     referencedAssemblies[i] = newValue;
+
+                                    ignoredGuids = [];
+
+                                    list[i] = newValue?.guid;
+                                }
+
+                                EditorGUI.SameLine();
+
+                                EditorGUI.Button("-", $"{name}.Item{i}.Remove", () =>
+                                {
+                                    list.RemoveAt(i);
+                                });
+                            }
+
+                        }, null,
+                        () =>
+                        {
+                            EditorGUI.SameLine();
+
+                            EditorGUI.Button("+", $"{name}.Add", () =>
+                            {
+                                list.Add("");
+                            });
+                        });
+                    }
+                }
+
+                return true;
+
+            case nameof(AssemblyDefinition.referencedPlugins):
+
+                if(asmDef.overrideReferences == false)
+                {
+                    return true;
+                }
+
+                {
+                    if (getter() is List<string> list)
+                    {
+                        EditorGUI.TreeNode(name.ExpandCamelCaseName(), name, false, () =>
+                        {
+                            if (referencedPlugins.Length != list.Count)
+                            {
+                                referencedPlugins = new PluginAsset[list.Count];
+
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    var plugin = referencedPlugins[i] = (PluginAsset)PluginAsset.Create(list[i] ?? "");
+
+                                    if (plugin != null &&
+                                        (PluginAsset.IsAssembly(AssetDatabase.GetAssetPath(list[i] ?? "") ?? list[i] ?? "") == false ||
+                                        plugin.autoReferenced))
+                                    {
+                                        list.RemoveAt(i);
+
+                                        //Will force a recreation
+                                        return;
+                                    }
+                                }
+                            }
+
+                            if (ignoredGuids.Length != list.Count)
+                            {
+                                ignoredGuids = new string[referencedPlugins.Length][];
+
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    ignoredGuids[i] = new string[referencedPlugins.Length];
+
+                                    for (var j = 0; j < list.Count; j++)
+                                    {
+                                        if (i == j)
+                                        {
+                                            ignoredGuids[i][j] = (target as PluginAsset).guid;
+
+                                            continue;
+                                        }
+
+                                        ignoredGuids[i][j] = referencedPlugins[j]?.guid;
+                                    }
+                                }
+                            }
+
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                var newValue = (PluginAsset)EditorGUI.ObjectPicker(typeof(PluginAsset), $"Reference {i + 1}", referencedAssemblies[i], $"{name}.Item{i}",
+                                    ignoredGuids[i]);
+
+                                if (newValue != referencedPlugins[i])
+                                {
+                                    referencedPlugins[i] = newValue;
 
                                     ignoredGuids = [];
 

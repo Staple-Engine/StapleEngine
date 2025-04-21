@@ -12,7 +12,7 @@ namespace Baker;
 
 static partial class Program
 {
-    private static void ProcessScenes(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
+    private static void ProcessScenes(AppPlatform platform, string inputPath, string outputPath, string sceneListOutputPath, bool editorMode)
     {
         var sceneFiles = new List<string>();
 
@@ -201,7 +201,7 @@ static partial class Program
 
             if(sceneList != null)
             {
-                var outputFile = Path.Combine(outputPath, "SceneList");
+                var outputFile = Path.Combine(sceneListOutputPath, "SceneList");
 
                 try
                 {

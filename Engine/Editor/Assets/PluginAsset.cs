@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,13 +16,55 @@ public class PluginAsset
     [HideInInspector]
     public string guid;
 
-    public bool autoReferenced = true;
+    public bool autoReferenced = false;
 
     public bool anyPlatform = true;
     public List<AppPlatform> platforms = [];
 
     [HideInInspector]
     public string typeName = typeof(PluginAsset).FullName;
+
+    public static bool IsAssembly(string path)
+    {
+        try
+        {
+            AssemblyName.GetAssemblyName(path);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static object Create(string guid)
+    {
+        var text = ResourceManager.instance.LoadFileString(guid);
+
+        if (text == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var outValue = JsonSerializer.Deserialize(text, PluginAssetMetadataSerializationContext.Default.PluginAsset);
+
+            if (outValue != null)
+            {
+                outValue.guid = guid;
+            }
+
+            return outValue;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[PluginAsset] Failed to deserialize: {e}");
+        }
+
+        return null;
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]

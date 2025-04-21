@@ -353,6 +353,8 @@ internal partial class PackageManager
         SavePackages(packageList);
         SavePackageLock(updatedLock);
 
+        StapleEditor.instance.ResetAssetPaths();
+
         return true;
     }
 

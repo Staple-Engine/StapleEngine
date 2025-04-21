@@ -159,7 +159,7 @@ static partial class Program
         var texturecPath = ValidateTool("texturec", texturecBinName);
 
         var outputPath = "out";
-        var inputPath = "";
+        var inputPaths = new List<string>();
         var shaderDefines = new List<string>();
         var renderers = new List<Renderer>();
         bool setRenderer = false;
@@ -222,7 +222,7 @@ static partial class Program
                         return;
                     }
 
-                    inputPath = args[i + 1];
+                    var inputPath = args[i + 1];
 
                     inputPath = inputPath
                         .Replace("\\", Path.DirectorySeparatorChar.ToString())
@@ -249,6 +249,8 @@ static partial class Program
 
                         return;
                     }
+
+                    inputPaths.Add(inputPath);
 
                     break;
 
@@ -322,47 +324,136 @@ static partial class Program
             return;
         }
 
-        ProcessShaders(platform, shadercPath, inputPath, outputPath, shaderDefines, renderers);
+        if(inputPaths.Count == 0)
+        {
+            Console.WriteLine("Missing input (-i) parameter");
+
+            Environment.Exit(1);
+
+            return;
+        }
+
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessShaders(platform, shadercPath, path, outPath, shaderDefines, renderers);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessMeshes(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessMeshes(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessTextures(platform, texturecPath, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessTextures(platform, texturecPath, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessAudio(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessAudio(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessMaterials(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessMaterials(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessAssets(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessAssets(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessPrefabs(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessPrefabs(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
-        ProcessFonts(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessFonts(platform, path, outPath);
+        }
 
         WorkScheduler.WaitForTasks();
 
         Console.WriteLine($"Cleaning up moved and deleted files in the output folder");
 
-        CleanupUnusedFiles(platform, inputPath, outputPath);
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-        ProcessScenes(platform, inputPath, outputPath, editorMode);
-        ProcessAppSettings(platform, inputPath, outputPath, editorMode);
-        ProcessFolders(platform, inputPath, outputPath);
+            CleanupUnusedFiles(platform, path, outPath);
+        }
+
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessScenes(platform, path, outPath, outputPath, editorMode);
+            ProcessFolders(platform, path, outPath);
+        }
+
+        ProcessAppSettings(platform, inputPaths[0], outputPath, editorMode);
 
         WorkScheduler.WaitForTasks();
+
+        //Cleanup extra folders only if we're in editor mode
+        if (editorMode)
+        {
+            try
+            {
+                foreach(var path in inputPaths)
+                {
+                    Console.WriteLine(path);
+                }
+
+                var directories = Directory.GetDirectories(outputPath);
+
+                foreach(var directory in directories)
+                {
+                    var fileName = Path.GetFileName(directory);
+
+                    if(inputPaths.Any(x => Path.GetFileName(x) == fileName))
+                    {
+                        continue;
+                    }
+
+                    Directory.Delete(directory, true);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     internal static string GenerateGuid()

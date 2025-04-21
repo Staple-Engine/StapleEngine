@@ -1169,33 +1169,73 @@ internal partial class StapleEditor
             return path;
         }
 
-        var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+        var directories = new List<string>(["Assets"]);
 
         try
         {
-            if (File.Exists(p))
-            {
-                return p;
-            }
+            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+
+            directories.AddRange(packageDirectories.Select(x => Path.GetFileName(x)));
         }
         catch(Exception)
         {
         }
 
-        p = Path.Combine(basePath, "Assets", path);
+        foreach (var directory in directories)
+        {
+            var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+
+            try
+            {
+                if (File.Exists(p))
+                {
+                    return p;
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        {
+            var p = Path.Combine(basePath, "Assets", path);
+
+            try
+            {
+                if (File.Exists(p))
+                {
+                    return p;
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        return path;
+    }
+
+    public void ResetAssetPaths()
+    {
+        AssetDatabase.assetDirectories.Clear();
+        ResourceManager.instance.resourcePaths.Clear();
+
+        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
+        ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Assets"));
 
         try
         {
-            if (File.Exists(p))
+            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+
+            foreach (var directory in packageDirectories)
             {
-                return p;
+                AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages", Path.GetFileName(directory)));
+                ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Packages", Path.GetFileName(directory)));
             }
         }
         catch (Exception)
         {
         }
-
-        return path;
     }
 
     public void ShowAssetPicker(Type type, string key, string[] ignoredGuids)

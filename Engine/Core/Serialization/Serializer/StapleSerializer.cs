@@ -410,7 +410,7 @@ internal static class StapleSerializer
                     {
                         if(item is IGuidAsset asset)
                         {
-                            assetList.Add(AssetSerialization.GetAssetPathFromCache(asset.Guid.Guid));
+                            assetList.Add(asset.Guid.Guid);
                         }
                         else
                         {
@@ -540,7 +540,7 @@ internal static class StapleSerializer
                             {
                                 if (item is IGuidAsset g)
                                 {
-                                    newList.Add(AssetSerialization.GetAssetPathFromCache(g.Guid.Guid));
+                                    newList.Add(g.Guid.Guid);
                                 }
                                 else
                                 {
