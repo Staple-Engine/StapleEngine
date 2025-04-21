@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System;
 using System.IO;
-using System.Numerics;
 using System.Linq;
 using Staple.Internal;
 
@@ -418,6 +417,44 @@ public static class EditorUtils
                 }
             }
         }
+        else if((asset.meshes?.Count ?? 0) > 0)
+        {
+            for (var i = 0; i < asset.meshes.Count; i++)
+            {
+                var mesh = asset.meshes[i];
+
+                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
+
+                var meshTransform = meshEntity.GetComponent<Transform>();
+
+                var isSkinned = mesh.bones.Any(x => x.Length > 0);
+
+                meshTransform.SetParent(baseTransform);
+
+                var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}", true);
+                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
+
+                if (outMesh != null)
+                {
+                    if (isSkinned)
+                    {
+                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                        skinnedRenderer.mesh = outMesh;
+                        skinnedRenderer.materials = outMaterials;
+                        skinnedRenderer.lighting = mesh.lighting;
+                    }
+                    else
+                    {
+                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                        meshRenderer.mesh = outMesh;
+                        meshRenderer.materials = outMaterials;
+                        meshRenderer.lighting = mesh.lighting;
+                    }
+                }
+            }
+        }
 
         return baseEntity;
     }
@@ -463,7 +500,7 @@ public static class EditorUtils
 
         if (index >= 0)
         {
-            cachePath = cachePath.Substring(index + "/Assets/".Length);
+            cachePath = cachePath.Substring(index + 1);
         }
 
         return cachePath;

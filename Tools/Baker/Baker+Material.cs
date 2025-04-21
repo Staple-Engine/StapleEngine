@@ -124,16 +124,13 @@ static partial class Program
 
                     var header = new SerializableMaterialHeader();
 
-                    using (var stream = File.OpenWrite(outputFile))
-                    {
-                        using (var writer = new BinaryWriter(stream))
-                        {
-                            var encoded = MessagePackSerializer.Serialize(header)
-                                .Concat(MessagePackSerializer.Serialize(material));
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
 
-                            writer.Write(encoded.ToArray());
-                        }
-                    }
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(material));
+
+                    writer.Write(encoded.ToArray());
                 }
                 catch (Exception e)
                 {

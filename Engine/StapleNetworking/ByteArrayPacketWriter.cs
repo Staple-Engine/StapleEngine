@@ -39,7 +39,7 @@ public class ByteArrayPacketWriter : INetworkWriter
 
     public void WriteBytes(byte[] value)
     {
-        WriteUInt32((ushort)value.Length);
+        WriteUInt32((uint)value.Length);
 
         position += value.Length;
 
@@ -55,7 +55,7 @@ public class ByteArrayPacketWriter : INetworkWriter
 
     public void WriteChar(char value)
     {
-        var t = Encoding.UTF8.GetBytes(new char[] { value });
+        var t = Encoding.UTF8.GetBytes([value]);
 
         WriteUInt16((ushort)t.Length);
 
@@ -120,7 +120,7 @@ public class ByteArrayPacketWriter : INetworkWriter
     {
         if(value == null)
         {
-            WriteUInt16(0);
+            WriteBytes([]);
 
             return;
         }

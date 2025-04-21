@@ -762,6 +762,18 @@ internal partial class StapleEditor
                     flags |= ImGuiWindowFlags.MenuBar;
                 }
 
+                var otherFlags = ImGuiWindowFlags.None;
+
+                if(window.windowFlags.HasFlag(EditorWindowFlags.HorizontalScrollbar))
+                {
+                    otherFlags |= ImGuiWindowFlags.HorizontalScrollbar;
+                }
+
+                if (window.windowFlags.HasFlag(EditorWindowFlags.VerticalScrollbar))
+                {
+                    otherFlags |= ImGuiWindowFlags.AlwaysVerticalScrollbar;
+                }
+
                 var isOpen = true;
 
                 switch (window.windowType)
@@ -781,11 +793,11 @@ internal partial class StapleEditor
 
                         if(window.windowType == EditorWindowType.Popup)
                         {
-                            shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}");
+                            shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}", otherFlags);
                         }
                         else
                         {
-                            shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}");
+                            shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}", otherFlags);
                         }
 
                         if (shouldShow == false)
@@ -803,7 +815,7 @@ internal partial class StapleEditor
 
                         ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2), ImGuiCond.FirstUseEver);
 
-                        shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", ref isOpen, flags);
+                        shouldShow = ImGui.Begin($"{window.title}##{window.GetType().FullName}", ref isOpen, flags | otherFlags);
 
                         break;
                 }
@@ -1221,6 +1233,8 @@ internal partial class StapleEditor
         ResourceManager.instance.resourcePaths.Clear();
 
         AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
+        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages"));
+
         ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Assets"));
 
         try
@@ -1229,7 +1243,6 @@ internal partial class StapleEditor
 
             foreach (var directory in packageDirectories)
             {
-                AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages", Path.GetFileName(directory)));
                 ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Packages", Path.GetFileName(directory)));
             }
         }

@@ -9,4 +9,6 @@ public enum EditorWindowFlags
     Dockable = (1 << 0),
     Resizable = (1 << 1),
     MenuBar = (1 << 2),
+    HorizontalScrollbar = (1 << 3),
+    VerticalScrollbar = (1 << 4),
 }

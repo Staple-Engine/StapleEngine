@@ -67,6 +67,7 @@
 	  <Compile Include="Init.cs" />
 	  <Compile Include="LocalClient.cs" />
 	  <Compile Include="NetworkBatcher.cs" />
+	  <Compile Include="NetworkBuffer.cs" />
 	  <Compile Include="NetworkCompression.cs" />
 	</ItemGroup>
 </Project>

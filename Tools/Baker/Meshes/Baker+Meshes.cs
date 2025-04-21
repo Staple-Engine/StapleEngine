@@ -557,12 +557,16 @@ static partial class Program
 
                                                 File.WriteAllText(t, json);
                                             }
+                                            else
+                                            {
+                                                guid = FindGuid<Texture>(t);
+                                            }
                                         }
                                         catch (Exception)
                                         {
                                         }
 
-                                        texturePath = Path.Combine(basePath, texturePath).Replace("\\", "/");
+                                        texturePath = guid;
                                     }
                                 }
                                 else

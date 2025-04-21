@@ -431,11 +431,6 @@ static partial class Program
         {
             try
             {
-                foreach(var path in inputPaths)
-                {
-                    Console.WriteLine(path);
-                }
-
                 var directories = Directory.GetDirectories(outputPath);
 
                 foreach(var directory in directories)

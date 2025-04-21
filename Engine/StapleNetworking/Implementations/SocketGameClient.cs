@@ -53,8 +53,24 @@ public sealed class SocketGameClient : IGameClient
                 {
                     state = GameClientState.Connecting;
 
-                    foreach (var address in addresses)
+                    void Try()
                     {
+                        if (addresses.Count == 0)
+                        {
+                            pendingActions.Enqueue(() =>
+                            {
+                                Disconnect();
+                                state = GameClientState.Error;
+                                OnDisconnected?.Invoke();
+                            });
+
+                            return;
+                        }
+
+                        var address = addresses[0];
+
+                        addresses.RemoveAt(0);
+
                         try
                         {
                             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -63,7 +79,9 @@ public sealed class SocketGameClient : IGameClient
                         }
                         catch (Exception)
                         {
-                            continue;
+                            Try();
+
+                            return;
                         }
 
                         socket.Blocking = false;
@@ -77,7 +95,9 @@ public sealed class SocketGameClient : IGameClient
                         });
                     }
 
-                    if(state != GameClientState.Active)
+                    Try();
+
+                    if (state != GameClientState.Active)
                     {
                         pendingActions.Enqueue(() =>
                         {

@@ -157,18 +157,14 @@ public class ByteArrayPacketReader(byte[] data) : INetworkReader
 
     public string ReadString()
     {
-        var length = ReadUInt16();
+        var bytes = ReadBytes();
 
-        if(position + length > Length)
+        if (bytes == null)
         {
             throw new Exception("Exceeded packet length");
         }
 
-        var str = Encoding.UTF8.GetString(data, position, length);
-
-        position += length;
-
-        return str;
+        return Encoding.UTF8.GetString(bytes);
     }
 
     public ushort ReadUInt16()

@@ -104,11 +104,13 @@ public static class AssetDatabase
                             continue;
                         }
 
+                        var prefix = file.Replace('\\', '/').Contains("/Cache/Packages/") ? "" : $"{Path.GetFileName(pair.Key)}/";
+
                         var asset = new AssetInfo()
                         {
                             guid = holder.guid,
                             name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
-                            path = file.Replace($"{pair.Key}", $"{Path.GetFileName(pair.Key)}").Replace("\\", "/").Replace(".meta", ""),
+                            path = file.Replace($"{pair.Key}{Path.DirectorySeparatorChar}", prefix).Replace("\\", "/").Replace(".meta", ""),
                             typeName = holder.typeName,
                         };
 

@@ -22,9 +22,11 @@ internal class AssetPickerWindow : EditorWindow
 
     public AssetPickerWindow()
     {
-        windowFlags = EditorWindowFlags.None;
+        windowFlags = EditorWindowFlags.VerticalScrollbar;
 
         windowType = EditorWindowType.Popup;
+
+        size = new(800, 600);
     }
 
     private void Refresh()

@@ -55,7 +55,7 @@ public class ByteArrayPacketWriter : INetworkWriter
 
     public void WriteChar(char value)
     {
-        var t = Encoding.UTF8.GetBytes(new char[] { value });
+        var t = Encoding.UTF8.GetBytes([value]);
 
         WriteUInt16((ushort)t.Length);
 
