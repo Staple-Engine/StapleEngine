@@ -39,7 +39,7 @@ public class ByteArrayPacketWriter : INetworkWriter
 
     public void WriteBytes(byte[] value)
     {
-        WriteUInt32((ushort)value.Length);
+        WriteUInt32((uint)value.Length);
 
         position += value.Length;
 
@@ -120,7 +120,7 @@ public class ByteArrayPacketWriter : INetworkWriter
     {
         if(value == null)
         {
-            WriteUInt16(0);
+            WriteBytes([]);
 
             return;
         }
