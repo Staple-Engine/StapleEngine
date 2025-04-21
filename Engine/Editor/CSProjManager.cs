@@ -168,6 +168,8 @@ internal class CSProjManager
     /// <returns>Whether we copied successfully</returns>
     public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, AppPlatform platform, string backendBasePath, string configurationName)
     {
+        EditorUtils.CreateDirectory(targetPath);
+
         void DeleteAll(string extension)
         {
             try
@@ -980,7 +982,7 @@ internal class CSProjManager
 
         if(backend.dataDirIsOutput == false)
         {
-            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput, backend.redistOutput), projectAppSettings,
+            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput), projectAppSettings,
                 platform, backend.basePath, redistConfigurationName);
 
             EditorUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
