@@ -45,7 +45,7 @@ internal partial class StapleEditor
 
     private void RecordScene()
     {
-        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
+        var scenePath = Path.Combine(BasePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
         try
         {
@@ -73,7 +73,7 @@ internal partial class StapleEditor
 
     private bool LoadRecordedScene()
     {
-        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
+        var scenePath = Path.Combine(BasePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
         var scene = ResourceManager.instance.LoadRawSceneFromPath(scenePath);
 
@@ -115,7 +115,7 @@ internal partial class StapleEditor
             return;
         }
 
-        basePath =
+        BasePath =
             ThumbnailCache.basePath =
             csProjManager.basePath =
             projectBrowser.basePath =
@@ -126,7 +126,7 @@ internal partial class StapleEditor
 
         csProjManager.stapleBasePath = StapleBasePath;
 
-        Log.Info($"Project Path: {basePath}");
+        Log.Info($"Project Path: {BasePath}");
 
         projectBrowser.UpdateProjectBrowserNodes();
 
@@ -134,7 +134,7 @@ internal partial class StapleEditor
 
         try
         {
-            Directory.CreateDirectory(Path.Combine(basePath, "Cache"));
+            Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
         }
         catch (Exception)
         {
@@ -142,7 +142,7 @@ internal partial class StapleEditor
 
         try
         {
-            Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging"));
+            Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
         }
         catch (Exception)
         {
@@ -150,7 +150,7 @@ internal partial class StapleEditor
 
         try
         {
-            var json = File.ReadAllText(Path.Combine(basePath, "Settings", "AppSettings.json"));
+            var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
 
             projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
         }
@@ -179,7 +179,7 @@ internal partial class StapleEditor
         {
             try
             {
-                Directory.CreateDirectory(Path.Combine(basePath, "Cache", "Staging", pair.Key.ToString()));
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
             }
             catch(Exception)
             {
@@ -216,7 +216,7 @@ internal partial class StapleEditor
             fileSystemWatcher = null;
         }
 
-        fileSystemWatcher = new FileSystemWatcher(basePath);
+        fileSystemWatcher = new FileSystemWatcher(BasePath);
 
         void FileSystemHandler(object sender, FileSystemEventArgs e)
         {
@@ -228,14 +228,14 @@ internal partial class StapleEditor
                     {
                         if ((e.FullPath.EndsWith(".cs") ||
                             (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted)) &&
-                            (e.FullPath.StartsWith(Path.Combine(basePath, "Assets")) ||
-                            e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages"))))
+                            (e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")) ||
+                            e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages"))))
                         {
                             needsGameRecompile = true;
                         }
                         else if (Directory.Exists(e.FullPath) == false &&
                             excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
-                            e.FullPath.StartsWith(Path.Combine(basePath, "Assets")))
+                            e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
                         {
                             needsRefreshStaging = true;
                         }
@@ -255,14 +255,14 @@ internal partial class StapleEditor
                 {
                     if (e.FullPath.EndsWith(".cs") ||
                         (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
-                        (e.FullPath.StartsWith(Path.Combine(basePath, "Assets")) ||
-                        e.FullPath.StartsWith(Path.Combine(basePath, "Cache", "Packages")))))
+                        (e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")) ||
+                        e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages")))))
                     {
                         needsGameRecompile = true;
                     }
                     else if (Directory.Exists(e.FullPath) == false &&
                         excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
-                        e.FullPath.StartsWith(Path.Combine(basePath, "Assets")))
+                        e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
                     {
                         needsRefreshStaging = true;
                     }
@@ -332,11 +332,11 @@ internal partial class StapleEditor
     {
         if((lastOpenScene?.Length ?? 0) > 0)
         {
-            window.Title = $"Staple Editor - {Path.GetFileName(basePath)} - {Path.GetFileNameWithoutExtension(lastOpenScene)}";
+            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)} - {Path.GetFileNameWithoutExtension(lastOpenScene)}";
         }
         else
         {
-            window.Title = $"Staple Editor - {Path.GetFileName(basePath)}";
+            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)}";
         }
     }
 
@@ -449,7 +449,7 @@ internal partial class StapleEditor
 
                         try
                         {
-                            packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+                            packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
                         }
                         catch(Exception)
                         {
@@ -462,7 +462,7 @@ internal partial class StapleEditor
                             packageArgs += $"-i \"{directory}\" ";
                         }
 
-                        var args = $"-i \"{basePath}/Assets\" {packageArgs} -o \"{basePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
+                        var args = $"-i \"{BasePath}/Assets\" {packageArgs} -o \"{BasePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
 
                         var processInfo = new ProcessStartInfo(bakerPath, args)
                         {
@@ -572,7 +572,7 @@ internal partial class StapleEditor
     {
         if(Path.IsPathRooted(assetPath) == false)
         {
-            assetPath = Path.Combine(instance.basePath, "Assets", assetPath);
+            assetPath = Path.Combine(instance.BasePath, "Assets", assetPath);
         }
 
         var existed = false;

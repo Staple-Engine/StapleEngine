@@ -18,7 +18,7 @@ internal partial class StapleEditor
             return;
         }
 
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+        var projectDirectory = Path.Combine(BasePath, "Cache", "Assembly", "Game");
         var outPath = Path.Combine(projectDirectory, "bin");
 
         var assemblyPath = Path.Combine(outPath, "Game.dll");
@@ -59,7 +59,7 @@ internal partial class StapleEditor
 
         registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
 
-        var scenePath = Path.Combine(basePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
+        var scenePath = Path.Combine(BasePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
         try
         {

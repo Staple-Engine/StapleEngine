@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,8 +12,10 @@ namespace Staple.Editor;
 /// Configuration for how to handle a plugin
 /// </summary>
 [Serializable]
-public class PluginAsset
+public class PluginAsset : IGuidAsset
 {
+    private readonly GuidHasher hasher = new();
+
     [HideInInspector]
     public string guid;
 
@@ -38,9 +41,18 @@ public class PluginAsset
         return true;
     }
 
+    public GuidHasher Guid => hasher;
+
     public static object Create(string guid)
     {
-        var text = ResourceManager.instance.LoadFileString(guid);
+        var path = AssetDatabase.GetAssetPath(guid);
+
+        if(path == null)
+        {
+            return null;
+        }
+
+        var text = File.ReadAllText(Path.Combine(StapleEditor.instance.BasePath, path));
 
         if (text == null)
         {

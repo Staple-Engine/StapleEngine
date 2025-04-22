@@ -41,14 +41,14 @@ internal partial class StapleEditor
             {
                 var gameChange = DateTime.MinValue;
 
-                var targetPath = Path.Combine(basePath, "Cache", "Assembly", "Game", "bin", "Game.dll");
+                var targetPath = Path.Combine(BasePath, "Cache", "Assembly", "Game", "bin", "Game.dll");
 
                 if (File.Exists(targetPath))
                 {
                     gameChange = File.GetLastWriteTime(targetPath);
                 }
 
-                var assetsDirectory = Path.Combine(basePath, "Assets");
+                var assetsDirectory = Path.Combine(BasePath, "Assets");
 
                 var lastChange = csProjManager.GetLastFileChange(assetsDirectory);
 

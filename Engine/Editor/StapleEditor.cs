@@ -229,11 +229,11 @@ internal partial class StapleEditor
     #endregion
 
     #region Project
+    internal string BasePath { get; private set; }
+
     private ProjectBrowserNode selectedProjectNode;
 
     private object selectedProjectNodeData;
-
-    private string basePath;
 
     private string lastOpenScene;
 
@@ -1132,7 +1132,7 @@ internal partial class StapleEditor
 
     private LastSessionInfo GetLastSession()
     {
-        var path = Path.Combine(basePath, "Cache", "LastSession.json");
+        var path = Path.Combine(BasePath, "Cache", "LastSession.json");
 
         try
         {
@@ -1161,7 +1161,7 @@ internal partial class StapleEditor
 
     private void UpdateLastSession(LastSessionInfo info)
     {
-        var path = Path.Combine(basePath, "Cache", "LastSession.json");
+        var path = Path.Combine(BasePath, "Cache", "LastSession.json");
 
         try
         {
@@ -1176,7 +1176,7 @@ internal partial class StapleEditor
 
     private string CachePathResolver(string path)
     {
-        if(basePath == null)
+        if(BasePath == null)
         {
             return path;
         }
@@ -1185,7 +1185,7 @@ internal partial class StapleEditor
 
         try
         {
-            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+            var packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
 
             directories.AddRange(packageDirectories.Select(x => Path.GetFileName(x)));
         }
@@ -1195,7 +1195,7 @@ internal partial class StapleEditor
 
         foreach (var directory in directories)
         {
-            var p = Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), path);
+            var p = Path.Combine(BasePath, "Cache", "Staging", currentPlatform.ToString(), path);
 
             try
             {
@@ -1210,7 +1210,7 @@ internal partial class StapleEditor
         }
 
         {
-            var p = Path.Combine(basePath, "Assets", path);
+            var p = Path.Combine(BasePath, "Assets", path);
 
             try
             {
@@ -1232,18 +1232,18 @@ internal partial class StapleEditor
         AssetDatabase.assetDirectories.Clear();
         ResourceManager.instance.resourcePaths.Clear();
 
-        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Assets"));
-        AssetDatabase.assetDirectories.Add(Path.Combine(basePath, "Cache", "Packages"));
+        AssetDatabase.assetDirectories.Add(Path.Combine(BasePath, "Assets"));
+        AssetDatabase.assetDirectories.Add(Path.Combine(BasePath, "Cache", "Packages"));
 
-        ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Assets"));
+        ResourceManager.instance.resourcePaths.Add(Path.Combine(BasePath, "Cache", "Staging", currentPlatform.ToString()));
 
         try
         {
-            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+            var packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
 
             foreach (var directory in packageDirectories)
             {
-                ResourceManager.instance.resourcePaths.Add(Path.Combine(basePath, "Cache", "Staging", currentPlatform.ToString(), "Packages", Path.GetFileName(directory)));
+                ResourceManager.instance.resourcePaths.Add(Path.Combine(BasePath, "Cache", "Staging", currentPlatform.ToString(), "Packages", Path.GetFileName(directory)));
             }
         }
         catch (Exception)
@@ -1259,7 +1259,7 @@ internal partial class StapleEditor
         window.assetPickerSearch = "";
         window.assetPickerType = type;
         window.currentPlatform = currentPlatform;
-        window.basePath = basePath;
+        window.basePath = BasePath;
         window.projectBrowser = projectBrowser;
         window.ignoredGuids = ignoredGuids;
     }

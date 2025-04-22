@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,9 +11,12 @@ namespace Staple.Editor;
 /// Allows creating an assembly definition asset
 /// </summary>
 [Serializable]
-public class AssemblyDefinition
+public class AssemblyDefinition : IGuidAsset
 {
-    public string guid { get; internal set; }
+    private readonly GuidHasher hasher = new();
+
+    [HideInInspector]
+    public string guid;
 
     public bool anyPlatform = true;
     public List<AppPlatform> platforms = [];
@@ -23,9 +27,18 @@ public class AssemblyDefinition
     public bool overrideReferences = false;
     public List<string> referencedPlugins = [];
 
+    public GuidHasher Guid => hasher;
+
     public static object Create(string guid)
     {
-        var text = ResourceManager.instance.LoadFileString(guid);
+        var path = AssetDatabase.GetAssetPath(guid);
+
+        if (path == null)
+        {
+            return null;
+        }
+
+        var text = File.ReadAllText(Path.Combine(StapleEditor.instance.BasePath, path));
 
         if(text == null)
         {

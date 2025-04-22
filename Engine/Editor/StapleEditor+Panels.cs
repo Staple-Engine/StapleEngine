@@ -250,7 +250,7 @@ internal partial class StapleEditor
                     var window = EditorWindow.GetWindow<AppSettingsWindow>();
 
                     window.projectAppSettings = projectAppSettings;
-                    window.basePath = basePath;
+                    window.basePath = BasePath;
                 });
 
                 EditorGUI.MenuItem("Editor Settings", "EditorSettings.Menu", () =>
@@ -264,7 +264,7 @@ internal partial class StapleEditor
                 {
                     var window = EditorWindow.GetWindow<PackageManagerWindow>();
 
-                    window.basePath = basePath;
+                    window.basePath = BasePath;
                 });
 
                 EditorGUI.MenuItem("Open Solution", "OpenSolution.Menu", () =>
@@ -304,7 +304,7 @@ internal partial class StapleEditor
                 {
                     var window = EditorWindow.GetWindow<BuildWindow>();
 
-                    window.basePath = basePath;
+                    window.basePath = BasePath;
                 });
 
                 EditorGUI.Separator();
@@ -336,8 +336,8 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        Directory.Delete(Path.Combine(basePath, "Cache", "Staging"), true);
-                        Directory.Delete(Path.Combine(basePath, "Cache", "Thumbnails"), true);
+                        Directory.Delete(Path.Combine(BasePath, "Cache", "Staging"), true);
+                        Directory.Delete(Path.Combine(BasePath, "Cache", "Thumbnails"), true);
                     }
                     catch (Exception)
                     {
@@ -1047,7 +1047,7 @@ internal partial class StapleEditor
             {
                 object original = null;
 
-                var cachePath = EditorUtils.GetAssetCachePath(basePath, item.path, currentPlatform);
+                var cachePath = EditorUtils.GetAssetCachePath(BasePath, item.path, currentPlatform);
 
                 bool GetAssetGUID(out string guid)
                 {
@@ -1272,8 +1272,8 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        original = (AssemblyDefinition)AssemblyDefinition.Create(guid);
-                        selectedProjectNodeData = (AssemblyDefinition)AssemblyDefinition.Create(guid);
+                        original = AssemblyDefinition.Create(guid);
+                        selectedProjectNodeData = AssemblyDefinition.Create(guid);
                     }
                     catch (Exception)
                     {
@@ -1288,7 +1288,7 @@ internal partial class StapleEditor
                             e.original = original;
                             e.path = item.path;
                             e.cachePath = cachePath;
-                            e.recreateOriginal = () => (AssemblyDefinition)AssemblyDefinition.Create(item.path);
+                            e.recreateOriginal = () => AssemblyDefinition.Create(guid);
 
                             cachedEditors.Add("", editor);
                         }
@@ -1298,8 +1298,8 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        original = JsonConvert.DeserializeObject<PluginAsset>(data);
-                        selectedProjectNodeData = JsonConvert.DeserializeObject<PluginAsset>(data);
+                        original = JsonConvert.DeserializeObject<PluginAsset>(data, Tooling.Utilities.JsonSettings);
+                        selectedProjectNodeData = JsonConvert.DeserializeObject<PluginAsset>(data, Tooling.Utilities.JsonSettings);
                     }
                     catch (Exception)
                     {
@@ -1314,7 +1314,7 @@ internal partial class StapleEditor
                             e.original = original;
                             e.path = item.path;
                             e.cachePath = cachePath;
-                            e.recreateOriginal = () => JsonConvert.DeserializeObject<PluginAsset>($"{item.path}.meta");
+                            e.recreateOriginal = () => JsonConvert.DeserializeObject<PluginAsset>(File.ReadAllText($"{item.path}.meta"), Tooling.Utilities.JsonSettings);
 
                             cachedEditors.Add("", editor);
                         }

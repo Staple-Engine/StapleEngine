@@ -28,8 +28,8 @@ internal partial class StapleEditor
             ShowMessageBox("Failed to build player, please check the build log", "OK", null);
         }
 
-        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", backend.platform.ToString());
-        var assetsCacheDirectory = Path.Combine(basePath, "Cache", "Staging", backend.platform.ToString());
+        var projectDirectory = Path.Combine(BasePath, "Cache", "Assembly", backend.platform.ToString());
+        var assetsCacheDirectory = Path.Combine(BasePath, "Cache", "Staging", backend.platform.ToString());
         var projectPath = Path.Combine(projectDirectory, "Player.sln");
         var configurationName = debug ? "Debug" : "Release";
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
@@ -59,7 +59,7 @@ internal partial class StapleEditor
         {
         }
 
-        var buildInfo = new BuildInfo(basePath, projectDirectory, outPath, assetsCacheDirectory, targetResourcesPath,
+        var buildInfo = new BuildInfo(BasePath, projectDirectory, outPath, assetsCacheDirectory, targetResourcesPath,
             Path.Combine(backend.basePath, "Resources"), backend.platform, projectAppSettings.Clone());
 
         var preprocessors = TypeCache.AllTypesSubclassingOrImplementing<IBuildPreprocessor>();
@@ -92,7 +92,7 @@ internal partial class StapleEditor
         {
             try
             {
-                File.Copy(Path.Combine(basePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
+                File.Copy(Path.Combine(BasePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
             }
             catch (Exception)
             {
@@ -208,7 +208,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                Recursive(Path.Combine(basePath, "Assets"));
+                Recursive(Path.Combine(BasePath, "Assets"));
 
                 return outValue;
             }
@@ -398,7 +398,7 @@ internal partial class StapleEditor
             {
                 using var collection = new ProjectCollection();
 
-                var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Game");
+                var projectDirectory = Path.Combine(BasePath, "Cache", "Assembly", "Game");
                 var projectPath = Path.Combine(projectDirectory, "Game.sln");
                 var outPath = Path.Combine(projectDirectory, "bin");
 

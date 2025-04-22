@@ -95,7 +95,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
                                     {
                                         if (i == j)
                                         {
-                                            ignoredGuids[i][j] = (target as AssemblyDefinition).guid;
+                                            ignoredGuids[i][j] = (target as AssemblyDefinition)?.guid;
 
                                             continue;
                                         }
@@ -186,7 +186,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
                                     {
                                         if (i == j)
                                         {
-                                            ignoredGuids[i][j] = (target as PluginAsset).guid;
+                                            ignoredGuids[i][j] = (target as PluginAsset)?.guid;
 
                                             continue;
                                         }
@@ -198,7 +198,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
 
                             for (var i = 0; i < list.Count; i++)
                             {
-                                var newValue = (PluginAsset)EditorGUI.ObjectPicker(typeof(PluginAsset), $"Reference {i + 1}", referencedAssemblies[i], $"{name}.Item{i}",
+                                var newValue = (PluginAsset)EditorGUI.ObjectPicker(typeof(PluginAsset), $"Reference {i + 1}", referencedPlugins[i], $"{name}.Item{i}",
                                     ignoredGuids[i]);
 
                                 if (newValue != referencedPlugins[i])
