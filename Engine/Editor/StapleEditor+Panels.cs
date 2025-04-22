@@ -245,39 +245,11 @@ internal partial class StapleEditor
                     ImGuiOpenProject();
                 });
 
-                EditorGUI.MenuItem("Project Settings", "ProjectSettings.Menu", () =>
-                {
-                    var window = EditorWindow.GetWindow<AppSettingsWindow>();
-
-                    window.projectAppSettings = projectAppSettings;
-                    window.basePath = BasePath;
-                });
-
                 EditorGUI.MenuItem("Editor Settings", "EditorSettings.Menu", () =>
                 {
                     var window = EditorWindow.GetWindow<EditorSettingsWindow>();
 
                     window.editorSettings = editorSettings;
-                });
-
-                EditorGUI.MenuItem("Package Manager", "PackageManager.Menu", () =>
-                {
-                    var window = EditorWindow.GetWindow<PackageManagerWindow>();
-
-                    window.basePath = BasePath;
-                });
-
-                EditorGUI.MenuItem("Open Solution", "OpenSolution.Menu", () =>
-                {
-                    var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
-
-                    if (backend == null)
-                    {
-                        return;
-                    }
-
-                    csProjManager.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true);
-                    csProjManager.OpenGameSolution();
                 });
 
                 EditorGUI.MenuItem("Save", "Save.Menu", () =>
@@ -320,6 +292,42 @@ internal partial class StapleEditor
                 EditorGUI.MenuItem("Recreate render device", "ResetDevice.Menu", () =>
                 {
                     window.forceContextLoss = true;
+                });
+            });
+
+            EditorGUI.Menu("Project", "Project.Menu", () =>
+            {
+                EditorGUI.MenuItem("Project Settings", "ProjectSettings.Menu", () =>
+                {
+                    var window = EditorWindow.GetWindow<AppSettingsWindow>();
+
+                    window.projectAppSettings = projectAppSettings;
+                    window.basePath = BasePath;
+                });
+
+                EditorGUI.MenuItem("Package Manager", "PackageManager.Menu", () =>
+                {
+                    var window = EditorWindow.GetWindow<PackageManagerWindow>();
+
+                    window.basePath = BasePath;
+                });
+
+                EditorGUI.MenuItem("Rebuild", "RebuildProject.Menu", () =>
+                {
+                    RefreshStaging(currentPlatform, null, true, false);
+                });
+
+                EditorGUI.MenuItem("Open Solution", "OpenSolution.Menu", () =>
+                {
+                    var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
+
+                    if (backend == null)
+                    {
+                        return;
+                    }
+
+                    csProjManager.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true);
+                    csProjManager.OpenGameSolution();
                 });
             });
 
