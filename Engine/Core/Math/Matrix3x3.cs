@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace Staple;
 
@@ -24,11 +25,37 @@ public struct Matrix3x3
         }
     }
 
+    public static Matrix3x3 FromMatrix4x4(Matrix4x4 matrix)
+    {
+        return new()
+        {
+            M11 = matrix.M11,
+            M12 = matrix.M12,
+            M13 = matrix.M13,
+            M21 = matrix.M21,
+            M22 = matrix.M22,
+            M23 = matrix.M23,
+            M31 = matrix.M31,
+            M32 = matrix.M32,
+            M33 = matrix.M33,
+        };
+    }
+
     public override readonly int GetHashCode()
     {
-        return HashCode.Combine(HashCode.Combine(M11, M12, M13),
-            HashCode.Combine(M21, M22, M23),
-            HashCode.Combine(M31, M32, M33));
+        var hashCode = new HashCode();
+
+        hashCode.Add(M11);
+        hashCode.Add(M12);
+        hashCode.Add(M13);
+        hashCode.Add(M21);
+        hashCode.Add(M22);
+        hashCode.Add(M23);
+        hashCode.Add(M31);
+        hashCode.Add(M32);
+        hashCode.Add(M33);
+
+        return hashCode.ToHashCode();
     }
 
     public static bool operator==(Matrix3x3 lhs, Matrix3x3 rhs)

@@ -326,15 +326,9 @@ public sealed class LightSystem : IRenderSystem
         {
             Matrix4x4.Invert(transforms[i].Matrix, out var invTransform);
 
-            var transTransform = Matrix4x4.Transpose(invTransform);
+            var normalMatrix = Matrix4x4.Transpose(invTransform).ContainingMatrix3x3();
 
-            //var normalMatrix = transTransform.ToMatrix3x3();
-
-            transTransform.M14 = transTransform.M24 = transTransform.M34 = 0;
-            transTransform.M41 = transTransform.M42 = transTransform.M43 = 0;
-            transTransform.M44 = 1;
-
-            normalMatrices[i] = transTransform; //normalMatrix;
+            normalMatrices[i] = normalMatrix;
         }
 
         var key = material.shader.Guid.GuidHash;

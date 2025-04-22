@@ -458,4 +458,14 @@ public static class Math
 
         return quaternion;
     }
+
+    public static Matrix4x4 ContainingMatrix3x3(this Matrix4x4 matrix)
+    {
+        var outValue = matrix;
+
+        outValue.M14 = outValue.M24 = outValue.M34 = outValue.M41 = outValue.M42 = outValue.M43 = 0;
+        outValue.M44 = 1;
+
+        return outValue;
+    }
 }
