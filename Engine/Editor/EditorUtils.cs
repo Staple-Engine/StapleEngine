@@ -486,7 +486,16 @@ public static class EditorUtils
 
         if (index >= 0)
         {
-            cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), cachePath.Substring(index + "/Assets/".Length)).Replace("\\", "/");
+            cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), cachePath.Substring(index + "/".Length)).Replace("\\", "/");
+        }
+        else
+        {
+            index = Path.IsPathRooted(cachePath) ? cachePath.IndexOf("/Packages/") : -1;
+
+            if(index >= 0)
+            {
+                cachePath = Path.Combine(basePath, "Cache", "Staging", platform.ToString(), cachePath.Substring(index + "/Packages/".Length)).Replace("\\", "/");
+            }
         }
 
         return cachePath;

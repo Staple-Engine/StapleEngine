@@ -280,16 +280,11 @@ static partial class Program
 
                     foreach(var material in materials)
                     {
-                        var fileName = Path.GetFileNameWithoutExtension(meshFileName.Replace(".meta", ""));
+                        var baseName = material->TryGetName(assimp, out var name) ? name : (++counter).ToString();
 
-                        if (material->TryGetName(assimp, out var name))
-                        {
-                            fileName = $"{name}.{AssetSerialization.MaterialExtension}";
-                        }
-                        else
-                        {
-                            fileName += $" {++counter}.{AssetSerialization.MaterialExtension}";
-                        }
+                        baseName = string.Join('_', baseName.Split(Path.GetInvalidFileNameChars()));
+
+                        var fileName = $"{baseName}.{AssetSerialization.MaterialExtension}";
 
                         var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
                         var materialGuid = FindGuid<Material>($"{target}.meta");

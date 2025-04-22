@@ -82,7 +82,7 @@ internal class MeshAssetEditor : AssetEditor
         {
             try
             {
-                var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.mat*");
+                var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.material*");
 
                 foreach (var file in files)
                 {
@@ -90,6 +90,8 @@ internal class MeshAssetEditor : AssetEditor
                 }
 
                 File.Delete(cachePath);
+
+                ThumbnailCache.ClearSingle(path.Replace(".meta", ""));
             }
             catch (Exception)
             {
