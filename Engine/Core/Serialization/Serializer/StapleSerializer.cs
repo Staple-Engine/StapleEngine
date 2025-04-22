@@ -723,6 +723,29 @@ internal static class StapleSerializer
         return outValue;
     }
 
+    private static object GetArrayValue(StapleSerializerField fieldInfo, Type type, FieldInfo field, StapleSerializationMode mode)
+    {
+        var condensed = fieldInfo.value is JsonElement jsonElement ?
+            GetJsonArray(type, field, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
+
+        object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
+            s : condensed is object[] a ? a : condensed is List<string> l ? l : null;
+
+        if (sourceValue is List<string> li)
+        {
+            var sourceArray = new object[li.Count];
+
+            for (var i = 0; i < li.Count; i++)
+            {
+                sourceArray[i] = li[i];
+            }
+
+            return sourceArray;
+        }
+
+        return sourceValue;
+    }
+
     private static object[] GetJsonArray(Type type, FieldInfo field, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
         if(element.ValueKind != JsonValueKind.Array)
@@ -925,19 +948,7 @@ internal static class StapleSerializer
 
                 var elementType = fieldType.GetElementType();
 
-                object sourceValue = fieldInfo.value is Array a ? a : fieldInfo.value is string s ? s : null;
-
-                if (fieldInfo.value is JsonElement element)
-                {
-                    if (element.ValueKind == JsonValueKind.String)
-                    {
-                        sourceValue = element.GetString();
-                    }
-                    else if (element.ValueKind == JsonValueKind.Array && element.GetArrayLength() > 0)
-                    {
-                        sourceValue = GetJsonArray(type, field, fieldType, element, mode);
-                    }
-                }
+                var sourceValue = GetArrayValue(fieldInfo, type, field, mode);
 
                 if (sourceValue is Array array)
                 {
@@ -1120,11 +1131,7 @@ internal static class StapleSerializer
                         return null;
                     }
 
-                    var condensed = fieldInfo.value is JsonElement jsonElement ?
-                        GetJsonArray(type, field, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
-
-                    object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
-                        s : condensed is object[] a ? a : null;
+                    var sourceValue = GetArrayValue(fieldInfo, type, field, mode);
 
                     if (sourceValue is object[] array)
                     {

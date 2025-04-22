@@ -330,6 +330,7 @@ public sealed class LightSystem : IRenderSystem
 
             //var normalMatrix = transTransform.ToMatrix3x3();
 
+            transTransform.M14 = transTransform.M24 = transTransform.M34 = 0;
             transTransform.M41 = transTransform.M42 = transTransform.M43 = 0;
             transTransform.M44 = 1;
 

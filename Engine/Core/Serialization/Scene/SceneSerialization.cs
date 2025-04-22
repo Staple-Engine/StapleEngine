@@ -145,8 +145,6 @@ internal static class SceneSerialization
                 return;
             }
 
-            target.AddComponent(component.GetType());
-
             target.SetComponent(clone);
         });
     }
