@@ -58,12 +58,21 @@ internal class CSProjManager
     public string basePath;
     public string stapleBasePath;
 
+    private string[] GetScriptModifiableFiles(string path)
+    {
+        return Directory.GetFiles(path, "*.cs")
+            .Concat(Directory.GetFiles(path, "*.asmdef"))
+            .Concat(AssetSerialization.PluginExtensions.SelectMany(x => Directory.GetFiles(path, $"*{x}.meta")))
+            .ToArray();
+    }
+
     /// <summary>
     /// Gets the modify states of each game script, to know whether we need a full recompile.
     /// </summary>
     public void CollectGameScriptModifyStates()
     {
         var assetsDirectory = Path.Combine(basePath, "Assets");
+        var packagesDirectory = Path.Combine(basePath, "Cache", "Packages");
 
         fileModifyStates.Clear();
 
@@ -71,9 +80,7 @@ internal class CSProjManager
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs")
-                    .Concat(Directory.GetFiles(path, "*.asmdef"))
-                    .ToArray();
+                var files = GetScriptModifiableFiles(path);
 
                 foreach (var file in files)
                 {
@@ -95,6 +102,7 @@ internal class CSProjManager
         }
 
         Recursive(assetsDirectory);
+        Recursive(packagesDirectory);
     }
 
     /// <summary>
@@ -104,14 +112,13 @@ internal class CSProjManager
     public bool NeedsGameRecompile()
     {
         var assetsDirectory = Path.Combine(basePath, "Assets");
+        var packagesDirectory = Path.Combine(basePath, "Cache", "Packages");
 
         bool Recursive(string path)
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs")
-                    .Concat(Directory.GetFiles(path, "*.asmdef"))
-                    .ToArray();
+                var files = GetScriptModifiableFiles(path);
 
                 foreach (var file in files)
                 {
@@ -143,7 +150,7 @@ internal class CSProjManager
             return false;
         }
 
-        return Recursive(assetsDirectory);
+        return Recursive(assetsDirectory) || Recursive(packagesDirectory);
     }
 
     /// <summary>
@@ -336,9 +343,7 @@ internal class CSProjManager
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs")
-                    .Concat(Directory.GetFiles(path, "*.asmdef"))
-                    .ToArray();
+                var files = GetScriptModifiableFiles(path);
 
                 foreach (var file in files)
                 {
