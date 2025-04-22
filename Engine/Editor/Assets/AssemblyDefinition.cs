@@ -38,7 +38,7 @@ public class AssemblyDefinition : IGuidAsset
             return null;
         }
 
-        var text = File.ReadAllText(Path.Combine(StapleEditor.instance.BasePath, path));
+        var text = File.ReadAllText(EditorUtils.GetRootPath(path));
 
         if(text == null)
         {
@@ -52,6 +52,7 @@ public class AssemblyDefinition : IGuidAsset
             if(outValue != null)
             {
                 outValue.guid = guid;
+                outValue.Guid.Guid = guid;
             }
 
             return outValue;

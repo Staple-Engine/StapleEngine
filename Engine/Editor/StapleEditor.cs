@@ -1251,7 +1251,7 @@ internal partial class StapleEditor
         }
     }
 
-    public void ShowAssetPicker(Type type, string key, string[] ignoredGuids)
+    public void ShowAssetPicker(Type type, string key, string[] ignoredGuids, Func<string, bool> filter)
     {
         var window = EditorWindow.GetWindow<AssetPickerWindow>();
 
@@ -1262,6 +1262,7 @@ internal partial class StapleEditor
         window.basePath = BasePath;
         window.projectBrowser = projectBrowser;
         window.ignoredGuids = ignoredGuids;
+        window.filter = filter;
     }
 
     public void ShowSpritePicker(Texture texture, List<TextureSpriteInfo> sprites, Action<int> onFinish)

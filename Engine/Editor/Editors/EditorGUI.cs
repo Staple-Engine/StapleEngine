@@ -756,8 +756,10 @@ public static class EditorGUI
     /// <param name="current">The current value</param>
     /// <param name="identifier">Extra identifier if needed</param>
     /// <param name="ignoredGuids">Any ignored GUIDs</param>
+    /// <param name="filter">A filter for an asset (GUID)</param>
     /// <returns>The new value</returns>
-    public static object ObjectPicker(Type type, string name, object current, string identifier, string[] ignoredGuids = null)
+    public static object ObjectPicker(Type type, string name, object current, string identifier, string[] ignoredGuids = null,
+        Func<string, bool> filter = null)
     {
         ImGui.Text(name);
 
@@ -798,7 +800,7 @@ public static class EditorGUI
 
         if (ImGui.SmallButton(MakeIdentifier("O", key)))
         {
-            editor.ShowAssetPicker(type, key, ignoredGuids ?? []);
+            editor.ShowAssetPicker(type, key, ignoredGuids ?? [], filter);
         }
 
         if(pendingObjectPickers.ContainsKey(key) == false)

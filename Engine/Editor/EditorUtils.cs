@@ -501,6 +501,26 @@ public static class EditorUtils
         return cachePath;
     }
 
+    /// <summary>
+    /// Gets the root path to an asset
+    /// </summary>
+    /// <param name="assetPath">The path of the asset (not a GUID)</param>
+    /// <returns>The root path, or null</returns>
+    internal static string GetRootPath(string assetPath)
+    {
+        if(assetPath == null)
+        {
+            return null;
+        }
+
+        if(assetPath.StartsWith("Assets/"))
+        {
+            return Path.Combine(StapleEditor.instance.BasePath, assetPath);
+        }
+
+        return Path.Combine(StapleEditor.instance.BasePath, "Cache", "Packages", assetPath);
+    }
+
     internal static string GetLocalPath(string path)
     {
         var cachePath = path.Replace("\\", "/");

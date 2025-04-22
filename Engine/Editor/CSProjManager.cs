@@ -71,7 +71,9 @@ internal class CSProjManager
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs");
+                var files = Directory.GetFiles(path, "*.cs")
+                    .Concat(Directory.GetFiles(path, "*.asmdef"))
+                    .ToArray();
 
                 foreach (var file in files)
                 {
@@ -107,7 +109,9 @@ internal class CSProjManager
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs");
+                var files = Directory.GetFiles(path, "*.cs")
+                    .Concat(Directory.GetFiles(path, "*.asmdef"))
+                    .ToArray();
 
                 foreach (var file in files)
                 {
@@ -332,7 +336,9 @@ internal class CSProjManager
         {
             try
             {
-                var files = Directory.GetFiles(path, "*.cs");
+                var files = Directory.GetFiles(path, "*.cs")
+                    .Concat(Directory.GetFiles(path, "*.asmdef"))
+                    .ToArray();
 
                 foreach (var file in files)
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Staple.Editor;
 
@@ -199,7 +200,17 @@ internal class AssemblyDefinitionEditor : AssetEditor
                             for (var i = 0; i < list.Count; i++)
                             {
                                 var newValue = (PluginAsset)EditorGUI.ObjectPicker(typeof(PluginAsset), $"Reference {i + 1}", referencedPlugins[i], $"{name}.Item{i}",
-                                    ignoredGuids[i]);
+                                    ignoredGuids[i], (guid) =>
+                                    {
+                                        var path = AssetDatabase.GetAssetPath(guid);
+
+                                        if(path == null)
+                                        {
+                                            return false;
+                                        }
+
+                                        return PluginAsset.IsAssembly(EditorUtils.GetRootPath(path));
+                                    });
 
                                 if (newValue != referencedPlugins[i])
                                 {

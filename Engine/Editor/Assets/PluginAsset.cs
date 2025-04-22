@@ -52,7 +52,7 @@ public class PluginAsset : IGuidAsset
             return null;
         }
 
-        var text = File.ReadAllText(Path.Combine(StapleEditor.instance.BasePath, path));
+        var text = File.ReadAllText(EditorUtils.GetRootPath($"{path}.meta"));
 
         if (text == null)
         {
@@ -66,6 +66,7 @@ public class PluginAsset : IGuidAsset
             if (outValue != null)
             {
                 outValue.guid = guid;
+                outValue.Guid.Guid = guid;
             }
 
             return outValue;

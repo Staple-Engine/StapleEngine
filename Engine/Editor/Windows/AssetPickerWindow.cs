@@ -17,6 +17,8 @@ internal class AssetPickerWindow : EditorWindow
     public string basePath;
     public string[] ignoredGuids = [];
 
+    public Func<string, bool> filter;
+
     private ProjectBrowserNode[] validItems = [];
     private List<ImGuiUtils.ContentGridItem> gridItems = [];
 
@@ -44,21 +46,20 @@ internal class AssetPickerWindow : EditorWindow
                 continue;
             }
 
-            if(Array.IndexOf(ignoredGuids, asset.guid) >= 0)
+            if(Array.IndexOf(ignoredGuids, asset.guid) >= 0 ||
+                assetPickerType.FullName != asset.typeName ||
+                (filter?.Invoke(asset.guid) ?? true) == false)
             {
                 continue;
             }
 
-            if (assetPickerType.FullName == asset.typeName)
+            validItems.Add(new ProjectBrowserNode()
             {
-                validItems.Add(new ProjectBrowserNode()
-                {
-                    path = asset.path,
-                    name = asset.name,
-                    typeName = asset.typeName,
-                    extension = Path.GetExtension(asset.path.Replace(".meta", "")).ToLowerInvariant(),
-                });
-            }
+                path = asset.path,
+                name = asset.name,
+                typeName = asset.typeName,
+                extension = Path.GetExtension(asset.path.Replace(".meta", "")).ToLowerInvariant(),
+            });
         }
 
         this.validItems = validItems.ToArray();
@@ -326,9 +327,7 @@ internal class AssetPickerWindow : EditorWindow
 
                         try
                         {
-                            var text = File.ReadAllText(AssetDatabase.GetAssetPath(guid));
-
-                            var plugin = JsonConvert.DeserializeObject<PluginAsset>(text);
+                            var plugin = PluginAsset.Create(guid);
 
                             if (plugin != null)
                             {
