@@ -214,7 +214,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 instanceCache.Add(viewId, cache);
             }
 
-            var lighting = r.overrideLighting ? r.lighting : r.mesh.meshAsset.lighting;
+            var lighting = (r.overrideLighting ? r.lighting : r.mesh.meshAsset?.lighting) ?? r.lighting;
 
             void Add(Material material, int submeshIndex)
             {

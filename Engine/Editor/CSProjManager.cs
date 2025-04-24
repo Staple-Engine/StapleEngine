@@ -259,6 +259,13 @@ internal class CSProjManager
     {
         if (path == assetsDirectory)
         {
+            var files = Directory.GetFiles(path, "*.asmdef");
+
+            if (files.Length > 0)
+            {
+                return files[0];
+            }
+
             return null;
         }
 
@@ -503,6 +510,11 @@ internal class CSProjManager
                                 {
                                     asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
                                 }
+
+                                if(def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                {
+                                    asmProj.SetProperty("AllowUnsafeBlocks", "true");
+                                }
                             }
 
                             var counter = 0;
@@ -576,6 +588,11 @@ internal class CSProjManager
                         }
 
                         Recursive(pair.Value.Item1, pair.Value.Item1, project);
+
+                        if(project.Items.Any(x => x.ItemType == "Compile") == false)
+                        {
+                            continue;
+                        }
 
                         projects.Add(pair.Value.Item1, new()
                         {

@@ -1,0 +1,12 @@
+{
+  "guid": "8c6e99d1-7059-4be6-8a6d-e86e9d702d30",
+  "anyPlatform": true,
+  "platforms": [],
+  "excludedPlatforms": [],
+  "allowUnsafeCode": true,
+  "autoReferenced": true,
+  "referencedAssemblies": [],
+  "referencedPlugins": [
+	"0005bc5b-032a-417a-b7ab-c15ad7a93e78"
+  ]
+}
