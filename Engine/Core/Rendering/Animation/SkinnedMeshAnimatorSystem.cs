@@ -12,11 +12,17 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
     public bool NeedsUpdate { get; set; }
 
+    public bool UsesOwnRenderProcess => false;
+
     public void Startup()
     {
     }
 
     public void Shutdown()
+    {
+    }
+
+    public void ClearRenderData(ushort viewID)
     {
     }
 
@@ -139,7 +145,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
         }
     }
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
     }
 }

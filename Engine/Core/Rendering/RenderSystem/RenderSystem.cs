@@ -113,6 +113,16 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     private readonly SceneQuery<Transform> entityQuery = new();
 
     /// <summary>
+    /// Cached per-frame used view IDs
+    /// </summary>
+    private HashSet<ushort> usedViewIDs = [];
+
+    /// <summary>
+    /// Cached per-frame used view IDs (previous frame)
+    /// </summary>
+    private HashSet<ushort> previousUsedViewIDs = [];
+
+    /// <summary>
     /// Registers a render system into this subsystem
     /// </summary>
     /// <param name="system">The system to add</param>

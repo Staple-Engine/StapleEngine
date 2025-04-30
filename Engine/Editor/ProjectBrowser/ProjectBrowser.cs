@@ -1088,7 +1088,7 @@ internal class ProjectBrowser
 
                                     var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                    EditorUtils.InstanceMesh(item.name, asset, targetEntity);
+                                    Mesh.InstanceMesh(item.name, asset, targetEntity);
                                 }
 
                                 break;

@@ -38,6 +38,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public bool NeedsUpdate { get; set; }
 
+    public bool UsesOwnRenderProcess => false;
+
     /// <summary>
     /// Renders a mesh
     /// </summary>
@@ -112,6 +114,19 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
     }
 
+    public void ClearRenderData(ushort viewID)
+    {
+        if (instanceCache.TryGetValue(viewID, out var renderData))
+        {
+            foreach(var pair in renderData)
+            {
+                pair.Value.normalMatrixBuffer?.Destroy();
+            }
+
+            instanceCache.Remove(viewID);
+        }
+    }
+
     public void Prepare()
     {
     }
@@ -153,21 +168,27 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             r.mesh.UploadMeshData();
 
-            r.localBounds = r.mesh.bounds;
-            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
+            r.localBounds = new(r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.LocalScale * (r.mesh.meshAsset?.scale ?? 1));
+            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale * (r.mesh.meshAsset?.scale ?? 1));
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
         if (NeedsUpdate == false)
         {
             return;
         }
 
-        foreach(var pair in instanceCache)
+        if (instanceCache.TryGetValue(viewID, out var instance) == false)
         {
-            foreach(var p in pair.Value)
+            instance = [];
+
+            instanceCache.Add(viewID, instance);
+        }
+        else
+        {
+            foreach (var p in instance)
             {
                 p.Value.instanceInfos.Clear();
             }
@@ -207,11 +228,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (instanceCache.TryGetValue(viewId, out var cache) == false)
+            if (instanceCache.TryGetValue(viewID, out var cache) == false)
             {
                 cache = [];
 
-                instanceCache.Add(viewId, cache);
+                instanceCache.Add(viewID, cache);
             }
 
             var lighting = (r.overrideLighting ? r.lighting : r.mesh.meshAsset?.lighting) ?? r.lighting;
@@ -270,10 +291,13 @@ public sealed class MeshRenderSystem : IRenderSystem
         return typeof(MeshRenderer);
     }
 
-    private bool updated = false;
-
-    public void Submit()
+    public void Submit(ushort viewID)
     {
+        if(instanceCache.TryGetValue(viewID, out var instance) == false)
+        {
+            return;
+        }
+
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
         var state = bgfx.StateFlags.WriteRgb |
@@ -281,127 +305,124 @@ public sealed class MeshRenderSystem : IRenderSystem
             bgfx.StateFlags.WriteZ |
             bgfx.StateFlags.DepthTestLequal;
 
-        foreach(var (viewId, pairs) in instanceCache)
+        foreach (var (_, contents) in instance)
         {
-            foreach (var (_, contents) in pairs)
+            if (contents.instanceInfos.Length == 0)
             {
-                if (contents.instanceInfos.Length == 0)
+                continue;
+            }
+
+            bgfx.discard((byte)bgfx.DiscardFlags.All);
+
+            var material = contents.instanceInfos.Contents[0].material;
+
+            material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+
+            lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
+
+            if (material.ShaderProgram.Valid == false)
+            {
+                continue;
+            }
+
+            material.ApplyProperties(Material.ApplyMode.All);
+
+            material.EnableShaderKeyword(Shader.InstancingKeyword);
+
+            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
+            {
+                bgfx.set_state((ulong)(state |
+                    contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
+                    material.shader.BlendingFlag |
+                    material.CullingFlag), 0);
+
+                contents.instanceInfos.Contents[0].mesh.SetActive(contents.instanceInfos.Contents[0].submeshIndex);
+
+                var program = material.ShaderProgram;
+
+                if ((contents.transforms?.Length ?? 0) != contents.instanceInfos.Length)
                 {
-                    continue;
+                    contents.transforms = new Transform[contents.instanceInfos.Length];
+                    contents.transformMatrices = new Matrix4x4[contents.instanceInfos.Length];
+                    contents.normalMatrices = new Matrix4x4[contents.instanceInfos.Length];
+
+                    for (var i = 0; i < contents.transforms.Length; i++)
+                    {
+                        contents.transforms[i] = contents.instanceInfos.Contents[i].transform;
+                    }
                 }
 
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
+                lightSystem?.ApplyInstancedLightProperties(contents.transforms, contents.normalMatrices, material,
+                    RenderSystem.CurrentCamera.Item2.Position, contents.instanceInfos.Contents[0].lighting);
 
-                var material = contents.instanceInfos.Contents[0].material;
-
-                material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-                lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
-
-                if (material.ShaderProgram.Valid == false)
+                if (contents.normalMatrixBuffer?.Disposed ?? true)
                 {
-                    continue;
+                    //TODO: Support Matrix3x3 instead for this
+                    contents.normalMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                        .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                        .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                        .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                        .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                        .Build(),
+                        RenderBufferFlags.ComputeRead, true, (uint)contents.transforms.Length);
                 }
 
-                material.ApplyProperties(Material.ApplyMode.All);
+                contents.normalMatrixBuffer.Update(contents.normalMatrices.AsSpan(), 0, true);
 
-                material.EnableShaderKeyword(Shader.InstancingKeyword);
+                for (var i = 0; i < contents.transforms.Length; i++)
+                {
+                    contents.transformMatrices[i] = contents.transforms[i].Matrix;
+                }
 
-                if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
+                var instanceBuffer = InstanceBuffer.Create(contents.transformMatrices.Length, Marshal.SizeOf<Matrix4x4>());
+
+                if (instanceBuffer != null)
+                {
+                    instanceBuffer.SetData(contents.transformMatrices.AsSpan());
+
+                    instanceBuffer.Bind(0, instanceBuffer.count);
+
+                    contents.normalMatrixBuffer.SetBufferActive(LightBufferIndex, Access.Read);
+
+                    bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                }
+                else
+                {
+                    Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
+
+                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < contents.instanceInfos.Length; i++)
                 {
                     bgfx.set_state((ulong)(state |
                         contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
                         material.shader.BlendingFlag |
                         material.CullingFlag), 0);
 
-                    contents.instanceInfos.Contents[0].mesh.SetActive(contents.instanceInfos.Contents[0].submeshIndex);
+                    var content = contents.instanceInfos.Contents[i];
+
+                    unsafe
+                    {
+                        var transform = content.transform.Matrix;
+
+                        _ = bgfx.set_transform(&transform, 1);
+                    }
+
+                    content.mesh.SetActive(content.submeshIndex);
+
+                    lightSystem?.ApplyLightProperties(content.transform.Position, content.transform.Matrix, material,
+                        RenderSystem.CurrentCamera.Item2.Position, content.lighting);
 
                     var program = material.ShaderProgram;
 
-                    if((contents.transforms?.Length ?? 0) != contents.instanceInfos.Length)
-                    {
-                        contents.transforms = new Transform[contents.instanceInfos.Length];
-                        contents.transformMatrices = new Matrix4x4[contents.instanceInfos.Length];
-                        contents.normalMatrices = new Matrix4x4[contents.instanceInfos.Length];
+                    var flags = bgfx.DiscardFlags.State;
 
-                        for(var i = 0; i < contents.transforms.Length; i++)
-                        {
-                            contents.transforms[i] = contents.instanceInfos.Contents[i].transform;
-                        }
-                    }
-
-                    lightSystem?.ApplyInstancedLightProperties(contents.transforms, contents.normalMatrices, material,
-                        RenderSystem.CurrentCamera.Item2.Position, contents.instanceInfos.Contents[0].lighting);
-
-                    if(contents.normalMatrixBuffer?.Disposed ?? true)
-                    {
-                        //TODO: Support Matrix3x3 instead for this
-                        contents.normalMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                            .Build(),
-                            RenderBufferFlags.ComputeRead, true, (uint)contents.transforms.Length);
-                    }
-
-                    contents.normalMatrixBuffer.Update(contents.normalMatrices.AsSpan(), 0, true);
-
-                    for (var i = 0; i < contents.transforms.Length; i++)
-                    {
-                        contents.transformMatrices[i] = contents.transforms[i].Matrix;
-                    }
-
-                    var instanceBuffer = InstanceBuffer.Create(contents.transformMatrices.Length, Marshal.SizeOf<Matrix4x4>());
-
-                    if(instanceBuffer != null)
-                    {
-                        instanceBuffer.SetData(contents.transformMatrices.AsSpan());
-
-                        instanceBuffer.Bind(0, instanceBuffer.count);
-
-                        contents.normalMatrixBuffer.SetBufferActive(LightBufferIndex, Access.Read);
-
-                        bgfx.submit(viewId, program, 0, (byte)bgfx.DiscardFlags.All);
-                    }
-                    else
-                    {
-                        Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
-
-                        bgfx.discard((byte)bgfx.DiscardFlags.All);
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < contents.instanceInfos.Length; i++)
-                    {
-                        bgfx.set_state((ulong)(state |
-                            contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
-                            material.shader.BlendingFlag |
-                            material.CullingFlag), 0);
-
-                        var content = contents.instanceInfos.Contents[i];
-
-                        unsafe
-                        {
-                            var transform = content.transform.Matrix;
-
-                            _ = bgfx.set_transform(&transform, 1);
-                        }
-
-                        content.mesh.SetActive(content.submeshIndex);
-
-                        lightSystem?.ApplyLightProperties(content.transform.Position, content.transform.Matrix, material,
-                            RenderSystem.CurrentCamera.Item2.Position, content.lighting);
-
-                        var program = material.ShaderProgram;
-
-                        var flags = bgfx.DiscardFlags.State;
-
-                        bgfx.submit(viewId, program, 0, (byte)flags);
-                    }
+                    bgfx.submit(viewID, program, 0, (byte)flags);
                 }
             }
         }

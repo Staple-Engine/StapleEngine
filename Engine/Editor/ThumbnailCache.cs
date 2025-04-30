@@ -176,7 +176,7 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
-                        var tempEntity = EditorUtils.InstanceMesh("TEMP", mesh);
+                        var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
                         if(tempEntity.IsValid == false)
                         {

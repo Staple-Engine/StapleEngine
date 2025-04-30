@@ -12,18 +12,13 @@ public class UICanvasSystem : IRenderSystem
 {
     public const ushort UIViewID = 200;
 
-    private struct RenderInfo
-    {
-        public UICanvas canvas;
-        public Transform canvasTransform;
-        public Matrix4x4 projection;
-    }
+    private static readonly MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
-    private static MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
-
-    private readonly ExpandableContainer<RenderInfo> renders = new();
+    private readonly SceneQuery<Transform, UICanvas> canvases = new();
 
     public bool NeedsUpdate { get; set; }
+
+    public bool UsesOwnRenderProcess => true;
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 
@@ -37,6 +32,10 @@ public class UICanvasSystem : IRenderSystem
     {
     }
 
+    public void ClearRenderData(ushort viewID)
+    {
+    }
+
     public void Prepare()
     {
     }
@@ -47,42 +46,25 @@ public class UICanvasSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
-        renders.Clear();
-
-        foreach (var (_, transform, relatedComponent) in entities)
-        {
-            if (relatedComponent is not UICanvas canvas)
-            {
-                continue;
-            }
-
-            renders.Add(new()
-            {
-                canvas = canvas,
-                canvasTransform = transform,
-                projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1)
-            });
-        }
     }
 
     public Type RelatedComponent() => typeof(UICanvas);
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
-        foreach(var render in renders.Contents)
+        var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
+
+        unsafe
         {
             var view = Matrix4x4.Identity;
-            var projection = render.projection;
 
-            unsafe
-            {
-                Matrix4x4.Invert(view, out view);
+            bgfx.set_view_transform(UIViewID, &view, &projection);
+            bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
+            bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
+        }
 
-                bgfx.set_view_transform(UIViewID, &view, &projection);
-                bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
-                bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
-            }
-
+        foreach (var (_, transform, canvas) in canvases.Contents)
+        {
             Vector2Int GetElementPosition(UIElementAlignment alignment, Vector2Int localPosition, Vector2Int localSize, Vector2Int containerSize)
             {
                 return alignment switch
@@ -102,7 +84,7 @@ public class UICanvasSystem : IRenderSystem
             void RecursiveFindFocusedElement(Vector2Int position, Vector2Int containerSize, Transform current, UIElement element,
                 UIInteractible interactible, ref UIInteractible foundElement)
             {
-                if(current.entity.EnabledInHierarchy == false)
+                if (current.entity.EnabledInHierarchy == false)
                 {
                     return;
                 }
@@ -116,16 +98,16 @@ public class UICanvasSystem : IRenderSystem
 
                 var aabb = new AABB(new Vector3(p.X, p.Y, 0), new Vector3(element.size.X, element.size.Y, 0.1f));
 
-                if(aabb.Contains(Input.MousePosition.ToVector3()) == false)
+                if (aabb.Contains(Input.MousePosition.ToVector3()) == false)
                 {
                     return;
                 }
 
                 foundElement = interactible;
 
-                foreach(var child in current.Children)
+                foreach (var child in current.Children)
                 {
-                    if(child.entity.Enabled &&
+                    if (child.entity.Enabled &&
                         child.entity.TryGetComponent<UIElement>(out var e))
                     {
                         RecursiveFindFocusedElement(p, element.size, child, e, child.entity.GetComponent<UIInteractible>(), ref foundElement);
@@ -135,9 +117,9 @@ public class UICanvasSystem : IRenderSystem
 
             var inputPressed = false;
 
-            foreach(var button in MouseButtons)
+            foreach (var button in MouseButtons)
             {
-                if(Input.GetMouseButtonDown(button))
+                if (Input.GetMouseButtonDown(button))
                 {
                     inputPressed = true;
 
@@ -145,29 +127,29 @@ public class UICanvasSystem : IRenderSystem
                 }
             }
 
-            var lastFocusedElement = render.canvas.focusedElement;
+            var lastFocusedElement = canvas.focusedElement;
 
             void Clear(Transform current)
             {
-                if(current.entity.TryGetComponent<UIInteractible>(out var element))
+                if (current.entity.TryGetComponent<UIInteractible>(out var element))
                 {
                     element.Clicked = false;
                     element.Hovered = false;
 
-                    foreach(var child in current.Children)
+                    foreach (var child in current.Children)
                     {
                         Clear(child);
                     }
                 }
             }
 
-            if(Platform.IsPlaying)
+            if (Platform.IsPlaying)
             {
-                Clear(render.canvasTransform);
+                Clear(transform);
 
                 UIInteractible foundElement = null;
 
-                foreach (var child in render.canvasTransform.Children)
+                foreach (var child in transform.Children)
                 {
                     if (child.entity.TryGetComponent<UIElement>(out var element))
                     {
@@ -176,18 +158,18 @@ public class UICanvasSystem : IRenderSystem
                     }
                 }
 
-                render.canvas.focusedElement = foundElement;
+                canvas.focusedElement = foundElement;
 
-                if(foundElement != null)
+                if (foundElement != null)
                 {
                     foundElement.Hovered = true;
                     foundElement.Focused = inputPressed;
                     foundElement.Clicked = inputPressed;
                 }
 
-                if(foundElement != lastFocusedElement && inputPressed)
+                if (foundElement != lastFocusedElement && inputPressed)
                 {
-                    if(lastFocusedElement != null)
+                    if (lastFocusedElement != null)
                     {
                         lastFocusedElement.Focused = false;
                     }
@@ -196,9 +178,9 @@ public class UICanvasSystem : IRenderSystem
 
             void Recursive(Transform parent, Vector2Int position, Vector2Int containerSize)
             {
-                foreach(var child in parent.Children)
+                foreach (var child in parent.Children)
                 {
-                    if(child.entity.EnabledInHierarchy == false ||
+                    if (child.entity.EnabledInHierarchy == false ||
                         child.entity.TryGetComponent<UIElement>(out var element) == false)
                     {
                         continue;
@@ -225,11 +207,11 @@ public class UICanvasSystem : IRenderSystem
                 }
             }
 
-            Recursive(render.canvasTransform, Vector2Int.Zero, new Vector2Int(Screen.Width, Screen.Height));
+            Recursive(transform, Vector2Int.Zero, new Vector2Int(Screen.Width, Screen.Height));
 
-            if(Platform.IsPlaying)
+            if (Platform.IsPlaying)
             {
-                render.canvas.focusedElement?.Interact();
+                canvas.focusedElement?.Interact();
             }
         }
     }

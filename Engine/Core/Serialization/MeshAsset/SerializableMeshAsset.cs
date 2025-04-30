@@ -86,13 +86,22 @@ public class MeshAssetMetadata
     public MaterialLighting lighting = MaterialLighting.Lit;
 
     [Key(12)]
-    public bool limitFrameRate = false;
+    public MeshAssetRotation rotation;
 
     [Key(13)]
+    public float scale = 1.0f;
+
+    [Key(14)]
+    public float armatureScale = 1.0f;
+
+    [Key(15)]
+    public bool limitFrameRate = false;
+
+    [Key(16)]
     public int frameRate = 30;
 
     [HideInInspector]
-    [Key(14)]
+    [Key(17)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -110,6 +119,9 @@ public class MeshAssetMetadata
             lhs.regenerateNormals == rhs.regenerateNormals &&
             lhs.useSmoothNormals == rhs.useSmoothNormals &&
             lhs.lighting == rhs.lighting &&
+            lhs.rotation == rhs.rotation &&
+            lhs.scale == rhs.scale &&
+            lhs.armatureScale == rhs.armatureScale &&
             lhs.frameRate == rhs.frameRate &&
             lhs.limitFrameRate == rhs.limitFrameRate;
     }
@@ -129,6 +141,9 @@ public class MeshAssetMetadata
             lhs.regenerateNormals != rhs.regenerateNormals ||
             lhs.useSmoothNormals != rhs.useSmoothNormals ||
             lhs.lighting != rhs.lighting ||
+            lhs.rotation != rhs.rotation ||
+            lhs.scale != rhs.scale ||
+            lhs.armatureScale != rhs.armatureScale ||
             lhs.frameRate != rhs.frameRate ||
             lhs.limitFrameRate != rhs.limitFrameRate;
     }
@@ -164,6 +179,9 @@ public class MeshAssetMetadata
         hash.Add(regenerateNormals);
         hash.Add(useSmoothNormals);
         hash.Add(lighting);
+        hash.Add(rotation);
+        hash.Add(scale);
+        hash.Add(armatureScale);
         hash.Add(frameRate);
         hash.Add(limitFrameRate);
         hash.Add(typeName);

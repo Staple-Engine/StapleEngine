@@ -5,15 +5,13 @@ namespace Staple.Internal;
 
 public class TextRenderSystem : IRenderSystem
 {
-    private class TextInfo
+    private struct TextInfo
     {
         public string text;
 
         public int fontSize;
 
         public Transform transform;
-
-        public ushort viewID;
 
         public FontAsset fontAsset;
 
@@ -22,9 +20,11 @@ public class TextRenderSystem : IRenderSystem
 
     private Material material;
 
-    private readonly List<TextInfo> texts = [];
+    private readonly Dictionary<ushort, List<TextInfo>> texts = [];
 
     public bool NeedsUpdate { get; set; }
+
+    public bool UsesOwnRenderProcess => false;
 
     public void Startup()
     {
@@ -33,6 +33,11 @@ public class TextRenderSystem : IRenderSystem
     public void Shutdown()
     {
         material?.Destroy();
+    }
+
+    public void ClearRenderData(ushort viewID)
+    {
+        texts.Remove(viewID);
     }
 
     public Type RelatedComponent() => typeof(Text);
@@ -56,8 +61,19 @@ public class TextRenderSystem : IRenderSystem
     {
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
+        if(texts.TryGetValue(viewID, out var container) == false)
+        {
+            container = [];
+
+            texts.Add(viewID, container);
+        }
+        else
+        {
+            container.Clear();
+        }
+
         foreach (var (_, transform, relatedComponent) in entities)
         {
             if (relatedComponent is not Text text)
@@ -72,29 +88,33 @@ public class TextRenderSystem : IRenderSystem
                 text.fontSize = 4;
             }
 
-            texts.Add(new TextInfo()
+            container.Add(new TextInfo()
             {
                 text = text.text,
                 fontSize = text.fontSize,
                 transform = transform,
-                viewID = viewId,
                 fontAsset = text.font,
                 scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
             });
         }
     }
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
-        if(material == null)
+        if (material == null)
         {
             return;
         }
 
-        foreach(var text in texts)
+        if (texts.TryGetValue(viewID, out var container) == false)
+        {
+            return;
+        }
+
+        foreach (var text in container)
         {
             TextRenderer.instance.DrawText(text.text, text.transform.Matrix, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
-                material, text.scale, false, text.viewID);
+                material, text.scale, false, viewID);
         }
     }
 }

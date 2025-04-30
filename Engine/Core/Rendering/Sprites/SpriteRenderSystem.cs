@@ -15,7 +15,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// <summary>
     /// Contains render information for a sprite
     /// </summary>
-    private class SpriteRenderInfo
+    private struct SpriteRenderInfo
     {
         public Transform transform;
         public Vector3 scale;
@@ -23,7 +23,6 @@ public class SpriteRenderSystem : IRenderSystem
         public Color color;
         public Texture texture;
         public Rect textureRect;
-        public ushort viewID;
         public int sortingOrder;
         public uint layer;
     }
@@ -89,9 +88,11 @@ public class SpriteRenderSystem : IRenderSystem
     /// <summary>
     /// Contains a list of all sprites queued for rendering
     /// </summary>
-    private readonly List<SpriteRenderInfo> sprites = [];
+    private readonly Dictionary<ushort, List<SpriteRenderInfo>> sprites = [];
 
     public bool NeedsUpdate { get; set; }
+
+    public bool UsesOwnRenderProcess => false;
 
     public void Startup()
     {
@@ -99,6 +100,11 @@ public class SpriteRenderSystem : IRenderSystem
 
     public void Shutdown()
     {
+    }
+
+    public void ClearRenderData(ushort viewID)
+    {
+        sprites.Remove(viewID);
     }
 
     public Type RelatedComponent()
@@ -191,8 +197,19 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
+        if(sprites.TryGetValue(viewID, out var container) == false)
+        {
+            container = [];
+
+            sprites.Add(viewID, container);
+        }
+        else
+        {
+            container.Clear();
+        }
+
         foreach (var (_, transform, relatedComponent) in entities)
         {
             var r = relatedComponent as SpriteRenderer;
@@ -281,7 +298,7 @@ public class SpriteRenderSystem : IRenderSystem
                 scale.Y *= -1;
             }
 
-            sprites.Add(new SpriteRenderInfo()
+            container.Add(new SpriteRenderInfo()
             {
                 color = r.color,
                 material = r.material,
@@ -289,16 +306,20 @@ public class SpriteRenderSystem : IRenderSystem
                 textureRect = sprite.Rect,
                 transform = transform,
                 scale = scale,
-                viewID = viewId,
                 sortingOrder = r.sortingOrder,
                 layer = r.sortingLayer,
             });
         }
     }
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
-        if (sprites.Count == 0)
+        if(sprites.TryGetValue(viewID, out var container) == false)
+        {
+            return;
+        }
+
+        if (container.Count == 0)
         {
             return;
         }
@@ -307,7 +328,7 @@ public class SpriteRenderSystem : IRenderSystem
             bgfx.StateFlags.WriteA |
             bgfx.StateFlags.DepthTestLequal;
 
-        var orderedSprites = sprites
+        var orderedSprites = container
             .OrderBy(x => x.layer)
             .ThenBy(x => x.sortingOrder)
             .ToList();
@@ -364,7 +385,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             if (program.Valid)
             {
-                bgfx.submit(s.viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
             }
             else
             {

@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -1396,5 +1397,191 @@ public sealed partial class Mesh : IGuidAsset
         }
 
         return normals;
+    }
+
+    /// <summary>
+    /// Creates an instance of a specific mesh. This will only create an object with the mesh itself.
+    /// </summary>
+    /// <param name="name">The new entity name</param>
+    /// <param name="mesh">The mesh to instantiate</param>
+    /// <param name="parentEntity">The parent entity</param>
+    /// <returns>The new entity</returns>
+    public static Entity InstanceMesh(string name, Mesh mesh, Entity parentEntity = default)
+    {
+        if(mesh == null)
+        {
+            return default;
+        }
+
+        Transform parent = null;
+
+        if (parentEntity.IsValid)
+        {
+            parent = parentEntity.GetComponent<Transform>();
+        }
+
+        var meshEntity = Entity.Create(name, typeof(Transform));
+        var meshTransform = meshEntity.GetComponent<Transform>();
+
+        meshTransform.SetParent(parent);
+
+        meshTransform.LocalScale = Vector3.One * (mesh.meshAsset?.scale ?? 1);
+
+        var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.meshes[mesh.meshAssetIndex].submeshMaterialGuids
+            .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
+            [ResourceManager.instance.LoadMaterial(AssetSerialization.StandardShaderGUID)];
+
+        if (mesh.HasBoneIndices)
+        {
+            var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+            skinnedRenderer.mesh = mesh;
+            skinnedRenderer.materials = outMaterials;
+            skinnedRenderer.lighting = mesh.meshAsset?.lighting ?? MaterialLighting.Lit;
+        }
+        else
+        {
+            var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+            meshRenderer.mesh = mesh;
+            meshRenderer.materials = outMaterials;
+            meshRenderer.lighting = mesh.meshAsset?.lighting ?? MaterialLighting.Lit;
+        }
+
+        return meshEntity;
+    }
+
+    /// <summary>
+    /// Create an instance of one or more meshes from an asset
+    /// </summary>
+    /// <param name="name">The new entity name</param>
+    /// <param name="asset">The mesh asset</param>
+    /// <param name="parentEntity">The parent entity</param>
+    /// <returns>The new entity</returns>
+    public static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default)
+    {
+        if(asset == null)
+        {
+            return default;
+        }
+
+        Transform parent = null;
+
+        if (parentEntity.IsValid)
+        {
+            parent = parentEntity.GetComponent<Transform>();
+        }
+
+        var baseEntity = Entity.Create(name, typeof(Transform));
+        var baseTransform = baseEntity.GetComponent<Transform>();
+
+        baseTransform.SetParent(parent);
+
+        if ((asset.nodes?.Length ?? 0) > 0)
+        {
+            var parents = new Transform[asset.nodes.Length];
+
+            for (var i = 0; i < asset.nodes.Length; i++)
+            {
+                var node = asset.nodes[i];
+
+                var nodeParent = Entity.Create(node.name, typeof(Transform));
+
+                var nodeTransform = nodeParent.GetComponent<Transform>();
+
+                parents[i] = nodeTransform;
+
+                var parentIndex = node.parent?.index ?? -1;
+
+                nodeTransform.SetParent(parentIndex >= 0 ? parents[parentIndex] : baseTransform);
+
+                nodeTransform.LocalPosition = node.Position;
+                nodeTransform.LocalRotation = node.Rotation;
+                nodeTransform.LocalScale = node.Scale;
+
+                foreach (var index in node.meshIndices)
+                {
+                    if (index < 0 || index >= asset.meshes.Count)
+                    {
+                        continue;
+                    }
+
+                    var mesh = asset.meshes[index];
+
+                    var meshEntity = Entity.Create(mesh.name, typeof(Transform));
+
+                    var meshTransform = meshEntity.GetComponent<Transform>();
+
+                    meshTransform.LocalScale = Vector3.One * asset.scale;
+
+                    var isSkinned = mesh.bones.Any(x => x.Length > 0);
+
+                    meshTransform.SetParent(nodeTransform);
+
+                    var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
+                    var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();
+
+                    if (outMesh != null)
+                    {
+                        if (isSkinned)
+                        {
+                            var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                            skinnedRenderer.mesh = outMesh;
+                            skinnedRenderer.materials = outMaterials;
+                            skinnedRenderer.lighting = mesh.lighting;
+                        }
+                        else
+                        {
+                            var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                            meshRenderer.mesh = outMesh;
+                            meshRenderer.materials = outMaterials;
+                            meshRenderer.lighting = mesh.lighting;
+                        }
+                    }
+                }
+            }
+        }
+        else if ((asset.meshes?.Count ?? 0) > 0)
+        {
+            for (var i = 0; i < asset.meshes.Count; i++)
+            {
+                var mesh = asset.meshes[i];
+
+                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
+
+                var meshTransform = meshEntity.GetComponent<Transform>();
+
+                var isSkinned = mesh.bones.Any(x => x.Length > 0);
+
+                meshTransform.SetParent(baseTransform);
+
+                var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}", true);
+                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
+
+                if (outMesh != null)
+                {
+                    if (isSkinned)
+                    {
+                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                        skinnedRenderer.mesh = outMesh;
+                        skinnedRenderer.materials = outMaterials;
+                        skinnedRenderer.lighting = mesh.lighting;
+                    }
+                    else
+                    {
+                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                        meshRenderer.mesh = outMesh;
+                        meshRenderer.materials = outMaterials;
+                        meshRenderer.lighting = mesh.lighting;
+                    }
+                }
+            }
+        }
+
+        return baseEntity;
     }
 }

@@ -191,6 +191,20 @@ public sealed partial class RenderSystem
 
         CulledRenderers = 0;
 
+        (previousUsedViewIDs, usedViewIDs) = (usedViewIDs, previousUsedViewIDs);
+
+        usedViewIDs.Clear();
+
+        foreach(var system in renderSystems)
+        {
+            if(system.UsesOwnRenderProcess == false)
+            {
+                continue;
+            }
+
+            system.Prepare();
+        }
+
         if (UseDrawcallInterpolator)
         {
             UpdateAccumulator();
@@ -198,6 +212,39 @@ public sealed partial class RenderSystem
         else
         {
             UpdateStandard();
+        }
+
+        foreach (var system in renderSystems)
+        {
+            if (system.UsesOwnRenderProcess == false)
+            {
+                continue;
+            }
+
+            system.Submit(0);
+        }
+
+        previousUsedViewIDs.ExceptWith(usedViewIDs);
+
+        if (previousUsedViewIDs.Count > 0)
+        {
+            foreach (var viewID in previousUsedViewIDs)
+            {
+                foreach (var system in renderSystems)
+                {
+                    if(system.UsesOwnRenderProcess)
+                    {
+                        continue;
+                    }
+
+                    system.ClearRenderData(viewID);
+                }
+            }
+        }
+
+        foreach (var system in renderSystems)
+        {
+            system.NeedsUpdate = false;
         }
     }
 
@@ -231,6 +278,11 @@ public sealed partial class RenderSystem
 
                         foreach (var system in renderSystems)
                         {
+                            if(system.UsesOwnRenderProcess)
+                            {
+                                continue;
+                            }
+
                             if (entityInfo.Item1.TryGetComponent(system.RelatedComponent(), out var component))
                             {
                                 if(collected.TryGetValue(system, out var content) == false)
@@ -271,9 +323,10 @@ public sealed partial class RenderSystem
     /// <param name="cull">Whether to cull invisible elements</param>
     /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue, bool cull,
-        ushort viewID)
+        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue, bool cull, ushort viewID)
     {
+        usedViewIDs.Add(viewID);
+
         CurrentCamera = (camera, cameraTransform);
 
         PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
@@ -318,9 +371,7 @@ public sealed partial class RenderSystem
 
             system.Process(content, camera, cameraTransform, viewID);
 
-            system.Submit();
-
-            system.NeedsUpdate = false;
+            system.Submit(viewID);
         }
     }
 
@@ -337,6 +388,8 @@ public sealed partial class RenderSystem
     public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
         Entity entity, Transform entityTransform, bool cull, ushort viewID)
     {
+        usedViewIDs.Add(viewID);
+
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         CurrentCamera = (camera, cameraTransform);
@@ -350,6 +403,11 @@ public sealed partial class RenderSystem
 
         foreach (var system in systems)
         {
+            if (system.UsesOwnRenderProcess)
+            {
+                continue;
+            }
+
             //Force the world visibility to change
             system.NeedsUpdate = true;
 
@@ -364,9 +422,14 @@ public sealed partial class RenderSystem
         {
             foreach (var system in systems)
             {
+                if (system.UsesOwnRenderProcess)
+                {
+                    continue;
+                }
+
                 if(systemQueues.TryGetValue(system, out var queue) == false)
                 {
-                    queue = new();
+                    queue = [];
 
                     systemQueues.Add(system, queue);
                 }
@@ -407,9 +470,7 @@ public sealed partial class RenderSystem
         {
             pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, viewID);
 
-            pair.Key.Submit();
-
-            pair.Key.NeedsUpdate = false;
+            pair.Key.Submit(viewID);
         }
     }
 
@@ -422,6 +483,8 @@ public sealed partial class RenderSystem
     /// <param name="viewID">The view ID</param>
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
+        usedViewIDs.Add(viewID);
+
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -433,6 +496,11 @@ public sealed partial class RenderSystem
 
         foreach (var system in systems)
         {
+            if (system.UsesOwnRenderProcess)
+            {
+                continue;
+            }
+
             system.Prepare();
         }
 
@@ -486,9 +554,7 @@ public sealed partial class RenderSystem
 
         foreach (var system in systems)
         {
-            system.Submit();
-
-            system.NeedsUpdate = false;
+            system.Submit(viewID);
         }
     }
 

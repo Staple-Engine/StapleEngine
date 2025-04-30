@@ -642,6 +642,11 @@ public sealed class MeshAsset : IGuidAsset
     public int frameRate = 30;
 
     /// <summary>
+    /// The scale of this mesh's renderers
+    /// </summary>
+    public float scale = 1.0f;
+
+    /// <summary>
     /// 3D bounds of the mesh
     /// </summary>
     public AABB Bounds { get; internal set; }

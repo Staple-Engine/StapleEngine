@@ -224,7 +224,7 @@ internal partial class StapleEditor
 
                     pair.Key.Process(pair.Value.ToArray(), renderCamera, cameraTransform, SceneView);
 
-                    pair.Key.Submit();
+                    pair.Key.Submit(SceneView);
 
                     pair.Key.NeedsUpdate = false;
                 });

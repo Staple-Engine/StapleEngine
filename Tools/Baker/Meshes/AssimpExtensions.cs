@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Assimp;
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -347,6 +348,116 @@ namespace Baker
             }
 
             return outValue;
+        }
+
+        public static bool TryGetValue(this Metadata metadata, string name, out object value)
+        {
+            unsafe
+            {
+                for (var i = 0; i < metadata.MNumProperties; i++)
+                {
+                    if (metadata.MKeys[i].AsString == name)
+                    {
+                        value = metadata.MValues[i].Value();
+
+                        return true;
+                    }
+                }
+            }
+
+            value = null;
+
+            return false;
+        }
+
+        public static bool TryGetValue<T>(this Metadata metadata, string name, out T value)
+        {
+            if(metadata.TryGetValue(name, out object v) && v is T outValue)
+            {
+                value = outValue;
+
+                return true;
+            }
+
+            value = default;
+
+            return false;
+        }
+
+        public static object Value(this MetadataEntry entry)
+        {
+            unsafe
+            {
+
+                switch (entry.MType)
+                {
+                    case MetadataType.Aivector3D:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(float) * 3);
+
+                            return new Vector3(BitConverter.ToSingle(span.Slice(0, sizeof(float))),
+                                BitConverter.ToSingle(span.Slice(sizeof(float), sizeof(float))),
+                                BitConverter.ToSingle(span.Slice(sizeof(float) * 2, sizeof(float))));
+                        }
+
+                    case MetadataType.Bool:
+
+                        return ((byte*)entry.MData)[0] == 1;
+
+                    case MetadataType.Double:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(double));
+
+                            return BitConverter.ToDouble(span);
+                        }
+
+                    case MetadataType.Float:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(float));
+
+                            return BitConverter.ToSingle(span);
+                        }
+
+                    case MetadataType.Int32:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(int));
+
+                            return BitConverter.ToInt32(span);
+                        }
+
+                    case MetadataType.Int64:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(long));
+
+                            return BitConverter.ToInt64(span);
+                        }
+
+                    case MetadataType.Uint32:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(uint));
+
+                            return BitConverter.ToUInt32(span);
+                        }
+
+                    case MetadataType.Uint64:
+
+                        {
+                            var span = new Span<byte>(entry.MData, sizeof(ulong));
+
+                            return BitConverter.ToUInt64(span);
+                        }
+
+                    default:
+
+                        return null;
+                }
+            }
         }
     }
 }

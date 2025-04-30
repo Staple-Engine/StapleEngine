@@ -50,6 +50,8 @@ public sealed class LightSystem : IRenderSystem
 
     public bool NeedsUpdate { get; set; }
 
+    public bool UsesOwnRenderProcess => false;
+
     public LightSystem()
     {
         Shader.DefaultUniforms.Add((LightAmbientKey, ShaderUniformType.Color));
@@ -71,6 +73,10 @@ public sealed class LightSystem : IRenderSystem
     {
     }
 
+    public void ClearRenderData(ushort viewID)
+    {
+    }
+
     public void Prepare()
     {
     }
@@ -88,7 +94,7 @@ public sealed class LightSystem : IRenderSystem
         return null;
     }
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
     }
 

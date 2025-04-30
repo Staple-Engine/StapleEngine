@@ -73,6 +73,7 @@ static partial class Program
     private static readonly Lock meshMaterialLock = new();
 
     private const uint GenBoundingBoxes = 0x80000000;
+    private const uint PopulateArmatureData = 0x4000;
 
     private static unsafe void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
@@ -232,7 +233,78 @@ static partial class Program
 
                 try
                 {
-                    scene = assimp.ImportFile(meshFileName.Replace(".meta", ""), (uint)flags | GenBoundingBoxes);
+                    scene = assimp.ImportFile(meshFileName.Replace(".meta", ""), 0);
+
+                    /*
+                    var upAxis = 1;
+                    var upAxisSign = 1;
+                    var frontAxis = 2;
+                    var frontAxisSign = 1;
+                    var coordAxis = 0;
+                    var coordAxisSign = 1;
+                    var unitScale = 1.0f;
+
+                    if(scene->MMetaData != null)
+                    {
+                        if(scene->MMetaData->TryGetValue("UpAxis", out int u))
+                        {
+                            upAxis = u;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("UpAxisSign", out int us))
+                        {
+                            upAxisSign = us;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("FrontAxis", out int f))
+                        {
+                            frontAxis = f;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("FrontAxisSign", out int fs))
+                        {
+                            frontAxisSign = fs;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("CoordAxis", out int c))
+                        {
+                            coordAxis = c;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("CoordAxisSign", out int cs))
+                        {
+                            coordAxisSign = cs;
+                        }
+
+                        if (scene->MMetaData->TryGetValue("UnitScaleFactor", out double usf))
+                        {
+                            unitScale = (float)usf;
+                        }
+                    }
+
+                    var upVector = Vector3.Zero;
+                    var forwardVector = Vector3.Zero;
+                    var rightVector = Vector3.Zero;
+
+                    upVector[upAxis] = upAxisSign * unitScale;
+                    forwardVector[frontAxis] = frontAxisSign * unitScale;
+                    rightVector[coordAxis] = coordAxisSign * unitScale;
+
+                    var rootMatrix = new Matrix4x4(rightVector.X, rightVector.Y, rightVector.Z, 0,
+                        upVector.X, upVector.Y, upVector.Z, 0,
+                        forwardVector.X, forwardVector.Y, forwardVector.Z, 0,
+                        0, 0, 0, 1);
+
+                    scene->MRootNode->MTransformation = rootMatrix * scene->MRootNode->MTransformation;
+                    */
+
+                    /*
+                    var scaleMatrix = Matrix4x4.CreateScale(metadata.scale);
+
+                    scene->MRootNode->MTransformation = Matrix4x4.Transpose(scaleMatrix * Matrix4x4.Transpose(scene->MRootNode->MTransformation));
+                    */
+
+                    assimp.ApplyPostProcessing(scene, (uint)flags | GenBoundingBoxes | PopulateArmatureData);
                 }
                 catch (Exception e)
                 {
@@ -731,6 +803,19 @@ static partial class Program
                     return value;
                 }
 
+                Vector3Holder ApplyNormalTransform(Vector3Holder value)
+                {
+                    //Must reverse the angle
+                    var rotation = metadata.rotation switch
+                    {
+                        MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * -90),
+                        MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * 90),
+                        _ => Matrix4x4.Identity,
+                    };
+
+                    return new(Vector3.Normalize(Vector3.TransformNormal(value.ToVector3(), rotation)));
+                }
+
                 var nodes = new List<MeshAssetNode>();
 
                 var nodeCounters = new Dictionary<string, int>();
@@ -738,24 +823,51 @@ static partial class Program
                 var nodeToIndex = new Dictionary<nint, int>();
                 var nodeParents = new Dictionary<nint, nint>();
                 var localNodes = new Dictionary<int, nint>();
+                var scaledArmatures = new HashSet<nint>();
 
                 void RegisterNode(Silk.NET.Assimp.Node* node)
                 {
-                    var children = node->Children();
-
-                    if (node == scene->MRootNode)
+                    void NormalizeArmature(Silk.NET.Assimp.Node* node, Matrix4x4 rootTransform)
                     {
-                        foreach(var child in children)
+                        if (scaledArmatures.Contains((nint)node))
                         {
-                            RegisterNode(child);
+                            return;
                         }
 
-                        return;
+                        scaledArmatures.Add((nint)node);
+
+                        var localTransform = rootTransform * Matrix4x4.Transpose(node->MTransformation);
+
+                        node->MTransformation = Matrix4x4.Transpose(localTransform);
+
+                        if (nodeToIndex.TryGetValue((nint)node, out var localIndex))
+                        {
+                            Matrix4x4.Decompose(localTransform, out var localScale, out var localRotation, out var localTranslation);
+
+                            nodes[localIndex].position = new(localTranslation);
+                            nodes[localIndex].rotation = new(localRotation);
+                            nodes[localIndex].scale = new(localScale);
+                        }
                     }
 
-                    Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
-
                     var meshIndices = new List<int>(node->MeshIndices());
+
+                    foreach (var index in meshIndices)
+                    {
+                        if (scene->MMeshes[index]->MNumBones > 0)
+                        {
+                            var armature = scene->MMeshes[index]->MBones[0]->MArmature;
+
+                            if (armature != null)
+                            {
+                                var transform = Matrix4x4.CreateScale(metadata.armatureScale);
+
+                                NormalizeArmature(armature, transform);
+                            }
+
+                            break;
+                        }
+                    }
 
                     var nodeName = node->MName.AsString;
 
@@ -774,6 +886,18 @@ static partial class Program
 
                     nodeName = counter == 0 ? nodeName : $"{nodeName}{counter}";
 
+                    Matrix4x4.Decompose(Matrix4x4.Transpose(node->MTransformation), out var scale, out var rotation, out var translation);
+
+                    if (meshIndices.Count > 0)
+                    {
+                        rotation = metadata.rotation switch
+                        {
+                            MeshAssetRotation.NinetyPositive => Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), Staple.Math.Deg2Rad * 90),
+                            MeshAssetRotation.NinetyNegative => Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), Staple.Math.Deg2Rad * -90),
+                            _ => Quaternion.Identity,
+                        } * rotation;
+                    }
+
                     var newNode = new MeshAssetNode()
                     {
                         name = nodeName,
@@ -789,14 +913,16 @@ static partial class Program
                     nodeToIndex.Add((nint)node, currentIndex);
                     localNodes.Add(currentIndex, (nint)node);
 
-                    if (node->MParent != null && node->MParent != scene->MRootNode)
+                    if (node->MParent != null)
                     {
                         nodeParents.Add((nint)node, (nint)node->MParent);
                     }
 
                     nodes.Add(newNode);
 
-                    foreach(var child in children)
+                    var children = node->Children();
+
+                    foreach (var child in children)
                     {
                         RegisterNode(child);
                     }
@@ -820,7 +946,7 @@ static partial class Program
 
                 string GetNodeName(string name)
                 {
-                    var node = FindNode(scene->MRootNode, name, true);
+                    var node = FindNode(scene->MRootNode, name, false);
 
                     if (node != null &&
                         nodeToName.TryGetValue((nint)node, out var newNodeName))
@@ -1026,7 +1152,7 @@ static partial class Program
                     }
 
                     m.normals = normals
-                        .Select(x => ApplyTransform(new Vector3Holder(x)))
+                        .Select(x => ApplyNormalTransform(new Vector3Holder(x)))
                         .ToList();
 
                     var uvs = new List<Vector2Holder>[8]

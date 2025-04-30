@@ -10,11 +10,17 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
 {
     public bool NeedsUpdate { get; set; }
 
+    public bool UsesOwnRenderProcess => false;
+
     public void Startup()
     {
     }
 
     public void Shutdown()
+    {
+    }
+
+    public void ClearRenderData(ushort viewID)
     {
     }
 
@@ -84,7 +90,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
         return typeof(SkinnedMeshAttachment);
     }
 
-    public void Submit()
+    public void Submit(ushort viewID)
     {
     }
 }
