@@ -1,7 +1,5 @@
-﻿using Staple.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace Staple;
 
@@ -17,7 +15,7 @@ public class Scene
     /// <summary>
     /// A list of all scenes we can load
     /// </summary>
-    internal static List<string> sceneList = new();
+    internal static List<string> sceneList = [];
 
     /// <summary>
     /// Gets all available cameras sorted by depth

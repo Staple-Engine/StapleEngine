@@ -283,21 +283,6 @@ internal partial class StapleEditor
         {
             ThreadHelper.Dispatch(() =>
             {
-                if ((lastOpenScene?.Length ?? 0) > 0)
-                {
-                    var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
-
-                    Scene.SetActiveScene(scene);
-
-                    ResetScenePhysics(false);
-                }
-                else
-                {
-                    Scene.SetActiveScene(null);
-
-                    ResetScenePhysics(false);
-                }
-
                 lastProjects.lastOpenProject = path;
 
                 var target = lastProjects.items.FirstOrDefault(x => x.path == path);
@@ -519,6 +504,17 @@ internal partial class StapleEditor
                             LoadGame();
                         }
 
+                        World.Current?.Iterate((entity) =>
+                        {
+                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            {
+                                if (component is IComponentDisposable disposable)
+                                {
+                                    disposable.DisposeComponent();
+                                }
+                            });
+                        });
+
                         ResourceManager.instance.Clear();
 
                         AssetDatabase.Reload();
@@ -528,7 +524,24 @@ internal partial class StapleEditor
                         {
                             if ((lastOpenScene?.Length ?? 0) > 0)
                             {
-                                var scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+                                Scene scene = null;
+
+                                if(lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                {
+                                    World.Current = new();
+                                    scene = new();
+
+                                    var prefab = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
+
+                                    if(prefab != null)
+                                    {
+                                        SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                    }
+                                }
+                                else
+                                {
+                                    scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+                                }
 
                                 Scene.SetActiveScene(scene);
                             }

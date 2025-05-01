@@ -335,6 +335,7 @@ internal class ProjectBrowser
 
                         case ProjectBrowserResourceType.Prefab:
 
+                            node.action = ProjectBrowserNodeAction.InspectScene;
                             node.typeName = typeof(Prefab).FullName;
 
                             break;

@@ -2071,6 +2071,39 @@ internal class ResourceManager
     }
 
     /// <summary>
+    /// Attempts to load a raw JSON prefab from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <returns>The prefab, or null</returns>
+    public Prefab LoadRawPrefabFromPath(string path)
+    {
+        var data = LoadFileString(path);
+
+        if (data == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var prefab = JsonSerializer.Deserialize(data, SerializablePrefabSerializationContext.Default.SerializablePrefab);
+
+            var outValue = new Prefab()
+            {
+                data = prefab,
+            };
+
+            outValue.Guid.Guid = prefab.guid;
+
+            return outValue;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Attempts to load a prefab
     /// </summary>
     /// <param name="path">The path to load from</param>

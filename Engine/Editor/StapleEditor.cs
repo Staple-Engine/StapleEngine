@@ -247,7 +247,7 @@ internal partial class StapleEditor
 
     private LastProjectInfo lastProjects = new();
 
-    internal Dictionary<string, DragDropPayload> dragDropPayloads = new();
+    internal Dictionary<string, DragDropPayload> dragDropPayloads = [];
     #endregion
 
     #region Editor

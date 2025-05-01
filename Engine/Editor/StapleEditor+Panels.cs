@@ -256,16 +256,61 @@ internal partial class StapleEditor
                 {
                     if (Scene.current != null && lastOpenScene != null)
                     {
-                        var serializableScene = Scene.current.Serialize();
-
-                        var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
-
-                        try
+                        if(lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
                         {
-                            File.WriteAllText(lastOpenScene, text);
+                            var targetEntity = new Entity();
+
+                            World.Current.Iterate((entity) =>
+                            {
+                                if (targetEntity.IsValid)
+                                {
+                                    return;
+                                }
+
+                                if (entity.TryGetComponent<Transform>(out var t) && t.parent.entity.IsValid == false)
+                                {
+                                    targetEntity = entity;
+                                }
+                            });
+
+                            if(targetEntity.IsValid)
+                            {
+                                var prefab = SceneSerialization.SerializeIntoPrefab(targetEntity);
+
+                                if(prefab != null)
+                                {
+                                    var previous = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
+
+                                    if(previous != null)
+                                    {
+                                        prefab.guid = previous.Guid.Guid;
+                                    }
+
+                                    var text = JsonConvert.SerializeObject(prefab, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                    try
+                                    {
+                                        File.WriteAllText(lastOpenScene, text);
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+                                }
+                            }
                         }
-                        catch (Exception)
+                        else
                         {
+                            var serializableScene = Scene.current.Serialize();
+
+                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                            try
+                            {
+                                File.WriteAllText(lastOpenScene, text);
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
                     }
                 });
@@ -1429,7 +1474,24 @@ internal partial class StapleEditor
 
                     ResourceManager.instance.Clear();
 
-                    var scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
+                    Scene scene = null;
+
+                    if(item.path.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                    {
+                        var prefab = ResourceManager.instance.LoadRawPrefabFromPath(item.path);
+
+                        if(prefab != null)
+                        {
+                            World.Current = new();
+                            scene = Scene.current = new();
+
+                            SceneSerialization.InstantiatePrefab(default, prefab.data);
+                        }
+                    }
+                    else
+                    {
+                        scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
+                    }
 
                     Scene.SetActiveScene(scene);
 
@@ -1439,9 +1501,9 @@ internal partial class StapleEditor
                     {
                         lastOpenScene = item.path;
 
-                        ResetScenePhysics(true);
-
                         UpdateLastSession();
+
+                        ResetScenePhysics(true);
 
                         UpdateWindowTitle();
                     }
