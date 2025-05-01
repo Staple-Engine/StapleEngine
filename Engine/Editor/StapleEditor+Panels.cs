@@ -279,6 +279,16 @@ internal partial class StapleEditor
 
                                 if(prefab != null)
                                 {
+                                    //TODO: Support prefab local ID and GUIDs properly
+                                    prefab.mainObject.prefabLocalID = 0;
+                                    prefab.mainObject.prefabGuid = null;
+
+                                    foreach(var child in prefab.children)
+                                    {
+                                        child.prefabLocalID = 0;
+                                        child.prefabGuid = null;
+                                    }
+
                                     var previous = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
 
                                     if(previous != null)
