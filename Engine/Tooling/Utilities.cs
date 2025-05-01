@@ -101,6 +101,7 @@ public class Utilities
         Converters =
         {
             new StringEnumConverter(),
+            new FloatConverter(),
         },
         ContractResolver = JsonIgnorableResolver.Value,
     };

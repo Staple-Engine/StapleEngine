@@ -42,12 +42,25 @@ public static class Physics
     }
 
     /// <summary>
-    /// Gets the 3D body that belongs to an entity, if any
+    /// Gets the 3D body that belongs to an entity
     /// </summary>
     /// <param name="entity">The entity to check</param>
     /// <returns>The body, or null</returns>
     public static IBody3D GetBody3D(Entity entity)
     {
         return Physics3D.Instance?.GetBody(entity);
+    }
+
+    /// <summary>
+    /// Attempts to get a 3D body that belong to an entity
+    /// </summary>
+    /// <param name="entity">The entity to check</param>
+    /// <param name="body">The body</param>
+    /// <returns>Whether the body was found</returns>
+    public static bool TryGetBody3D(Entity entity, out IBody3D body)
+    {
+        body = Physics3D.Instance?.GetBody(entity);
+
+        return body != null;
     }
 }
