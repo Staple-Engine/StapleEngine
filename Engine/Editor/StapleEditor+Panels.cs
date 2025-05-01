@@ -267,7 +267,7 @@ internal partial class StapleEditor
                                     return;
                                 }
 
-                                if (entity.TryGetComponent<Transform>(out var t) && t.parent.entity.IsValid == false)
+                                if (entity.TryGetComponent<Transform>(out var t) && t.parent == null)
                                 {
                                     targetEntity = entity;
                                 }
@@ -659,12 +659,14 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    if (ImGui.MenuItem("Duplicate"))
+                    if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                        ImGui.MenuItem("Duplicate"))
                     {
                         Entity.Instantiate(transform.entity, transform.parent);
                     }
 
-                    if (ImGui.MenuItem("Delete"))
+                    if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                        ImGui.MenuItem("Delete"))
                     {
                         transform.entity.Destroy();
 
@@ -700,7 +702,8 @@ internal partial class StapleEditor
         if (Scene.current != null &&
             ImGui.IsWindowHovered() &&
             ImGui.IsAnyItemHovered() == false &&
-            Input.GetMouseButtonUp(MouseButton.Right))
+            Input.GetMouseButtonUp(MouseButton.Right) &&
+            lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false)
         {
             ImGui.OpenPopup("EntityPanelContext");
         }
