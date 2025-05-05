@@ -85,6 +85,28 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     /// </summary>
     internal JobHandle boneUpdateHandle;
 
+    /// <summary>
+    /// In the case of separate animations, the mesh asset we're given has no mesh/bone info. So we must find out from any of the renderers related to this.
+    /// </summary>
+    internal int BoneCount
+    {
+        get
+        {
+            return renderers.Length > 0 ? renderers.Contents[0].mesh?.meshAsset?.BoneCount ?? 0 : 0;
+        }
+    }
+
+    /// <summary>
+    /// In the case of separate animations, the mesh asset we're given has no mesh/bone info. So we must find out from any of the renderers related to this.
+    /// </summary>
+    internal MeshAsset MeshAsset
+    {
+        get
+        {
+            return renderers.Length > 0 ? renderers.Contents[0].mesh?.meshAsset ?? null : null;
+        }
+    }
+
     public void DisposeComponent()
     {
         boneMatrixBuffer?.Destroy();

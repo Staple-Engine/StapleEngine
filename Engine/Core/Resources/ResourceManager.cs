@@ -1548,71 +1548,81 @@ internal class ResourceManager
         var asset = LoadMeshAsset(guid);
 
         if(asset == null ||
-            asset.meshes.Count == 0 ||
-            index >= asset.meshes.Count)
+            (asset.meshes.Count > 0 &&
+            index >= asset.meshes.Count))
         {
             return null;
         }
 
-        var m = asset.meshes[index];
-
-        mesh = new Mesh(true, false)
+        if (asset.meshes.Count > 0)
         {
-            vertices = m.vertices,
-            normals = m.normals,
-            tangents = m.tangents,
-            bitangents = m.bitangents,
+            var m = asset.meshes[index];
 
-            uv = m.UV1,
-            uv2 = m.UV2,
-            uv3 = m.UV3,
-            uv4 = m.UV4,
-            uv5 = m.UV5,
-            uv6 = m.UV6,
-            uv7 = m.UV7,
-            uv8 = m.UV8,
+            mesh = new Mesh(true, false)
+            {
+                vertices = m.vertices,
+                normals = m.normals,
+                tangents = m.tangents,
+                bitangents = m.bitangents,
 
-            indices = m.indices,
+                uv = m.UV1,
+                uv2 = m.UV2,
+                uv3 = m.UV3,
+                uv4 = m.UV4,
+                uv5 = m.UV5,
+                uv6 = m.UV6,
+                uv7 = m.UV7,
+                uv8 = m.UV8,
 
-            boneIndices = m.boneIndices,
-            boneWeights = m.boneWeights,
+                indices = m.indices,
 
-            meshTopology = m.topology,
-            indexFormat = MeshIndexFormat.UInt32,
-            bounds = m.bounds,
+                boneIndices = m.boneIndices,
+                boneWeights = m.boneWeights,
 
-            meshAsset = asset,
-            meshAssetIndex = index,
-        };
+                meshTopology = m.topology,
+                indexFormat = MeshIndexFormat.UInt32,
+                bounds = m.bounds,
+
+                meshAsset = asset,
+                meshAssetIndex = index,
+            };
+
+            if (m.colors.Length > 0)
+            {
+                mesh.colors = m.colors;
+            }
+
+            if (m.colors2.Length > 0)
+            {
+                mesh.colors2 = m.colors2;
+            }
+
+            if (m.colors3.Length > 0)
+            {
+                mesh.colors3 = m.colors3;
+            }
+
+            if (m.colors4.Length > 0)
+            {
+                mesh.colors4 = m.colors4;
+            }
+
+            foreach (var submesh in m.submeshes)
+            {
+                mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
+            }
+
+            mesh.changed = true;
+        }
+        else
+        {
+            mesh = new Mesh(true, false)
+            {
+                meshAsset = asset,
+            };
+        }
 
         mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original;
-
-        if (m.colors.Length > 0)
-        {
-            mesh.colors = m.colors;
-        }
-
-        if (m.colors2.Length > 0)
-        {
-            mesh.colors2 = m.colors2;
-        }
-
-        if (m.colors3.Length > 0)
-        {
-            mesh.colors3 = m.colors3;
-        }
-
-        if (m.colors4.Length > 0)
-        {
-            mesh.colors4 = m.colors4;
-        }
-
-        foreach (var submesh in m.submeshes)
-        {
-            mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
-        }
-
-        mesh.changed = true;
 
         if(ignoreCache == false)
         {

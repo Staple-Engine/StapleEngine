@@ -949,8 +949,8 @@ internal class ThumbnailCache
         var extension = Path.GetExtension(path);
 
         if (extension.Length == 0 ||
-            (AssetSerialization.TextureExtensions.Contains(extension.Substring(1)) == false &&
-            AssetSerialization.MeshExtensions.Contains(extension.Substring(1)) == false &&
+            (AssetSerialization.TextureExtensions.Contains(extension[1..]) == false &&
+            AssetSerialization.MeshExtensions.Contains(extension[1..]) == false &&
             extension != $".{AssetSerialization.MaterialExtension}"))
         {
             return null;
@@ -972,7 +972,7 @@ internal class ThumbnailCache
 
         var type = RenderRequestType.Thumbnail;
 
-        if(AssetSerialization.MeshExtensions.Contains(extension.Substring(1)))
+        if(AssetSerialization.MeshExtensions.Contains(extension[1..]))
         {
             type = RenderRequestType.Mesh;
 

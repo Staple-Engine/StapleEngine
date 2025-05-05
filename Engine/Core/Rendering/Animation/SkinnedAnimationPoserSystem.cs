@@ -34,14 +34,20 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
+        foreach (var (entity, _, relatedComponent) in entities)
+        {
+            if (relatedComponent is SkinnedAnimationPoser poser)
+            {
+                poser.renderers ??= new(entity, EntityQueryMode.Children, false);
+            }
+        }
     }
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
     {
         timer += Time.deltaTime;
 
-        //TODO: Make screen refresh rate based
-        var shouldUpdate = timer >= 1 / 60.0f;
+        var shouldUpdate = timer >= 1 / Screen.RefreshRate;
 
         if (shouldUpdate == false)
         {
@@ -55,7 +61,7 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
             if (relatedComponent is not SkinnedAnimationPoser poser ||
                 poser.mesh == null ||
                 poser.mesh.meshAsset == null ||
-                poser.mesh.meshAsset.BoneCount == 0)
+                poser.BoneCount == 0)
             {
                 return;
             }
@@ -79,9 +85,9 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
                     .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)poser.mesh.meshAsset.BoneCount);
+                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)poser.BoneCount);
 
-                poser.cachedBoneMatrices = new Matrix4x4[poser.mesh.meshAsset.BoneCount];
+                poser.cachedBoneMatrices = new Matrix4x4[poser.BoneCount];
             }
 
             if (poser.boneUpdateHandle.Valid && poser.boneUpdateHandle.Completed == false)
@@ -91,7 +97,7 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
 
             poser.boneUpdateHandle = JobScheduler.Schedule(new ActionJob(() =>
             {
-                SkinnedMeshRenderSystem.UpdateBoneMatrices(poser.mesh.meshAsset, poser.cachedBoneMatrices, poser.nodeCache);
+                SkinnedMeshRenderSystem.UpdateBoneMatrices(poser.MeshAsset, poser.cachedBoneMatrices, poser.nodeCache);
 
                 ThreadHelper.Dispatch(() =>
                 {

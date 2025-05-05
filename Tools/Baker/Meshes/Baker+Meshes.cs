@@ -1037,11 +1037,20 @@ static partial class Program
                         type = mesh->MNumBones > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
                     };
 
-                    var center = mesh->MAABB.Center;
-                    var size = mesh->MAABB.Size;
+                    {
+                        var center = mesh->MAABB.Center;
+                        var size = mesh->MAABB.Size;
 
-                    m.boundsCenter = ApplyTransform(new Vector3Holder(new Vector3(center.X, center.Y, center.Z)));
-                    m.boundsExtents = ApplyTransform(new Vector3Holder(new Vector3(size.X, size.Y, size.Z)));
+                        var rotation = metadata.rotation switch
+                        {
+                            MeshAssetRotation.NinetyPositive => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * 90),
+                            MeshAssetRotation.NinetyNegative => Matrix4x4.CreateRotationX(Staple.Math.Deg2Rad * -90),
+                            _ => Matrix4x4.Identity,
+                        };
+
+                        m.boundsCenter = ApplyTransform(new Vector3Holder(Vector3.Transform(new Vector3(center.X, center.Y, center.Z), rotation)));
+                        m.boundsExtents = ApplyTransform(new Vector3Holder(Vector3.Transform(new Vector3(size.X, size.Y, size.Z), rotation)));
+                    }
 
                     switch (mesh->MPrimitiveTypes)
                     {
@@ -1080,12 +1089,12 @@ static partial class Program
 
                         if(mesh->MTangents != null)
                         {
-                            tangents.Add(ApplyTransform(new Vector3Holder(mesh->MTangents[j])));
+                            tangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MTangents[j])));
                         }
 
                         if(mesh->MBitangents != null)
                         {
-                            bitangents.Add(ApplyTransform(new Vector3Holder(mesh->MBitangents[j])));
+                            bitangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MBitangents[j])));
                         }
 
                         if(mesh->MNormals != null)

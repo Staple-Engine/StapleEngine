@@ -59,7 +59,8 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 animator.mesh.meshAssetIndex < 0 ||
                 animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
                 (animator.animation?.Length ?? 0) == 0 ||
-                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false)
+                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false ||
+                animator.renderers.Length == 0)
             {
                 return;
             }
@@ -110,9 +111,9 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                             .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
                             .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
                             .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)animator.mesh.meshAsset.BoneCount);
+                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)animator.BoneCount);
 
-                        animator.cachedBoneMatrices = new Matrix4x4[animator.mesh.meshAsset.BoneCount];
+                        animator.cachedBoneMatrices = new Matrix4x4[animator.BoneCount];
                     }
 
                     if(animator.boneUpdateHandle.Valid && animator.boneUpdateHandle.Completed == false)
@@ -122,7 +123,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                     animator.boneUpdateHandle = JobScheduler.Schedule(new ActionJob(() =>
                     {
-                        SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.nodeCache);
+                        SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.MeshAsset, animator.cachedBoneMatrices, animator.nodeCache);
 
                         ThreadHelper.Dispatch(() =>
                         {
