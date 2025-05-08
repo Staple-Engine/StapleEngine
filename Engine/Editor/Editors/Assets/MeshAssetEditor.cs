@@ -24,7 +24,7 @@ internal class MeshAssetEditor : AssetEditor
             return true;
         }
 
-        if(name == nameof(MeshAssetMetadata.frameRate) && t.limitFrameRate == false)
+        if(name == nameof(MeshAssetMetadata.frameRate))
         {
             return true;
         }

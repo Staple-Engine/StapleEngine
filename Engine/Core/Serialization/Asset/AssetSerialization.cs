@@ -85,17 +85,8 @@ internal static partial class AssetSerialization
     /// </summary>
     public static readonly string[] MeshExtensions =
     [
-        "3ds",
-        "ase",
-        "bvh",
-        "dae",
-        "fbx",
         "glb",
         "gltf",
-        "ms3d",
-        "obj",
-        "ply",
-        "stl",
     ];
 
     /// <summary>

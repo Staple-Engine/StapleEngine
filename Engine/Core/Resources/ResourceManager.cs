@@ -1693,7 +1693,6 @@ internal class ResourceManager
             {
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
-                limitFrameRate = meshAssetData.metadata.limitFrameRate,
                 scale = meshAssetData.metadata.scale,
             };
 
@@ -1734,6 +1733,7 @@ internal class ResourceManager
                     name = m.name,
                     topology = m.topology,
                     lighting = asset.lighting,
+                    type = m.type,
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 
@@ -1831,9 +1831,8 @@ internal class ResourceManager
 
                     bones = [m.bones.Select(x => new MeshAsset.Bone()
                     {
-                        name = x.name,
+                        nodeIndex = x.nodeIndex,
                         offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
-                        index = Array.FindIndex(asset.nodes, y => y.name == x.name),
                     }).ToArray()],
                 };
 
@@ -1910,21 +1909,13 @@ internal class ResourceManager
                 {
                     name = a.name,
                     duration = a.duration,
-                    ticksPerSecond = a.ticksPerSecond,
                 };
 
                 foreach(var c in a.channels)
                 {
-                    var nodeIndex = Array.FindIndex(meshAssetData.nodes, (x => x.name == c.nodeName));
-
-                    if(nodeIndex < 0)
-                    {
-                        continue;
-                    }
-
                     var channel = new MeshAsset.AnimationChannel()
                     {
-                        nodeIndex = nodeIndex,
+                        nodeIndex = c.nodeIndex,
                         positions = c.positionKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
                         {
                             time = x.time,

@@ -221,7 +221,7 @@ public sealed partial class Mesh
 
     internal bool HasTangents => (tangents?.Length ?? 0) > 0;
 
-    internal bool HasBitangents => (tangents?.Length ?? 0) > 0;
+    internal bool HasBitangents => (bitangents?.Length ?? 0) > 0;
 
     internal bool HasColors => (colors?.Length ?? 0) > 0;
 

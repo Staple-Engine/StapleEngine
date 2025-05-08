@@ -16,7 +16,7 @@ internal class SkinnedMeshAnimationEvaluator
         get
         {
             return animator.repeat == false &&
-                animator.playTime * animation.ticksPerSecond >= animation.duration;
+                animator.playTime >= animation.duration;
         }
     }
 
@@ -104,7 +104,7 @@ internal class SkinnedMeshAnimationEvaluator
 
         updateTimer = 0;
 
-        var t = animator.playTime * animation.ticksPerSecond;
+        var t = animator.playTime;
         var time = t % animation.duration;
 
         if (animator.repeat == false && t >= animation.duration)
@@ -112,7 +112,7 @@ internal class SkinnedMeshAnimationEvaluator
             time = animation.duration;
         }
 
-        animator.playTime = time / animation.ticksPerSecond;
+        animator.playTime = time;
 
         for (var i = 0; i < animation.channels.Count; i++)
         {

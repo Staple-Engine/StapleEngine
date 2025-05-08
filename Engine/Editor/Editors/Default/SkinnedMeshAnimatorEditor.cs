@@ -77,7 +77,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
                 return $"{seconds}.{milliseconds:0000}";
             }
 
-            EditorGUI.Label($"{TimeString(animator.playTime)} / {TimeString(animation.duration / animation.ticksPerSecond)}");
+            EditorGUI.Label($"{TimeString(animator.playTime)} / {TimeString(animation.duration)}");
 
             if (animator.playTime != newPlaytime)
             {

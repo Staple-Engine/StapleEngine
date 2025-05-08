@@ -1946,7 +1946,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(6);
-            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.nodeName, options);
+            writer.Write(value.nodeIndex);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Serialize(ref writer, value.positionKeys, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>>().Serialize(ref writer, value.rotationKeys, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Serialize(ref writer, value.scaleKeys, options);
@@ -1971,7 +1971,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.nodeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        ____result.nodeIndex = reader.ReadInt32();
                         break;
                     case 1:
                         ____result.positionKeys = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>>().Deserialize(ref reader, options);
@@ -2012,7 +2012,7 @@ namespace MessagePack.Formatters.Staple.Internal
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
-            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
+            writer.Write(value.nodeIndex);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetPosition, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetRotation, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.offsetScale, options);
@@ -2035,7 +2035,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 switch (i)
                 {
                     case 0:
-                        ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        ____result.nodeIndex = reader.ReadInt32();
                         break;
                     case 1:
                         ____result.offsetPosition = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
@@ -2215,7 +2215,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(18);
+            writer.WriteArrayHeader(16);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.makeLeftHanded);
             writer.Write(value.splitLargeMeshes);
@@ -2230,8 +2230,6 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Serialize(ref writer, value.rotation, options);
             writer.Write(value.scale);
-            writer.Write(value.armatureScale);
-            writer.Write(value.limitFrameRate);
             writer.Write(value.frameRate);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
@@ -2295,15 +2293,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.scale = reader.ReadSingle();
                         break;
                     case 14:
-                        ____result.armatureScale = reader.ReadSingle();
-                        break;
-                    case 15:
-                        ____result.limitFrameRate = reader.ReadBoolean();
-                        break;
-                    case 16:
                         ____result.frameRate = reader.ReadInt32();
                         break;
-                    case 17:
+                    case 15:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:

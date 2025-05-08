@@ -92,16 +92,10 @@ public class MeshAssetMetadata
     public float scale = 1.0f;
 
     [Key(14)]
-    public float armatureScale = 1.0f;
-
-    [Key(15)]
-    public bool limitFrameRate = false;
-
-    [Key(16)]
-    public int frameRate = 30;
+    public int frameRate = 60;
 
     [HideInInspector]
-    [Key(17)]
+    [Key(15)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -121,9 +115,7 @@ public class MeshAssetMetadata
             lhs.lighting == rhs.lighting &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
-            lhs.armatureScale == rhs.armatureScale &&
-            lhs.frameRate == rhs.frameRate &&
-            lhs.limitFrameRate == rhs.limitFrameRate;
+            lhs.frameRate == rhs.frameRate;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -143,9 +135,7 @@ public class MeshAssetMetadata
             lhs.lighting != rhs.lighting ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
-            lhs.armatureScale != rhs.armatureScale ||
-            lhs.frameRate != rhs.frameRate ||
-            lhs.limitFrameRate != rhs.limitFrameRate;
+            lhs.frameRate != rhs.frameRate;
     }
 
     public override bool Equals(object obj)
@@ -181,9 +171,7 @@ public class MeshAssetMetadata
         hash.Add(lighting);
         hash.Add(rotation);
         hash.Add(scale);
-        hash.Add(armatureScale);
         hash.Add(frameRate);
-        hash.Add(limitFrameRate);
         hash.Add(typeName);
 
         return hash.ToHashCode();
@@ -194,7 +182,7 @@ public class MeshAssetMetadata
 public class MeshAssetBone
 {
     [Key(0)]
-    public string name;
+    public int nodeIndex;
 
     [Key(1)]
     public Vector3Holder offsetPosition;
@@ -334,7 +322,7 @@ public class MeshAssetQuaternionAnimationKey
 public class MeshAssetAnimationChannel
 {
     [Key(0)]
-    public string nodeName;
+    public int nodeIndex;
 
     [Key(1)]
     public List<MeshAssetVectorAnimationKey> positionKeys = [];

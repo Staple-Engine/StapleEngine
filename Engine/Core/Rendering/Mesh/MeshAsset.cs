@@ -18,22 +18,12 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// Bone name
         /// </summary>
-        public string name;
+        public int nodeIndex;
 
         /// <summary>
         /// Bone offset matrix
         /// </summary>
         public Matrix4x4 offsetMatrix;
-
-        /// <summary>
-        /// The node index
-        /// </summary>
-        public int index;
-
-        public override string ToString()
-        {
-            return name ?? "(invalid)";
-        }
     }
 
     /// <summary>
@@ -596,11 +586,6 @@ public sealed class MeshAsset : IGuidAsset
         public float duration;
 
         /// <summary>
-        /// How many ticks per second
-        /// </summary>
-        public float ticksPerSecond;
-
-        /// <summary>
         /// The channels in this animation
         /// </summary>
         public List<AnimationChannel> channels = [];
@@ -608,7 +593,7 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// The duration in real time
         /// </summary>
-        public float DurationRealtime => duration / ticksPerSecond;
+        public float DurationRealtime => duration;
     }
 
     /// <summary>

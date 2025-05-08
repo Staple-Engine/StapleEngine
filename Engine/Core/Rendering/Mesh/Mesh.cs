@@ -1493,7 +1493,14 @@ public sealed partial class Mesh : IGuidAsset
 
                 var parentIndex = node.parent?.index ?? -1;
 
-                nodeTransform.SetParent(parentIndex >= 0 ? parents[parentIndex] : baseTransform);
+                var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : baseTransform;
+
+                if(node.meshIndices.Any(x => asset.meshes[x].type == MeshAssetType.Skinned))
+                {
+                    nodeTarget = baseTransform;
+                }
+
+                nodeTransform.SetParent(nodeTarget);
 
                 nodeTransform.LocalPosition = node.Position;
                 nodeTransform.LocalRotation = node.Rotation;

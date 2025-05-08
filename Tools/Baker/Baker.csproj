@@ -27,6 +27,9 @@
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
+		<Reference Include="SharpGLTF.Core">
+			<HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
+		</Reference>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
 		</Reference>
@@ -55,7 +58,6 @@
 		<Compile Include="Baker+Folders.cs" />
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
-		<Compile Include="Meshes\AssimpExtensions.cs" />
 		<Compile Include="Meshes\Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
@@ -72,7 +74,6 @@
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 	  <PackageReference Include="System.Text.Json" Version="9.0.4" />
 	</ItemGroup>
 	<ItemGroup>
