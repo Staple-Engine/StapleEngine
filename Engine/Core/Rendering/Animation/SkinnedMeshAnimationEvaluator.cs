@@ -244,6 +244,21 @@ internal class SkinnedMeshAnimationEvaluator
             var scale = GetVector3(channel.scales, ref scaleIndex);
             var rotation = GetQuaternion(channel.rotations, ref rotationIndex);
 
+            if(channel.positions.Count == 0)
+            {
+                position = node.OriginalPosition;
+            }
+
+            if (channel.scales.Count == 0)
+            {
+                scale = node.OriginalScale;
+            }
+
+            if(channel.rotations.Count == 0)
+            {
+                rotation = node.OriginalRotation;
+            }
+
             lastPositionIndex.AddOrSetKey(i, positionIndex);
             lastScaleIndex.AddOrSetKey(i, scaleIndex);
             lastRotationIndex.AddOrSetKey(i, rotationIndex);
