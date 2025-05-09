@@ -52,6 +52,30 @@ internal partial class StapleEditor
 
                 var lastChange = csProjManager.GetLastFileChange(assetsDirectory);
 
+                var editorPath = Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll");
+
+                if (File.Exists(editorPath))
+                {
+                    var date = File.GetLastWriteTime(editorPath);
+
+                    if(date > lastChange)
+                    {
+                        lastChange = date;
+                    }
+                }
+
+                var corePath = Path.Combine(AppContext.BaseDirectory, "StapleCore.dll");
+
+                if (File.Exists(corePath))
+                {
+                    var date = File.GetLastWriteTime(corePath);
+
+                    if (date > lastChange)
+                    {
+                        lastChange = date;
+                    }
+                }
+
                 if (lastChange > gameChange)
                 {
                     Build();

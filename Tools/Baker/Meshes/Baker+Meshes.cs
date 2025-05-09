@@ -741,7 +741,6 @@ static partial class Program
 
                 var nodes = new List<MeshAssetNode>();
 
-                var nodeCounters = new Dictionary<string, int>();
                 var nodeToName = new Dictionary<SharpGLTF.Schema2.Node, string>();
                 var nodeToIndex = new Dictionary<SharpGLTF.Schema2.Node, int>();
                 var localNodes = new Dictionary<int, SharpGLTF.Schema2.Node>();
@@ -751,21 +750,6 @@ static partial class Program
                 void RegisterNode(SharpGLTF.Schema2.Node node, MeshAssetNode parent)
                 {
                    var nodeName = node.Name;
-
-                    if (nodeCounters.TryGetValue(nodeName, out var counter))
-                    {
-                        counter++;
-
-                        nodeCounters.AddOrSetKey(nodeName, counter);
-                    }
-                    else
-                    {
-                        counter = 0;
-
-                        nodeCounters.Add(nodeName, counter);
-                    }
-
-                    nodeName = counter == 0 ? nodeName : $"{nodeName}{counter}";
 
                     var scale = node.LocalTransform.GetDecomposed().Scale;
                     var rotation = node.LocalTransform.GetDecomposed().Rotation;
@@ -788,10 +772,7 @@ static partial class Program
                     nodeToIndex.Add(node, currentIndex);
                     localNodes.Add(currentIndex, node);
 
-                    if (parent != null)
-                    {
-                        parent.children.Add(nodes.Count);
-                    }
+                    parent?.children.Add(nodes.Count);
 
                     nodes.Add(newNode);
 
@@ -889,7 +870,7 @@ static partial class Program
                             var tangents = new List<Vector3Holder>();
                             var bitangents = new List<Vector3Holder>();
                             var indices = new List<int>();
-                            var normals = nor != null ? new Vector3[vertexCount] : [];
+                            var normals = new Vector3[vertexCount];
 
                             var vl = vert.ToArray();
 
@@ -905,6 +886,7 @@ static partial class Program
                                 if (tan != null)
                                 {
                                     var tangent = tan[j].ToVector3();
+
                                     tangents.Add(ApplyNormalTransform(new Vector3Holder(tangent)));
 
                                     if(nor != null)
@@ -922,14 +904,6 @@ static partial class Program
                             }
 
                             indices.AddRange(primitive.GetIndices().Select(x => (int)x));
-
-                            void FlipNormals()
-                            {
-                                for(var i = 0; i < normals.Length; i++)
-                                {
-                                    normals[i] = -normals[i];
-                                }
-                            }
 
                             if (metadata.flipWindingOrder)
                             {
@@ -949,13 +923,13 @@ static partial class Program
                                         {
                                             var flipped = new List<int>();
 
-                                            for (var i = 0; i < indices.Count - 2; i++)
+                                            for (var k = 0; k < indices.Count - 2; k++)
                                             {
-                                                var a = indices[i];
-                                                var b = indices[i + 1];
-                                                var c = indices[i + 2];
+                                                var a = indices[k];
+                                                var b = indices[k + 1];
+                                                var c = indices[k + 2];
 
-                                                if (i % 2 == 0)
+                                                if (k % 2 == 0)
                                                 {
                                                     flipped.AddRange([a, c, b]);
                                                 }
@@ -979,9 +953,9 @@ static partial class Program
 
                                             var first = indices[0];
 
-                                            for (var k = 0; k < indices.Count - 1; k++)
+                                            for (var k = 1; k < indices.Count - 1; k++)
                                             {
-                                                newIndices.AddRange([first, indices[i + 1], indices[i]]);
+                                                newIndices.AddRange([first, indices[k + 1], indices[k]]);
                                             }
 
                                             indices = newIndices;
@@ -998,9 +972,9 @@ static partial class Program
 
                                 var first = indices[0];
 
-                                for (var k = 0; k < indices.Count - 1; k++)
+                                for (var k = 1; k < indices.Count - 1; k++)
                                 {
-                                    newIndices.AddRange([first, indices[i], indices[i + 1]]);
+                                    newIndices.AddRange([first, indices[k], indices[k + 1]]);
                                 }
 
                                 indices = newIndices;
@@ -1089,9 +1063,6 @@ static partial class Program
                                 var boneIndices = new List<Vector4Holder>();
                                 var boneWeights = new List<Vector4Holder>();
 
-                                var vertexBoneWeights = new Dictionary<int, List<float>>();
-                                var boneMapping = new Dictionary<string, int>();
-
                                 var skin = node.Skin;
 
                                 var localBones = new Dictionary<int, int>();
@@ -1101,47 +1072,25 @@ static partial class Program
                                     var boneIndex = bi[j];
                                     var w = bw[j];
 
-                                    boneIndices.Add(new(boneIndex));
-                                    boneWeights.Add(new(w/* / (w.X + w.Y + w.Z + w.W)*/));
-
                                     for (var k = 0; k < 4; k++)
                                     {
                                         var localBoneIndex = bi[j][k];
 
-                                        if(localBones.ContainsKey((int)localBoneIndex) == false)
+                                        if (localBones.TryGetValue((int)localBoneIndex, out var newIndex) == false)
                                         {
-                                            localBones.Add((int)localBoneIndex, localBones.Count);
+                                            newIndex = localBones.Count;
+
+                                            localBones.Add((int)localBoneIndex, newIndex);
                                         }
+
+                                        boneIndex[k] = newIndex;
                                     }
+
+                                    boneIndices.Add(new(boneIndex));
+                                    boneWeights.Add(new(w / (w.X + w.Y + w.Z + w.W)));
                                 }
 
-                                foreach(var pair in localBones)
-                                {
-                                    foreach(var targetIndices in boneIndices)
-                                    {
-                                        if(targetIndices.x == pair.Key)
-                                        {
-                                            targetIndices.x = pair.Value;
-                                        }
-
-                                        if (targetIndices.y == pair.Key)
-                                        {
-                                            targetIndices.y = pair.Value;
-                                        }
-
-                                        if (targetIndices.z == pair.Key)
-                                        {
-                                            targetIndices.z = pair.Value;
-                                        }
-
-                                        if (targetIndices.w == pair.Key)
-                                        {
-                                            targetIndices.w = pair.Value;
-                                        }
-                                    }
-                                }
-
-                                for(var i = 0; i < localBones.Count; i++)
+                                for (var j = 0; j < localBones.Count; j++)
                                 {
                                     m.bones.Add(new());
                                 }
@@ -1183,6 +1132,30 @@ static partial class Program
                     }
                 }
 
+                MeshAssetNode rootNode = null;
+
+                if(metadata.scale != 1 || metadata.convertUnits || metadata.rotation != MeshAssetRotation.None)
+                {
+                    var rotation = metadata.rotation switch
+                    {
+                        MeshAssetRotation.NinetyPositive => Quaternion.CreateFromAxisAngle(new(1, 0, 0), 90 * Staple.Math.Deg2Rad),
+                        MeshAssetRotation.NinetyNegative => Quaternion.CreateFromAxisAngle(new(1, 0, 0), -90 * Staple.Math.Deg2Rad),
+                        _ => Quaternion.Identity,
+                    };
+
+                    var scale = Vector3.One * metadata.scale * (metadata.convertUnits ? 0.01f : 1.0f);
+
+                    rootNode = new()
+                    {
+                        name = "StapleRoot",
+                        position = new(),
+                        rotation = new(rotation),
+                        scale = new(scale),
+                    };
+
+                    nodes.Add(rootNode);
+                }
+
                 foreach(var root in model.DefaultScene.VisualChildren)
                 {
                     RegisterNode(root, null);
@@ -1212,12 +1185,10 @@ static partial class Program
                         name = animation.Name ?? $"Unnamed {++animationCounter}",
                     };
 
-                    var channels = animation.Channels;
-
                     var nodeChannels = new Dictionary<SharpGLTF.Schema2.Node,
                         (List<MeshAssetVectorAnimationKey>, List<MeshAssetQuaternionAnimationKey>, List<MeshAssetVectorAnimationKey>)>();
 
-                    foreach (var channel in channels)
+                    foreach (var channel in animation.Channels)
                     {
                         if (nodeChannels.TryGetValue(channel.TargetNode, out var contents) == false)
                         {
@@ -1300,8 +1271,6 @@ static partial class Program
                         var c = new MeshAssetAnimationChannel()
                         {
                             nodeIndex = nodeToIndex[pair.Key],
-                            preState = MeshAssetAnimationStateBehaviour.Default,
-                            postState = MeshAssetAnimationStateBehaviour.Default,
                             positionKeys = pair.Value.Item1,
                             rotationKeys = pair.Value.Item2,
                             scaleKeys = pair.Value.Item3,

@@ -1693,7 +1693,7 @@ internal class ResourceManager
             {
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
-                scale = meshAssetData.metadata.scale,
+                syncAnimationToRefreshRate = meshAssetData.metadata.syncAnimationToRefreshRate,
             };
 
             asset.Guid.Guid = guid;

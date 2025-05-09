@@ -168,8 +168,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             r.mesh.UploadMeshData();
 
-            r.localBounds = new(r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.LocalScale * (r.mesh.meshAsset?.scale ?? 1));
-            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale * (r.mesh.meshAsset?.scale ?? 1));
+            r.localBounds = new(r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.LocalScale);
+            r.bounds = new AABB(transform.Position + r.mesh.bounds.center, r.mesh.bounds.extents * 2 * transform.Scale);
         }
     }
 

@@ -4,14 +4,6 @@ using System.Collections.Generic;
 
 namespace Staple.Internal;
 
-public enum MeshAssetAnimationStateBehaviour
-{
-    Default,
-    Constant,
-    Linear,
-    Repeat,
-}
-
 public enum MeshAssetType
 {
     Normal,
@@ -53,61 +45,45 @@ public class MeshAssetMetadata
     public string guid;
 
     [Key(1)]
-    public bool makeLeftHanded;
+    public bool flipUVs = false;
 
     [Key(2)]
-    public bool splitLargeMeshes;
-
-    [Key(3)]
-    public bool preTransformVertices;
-
-    [Key(4)]
-    public bool flipUVs = true;
-
-    [Key(5)]
     public bool flipWindingOrder = true;
 
-    [Key(6)]
-    public bool splitByBoneCount;
+    [Key(3)]
+    public bool convertUnits = false;
 
-    [Key(7)]
-    public bool debone;
-
-    [Key(8)]
-    public bool convertUnits = true;
-
-    [Key(9)]
+    [Key(4)]
     public bool regenerateNormals;
 
-    [Key(10)]
+    [Key(5)]
     public bool useSmoothNormals;
 
-    [Key(11)]
+    [Key(6)]
     public MaterialLighting lighting = MaterialLighting.Lit;
 
-    [Key(12)]
+    [Key(7)]
     public MeshAssetRotation rotation;
 
-    [Key(13)]
+    [Key(8)]
     public float scale = 1.0f;
 
-    [Key(14)]
+    [Key(9)]
     public int frameRate = 60;
 
+    [Key(10)]
+    [Tooltip("Whether to sync the animation to the screen refresh rate")]
+    public bool syncAnimationToRefreshRate = false;
+
     [HideInInspector]
-    [Key(15)]
+    [Key(11)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
         return lhs.guid == rhs.guid &&
-            lhs.makeLeftHanded == rhs.makeLeftHanded &&
-            lhs.splitLargeMeshes == rhs.splitLargeMeshes &&
-            lhs.preTransformVertices == rhs.preTransformVertices &&
             lhs.flipUVs == rhs.flipUVs &&
             lhs.flipWindingOrder == rhs.flipWindingOrder &&
-            lhs.splitByBoneCount == rhs.splitByBoneCount &&
-            lhs.debone == rhs.debone &&
             lhs.typeName == rhs.typeName &&
             lhs.convertUnits == rhs.convertUnits &&
             lhs.regenerateNormals == rhs.regenerateNormals &&
@@ -115,19 +91,15 @@ public class MeshAssetMetadata
             lhs.lighting == rhs.lighting &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
-            lhs.frameRate == rhs.frameRate;
+            lhs.frameRate == rhs.frameRate &&
+            lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate;
     }
 
     public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
         return lhs.guid != rhs.guid ||
-            lhs.makeLeftHanded != rhs.makeLeftHanded ||
-            lhs.splitLargeMeshes != rhs.splitLargeMeshes ||
-            lhs.preTransformVertices != rhs.preTransformVertices ||
             lhs.flipUVs != rhs.flipUVs ||
             lhs.flipWindingOrder != rhs.flipWindingOrder ||
-            lhs.splitByBoneCount != rhs.splitByBoneCount ||
-            lhs.debone != rhs.debone ||
             lhs.typeName != rhs.typeName ||
             lhs.convertUnits != rhs.convertUnits ||
             lhs.regenerateNormals != rhs.regenerateNormals ||
@@ -135,7 +107,8 @@ public class MeshAssetMetadata
             lhs.lighting != rhs.lighting ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
-            lhs.frameRate != rhs.frameRate;
+            lhs.frameRate != rhs.frameRate ||
+            lhs.syncAnimationToRefreshRate != rhs.syncAnimationToRefreshRate;
     }
 
     public override bool Equals(object obj)
@@ -158,13 +131,8 @@ public class MeshAssetMetadata
         var hash = new HashCode();
 
         hash.Add(guid);
-        hash.Add(makeLeftHanded);
-        hash.Add(splitLargeMeshes);
-        hash.Add(preTransformVertices);
         hash.Add(flipUVs);
         hash.Add(flipWindingOrder);
-        hash.Add(splitByBoneCount);
-        hash.Add(debone);
         hash.Add(convertUnits);
         hash.Add(regenerateNormals);
         hash.Add(useSmoothNormals);
@@ -332,12 +300,6 @@ public class MeshAssetAnimationChannel
 
     [Key(3)]
     public List<MeshAssetVectorAnimationKey> scaleKeys = [];
-
-    [Key(4)]
-    public MeshAssetAnimationStateBehaviour preState;
-
-    [Key(5)]
-    public MeshAssetAnimationStateBehaviour postState;
 }
 
 [MessagePackObject]

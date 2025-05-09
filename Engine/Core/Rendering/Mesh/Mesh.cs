@@ -1425,8 +1425,6 @@ public sealed partial class Mesh : IGuidAsset
 
         meshTransform.SetParent(parent);
 
-        meshTransform.LocalScale = Vector3.One * (mesh.meshAsset?.scale ?? 1);
-
         var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.meshes[mesh.meshAssetIndex].submeshMaterialGuids
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetSerialization.StandardShaderGUID)];
@@ -1477,6 +1475,8 @@ public sealed partial class Mesh : IGuidAsset
 
         baseTransform.SetParent(parent);
 
+        Transform stapleRootNodeTransform = null;
+
         if ((asset.nodes?.Length ?? 0) > 0)
         {
             var parents = new Transform[asset.nodes.Length];
@@ -1489,15 +1489,20 @@ public sealed partial class Mesh : IGuidAsset
 
                 var nodeTransform = nodeParent.GetComponent<Transform>();
 
+                if(i == 0 && node.name == "StapleRoot")
+                {
+                    stapleRootNodeTransform = nodeTransform;
+                }
+
                 parents[i] = nodeTransform;
 
                 var parentIndex = node.parent?.index ?? -1;
 
-                var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : baseTransform;
+                var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
 
                 if(node.meshIndices.Any(x => asset.meshes[x].type == MeshAssetType.Skinned))
                 {
-                    nodeTarget = baseTransform;
+                    nodeTarget = (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
                 }
 
                 nodeTransform.SetParent(nodeTarget);
@@ -1518,8 +1523,6 @@ public sealed partial class Mesh : IGuidAsset
                     var meshEntity = Entity.Create(mesh.name, typeof(Transform));
 
                     var meshTransform = meshEntity.GetComponent<Transform>();
-
-                    meshTransform.LocalScale = Vector3.One * asset.scale;
 
                     var isSkinned = mesh.bones.Any(x => x.Length > 0);
 

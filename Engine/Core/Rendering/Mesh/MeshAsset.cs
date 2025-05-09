@@ -627,9 +627,9 @@ public sealed class MeshAsset : IGuidAsset
     public int frameRate = 30;
 
     /// <summary>
-    /// The scale of this mesh's renderers
+    /// Whether to sync the animation to the screen refresh rate
     /// </summary>
-    public float scale = 1.0f;
+    public bool syncAnimationToRefreshRate = false;
 
     /// <summary>
     /// 3D bounds of the mesh
