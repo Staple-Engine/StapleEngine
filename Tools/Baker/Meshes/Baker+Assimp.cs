@@ -934,7 +934,7 @@ public partial class Program
                             .ToList();
 
                         m.boneWeights = boneWeights
-                            .Select(x => x.ToHolder())
+                            .Select(x => x.ToHolderNormalized())
                             .ToList();
 
                         if(invalidBones.Count > 0)

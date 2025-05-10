@@ -364,8 +364,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     var bone = bones[k];
 
-                    var localNode = bone.nodeIndex >= 0 && bone.nodeIndex < nodes.Length ?
-                        nodes[bone.nodeIndex] : null;
+                    var renderNode = meshAsset.nodes[bone.nodeIndex];
+
+                    var localIndex = Array.FindIndex(nodes, (x => x.name == renderNode.name));
+
+                    var localNode = localIndex >= 0 && localIndex < nodes.Length ?
+                        nodes[localIndex] : null;
 
                     boneMatrices[m.startBoneIndex + k] = localNode != null ?
                         bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;

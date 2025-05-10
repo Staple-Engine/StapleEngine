@@ -189,11 +189,11 @@ public partial class Program
                 }
 
                 var pieces = new Dictionary<string, string>()
-                    {
-                        { "diffuseColor", "BaseColor" },
-                        { "metallicColor", "MetallicRoughness" },
-                        { "emissiveColor", "Emissive" },
-                    };
+                {
+                    { "diffuseColor", "BaseColor" },
+                    { "metallicColor", "MetallicRoughness" },
+                    { "emissiveColor", "Emissive" },
+                };
 
                 foreach (var pair in pieces)
                 {
@@ -212,13 +212,13 @@ public partial class Program
                 }
 
                 var textures = new Dictionary<string, string>()
-                    {
-                        { "diffuseTexture", "BaseColor" },
-                        { "emissiveTexture", "Emissive" },
-                        { "metallicTexture", "MetallicRoughness" },
-                        { "occlusionTexture", "OcclusionTexture" },
-                        { "normalTexture", "Normal" },
-                    };
+                {
+                    { "diffuseTexture", "BaseColor" },
+                    { "emissiveTexture", "Emissive" },
+                    { "metallicTexture", "MetallicRoughness" },
+                    { "occlusionTexture", "OcclusionTexture" },
+                    { "normalTexture", "Normal" },
+                };
 
                 void AddTexture(string name, bool has, SharpGLTF.Schema2.MaterialChannel slot)
                 {
@@ -605,22 +605,22 @@ public partial class Program
 
                     var texcoords = new IList<Vector2>[]
                     {
-                            primitive.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_1")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_2")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_3")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_4")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_5")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_6")?.AsVector2Array(),
-                            primitive.GetVertexAccessor("TEXCOORD_7")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_1")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_2")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_3")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_4")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_5")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_6")?.AsVector2Array(),
+                        primitive.GetVertexAccessor("TEXCOORD_7")?.AsVector2Array(),
                     };
 
                     var colors = new IList<Vector4>[]
                     {
-                            primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array(),
-                            primitive.GetVertexAccessor("COLOR_1")?.AsVector4Array(),
-                            primitive.GetVertexAccessor("COLOR_2")?.AsVector4Array(),
-                            primitive.GetVertexAccessor("COLOR_3")?.AsVector4Array(),
+                        primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array(),
+                        primitive.GetVertexAccessor("COLOR_1")?.AsVector4Array(),
+                        primitive.GetVertexAccessor("COLOR_2")?.AsVector4Array(),
+                        primitive.GetVertexAccessor("COLOR_3")?.AsVector4Array(),
                     };
 
                     var vertexCount = vert.Count;
@@ -799,14 +799,14 @@ public partial class Program
 
                     var uvs = new List<Vector2Holder>[8]
                     {
-                            m.UV1,
-                            m.UV2,
-                            m.UV3,
-                            m.UV4,
-                            m.UV5,
-                            m.UV6,
-                            m.UV7,
-                            m.UV8,
+                        m.UV1,
+                        m.UV2,
+                        m.UV3,
+                        m.UV4,
+                        m.UV5,
+                        m.UV6,
+                        m.UV7,
+                        m.UV8,
                     };
 
                     for (var j = 0; j < 8; j++)
@@ -1029,9 +1029,21 @@ public partial class Program
                 var c = new MeshAssetAnimationChannel()
                 {
                     nodeIndex = nodeToIndex[pair.Key],
-                    positionKeys = pair.Value.Item1,
-                    rotationKeys = pair.Value.Item2,
-                    scaleKeys = pair.Value.Item3,
+                    positionKeys = pair.Value.Item1.Count > 0 ? pair.Value.Item1 : [new MeshAssetVectorAnimationKey()
+                    {
+                        time = 0,
+                        value = new(pair.Key.LocalTransform.GetDecomposed().Translation),
+                    }],
+                    rotationKeys = pair.Value.Item2.Count > 0 ? pair.Value.Item2 : [new MeshAssetQuaternionAnimationKey()
+                    {
+                        time = 0,
+                        value = new(pair.Key.LocalTransform.GetDecomposed().Rotation),
+                    }],
+                    scaleKeys = pair.Value.Item3.Count > 0 ? pair.Value.Item3 : [new MeshAssetVectorAnimationKey()
+                    {
+                        time = 0,
+                        value = new(pair.Key.LocalTransform.GetDecomposed().Scale),
+                    }],
                 };
 
                 a.channels.Add(c);

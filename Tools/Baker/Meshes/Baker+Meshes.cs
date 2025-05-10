@@ -6,10 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Channels;
 
 namespace Baker;
 
@@ -100,6 +97,19 @@ class Vector4Filler
 
                 break;
         }
+    }
+
+    public Vector4Holder ToHolderNormalized()
+    {
+        var total = x + y + z + w;
+
+        return new()
+        {
+            x = x / total,
+            y = y / total,
+            z = z / total,
+            w = w / total,
+        };
     }
 
     public Vector4Holder ToHolder()
@@ -225,11 +235,11 @@ static partial class Program
 
                 SerializableMeshAsset meshData = null;
 
-                /*if(meshFileName.EndsWith(".gltf.meta") || meshFileName.EndsWith(".glb.meta"))
+                if(meshFileName.EndsWith(".gltf.meta") || meshFileName.EndsWith(".glb.meta"))
                 {
                     meshData = ProcessSharpGLTFMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
                 }
-                else*/
+                else
                 {
                     meshData = ProcessAssimpMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
                 }
