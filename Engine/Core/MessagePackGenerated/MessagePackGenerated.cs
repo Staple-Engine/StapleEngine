@@ -1872,10 +1872,9 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(4);
+            writer.WriteArrayHeader(3);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.duration);
-            writer.Write(value.ticksPerSecond);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Serialize(ref writer, value.channels, options);
         }
 
@@ -1902,9 +1901,6 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.duration = reader.ReadSingle();
                         break;
                     case 2:
-                        ____result.ticksPerSecond = reader.ReadSingle();
-                        break;
-                    case 3:
                         ____result.channels = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Deserialize(ref reader, options);
                         break;
                     default:

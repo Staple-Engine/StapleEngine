@@ -1,4 +1,5 @@
-﻿using Staple.Internal;
+﻿using Newtonsoft.Json;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,11 +21,6 @@ internal class MeshAssetEditor : AssetEditor
         var t = target as MeshAssetMetadata;
 
         if(name == nameof(MeshAssetMetadata.useSmoothNormals) && t.regenerateNormals == false)
-        {
-            return true;
-        }
-
-        if(name == nameof(MeshAssetMetadata.frameRate))
         {
             return true;
         }
@@ -76,22 +72,88 @@ internal class MeshAssetEditor : AssetEditor
             needsLoad = true;
         });
 
-        EditorGUI.SameLine();
-
-        EditorGUI.Button("Recreate Materials", "MeshAssetRecreateMaterials", () =>
+        EditorGUI.Button("Recreate All Materials", "MeshAssetRecreateMaterials", () =>
         {
             try
             {
-                var files = Directory.GetFiles(Path.GetDirectoryName(path), "*.material*");
+                var files = Directory.GetFiles(Path.GetDirectoryName(path), $"*.{AssetSerialization.MaterialExtension}*");
 
                 foreach (var file in files)
                 {
                     File.Delete(file);
                 }
 
-                File.Delete(cachePath);
+                var meshFiles = new List<string>();
+                var cacheFiles = new List<string>();
 
-                ThumbnailCache.ClearSingle(path.Replace(".meta", ""));
+                foreach (var extension in AssetSerialization.MeshExtensions)
+                {
+                    meshFiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(path), $"*.{extension}"));
+                    cacheFiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(cachePath), $"*.{extension}"));
+                }
+
+                foreach (var file in meshFiles)
+                {
+                    ThumbnailCache.ClearSingle(file);
+                }
+
+                foreach (var file in cacheFiles)
+                {
+                    File.Delete(file);
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            EditorUtils.RefreshAssets(false, () =>
+            {
+                meshAsset = null;
+                needsLoad = true;
+            });
+        });
+
+        EditorGUI.Button("Apply settings to All in Folder", "MeshAssetApplyToAll", () =>
+        {
+            try
+            {
+                var meshFiles = new List<string>();
+                var cacheFiles = new List<string>();
+
+                foreach (var extension in AssetSerialization.MeshExtensions)
+                {
+                    meshFiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(path), $"*.{extension}.meta"));
+                    cacheFiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(cachePath), $"*.{extension}"));
+                }
+
+                var newMedata = JsonConvert.DeserializeObject<MeshAssetMetadata>(JsonConvert.SerializeObject(metadata, Formatting.Indented, Tooling.Utilities.JsonSettings));
+
+                foreach (var file in meshFiles)
+                {
+                    try
+                    {
+                        var holder = JsonConvert.DeserializeObject<AssetHolder>(File.ReadAllText(file));
+
+                        if(holder?.guid != null)
+                        {
+                            newMedata.guid = holder.guid;
+
+                            var text = JsonConvert.SerializeObject(newMedata, Formatting.Indented, Tooling.Utilities.JsonSettings);
+
+                            File.WriteAllText(file, text);
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+
+                    ThumbnailCache.ClearSingle(file);
+                }
+
+                foreach (var file in cacheFiles)
+                {
+                    File.Delete(file);
+                }
             }
             catch (Exception)
             {

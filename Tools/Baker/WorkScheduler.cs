@@ -1,6 +1,7 @@
 ﻿using Staple;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Baker;
 
@@ -8,7 +9,7 @@ internal static class WorkScheduler
 {
     private static int taskCount = 0;
     private static int workCount = 0;
-    private static object syncObject = new();
+    private static readonly Lock syncObject = new();
 
     public static void WaitForTasks()
     {
@@ -32,13 +33,13 @@ internal static class WorkScheduler
             workCount++;
         }
 
-        ThreadPool.QueueUserWorkItem((_) =>
+        Task.Run(() =>
         {
             try
             {
                 task();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Error($"Failed to process {fileName}: {e}");
             }

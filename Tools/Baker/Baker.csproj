@@ -58,12 +58,15 @@
 		<Compile Include="Baker+Folders.cs" />
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
+		<Compile Include="Meshes\AssimpExtensions.cs" />
+		<Compile Include="Meshes\Baker+Assimp.cs" />
 		<Compile Include="Meshes\Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />
 		<Compile Include="Baker+Texture.cs" />
 		<Compile Include="Baker.cs" />
+		<Compile Include="Meshes\Baker+SharpGLTF.cs" />
 		<Compile Include="Renderer.cs" />
 		<Compile Include="Shaders\ShaderCompilerType.cs" />
 		<Compile Include="Shaders\ShaderInstancingParameter.cs" />
@@ -74,6 +77,7 @@
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 	  <PackageReference Include="System.Text.Json" Version="9.0.4" />
 	</ItemGroup>
 	<ItemGroup>

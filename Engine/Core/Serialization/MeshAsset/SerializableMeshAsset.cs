@@ -312,9 +312,6 @@ public class MeshAssetAnimation
     public float duration;
 
     [Key(2)]
-    public float ticksPerSecond;
-
-    [Key(3)]
     public List<MeshAssetAnimationChannel> channels = [];
 }
 
