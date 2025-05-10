@@ -7,8 +7,6 @@ internal class LightGizmoEditor : GizmoEditor
 {
     public override void OnGizmo(Entity entity, Transform transform, IComponent component)
     {
-        base.OnGizmo(entity, transform, component);
-
         var start = transform.Position;
         var end = transform.Position + transform.Forward;
 

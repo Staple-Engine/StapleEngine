@@ -8,7 +8,7 @@ namespace Staple.Editor;
 /// <summary>
 /// Editor for gizmos
 /// </summary>
-public class GizmoEditor
+public abstract class GizmoEditor
 {
     private static Type[] editorTypes;
 
@@ -18,9 +18,7 @@ public class GizmoEditor
     /// <param name="entity">The entity</param>
     /// <param name="transform">The entity transform</param>
     /// <param name="component">The component</param>
-    public virtual void OnGizmo(Entity entity, Transform transform, IComponent component)
-    {
-    }
+    public abstract void OnGizmo(Entity entity, Transform transform, IComponent component);
 
     internal static void UpdateEditorTypes()
     {

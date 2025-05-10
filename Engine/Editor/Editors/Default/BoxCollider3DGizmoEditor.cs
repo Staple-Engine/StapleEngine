@@ -5,8 +5,6 @@ internal class BoxCollider3DGizmoEditor : GizmoEditor
 {
     public override void OnGizmo(Entity entity, Transform transform, IComponent component)
     {
-        base.OnGizmo(entity, transform, component);
-
         if(component is not BoxCollider3D box)
         {
             return;
