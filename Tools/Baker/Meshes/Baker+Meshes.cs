@@ -728,6 +728,7 @@ static partial class Program
 
                 Vector3Holder ApplyNormalTransform(Vector3Holder value)
                 {
+                    /*
                     //Must reverse the angle
                     var rotation = metadata.rotation switch
                     {
@@ -737,6 +738,9 @@ static partial class Program
                     };
 
                     return new(Vector3.Normalize(Vector3.TransformNormal(value.ToVector3(), rotation)));
+                    */
+
+                    return value;
                 }
 
                 var nodes = new List<MeshAssetNode>();
