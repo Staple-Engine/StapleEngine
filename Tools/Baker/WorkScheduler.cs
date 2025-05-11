@@ -22,6 +22,8 @@ internal static class WorkScheduler
                     break;
                 }
             }
+
+            Thread.Sleep(25);
         }
     }
 

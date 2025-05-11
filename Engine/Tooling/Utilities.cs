@@ -202,23 +202,38 @@ public class Utilities
     public static void ExecuteAndCollectProcess(Process process, Action<string> messageCallback)
     {
         process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.UseShellExecute = false;
 
-        using var waitHandle = new AutoResetEvent(false);
-
-        process.OutputDataReceived += (sender, args) =>
+        process.OutputDataReceived += (sender, e) =>
         {
-            if (args.Data == null)
+            if (e.Data == null)
             {
-                waitHandle.Set();
-
                 return;
             }
 
-            Log.Info(args.Data);
+            Log.Info(e.Data);
 
             try
             {
-                messageCallback?.Invoke(args.Data);
+                messageCallback?.Invoke(e.Data);
+            }
+            catch (Exception)
+            {
+            }
+        };
+
+        process.ErrorDataReceived += (sender, e) =>
+        {
+            if (e.Data == null)
+            {
+                return;
+            }
+
+            Log.Error(e.Data);
+
+            try
+            {
+                messageCallback?.Invoke(e.Data);
             }
             catch (Exception)
             {
@@ -227,39 +242,63 @@ public class Utilities
 
         process.Start();
 
+        process.BeginErrorReadLine();
         process.BeginOutputReadLine();
 
-        process.WaitForExit(300000);
-
-        waitHandle.WaitOne();
+        while(process.HasExited == false)
+        {
+            Thread.Sleep(25);
+        }
     }
 
     public static void ExecuteAndCollectProcessAsync(Process process, Action<string> messageCallback, Action onFinish)
     {
         process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.UseShellExecute = false;
 
-        process.OutputDataReceived += (sender, args) =>
+        process.OutputDataReceived += (sender, e) =>
         {
-            if (args.Data == null)
+            if(e.Data == null)
             {
                 onFinish?.Invoke();
 
                 return;
             }
 
-            Log.Info(args.Data);
+            Log.Info(e.Data);
 
             try
             {
-                messageCallback?.Invoke(args.Data);
+                messageCallback?.Invoke(e.Data);
             }
-            catch(Exception)
+            catch (Exception)
+            {
+            }
+        };
+
+        process.ErrorDataReceived += (sender, e) =>
+        {
+            if (e.Data == null)
+            {
+                onFinish?.Invoke();
+
+                return;
+            }
+
+            Log.Error(e.Data);
+
+            try
+            {
+                messageCallback?.Invoke(e.Data);
+            }
+            catch (Exception)
             {
             }
         };
 
         process.Start();
 
+        process.BeginErrorReadLine();
         process.BeginOutputReadLine();
     }
 }
