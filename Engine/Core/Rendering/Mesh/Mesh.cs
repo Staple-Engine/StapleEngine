@@ -1500,9 +1500,19 @@ public sealed partial class Mesh : IGuidAsset
 
                 var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
 
-                if(node.meshIndices.Any(x => asset.meshes[x].type == MeshAssetType.Skinned))
+                foreach(var meshIndex in node.meshIndices)
                 {
-                    nodeTarget = (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
+                    if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
+                    {
+                        continue;
+                    }
+
+                    if(asset.meshes[meshIndex].type == MeshAssetType.Skinned)
+                    {
+                        nodeTarget = (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
+
+                        break;
+                    }
                 }
 
                 nodeTransform.SetParent(nodeTarget);

@@ -104,31 +104,55 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                 if(animator.shouldRender)
                 {
-                    if (animator.boneMatrixBuffer?.Disposed ?? true)
+                    foreach(var renderer in animator.renderers.Contents)
                     {
-                        animator.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                            .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                            .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                            .Build(), RenderBufferFlags.ComputeRead, true, (uint)animator.BoneCount);
+                        if(renderer.mesh?.meshAsset == null)
+                        {
+                            continue;
+                        }
 
-                        animator.cachedBoneMatrices = new Matrix4x4[animator.BoneCount];
+                        if(animator.renderInfos.TryGetValue(renderer.mesh.meshAsset.Guid.GuidHash, out var renderInfo) == false)
+                        {
+                            renderInfo = new();
+
+                            animator.renderInfos.Add(renderer.mesh.meshAsset.Guid.GuidHash, renderInfo);
+                        }
+
+                        if (renderInfo.boneMatrixBuffer?.Disposed ?? true)
+                        {
+                            renderInfo.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                                .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                                .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                                .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                                .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                                .Build(), RenderBufferFlags.ComputeRead, true, (uint)renderer.mesh.meshAsset.BoneCount);
+
+                            renderInfo.cachedBoneMatrices = new Matrix4x4[renderer.mesh.meshAsset.BoneCount];
+                        }
                     }
 
-                    if(animator.boneUpdateHandle.Valid && animator.boneUpdateHandle.Completed == false)
+                    if (animator.boneUpdateHandle.Valid && animator.boneUpdateHandle.Completed == false)
                     {
                         animator.boneUpdateHandle.Complete();
                     }
 
                     animator.boneUpdateHandle = JobScheduler.Schedule(new ActionJob(() =>
                     {
-                        SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.MeshAsset, animator.cachedBoneMatrices, animator.nodeCache);
-
-                        ThreadHelper.Dispatch(() =>
+                        foreach(var renderer in animator.renderers.Contents)
                         {
-                            animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
-                        });
+                            if(renderer.mesh?.meshAsset?.Guid?.GuidHash == null ||
+                                animator.renderInfos.TryGetValue(renderer.mesh.meshAsset.Guid.GuidHash, out var renderInfo) == false)
+                            {
+                                continue;
+                            }
+
+                            SkinnedMeshRenderSystem.UpdateBoneMatrices(renderer.mesh.meshAsset, renderInfo.cachedBoneMatrices, animator.nodeCache);
+
+                            ThreadHelper.Dispatch(() =>
+                            {
+                                renderInfo.boneMatrixBuffer.Update(renderInfo.cachedBoneMatrices.AsSpan(), 0, true);
+                            });
+                        }
                     }));
                 }
             }

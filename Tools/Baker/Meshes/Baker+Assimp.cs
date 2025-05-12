@@ -27,7 +27,8 @@ public partial class Program
             Silk.NET.Assimp.PostProcessSteps.LimitBoneWeights |
             Silk.NET.Assimp.PostProcessSteps.ImproveCacheLocality |
             Silk.NET.Assimp.PostProcessSteps.FindDegenerates |
-            Silk.NET.Assimp.PostProcessSteps.FindInvalidData;
+            Silk.NET.Assimp.PostProcessSteps.FindInvalidData |
+            Silk.NET.Assimp.PostProcessSteps.SortByPrimitiveType;
 
         if(metadata.flipUVs)
         {
@@ -718,235 +719,233 @@ public partial class Program
         meshData.nodes = nodes.ToArray();
 
         #region Meshes
-        foreach (var node in meshData.nodes)
+        foreach (var mesh in scene->GetMeshes())
         {
-            if (node.meshIndices.Count > 0)
+            var m = new MeshAssetMeshInfo
             {
-                foreach (var meshIndex in node.meshIndices)
+                name = mesh->MName.AsString,
+                materialGuid = mesh->MMaterialIndex >= 0 && mesh->MMaterialIndex < materialMapping.Count ? materialMapping[(int)mesh->MMaterialIndex] : "",
+                type = mesh->MNumBones > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
+            };
+
+            {
+                var center = mesh->MAABB.Center;
+                var size = mesh->MAABB.Size * 2;
+
+                m.boundsCenter = new Vector3Holder(new Vector3(center.X, center.Y, center.Z));
+                m.boundsExtents = new Vector3Holder(new Vector3(size.X, size.Y, size.Z));
+            }
+
+            switch (mesh->MPrimitiveTypes)
+            {
+                case (uint)Silk.NET.Assimp.PrimitiveType.Triangle:
+
+                    m.topology = MeshTopology.Triangles;
+
+                    break;
+
+                case (uint)Silk.NET.Assimp.PrimitiveType.Line:
+
+                    m.topology = MeshTopology.Lines;
+
+                    break;
+
+                case (uint)Silk.NET.Assimp.PrimitiveType.Point:
+
+                    m.topology = MeshTopology.Points;
+
+                    break;
+
+                default:
+
+                    Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} has incompatible primitive type 0x{mesh->MPrimitiveTypes:X}");
+
+                    break;
+            }
+
+            var vertexCount = mesh->MNumVertices;
+
+            var vertices = new List<Vector3Holder>();
+            var tangents = new List<Vector3Holder>();
+            var bitangents = new List<Vector3Holder>();
+            var indices = new List<int>();
+            var normals = new Vector3[vertexCount];
+
+            for (var j = 0; j < vertexCount; j++)
+            {
+                vertices.Add(ApplyTransform(new Vector3Holder(mesh->MVertices[j])));
+
+                if (mesh->MTangents != null)
                 {
-                    var mesh = scene->MMeshes[meshIndex];
+                    tangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MTangents[j])));
+                }
 
-                    var m = new MeshAssetMeshInfo
-                    {
-                        name = mesh->MName.AsString,
-                        materialGuid = mesh->MMaterialIndex >= 0 && mesh->MMaterialIndex < materialMapping.Count ? materialMapping[(int)mesh->MMaterialIndex] : "",
-                        type = mesh->MNumBones > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
-                    };
+                if(mesh->MBitangents != null)
+                {
+                    bitangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MBitangents[j])));
+                }
 
-                    {
-                        var center = mesh->MAABB.Center;
-                        var size = mesh->MAABB.Size * 2;
-
-                        m.boundsCenter = new Vector3Holder(new Vector3(center.X, center.Y, center.Z));
-                        m.boundsExtents = new Vector3Holder(new Vector3(size.X, size.Y, size.Z));
-                    }
-
-                    switch (mesh->MPrimitiveTypes)
-                    {
-                        case (uint)Silk.NET.Assimp.PrimitiveType.Triangle:
-
-                            m.topology = MeshTopology.Triangles;
-
-                            break;
-
-                        case (uint)Silk.NET.Assimp.PrimitiveType.Line:
-
-                            m.topology = MeshTopology.Lines;
-
-                            break;
-
-                        case (uint)Silk.NET.Assimp.PrimitiveType.Point:
-
-                            m.topology = MeshTopology.Points;
-
-                            break;
-
-                        default:
-
-                            continue;
-                    }
-
-                    var vertexCount = mesh->MNumVertices;
-
-                    var vertices = new List<Vector3Holder>();
-                    var tangents = new List<Vector3Holder>();
-                    var bitangents = new List<Vector3Holder>();
-                    var indices = new List<int>();
-                    var normals = new Vector3[vertexCount];
-
-                    for (var j = 0; j < vertexCount; j++)
-                    {
-                        vertices.Add(ApplyTransform(new Vector3Holder(mesh->MVertices[j])));
-
-                        if (mesh->MTangents != null)
-                        {
-                            tangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MTangents[j])));
-                        }
-
-                        if(mesh->MBitangents != null)
-                        {
-                            bitangents.Add(ApplyNormalTransform(new Vector3Holder(mesh->MBitangents[j])));
-                        }
-
-                        if (mesh->MNormals != null)
-                        {
-                            normals[j] = mesh->MNormals[j];
-                        }
-                    }
-
-                    var faces = mesh->GetFaces();
-
-                    foreach(var face in faces)
-                    {
-                        indices.AddRange(face.GetIndices());
-                    }
-
-                    for (var k = 0; k < 4; k++)
-                    {
-                        if (mesh->TryGetColors(k, out var c))
-                        {
-                            switch (k)
-                            {
-                                case 0:
-
-                                    m.colors.AddRange(c);
-
-                                    break;
-
-                                case 1:
-
-                                    m.colors2.AddRange(c);
-
-                                    break;
-
-                                case 2:
-
-                                    m.colors3.AddRange(c);
-
-                                    break;
-
-                                case 3:
-
-                                    m.colors4.AddRange(c);
-
-                                    break;
-                            }
-                        }
-                    }
-
-                    m.vertices = vertices;
-
-                    m.tangents = tangents;
-
-                    m.bitangents = bitangents;
-
-                    m.indices = indices;
-
-                    if (metadata.regenerateNormals)
-                    {
-                        var v = m.vertices
-                            .Select(x => x.ToVector3())
-                            .ToArray();
-
-                        normals = Mesh.GenerateNormals(v, CollectionsMarshal.AsSpan(m.indices), metadata.useSmoothNormals);
-                    }
-
-                    m.normals = normals
-                        .Select(x => ApplyNormalTransform(new Vector3Holder(x)))
-                        .ToList();
-
-                    var uvs = new List<Vector2Holder>[8]
-                    {
-                        m.UV1,
-                        m.UV2,
-                        m.UV3,
-                        m.UV4,
-                        m.UV5,
-                        m.UV6,
-                        m.UV7,
-                        m.UV8,
-                    };
-
-                    for (var j = 0; j < 8; j++)
-                    {
-                        if (mesh->TryGetTexCoords(j, out var uv))
-                        {
-                            uvs[j].AddRange(uv);
-                        }
-                    }
-
-                    if (mesh->MNumBones > 0)
-                    {
-                        var boneIndices = new List<Vector4Filler>();
-                        var boneWeights = new List<Vector4Filler>();
-
-                        for(var j = 0; j < mesh->MNumVertices; j++)
-                        {
-                            boneIndices.Add(new());
-                            boneWeights.Add(new());
-                        }
-
-                        var bones = mesh->GetBones();
-
-                        var invalidBones = new HashSet<string>();
-
-                        for(var j = 0; j < bones.Length; j++)
-                        {
-                            var bone = bones[j];
-
-                            Matrix4x4.Decompose(Matrix4x4.Transpose(bone->MOffsetMatrix), out var scale, out var rotation, out var translation);
-
-                            var validBone = true;
-
-                            if(nodeToIndex.TryGetValue((nint)bone->MNode, out var nodeIndex) == false)
-                            {
-                                invalidBones.Add(bone->MName.AsString);
-
-                                validBone = false;
-
-                                nodeIndex = -1;
-                            }
-
-                            m.bones.Add(new()
-                            {
-                                nodeIndex = nodeIndex,
-                                offsetPosition = new(translation),
-                                offsetScale = new(scale),
-                                offsetRotation = new(rotation),
-                            });
-
-                            var weights = bone->GetWeights();
-
-                            for(var k = 0; k < weights.Length; k++)
-                            {
-                                var item = weights[k];
-
-                                var boneIndex = boneIndices[(int)item.MVertexId];
-                                var boneWeight = boneWeights[(int)item.MVertexId];
-
-                                boneIndex.Add(j);
-                                boneWeight.Add(validBone ? item.MWeight : 0);
-                            }
-                        }
-
-                        m.boneIndices = boneIndices
-                            .Select(x => x.ToHolder())
-                            .ToList();
-
-                        m.boneWeights = boneWeights
-                            .Select(x => x.ToHolderNormalized())
-                            .ToList();
-
-                        if(invalidBones.Count > 0)
-                        {
-                            Console.WriteLine($"\t\t\tWARNING: {mesh->MName.AsString} of {Path.GetFileName(meshFileName)} has an invalid bones: " +
-                                $"{string.Join(", ", invalidBones)}");
-                        }
-                    }
-
-                    meshData.meshes.Add(m);
+                if (mesh->MNormals != null)
+                {
+                    normals[j] = mesh->MNormals[j];
                 }
             }
+
+            var faces = mesh->GetFaces();
+
+            foreach(var face in faces)
+            {
+                indices.AddRange(face.GetIndices());
+            }
+
+            for (var k = 0; k < 4; k++)
+            {
+                if (mesh->TryGetColors(k, out var c))
+                {
+                    switch (k)
+                    {
+                        case 0:
+
+                            m.colors.AddRange(c);
+
+                            break;
+
+                        case 1:
+
+                            m.colors2.AddRange(c);
+
+                            break;
+
+                        case 2:
+
+                            m.colors3.AddRange(c);
+
+                            break;
+
+                        case 3:
+
+                            m.colors4.AddRange(c);
+
+                            break;
+                    }
+                }
+            }
+
+            m.vertices = vertices;
+
+            m.tangents = tangents;
+
+            m.bitangents = bitangents;
+
+            m.indices = indices;
+
+            if (metadata.regenerateNormals)
+            {
+                var v = m.vertices
+                    .Select(x => x.ToVector3())
+                    .ToArray();
+
+                normals = Mesh.GenerateNormals(v, CollectionsMarshal.AsSpan(m.indices), metadata.useSmoothNormals);
+            }
+
+            m.normals = normals
+                .Select(x => ApplyNormalTransform(new Vector3Holder(x)))
+                .ToList();
+
+            var uvs = new List<Vector2Holder>[8]
+            {
+                m.UV1,
+                m.UV2,
+                m.UV3,
+                m.UV4,
+                m.UV5,
+                m.UV6,
+                m.UV7,
+                m.UV8,
+            };
+
+            for (var j = 0; j < 8; j++)
+            {
+                if (mesh->TryGetTexCoords(j, out var uv))
+                {
+                    uvs[j].AddRange(uv);
+                }
+            }
+
+            if (mesh->MNumBones > 0)
+            {
+                var boneIndices = new List<Vector4Filler>();
+                var boneWeights = new List<Vector4Filler>();
+
+                for(var j = 0; j < mesh->MNumVertices; j++)
+                {
+                    boneIndices.Add(new());
+                    boneWeights.Add(new());
+                }
+
+                var bones = mesh->GetBones();
+
+                var invalidBones = new HashSet<string>();
+
+                for(var j = 0; j < bones.Length; j++)
+                {
+                    var bone = bones[j];
+
+                    Matrix4x4.Decompose(Matrix4x4.Transpose(bone->MOffsetMatrix), out var scale, out var rotation, out var translation);
+
+                    var boneNode = FindNode(scene->MRootNode, bone->MName.AsString);
+
+                    var validBone = boneNode != null;
+
+                    var nodeIndex = -1;
+
+                    if(nodeToIndex.TryGetValue((nint)boneNode, out nodeIndex) == false)
+                    {
+                        invalidBones.Add(bone->MName.AsString);
+
+                        validBone = false;
+
+                        nodeIndex = -1;
+                    }
+
+                    m.bones.Add(new()
+                    {
+                        nodeIndex = nodeIndex,
+                        offsetPosition = new(translation),
+                        offsetScale = new(scale),
+                        offsetRotation = new(rotation),
+                    });
+
+                    var weights = bone->GetWeights();
+
+                    for(var k = 0; k < weights.Length; k++)
+                    {
+                        var item = weights[k];
+
+                        var boneIndex = boneIndices[(int)item.MVertexId];
+                        var boneWeight = boneWeights[(int)item.MVertexId];
+
+                        boneIndex.Add(j);
+                        boneWeight.Add(validBone ? item.MWeight : 0);
+                    }
+                }
+
+                m.boneIndices = boneIndices
+                    .Select(x => x.ToHolder())
+                    .ToList();
+
+                m.boneWeights = boneWeights
+                    .Select(x => x.ToHolderNormalized())
+                    .ToList();
+
+                if(invalidBones.Count > 0)
+                {
+                    Console.WriteLine($"\t\t\tWARNING: {mesh->MName.AsString} of {Path.GetFileName(meshFileName)} has an invalid bones: " +
+                        $"{string.Join(", ", invalidBones)}");
+                }
+            }
+
+            meshData.meshes.Add(m);
         }
         #endregion
 

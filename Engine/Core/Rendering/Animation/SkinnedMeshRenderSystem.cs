@@ -324,7 +324,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var flags = bgfx.DiscardFlags.State;
 
-                var buffer = useAnimator ? animator.boneMatrixBuffer :
+                var buffer = useAnimator ? animator.GetBoneMatrixBuffer(meshAsset.Guid.GuidHash) :
                     usePoser ? poser.boneMatrixBuffer :
                     cache.boneBuffer;
 
