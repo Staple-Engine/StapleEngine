@@ -93,6 +93,7 @@ public partial class Shader : IGuidAsset
 
         public byte[] vertexShaderSource;
         public byte[] fragmentShaderSource;
+        public byte[] computeShaderSource;
     }
 
     internal readonly ShaderMetadata metadata;
@@ -137,6 +138,7 @@ public partial class Shader : IGuidAsset
                 keyPieces = pair.Key.Split(' ').Select(x => x.GetHashCode()).ToArray(),
                 fragmentShaderSource = pair.Value.fragmentShader,
                 vertexShaderSource = pair.Value.vertexShader,
+                computeShaderSource = pair.Value.computeShader,
             });
         }
 
@@ -184,44 +186,72 @@ public partial class Shader : IGuidAsset
     {
         foreach(var pair in instances)
         {
-            bgfx.Memory* vs, fs;
-
-            fixed (void* ptr = pair.Value.vertexShaderSource)
+            if(metadata.type == ShaderType.VertexFragment)
             {
-                vs = bgfx.copy(ptr, (uint)pair.Value.vertexShaderSource.Length);
-            }
+                bgfx.Memory* vs, fs;
 
-            fixed (void* ptr = pair.Value.fragmentShaderSource)
-            {
-                fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
-            }
+                fixed (void* ptr = pair.Value.vertexShaderSource)
+                {
+                    vs = bgfx.copy(ptr, (uint)pair.Value.vertexShaderSource.Length);
+                }
 
-            var vertexShader = bgfx.create_shader(vs);
-            var fragmentShader = bgfx.create_shader(fs);
+                fixed (void* ptr = pair.Value.fragmentShaderSource)
+                {
+                    fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
+                }
 
-            if (vertexShader.Valid == false || fragmentShader.Valid == false)
-            {
-                if (vertexShader.Valid)
+                var vertexShader = bgfx.create_shader(vs);
+                var fragmentShader = bgfx.create_shader(fs);
+
+                if (vertexShader.Valid == false || fragmentShader.Valid == false)
+                {
+                    if (vertexShader.Valid)
+                    {
+                        bgfx.destroy_shader(vertexShader);
+                    }
+
+                    if (fragmentShader.Valid)
+                    {
+                        bgfx.destroy_shader(fragmentShader);
+                    }
+
+                    return false;
+                }
+
+                pair.Value.program = bgfx.create_program(vertexShader, fragmentShader, true);
+
+                if (pair.Value.program.Valid == false)
                 {
                     bgfx.destroy_shader(vertexShader);
-                }
-
-                if (fragmentShader.Valid)
-                {
                     bgfx.destroy_shader(fragmentShader);
+
+                    return false;
+                }
+            }
+            else
+            {
+                bgfx.Memory* cs = null;
+
+                fixed (void* ptr = pair.Value.computeShaderSource)
+                {
+                    cs = bgfx.copy(ptr, (uint)pair.Value.computeShaderSource.Length);
                 }
 
-                return false;
-            }
+                var computeShader = bgfx.create_shader(cs);
 
-            pair.Value.program = bgfx.create_program(vertexShader, fragmentShader, true);
+                if (computeShader.Valid == false)
+                {
+                    return false;
+                }
 
-            if (pair.Value.program.Valid == false)
-            {
-                bgfx.destroy_shader(vertexShader);
-                bgfx.destroy_shader(fragmentShader);
+                pair.Value.program = bgfx.create_compute_program(computeShader, true);
 
-                return false;
+                if (pair.Value.program.Valid == false)
+                {
+                    bgfx.destroy_shader(computeShader);
+
+                    return false;
+                }
             }
         }
 

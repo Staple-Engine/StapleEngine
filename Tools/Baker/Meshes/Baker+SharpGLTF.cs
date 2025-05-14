@@ -17,9 +17,37 @@ public partial class Program
     {
         SharpGLTF.Schema2.ModelRoot model = null;
 
+        var textureData = new RawTextureData()
+        {
+            colorComponents = StandardTextureColorComponents.RGB,
+            data = new byte[256 * 256 * 3],
+            width = 256,
+            height = 256,
+        };
+
+        var placeholder = new ArraySegment<byte>(textureData.EncodePNG());
+
+        var directoryName = Path.GetDirectoryName(meshFileName);
+
+        ArraySegment<byte> FileReader(string assetName)
+        {
+            assetName = Uri.UnescapeDataString(assetName);
+
+            var filePath = Path.Combine(directoryName, assetName);
+
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllBytes(filePath);
+            }
+
+            return placeholder;
+        }
+
         try
         {
-            model = SharpGLTF.Schema2.ModelRoot.Load(meshFileName);
+            var context = SharpGLTF.Schema2.ReadContext.Create(FileReader);
+
+            model = SharpGLTF.Schema2.ModelRoot.Load(Path.GetFileName(meshFileName), context);
 
             if (model == null)
             {

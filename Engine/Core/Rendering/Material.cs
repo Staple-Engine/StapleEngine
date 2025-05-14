@@ -323,6 +323,7 @@ public sealed class Material : IGuidAsset
     /// </summary>
     internal bgfx.ProgramHandle ShaderProgram => shader != null &&
         shader.Disposed == false &&
+        shader.metadata.type == ShaderType.VertexFragment &&
         shader.instances.TryGetValue(ShaderVariantKey, out var instance) ?
         instance.program : new()
         {

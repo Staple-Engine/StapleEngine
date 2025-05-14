@@ -1838,7 +1838,29 @@ internal class ResourceManager
 
                 for (var i = 0; i < newMesh.boneIndices.Length; i++)
                 {
-                    newMesh.boneIndices[i] += new Vector4(startBoneIndex);
+                    var index = newMesh.boneIndices[i];
+                    
+                    if(index.X >= 0)
+                    {
+                        index.X += startBoneIndex;
+                    }
+
+                    if (index.Y >= 0)
+                    {
+                        index.Y += startBoneIndex;
+                    }
+
+                    if (index.Z >= 0)
+                    {
+                        index.Z += startBoneIndex;
+                    }
+
+                    if (index.W >= 0)
+                    {
+                        index.W += startBoneIndex;
+                    }
+
+                    newMesh.boneIndices[i] = index;
                 }
 
                 startBoneIndex += newMesh.bones[0].Length;

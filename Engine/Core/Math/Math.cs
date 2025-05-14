@@ -12,6 +12,8 @@ public static class Math
 
     public const float Epsilon = float.Epsilon;
 
+    public const float ZeroTolerance = 1e-4f;
+
     public const float Deg2Rad = PI / 180;
     public const float Rad2Deg = 180 / PI;
 
@@ -468,4 +470,25 @@ public static class Math
 
         return outValue;
     }
+
+    public static bool IsCloseToIdentity(this Matrix4x4 matrix)
+    {
+        return Abs(matrix.M11 - 1f) < ZeroTolerance &&
+            Abs(matrix.M22 - 1f) < ZeroTolerance &&
+            Abs(matrix.M33 - 1f) < ZeroTolerance &&
+            Abs(matrix.M44 - 1f) < ZeroTolerance &&
+            Abs(matrix.M12) < ZeroTolerance &&
+            Abs(matrix.M13) < ZeroTolerance &&
+            Abs(matrix.M14) < ZeroTolerance &&
+            Abs(matrix.M21) < ZeroTolerance &&
+            Abs(matrix.M23) < ZeroTolerance &&
+            Abs(matrix.M24) < ZeroTolerance &&
+            Abs(matrix.M31) < ZeroTolerance &&
+            Abs(matrix.M32) < ZeroTolerance &&
+            Abs(matrix.M34) < ZeroTolerance &&
+            Abs(matrix.M41) < ZeroTolerance &&
+            Abs(matrix.M42) < ZeroTolerance &&
+            Abs(matrix.M43) < ZeroTolerance;
+    }
+
 }

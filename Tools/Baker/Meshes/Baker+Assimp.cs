@@ -27,8 +27,7 @@ public partial class Program
             Silk.NET.Assimp.PostProcessSteps.LimitBoneWeights |
             Silk.NET.Assimp.PostProcessSteps.ImproveCacheLocality |
             Silk.NET.Assimp.PostProcessSteps.FindDegenerates |
-            Silk.NET.Assimp.PostProcessSteps.FindInvalidData |
-            Silk.NET.Assimp.PostProcessSteps.SortByPrimitiveType;
+            Silk.NET.Assimp.PostProcessSteps.FindInvalidData;
 
         if(metadata.flipUVs)
         {
@@ -44,7 +43,12 @@ public partial class Program
 
         try
         {
-            scene = assimp.ImportFile(meshFileName, 0);
+            var store = assimp.CreatePropertyStore();
+
+            assimp.SetImportPropertyInteger(store, "IMPORT_FBX_PRESERVE_PIVOTS", 0);
+            assimp.SetImportPropertyInteger(store, "PP_LBW_MAX_WEIGHTS", 4);
+
+            scene = assimp.ImportFileExWithProperties(meshFileName, 0, null, store);
 
             /*
             var upAxis = 1;
@@ -744,23 +748,13 @@ public partial class Program
 
                     break;
 
-                case (uint)Silk.NET.Assimp.PrimitiveType.Line:
-
-                    m.topology = MeshTopology.Lines;
-
-                    break;
-
-                case (uint)Silk.NET.Assimp.PrimitiveType.Point:
-
-                    m.topology = MeshTopology.Points;
-
-                    break;
-
                 default:
 
-                    Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} has incompatible primitive type 0x{mesh->MPrimitiveTypes:X}");
+                    Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} isn't composed of only triangles, adding as empty mesh...");
 
-                    break;
+                    meshData.meshes.Add(m);
+
+                    continue;
             }
 
             var vertexCount = mesh->MNumVertices;

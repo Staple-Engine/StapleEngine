@@ -2,21 +2,103 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(MaterialMetadata))]
 internal class MaterialEditor : AssetEditor
 {
-    private Dictionary<string, Shader> cachedShaders = new();
-    private Dictionary<string, Texture> cachedTextures = new();
+    private readonly Dictionary<string, Shader> cachedShaders = [];
+    private readonly Dictionary<string, Texture> cachedTextures = [];
     private Shader activeShader;
+    private bool needsShaderUpdate = true;
 
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var material = target as MaterialMetadata;
 
-        switch(name)
+        var shaderPath = material.shader;
+        Shader shader = null;
+
+        if (shaderPath != null)
+        {
+            if (cachedShaders.TryGetValue(shaderPath, out shader) == false)
+            {
+                if (shaderPath.Length > 0)
+                {
+                    var guid = AssetDatabase.GetAssetGuid(shaderPath, ResourceManager.ShaderPrefix);
+
+                    if (guid != null)
+                    {
+                        shaderPath = guid;
+                    }
+
+                    shader = ResourceManager.instance.LoadShader(shaderPath);
+
+                    cachedShaders.AddOrSetKey(shaderPath, shader);
+
+                    if (shader != null)
+                    {
+                        material.shader = shader.Guid.Guid;
+                    }
+
+                    if(activeShader != shader)
+                    {
+                        needsShaderUpdate = true;
+                    }
+
+                    activeShader = shader;
+                }
+            }
+        }
+
+        if(activeShader != null && needsShaderUpdate)
+        {
+            needsShaderUpdate = false;
+
+            foreach(var uniform in activeShader.metadata.uniforms)
+            {
+                var isValidType = uniform.type switch
+                {
+                     ShaderUniformType.ReadOnlyBuffer or
+                     ShaderUniformType.ReadWriteBuffer or
+                     ShaderUniformType.WriteOnlyBuffer or
+                     ShaderUniformType.Matrix3x3 or
+                     ShaderUniformType.Matrix4x4 => false,
+                     _ => true,
+                };
+
+                if(isValidType == false)
+                {
+                    continue;
+                }
+
+                if(material.parameters.TryGetValue(uniform.name, out var parameter) == false)
+                {
+                    parameter = new()
+                    {
+                        source = MaterialParameterSource.Uniform,
+                    };
+
+                    material.parameters.Add(uniform.name, parameter);
+                }
+
+                parameter.type = uniform.type switch
+                {
+                    ShaderUniformType.Vector2 => MaterialParameterType.Vector2,
+                    ShaderUniformType.Vector3 => MaterialParameterType.Vector3,
+                    ShaderUniformType.Vector4 => MaterialParameterType.Vector4,
+                    ShaderUniformType.Texture => MaterialParameterType.Texture,
+                    ShaderUniformType.Color => MaterialParameterType.Color,
+                    ShaderUniformType.Int => MaterialParameterType.Int,
+                    ShaderUniformType.Float => MaterialParameterType.Float,
+                    _ => throw new ArgumentOutOfRangeException($"Material Autocomplete: Uniform type for {uniform.name}")
+                };
+            }
+        }
+
+        switch (name)
         {
             case nameof(MaterialMetadata.parameters):
 
@@ -174,37 +256,7 @@ internal class MaterialEditor : AssetEditor
             case nameof(MaterialMetadata.shader):
 
                 {
-                    var key = material.shader;
-                    Shader shader = null;
-
-                    if(key != null)
-                    {
-                        if (cachedShaders.TryGetValue(key, out shader) == false)
-                        {
-                            if(key.Length > 0)
-                            {
-                                var guid = AssetDatabase.GetAssetGuid(key, ResourceManager.ShaderPrefix);
-
-                                if(guid != null)
-                                {
-                                    key = guid;
-                                }
-
-                                shader = ResourceManager.instance.LoadShader(key);
-
-                                cachedShaders.AddOrSetKey(key, shader);
-
-                                if(shader != null)
-                                {
-                                    material.shader = shader.Guid.Guid;
-                                }
-
-                                activeShader = shader;
-                            }
-                        }
-                    }
-
-                    var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader, $"{material.guid}.{key}.Picker");
+                    var newValue = EditorGUI.ObjectPicker(typeof(Shader), "Shader: ", shader, $"{material.guid}.{shaderPath}.Picker");
 
                     if (newValue != shader)
                     {
