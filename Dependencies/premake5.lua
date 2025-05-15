@@ -5,6 +5,7 @@ local BX_DIR = "bx"
 local GLFW_DIR = "glfw"
 local GLFWNET_DIR = "glfw-net"
 local SUPPORT_DIR = "StapleSupport"
+local UFBX_DIR = "ufbx"
 
 solution "Dependencies"
 	location(BUILD_DIR)
@@ -238,3 +239,18 @@ project "StapleSupport"
 		files { path.join(SUPPORT_DIR, "*.m") }
 
 		links { "QuartzCore.framework" }
+
+project "ufbx"
+	kind "SharedLib"
+	language "C"
+	
+	includedirs {
+		"ufbx"
+	}
+
+	files {
+		path.join(UFBX_DIR, "*.c");
+	}
+
+	filter "action:vs*"
+		defines { "ufbx_abi=__declspec(dllexport)", "ufbx_abi_data=__declspec(dllexport)", "UFBX_REAL_IS_FLOAT" }

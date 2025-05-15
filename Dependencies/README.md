@@ -111,6 +111,12 @@
 - Version: 1.0.4 (5c4bd9643aef7c600304eac85b1325bb249feb70, 2025)
 - License: MIT
 
+## ufbx
+
+- Upstream: https://github.com/ufbx/ufbx
+- Version: 0.18.2 (5b5494b9b6c2cdb0fc0ae873bdbf8718cdeb85af, 2025)
+- License: MIT
+
 # Dependencies in Engine folder
 
 ## BGFX (CSharp bindings)
