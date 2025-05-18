@@ -1036,6 +1036,297 @@ partial class ufbx
     }
 
     /// <summary>
+    /// Animation curve segment interpolation mode between two keyframes
+    /// </summary>
+    public enum UFBXInterpolation
+    {
+        /// <summary>
+        /// Hold previous key value
+        /// </summary>
+        ConstantPrev,
+        /// <summary>
+        /// Hold next key value
+        /// </summary>
+        ConstantNext,
+        /// <summary>
+        /// Linear interpolation between two keys
+        /// </summary>
+        Linear,
+        /// <summary>
+        /// Cubic interpolation, see `ufbx_tangent`
+        /// </summary>
+        Cubic,
+    }
+
+    public enum UFBXExtrapolationMode
+    {
+        /// <summary>
+        /// Use the value of the first/last keyframe
+        /// </summary>
+        Constant,
+        /// <summary>
+        /// Repeat the whole animation curve
+        /// </summary>
+        Repeat,
+        /// <summary>
+        /// Repeat with mirroring
+        /// </summary>
+        Mirror,
+        /// <summary>
+        /// Use the tangent of the last keyframe to linearly extrapolate
+        /// </summary>
+        Slope,
+        /// <summary>
+        /// Repeat the animation curve but connect the first and last keyframe values
+        /// </summary>
+        RepeatRelative,
+    }
+
+    /// <summary>
+    /// Type of property constrain eg. position or look-at
+    /// </summary>
+    public enum UFBXConstraintType
+    {
+        Unknown,
+        Aim,
+        Parent,
+        Poosition,
+        Rotation,
+        Scale,
+        /// <summary>
+        /// Inverse kinematic chain to a single effector `ufbx_constraint.ik_effector`
+        /// `targets` optionally contains a list of pole targets!
+        /// </summary>
+        SingleChainIK,
+    }
+
+    /// <summary>
+    /// Method to determine the up vector in aim constraints
+    /// </summary>
+    public enum UFBXConstraintAimUpType
+    {
+        /// <summary>
+        /// Align the up vector to the scene global up vector
+        /// </summary>
+        Scene,
+        /// <summary>
+        /// Aim the up vector at `ufbx_constraint.aim_up_node`
+        /// </summary>
+        ToNode,
+        /// <summary>
+        /// Copy the up vector from `ufbx_constraint.aim_up_node`
+        /// </summary>
+        AlignNode,
+        /// <summary>
+        /// Use `ufbx_constraint.aim_up_vector` as the up vector
+        /// </summary>
+        Vector,
+        /// <summary>
+        /// Don't align the up vector to anything
+        /// </summary>
+        None,
+    }
+
+    /// <summary>
+    /// Method to determine the up vector in aim constraints
+    /// </summary>
+    public enum UFBXConstraintIKPoleType
+    {
+        /// <summary>
+        /// Use towards calculated from `ufbx_constraint.targets`
+        /// </summary>
+        Vector,
+        /// <summary>
+        /// Use `ufbx_constraint.ik_pole_vector` directly
+        /// </summary>
+        Node,
+    }
+
+    public enum UFBXExporter
+    {
+        Unknown,
+        FBXSDK,
+        BlenderBinary,
+        BlenderASCII,
+        MotionBuilder,
+    }
+
+    public enum UFBXFileFormat
+    {
+        /// <summary>
+        /// Unknown file format
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// .fbx Kaydara/Autodesk FBX file
+        /// </summary>
+        FBX,
+        /// <summary>
+        /// .obj Wavefront OBJ file
+        /// </summary>
+        OBJ,
+        /// <summary>
+        /// .mtl Wavefront MTL (Material template library) file
+        /// </summary>
+        MTL
+    }
+
+    public enum UFBXWarningType
+    {
+        /// <summary>
+        /// Missing external file file (for example .mtl for Wavefront .obj file or a
+        /// geometry cache)
+        /// </summary>
+        MissingExternalFile,
+        /// <summary>
+        /// Loaded a Wavefront .mtl file derived from the filename instead of a proper
+        /// `mtllib` statement.
+        /// </summary>
+        ImplicitMTL,
+        /// <summary>
+        /// Truncated array has been auto-expanded.
+        /// </summary>
+        TruncatedArray,
+        /// <summary>
+        /// Geometry data has been defined but has no data.
+        /// </summary>
+        MissingGeometryData,
+        /// <summary>
+        /// Duplicated connection between two elements that shouldn't have.
+        /// </summary>
+        DuplicateConnection,
+        /// <summary>
+        /// Vertex 'W' attribute length differs from main attribute.
+        /// </summary>
+        BadVertexWAttribute,
+        /// <summary>
+        /// Missing polygon mapping type.
+        /// </summary>
+        MissingPolygonMapping,
+        /// <summary>
+        /// Unsupported version, loaded but may be incorrect.
+        /// If the loading fails `UFBX_ERROR_UNSUPPORTED_VERSION` is issued instead.
+        /// </summary>
+        UnsupportedVersion,
+        /// <summary>
+        /// Out-of-bounds index has been clamped to be in-bounds.
+        /// HINT: You can use `ufbx_index_error_handling` to adjust behavior.
+        /// </summary>
+        IndexClamped,
+        /// <summary>
+        /// Non-UTF8 encoded strings.
+        /// HINT: You can use `ufbx_unicode_error_handling` to adjust behavior.
+        /// </summary>
+        BadUnicode,
+        /// <summary>
+        /// Invalid base64-encoded embedded content ignored.
+        /// </summary>
+        BadBase64Content,
+        /// <summary>
+        /// Non-node element connected to root.
+        /// </summary>
+        BadElementConnectedToRoot,
+        /// <summary>
+        /// Duplicated object ID in the file, connections will be wrong.
+        /// </summary>
+        DuplicateObjectID,
+        /// <summary>
+        /// Empty face has been removed.
+        /// Use `ufbx_load_opts.allow_empty_faces` if you want to allow them.
+        /// </summary>
+        EmptyFaceRemoved,
+        /// <summary>
+        /// Unknown .obj file directive.
+        /// </summary>
+        UnknownOBJDirective,
+        /// <summary>
+        /// Warnings after this one are deduplicated.
+        /// See `ufbx_warning.count` for how many times they happened.
+        /// </summary>
+        TypeFirstDeduplicated = IndexClamped,
+    }
+
+    public enum UFBXThumbnailFormat
+    {
+        /// <summary>
+        /// Unknown format
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// 8-bit RGB pixels, in memory R,G,B
+        /// </summary>
+        RGB24,
+        /// <summary>
+        /// 8-bit RGBA pixels, in memory R,G,B,A
+        /// </summary>
+        RGBA32,
+    }
+
+    /// <summary>
+    /// Specify how unit / coordinate system conversion should be performed.
+    /// Affects how `ufbx_load_opts.target_axes` and `ufbx_load_opts.target_unit_meters` work,
+    /// has no effect if neither is specified.
+    /// </summary>
+    public enum UFBXSpaceConversion
+    {
+        /// <summary>
+        /// Store the space conversion transform in the root node.
+        /// Sets `ufbx_node.local_transform` of the root node.
+        /// </summary>
+        TransformRoot,
+        /// <summary>
+        /// Perform the conversion by using "adjust" transforms.
+        /// Compensates for the transforms using `ufbx_node.adjust_pre_rotation` and
+        /// `ufbx_node.adjust_pre_scale`. You don't need to account for these unless
+        /// you are manually building transforms from `ufbx_props`.
+        /// </summary>
+        AdjustTransforms,
+        /// <summary>
+        /// Perform the conversion by scaling geometry in addition to adjusting transforms.
+        /// Compensates transforms like `UFBX_SPACE_CONVERSION_ADJUST_TRANSFORMS` but
+        /// applies scaling to geometry as well.
+        /// </summary>
+        ModifyGeometry,
+    }
+
+    public enum UFBXTimeMode
+    {
+        ModeDefault,
+        Mode120FPS,
+        Mode100FPS,
+        Mode60FPS,
+        Mode50FPS,
+        Mode48FPS,
+        Mode30FPS,
+        Mode30FPSDrop,
+        ModeNTSCDropFrame,
+        ModeNTSCFullFrame,
+        ModePAL,
+        Mode24FPS,
+        Mode1000FPS,
+        ModeFilmFullFrame,
+        ModeCustom,
+        Mode96FPS,
+        Mode72FPS,
+        Mode5994FPS,
+    }
+
+    public enum UFBXTimeProtocol
+    {
+        SMPTE,
+        FrameCount,
+        Default,
+    }
+
+    public enum UFBXSnapMode
+    {
+        None,
+        Snap,
+        Play,
+        SnapAndPlay,
+    }
+
+    /// <summary>
     /// Null-terminated UTF-8 encoded string within an FBX file
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -2749,7 +3040,7 @@ partial class ufbx
     /// Blend shape target containing the actual vertex offsets
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public unsafe struct UFBXBlendChannel
+    public unsafe struct UFBXBlendShape
     {
         public UFBXElement element;
 
@@ -2957,7 +3248,7 @@ partial class ufbx
         public UFBXGeometryCache* externalCache;
     }
 
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public unsafe struct UFBXMaterialMap
     {
         public Vector4 vector44Value;
@@ -3201,7 +3492,7 @@ partial class ufbx
     /// <summary>
     /// Single layer in a layered texture
     /// </summary>
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public unsafe struct UFBXTextureLayer
     {
         /// <summary>
@@ -3331,7 +3622,7 @@ partial class ufbx
     /// <summary>
     /// Unique texture within the file.
     /// </summary>
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXTextureFile
     {
         /// <summary>
@@ -3503,10 +3794,10 @@ partial class ufbx
         public UFBXMatrix uvToTexture;
     }
 
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXVideo
     {
-        public UFBXelement element;
+        public UFBXElement element;
 
         /// <summary>
         /// Filename relative to the currently loaded file.
@@ -3548,5 +3839,1202 @@ partial class ufbx
         /// Optional embedded content blob
         /// </summary>
         public UFBXBlob content;
+    }
+
+    /// <summary>
+    /// Shader specifies a shading model and contains `ufbx_shader_binding` elements
+    /// that define how to interpret FBX properties in the shader.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXShader
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Known shading model
+        /// </summary>
+        public UFBXShaderType type;
+
+        /// <summary>
+        /// Bindings from FBX properties to the shader
+        /// HINT: `ufbx_find_shader_prop()` translates shader properties to FBX properties
+        /// </summary>
+        public UFBXList<UFBXShaderBinding> bindings;
+    }
+
+    /// <summary>
+    /// Binding from a material property to shader implementation
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXShaderPropBinding
+    {
+        /// <summary>
+        /// Property name used by the shader implementation
+        /// </summary>
+        public UFBXString shaderProp;
+
+        /// <summary>
+        /// Property name inside `ufbx_material.props`
+        /// </summary>
+        public UFBXString materialProp;
+    }
+
+    /// <summary>
+    /// Shader binding table
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXShaderBinding
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Sorted by `shader_prop`
+        /// </summary>
+        public UFBXList<UFBXShaderPropBinding> propBindings;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXPropOverride
+    {
+        public uint elementID;
+        public uint internalKey;
+        public UFBXString propName;
+        public Vector4 value;
+        public UFBXString stringValue;
+        public long intValue;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXTransformOverride
+    {
+        public uint nodeID;
+        public UFBXTransform transform;
+    }
+
+    /// <summary>
+    /// Animation descriptor used for evaluating animation.
+    /// Usually obtained from `ufbx_scene` via either global animation `ufbx_scene.anim`,
+    /// per-stack animation `ufbx_anim_stack.anim` or per-layer animation `ufbx_anim_layer.anim`.
+    ///
+    /// For advanced usage you can use `ufbx_create_anim()` to create animation descriptors
+    /// with custom layers, property overrides, special flags, etc.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXAnim
+    {
+        /// <summary>
+        /// Time begin/end for the animation, both may be zero if absent.
+        /// </summary>
+        public double startTime;
+
+        /// <summary>
+        /// Time begin/end for the animation, both may be zero if absent.
+        /// </summary>
+        public double endTime;
+
+        /// <summary>
+        /// List of layers in the animation.
+        /// </summary>
+        public UFBXList<UFBXAnimLayer> layers;
+
+        /// <summary>
+        /// Optional overrides for weights for each layer in `layers[]`.
+        /// </summary>
+        public UFBXList<float> overrideLayerWeights;
+
+        /// <summary>
+        /// Sorted by `element_id, prop_name`
+        /// </summary>
+        public UFBXList<UFBXPropOverride> propOverrides;
+
+        /// <summary>
+        /// Sorted by `node_id`
+        /// </summary>
+        public UFBXList<UFBXTransformOverride> transformOverrides;
+
+        /// <summary>
+        /// Evaluate connected properties as if they would not be connected.
+        /// </summary>
+        public bool ignoreConnections;
+
+        /// <summary>
+        /// Custom `ufbx_anim` created by `ufbx_create_anim()`.
+        /// </summary>
+        public bool custom;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXAnimStack
+    {
+        public UFBXElement element;
+
+        public double startTime;
+        public double endTime;
+
+        public UFBXList<UFBXAnimLayer> layers;
+        public UFBXAnim* anim;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXAnimProp
+    {
+        public UFBXElement element;
+
+        public uint internalKey;
+
+        public UFBXString propName;
+
+        public UFBXAnimValue* animValue;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXAnimLayer
+    {
+        public UFBXElement element;
+
+        public float weight;
+        public bool weightIsAnimated;
+        public bool blended;
+        public bool additive;
+        public bool composeRotation;
+        public bool composeScale;
+
+        public UFBXList<UFBXAnimValue> animValues;
+
+        /// <summary>
+        /// Sorted by `element,prop_name`
+        /// </summary>
+        public UFBXList<UFBXAnimProp> animProps;
+
+        public UFBXAnim* anim;
+
+        public uint minElementID;
+        public uint maxElementID;
+        public uint elementIDBitmask0;
+        public uint elementIDBitmask1;
+        public uint elementIDBitmask2;
+        public uint elementIDBitmask3;
+
+        public readonly uint[] ElementIDBitmask => [
+            elementIDBitmask0, elementIDBitmask1,
+            elementIDBitmask2, elementIDBitmask3
+        ];
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXAnimValue
+    {
+        public UFBXElement element;
+
+        public Vector3 defaultValue;
+
+        public UFBXAnimCurve* curve0;
+        public UFBXAnimCurve* curve1;
+        public UFBXAnimCurve* curve2;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXExtrapolation
+    {
+        public UFBXExtrapolationMode mode;
+
+        /// <summary>
+        /// Count used for repeating modes.
+        /// Negative values mean infinite repetition.
+        /// </summary>
+        public int repeatCount;
+    }
+
+    /// <summary>
+    /// Tangent vector at a keyframe, may be split into left/right
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXTangent
+    {
+        /// <summary>
+        /// Derivative in the time axis
+        /// </summary>
+        public float dx;
+
+        /// <summary>
+        /// Derivative in the (curve specific) value axis
+        /// </summary>
+        public float dy;
+    }
+
+    /// <summary>
+    /// Single real `value` at a specified `time`, interpolation between two keyframes
+    /// is determined by the `interpolation` field of the _previous_ key.
+    /// If `interpolation == UFBX_INTERPOLATION_CUBIC` the span is evaluated as a
+    /// cubic bezier curve through the following points:
+    ///
+    ///   (prev->time, prev->value)
+    ///   (prev->time + prev->right.dx, prev->value + prev->right.dy)
+    ///   (next->time - next->left.dx, next->value - next->left.dy)
+    ///   (next->time, next->value)
+    ///
+    /// HINT: You can use `ufbx_evaluate_curve(ufbx_anim_curve *curve, double time)`
+    /// rather than trying to manually handle all the interpolation modes.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXKeyframe
+    {
+        public double time;
+        public float value;
+        public UFBXInterpolation interpolation;
+        public UFBXTangent left;
+        public UFBXTangent right;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXAnimCurve
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// List of keyframes that define the curve.
+        /// </summary>
+        public UFBXList<UFBXKeyframe> keyframes;
+
+        /// <summary>
+        /// Extrapolation before the curve.
+        /// </summary>
+        public UFBXExtrapolation preExtrapolation;
+
+        /// <summary>
+        /// Extrapolation after the curve.
+        /// </summary>
+        public UFBXExtrapolation postExtrapolation;
+
+        /// <summary>
+        /// Value range for all the keyframes.
+        /// </summary>
+        public float minValue;
+
+        /// <summary>
+        /// Value range for all the keyframes.
+        /// </summary>
+        public float maxValue;
+
+        /// <summary>
+        /// Time range for all the keyframes.
+        /// </summary>
+        public double minTime;
+
+        /// <summary>
+        /// Time range for all the keyframes.
+        /// </summary>
+        public double maxTime;
+    }
+
+    /// <summary>
+    /// Collection of nodes to hide/freeze
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXDisplayLayer
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Nodes included in the layer (exclusively at most one layer per node)
+        /// </summary>
+        public UFBXList<UFBXNode> nodes;
+
+        /// <summary>
+        /// Contained nodes are visible
+        /// </summary>
+        public bool visible;
+
+        /// <summary>
+        /// Contained nodes cannot be edited
+        /// </summary>
+        public bool frozen;
+
+        /// <summary>
+        /// Visual color for UI
+        /// </summary>
+        public Vector3 UIColor;
+    }
+
+    /// <summary>
+    /// Named set of nodes/geometry features to select.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSelectionSet
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Included nodes and geometry features
+        /// </summary>
+        public UFBXList<UFBXSelectionNode> nodes;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXSelectionNode
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Selection targets, possibly `NULL`
+        /// </summary>
+        public UFBXNode* targetNode;
+
+        /// <summary>
+        /// Selection targets, possibly `NULL`
+        /// </summary>
+        public UFBXMesh* targetMesh;
+
+        /// <summary>
+        /// Is `target_node` included in the selection
+        /// </summary>
+        public bool includeNode;
+
+        /// <summary>
+        /// Indices to selected components.
+        /// Guaranteed to be valid as per `ufbx_load_opts.index_error_handling`
+        /// if `target_mesh` is not `NULL`.
+        /// Indices to `ufbx_mesh.vertices`
+        /// </summary>
+        public UFBXList<uint> vertices;
+        /// <summary>
+        /// Indices to selected components.
+        /// Guaranteed to be valid as per `ufbx_load_opts.index_error_handling`
+        /// if `target_mesh` is not `NULL`.
+        /// Indices to `ufbx_mesh.edges`
+        /// </summary>
+        public UFBXList<uint> edges;
+        /// <summary>
+        /// Indices to selected components.
+        /// Guaranteed to be valid as per `ufbx_load_opts.index_error_handling`
+        /// if `target_mesh` is not `NULL`.
+        /// Indices to `ufbx_mesh.faces`
+        /// </summary>
+        public UFBXList<uint> faces;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXCharacter
+    {
+        public UFBXelement element;
+    }
+
+    /// <summary>
+    /// Target to follow with a constraint
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXConstraintTarget
+    {
+        /// <summary>
+        /// Target node reference
+        /// </summary>
+        public UFBXNode* node;
+
+        /// <summary>
+        /// Relative weight to other targets (does not always sum to 1)
+        /// </summary>
+        public float weight;
+
+        /// <summary>
+        /// Offset from the actual target
+        /// </summary>
+        public UFBXTransform transform;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXConstraint
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Type of constraint to use
+        /// </summary>
+        public UFBXConstraintType type;
+
+        /// <summary>
+        /// Type of constraint to use
+        /// </summary>
+        public UFBXString typeName;
+
+        /// <summary>
+        /// Node to be constrained
+        /// </summary>
+        public UFBXNode* node;
+
+        /// <summary>
+        /// List of weighted targets for the constraint (pole vectors for IK)
+        /// </summary>
+        public UFBXList<UFBXConstraintTarget> targets;
+
+        /// <summary>
+        /// State of the constraint
+        /// </summary>
+        public float weight;
+
+        /// <summary>
+        /// State of the constraint
+        /// </summary>
+        public bool active;
+
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainTranslationX;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainTranslationY;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainTranslationZ;
+
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainRotationX;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainRotationY;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainRotationZ;
+
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainScaleX;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainScaleY;
+        /// <summary>
+        /// Translation/rotation/scale axes the constraint is applied to
+        /// </summary>
+        public bool constrainScaleZ;
+
+        /// <summary>
+        /// Offset from the constrained position
+        /// </summary>
+        public UFBXTransform transformOffset;
+
+        /// <summary>
+        /// AIM: Target and up vectors
+        /// </summary>
+        public Vector3 aimVector;
+
+        /// <summary>
+        /// AIM: Target and up vectors
+        /// </summary>
+        public UFBXConstraintAimUpType aimUpType;
+
+        /// <summary>
+        /// AIM: Target and up vectors
+        /// </summary>
+        public UFBXNode* aimUpNode;
+
+        /// <summary>
+        /// AIM: Target and up vectors
+        /// </summary>
+        public Vector3 aimUpVector;
+
+        /// <summary>
+        /// SINGLE_CHAIN_IK: Target for the IK, `targets` contains pole vectors!
+        /// </summary>
+        public UFBXNode* IKEfector;
+        /// <summary>
+        /// SINGLE_CHAIN_IK: Target for the IK, `targets` contains pole vectors!
+        /// </summary>
+        public UFBXNode* IKEndNode;
+        /// <summary>
+        /// SINGLE_CHAIN_IK: Target for the IK, `targets` contains pole vectors!
+        /// </summary>
+        public Vector3 IKPoleVector;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXAudioLayer
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Clips contained in this layer.
+        /// </summary>
+        public UFBXList<UFBXAudioClip> clips;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXAudioClip
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Filename relative to the currently loaded file.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file.
+        /// </summary>
+        public UFBXString absoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXString relativeFileName;
+
+        /// <summary>
+        /// Filename relative to the loaded file, non-UTF-8 encoded.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXBlob rawFileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file, non-UTF-8 encoded.
+        /// </summary>
+        public UFBXBlob rawAbsoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file, non-UTF-8 encoded.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXBlob rawRelativeFileName;
+
+        /// <summary>
+        /// Optional embedded content blob
+        /// </summary>
+        public UFBXBlob content;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXBonePose
+    {
+        /// <summary>
+        /// Node to apply the pose to.
+        /// </summary>
+        public UFBXNode* boneNode;
+
+        /// <summary>
+        /// Matrix from node local space to world space.
+        /// </summary>
+        public UFBXMatrix boneToWorld;
+
+        /// <summary>
+        /// Matrix from node local space to parent space.
+        /// NOTE: FBX only stores world transformations so this is approximated from
+        /// the parent world transform.
+        /// </summary>
+        public UFBXMatrix boneToParent;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXPose
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Set if this pose is marked as a bind pose.
+        /// </summary>
+        public bool isBindPose;
+
+        /// <summary>
+        /// List of bone poses.
+        /// Sorted by `ufbx_node.typed_id`.
+        /// </summary>
+        public UFBXList<UFBXBonePose> bonePoses;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMetadataObject
+    {
+        public UFBXElement element;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXNameElement
+    {
+        public UFBXString name;
+        public UFBXElementType type;
+
+        public uint internalKey;
+
+        public UFBXElement* element;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXApplication
+    {
+        public UFBXString vendor;
+        public UFBXString name;
+        public UFBXString version;
+    }
+
+    /// <summary>
+    /// Warning about a non-fatal issue in the file.
+    /// Often contains information about issues that ufbx has corrected about the
+    /// file but it might indicate something is not working properly.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXWarning
+    {
+        /// <summary>
+        /// Type of the warning.
+        /// </summary>
+        public UFBXWarningType type;
+        /// <summary>
+        /// Description of the warning.
+        /// </summary>
+        public UFBXString description;
+        /// <summary>
+        /// The element related to this warning or `UFBX_NO_INDEX` if not related to a specific element.
+        /// </summary>
+        public uint elementID;
+        /// <summary>
+        /// Number of times this warning was encountered.
+        /// </summary>
+        public ulong count;
+    }
+
+    /// <summary>
+    /// Embedded thumbnail in the file, valid if the dimensions are non-zero.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXThumbnail
+    {
+        public UFBXProps props;
+
+        /// <summary>
+        /// Extents of the thumbnail
+        /// </summary>
+        public uint width;
+        /// <summary>
+        /// Extents of the thumbnail
+        /// </summary>
+        public uint height;
+
+        /// <summary>
+        /// Format of `ufbx_thumbnail.data`.
+        /// </summary>
+        public UFBXThumbnailFormat format;
+
+        /// <summary>
+        /// Thumbnail pixel data, layout as contiguous rows from bottom to top.
+        /// See `ufbx_thumbnail.format` for the pixel format.
+        /// </summary>
+        public UFBXBlob data;
+    }
+
+    /// <summary>
+    /// Miscellaneous data related to the loaded file
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMetadata
+    {
+        /// <summary>
+        /// List of non-fatal warnings about the file.
+        /// If you need to only check whether a specific warning was triggered you
+        /// can use `ufbx_metadata.has_warning[]`.
+        /// </summary>
+        public UFBXList<UFBXWarning> warnings;
+
+        /// <summary>
+        /// FBX ASCII file format.
+        /// </summary>
+        public bool ascii;
+
+        /// <summary>
+        /// FBX version in integer format, eg. 7400 for 7.4.
+        /// </summary>
+        public uint version;
+
+        /// <summary>
+        /// File format of the source file.
+        /// </summary>
+        public UFBXFileFormat fileFormat;
+
+        /// <summary>
+        /// Index arrays may contain `UFBX_NO_INDEX` instead of a valid index
+        /// to indicate gaps.
+        /// </summary>
+        public bool mayContainNoIndex;
+
+        /// <summary>
+        /// May contain meshes with no defined vertex position.
+        /// NOTE: `ufbx_mesh.vertex_position.exists` may be `false`!
+        /// </summary>
+        public bool mayContainMissingVertexPosition;
+
+        /// <summary>
+        /// Arrays may contain items with `NULL` element references.
+        /// See `ufbx_load_opts.connect_broken_elements`.
+        /// </summary>
+        public bool mayContainBrokenElements;
+
+        /// <summary>
+        /// Some API guarantees do not apply (depending on unsafe options used).
+        /// Loaded with `ufbx_load_opts.allow_unsafe` enabled.
+        /// </summary>
+        public bool isUnsafe;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningMissingExternalFile;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningImplicitMTL;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningTruncatedArray;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningMissingGeometryData;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningDuplicateConnection;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningBadVertexWAttribute;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningMissingPolygonMapping;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningUnsupportedVersion;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningIndexClamped;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningBadUnicode;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningBadBase64Content;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningBadElementConnectedToRoot;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningDuplicateObjectID;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningEmptyFaceRemoved;
+
+        /// <summary>
+        /// Flag for each possible warning type.
+        /// See `ufbx_metadata.warnings[]` for detailed warning information.
+        /// </summary>
+        public bool hasWarningUnknownObjDirective;
+
+        public UFBXString creator;
+
+        public bool bigEndian;
+
+        public UFBXString fileName;
+
+        public UFBXString relativeRoot;
+
+        public UFBXBlob rawFileName;
+
+        public UFBXBlob rawRelativeRoot;
+
+        public UFBXExporter exporter;
+
+        public uint exporterVersion;
+
+        public UFBXProps sceneProps;
+
+        public UFBXApplication originalApplication;
+        public UFBXApplication latestApplication;
+
+        public UFBXThumbnail thumbnail;
+
+        public bool geometryIgnored;
+
+        public bool animationIgnored;
+
+        public bool embeddedIgnored;
+
+        public ulong maxFaceTriangles;
+
+        public ulong resultMemoryUsed;
+        public ulong tempMemoryUsed;
+        public ulong resultAllocs;
+        public ulong tempAllocs;
+
+        public ulong elementBufferSize;
+        public ulong shaderTextureCount;
+
+        public float bonePropSizeUnit;
+        public bool bonePropLimbLengthRelative;
+
+        public float orthoSizeUnit;
+
+        /// <summary>
+        /// One second in internal KTime units
+        /// </summary>
+        public long ktimeSecond;
+
+        public UFBXString originalFilePath;
+
+        public UFBXBlob rawOriginalFilePath;
+
+        /// <summary>
+        /// Space conversion method used on the scene.
+        /// </summary>
+        public UFBXSpaceConversion spaceConversion;
+
+        /// <summary>
+        /// Transform that has been applied to root for axis/unit conversion.
+        /// </summary>
+        public Quaternion rootRotation;
+        /// <summary>
+        /// Transform that has been applied to root for axis/unit conversion.
+        /// </summary>
+        public float rootScale;
+
+        /// <summary>
+        /// Axis that the scene has been mirrored by.
+        /// All geometry has been mirrored in this axis.
+        /// </summary>
+        public UFBXMirrorAxis mirrorAxis;
+
+        /// <summary>
+        /// Amount geometry has been scaled.
+        /// See `UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY`.
+        /// </summary>
+        public float geometryScale;
+    }
+
+    /// <summary>
+    /// Global settings: Axes and time/unit scales
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSceneSettings
+    {
+        public UFBXProps props;
+
+        /// <summary>
+        /// Mapping of X/Y/Z axes to world-space directions.
+        /// HINT: Use `ufbx_load_opts.target_axes` to normalize this.
+        /// NOTE: This contains the _original_ axes even if you supply `ufbx_load_opts.target_axes`.
+        /// </summary>
+        public UFBXCoordinateAxes axes;
+
+        /// <summary>
+        /// How many meters does a single world-space unit represent.
+        /// FBX files usually default to centimeters, reported as `0.01` here.
+        /// HINT: Use `ufbx_load_opts.target_unit_meters` to normalize this.
+        /// </summary>
+        public float unitMeters;
+
+        /// <summary>
+        /// Frames per second the animation is defined at.
+        /// </summary>
+        public double framesPerSecond;
+        
+        public Vector3 ambientColor;
+        public UFBXString defaultCamera;
+
+        /// <summary>
+        /// Animation user interface settings.
+        /// HINT: Use `ufbx_scene_settings.frames_per_second` instead of interpreting these yourself.
+        /// </summary>
+        public UFBXTimeMode timeMode;
+        /// <summary>
+        /// Animation user interface settings.
+        /// HINT: Use `ufbx_scene_settings.frames_per_second` instead of interpreting these yourself.
+        /// </summary>
+        public UFBXTimeProtocol timeProtocol;
+        /// <summary>
+        /// Animation user interface settings.
+        /// HINT: Use `ufbx_scene_settings.frames_per_second` instead of interpreting these yourself.
+        /// </summary>
+        public UFBXSnapMode snapMode;
+
+        /// <summary>
+        /// Original settings (?)
+        /// </summary>
+        public UFBXCoordinateAxis originalAxisUp;
+        /// <summary>
+        /// Original settings (?)
+        /// </summary>
+        public float originalUnitMeters;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXScene
+    {
+        public UFBXMetadata metadata;
+
+        /// <summary>
+        /// Global settings
+        /// </summary>
+        public UFBXSceneSettings settings;
+
+        /// <summary>
+        /// Node instances in the scene
+        /// </summary>
+        public UFBXNode* rootNode;
+
+        /// <summary>
+        /// Default animation descriptor
+        /// </summary>
+        public UFBXAnim* anim;
+
+        public UFBXList<UFBXUnknown> unknowns;
+
+        /// <summary>
+        /// Nodes
+        /// </summary>
+        public UFBXList<UFBXNode> nodes;
+
+        /// <summary>
+        /// Node attributes (common)
+        /// </summary>
+        public UFBXList<UFBXMesh> meshes;
+        /// <summary>
+        /// Node attributes (common)
+        /// </summary>
+        public UFBXList<UFBXLight> lights;
+        /// <summary>
+        /// Node attributes (common)
+        /// </summary>
+        public UFBXList<UFBXCamera> cameras;
+        /// <summary>
+        /// Node attributes (common)
+        /// </summary>
+        public UFBXList<UFBXBone> bones;
+        /// <summary>
+        /// Node attributes (common)
+        /// </summary>
+        public UFBXList<UFBXEmpty> empties;
+
+        /// <summary>
+        /// Node attributes (curves/surfaces)
+        /// </summary>
+        public UFBXList<UFBXLineCurve> lineCurves;
+        /// <summary>
+        /// Node attributes (curves/surfaces)
+        /// </summary>
+        public UFBXList<UFBXNURBSCurve> NURBSCurves;
+        /// <summary>
+        /// Node attributes (curves/surfaces)
+        /// </summary>
+        public UFBXList<UFBXNURBSSurface> NURBSSurfaces;
+        /// <summary>
+        /// Node attributes (curves/surfaces)
+        /// </summary>
+        public UFBXList<UFBXNURBSTrimSurface> NURBSTrimSurfaces;
+        /// <summary>
+        /// Node attributes (curves/surfaces)
+        /// </summary>
+        public UFBXList<UFBXNURBSTrimBoundary> NURBSTrimBoundaries;
+
+        /// <summary>
+        /// Node attributes (advanced)
+        /// </summary>
+        public UFBXList<UFBXProceduralGeometry> proceduralGeometries;
+        /// <summary>
+        /// Node attributes (advanced)
+        /// </summary>
+        public UFBXList<UFBXStereoCamera> stereoCameras;
+        /// <summary>
+        /// Node attributes (advanced)
+        /// </summary>
+        public UFBXList<UFBXCameraSwitcher> cameraSwitchers;
+        /// <summary>
+        /// Node attributes (advanced)
+        /// </summary>
+        public UFBXList<UFBXMarker> markers;
+        /// <summary>
+        /// Node attributes (advanced)
+        /// </summary>
+        public UFBXList<UFBXLODGroup> lodGroups;
+
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXSkinDeformer> skinDeformers;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXSkinCluster> skinClusters;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXBlendDeformer> blendDeformers;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXBlendChannel> blendChannels;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXBlendShape> blendShapes;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXCacheDeformer> cacheDeformers;
+        /// <summary>
+        /// Deformers
+        /// </summary>
+        public UFBXList<UFBXCacheFile> cacheFiles;
+
+        /// <summary>
+        /// Materials
+        /// </summary>
+        public UFBXList<UFBXMaterial> materials;
+        /// <summary>
+        /// Materials
+        /// </summary>
+        public UFBXList<UFBXTexture> textures;
+        /// <summary>
+        /// Materials
+        /// </summary>
+        public UFBXList<UFBXVideo> videos;
+        /// <summary>
+        /// Materials
+        /// </summary>
+        public UFBXList<UFBXShader> shaders;
+        /// <summary>
+        /// Materials
+        /// </summary>
+        public UFBXList<UFBXShaderBinding> shaderBindings;
+
+        /// <summary>
+        /// Animation
+        /// </summary>
+        public UFBXList<UFBXAnimStack> animStacks;
+        /// <summary>
+        /// Animation
+        /// </summary>
+        public UFBXList<UFBXAnimLayer> animLayers;
+        /// <summary>
+        /// Animation
+        /// </summary>
+        public UFBXList<UFBXAnimValue> animValues;
+        /// <summary>
+        /// Animation
+        /// </summary>
+        public UFBXList<UFBXAnimCurve> animCurves;
+
+        /// <summary>
+        /// Collections
+        /// </summary>
+        public UFBXList<UFBXDisplayLayer> displayLayers;
+        /// <summary>
+        /// Collections
+        /// </summary>
+        public UFBXList<UFBXSelectionSet> selectionSets;
+        /// <summary>
+        /// Collections
+        /// </summary>
+        public UFBXList<UFBXSelectionNode> selectionNodes;
+
+        /// <summary>
+        /// Constraints
+        /// </summary>
+        public UFBXList<UFBXCharacter> characters;
+        /// <summary>
+        /// Constraints
+        /// </summary>
+        public UFBXList<UFBXConstraint> constraints;
+
+        /// <summary>
+        /// Audio
+        /// </summary>
+        public UFBXList<UFBXAudioLayer> audioLayers;
+        /// <summary>
+        /// Audio
+        /// </summary>
+        public UFBXList<UFBXAudioClip> audioClips;
+
+        /// <summary>
+        /// Miscellaneous
+        /// </summary>
+        public UFBXList<UFBXPose> poses;
+        /// <summary>
+        /// Miscellaneous
+        /// </summary>
+        public UFBXList<UFBXMetadataObject> metadataObjects;
+
+        /// <summary>
+        /// Unique texture files referenced by the scene.
+        /// </summary>
+        public UFBXList<UFBXTextureFile> textureFiles;
+
+        /// <summary>
+        /// All elements and connections in the whole file
+        /// Sorted by `id`
+        /// </summary>
+        public UFBXList<UFBXElement> elements;
+
+        /// <summary>
+        /// All elements and connections in the whole file
+        /// Sorted by `src,src_prop`
+        /// </summary>
+        public UFBXList<UFBXConnection> connectionsSource;
+        /// <summary>
+        /// All elements and connections in the whole file
+        /// Sorted by `dst,dst_prop`
+        /// </summary>
+        public UFBXList<UFBXConnection> connectionsDestination;
+
+        /// <summary>
+        /// Elements sorted by name, type
+        /// </summary>
+        public UFBXList<UFBXNameElement> elementsByName;
+
+        /// <summary>
+        /// Enabled if `ufbx_load_opts.retain_dom == true`.
+        /// </summary>
+        public UFBXDomNode* domRoot;
     }
 }
