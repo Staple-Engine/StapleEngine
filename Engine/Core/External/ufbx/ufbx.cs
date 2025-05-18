@@ -204,6 +204,837 @@ partial class ufbx
         Blob = 0x4000000,
     }
 
+    public enum UFBXElementType
+    {
+        Unknown,            // < `ufbx_unknown`
+        Node,               // < `ufbx_node`
+        Mesh,               // < `ufbx_mesh`
+        Light,              // < `ufbx_light`
+        Camera,             // < `ufbx_camera`
+        Bone,               // < `ufbx_bone`
+        Empty,              // < `ufbx_empty`
+        LineCurve,          // < `ufbx_line_curve`
+        NurbsCurve,         // < `ufbx_nurbs_curve`
+        NurbsSurface,       // < `ufbx_nurbs_surface`
+        NurbsTrimSurface,   // < `ufbx_nurbs_trim_surface`
+        NurbsTrimBoundary,  // < `ufbx_nurbs_trim_boundary`
+        ProceduralGeometry, // < `ufbx_procedural_geometry`
+        StereoCamera,       // < `ufbx_stereo_camera`
+        CameraSwitcher,     // < `ufbx_camera_switcher`
+        Marker,             // < `ufbx_marker`
+        LodGroup,           // < `ufbx_lod_group`
+        SkinDeformer,       // < `ufbx_skin_deformer`
+        SkinCluster,        // < `ufbx_skin_cluster`
+        BlendDeformer,      // < `ufbx_blend_deformer`
+        BlendChannel,       // < `ufbx_blend_channel`
+        BlendShape,         // < `ufbx_blend_shape`
+        CacheDeformer,      // < `ufbx_cache_deformer`
+        CacheFile,          // < `ufbx_cache_file`
+        Material,           // < `ufbx_material`
+        Texture,            // < `ufbx_texture`
+        Video,              // < `ufbx_video`
+        Shader,             // < `ufbx_shader`
+        ShaderBinding,      // < `ufbx_shader_binding`
+        AnimStack,          // < `ufbx_anim_stack`
+        AnimLayer,          // < `ufbx_anim_layer`
+        AnimValue,          // < `ufbx_anim_value`
+        AnimCurve,          // < `ufbx_anim_curve`
+        DisplayLayer,       // < `ufbx_display_layer`
+        SelectionSet,       // < `ufbx_selection_set`
+        SelectionNode,      // < `ufbx_selection_node`
+        Character,          // < `ufbx_character`
+        Constraint,         // < `ufbx_constraint`
+        AudioLayer,         // < `ufbx_audio_layer`
+        AudioClip,          // < `ufbx_audio_clip`
+        Pose,               // < `ufbx_pose`
+        MetadataObject,     // < `ufbx_metadata_object`
+
+        FirstAttrib = Mesh,
+        LastAttrib = LodGroup,
+    }
+
+    /// <summary>
+    /// Inherit type specifies how hierarchial node transforms are combined.
+    /// This only affects the final scaling, as rotation and translation are always
+    /// inherited correctly.
+    /// NOTE: These don't map to `"InheritType"` property as there may be new ones for
+    /// compatibility with various exporters.
+    /// </summary>
+    public enum UFBXInheritMode
+    {
+        /// <summary>
+        /// Normal matrix composition of hierarchy: `R*S*r*s`.
+        /// child.node_to_world = parent.node_to_world * child.node_to_parent;
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// Ignore parent scale when computing the transform: `R*r*s`.
+        ///  ufbx_transform t = node.local_transform;
+        ///  t.translation *= parent.inherit_scale;
+        ///  t.scale *= node.inherit_scale_node.inherit_scale;
+        ///  child.node_to_world = parent.unscaled_node_to_world * t;
+        /// Also known as "Segment scale compensate" in some software.
+        /// </summary>
+        IgnoreParentScale,
+        /// <summary>
+        /// Apply parent scale component-wise: `R*r*S*s`.
+        ///  ufbx_transform t = node.local_transform;
+        ///  t.translation *= parent.inherit_scale;
+        ///  t.scale *= node.inherit_scale_node.inherit_scale;
+        ///  child.node_to_world = parent.unscaled_node_to_world * t;
+        /// </summary>
+        ComponentwiseScale,
+    }
+
+    /// <summary>
+    /// Axis used to mirror transformations for handedness conversion.
+    /// </summary>
+    public enum UFBXMirrorAxis
+    {
+        None,
+        X,
+        Y,
+        Z,
+    }
+
+    public enum UFBXSubdivisionDisplayMode
+    {
+        Disabled,
+        Hull,
+        HullAndSmooth,
+        Smooth,
+    }
+
+    public enum UFBXSubdivisionBoundary
+    {
+        Default,
+        Legacy,
+        SharpCorners,
+        SharpNone,
+        SharpBoundary,
+        SharpInterior,
+    }
+
+    /// <summary>
+    /// The kind of light source
+    /// </summary>
+    public enum UFBXLightType
+    {
+        /// <summary>
+        /// Single point at local origin, at `node->world_transform.position`
+        /// </summary>
+        Point,
+        /// <summary>
+        /// Infinite directional light pointing locally towards `light->local_direction`
+        /// For global: `ufbx_transform_direction(&amp;node->node_to_world, light->local_direction)`
+        /// </summary>
+        Directional,
+        /// <summary>
+        /// Cone shaped light towards `light->local_direction`, between `light->inner/outer_angle`.
+        /// For global: `ufbx_transform_direction(&amp;node->node_to_world, light->local_direction)`
+        /// </summary>
+        Spot,
+        /// <summary>
+        /// Area light, shape specified by `light->area_shape`
+        /// </summary>
+        Area,
+        /// <summary>
+        /// Volumetric light source
+        /// </summary>
+        Volume,
+    }
+
+    /// <summary>
+    /// How fast does the light intensity decay at a distance
+    /// </summary>
+    public enum UFBXLightDecay
+    {
+        /// <summary>
+        /// 1 (no decay)
+        /// </summary>
+        None,
+        /// <summary>
+        /// 1 / d
+        /// </summary>
+        Linear,
+        /// <summary>
+        /// 1 / d^2 (physically accurate)
+        /// </summary>
+        Quadratic,
+        /// <summary>
+        /// 1 / d^3
+        /// </summary>
+        Cubic,
+    }
+
+    public enum UFBXLightAreaShape
+    {
+        Rectangle,
+        Sphere,
+    }
+
+    public enum UFBXProjectionMode
+    {
+        /// <summary>
+        /// Perspective projection.
+        /// </summary>
+        Perspective,
+        /// <summary>
+        /// Orthographic projection.
+        /// </summary>
+        Orthographic,
+    }
+
+    /// <summary>
+    /// Method of specifying the rendering resolution from properties
+    /// NOTE: Handled internally by ufbx, ignore unless you interpret `ufbx_props` directly!
+    /// </summary>
+    public enum UFBXAspectMode
+    {
+        /// <summary>
+        /// No defined resolution
+        /// </summary>
+        WindowSize,
+        /// <summary>
+        /// `"AspectWidth"` and `"AspectHeight"` are relative to each other
+        /// </summary>
+        FixedRatio,
+        /// <summary>
+        /// `"AspectWidth"` and `"AspectHeight"` are both pixels
+        /// </summary>
+        FixedResolution,
+        /// <summary>
+        /// `"AspectWidth"` is pixels, `"AspectHeight"` is relative to width
+        /// </summary>
+        FixedWidth,
+        /// <summary>
+        /// "AspectHeight"` is pixels, `"AspectWidth"` is relative to height
+        /// </summary>
+        FixedHeight,
+    }
+
+    /// <summary>
+    /// Method of specifying the field of view from properties
+    /// NOTE: Handled internally by ufbx, ignore unless you interpret `ufbx_props` directly!
+    /// </summary>
+    public enum UFBXApertureMode
+    {
+        /// <summary>
+        /// Use separate `"FieldOfViewX"` and `"FieldOfViewY"` as horizontal/vertical FOV angles
+        /// </summary>
+        HorizontalAndVertical,
+        /// <summary>
+        /// Use `"FieldOfView"` as horizontal FOV angle, derive vertical angle via aspect ratio
+        /// </summary>
+        Horizontal,
+        /// <summary>
+        /// Use `"FieldOfView"` as vertical FOV angle, derive horizontal angle via aspect ratio
+        /// </summary>
+        Vertical,
+        /// <summary>
+        /// Compute the field of view from the render gate size and focal length
+        /// </summary>
+        FocalLength
+    }
+
+    /// <summary>
+    /// Method of specifying the render gate size from properties
+    /// NOTE: Handled internally by ufbx, ignore unless you interpret `ufbx_props` directly!
+    /// </summary>
+    public enum UFBXGateFit
+    {
+        /// <summary>
+        /// Use the film/aperture size directly as the render gate
+        /// </summary>
+        None,
+        /// <summary>
+        /// Fit the render gate to the height of the film, derive width from aspect ratio
+        /// </summary>
+        Vertical,
+        /// <summary>
+        /// Fit the render gate to the width of the film, derive height from aspect ratio
+        /// </summary>
+        Horizontal,
+        /// <summary>
+        /// Fit the render gate so that it is fully contained within the film gate
+        /// </summary>
+        Fill,
+        /// <summary>
+        /// Fit the render gate so that it fully contains the film gate
+        /// </summary>
+        Overscan,
+        /// <summary>
+        /// Stretch the render gate to match the film gate
+        /// </summary>
+        Stretch,
+    }
+
+    /// <summary>
+    /// Camera film/aperture size defaults
+    /// NOTE: Handled internally by ufbx, ignore unless you interpret `ufbx_props` directly!
+    /// </summary>
+    public enum UFBXApertureFormat
+    {
+        FormatCustom,
+        Format16mmTheatrical,
+        FormatSuper16mm,
+        Format35mmAcademy,
+        Format35mmTVProjection,
+        Format35mmFullAperture,
+        Format35mm185Projection,
+        Format35mm35mmAnamorphic,
+        Format70mmProjection,
+        FormatVistaVision,
+        FormatDynaVision,
+        FormatImax,
+    }
+
+    public enum UFBXCoordinateAxis
+    {
+        PositiveX,
+        NegativeX,
+        PositiveY,
+        NegativeY,
+        PositiveZ,
+        NegativeZ,
+        Unknown,
+    }
+
+    public enum UFBXNurbsTopology
+    {
+        /// <summary>
+        /// The endpoints are not connected.
+        /// </summary>
+        Open,
+        /// <summary>
+        /// Repeats first `ufbx_nurbs_basis.order - 1` control points after the end.
+        /// </summary>
+        Periodic,
+        /// <summary>
+        /// Repeats the first control point after the end.
+        /// </summary>
+        Closed,
+    }
+
+    public enum UFBXMarkerType
+    {
+        /// <summary>
+        /// Unknown marker type
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// FK (Forward Kinematics) effector
+        /// </summary>
+        FKEffector,
+
+        /// <summary>
+        /// IK (Inverse Kinematics) effector
+        /// </summary>
+        IKEffector,
+    }
+
+    /// <summary>
+    /// LOD level display mode.
+    /// </summary>
+    public enum UFBXLODDisplay
+    {
+        /// <summary>
+        /// Display the LOD level if the distance is appropriate.
+        /// </summary>
+        UseLod,
+        /// <summary>
+        /// Always display the LOD level.
+        /// </summary>
+        Show,
+        /// <summary>
+        /// Never display the LOD level.
+        /// </summary>
+        Hide,
+    }
+
+    /// <summary>
+    /// Method to evaluate the skinning on a per-vertex level
+    /// </summary>
+    public enum UFBXSkinningMethod
+    {
+        /// <summary>
+        /// Linear blend skinning: Blend transformation matrices by vertex weights
+        /// </summary>
+        Linear,
+        /// <summary>
+        /// One vertex should have only one bone attached
+        /// </summary>
+        Rigid,
+        /// <summary>
+        /// Convert the transformations to dual quaternions and blend in that space
+        /// </summary>
+        DualQuaternion,
+        /// <summary>
+        /// Blend between `UFBX_SKINNING_METHOD_LINEAR` and `UFBX_SKINNING_METHOD_BLENDED_DQ_LINEAR`
+        /// The blend weight can be found either per-vertex in `ufbx_skin_vertex.dq_weight`
+        /// or in `ufbx_skin_deformer.dq_vertices/dq_weights` (indexed by vertex).
+        /// </summary>
+        BlendedDualQuaternionLinear,
+    }
+
+    public enum UFBXCacheFileFormat
+    {
+        /// <summary>
+        /// Unknown cache file format
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// .pc2 Point cache file
+        /// </summary>
+        PC2,
+        /// <summary>
+        /// .mc/.mcx Maya cache file
+        /// </summary>
+        MC,
+    }
+
+    public enum UFBXCacheDataFormat
+    {
+        /// <summary>
+        /// Unknown data format
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// `float data[]`
+        /// </summary>
+        RealFloat,
+        /// <summary>
+        /// `struct { float x, y, z; } data[]`
+        /// </summary>
+        Vec3Float,
+        /// <summary>
+        /// `double data[]`
+        /// </summary>
+        RealDouble,
+        /// <summary>
+        /// `struct { double x, y, z; } data[]`
+        /// </summary>
+        Vec3Double,
+    }
+
+    public enum UFBXCacheDataEncoding
+    {
+        /// <summary>
+        /// Unknown data encoding
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// Contiguous little-endian array
+        /// </summary>
+        LittleEndian,
+        /// <summary>
+        /// Contiguous big-endian array
+        /// </summary>
+        BigEndian,
+    }
+
+    /// <summary>
+    /// Known interpretations of geometry cache data.
+    /// </summary>
+    public enum UFBXCacheInterpretation
+    {
+        /// <summary>
+        /// Unknown interpretation, see `ufbx_cache_channel.interpretation_name` for more information.
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// Generic "points" interpretation, FBX SDK default. Usually fine to interpret
+	    /// as vertex positions if no other cache channels are specified.
+        /// </summary>
+        Points,
+        /// <summary>
+        /// Vertex positions.
+        /// </summary>
+        VertexPosition,
+        /// <summary>
+        /// Vertex normals.
+        /// </summary>
+        VertexNormal,
+    }
+
+    /// <summary>
+    /// Shading model type
+    /// </summary>
+    public enum UFBXShaderType
+    {
+        /// <summary>
+        /// Unknown shading model
+        /// </summary>
+        ShaderUnknown,
+        /// <summary>
+        /// FBX builtin diffuse material
+        /// </summary>
+        ShaderFBXLambert,
+        /// <summary>
+        /// FBX builtin diffuse+specular material
+        /// </summary>
+        ShaderFBXPhong,
+        /// <summary>
+        /// Open Shading Language standard surface
+        /// https://github.com/Autodesk/standard-surface
+        /// </summary>
+        ShaderOSLStandardSurface,
+        /// <summary>
+        /// Arnold standard surface
+        /// https://docs.arnoldrenderer.com/display/A5AFMUG/Standard+Surface
+        /// </summary>
+        ShaderArnoldStandardardSurface,
+        /// <summary>
+        /// 3ds Max Physical Material
+        /// https://knowledge.autodesk.com/support/3ds-max/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/3DSMax-Lighting-Shading/files/GUID-C1328905-7783-4917-AB86-FC3CC19E8972-htm.html
+        /// </summary>
+        Shader3DSMaxPhysicalMaterial,
+        /// <summary>
+        /// 3ds Max PBR (Metal/Rough) material
+        /// https://knowledge.autodesk.com/support/3ds-max/learn-explore/caas/CloudHelp/cloudhelp/2021/ENU/3DSMax-Lighting-Shading/files/GUID-A16234A5-6500-4662-8B20-A5EC9FE1B255-htm.html
+        /// </summary>
+        Shader3DSMaxPBRMetalRough,
+        /// <summary>
+        /// 3ds Max PBR (Spec/Gloss) material
+        /// https://knowledge.autodesk.com/support/3ds-max/learn-explore/caas/CloudHelp/cloudhelp/2021/ENU/3DSMax-Lighting-Shading/files/GUID-18087194-B2A6-43EF-9B80-8FD1736FAE52-htm.html
+        /// </summary>
+        Shader3DSMaxPBRSpecGloss,
+        /// <summary>
+        /// 3ds glTF Material
+        /// https://help.autodesk.com/view/3DSMAX/2023/ENU/?guid=GUID-7ABFB805-1D9F-417E-9C22-704BFDF160FA
+        /// </summary>
+        ShaderGLTFMaterial,
+        /// <summary>
+        /// 3ds OpenPBR Material
+        /// https://help.autodesk.com/view/3DSMAX/2025/ENU/?guid=GUID-CD90329C-1E2B-4BBA-9285-3BB46253B9C2
+        /// </summary>
+        ShaderOpenPBRMaterial,
+        /// <summary>
+        /// Stingray ShaderFX shader graph.
+        /// Contains a serialized `"ShaderGraph"` in `ufbx_props`.
+        /// </summary>
+        ShaderShaderFXGGraph,
+        /// <summary>
+        /// Variation of the FBX phong shader that can recover PBR properties like
+        /// `metalness` or `roughness` from the FBX non-physical values.
+        /// NOTE: Enable `ufbx_load_opts.use_blender_pbr_material`.
+        /// </summary>
+        ShaderBlenderPhong,
+        /// <summary>
+        /// Wavefront .mtl format shader (used by .obj files)
+        /// </summary>
+        ShaderWavefrontMTL,
+    }
+
+    /// <summary>
+    /// FBX builtin material properties, matches maps in `ufbx_material_fbx_maps`
+    /// </summary>
+    public enum UFBXMaterialFBXMap
+    {
+        DiffuseFactor,
+        DiffuseColor,
+        SpecularFactor,
+        SpecularColor,
+        SpecularExponent,
+        ReflectionFactor,
+        ReflectionColor,
+        TransparencyFactor,
+        TransparencyColor,
+        EmissionFactor,
+        EmissionColor,
+        AmbientFactor,
+        AmbientColor,
+        NormalMap,
+        Bump,
+        BumpFactor,
+        DisplacementFactor,
+        Displacement,
+        VectorDisplacementFactor,
+        VectorDisplacement,
+    }
+
+    /// <summary>
+    /// Known PBR material properties, matches maps in `ufbx_material_pbr_maps`
+    /// </summary>
+    public enum UFBXMaterialPBRMap
+    {
+        BaseFactor,
+        BaseColor,
+        Roughness,
+        Metalness,
+        DiffuseRoughness,
+        SpecularFactor,
+        SpecularColor,
+        SpecularIOR,
+        SpecularAnisotropy,
+        SpecularRotation,
+        TransmissionFactor,
+        TransmissionColor,
+        TransmissionDepth,
+        TransmissionScatter,
+        TransmissionScaterAnisotrophy,
+        TransmissionDispersion,
+        TransmissionRoughness,
+        TransmissionExtraRoughness,
+        TransmissionPriority,
+        TransmissionEnableInAOV,
+        SubsurfaceFactor,
+        SubsurfaceColor,
+        SubsurfaceRadius,
+        SubsurfaceScale,
+        SubsurfaceAnisotropy,
+        SubsurfaceTintColor,
+        SubsurfaceType,
+        SheenFactor,
+        SheenColor,
+        SheenRoughness,
+        CoatFactor,
+        CoatColor,
+        CoatRoughness,
+        CoatIOR,
+        CoatAnisotropy,
+        CoatRotation,
+        CoatNormal,
+        CoatAffectBaseColor,
+        CoatAffectBaseRoughness,
+        ThinFilmFactor,
+        ThinFilmThickness,
+        ThinFilmIOR,
+        EmissionFactor,
+        EmissionColor,
+        Opacity,
+        IndirectDiffuse,
+        IndirectSpecular,
+        NormalMap,
+        TangentMap,
+        DisplacementMap,
+        MatteFactor,
+        MatteColor,
+        AmbientOcclusion,
+        Glossiness,
+        CoatGlossiness,
+        TransmissionGlossiness,
+    }
+
+    /// <summary>
+    /// Known material features
+    /// </summary>
+    public enum UFBXMaterialFeature
+    {
+        PBR,
+        Metalness,
+        Diffuse,
+        Specular,
+        Emission,
+        Transmission,
+        Coat,
+        Sheen,
+        Opacity,
+        AmbientOcclusion,
+        Matte,
+        Unlit,
+        IOR,
+        DiffuseRoughness,
+        TransmissionRoughness,
+        Thinwalled,
+        Caustics,
+        ExitToBackground,
+        InternalReflections,
+        DoubleSided,
+        RoughnessAsGlossiness,
+        CoatRoughnessAsGlossiness,
+        TransmissionRoughnessAsGlossiness,
+    }
+
+    public enum UFBXTextureType
+    {
+        /// <summary>
+        /// Texture associated with an image file/sequence. `texture->filename` and
+        /// and `texture->relative_filename` contain the texture's path. If the file
+        /// has embedded content `texture->content` may hold `texture->content_size`
+        /// bytes of raw image data.
+        /// </summary>
+        File,
+        /// <summary>
+        /// The texture consists of multiple texture layers blended together.
+        /// </summary>
+        Layered,
+        /// <summary>
+        /// Reserved as these _should_ exist in FBX files.
+        /// </summary>
+        Procedural,
+        /// <summary>
+        /// Node in a shader graph.
+        /// Use `ufbx_texture.shader` for more information.
+        /// </summary>
+        Shader,
+    }
+
+    /// <summary>
+    /// Blend modes to combine layered textures with, compatible with common blend
+    /// mode definitions in many art programs. Simpler blend modes have equations
+    /// specified below where `src` is the layer to composite over `dst`.
+    /// See eg. https://www.w3.org/TR/2013/WD-compositing-1-20131010/#blendingseparable
+    /// </summary>
+    public enum UFBXBlendMode
+    {
+        /// <summary>
+        /// `src` effects result alpha
+        /// </summary>
+        Translucent,
+        /// <summary>
+        /// `src + dst`
+        /// </summary>
+        Additive,
+        /// <summary>
+        /// `src * dst`
+        /// </summary>
+        Multiply,
+        /// <summary>
+        /// `2 * src * dst`
+        /// </summary>
+        Multiply2X,
+        /// <summary>
+        /// `src * src_alpha + dst * (1-src_alpha)`
+        /// </summary>
+        Over,
+        /// <summary>
+        /// `src` Replace the contents
+        /// </summary>
+        Replace,
+        /// <summary>
+        /// `random() + src_alpha >= 1.0 ? src : dst`
+        /// </summary>
+        Dissolve,
+        /// <summary>
+        /// `min(src, dst)`
+        /// </summary>
+        Darken,
+        /// <summary>
+        /// `src > 0 ? 1 - min(1, (1-dst) / src) : 0`
+        /// </summary>
+        ColorBurn,
+        /// <summary>
+        /// `src + dst - 1`
+        /// </summary>
+        LinearBurn,
+        /// <summary>
+        /// `value(src) < value(dst) ? src : dst`
+        /// </summary>
+        DarkerColor,
+        /// <summary>
+        /// `max(src, dst)`
+        /// </summary>
+        Lighten,
+        /// <summary>
+        /// `1 - (1-src)*(1-dst)`
+        /// </summary>
+        Screen,
+        /// <summary>
+        /// `src < 1 ? dst / (1 - src)` : (dst>0?1:0)`
+        /// </summary>
+        ColorDodge,
+        /// <summary>
+        /// `src + dst`
+        /// </summary>
+        LinearDodge,
+        /// <summary>
+        /// `value(src) > value(dst) ? src : dst`
+        /// </summary>
+        LighterColor,
+        /// <summary>
+        /// https://www.w3.org/TR/2013/WD-compositing-1-20131010/#blendingsoftlight
+        /// </summary>
+        SoftLight,
+        /// <summary>
+        /// https://www.w3.org/TR/2013/WD-compositing-1-20131010/#blendinghardlight
+        /// </summary>
+        HardLight,
+        /// <summary>
+        /// Combination of `COLOR_DODGE` and `COLOR_BURN`
+        /// </summary>
+        VividLight,
+        /// <summary>
+        /// Combination of `LINEAR_DODGE` and `LINEAR_BURN`
+        /// </summary>
+        LinearLight,
+        /// <summary>
+        /// Combination of `DARKEN` and `LIGHTEN`
+        /// </summary>
+        PinLight,
+        /// <summary>
+        /// Produces primary colors depending on similarity
+        /// </summary>
+        HardMix,
+        /// <summary>
+        /// `abs(src - dst)`
+        /// </summary>
+        Difference,
+        /// <summary>
+        /// `dst + src - 2 * src * dst`
+        /// </summary>
+        Exclusion,
+        /// <summary>
+        /// `dst - src`
+        /// </summary>
+        Subtract,
+        /// <summary>
+        /// `dst / src`
+        /// </summary>
+        Divide,
+        /// <summary>
+        /// Replace hue
+        /// </summary>
+        Hue,
+        /// <summary>
+        /// Replace saturation
+        /// </summary>
+        Saturation,
+        /// <summary>
+        /// Replace hue and saturation
+        /// </summary>
+        Color,
+        /// <summary>
+        /// Replace value
+        /// </summary>
+        Luminosity,
+        /// <summary>
+        /// Same as `HARD_LIGHT` but with `src` and `dst` swapped
+        /// </summary>
+        Overlay,
+    }
+
+    /// <summary>
+    /// Blend modes to combine layered textures with, compatible with common blend
+    /// </summary>
+    public enum UFBXWrapMode
+    {
+        /// <summary>
+        /// Repeat the texture past the [0,1] range
+        /// </summary>
+        Repeat,
+        /// <summary>
+        /// Clamp the normalized texture coordinates to [0,1]
+        /// </summary>
+        Clamp,
+    }
+
+    public enum UFBXShaderTextureType
+    {
+        Unknown,
+        /// <summary>
+        /// Select an output of a multi-output shader.
+        /// HINT: If this type is used the `ufbx_shader_texture.main_texture` and
+        /// `ufbx_shader_texture.main_texture_output_index` fields are set.
+        /// </summary>
+        SelectOutput,
+        /// <summary>
+        /// Open Shading Language (OSL) shader.
+        /// https://github.com/AcademySoftwareFoundation/OpenShadingLanguage
+        /// </summary>
+        OSL,
+    }
+
     /// <summary>
     /// Null-terminated UTF-8 encoded string within an FBX file
     /// </summary>
@@ -217,12 +1048,12 @@ partial class ufbx
         {
             get
             {
-                if(data == nint.Zero)
+                if (data == nint.Zero)
                 {
                     return "";
                 }
 
-                return Encoding.UTF8.GetString((byte *)data, (int)length);
+                return Encoding.UTF8.GetString((byte*)data, (int)length);
             }
         }
 
@@ -273,6 +1104,37 @@ partial class ufbx
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXList<T>
+    {
+        public nint data;
+        public ulong count;
+
+        public readonly T[] Value
+        {
+            get
+            {
+                if (data == nint.Zero)
+                {
+                    return [];
+                }
+
+                unsafe
+                {
+                    var array = new T[count];
+
+                    var span = new Span<T>((T*)data, (int)count);
+
+                    var target = new Span<T>(array);
+
+                    span.CopyTo(target);
+
+                    return array;
+                }
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXBoolList
     {
         public nint data;
@@ -305,161 +1167,6 @@ partial class ufbx
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXUInt32List
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly uint[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new uint[count];
-
-                    var span = new Span<uint>((uint*)data, (int)count);
-
-                    var target = new Span<uint>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXRealList
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly float[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new float[count];
-
-                    var span = new Span<float>((float*)data, (int)count);
-
-                    var target = new Span<float>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXVector2List
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly Vector2[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new Vector2[count];
-
-                    var span = new Span<Vector2>((Vector2*)data, (int)count);
-
-                    var target = new Span<Vector2>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXVector3List
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly Vector3[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new Vector3[count];
-
-                    var span = new Span<Vector3>((Vector3*)data, (int)count);
-
-                    var target = new Span<Vector3>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXVector4List
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly Vector4[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new Vector4[count];
-
-                    var span = new Span<Vector4>((Vector4*)data, (int)count);
-
-                    var target = new Span<Vector4>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXStringList
     {
         public nint data;
@@ -480,7 +1187,7 @@ partial class ufbx
 
                     var span = new Span<UFBXString>((UFBXString*)data, (int)count);
 
-                    for(var i = 0; i < (int)count; i++)
+                    for (var i = 0; i < (int)count; i++)
                     {
                         array[i] = span[i];
                     }
@@ -491,7 +1198,7 @@ partial class ufbx
         }
     }
 
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXDomValue
     {
         public UFBXDomValueType type;
@@ -502,49 +1209,18 @@ partial class ufbx
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXDomValueList
-    {
-        public nint data;
-        public ulong count;
-
-        public readonly UFBXDomValue[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new UFBXDomValue[count];
-
-                    var span = new Span<UFBXDomValue>((UFBXDomValue*)data, (int)count);
-
-                    var target = new Span<UFBXDomValue>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXDomNode
     {
         public UFBXString name;
         public UFBXDomNodeList children;
-        public UFBXDomValueList values;
+        public UFBXList<UFBXDomValue> values;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXDomNodeList
     {
         public nint data;
-        public int count;
+        public ulong count;
 
         public readonly UFBXDomNode[] Value
         {
@@ -559,7 +1235,7 @@ partial class ufbx
                 {
                     var array = new UFBXDomNode[count];
 
-                    var span = new Span<UFBXDomNode>((UFBXDomNode*)data, count);
+                    var span = new Span<UFBXDomNode>((UFBXDomNode*)data, (int)count);
 
                     var target = new Span<UFBXDomNode>(array);
 
@@ -599,47 +1275,16 @@ partial class ufbx
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFBXPropList
-    {
-        public nint data;
-        public int count;
-
-        public readonly UFBXProp[] Value
-        {
-            get
-            {
-                if (data == nint.Zero || count < 0)
-                {
-                    return [];
-                }
-
-                unsafe
-                {
-                    var array = new UFBXProp[count];
-
-                    var span = new Span<UFBXProp>((UFBXProp*)data, count);
-
-                    var target = new Span<UFBXProp>(array);
-
-                    span.CopyTo(target);
-
-                    return array;
-                }
-            }
-        }
-    }
-
-    [StructLayout (LayoutKind.Sequential, Pack = 0)]
     public struct UFBXProps
     {
-        public UFBXPropList props;
+        public UFBXList<UFBXProp> props;
         public ulong numAnimated;
 
         public nint defaults;
 
         public readonly bool TryGetDefaults(out UFBXProps props)
         {
-            if(defaults == nint.Zero)
+            if (defaults == nint.Zero)
             {
                 props = default;
 
@@ -653,5 +1298,2255 @@ partial class ufbx
 
             return true;
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXConnection
+    {
+        public UFBXElement* src;
+        public UFBXElement* dst;
+        public UFBXString srcProp;
+        public UFBXString UFBXString;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXUnknown
+    {
+        public UFBXElement element;
+
+        public UFBXString type;
+        public UFBXString superType;
+        public UFBXString subType;
+    }
+
+    /// <summary>
+    /// Nodes form the scene transformation hierarchy and can contain attached
+    /// elements such as meshes or lights. In normal cases a single `ufbx_node`
+    /// contains only a single attached element, so using `type/mesh/...` is safe.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXNode
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Parent node containing this one if not root.
+        ///
+        /// Always non-`NULL` for non-root nodes unless
+        /// `ufbx_load_opts.allow_nodes_out_of_root` is enabled.
+        /// </summary>
+        public UFBXNode* parent;
+
+        /// <summary>
+        /// List of child nodes parented to this node.
+        /// </summary>
+        public UFBXList<UFBXNode> children;
+
+        /// <summary>
+        /// Common attached element type and typed pointers. Set to `NULL` if not in
+        /// use, so checking `attrib_type` is not required.
+        ///
+        /// HINT: If you need less common attributes access `ufbx_node.attrib`, you
+        /// can use utility functions like `ufbx_as_nurbs_curve(attrib)` to convert
+        /// and check the attribute in one step.
+        /// </summary>
+        public UFBXMesh* mesh;
+        public UFBXLight* light;
+        public UFBXCamera* camera;
+        public UFBXBone* bone;
+
+        /// <summary>
+        /// Less common attributes use these fields.
+        ///
+        /// Defined even if it is one of the above, eg. `ufbx_mesh`. In case there
+        /// is multiple attributes this will be the first one.
+        /// </summary>
+        public UFBXElement* attrib;
+
+        /// <summary>
+        /// Geometry transform helper if one exists.
+        /// See `UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES`.
+        /// </summary>
+        public UFBXNode* geometryTransformHelper;
+
+        /// <summary>
+        /// Scale helper if one exists.
+        /// See `UFBX_INHERIT_MODE_HANDLING_HELPER_NODES`.
+        /// </summary>
+        public UFBXNode* scaleHelper;
+
+        /// <summary>
+        /// `attrib->type` if `attrib` is defined, otherwise `UFBX_ELEMENT_UNKNOWN`.
+        /// </summary>
+        public UFBXElementType attribType;
+
+        /// <summary>
+        /// List of _all_ attached attribute elements.
+        ///
+        /// In most cases there is only zero or one attributes per node, but if you
+        /// have a very exotic FBX file nodes may have multiple attributes.
+        /// </summary>
+        public UFBXList<UFBXElement> allAttribs;
+
+        /// <summary>
+        /// Local transform in parent, geometry transform is a non-inherited
+        /// transform applied only to attachments like meshes
+        /// </summary>
+        public UFBXInheritMode inheritMode;
+        public UFBXInheritMode originalInheritMode;
+
+        public UFBXTransform localTransform;
+        public UFBXTransform geometryTransform;
+
+        /// <summary>
+        /// Combined scale when using `UFBX_INHERIT_MODE_COMPONENTWISE_SCALE`.
+        /// Contains `local_transform.scale` otherwise.
+        /// </summary>
+        public Vector3 inheritScale;
+
+        /// <summary>
+        /// Node where scale is inherited from for `UFBX_INHERIT_MODE_COMPONENTWISE_SCALE`
+        /// and even for `UFBX_INHERIT_MODE_IGNORE_PARENT_SCALE`.
+        /// For componentwise-scale nodes, this will point to `parent`, for scale ignoring
+        /// nodes this will point to the parent of the nearest componentwise-scaled node
+        /// in the parent chain.
+        /// </summary>
+        public UFBXNode* inheritScaleNode;
+
+        /// <summary>
+        /// Specifies the axis order `euler_rotation` is applied in.
+        /// </summary>
+        public UFBXRotationOrder rotationOrder;
+
+        /// <summary>
+        /// Rotation around the local X/Y/Z axes in `rotation_order`.
+        /// The angles are specified in degrees.
+        /// </summary>
+        public Vector3 eulerRotation;
+
+        // Matrices derived from the transformations, for transforming geometry
+        // prefer using `geometry_to_world` as that supports geometric transforms.
+
+        /// <summary>
+        /// Transform from this node to `parent` space.
+        /// Equivalent to `ufbx_transform_to_matrix(&amp;local_transform)`.
+        /// </summary>
+        public UFBXMatrix nodeToParent;
+
+        /// <summary>
+        /// Transform from this node to the world space, ie. multiplying all the
+        /// `node_to_parent` matrices of the parent chain together.
+        /// </summary>
+        public UFBXMatrix nodeToWorld;
+
+        /// <summary>
+        /// Transform from the attribute to this node. Does not affect the transforms
+        /// of `children`!
+        /// Equivalent to `ufbx_transform_to_matrix(&amp;geometry_transform)`.
+        /// </summary>
+        public UFBXMatrix geometryToNode;
+
+        /// <summary>
+        /// Transform from attribute space to world space.
+        /// Equivalent to `ufbx_matrix_mul(&amp;node_to_world, &amp;geometry_to_node)`.
+        /// </summary>
+        public UFBXMatrix geometryToWorld;
+
+        /// <summary>
+        /// Transform from this node to world space, ignoring self scaling.
+        /// </summary>
+        public UFBXMatrix unscaledNodeToWorld;
+
+        /// ufbx-specific adjustment for switching between coodrinate/unit systems.
+        /// HINT: In most cases you don't need to deal with these as these are baked
+        /// into all the transforms above and into `ufbx_evaluate_transform()`.
+
+        /// <summary>
+        /// ufbx-specific adjustment for switching between coodrinate/unit systems.
+        /// </summary>
+        public Vector3 adjustPreTranslatioon;
+
+        /// <summary>
+        /// Rotation applied between parent and self
+        /// </summary>
+        public Quaternion adjustPreRotation;
+        /// <summary>
+        /// Scaling applied between parent and self
+        /// </summary>
+        public float adjustPreScale;
+        /// <summary>
+        /// Rotation applied in local space at the end
+        /// </summary>
+        public Quaternion adjustPostRotation;
+        /// <summary>
+        /// Scaling applied in local space at the end
+        /// </summary>
+        public float adjustPostScale;
+        /// <summary>
+        /// Scaling applied to translation only
+        /// </summary>
+        public float adjustTranslationScale;
+        /// <summary>
+        /// Mirror translation and rotation on this axis
+        /// </summary>
+        public UFBXMirrorAxis adjustMirrorAxis;
+
+        /// <summary>
+        /// Materials used by `mesh` or other `attrib`.
+        /// There may be multiple copies of a single `ufbx_mesh` with different materials
+        /// in the `ufbx_node` instances.
+        /// </summary>
+        public UFBXList<UFBXMaterial> materials;
+
+        /// <summary>
+        /// Bind pose
+        /// </summary>
+        public UFBXPose* bindPose;
+
+        /// <summary>
+        /// Visibility state.
+        /// </summary>
+        public bool visible;
+
+        /// <summary>
+        /// True if this node is the implicit root node of the scene.
+        /// </summary>
+        public bool IsRoot;
+
+        /// <summary>
+        /// True if the node has a non-identity `geometry_transform`.
+        /// </summary>
+        public bool HasGeometryTransform;
+
+        /// <summary>
+        /// If `true` the transform is adjusted by ufbx, not enabled by default.
+        /// See `adjust_pre_rotation`, `adjust_pre_scale`, `adjust_post_rotation`,
+        /// and `adjust_post_scale`.
+        /// </summary>
+        public bool HasAdjustTransform;
+
+        /// <summary>
+        /// Scale is adjusted by root scale.
+        /// </summary>
+        public bool HasRootAdjustTransform;
+
+        /// <summary>
+        /// True if this node is a synthetic geometry transform helper.
+        /// See `UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES`.
+        /// </summary>
+        public bool IsGeometryTransformHelper;
+
+        /// <summary>
+        /// True if the node is a synthetic scale compensation helper.
+        /// See `UFBX_INHERIT_MODE_HANDLING_HELPER_NODES`.
+        /// </summary>
+        public bool IsScaleHelper;
+
+        /// <summary>
+        /// Parent node to children that can compensate for parent scale.
+        /// </summary>
+        public bool IsScaleCompensateParent;
+
+        /// <summary>
+        /// How deep is this node in the parent hierarchy. Root node is at depth `0`
+        /// and the immediate children of root at `1`.
+        /// </summary>
+        public uint nodeDepth;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexAttrib
+    {
+        /// <summary>
+        /// Is this attribute defined by the mesh.
+        /// </summary>
+        public bool exists;
+
+        /// <summary>
+        /// List of values the attribute uses.
+        /// </summary>
+        public UFBXVoidList values;
+
+        /// <summary>
+        /// Indices into `values[]`, indexed up to `ufbx_mesh.num_indices`.
+        /// </summary>
+        public UFBXList<uint> indices;
+
+        /// <summary>
+        /// Number of `ufbx_real` entries per value.
+        /// </summary>
+        public ulong valueReals;
+
+        /// <summary>
+        /// `true` if this attribute is defined per vertex, instead of per index.
+        /// </summary>
+        public bool uniquePerVertex;
+
+        /// <summary>
+        /// Optional 4th 'W' component for the attribute.
+        /// May be defined for the following:
+        ///   ufbx_mesh.vertex_normal
+        ///   ufbx_mesh.vertex_tangent / ufbx_uv_set.vertex_tangent
+        ///   ufbx_mesh.vertex_bitangent / ufbx_uv_set.vertex_bitangent
+        /// NOTE: This is not loaded by default, set `ufbx_load_opts.retain_vertex_attrib_w`.
+        /// </summary>
+        public UFBXList<float> values_w;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexReal
+    {
+        public bool exists;
+        public UFBXList<float> values;
+        public UFBXList<uint> indices;
+        public ulong valueReals;
+        public bool uniquePerVertex;
+        public UFBXList<float> values_w;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexVector2
+    {
+        public bool exists;
+        public UFBXList<Vector2> values;
+        public UFBXList<uint> indices;
+        public ulong valueReals;
+        public bool uniquePerVertex;
+        public UFBXList<float> values_w;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexVector3
+    {
+        public bool exists;
+        public UFBXList<Vector3> values;
+        public UFBXList<uint> indices;
+        public ulong valueReals;
+        public bool uniquePerVertex;
+        public UFBXList<float> values_w;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexVector4
+    {
+        public bool exists;
+        public UFBXList<Vector4> values;
+        public UFBXList<uint> indices;
+        public ulong valueReals;
+        public bool uniquePerVertex;
+        public UFBXList<float> values_w;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXUVSet
+    {
+        public UFBXString name;
+        public uint index;
+
+        /// <summary>
+        /// UV / texture coordinates
+        /// </summary>
+        public UFBXVertexVector2 uv;
+        /// <summary>
+        /// (optional) Tangent vector in UV.x direction
+        /// </summary>
+        public UFBXVertexVector3 tangent;
+        /// <summary>
+        /// (optional) Tangent vector in UV.y direction
+        /// </summary>
+        public UFBXVertexVector3 bitangent;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXColorSet
+    {
+        public UFBXString name;
+        public uint index;
+
+        /// <summary>
+        /// Per-vertex RGBA color
+        /// </summary>
+        public UFBXVertexVector4 color;
+    }
+
+    /// <summary>
+    /// Edge between two _indices_ in a mesh
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXEdge
+    {
+        public uint a, b;
+    }
+
+    /// <summary>
+    /// Polygonal face with arbitrary number vertices, a single face contains a
+    /// contiguous range of mesh indices, eg. `{5,3}` would have indices 5, 6, 7
+    ///
+    /// NOTE: `num_indices` maybe less than 3 in which case the face is invalid!
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXFace
+    {
+        public uint startIndex;
+        public uint indexCount;
+    }
+
+    /// <summary>
+    /// Subset of mesh faces used by a single material or group.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMeshPart
+    {
+        /// <summary>
+        /// Index of the mesh part.
+        /// </summary>
+        public uint index;
+
+        /// <summary>
+        /// Number of faces (polygons)
+        /// </summary>
+        public ulong faceCount;
+
+        /// <summary>
+        /// Number of triangles if triangulated
+        /// </summary>
+        public ulong triangleCount;
+
+        /// <summary>
+        /// Number of faces with zero vertices
+        /// </summary>
+        public ulong emptyFaceCount;
+
+        /// <summary>
+        /// Number of faces with a single vertex
+        /// </summary>
+        public ulong pointFaceCount;
+
+        /// <summary>
+        /// Number of faces with two vertices
+        /// </summary>
+        public ulong lineFaceCount;
+
+        /// <summary>
+        /// Indices to `ufbx_mesh.faces[]`.
+        /// Always contains `num_faces` elements.
+        /// </summary>
+        public UFBXList<uint> faceIndices;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXFaceGroup
+    {
+        /// <summary>
+        /// Numerical ID for this group.
+        /// </summary>
+        public int ID;
+
+        /// <summary>
+        /// Name for the face group.
+        /// </summary>
+        public UFBXString name;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSubdivisionWeightRange
+    {
+        public uint weightStart;
+        public uint weightCount;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSubdivisionWeight
+    {
+        public float weight;
+        public uint index;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSubdivisionResult
+    {
+        public ulong resultMemoryUsed;
+        public ulong tempMemoryUsed;
+        public ulong resultAllocs;
+        public ulong tempAllocs;
+
+        /// <summary>
+        /// Weights of vertices in the source model.
+        /// Defined if `ufbx_subdivide_opts.evaluate_source_vertices` is set.
+        /// </summary>
+        public UFBXList<UFBXSubdivisionWeightRange> sourceVertexRanges;
+        /// <summary>
+        /// Weights of vertices in the source model.
+        /// Defined if `ufbx_subdivide_opts.evaluate_source_vertices` is set.
+        /// </summary>
+        public UFBXList<UFBXSubdivisionWeight> sourceVertexWeights;
+
+        /// <summary>
+        /// Weights of skin clusters in the source model.
+        /// Defined if `ufbx_subdivide_opts.evaluate_skin_weights` is set.
+        /// </summary>
+        public UFBXList<UFBXSubdivisionWeightRange> skinClusterRanges;
+        /// <summary>
+        /// Weights of skin clusters in the source model.
+        /// Defined if `ufbx_subdivide_opts.evaluate_skin_weights` is set.
+        /// </summary>
+        public UFBXList<UFBXSubdivisionWeight> skinClusterWeights;
+    }
+
+    // Polygonal mesh geometry.
+    //
+    // Example mesh with two triangles (x, z) and a quad (y).
+    // The faces have a constant UV coordinate x/y/z.
+    // The vertices have _per vertex_ normals that point up/down.
+    //
+    //     ^   ^     ^
+    //     A---B-----C
+    //     |x /     /|
+    //     | /  y  / |
+    //     |/     / z|
+    //     D-----E---F
+    //     v     v   v
+    //
+    // Attributes may have multiple values within a single vertex, for example a
+    // UV seam vertex has two UV coordinates. Thus polygons are defined using
+    // an index that counts each corner of each face polygon. If an attribute is
+    // defined (even per-vertex) it will always have a valid `indices` array.
+    //
+    //   {0,3}    {3,4}    {7,3}   faces ({ index_begin, num_indices })
+    //   0 1 2   3 4 5 6   7 8 9   index
+    //
+    //   0 1 3   1 2 4 3   2 4 5   vertex_indices[index]
+    //   A B D   B C E D   C E F   vertices[vertex_indices[index]]
+    //
+    //   0 0 1   0 0 1 1   0 1 1   vertex_normal.indices[index]
+    //   ^ ^ v   ^ ^ v v   ^ v v   vertex_normal.data[vertex_normal.indices[index]]
+    //
+    //   0 0 0   1 1 1 1   2 2 2   vertex_uv.indices[index]
+    //   x x x   y y y y   z z z   vertex_uv.data[vertex_uv.indices[index]]
+    //
+    // Vertex position can also be accessed uniformly through an accessor:
+    //   0 1 3   1 2 4 3   2 4 5   vertex_position.indices[index]
+    //   A B D   B C E D   C E F   vertex_position.data[vertex_position.indices[index]]
+    //
+    // Some geometry data is specified per logical vertex. Vertex positions are
+    // the only attribute that is guaranteed to be defined _uniquely_ per vertex.
+    // Vertex attributes _may_ be defined per vertex if `unique_per_vertex == true`.
+    // You can access the per-vertex values by first finding the first index that
+    // refers to the given vertex.
+    //
+    //   0 1 2 3 4 5  vertex
+    //   A B C D E F  vertices[vertex]
+    //
+    //   0 1 4 2 5 9  vertex_first_index[vertex]
+    //   0 0 0 1 1 1  vertex_normal.indices[vertex_first_index[vertex]]
+    //   ^ ^ ^ v v v  vertex_normal.data[vertex_normal.indices[vertex_first_index[vertex]]]
+    //
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXMesh
+    {
+        public UFBXElement element;
+
+        // Number of "logical" vertices that would be treated as a single point,
+        // one vertex may be split to multiple indices for split attributes, eg. UVs
+
+        /// <summary>
+        /// Number of logical "vertex" points
+        /// </summary>
+        public ulong vertexCount;
+
+        /// <summary>
+        /// Number of combiend vertex/attribute tuples
+        /// </summary>
+        public ulong indexCount;
+
+        /// <summary>
+        /// Number of faces (polygons) in the mesh
+        /// </summary>
+        public ulong faceCount;
+
+        /// <summary>
+        /// Number of triangles if triangulated
+        /// </summary>
+        public ulong triangleCount;
+
+        /// <summary>
+        /// Number of edges in the mesh.
+        /// NOTE: May be zero in valid meshes if the file doesn't contain edge adjacency data!
+        /// </summary>
+        public ulong edgeCount;
+
+        /// <summary>
+        /// Maximum number of triangles in a  face in this mesh
+        /// </summary>
+        public ulong maxFaceTriangles;
+
+        /// <summary>
+        /// Number of faces with zero vertices
+        /// </summary>
+        public ulong emptyFaceCount;
+
+        /// <summary>
+        /// Number of faces with a single vertex
+        /// </summary>
+        public ulong pointFaceCount;
+
+        /// <summary>
+        /// Number of faces with two vertices
+        /// </summary>
+        public ulong lineFaceCount;
+
+        /// <summary>
+        /// Face index range
+        /// </summary>
+        public UFBXList<UFBXFace> faces;
+
+        /// <summary>
+        /// Should the face have soft normals
+        /// </summary>
+        public UFBXBoolList faceSmoothing;
+
+        /// <summary>
+        /// Indices to `ufbx_mesh.materials[]` and `ufbx_node.materials[]`
+        /// </summary>
+        public UFBXList<uint> faceMaterial;
+
+        /// <summary>
+        /// Face polygon group index, indices to `ufbx_mesh.face_groups[]`
+        /// </summary>
+        public UFBXList<uint> faceGroup;
+
+        /// <summary>
+        /// Should the face be hidden as a "hole"
+        /// </summary>
+        public UFBXBoolList faceHole;
+
+        /// <summary>
+        /// Edge index range
+        /// </summary>
+        public UFBXList<UFBXEdge> edges;
+
+        /// <summary>
+        /// Should the edge have soft normals
+        /// </summary>
+        public UFBXBoolList edgeSmoothing;
+
+        /// <summary>
+        /// Crease value for subdivision surfaces
+        /// </summary>
+        public UFBXList<float> edgeCrease;
+
+        /// <summary>
+        /// Should the edge be visible
+        /// </summary>
+        public UFBXBoolList edgeVisibility;
+
+        /// <summary>
+        /// Logical vertices and positions, alternatively you can use
+        /// `vertex_position` for consistent interface with other attributes.
+        /// </summary>
+        public UFBXList<uint> vertexIndices;
+
+        public UFBXList<Vector3> vertices;
+
+        /// <summary>
+        /// First index referring to a given vertex, `UFBX_NO_INDEX` if the vertex is unused.
+        /// </summary>
+        public UFBXList<uint> vertexFirstIndex;
+
+        // Vertex attributes, see the comment over the struct.
+        //
+        // NOTE: Not all meshes have all attributes, in that case `indices/data == NULL`!
+        //
+        // NOTE: UV/tangent/bitangent and color are the from first sets,
+        // use `uv_sets/color_sets` to access the other layers.
+
+        /// <summary>
+        /// Vertex positions
+        /// </summary>
+        public UFBXVertexVector3 vertexPosition;
+
+        /// <summary>
+        /// (optional) Normal vectors, always defined if `ufbx_load_opts.generate_missing_normals`
+        /// </summary>
+        public UFBXVertexVector3 vertexNormal;
+
+        /// <summary>
+        /// (optional) UV / texture coordinates
+        /// </summary>
+        public UFBXVertexVector2 vertexUV;
+
+        /// <summary>
+        /// (optional) Tangent vector in UV.x direction
+        /// </summary>
+        public UFBXVertexVector3 vertexTangent;
+
+        /// <summary>
+        /// (optional) Tangent vector in UV.y direction
+        /// </summary>
+        public UFBXVertexVector3 vertexBitangent;
+
+        /// <summary>
+        /// (optional) Per-vertex RGBA color
+        /// </summary>
+        public UFBXVertexVector4 vertexColor;
+
+        /// <summary>
+        /// (optional) Crease value for subdivision surfaces
+        /// </summary>
+        public UFBXVertexReal vertexCrease;
+
+        // Multiple named UV/color sets
+        // NOTE: The first set contains the same data as `vertex_uv/color`!
+
+        public UFBXList<UFBXUVSet> uvSets;
+        public UFBXList<UFBXColorSet> colorSets;
+
+        /// <summary>
+        /// Materials used by the mesh.
+        /// NOTE: These can be wrong if you want to support per-instance materials!
+        /// Use `ufbx_node.materials[]` to get the per-instance materials at the same indices.
+        /// </summary>
+        public UFBXList<UFBXMaterial> materials;
+
+        /// <summary>
+        /// Face groups for this mesh.
+        /// </summary>
+        public UFBXList<UFBXFaceGroup> faceGroups;
+
+        /// <summary>
+        /// Segments that use a given material.
+        /// Defined even if the mesh doesn't have any materials.
+        /// </summary>
+        public UFBXList<UFBXMeshPart> materialParts;
+
+        /// <summary>
+        /// Segments for each face group.
+        /// </summary>
+        public UFBXList<UFBXMeshPart> faceGroupParts;
+
+        /// <summary>
+        /// Order of `material_parts` by first face that refers to it.
+        /// Useful for compatibility with FBX SDK and various importers using it,
+        /// as they use this material order by default.
+        /// </summary>
+        public UFBXList<uint> materialPartUsageOrder;
+
+        // Skinned vertex positions, for efficiency the skinned positions are the
+        // same as the static ones for non-skinned meshes and `skinned_is_local`
+        // is set to true meaning you need to transform them manually using
+        // `ufbx_transform_position(&node->geometry_to_world, skinned_pos)`!
+
+        public bool skinnedIsLocal;
+        public UFBXVertexVector3 skinnedPosition;
+        public UFBXVertexVector3 skinnedNormal;
+
+        // Deformers
+
+        public UFBXList<UFBXSkinDeformer> skinDeformers;
+        public UFBXList<UFBXBlendDeformer> blendDeformers;
+        public UFBXList<UFBXCacheDeformer> cacheDeformers;
+        public UFBXList<UFBXElement> allDeformers;
+
+        //Subdivision
+        public uint subdivisionPreviewLevels;
+        public uint subdivisionRenderLevels;
+        public UFBXSubdivisionDisplayMode subdivisionDisplayMode;
+        public UFBXSubdivisionBoundary subdivisionBoundary;
+        public UFBXSubdivisionBoundary subdivisionUVBoundary;
+
+        /// <summary>
+        /// The winding of the faces has been reversed.
+        /// </summary>
+        public bool reverseWinding;
+
+        /// <summary>
+        /// Normals have been generated instead of evaluated.
+        /// Either from missing normals (via `ufbx_load_opts.generate_missing_normals`), skinning,
+        /// tessellation, or subdivision.
+        /// </summary>
+        public bool generatedNormals;
+
+        /// <summary>
+        /// Subdivision (result)
+        /// </summary>
+        public bool subdivisionEvaluated;
+
+        /// <summary>
+        /// Subdivision (result)
+        /// </summary>
+        public UFBXSubdivisionResult* subdivisionResult;
+
+        /// <summary>
+        /// Tessellation (result)
+        /// </summary>
+        public bool fromTessellatedNurbs;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXLight
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Color and intensity of the light, usually you want to use `color * intensity`
+        /// NOTE: `intensity` is 0.01x of the property `"Intensity"` as that matches
+        /// matches values in DCC programs before exporting.
+        /// </summary>
+        public Vector3 color;
+        /// <summary>
+        /// Color and intensity of the light, usually you want to use `color * intensity`
+        /// NOTE: `intensity` is 0.01x of the property `"Intensity"` as that matches
+        /// matches values in DCC programs before exporting.
+        /// </summary>
+        public float intensity;
+
+        /// <summary>
+        /// Direction the light is aimed at in node's local space, usually -Y
+        /// </summary>
+        public Vector3 localDirection;
+
+        public UFBXLightType type;
+        public UFBXLightDecay decay;
+        public UFBXLightAreaShape areaShape;
+        public float innerAngle;
+        public float outerAngle;
+
+        public bool castLight;
+        public bool castShadows;
+    }
+
+    /// <summary>
+    /// Coordinate axes the scene is represented in.
+    /// NOTE: `front` is the _opposite_ from forward!
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXCoordinateAxes
+    {
+        public UFBXCoordinateAxis right;
+        public UFBXCoordinateAxis up;
+        public UFBXCoordinateAxis front;
+    }
+
+    /// <summary>
+    /// Camera attached to a `ufbx_node`
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXCamera
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Projection mode (perspective/orthographic).
+        /// </summary>
+        public UFBXProjectionMode projectionMode;
+
+        /// <summary>
+        /// If set to `true`, `resolution` represents actual pixel values, otherwise
+        /// it's only useful for its aspect ratio.
+        /// </summary>
+        public bool resolutionIsPixels;
+
+        /// <summary>
+        /// Render resolution, either in pixels or arbitrary units, depending on above
+        /// </summary>
+        public Vector2 resolution;
+
+        /// <summary>
+        /// Horizontal/vertical field of view in degrees
+        /// Valid if `projection_mode == UFBX_PROJECTION_MODE_PERSPECTIVE`.
+        /// </summary>
+        public Vector2 fieldOfViewDeg;
+
+        /// <summary>
+        /// Component-wise `tan(field_of_view_deg)`, also represents the size of the
+        /// proection frustum slice at distance of 1.
+        /// Valid if `projection_mode == UFBX_PROJECTION_MODE_PERSPECTIVE`.
+        /// </summary>
+        public Vector2 fieldOfViewTan;
+
+        /// <summary>
+        /// Orthographic camera extents.
+        /// Valid if `projection_mode == UFBX_PROJECTION_MODE_ORTHOGRAPHIC`.
+        /// </summary>
+        public float orthographicExtent;
+
+        /// <summary>
+        /// Orthographic camera size.
+        /// Valid if `projection_mode == UFBX_PROJECTION_MODE_ORTHOGRAPHIC`.
+        /// </summary>
+        public Vector2 orthographicSize;
+
+        /// <summary>
+        /// Size of the projection plane at distance 1.
+        /// Equal to `field_of_view_tan` if perspective, `orthographic_size` if orthographic.
+        /// </summary>
+        public Vector2 projectionPlane;
+
+        /// <summary>
+        /// Aspect ratio of the camera.
+        /// </summary>
+        public float aspectRatio;
+
+        /// <summary>
+        /// Near plane of the frustum in units from the camera.
+        /// </summary>
+        public float nearPlane;
+
+        /// <summary>
+        /// Far plane of the frustum in units from the camera.
+        /// </summary>
+        public float farPlane;
+
+        /// <summary>
+        /// Coordinate system that the projection uses.
+        /// FBX saves cameras with +X forward and +Y up, but you can override this using
+        /// `ufbx_load_opts.target_camera_axes` and it will be reflected here.
+        /// </summary>
+        public UFBXCoordinateAxes projectionAxes;
+
+        // Advanced properties used to compute the above
+        public UFBXAspectMode aspectMode;
+        public UFBXApertureMode apertureMode;
+        public UFBXGateFit gateFit;
+        public UFBXApertureFormat apertureFormat;
+        /// <summary>
+        /// Focal length in millimeters
+        /// </summary>
+        public float focalLengthMM;
+        /// <summary>
+        /// Film size in inches
+        /// </summary>
+        public Vector2 filmSizeInch;
+        /// <summary>
+        /// Aperture/film gate size in inches
+        /// </summary>
+        public Vector2 apertureSizeInch;
+        /// <summary>
+        /// Anamoprhic stretch ratio
+        /// </summary>
+        public float squeezeRatio;
+    }
+
+    /// <summary>
+    /// Bone attached to a `ufbx_node`, provides the logical length of the bone
+    /// but most interesting information is directly in `ufbx_node`.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXBone
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Visual radius of the bone
+        /// </summary>
+        public float radius;
+
+        /// <summary>
+        /// Length of the bone relative to the distance between two nodes
+        /// </summary>
+        public float relativeLength;
+
+        /// <summary>
+        /// Is the bone a root bone
+        /// </summary>
+        public bool isRoot;
+    }
+
+    /// <summary>
+    /// Empty/NULL/locator connected to a node, actual details in `ufbx_node`
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXEmpty
+    {
+        public UFBXElement element;
+    }
+
+    /// <summary>
+    /// Segment of a `ufbx_line_curve`, indices refer to `ufbx_line_curve.point_indices[]`
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXLineSegment
+    {
+        public uint startIndex;
+        public uint indexCount;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXLineCurve
+    {
+        public UFBXElement element;
+
+        public Vector3 color;
+
+        /// <summary>
+        /// List of possible values the line passes through
+        /// </summary>
+        public UFBXList<Vector3> controlPoints;
+
+        /// <summary>
+        /// Indices to `control_points[]` the line goes through
+        /// </summary>
+        public UFBXList<uint> pointIndices;
+
+        public UFBXList<UFBXLineSegment> segments;
+
+        /// <summary>
+        /// Tessellation (result)
+        /// </summary>
+        public bool fromTessellatedNURBS;
+    }
+
+    /// <summary>
+    /// NURBS basis functions for an axis
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXNURBSBasis
+    {
+        /// <summary>
+        /// Number of control points influencing a point on the curve/surface.
+        /// Equal to the degree plus one.
+        /// </summary>
+        public uint order;
+
+        /// <summary>
+        /// Topology (periodicity) of the dimension.
+        /// </summary>
+        public UFBXNurbsTopology topology;
+
+        /// <summary>
+        /// Subdivision of the parameter range to control points.
+        /// </summary>
+        public UFBXList<float> knotVector;
+
+        /// <summary>
+        /// Range for the parameter value.
+        /// </summary>
+        public float tMin;
+        /// <summary>
+        /// Range for the parameter value.
+        /// </summary>
+        public float tMax;
+
+        /// <summary>
+        /// Parameter values of control points.
+        /// </summary>
+        public UFBXList<float> spans;
+
+        /// <summary>
+        /// `true` if this axis is two-dimensional.
+        /// </summary>
+        public bool is2D;
+
+        /// <summary>
+        /// Number of control points that need to be copied to the end.
+        /// This is just for convenience as it could be derived from `topology` and
+        /// `order`. If for example `num_wrap_control_points == 3` you should repeat
+        /// the first 3 control points after the end.
+        /// HINT: You don't need to worry about this if you use ufbx functions
+        /// like `ufbx_evaluate_nurbs_curve()` as they handle this internally.
+        /// </summary>
+        public ulong numWrapControlPoints;
+
+        /// <summary>
+        /// `true` if the parametrization is well defined.
+        /// </summary>
+        public bool valid;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXNURBSCurve
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Basis in the U axis
+        /// </summary>
+        public UFBXNURBSBasis basis;
+
+        /// <summary>
+        /// Linear array of control points
+        /// NOTE: The control points are _not_ homogeneous, meaning you have to multiply
+        /// them by `w` before evaluating the surface.
+        /// </summary>
+        public UFBXList<Vector4> controlPoints;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXNURBSSurface
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Basis in the U/V axes
+        /// </summary>
+        public UFBXNURBSBasis basisU;
+        /// <summary>
+        /// Basis in the U/V axes
+        /// </summary>
+        public UFBXNURBSBasis basisV;
+
+        /// <summary>
+        /// Number of control points for the U/V axes
+        /// </summary>
+        public ulong controlPointsUCount;
+        /// <summary>
+        /// Number of control points for the U/V axes
+        /// </summary>
+        public ulong controlPointsVCount;
+
+        /// <summary>
+        /// 2D array of control points.
+        /// Memory layout: `V * num_control_points_u + U`
+        /// NOTE: The control points are _not_ homogeneous, meaning you have to multiply
+        /// them by `w` before evaluating the surface.
+        /// </summary>
+        public UFBXList<Vector4> controlPoints;
+
+        /// <summary>
+        /// How many segments tessellate each span in `ufbx_nurbs_basis.spans`.
+        /// </summary>
+        public uint spanSubdivisionU;
+        /// <summary>
+        /// How many segments tessellate each span in `ufbx_nurbs_basis.spans`.
+        /// </summary>
+        public uint spanSubdivisionV;
+
+        /// <summary>
+        /// If `true` the resulting normals should be flipped when evaluated.
+        /// </summary>
+        public bool flipNormals;
+
+        /// <summary>
+        /// Material for the whole surface.
+        /// NOTE: May be `NULL`!
+        /// </summary>
+        public UFBXMaterial* material;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXNURBSTrimSurface
+    {
+        public UFBXElement element;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXNURBSTrimBoundary
+    {
+        public UFBXElement element;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXProceduralGeometry
+    {
+        public UFBXElement element;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXStereoCamera
+    {
+        public UFBXElement element;
+
+        public UFBXCamera* left;
+        public UFBXCamera* right;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXCameraSwitcher
+    {
+        public UFBXElement element;
+    }
+
+    /// <summary>
+    /// Tracking marker for effectors
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMarker
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Type of the marker
+        /// </summary>
+        public UFBXMarkerType type;
+    }
+
+    /// <summary>
+    /// Single LOD level within an LOD group.
+    /// Specifies properties of the Nth child of the _node_ containing the LOD group.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXLODLevel
+    {
+        /// <summary>
+        /// Minimum distance to show this LOD level.
+        /// NOTE: In world units by default, or in screen percentage if
+        /// `ufbx_lod_group.relative_distances` is set.
+        /// </summary>
+        public float distance;
+
+        /// <summary>
+        /// LOD display mode.
+        /// NOTE: Mostly for editing, you should probably ignore this
+        /// unless making a modeling program.
+        /// </summary>
+        public UFBXLODDisplay display;
+    }
+
+    /// <summary>
+    /// Group of LOD (Level of Detail) levels for an object.
+    /// The actual LOD models are defined in the parent `ufbx_node.children`.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXLODGroup
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// If set to `true`, `ufbx_lod_level.distance` represents a screen size percentage.
+        /// </summary>
+        public bool relativeDistances;
+
+        /// <summary>
+        /// LOD levels matching in order to `ufbx_node.children`.
+        /// </summary>
+        public UFBXList<UFBXLODLevel> lodLevels;
+
+        /// <summary>
+        /// If set to `true` don't account for parent transform when computing the distance.
+        /// </summary>
+        public bool ignoreParentTransform;
+
+        /// <summary>
+        /// If `use_distance_limit` is enabled hide the group if the distance is not between
+        /// `distance_limit_min` and `distance_limit_max`.
+        /// </summary>
+        public bool useDistanceLimit;
+
+        /// <summary>
+        /// If `use_distance_limit` is enabled hide the group if the distance is not between
+        /// `distance_limit_min` and `distance_limit_max`.
+        /// </summary>
+        public float distanceLimitMin;
+
+        /// <summary>
+        /// If `use_distance_limit` is enabled hide the group if the distance is not between
+        /// `distance_limit_min` and `distance_limit_max`.
+        /// </summary>
+        public float distanceLimitMax;
+    }
+
+    /// <summary>
+    /// Skin weight information for a single mesh vertex
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSkinVertex
+    {
+        // Each vertex is influenced by weights from `ufbx_skin_deformer.weights[]`
+        // The weights are sorted by decreasing weight so you can take the first N
+        // weights to get a cheaper approximation of the vertex.
+        // NOTE: The weights are not guaranteed to be normalized!
+
+        /// <summary>
+        /// Index to start from in the `weights[]` array
+        /// </summary>
+        public uint startWeight;
+
+        /// <summary>
+        /// Number of weights influencing the vertex
+        /// </summary>
+        public uint weightCount;
+
+        /// <summary>
+        /// Blend weight between Linear Blend Skinning (0.0) and Dual Quaternion (1.0).
+        /// Should be used if `skinning_method == UFBX_SKINNING_METHOD_BLENDED_DQ_LINEAR`
+        /// </summary>
+        public float dqWeight;
+    }
+
+    /// <summary>
+    /// Single per-vertex per-cluster weight, see `ufbx_skin_vertex`
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSkinWeight
+    {
+        /// <summary>
+        /// Index into `ufbx_skin_deformer.clusters[]`
+        /// </summary>
+        public uint clusterIndex;
+
+        /// <summary>
+        /// Amount this bone influence the vertex
+        /// </summary>
+        public float weight;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSkinDeformer
+    {
+        public UFBXElement element;
+
+        public UFBXSkinningMethod skinningMethod;
+
+        /// <summary>
+        /// Clusters (bones) in the skin
+        /// </summary>
+        public UFBXList<UFBXSkinCluster> clusters;
+        /// <summary>
+        /// Per-vertex weight information
+        /// </summary>
+        public UFBXList<UFBXSkinVertex> vertices;
+        /// <summary>
+        /// Per-vertex weight information
+        /// </summary>
+        public UFBXList<UFBXSkinWeight> weights;
+
+        /// <summary>
+        /// Largest amount of weights a single vertex can have
+        /// </summary>
+        public ulong maxWeightsPerVertex;
+
+        /// <summary>
+        /// Blend weights between Linear Blend Skinning (0.0) and Dual Quaternion (1.0).
+        /// HINT: You probably want to use `vertices` and `ufbx_skin_vertex.dq_weight` instead!
+        /// NOTE: These may be out-of-bounds for a given mesh, `vertices` is always safe.
+        /// </summary>
+        public ulong dqWeightCount;
+        /// <summary>
+        /// Blend weights between Linear Blend Skinning (0.0) and Dual Quaternion (1.0).
+        /// HINT: You probably want to use `vertices` and `ufbx_skin_vertex.dq_weight` instead!
+        /// NOTE: These may be out-of-bounds for a given mesh, `vertices` is always safe.
+        /// </summary>
+        public UFBXList<uint> dqVertices;
+        /// <summary>
+        /// Blend weights between Linear Blend Skinning (0.0) and Dual Quaternion (1.0).
+        /// HINT: You probably want to use `vertices` and `ufbx_skin_vertex.dq_weight` instead!
+        /// NOTE: These may be out-of-bounds for a given mesh, `vertices` is always safe.
+        /// </summary>
+        public UFBXList<float> dqWeights;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXSkinCluster
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// The bone node the cluster is attached to
+        /// NOTE: Always valid if found from `ufbx_skin_deformer.clusters[]` unless
+        /// `ufbx_load_opts.connect_broken_elements` is `true`.
+        /// </summary>
+        public UFBXNode* boneNode;
+
+        /// <summary>
+        /// Binding matrix from local mesh vertices to the bone
+        /// </summary>
+        public UFBXMatrix geometryToNode;
+
+        /// <summary>
+        /// Binding matrix from local mesh _node_ to the bone.
+        /// NOTE: Prefer `geometry_to_bone` in most use cases!
+        /// </summary>
+        public UFBXMatrix meshNodeToBone;
+
+        /// <summary>
+        /// Matrix that specifies the rest/bind pose transform of the node,
+        /// not generally needed for skinning, use `geometry_to_bone` instead.
+        /// </summary>
+        public UFBXMatrix bindToWorld;
+
+        /// <summary>
+        /// Precomputed matrix/transform that accounts for the current bone transform
+        /// ie. `ufbx_matrix_mul(&amp;cluster->bone->node_to_world, &amp;cluster->geometry_to_bone)`
+        /// </summary>
+        public UFBXMatrix geometryToWorld;
+
+        public UFBXTransform geometryToWorldTransform;
+
+        // Raw weights indexed by each _vertex_ of a mesh (not index!)
+        // HINT: It may be simpler to use `ufbx_skin_deformer.vertices[]/weights[]` instead!
+        // NOTE: These may be out-of-bounds for a given mesh, `ufbx_skin_deformer.vertices` is always safe.
+
+        /// <summary>
+        /// Number of vertices in the cluster
+        /// </summary>
+        public ulong weightCount;
+
+        /// <summary>
+        /// Vertex indices in `ufbx_mesh.vertices[]`
+        /// </summary>
+        public UFBXList<uint> vertices;
+
+        /// <summary>
+        /// Per-vertex weight values
+        /// </summary>
+        public UFBXList<float> weights;
+    }
+
+    /// <summary>
+    /// Blend shape deformer can contain multiple channels (think of sliders between morphs)
+    /// that may optionally have in-between keyframes.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXBlendDeformer
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Independent morph targets of the deformer.
+        /// </summary>
+        public UFBXList<UFBXBlendChannel> channels;
+    }
+
+    /// <summary>
+    /// Blend shape associated with a target weight in a series of morphs
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXBlendKeyframe
+    {
+        /// <summary>
+        /// The target blend shape offsets.
+        /// </summary>
+        public UFBXBlendShape* shape;
+
+        /// <summary>
+        /// Weight value at which to apply the keyframe at full strength
+        /// </summary>
+        public float targetWeight;
+
+        /// <summary>
+        /// The weight the shape should be currently applied with
+        /// </summary>
+        public float effectiveWeight;
+    }
+
+    /// <summary>
+    /// Blend channel consists of multiple morph-key targets that are interpolated.
+    /// In simple cases there will be only one keyframe that is the target shape.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXBlendChannel
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Current weight of the channel
+        /// </summary>
+        public float weight;
+
+        /// <summary>
+        /// Key morph targets to blend between depending on `weight`
+        /// In usual cases there's only one target per channel
+        /// </summary>
+        public UFBXList<UFBXBlendKeyframe> keyframes;
+
+        /// <summary>
+        /// Final blend shape ignoring any intermediate blend shapes.
+        /// </summary>
+        public UFBXBlendShape* targetShape;
+    }
+
+    /// <summary>
+    /// Blend shape target containing the actual vertex offsets
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXBlendChannel
+    {
+        public UFBXElement element;
+
+        // Vertex offsets to apply over the base mesh
+        // NOTE: The `offset_vertices` may be out-of-bounds for a given mesh!
+
+        /// <summary>
+        /// Number of vertex offsets in the following arrays
+        /// </summary>
+        public ulong offsetCount;
+
+        /// <summary>
+        /// Indices to `ufbx_mesh.vertices[]`
+        /// </summary>
+        public UFBXList<uint> offsetVertices;
+
+        /// <summary>
+        /// Always specified per-vertex offsets
+        /// </summary>
+        public UFBXList<Vector3> positionOffsets;
+
+        /// <summary>
+        /// Empty if not specified
+        /// </summary>
+        public UFBXList<Vector3> normalOffsets;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXCacheFrame
+    {
+        /// <summary>
+        /// Name of the channel this frame belongs to.
+        /// </summary>
+        public UFBXString channel;
+
+        /// <summary>
+        /// Time of this frame in seconds.
+        /// </summary>
+        public double time;
+
+        /// <summary>
+        /// Name of the file containing the data.
+        /// The specified file may contain multiple frames, use `data_offset` etc. to
+        /// read at the right position.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Format of the wrapper file.
+        /// </summary>
+        public UFBXCacheFileFormat fileFormat;
+
+        /// <summary>
+        /// Axis to mirror the read data by.
+        /// </summary>
+        public UFBXMirrorAxis mirrorAxis;
+
+        /// <summary>
+        /// Factor to scale the geometry by.
+        /// </summary>
+        public float scaleFactor;
+
+        /// <summary>
+        /// Format of the data in the file
+        /// </summary>
+        public UFBXCacheDataFormat dataFormat;
+
+        /// <summary>
+        /// Binary encoding of the data
+        /// </summary>
+        public UFBXCacheDataEncoding dataEncoding;
+
+        /// <summary>
+        /// Byte offset into the file
+        /// </summary>
+        public ulong dataOffset;
+
+        /// <summary>
+        /// Number of data elements
+        /// </summary>
+        public uint dataCount;
+
+        /// <summary>
+        /// Size of a single data element in bytes
+        /// </summary>
+        public uint dataElementBytes;
+
+        /// <summary>
+        /// Size of the whole data blob in bytes
+        /// </summary>
+        public ulong dataTotalBytes;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXCacheChannel
+    {
+        /// <summary>
+        /// Name of the geometry cache channel.
+        /// </summary>
+        public UFBXString name;
+
+        /// <summary>
+        /// What does the data in this channel represent.
+        /// </summary>
+        public UFBXCacheInterpretation interpretation;
+
+        /// <summary>
+        /// Source name for `interpretation`, especially useful if `interpretation` is
+        /// `UFBX_CACHE_INTERPRETATION_UNKNOWN`.
+        /// </summary>
+        public UFBXString interpretationName;
+
+        /// <summary>
+        /// List of frames belonging to this channel.
+        /// Sorted by time (<see cref="UFBXCacheFrame.time"/>).
+        /// </summary>
+        public UFBXList<UFBXCacheFrame> frames;
+
+        /// <summary>
+        /// Axis to mirror the frames by.
+        /// </summary>
+        public UFBXMirrorAxis mirrorAxis;
+
+        /// <summary>
+        /// Factor to scale the geometry by.
+        /// </summary>
+        public float scaleFactor;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXGeometryCache
+    {
+        public UFBXString rootFileName;
+        public UFBXList<UFBXCacheChannel> channels;
+        public UFBXList<UFBXCacheFrame> frames;
+        public UFBXStringList extraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXCacheDeformer
+    {
+        public UFBXElement element;
+
+        public UFBXString channel;
+
+        public UFBXCacheFile* file;
+
+        /// <summary>
+        /// Only valid if `ufbx_load_opts.load_external_files` is set!
+        /// </summary>
+        public UFBXGeometryCache* externalCache;
+
+        /// <summary>
+        /// Only valid if `ufbx_load_opts.load_external_files` is set!
+        /// </summary>
+        public UFBXCacheChannel* externalChannel;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXCacheFile
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Filename relative to the currently loaded file.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file.
+        /// </summary>
+        public UFBXString absoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXString relativeFileName;
+
+        /// <summary>
+        /// Filename relative to the loaded file, non-UTF-8 encoded.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXBlob rawFileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file, non-UTF-8 encoded.
+        /// </summary>
+        public UFBXBlob rawAbsoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file, non-UTF-8 encoded.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXBlob rawRelativeFileName;
+
+        public UFBXCacheFileFormat format;
+
+        /// <summary>
+        /// Only valid if `ufbx_load_opts.load_external_files` is set!
+        /// </summary>
+        public UFBXGeometryCache* externalCache;
+    }
+
+    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXMaterialMap
+    {
+        public Vector4 vector44Value;
+        public long intValue;
+
+        /// <summary>
+        /// Texture if connected, otherwise `NULL`.
+        /// May be valid but "disabled" (application specific) if `texture_enabled == false`.
+        /// </summary>
+        public UFBXTexture* texture;
+
+        /// <summary>
+        /// `true` if the file has specified any of the values above.
+        /// NOTE: The value may be set to a non-zero default even if `has_value == false`,
+        /// for example missing factors are set to `1.0` if a color is defined.
+        /// </summary>
+        public bool hasValue;
+
+        /// <summary>
+        /// Controls whether shading should use `texture`.
+        /// NOTE: Some shading models allow this to be `true` even if `texture == NULL`.
+        /// </summary>
+        public bool textureEnabled;
+
+        /// <summary>
+        /// Set to `true` if this feature should be disabled (specific to shader type).
+        /// </summary>
+        public bool featureDisabled;
+
+        /// <summary>
+        /// Number of components in the value from 1 to 4 if defined, 0 if not.
+        /// </summary>
+        public byte valueComponents;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMaterialFeatureInfo
+    {
+        /// <summary>
+        /// Whether the material model uses this feature or not.
+        /// NOTE: The feature can be enabled but still not used if eg. the corresponding factor is at zero!
+        /// </summary>
+        public bool enabled;
+
+        /// <summary>
+        /// Explicitly enabled/disabled by the material.
+        /// </summary>
+        public bool isExplicit;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXMaterialTexture
+    {
+        /// <summary>
+        /// Name of the property in `ufbx_material.props`
+        /// </summary>
+        public UFBXString materialProp;
+
+        /// <summary>
+        /// Shader-specific property mapping name
+        /// </summary>
+        public UFBXString shaderProp;
+
+        /// <summary>
+        /// Texture attached to the property.
+        /// </summary>
+        public UFBXMaterialTexture* texture;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMaterialFBXMaps
+    {
+        public UFBXMaterialMap diffuseFactor;
+        public UFBXMaterialMap diffuseColor;
+        public UFBXMaterialMap specularFactor;
+        public UFBXMaterialMap specularColor;
+        public UFBXMaterialMap specularExponent;
+        public UFBXMaterialMap reflectionFactor;
+        public UFBXMaterialMap reflectionColor;
+        public UFBXMaterialMap transparencyFactor;
+        public UFBXMaterialMap transparencyColor;
+        public UFBXMaterialMap emissionFactor;
+        public UFBXMaterialMap emissionColor;
+        public UFBXMaterialMap ambientFactor;
+        public UFBXMaterialMap ambientColor;
+        public UFBXMaterialMap normalMap;
+        public UFBXMaterialMap bump;
+        public UFBXMaterialMap bumpFactor;
+        public UFBXMaterialMap displacementFactor;
+        public UFBXMaterialMap displacement;
+        public UFBXMaterialMap vectorDisplacementFactor;
+        public UFBXMaterialMap vectorDisplacement;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMaterialPBRMaps
+    {
+        public UFBXMaterialMap baseFactor;
+        public UFBXMaterialMap baseColor;
+        public UFBXMaterialMap roughness;
+        public UFBXMaterialMap metalness;
+        public UFBXMaterialMap diffuseRoughness;
+        public UFBXMaterialMap specularFactor;
+        public UFBXMaterialMap specularColor;
+        public UFBXMaterialMap specularIOR;
+        public UFBXMaterialMap specularAnisotropy;
+        public UFBXMaterialMap specularRotation;
+        public UFBXMaterialMap transmissionFactor;
+        public UFBXMaterialMap transmissionColor;
+        public UFBXMaterialMap transmissionDepth;
+        public UFBXMaterialMap transmissionScatter;
+        public UFBXMaterialMap transmissionScatterAnisotropy;
+        public UFBXMaterialMap transmissionDispersion;
+        public UFBXMaterialMap transmissionRoughness;
+        public UFBXMaterialMap transmissionExtraRoughness;
+        public UFBXMaterialMap transmissionPriority;
+        public UFBXMaterialMap transmissionEnableInAOV;
+        public UFBXMaterialMap subsurfaceFactor;
+        public UFBXMaterialMap subsurfaceColor;
+        public UFBXMaterialMap subsurfaceRadius;
+        public UFBXMaterialMap subsurfaceScale;
+        public UFBXMaterialMap subsurfaceAnisotropy;
+        public UFBXMaterialMap subsurfaceTGintColor;
+        public UFBXMaterialMap subsurfaceType;
+        public UFBXMaterialMap sheenFactor;
+        public UFBXMaterialMap sheenColor;
+        public UFBXMaterialMap sheenRoughness;
+        public UFBXMaterialMap coatFactor;
+        public UFBXMaterialMap coatColor;
+        public UFBXMaterialMap coatRoughness;
+        public UFBXMaterialMap coatIOR;
+        public UFBXMaterialMap coatAnisotropy;
+        public UFBXMaterialMap coatRotation;
+        public UFBXMaterialMap coatNormal;
+        public UFBXMaterialMap coatAffectBaseColor;
+        public UFBXMaterialMap coatAffectBaseRoughness;
+        public UFBXMaterialMap thinFilmFactor;
+        public UFBXMaterialMap thinFilmThickness;
+        public UFBXMaterialMap thinFilmIOR;
+        public UFBXMaterialMap emissionFactor;
+        public UFBXMaterialMap emissionColor;
+        public UFBXMaterialMap opacity;
+        public UFBXMaterialMap indirectDiffuse;
+        public UFBXMaterialMap indirectSpecular;
+        public UFBXMaterialMap normalMap;
+        public UFBXMaterialMap tangentMap;
+        public UFBXMaterialMap displacementMap;
+        public UFBXMaterialMap matteFactor;
+        public UFBXMaterialMap matteColor;
+        public UFBXMaterialMap ambientOcclusion;
+        public UFBXMaterialMap glossiness;
+        public UFBXMaterialMap coatGlossiness;
+        public UFBXMaterialMap transmissionGlossiness;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXMaterialFeatures
+    {
+        public UFBXMaterialFeatureInfo pbr;
+        public UFBXMaterialFeatureInfo metalness;
+        public UFBXMaterialFeatureInfo diffuse;
+        public UFBXMaterialFeatureInfo specular;
+        public UFBXMaterialFeatureInfo emission;
+        public UFBXMaterialFeatureInfo transmission;
+        public UFBXMaterialFeatureInfo coat;
+        public UFBXMaterialFeatureInfo sheen;
+        public UFBXMaterialFeatureInfo opacity;
+        public UFBXMaterialFeatureInfo ambientOcclusion;
+        public UFBXMaterialFeatureInfo matte;
+        public UFBXMaterialFeatureInfo unlit;
+        public UFBXMaterialFeatureInfo ior;
+        public UFBXMaterialFeatureInfo diffuseRoughness;
+        public UFBXMaterialFeatureInfo transmissionRoughness;
+        public UFBXMaterialFeatureInfo thinWalled;
+        public UFBXMaterialFeatureInfo caustics;
+        public UFBXMaterialFeatureInfo exitToBackground;
+        public UFBXMaterialFeatureInfo internalReflections;
+        public UFBXMaterialFeatureInfo doubleSided;
+        public UFBXMaterialFeatureInfo roughnessAsGlossiness;
+        public UFBXMaterialFeatureInfo coatRoughnessAsGlossiness;
+        public UFBXMaterialFeatureInfo transmissionRoughnessAsGlossiness;
+    }
+
+    /// <summary>
+    /// Surface material properties such as color, roughness, etc. Each property may
+    /// be optionally bound to an `ufbx_texture`.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXMaterial
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// FBX builtin properties
+        /// NOTE: These may be empty if the material is using a custom shader
+        /// </summary>
+        public UFBXMaterialFBXMaps fbx;
+
+        /// <summary>
+        /// PBR material properties, defined for all shading models but may be
+        /// somewhat approximate if `shader == NULL`.
+        /// </summary>
+        public UFBXMaterialPBRMaps pbr;
+
+        /// <summary>
+        /// Material features, primarily applies to `pbr`.
+        /// </summary>
+        public UFBXMaterialFeatures features;
+
+        /// <summary>
+        /// Shading information. Always defined.
+        /// </summary>
+        public UFBXShaderType shaderType;
+
+        /// <summary>
+        /// Optional extended shader information
+        /// </summary>
+        public UFBXShader* shader;
+
+        /// <summary>
+        /// Often one of `{ "lambert", "phong", "unknown" }`
+        /// </summary>
+        public UFBXString shadingModelName;
+
+        /// <summary>
+        /// Prefix before shader property names with trailing `|`.
+        /// For example `"3dsMax|Parameters|"` where properties would have names like
+        /// `"3dsMax|Parameters|base_color"`. You can ignore this if you use the built-in
+        /// `ufbx_material_fbx_maps fbx` and `ufbx_material_pbr_maps pbr` structures.
+        /// </summary>
+        public UFBXString shaderPropPrefix;
+
+        /// <summary>
+        /// All textures attached to the material, if you want specific maps if might be
+        /// more convenient to use eg. `fbx.diffuse_color.texture` or `pbr.base_color.texture`
+        /// Sorted by `material_prop`
+        /// </summary>
+        public UFBXList<UFBXMaterialTexture> textures;
+    }
+
+    /// <summary>
+    /// Single layer in a layered texture
+    /// </summary>
+    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXTextureLayer
+    {
+        /// <summary>
+        /// The inner texture to evaluate, never `NULL`
+        /// </summary>
+        public UFBXTexture* texture;
+
+        /// <summary>
+        /// Equation to combine the layer to the background
+        /// </summary>
+        public UFBXBlendMode blendMode;
+
+        /// <summary>
+        /// Blend weight of this layer
+        /// </summary>
+        public float alpha;
+    }
+
+    /// <summary>
+    /// Input to a shader texture, see `ufbx_shader_texture`.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXShaderTextureInput
+    {
+        /// <summary>
+        /// Name of the input.
+        /// </summary>
+        public UFBXString name;
+
+        public Vector4 vector4Value;
+        public long intValue;
+        public UFBXString stringValue;
+        public UFBXBlob blobValue;
+
+        /// <summary>
+        /// Texture connected to this input.
+        /// </summary>
+        public UFBXTexture* texture;
+
+        /// <summary>
+        /// Index of the output to use if `texture` is a multi-output shader node.
+        /// </summary>
+        public long textureOutputIndex;
+
+        /// <summary>
+        /// Controls whether shading should use `texture`.
+        /// NOTE: Some shading models allow this to be `true` even if `texture == NULL`.
+        /// </summary>
+        public bool textureEnabled;
+
+        /// <summary>
+        /// Property representing this input.
+        /// </summary>
+        public UFBXProp* prop;
+
+        /// <summary>
+        /// Property representing `texture`.
+        /// </summary>
+        public UFBXProp* textureProp;
+
+        /// <summary>
+        /// Property representing `texture_enabled`.
+        /// </summary>
+        public UFBXProp* textureEnabledProp;
+    }
+
+    /// <summary>
+    /// Texture that emulates a shader graph node.
+    /// 3ds Max exports some materials as node graphs serialized to textures.
+    /// ufbx can parse a small subset of these, as normal maps are often hidden behind
+    /// some kind of bump node.
+    /// NOTE: These encode a lot of details of 3ds Max internals, not recommended for direct use.
+    /// HINT: `ufbx_texture.file_textures[]` contains a list of "real" textures that are connected
+    /// to the `ufbx_texture` that is pretending to be a shader node.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXShaderTexture
+    {
+        /// <summary>
+        /// Type of this shader node.
+        /// </summary>
+        public UFBXShaderTextureType type;
+
+        /// <summary>
+        /// Name of the shader to use.
+        /// </summary>
+        public UFBXString shaderName;
+
+        /// <summary>
+        /// 64-bit opaque identifier for the shader type.
+        /// </summary>
+        public ulong shaderTypeID;
+
+        /// <summary>
+        /// Input values/textures (possibly further shader textures) to the shader.
+        /// Sorted by `ufbx_shader_texture_input.name`.
+        /// </summary>
+        public UFBXList<UFBXShaderTextureInput> inputs;
+        /// <summary>
+        /// Shader source code if found.
+        /// </summary>
+        public UFBXString shaderSource;
+        /// <summary>
+        /// Shader source code if found.
+        /// </summary>
+        public UFBXBlob rawShaderSource;
+
+        /// <summary>
+        /// Representative texture for this shader.
+        /// Only specified if `main_texture.outputs[main_texture_output_index]` is semantically
+        /// equivalent to this texture.
+        /// </summary>
+        public UFBXTexture* mainTexture;
+
+        /// <summary>
+        /// Output index of `main_texture` if it is a multi-output shader.
+        /// </summary>
+        public long mainTextureOutputIndex;
+
+        /// <summary>
+        /// Prefix for properties related to this shader in `ufbx_texture`.
+        /// NOTE: Contains the trailing '|' if not empty.
+        /// </summary>
+        public UFBXString propPrefix;
+    }
+
+    /// <summary>
+    /// Unique texture within the file.
+    /// </summary>
+    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXTextureFile
+    {
+        /// <summary>
+        /// Index in `ufbx_scene.texture_files[]`.
+        /// </summary>
+        public uint index;
+
+        /// <summary>
+        /// Filename relative to the currently loaded file.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file.
+        /// </summary>
+        public UFBXString absoluteFileName;
+        /// <summary>
+        /// Relative filename specified in the file.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXString relativeFileName;
+
+        /// <summary>
+        /// Filename relative to the loaded file, non-UTF-8 encoded.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXBlob rawFileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file, non-UTF-8 encoded.
+        /// </summary>
+        public UFBXBlob rawAbsoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file, non-UTF-8 encoded.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXBlob rawRelativeFileName;
+
+        /// <summary>
+        /// Optional embedded content blob, eg. raw .png format data
+        /// </summary>
+        public UFBXBlob content;
+    }
+
+    /// <summary>
+    /// Texture that controls material appearance
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXTexture
+    {
+        public UFBXElement element;
+
+        /// <summary>
+        /// Texture type (file / layered / procedural / shader)
+        /// </summary>
+        public UFBXTextureType type;
+
+        /// <summary>
+        /// Filename relative to the currently loaded file.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file.
+        /// </summary>
+        public UFBXString absoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXString relativeFileName;
+
+        /// <summary>
+        /// Filename relative to the loaded file, non-UTF-8 encoded.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXBlob rawFileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file, non-UTF-8 encoded.
+        /// </summary>
+        public UFBXBlob rawAbsoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file, non-UTF-8 encoded.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXBlob rawRelativeFileName;
+
+        /// <summary>
+        /// FILE: Optional embedded content blob, eg. raw .png format data
+        /// </summary>
+        public UFBXBlob content;
+
+        /// <summary>
+        /// FILE: Optional video texture
+        /// </summary>
+        public UFBXVideo* video;
+
+        /// <summary>
+        /// FILE: Index into `ufbx_scene.texture_files[]` or `UFBX_NO_INDEX`.
+        /// </summary>
+        public uint fileIndex;
+
+        /// <summary>
+        /// FILE: True if `file_index` has a valid value.
+        /// </summary>
+        public bool hasFile;
+
+        /// <summary>
+        /// LAYERED: Inner texture layers, ordered from _bottom_ to _top_
+        /// </summary>
+        public UFBXList<UFBXTextureLayer> layers;
+
+        /// <summary>
+        /// SHADER: Shader information
+        /// NOTE: May be specified even if `type == UFBX_TEXTURE_FILE` if `ufbx_load_opts.disable_quirks`
+        /// is _not_ specified. Some known shaders that represent files are interpreted as `UFBX_TEXTURE_FILE`.
+        /// </summary>
+        public UFBXShaderTexture* shader;
+
+        /// <summary>
+        /// List of file textures representing this texture.
+        /// Defined even if `type == UFBX_TEXTURE_FILE` in which case the array contains only itself.
+        /// </summary>
+        public UFBXList<UFBXTexture> fileTextures;
+
+        /// <summary>
+        /// Name of the UV set to use
+        /// </summary>
+        public UFBXString uvSet;
+
+        /// <summary>
+        /// Wrapping mode
+        /// </summary>
+        public UFBXWrapMode wrapU;
+
+        /// <summary>
+        /// Wrapping mode
+        /// </summary>
+        public UFBXWrapMode wrapV;
+
+        /// <summary>
+        /// Has a non-identity `transform` and derived matrices.
+        /// </summary>
+        public bool hasUVTransform;
+
+        /// <summary>
+        /// Texture transformation in UV space
+        /// </summary>
+        public UFBXTransform uvTransform;
+
+        /// <summary>
+        /// Matrix representation of `transform`
+        /// </summary>
+        public UFBXMatrix textureToUV;
+
+        /// <summary>
+        /// UV coordinate to normalized texture coordinate matrix
+        /// </summary>
+        public UFBXMatrix uvToTexture;
+    }
+
+    [StructLayout (LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVideo
+    {
+        public UFBXelement element;
+
+        /// <summary>
+        /// Filename relative to the currently loaded file.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXString fileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file.
+        /// </summary>
+        public UFBXString absoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXString relativeFileName;
+
+        /// <summary>
+        /// Filename relative to the loaded file, non-UTF-8 encoded.
+        /// HINT: If using functions other than `ufbx_load_file()`, you can provide
+        /// `ufbx_load_opts.filename/raw_filename` to let ufbx resolve this.
+        /// </summary>
+        public UFBXBlob rawFileName;
+
+        /// <summary>
+        /// Absolute filename specified in the file, non-UTF-8 encoded.
+        /// </summary>
+        public UFBXBlob rawAbsoluteFileName;
+
+        /// <summary>
+        /// Relative filename specified in the file, non-UTF-8 encoded.
+        /// NOTE: May be absolute if the file is saved in a different drive.
+        /// </summary>
+        public UFBXBlob rawRelativeFileName;
+
+        /// <summary>
+        /// Optional embedded content blob
+        /// </summary>
+        public UFBXBlob content;
     }
 }
