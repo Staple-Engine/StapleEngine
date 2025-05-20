@@ -30,11 +30,33 @@ internal partial class StapleEditor
                 var csprojs = Directory.GetFiles(projectDirectory, "*.csproj")
                     .Select(x => Path.GetFileNameWithoutExtension(x))
                     .Where(x => x != "Game")
-                    .ToArray();
+                    .ToList();
+
+                var pluginAssets = Directory.GetFiles(Path.Combine(BasePath, "Assets"), "*.dll", SearchOption.AllDirectories).ToList();
+
+                var packages = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
+
+                foreach(var p in packages)
+                {
+                    pluginAssets.AddRange(Directory.GetFiles(p, "*.dll", SearchOption.AllDirectories));
+                }
+
+                foreach(var asset in pluginAssets)
+                {
+                    try
+                    {
+                        AssemblyName.GetAssemblyName(asset);
+
+                        csprojs.Add(Path.GetFileNameWithoutExtension(asset));
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
 
                 gameAssemblyLoadContext = new(AppContext.BaseDirectory, () =>
                 {
-                    return ([outPath], csprojs);
+                    return ([outPath], csprojs.ToArray());
                 });
 
                 using var stream = new MemoryStream(File.ReadAllBytes(assemblyPath));

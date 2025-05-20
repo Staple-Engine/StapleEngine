@@ -19,7 +19,7 @@ public class PluginAsset : IGuidAsset
     [HideInInspector]
     public string guid;
 
-    public bool autoReferenced = false;
+    public bool autoReferenced = true;
 
     public bool anyPlatform = true;
     public List<AppPlatform> platforms = [];

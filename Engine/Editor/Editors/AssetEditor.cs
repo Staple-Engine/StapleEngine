@@ -6,6 +6,8 @@ namespace Staple.Editor;
 
 public class AssetEditor : Editor
 {
+    public bool isMetaEditor = false;
+
     internal Func<object> recreateOriginal;
 
     internal object RecreateOriginal()
@@ -30,6 +32,8 @@ public class AssetEditor : Editor
         {
             var text = JsonConvert.SerializeObject(target, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
+            var path = isMetaEditor ? $"{this.path}.meta" : this.path;
+
             File.WriteAllText(path, text);
         }
         catch (Exception)
@@ -47,7 +51,7 @@ public class AssetEditor : Editor
             {
                 ApplyChanges();
 
-                EditorUtils.RefreshAssets(path.EndsWith(".asmdef"), refreshed);
+                EditorUtils.RefreshAssets(path.EndsWith(".asmdef") || path.EndsWith(".dll"), refreshed);
 
                 original = RecreateOriginal() ?? original;
             });

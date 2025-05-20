@@ -1326,6 +1326,141 @@ partial class ufbx
         SnapAndPlay,
     }
 
+    [Flags]
+    public enum UFBXTopoFlags
+    {
+        /// <summary>
+        /// Edge with three or more faces
+        /// </summary>
+        NonManifold = 0x1,
+    }
+
+    /// <summary>
+    /// Error causes (and `UFBX_ERROR_NONE` for no error).
+    /// </summary>
+    public enum UFBXErrorType
+    {
+        /// <summary>
+        /// No error, operation has been performed successfully.
+        /// </summary>
+        None,
+        /// <summary>
+        /// Unspecified error, most likely caused by an invalid FBX file or a file
+        /// that contains something ufbx can't handle.
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// File not found.
+        /// </summary>
+        FileNotFound,
+        /// <summary>
+        /// Empty file.
+        /// </summary>
+        EmptyFile,
+        /// <summary>
+        /// External file not found.
+        /// See `ufbx_load_opts.load_external_files` for more information.
+        /// </summary>
+        ExternalFileNotFound,
+        /// <summary>
+        /// Out of memory (allocator returned `NULL`).
+        /// </summary>
+        OutOfMemory,
+        /// <summary>
+        /// `ufbx_allocator_opts.memory_limit` exhausted.
+        /// </summary>
+        MemoryLimit,
+        /// <summary>
+        /// `ufbx_allocator_opts.allocation_limit` exhausted.
+        /// </summary>
+        AllocationLimit,
+        /// <summary>
+        /// File ended abruptly.
+        /// </summary>
+        TruncatedFile,
+        /// <summary>
+        /// IO read error.
+        /// eg. returning `SIZE_MAX` from `ufbx_stream.read_fn` or stdio `ferror()` condition.
+        /// </summary>
+        IO,
+        /// <summary>
+        /// User cancelled the loading via `ufbx_load_opts.progress_cb` returning `UFBX_PROGRESS_CANCEL`.
+        /// </summary>
+        Cancelled,
+        /// <summary>
+        /// Could not detect file format from file data or filename.
+        /// HINT: You can supply it manually using `ufbx_load_opts.file_format` or use `ufbx_load_opts.filename`
+        /// when using `ufbx_load_memory()` to let ufbx guess the format from the extension.
+        /// </summary>
+        UnrecognizedFileFormat,
+        /// <summary>
+        /// Options struct (eg. `ufbx_load_opts`) is not cleared to zero.
+        /// Make sure you initialize the structure to zero via eg.
+        ///   ufbx_load_opts opts = { 0 }; // C
+        ///   ufbx_load_opts opts = { }; // C++
+        /// </summary>
+        UninitializedOptions,
+        /// <summary>
+        /// The vertex streams in `ufbx_generate_indices()` are empty.
+        /// </summary>
+        ZeroVertexSize,
+        /// <summary>
+        /// Vertex stream passed to `ufbx_generate_indices()`.
+        /// </summary>
+        TruncatedVertexStream,
+        /// <summary>
+        /// Invalid UTF-8 encountered in a file when loading with `UFBX_UNICODE_ERROR_HANDLING_ABORT_LOADING`.
+        /// </summary>
+        InvalidUTF8,
+        /// <summary>
+        /// Feature needed for the operation has been compiled out.
+        /// </summary>
+        FeatureDisabled,
+        /// <summary>
+        /// Attempting to tessellate an invalid NURBS object.
+        /// See `ufbx_nurbs_basis.valid`.
+        /// </summary>
+        BadNURBS,
+        /// <summary>
+        /// Out of bounds index in the file when loading with `UFBX_INDEX_ERROR_HANDLING_ABORT_LOADING`.
+        /// </summary>
+        BadIndex,
+        /// <summary>
+        /// Node is deeper than `ufbx_load_opts.node_depth_limit` in the hierarchy.
+        /// </summary>
+        NodeDepthLimit,
+        /// <summary>
+        /// Error parsing ASCII array in a thread.
+        /// Threaded ASCII parsing is slightly more strict than non-threaded, for cursed files,
+        /// set `ufbx_load_opts.force_single_thread_ascii_parsing` to `true`.
+        /// </summary>
+        ThreadedASCIIParse,
+        /// <summary>
+        /// Unsafe options specified without enabling `ufbx_load_opts.allow_unsafe`.
+        /// </summary>
+        UnsafeOptions,
+        /// <summary>
+        /// Duplicated override property in `ufbx_create_anim()`
+        /// </summary>
+        DuplicateOverride,
+        /// <summary>
+        /// Unsupported file format version.
+        /// ufbx still tries to load files with unsupported versions, see `UFBX_WARNING_UNSUPPORTED_VERSION`.
+        /// </summary>
+        UnsupportedVersion,
+    }
+
+    /// <summary>
+    /// Progress result returned from `ufbx_progress_fn()` callback.
+    /// Determines whether ufbx should continue or abort the loading.
+    /// </summary>
+    [Flags]
+    public enum UFBXProgressResult
+    {
+        Continue = 0x100,
+        Cancel = 0x200,
+    }
+
     /// <summary>
     /// Null-terminated UTF-8 encoded string within an FBX file
     /// </summary>
@@ -5037,4 +5172,201 @@ partial class ufbx
         /// </summary>
         public UFBXDomNode* domRoot;
     }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXCurvePoint
+    {
+        public bool valid;
+        public Vector3 position;
+        public Vector3 derivative;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXSurfacePoint
+    {
+        public bool valid;
+        public Vector3 position;
+        public Vector3 derivativeU;
+        public Vector3 derivativeV;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXTopoEdge
+    {
+        /// <summary>
+        /// Starting index of the edge, always defined
+        /// </summary>
+        public uint index;
+        /// <summary>
+        /// Ending index of the edge / next per-face `ufbx_topo_edge`, always defined
+        /// </summary>
+        public uint next;
+        /// <summary>
+        /// Previous per-face `ufbx_topo_edge`, always defined
+        /// </summary>
+        public uint prev;
+        /// <summary>
+        /// `ufbx_topo_edge` on the opposite side, `UFBX_NO_INDEX` if not found
+        /// </summary>
+        public uint twin;
+        /// <summary>
+        /// Index into `mesh->faces[]`, always defined
+        /// </summary>
+        public uint face;
+        /// <summary>
+        /// Index into `mesh->edges[]`, `UFBX_NO_INDEX` if not found
+        /// </summary>
+        public uint edge;
+
+        public UFBXTopoFlags flags;
+    }
+
+    /// <summary>
+    /// Vertex data array for `ufbx_generate_indices()`.
+    /// NOTE: `ufbx_generate_indices()` compares the vertices using `memcmp()`, so
+    /// any padding should be cleared to zero.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXVertexStream
+    {
+        /// <summary>
+        /// Data pointer of shape `char[vertex_count][vertex_size]`.
+        /// </summary>
+        public nint data;
+
+        /// <summary>
+        /// Number of vertices in this stream, for sanity checking.
+        /// </summary>
+        public ulong vertexCount;
+
+        /// <summary>
+        /// Size of a vertex in bytes.
+        /// </summary>
+        public ulong vertexSize;
+    }
+
+    /// <summary>
+    /// Detailed error stack frame.
+    /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFXErrorFrame
+    {
+        public uint sourceLine;
+        public UFBXString function;
+        public UFBXString description;
+    }
+
+    /// <summary>
+    /// Error description with detailed stack trace
+    /// HINT: You can use `ufbx_format_error()` for formatting the error
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXError
+    {
+        /// <summary>
+        /// Type of the error, or `UFBX_ERROR_NONE` if successful.
+        /// </summary>
+        public UFBXErrorType type;
+
+        /// <summary>
+        /// Description of the error type.
+        /// </summary>
+        public UFBXString description;
+
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public uint stackSize;
+
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack0;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack1;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack2;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack3;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack4;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack5;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack6;
+        /// <summary>
+        /// Internal error stack.
+        /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
+        /// </summary>
+        public UFBXErrorFrame stack7;
+
+        /// <summary>
+        /// Additional error information, such as missing file filename.
+        /// `info` is a NULL-terminated UTF-8 string containing `info_length` bytes, excluding the trailing `'\0'`.
+        /// </summary>
+        public ulong infoLength;
+        /// <summary>
+        /// Additional error information, such as missing file filename.
+        /// `info` is a NULL-terminated UTF-8 string containing `info_length` bytes, excluding the trailing `'\0'`.
+        /// </summary>
+        public char infoStart;
+
+        public string Info
+        {
+            get
+            {
+                if (infoLength == 0)
+                {
+                    return "";
+                }
+
+                unsafe
+                {
+                    fixed(char *p = &infoStart)
+                    {
+                        var infoSpan = new Span<byte>((byte*)p, (int)infoLength);
+
+                        return Encoding.UTF8.GetString(infoSpan);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Loading progress information.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXProgress
+    {
+        public ulong bytesRead;
+        public ulong bytesTotal;
+    }
+
+
 }
