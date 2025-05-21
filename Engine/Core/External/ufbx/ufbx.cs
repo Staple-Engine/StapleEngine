@@ -1461,6 +1461,22 @@ partial class ufbx
         Cancel = 0x200,
     }
 
+    public enum UFBXOpenFileType
+    {
+        /// <summary>
+        /// Main model file
+        /// </summary>
+        MainModel,
+        /// <summary>
+        /// Unknown geometry cache file
+        /// </summary>
+        GeometryCache,
+        /// <summary>
+        /// .mtl material library file
+        /// </summary>
+        ObjMtl,
+    }
+
     /// <summary>
     /// Null-terminated UTF-8 encoded string within an FBX file
     /// </summary>
@@ -1932,16 +1948,19 @@ partial class ufbx
         /// <summary>
         /// Visibility state.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool visible;
 
         /// <summary>
         /// True if this node is the implicit root node of the scene.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool IsRoot;
 
         /// <summary>
         /// True if the node has a non-identity `geometry_transform`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool HasGeometryTransform;
 
         /// <summary>
@@ -1949,28 +1968,33 @@ partial class ufbx
         /// See `adjust_pre_rotation`, `adjust_pre_scale`, `adjust_post_rotation`,
         /// and `adjust_post_scale`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool HasAdjustTransform;
 
         /// <summary>
         /// Scale is adjusted by root scale.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool HasRootAdjustTransform;
 
         /// <summary>
         /// True if this node is a synthetic geometry transform helper.
         /// See `UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool IsGeometryTransformHelper;
 
         /// <summary>
         /// True if the node is a synthetic scale compensation helper.
         /// See `UFBX_INHERIT_MODE_HANDLING_HELPER_NODES`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool IsScaleHelper;
 
         /// <summary>
         /// Parent node to children that can compensate for parent scale.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool IsScaleCompensateParent;
 
         /// <summary>
@@ -1986,6 +2010,7 @@ partial class ufbx
         /// <summary>
         /// Is this attribute defined by the mesh.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool exists;
 
         /// <summary>
@@ -2006,6 +2031,7 @@ partial class ufbx
         /// <summary>
         /// `true` if this attribute is defined per vertex, instead of per index.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool uniquePerVertex;
 
         /// <summary>
@@ -2022,10 +2048,12 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXVertexReal
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool exists;
         public UFBXList<float> values;
         public UFBXList<uint> indices;
         public ulong valueReals;
+        [MarshalAs(UnmanagedType.I1)]
         public bool uniquePerVertex;
         public UFBXList<float> values_w;
     }
@@ -2033,10 +2061,12 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXVertexVector2
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool exists;
         public UFBXList<Vector2> values;
         public UFBXList<uint> indices;
         public ulong valueReals;
+        [MarshalAs(UnmanagedType.I1)]
         public bool uniquePerVertex;
         public UFBXList<float> values_w;
     }
@@ -2044,10 +2074,12 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXVertexVector3
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool exists;
         public UFBXList<Vector3> values;
         public UFBXList<uint> indices;
         public ulong valueReals;
+        [MarshalAs(UnmanagedType.I1)]
         public bool uniquePerVertex;
         public UFBXList<float> values_w;
     }
@@ -2055,10 +2087,12 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXVertexVector4
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool exists;
         public UFBXList<Vector4> values;
         public UFBXList<uint> indices;
         public ulong valueReals;
+        [MarshalAs(UnmanagedType.I1)]
         public bool uniquePerVertex;
         public UFBXList<float> values_w;
     }
@@ -2462,6 +2496,7 @@ partial class ufbx
         // is set to true meaning you need to transform them manually using
         // `ufbx_transform_position(&node->geometry_to_world, skinned_pos)`!
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool skinnedIsLocal;
         public UFBXVertexVector3 skinnedPosition;
         public UFBXVertexVector3 skinnedNormal;
@@ -2483,6 +2518,7 @@ partial class ufbx
         /// <summary>
         /// The winding of the faces has been reversed.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool reverseWinding;
 
         /// <summary>
@@ -2490,11 +2526,13 @@ partial class ufbx
         /// Either from missing normals (via `ufbx_load_opts.generate_missing_normals`), skinning,
         /// tessellation, or subdivision.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool generatedNormals;
 
         /// <summary>
         /// Subdivision (result)
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool subdivisionEvaluated;
 
         /// <summary>
@@ -2505,6 +2543,7 @@ partial class ufbx
         /// <summary>
         /// Tessellation (result)
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool fromTessellatedNurbs;
     }
 
@@ -2537,7 +2576,9 @@ partial class ufbx
         public float innerAngle;
         public float outerAngle;
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool castLight;
+        [MarshalAs(UnmanagedType.I1)]
         public bool castShadows;
     }
 
@@ -2570,6 +2611,7 @@ partial class ufbx
         /// If set to `true`, `resolution` represents actual pixel values, otherwise
         /// it's only useful for its aspect ratio.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool resolutionIsPixels;
 
         /// <summary>
@@ -2675,6 +2717,7 @@ partial class ufbx
         /// <summary>
         /// Is the bone a root bone
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool isRoot;
     }
 
@@ -2719,6 +2762,7 @@ partial class ufbx
         /// <summary>
         /// Tessellation (result)
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool fromTessellatedNURBS;
     }
 
@@ -2761,6 +2805,7 @@ partial class ufbx
         /// <summary>
         /// `true` if this axis is two-dimensional.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool is2D;
 
         /// <summary>
@@ -2776,6 +2821,7 @@ partial class ufbx
         /// <summary>
         /// `true` if the parametrization is well defined.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool valid;
     }
 
@@ -2840,6 +2886,7 @@ partial class ufbx
         /// <summary>
         /// If `true` the resulting normals should be flipped when evaluated.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool flipNormals;
 
         /// <summary>
@@ -2930,6 +2977,7 @@ partial class ufbx
         /// <summary>
         /// If set to `true`, `ufbx_lod_level.distance` represents a screen size percentage.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool relativeDistances;
 
         /// <summary>
@@ -2940,12 +2988,14 @@ partial class ufbx
         /// <summary>
         /// If set to `true` don't account for parent transform when computing the distance.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool ignoreParentTransform;
 
         /// <summary>
         /// If `use_distance_limit` is enabled hide the group if the distance is not between
         /// `distance_limit_min` and `distance_limit_max`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool useDistanceLimit;
 
         /// <summary>
@@ -3400,17 +3450,20 @@ partial class ufbx
         /// NOTE: The value may be set to a non-zero default even if `has_value == false`,
         /// for example missing factors are set to `1.0` if a color is defined.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasValue;
 
         /// <summary>
         /// Controls whether shading should use `texture`.
         /// NOTE: Some shading models allow this to be `true` even if `texture == NULL`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool textureEnabled;
 
         /// <summary>
         /// Set to `true` if this feature should be disabled (specific to shader type).
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool featureDisabled;
 
         /// <summary>
@@ -3426,11 +3479,13 @@ partial class ufbx
         /// Whether the material model uses this feature or not.
         /// NOTE: The feature can be enabled but still not used if eg. the corresponding factor is at zero!
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool enabled;
 
         /// <summary>
         /// Explicitly enabled/disabled by the material.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool isExplicit;
     }
 
@@ -3676,6 +3731,7 @@ partial class ufbx
         /// Controls whether shading should use `texture`.
         /// NOTE: Some shading models allow this to be `true` even if `texture == NULL`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool textureEnabled;
 
         /// <summary>
@@ -3873,6 +3929,7 @@ partial class ufbx
         /// <summary>
         /// FILE: True if `file_index` has a valid value.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasFile;
 
         /// <summary>
@@ -3911,6 +3968,7 @@ partial class ufbx
         /// <summary>
         /// Has a non-identity `transform` and derived matrices.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasUVTransform;
 
         /// <summary>
@@ -4090,11 +4148,13 @@ partial class ufbx
         /// <summary>
         /// Evaluate connected properties as if they would not be connected.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool ignoreConnections;
 
         /// <summary>
         /// Custom `ufbx_anim` created by `ufbx_create_anim()`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool custom;
     }
 
@@ -4128,10 +4188,15 @@ partial class ufbx
         public UFBXElement element;
 
         public float weight;
+        [MarshalAs(UnmanagedType.I1)]
         public bool weightIsAnimated;
+        [MarshalAs(UnmanagedType.I1)]
         public bool blended;
+        [MarshalAs(UnmanagedType.I1)]
         public bool additive;
+        [MarshalAs(UnmanagedType.I1)]
         public bool composeRotation;
+        [MarshalAs(UnmanagedType.I1)]
         public bool composeScale;
 
         public UFBXList<UFBXAnimValue> animValues;
@@ -4278,11 +4343,13 @@ partial class ufbx
         /// <summary>
         /// Contained nodes are visible
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool visible;
 
         /// <summary>
         /// Contained nodes cannot be edited
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool frozen;
 
         /// <summary>
@@ -4323,6 +4390,7 @@ partial class ufbx
         /// <summary>
         /// Is `target_node` included in the selection
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool includeNode;
 
         /// <summary>
@@ -4409,45 +4477,55 @@ partial class ufbx
         /// <summary>
         /// State of the constraint
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool active;
 
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainTranslationX;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainTranslationY;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainTranslationZ;
 
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainRotationX;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainRotationY;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainRotationZ;
 
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainScaleX;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainScaleY;
         /// <summary>
         /// Translation/rotation/scale axes the constraint is applied to
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool constrainScaleZ;
 
         /// <summary>
@@ -4576,6 +4654,7 @@ partial class ufbx
         /// <summary>
         /// Set if this pose is marked as a bind pose.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool isBindPose;
 
         /// <summary>
@@ -4681,6 +4760,7 @@ partial class ufbx
         /// <summary>
         /// FBX ASCII file format.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool ascii;
 
         /// <summary>
@@ -4697,118 +4777,138 @@ partial class ufbx
         /// Index arrays may contain `UFBX_NO_INDEX` instead of a valid index
         /// to indicate gaps.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool mayContainNoIndex;
 
         /// <summary>
         /// May contain meshes with no defined vertex position.
         /// NOTE: `ufbx_mesh.vertex_position.exists` may be `false`!
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool mayContainMissingVertexPosition;
 
         /// <summary>
         /// Arrays may contain items with `NULL` element references.
         /// See `ufbx_load_opts.connect_broken_elements`.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool mayContainBrokenElements;
 
         /// <summary>
         /// Some API guarantees do not apply (depending on unsafe options used).
         /// Loaded with `ufbx_load_opts.allow_unsafe` enabled.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool isUnsafe;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningMissingExternalFile;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningImplicitMTL;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningTruncatedArray;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningMissingGeometryData;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningDuplicateConnection;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningBadVertexWAttribute;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningMissingPolygonMapping;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningUnsupportedVersion;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningIndexClamped;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningBadUnicode;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningBadBase64Content;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningBadElementConnectedToRoot;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningDuplicateObjectID;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningEmptyFaceRemoved;
 
         /// <summary>
         /// Flag for each possible warning type.
         /// See `ufbx_metadata.warnings[]` for detailed warning information.
         /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool hasWarningUnknownObjDirective;
 
         public UFBXString creator;
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool bigEndian;
 
         public UFBXString fileName;
@@ -4830,10 +4930,13 @@ partial class ufbx
 
         public UFBXThumbnail thumbnail;
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool geometryIgnored;
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool animationIgnored;
 
+        [MarshalAs(UnmanagedType.I1)]
         public bool embeddedIgnored;
 
         public ulong maxFaceTriangles;
@@ -4847,6 +4950,7 @@ partial class ufbx
         public ulong shaderTextureCount;
 
         public float bonePropSizeUnit;
+        [MarshalAs(UnmanagedType.I1)]
         public bool bonePropLimbLengthRelative;
 
         public float orthoSizeUnit;
@@ -5176,6 +5280,7 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXCurvePoint
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool valid;
         public Vector3 position;
         public Vector3 derivative;
@@ -5184,6 +5289,7 @@ partial class ufbx
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct UFBXSurfacePoint
     {
+        [MarshalAs(UnmanagedType.I1)]
         public bool valid;
         public Vector3 position;
         public Vector3 derivativeU;
@@ -5246,11 +5352,141 @@ partial class ufbx
     }
 
     /// <summary>
+    /// Allocator callbacks and user context
+    /// NOTE: The allocator will be stored to the loaded scene and will be called
+    /// again from `ufbx_free_scene()` so make sure `user` outlives that!
+    /// You can use `free_allocator_fn()` to free the allocator yourself.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXAllocator
+    {
+        public delegate* unmanaged[Cdecl]<void*, ulong, void*> allocFunction;
+        public delegate* unmanaged[Cdecl]<void *, void *, ulong, ulong, void *> reallocFunction;
+        public delegate* unmanaged[Cdecl]<void *, void *, ulong, void> freeFunction;
+        public delegate* unmanaged[Cdecl]<void *, void> freeAllocatorFunction;
+
+        public nint user;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXAllocatorOpts
+    {
+        /// <summary>
+        /// Allocator callbacks
+        /// </summary>
+        public UFBXAllocator allocator;
+
+        /// <summary>
+        /// Maximum number of bytes to allocate before failing
+        /// </summary>
+        public ulong memoryLimit;
+
+        /// <summary>
+        /// Maximum number of allocations to attempt before failing
+        /// </summary>
+        public ulong allocationLimit;
+
+        /// <summary>
+        /// Threshold to swap from batched allocations to individual ones
+        /// Defaults to 1MB if set to zero
+        /// NOTE: If set to `1` ufbx will allocate everything in the smallest
+        /// possible chunks which may be useful for debugging (eg. ASAN)
+        /// </summary>
+        public ulong hugeThreshold;
+
+        /// <summary>
+        /// Maximum size of a single allocation containing sub-allocations.
+        /// Defaults to 16MB if set to zero
+        /// The maximum amount of wasted memory depends on `max_chunk_size` and
+        /// `huge_threshold`: each chunk can waste up to `huge_threshold` bytes
+        /// internally and the last chunk might be incomplete. So for example
+        /// with the defaults we can waste around 1MB/16MB = 6.25% overall plus
+        /// up to 32MB due to the two incomplete blocks. The actual amounts differ
+        /// slightly as the chunks start out at 4kB and double in size each time,
+        /// meaning that the maximum fixed overhead (up to 32MB with defaults) is
+        /// at most ~30% of the total allocation size.
+        /// </summary>
+        public ulong maxChunkSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public unsafe struct UFBXStream
+    {
+        /// <summary>
+        /// Required
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void *, void *, ulong, ulong> readFunction;
+
+        /// <summary>
+        /// Optional: Will use `read_fn()` if missing
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void *, ulong, byte> skipFunction;
+
+        /// <summary>
+        /// Optional
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void *, ulong> sizeFunction;
+
+        /// <summary>
+        /// Optional
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void *, void> closeFunction;
+
+        /// <summary>
+        /// Context passed to other functions
+        /// </summary>
+        public nint user;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXOpenFileInfo
+    {
+        /// <summary>
+        /// Context that can be passed to the following functions to use a shared allocator:
+        ///   ufbx_open_file_ctx()
+        ///   ufbx_open_memory_ctx()
+        /// </summary>
+        public ulong context;
+
+        /// <summary>
+        /// Kind of file to load.
+        /// </summary>
+        public UFBXOpenFileType type;
+
+        /// <summary>
+        /// Original filename in the file, not resolved or UTF-8 encoded.
+        /// NOTE: Not necessarily NULL-terminated!
+        /// </summary>
+        public UFBXBlob originalFileName;
+    }
+
+    /// <summary>
+    /// Options for `ufbx_open_file()`.
+    /// </summary>
+    public struct UFBXOpenFileOpts
+    {
+        public uint beginZero;
+
+        /// <summary>
+        /// Allocator to allocate the memory with.
+        /// </summary>
+        public UFBXAllocatorOpts allocator;
+
+        /// <summary>
+        /// The filename is guaranteed to be NULL-terminated.
+        /// </summary>
+        [MarshalAs(UnmanagedType.I1)]
+        public bool filenameNullTerminated;
+
+        public uint endZero;
+    }
+
+    /// <summary>
     /// Detailed error stack frame.
     /// NOTE: You must compile `ufbx.c` with `UFBX_ENABLE_ERROR_STACK` to enable the error stack.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct UFXErrorFrame
+    public struct UFBXErrorFrame
     {
         public uint sourceLine;
         public UFBXString function;
@@ -5368,5 +5604,9 @@ partial class ufbx
         public ulong bytesTotal;
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct UFBXInflateInput
+    {
+    }
 
 }
