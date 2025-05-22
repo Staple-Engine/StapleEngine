@@ -10,6 +10,11 @@ internal class PluginAssetEditor : AssetEditor
     private AppPlatform[] platformList = [];
     private bool isAssembly = false;
 
+    public PluginAssetEditor()
+    {
+        isMetaEditor = true;
+    }
+
     public override bool DrawProperty(Type type, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         if (target is not PluginAsset plugin)
