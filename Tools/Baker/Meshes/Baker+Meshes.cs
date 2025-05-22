@@ -241,7 +241,7 @@ static partial class Program
                 }
                 else
                 {
-                    meshData = ProcessAssimpMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
+                    meshData = ProcessUFBXMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
                 }
 
                 if(meshData == null)
