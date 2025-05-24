@@ -7,18 +7,4 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-	<PropertyGroup>
-		<PreBuildEvent>
-			$(SolutionDir)Binder\bin\$(Configuration)\net9.0\Binder -m ufbx -id "$(SolutionDir)..\Dependencies\ufbx" -i "ufbx.h" -ld "$(SolutionDir)..\Dependencies\build\native\bin\Release" -l "ufbx.dll" -o "$(SolutionDir)UFBX" -rs "((__Internal*)__Instance)-&gt;data = (__IntPtr) (byte) (value ? 1 : 0);" "((__Internal*)__Instance)-&gt;data = (__IntPtr)value;" -d "UFBX_REAL_IS_FLOAT"
-		</PreBuildEvent>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <None Remove="ufbx-symbols.cpp" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="CppSharp" Version="1.1.5.3168" />
-	</ItemGroup>
-
 </Project>

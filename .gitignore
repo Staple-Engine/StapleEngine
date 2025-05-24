@@ -19,6 +19,3 @@ dist
 Test Project/Game.csproj
 Test Project/Sandbox.sln
 .idea
-Tools/UFBX/Std.cs
-Tools/UFBX/ufbx.cs
-Tools/UFBX/ufbx-symbols.cpp

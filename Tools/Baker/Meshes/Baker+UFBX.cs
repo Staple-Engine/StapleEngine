@@ -665,13 +665,18 @@ public partial class Program
         {
             var mesh = meshes[i];
 
+            if (mesh.NumTriangles == 0)
+            {
+                continue;
+            }
+
             var materialIndex = -1;
 
             if(mesh.Materials.Count > 0)
             {
-                for (ulong j = 0; j < scene.Materials.Count; j++)
+                for(ulong j = 0; j < scene.Materials.Count; j++)
                 {
-                    if(scene.Materials[j] == mesh.Materials[0])
+                    if (scene.Materials[j] == mesh.Materials[0])
                     {
                         materialIndex = (int)j;
 
@@ -685,6 +690,7 @@ public partial class Program
                 name = mesh.Name.Data,
                 materialGuid = materialIndex >= 0 ? materialMapping[materialIndex] : "",
                 type = mesh.SkinDeformers.Count > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
+                topology = MeshTopology.Triangles,
             };
 
             {
@@ -696,17 +702,6 @@ public partial class Program
                 m.boundsCenter = new Vector3Holder(new Vector3(center.X, center.Y, center.Z));
                 m.boundsExtents = new Vector3Holder(new Vector3(size.X, size.Y, size.Z));
             }
-
-            if(mesh.NumTriangles == 0)
-            {
-                Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} isn't composed of only triangles, adding as empty mesh...");
-
-                meshData.meshes.Add(m);
-
-                continue;
-            }
-
-            m.topology = MeshTopology.Triangles;
 
             var vertexCount = mesh.NumVertices;
 
@@ -738,11 +733,11 @@ public partial class Program
 
             var faces = mesh.Faces;
 
-            for(ulong j = 0; j < faces.Count; j++)
+            for (ulong j = 0; j < faces.Count; j++)
             {
                 var face = faces[j];
 
-                for(var k = face.IndexBegin; k < face.IndexBegin + face.NumIndices; k++)
+                for (var k = face.IndexBegin; k < face.IndexBegin + face.NumIndices; k++)
                 {
                     m.indices.Add((int)mesh.VertexIndices[k]);
                 }
@@ -757,14 +752,14 @@ public partial class Program
 
                 var set = mesh.ColorSets[j];
 
-                if(set.VertexColor.Exists == false)
+                if (set.VertexColor.Exists == false)
                 {
                     continue;
                 }
 
                 var colors = new Vector4Holder[set.VertexColor.Indices.Count];
 
-                for(var k = 0; k < colors.Length; k++)
+                for (var k = 0; k < colors.Length; k++)
                 {
                     var c = mesh.VertexColor[set.VertexColor.Indices[j]];
 
@@ -834,21 +829,21 @@ public partial class Program
 
             for (ulong j = 0; j < 8; j++)
             {
-                if(j >= mesh.UvSets.Count)
+                if (j >= mesh.UvSets.Count)
                 {
                     continue;
                 }
 
                 var set = mesh.UvSets[j];
 
-                if(set.VertexUv.Exists == false)
+                if (set.VertexUv.Exists == false)
                 {
                     continue;
                 }
 
                 var uv = new Vector2Holder[set.VertexUv.Indices.Count];
 
-                for(ulong k = 0; k < set.VertexUv.Indices.Count; k++)
+                for (ulong k = 0; k < set.VertexUv.Indices.Count; k++)
                 {
                     var v = set.VertexUv.Values[set.VertexUv.Indices[k]];
 
@@ -869,50 +864,43 @@ public partial class Program
                     boneWeights.Add(new());
                 }
 
-                var bones = mesh.SkinDeformers;
+                var bones = mesh.SkinDeformers.Data;
 
-                var invalidBones = new HashSet<string>();
-
-                for (ulong j = 0; j < bones.Count; j++)
+                for (ulong j = 0; j < bones.Clusters.Count; j++)
                 {
-                    var bone = bones[j];
+                    var bone = bones.Clusters[j];
 
-                    Matrix4x4.Decompose(Matrix4x4.Transpose(bone->MOffsetMatrix), out var scale, out var rotation, out var translation);
+                    var boneMatrix = bone.GeometryToBone.ToMatrix4x4();
 
-                    var boneNode = FindNode(scene->MRootNode, bone->MName.AsString);
-
-                    var validBone = boneNode != null;
-
-                    var nodeIndex = -1;
-
-                    if (nodeToIndex.TryGetValue((nint)boneNode, out nodeIndex) == false)
-                    {
-                        invalidBones.Add(bone->MName.AsString);
-
-                        validBone = false;
-
-                        nodeIndex = -1;
-                    }
+                    Matrix4x4.Decompose(boneMatrix, out var scale, out var rotation, out var translation);
 
                     m.bones.Add(new()
                     {
-                        nodeIndex = nodeIndex,
+                        nodeIndex = nodeToIndex.TryGetValue(bone.BoneNode, out var nodeIndex) ? nodeIndex : -1,
                         offsetPosition = new(translation),
                         offsetScale = new(scale),
                         offsetRotation = new(rotation),
                     });
+                }
 
-                    var weights = bone->GetWeights();
+                for (ulong j = 0; j < mesh.NumVertices; j++)
+                {
+                    var weights = bones.Vertices[j];
 
-                    for (var k = 0; k < weights.Length; k++)
+                    for (ulong k = 0; k < weights.NumWeights; k++)
                     {
-                        var item = weights[k];
+                        if (k >= 4)
+                        {
+                            break;
+                        }
 
-                        var boneIndex = boneIndices[(int)item.MVertexId];
-                        var boneWeight = boneWeights[(int)item.MVertexId];
+                        var weight = bones.Weights[weights.WeightBegin + k];
 
-                        boneIndex.Add(j);
-                        boneWeight.Add(validBone ? item.MWeight : 0);
+                        var boneIndex = boneIndices[(int)j];
+                        var boneWeight = boneWeights[(int)j];
+
+                        boneIndex.Add(weight.ClusterIndex);
+                        boneWeight.Add(weight.Weight);
                     }
                 }
 
@@ -923,12 +911,6 @@ public partial class Program
                 m.boneWeights = boneWeights
                     .Select(x => x.ToHolderNormalized())
                     .ToList();
-
-                if (invalidBones.Count > 0)
-                {
-                    Console.WriteLine($"\t\t\tWARNING: {mesh->MName.AsString} of {Path.GetFileName(meshFileName)} has an invalid bones: " +
-                        $"{string.Join(", ", invalidBones)}");
-                }
             }
 
             meshData.meshes.Add(m);
@@ -936,6 +918,7 @@ public partial class Program
         #endregion
 
         #region Animations
+        /*
         var animations = scene->Animations();
         var animationCounter = 0;
 
@@ -992,9 +975,9 @@ public partial class Program
 
             meshData.animations.Add(a);
         }
+        */
         #endregion
 
         return meshData;
-        */
     }
 }

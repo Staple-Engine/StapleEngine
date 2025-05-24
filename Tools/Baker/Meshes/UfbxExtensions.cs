@@ -28,4 +28,12 @@ internal static class UfbxExtensions
 
         return outValue;
     }
+
+    public static Matrix4x4 ToMatrix4x4(this UfbxMatrix m)
+    {
+        return new(m.M00, m.M01, m.M02, m.M03,
+            m.M10, m.M11, m.M12, m.M13,
+            m.M20, m.M21, m.M22, m.M23,
+            0, 0, 0, 1);
+    }
 }

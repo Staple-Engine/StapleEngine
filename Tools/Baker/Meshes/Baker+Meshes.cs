@@ -239,12 +239,16 @@ static partial class Program
                 {
                     meshData = ProcessSharpGLTFMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
                 }
-                else
+                else if(meshFileName.EndsWith(".fbx.meta"))
                 {
                     meshData = ProcessUFBXMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
                 }
+                else
+                {
+                    meshData = ProcessAssimpMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
+                }
 
-                if(meshData == null)
+                if (meshData == null)
                 {
                     return;
                 }
