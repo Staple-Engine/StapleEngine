@@ -1,6 +1,6 @@
 {
   "guid": "0005bc5b-032a-417a-b7ab-c15ad7a93e78",
-  "autoReferenced": true,
+  "autoReferenced": false,
   "anyPlatform": true,
   "platforms": [],
   "typeName": "Staple.Editor.PluginAsset"

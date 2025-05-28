@@ -567,6 +567,8 @@ internal partial class StapleEditor
 
         if (updateProject)
         {
+            AssetDatabase.Reload();
+
             UpdateCSProj(platform, checkBuild, Finish);
         }
         else

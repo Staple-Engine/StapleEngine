@@ -162,8 +162,17 @@ internal class AssemblyDefinitionEditor : AssetEditor
                                 {
                                     var plugin = referencedPlugins[i] = (PluginAsset)PluginAsset.Create(list[i] ?? "");
 
+                                    var assetPath = AssetDatabase.GetAssetPath(list[i] ?? "");
+
+                                    if(assetPath != null)
+                                    {
+                                        assetPath = EditorUtils.GetRootPath(assetPath);
+                                    }
+
+                                    assetPath ??= list[i] ?? "";
+
                                     if (plugin != null &&
-                                        (PluginAsset.IsAssembly(AssetDatabase.GetAssetPath(list[i] ?? "") ?? list[i] ?? "") == false ||
+                                        (PluginAsset.IsAssembly(assetPath) == false ||
                                         plugin.autoReferenced))
                                     {
                                         list.RemoveAt(i);

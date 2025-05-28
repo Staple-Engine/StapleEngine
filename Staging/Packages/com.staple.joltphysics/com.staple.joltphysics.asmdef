@@ -5,6 +5,7 @@
   "excludedPlatforms": [],
   "allowUnsafeCode": true,
   "autoReferenced": true,
+  "overrideReferences": true,
   "referencedAssemblies": [],
   "referencedPlugins": [
 	"0005bc5b-032a-417a-b7ab-c15ad7a93e78"

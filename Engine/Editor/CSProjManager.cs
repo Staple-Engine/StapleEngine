@@ -579,9 +579,16 @@ internal class CSProjManager
 
                         var counter = 0;
 
+                        var projectName = pair.Value.Item1;
+
+                        if (projectName.Contains('@'))
+                        {
+                            projectName = projectName.Substring(0, projectName.IndexOf('@'));
+                        }
+
                         foreach (var projectPair in projects)
                         {
-                            if (Path.GetFileName(projectPair.Key).Equals(Path.GetFileName(pair.Key), StringComparison.InvariantCultureIgnoreCase))
+                            if (Path.GetFileName(projectPair.Key).Equals(projectName, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 counter++;
                             }
@@ -594,7 +601,7 @@ internal class CSProjManager
                             continue;
                         }
 
-                        projects.Add(pair.Value.Item1, new()
+                        projects.Add(projectName, new()
                         {
                             project = project,
                             counter = counter,
@@ -750,6 +757,11 @@ internal class CSProjManager
                         {
                             var path = AssetDatabase.GetAssetPath(reference);
 
+                            if(path != null)
+                            {
+                                path = EditorUtils.GetRootPath(path);
+                            }
+
                             if (PluginAsset.IsAssembly(path))
                             {
                                 pair.Value.project.AddItem("Reference", path);
@@ -765,7 +777,7 @@ internal class CSProjManager
             {
                 foreach (var dependency in pair.Value.package.dependencies)
                 {
-                    var targetName = $"{dependency.name}@{dependency.version}";
+                    var targetName = dependency.name;
 
                     foreach (var projectPair in projects)
                     {
