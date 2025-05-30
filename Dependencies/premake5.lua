@@ -5,6 +5,7 @@ local BX_DIR = "bx"
 local GLFW_DIR = "glfw"
 local GLFWNET_DIR = "glfw-net"
 local SUPPORT_DIR = "StapleSupport"
+local UFBX_DIR = "ufbx"
 
 solution "Dependencies"
 	location(BUILD_DIR)
@@ -219,10 +220,13 @@ project "StapleSupport"
 	language "C"
 	
 	includedirs {
-		"freetype/include"
+		"freetype/include",
+		"ufbx",
 	}
 	
 	libdirs { "build/native/freetype/Release/Release" }
+	
+	defines { "UFBX_REAL_IS_FLOAT" }
 	
 	links { "freetype" }
 
@@ -232,9 +236,14 @@ project "StapleSupport"
 		path.join(SUPPORT_DIR, "*.cpp");
 		path.join(SUPPORT_DIR, "*.h");
 		path.join(SUPPORT_DIR, "*.hpp");
+		path.join(UFBX_DIR, "*.h");
+		path.join(UFBX_DIR, "*.c");
 	}
 
 	filter "system:macosx"
 		files { path.join(SUPPORT_DIR, "*.m") }
 
 		links { "QuartzCore.framework" }
+	
+	filter "action:vs*"
+		defines { "ufbx_abi=__declspec(dllexport)", "ufbx_abi_data=__declspec(dllexport)" }
