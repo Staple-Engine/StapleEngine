@@ -5,6 +5,7 @@ local BX_DIR = "bx"
 local GLFW_DIR = "glfw"
 local GLFWNET_DIR = "glfw-net"
 local SUPPORT_DIR = "StapleSupport"
+local TOOLING_SUPPORT_DIR = "StapleToolingSupport"
 local UFBX_DIR = "ufbx"
 
 solution "Dependencies"
@@ -221,12 +222,9 @@ project "StapleSupport"
 	
 	includedirs {
 		"freetype/include",
-		"ufbx",
 	}
 	
 	libdirs { "build/native/freetype/Release/Release" }
-	
-	defines { "UFBX_REAL_IS_FLOAT" }
 	
 	links { "freetype" }
 
@@ -236,6 +234,32 @@ project "StapleSupport"
 		path.join(SUPPORT_DIR, "*.cpp");
 		path.join(SUPPORT_DIR, "*.h");
 		path.join(SUPPORT_DIR, "*.hpp");
+	}
+
+	filter "system:macosx"
+		files { path.join(SUPPORT_DIR, "*.m") }
+
+		links { "QuartzCore.framework" }
+
+project "StapleToolingSupport"
+	kind "SharedLib"
+	language "C"
+	
+	includedirs {
+		SUPPORT_DIR,
+		"ufbx",
+	}
+	
+	defines { "UFBX_REAL_IS_FLOAT" }
+
+	files {
+
+		path.join(SUPPORT_DIR, "*.h");
+		path.join(SUPPORT_DIR, "*.hpp");
+		path.join(TOOLING_SUPPORT_DIR, "**.c");
+		path.join(TOOLING_SUPPORT_DIR, "**.cpp");
+		path.join(TOOLING_SUPPORT_DIR, "**.h");
+		path.join(TOOLING_SUPPORT_DIR, "**.hpp");
 		path.join(UFBX_DIR, "*.h");
 		path.join(UFBX_DIR, "*.c");
 	}
@@ -244,6 +268,3 @@ project "StapleSupport"
 		files { path.join(SUPPORT_DIR, "*.m") }
 
 		links { "QuartzCore.framework" }
-	
-	filter "action:vs*"
-		defines { "ufbx_abi=__declspec(dllexport)", "ufbx_abi_data=__declspec(dllexport)" }
