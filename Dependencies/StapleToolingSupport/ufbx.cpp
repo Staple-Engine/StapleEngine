@@ -109,6 +109,18 @@ public:
 	MeshBone() : nodeIndex(-1)
 	{
 	}
+
+	MeshBone(const MeshBone& o) : nodeIndex(o.nodeIndex), offsetMatrix(o.offsetMatrix)
+	{
+	}
+
+	MeshBone& operator=(const MeshBone& o)
+	{
+		nodeIndex = o.nodeIndex;
+		offsetMatrix = o.offsetMatrix;
+
+		return *this;
+	}
 };
 
 class Mesh

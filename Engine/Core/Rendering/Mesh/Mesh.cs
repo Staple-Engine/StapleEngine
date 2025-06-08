@@ -1500,6 +1500,8 @@ public sealed partial class Mesh : IGuidAsset
 
                 var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
 
+                var shouldUseLocalTransform = true;
+
                 foreach(var meshIndex in node.meshIndices)
                 {
                     if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
@@ -1510,6 +1512,7 @@ public sealed partial class Mesh : IGuidAsset
                     if(asset.meshes[meshIndex].type == MeshAssetType.Skinned)
                     {
                         nodeTarget = (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
+                        shouldUseLocalTransform = false;
 
                         break;
                     }
@@ -1517,9 +1520,12 @@ public sealed partial class Mesh : IGuidAsset
 
                 nodeTransform.SetParent(nodeTarget);
 
-                nodeTransform.LocalPosition = node.Position;
-                nodeTransform.LocalRotation = node.Rotation;
-                nodeTransform.LocalScale = node.Scale;
+                if(shouldUseLocalTransform)
+                {
+                    nodeTransform.LocalPosition = node.Position;
+                    nodeTransform.LocalRotation = node.Rotation;
+                    nodeTransform.LocalScale = node.Scale;
+                }
 
                 foreach (var index in node.meshIndices)
                 {
