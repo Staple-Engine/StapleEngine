@@ -103,7 +103,12 @@ public:
 class MeshBone
 {
 public:
+	int32_t nodeIndex;
 	Matrix4x4 offsetMatrix;
+
+	MeshBone() : nodeIndex(-1)
+	{
+	}
 };
 
 class Mesh
@@ -177,6 +182,7 @@ public:
 		COPY(color3, o.color3, Vector4, vertexCount);
 		COPY(boneIndices, o.boneIndices, Vector4, vertexCount);
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
+		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
 	}
 
@@ -247,7 +253,50 @@ public:
 		COPY(color3, o.color3, Vector4, vertexCount);
 		COPY(boneIndices, o.boneIndices, Vector4, vertexCount);
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
+		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
+
+		return *this;
+	}
+};
+
+class String
+{
+public:
+	char data[10240];
+	int32_t length;
+
+	String() : length(0)
+	{
+		memset(data, 0, sizeof(data));
+	}
+
+	String(const char* ptr)
+	{
+		this->length = (int32_t)strlen(ptr);
+
+		memset(data, 0, sizeof(data));
+		memcpy(data, ptr, this->length);
+	}
+
+	String(const char* ptr, size_t length)
+	{
+		this->length = length > 10240 ? 1024 : (int32_t)length;
+
+		memset(data, 0, sizeof(data));
+		memcpy(data, ptr, this->length);
+	}
+
+	String(const String& o) : length(o.length)
+	{
+		memcpy(data, o.data, sizeof(data));
+	}
+
+	String& operator=(const String& o)
+	{
+		length = o.length;
+
+		memcpy(data, o.data, sizeof(data));
 
 		return *this;
 	}
@@ -259,9 +308,7 @@ public:
 
 	int32_t parentIndex;
 
-	char name[10240];
-
-	int32_t nameLength;
+	String name;
 
 	int32_t* meshIndices;
 
@@ -275,9 +322,8 @@ public:
 	Matrix4x4 geometryToWorld;
 	Matrix4x4 normalToWorld;
 
-	Node() : parentIndex(-1), nameLength(0), meshIndices(nullptr), meshCount(0)
+	Node() : parentIndex(-1), meshIndices(nullptr), meshCount(0)
 	{
-		memset(name, 0, sizeof(name));
 	}
 
 	void Read(ufbx_scene *scene, ufbx_node* node, std::vector<Mesh> &meshCache)
@@ -286,19 +332,17 @@ public:
 		{
 			if (node->is_root)
 			{
-				strncpy_s(name, "root", strlen("root"));
+				name = String("internal_root");
 			}
 			else
 			{
-				strncpy_s(name, "group node", strlen("group node"));
+				name = String("internal_group");
 			}
 		}
 		else
 		{
-			strncpy_s(name, node->name.data, node->name.length > sizeof(name) ? sizeof(name) : node->name.length);
+			name = String(node->name.data, node->name.length);
 		}
-
-		nameLength = (int32_t)strnlen(name, sizeof(name));
 
 		parentIndex = node->parent ? node->parent->typed_id : -1;
 
@@ -343,6 +387,8 @@ public:
 				bool hasBitangents = false;
 				bool hasColors[4] = { 0 };
 				bool hasUVs[8] = { 0 };
+
+				std::vector<MeshBone> bones;
 
 				for (size_t faceIndex = 0; faceIndex < part.num_faces; faceIndex++)
 				{
@@ -489,7 +535,35 @@ public:
 							{
 								const ufbx_skin_weight &weight = skin->weights[skinVertex.weight_begin + l];
 
-								float jointIndex = (float)weight.cluster_index;
+								uint32_t clusterIndex = weight.cluster_index;
+
+								ufbx_skin_cluster *cluster = skin->clusters[clusterIndex];
+
+								uint32_t nodeIndex = cluster->bone_node->typed_id;
+
+								bool found = false;
+
+								for (const MeshBone &bone : bones)
+								{
+									if (bone.nodeIndex == nodeIndex)
+									{
+										found = true;
+
+										break;
+									}
+								}
+
+								if (found == false)
+								{
+									MeshBone bone;
+
+									bone.nodeIndex = nodeIndex;
+									bone.offsetMatrix = cluster->geometry_to_bone;
+
+									bones.push_back(bone);
+								}
+
+								float jointIndex = (float)clusterIndex;
 								float w = weight.weight;
 
 								weightSum += w;
@@ -556,6 +630,18 @@ public:
 
 					memcpy(ownMesh.indices, indices.data(), indices.size() * sizeof(uint32_t));
 
+					if (bones.size() > 0)
+					{
+						ownMesh.boneCount = (int32_t)bones.size();
+
+						ownMesh.bones = new MeshBone[ownMesh.boneCount];
+
+						for (size_t k = 0; k < ownMesh.boneCount; k++)
+						{
+							ownMesh.bones[k] = bones[k];
+						}
+					}
+
 					for (size_t k = 0; k < vertexCount; k++)
 					{
 						const Vertex& v = vertices[k];
@@ -605,6 +691,134 @@ public:
 	}
 };
 
+enum TextureWrap : int
+{
+	STAPLE_TEXTURE_WRAP_REPEAT,
+	STAPLE_TEXTURE_WRAP_CLAMP,
+	STAPLE_TEXTURE_WRAP_MIRROR,
+};
+
+static TextureWrap UFBXWrapToStapleWrap(ufbx_wrap_mode mode)
+{
+	switch (mode)
+	{
+	case UFBX_WRAP_CLAMP:
+
+		return STAPLE_TEXTURE_WRAP_CLAMP;
+
+	case UFBX_WRAP_REPEAT:
+
+		return STAPLE_TEXTURE_WRAP_REPEAT;
+
+	default:
+
+		return STAPLE_TEXTURE_WRAP_CLAMP;
+	}
+}
+
+class Material
+{
+public:
+
+	String name;
+
+#define MATERIALPROP(name) \
+	Vector4 name ## Color;\
+	String name ## Texture;\
+	TextureWrap name ## WrapU; \
+	TextureWrap name ## WrapV;
+
+	MATERIALPROP(diffuse);
+	MATERIALPROP(specular);
+	MATERIALPROP(reflection);
+	MATERIALPROP(transparency);
+	MATERIALPROP(emission);
+	MATERIALPROP(ambient);
+	MATERIALPROP(normalMap);
+	MATERIALPROP(bump);
+	MATERIALPROP(displacement);
+	MATERIALPROP(vectorDisplacement);
+
+#undef MATERIALPROP
+
+	Material() : diffuseWrapU(STAPLE_TEXTURE_WRAP_CLAMP), diffuseWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		specularWrapU(STAPLE_TEXTURE_WRAP_CLAMP), specularWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		reflectionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), reflectionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		transparencyWrapU(STAPLE_TEXTURE_WRAP_CLAMP), transparencyWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		emissionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), emissionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		ambientWrapU(STAPLE_TEXTURE_WRAP_CLAMP), ambientWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		normalMapWrapU(STAPLE_TEXTURE_WRAP_CLAMP), normalMapWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		bumpWrapU(STAPLE_TEXTURE_WRAP_CLAMP), bumpWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		displacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), displacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		vectorDisplacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), vectorDisplacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP)
+	{
+	}
+
+	Material(const Material& o) : name(o.name),
+		diffuseTexture(o.diffuseTexture), diffuseWrapU(STAPLE_TEXTURE_WRAP_CLAMP), diffuseWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		specularTexture(o.specularTexture), specularWrapU(STAPLE_TEXTURE_WRAP_CLAMP), specularWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		reflectionTexture(o.reflectionTexture), reflectionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), reflectionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		transparencyTexture(o.transparencyTexture), transparencyWrapU(STAPLE_TEXTURE_WRAP_CLAMP), transparencyWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		emissionTexture(o.emissionTexture), emissionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), emissionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		ambientTexture(o.ambientTexture), ambientWrapU(STAPLE_TEXTURE_WRAP_CLAMP), ambientWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		normalMapTexture(o.normalMapTexture), normalMapWrapU(STAPLE_TEXTURE_WRAP_CLAMP), normalMapWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		bumpTexture(o.bumpTexture), bumpWrapU(STAPLE_TEXTURE_WRAP_CLAMP), bumpWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		displacementTexture(o.displacementTexture), displacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), displacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
+		vectorDisplacementTexture(o.vectorDisplacementTexture), vectorDisplacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP),
+		vectorDisplacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP)
+	{
+	}
+
+	void Read(ufbx_material* material)
+	{
+		if (material->name.length > 0)
+		{
+			name = String(material->name.data, material->name.length);
+		}
+
+#define MATERIALCOLOR(to, map)\
+		if (material->fbx.maps[map].has_value)\
+		{\
+			to ## Color = material->fbx.maps[map].value_vec4;\
+		}\
+
+#define MATERIALTEXTURE(to, map)\
+		if (material->fbx.maps[map].has_value && material->fbx.maps[map].texture != nullptr)\
+		{\
+			ufbx_texture *texture = material->fbx.maps[map].texture; \
+			const ufbx_string &fileName = texture->filename; \
+			\
+			if(fileName.length > 0)\
+			{\
+				to ## Texture = String(fileName.data, fileName.length); \
+			}\
+			\
+			to ## WrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
+			to ## WrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+		}
+
+#define DOMATERIAL(to, map)\
+		MATERIALCOLOR(to, map);\
+		\
+		MATERIALTEXTURE(to, map);
+
+		DOMATERIAL(diffuse, UFBX_MATERIAL_FBX_DIFFUSE_COLOR);
+		DOMATERIAL(specular, UFBX_MATERIAL_FBX_SPECULAR_COLOR);
+		DOMATERIAL(reflection, UFBX_MATERIAL_FBX_REFLECTION_COLOR);
+		DOMATERIAL(transparency, UFBX_MATERIAL_FBX_TRANSPARENCY_COLOR);
+		DOMATERIAL(emission, UFBX_MATERIAL_FBX_EMISSION_COLOR);
+		DOMATERIAL(ambient, UFBX_MATERIAL_FBX_AMBIENT_COLOR);
+		DOMATERIAL(normalMap, UFBX_MATERIAL_FBX_NORMAL_MAP);
+		DOMATERIAL(bump, UFBX_MATERIAL_FBX_BUMP);
+		DOMATERIAL(displacement, UFBX_MATERIAL_FBX_DISPLACEMENT);
+		DOMATERIAL(vectorDisplacement, UFBX_MATERIAL_FBX_VECTOR_DISPLACEMENT);
+
+#undef DOMATERIAL
+#undef MATERIALTEXTURE
+#undef MATERIALCOLOR
+	}
+};
+
 class Scene
 {
 public:
@@ -616,12 +830,17 @@ public:
 
 	int32_t meshCount;
 
-	Scene() : nodes(nullptr), nodeCount(0), meshes(nullptr), meshCount(0) {}
+	Material* materials;
+
+	int32_t materialCount;
+
+	Scene() : nodes(nullptr), nodeCount(0), meshes(nullptr), meshCount(0), materials(nullptr), materialCount(0) {}
 
 	~Scene()
 	{
 		DELETE(nodes);
 		DELETE(meshes);
+		DELETE(materials);
 	}
 
 	void Read(ufbx_scene* scene)
@@ -646,6 +865,18 @@ public:
 			for (int32_t i = 0; i < meshCount; i++)
 			{
 				meshes[i] = meshCache[i];
+			}
+		}
+
+		materialCount = (int32_t)scene->materials.count;
+
+		if (materialCount > 0)
+		{
+			materials = new Material[materialCount];
+
+			for (int32_t i = 0; i < materialCount; i++)
+			{
+				materials[i].Read(scene->materials[i]);
 			}
 		}
 	}

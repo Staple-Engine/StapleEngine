@@ -67,6 +67,8 @@
 		<Compile Include="Baker+Texture.cs" />
 		<Compile Include="Baker.cs" />
 		<Compile Include="Meshes\Baker+SharpGLTF.cs" />
+		<Compile Include="Meshes\Baker+UFBX.cs" />
+		<Compile Include="Meshes\ufbx.cs" />
 		<Compile Include="Renderer.cs" />
 		<Compile Include="Shaders\ShaderCompilerType.cs" />
 		<Compile Include="Shaders\ShaderInstancingParameter.cs" />

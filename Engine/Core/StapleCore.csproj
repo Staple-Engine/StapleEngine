@@ -143,7 +143,6 @@
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Heap.cs" />
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.RectPack.cs" />
 		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.OldRasterizer.cs" />
-		<Compile Include="External\ufbx\ufbx.cs" />
 		<Compile Include="Hooks\IStapleHook.cs" />
 		<Compile Include="Hooks\StapleHookEvent.cs" />
 		<Compile Include="Input\Cursor.cs" />

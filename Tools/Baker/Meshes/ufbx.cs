@@ -17,6 +17,7 @@ public struct UFBXTransform
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXMeshBone
 {
+    public int nodeIndex;
     public Matrix4x4 offsetMatrix;
 }
 
@@ -80,13 +81,13 @@ public unsafe struct UFBXMesh
 
     public readonly Span<Vector2> UV7 => vertexCount > 0 && uv7 != null ? new(uv7, vertexCount) : default;
 
-    public readonly Span<Vector2> Color0 => vertexCount > 0 && color0 != null ? new(color0, vertexCount) : default;
+    public readonly Span<Vector4> Color0 => vertexCount > 0 && color0 != null ? new(color0, vertexCount) : default;
 
-    public readonly Span<Vector2> Color1 => vertexCount > 0 && color1 != null ? new(color1, vertexCount) : default;
+    public readonly Span<Vector4> Color1 => vertexCount > 0 && color1 != null ? new(color1, vertexCount) : default;
 
-    public readonly Span<Vector2> Color2 => vertexCount > 0 && color2 != null ? new(color2, vertexCount) : default;
+    public readonly Span<Vector4> Color2 => vertexCount > 0 && color2 != null ? new(color2, vertexCount) : default;
 
-    public readonly Span<Vector2> Color3 => vertexCount > 0 && color3 != null ? new(color3, vertexCount) : default;
+    public readonly Span<Vector4> Color3 => vertexCount > 0 && color3 != null ? new(color3, vertexCount) : default;
 
     public readonly Span<Vector4> BoneIndices => vertexCount > 0 && boneIndices != null ? new(boneIndices, vertexCount) : default;
 
@@ -98,12 +99,88 @@ public unsafe struct UFBXMesh
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXString
+{
+    public fixed sbyte data[10240];
+    public int length;
+
+    public readonly string Value
+    {
+        get
+        {
+            unsafe
+            {
+                fixed (void* ptr = data)
+                {
+                    return Encoding.UTF8.GetString((byte*)ptr, length);
+                }
+            }
+        }
+    }
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXMaterial
+{
+    public UFBXString name;
+
+    public Vector4 diffuseColor;
+    public UFBXString diffuseTexture;
+    public int diffuseWrapU;
+    public int diffuseWrapV;
+
+    public Vector4 specularColor;
+    public UFBXString specularTexture;
+    public int specularWrapU;
+    public int specularWrapV;
+
+    public Vector4 reflectionColor;
+    public UFBXString reflectionTexture;
+    public int reflectionWrapU;
+    public int reflectionWrapV;
+
+    public Vector4 transparencyColor;
+    public UFBXString transparencyTexture;
+    public int transparencyWrapU;
+    public int transparencyWrapV;
+
+    public Vector4 emissionColor;
+    public UFBXString emissionTexture;
+    public int emissionWrapU;
+    public int emissionWrapV;
+
+    public Vector4 ambientColor;
+    public UFBXString ambientTexture;
+    public int ambientWrapU;
+    public int ambientWrapV;
+
+    public Vector4 normalMapColor;
+    public UFBXString normalMapTexture;
+    public int normalMapWrapU;
+    public int normalMapWrapV;
+
+    public Vector4 bumpColor;
+    public UFBXString bumpTexture;
+    public int bumpWrapU;
+    public int bumpWrapV;
+
+    public Vector4 displacementColor;
+    public UFBXString displacementTexture;
+    public int displacementWrapU;
+    public int displacementWrapV;
+
+    public Vector4 vectorDisplacementColor;
+    public UFBXString vectorDisplacementTexture;
+    public int vectorDisplacementWrapU;
+    public int vectorDisplacementWrapV;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXNode
 {
     public int parentIndex;
 
-    public fixed sbyte name[10240];
-    public int nameLength;
+    public UFBXString name;
 
     public int* meshIndices;
     public int meshCount;
@@ -115,20 +192,6 @@ public unsafe struct UFBXNode
     public Matrix4x4 nodeToWorld;
     public Matrix4x4 geometryToWorld;
     public Matrix4x4 normalToWorld;
-
-    public readonly string Name
-    {
-        get
-        {
-            unsafe
-            {
-                fixed(void *ptr = name)
-                {
-                    return Encoding.UTF8.GetString((byte*)ptr, nameLength);
-                }
-            }
-        }
-    }
 
     public readonly Span<int> MeshIndices => meshCount > 0 ? new(meshIndices, meshCount) : default;
 }
@@ -142,9 +205,14 @@ public unsafe struct UFBXScene
     public UFBXMesh* meshes;
     public int meshCount;
 
+    public UFBXMaterial* materials;
+    public int materialCount;
+
     public readonly Span<UFBXNode> Nodes => nodeCount > 0 ? new(nodes, nodeCount) : default;
 
     public readonly Span<UFBXMesh> Meshes => meshCount > 0 ? new(meshes, meshCount) : default;
+
+    public readonly Span<UFBXMaterial> Materials => materialCount > 0 ? new(materials, materialCount) : default;
 }
 
 public partial class UFBX
