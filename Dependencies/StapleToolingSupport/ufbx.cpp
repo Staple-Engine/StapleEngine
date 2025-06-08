@@ -541,13 +541,17 @@ public:
 
 								uint32_t nodeIndex = cluster->bone_node->typed_id;
 
+								uint32_t boneIndex = 0;
+
 								bool found = false;
 
-								for (const MeshBone &bone : bones)
+								for(size_t m = 0; m < bones.size(); m++)
 								{
-									if (bone.nodeIndex == nodeIndex)
+									if (bones[m].nodeIndex == nodeIndex)
 									{
 										found = true;
+
+										boneIndex = (uint32_t)m;
 
 										break;
 									}
@@ -560,10 +564,12 @@ public:
 									bone.nodeIndex = nodeIndex;
 									bone.offsetMatrix = cluster->geometry_to_bone;
 
+									boneIndex = (uint32_t)bones.size();
+
 									bones.push_back(bone);
 								}
 
-								float jointIndex = (float)clusterIndex;
+								float jointIndex = (float)boneIndex;
 								float w = weight.weight;
 
 								weightSum += w;

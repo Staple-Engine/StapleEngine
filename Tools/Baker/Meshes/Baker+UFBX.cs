@@ -418,8 +418,6 @@ public partial class Program
                 rotation = new Vector3Holder(rotation),
             };
 
-            var currentIndex = nodes.Count;
-
             var parent = node.parentIndex >= 0 ? nodes[node.parentIndex] : null;
 
             parent?.children.Add(nodes.Count);
@@ -525,6 +523,14 @@ public partial class Program
 
             m.bitangents = bitangents;
 
+            if (metadata.flipWindingOrder && indices.Count % 3 == 0)
+            {
+                for (var k = 0; k < indices.Count; k += 3)
+                {
+                    (indices[k + 1], indices[k + 2]) = (indices[k + 2], indices[k + 1]);
+                }
+            }
+
             m.indices = indices;
 
             if (metadata.regenerateNormals)
@@ -569,7 +575,17 @@ public partial class Program
 
                 if (source.Length > 0)
                 {
-                    uvs[j].AddRange(source.ToArray().Select(x => new Vector2Holder(x)));
+                    var sourceUVs = source.ToArray();
+
+                    if(metadata.flipUVs)
+                    {
+                        for(var k = 0; k < sourceUVs.Length; k++)
+                        {
+                            sourceUVs[k].Y = 1 - sourceUVs[k].Y;
+                        }
+                    }
+
+                    uvs[j].AddRange(sourceUVs.Select(x => new Vector2Holder(x)));
                 }
             }
 

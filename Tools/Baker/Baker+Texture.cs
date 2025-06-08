@@ -79,7 +79,7 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            processedTextures.Add(textureFileName.Replace("\\", "/"), guid);
+            processedTextures.AddOrSetKey(textureFileName.Replace("\\", "/"), guid);
 
             if (ShouldProcessFile(textureFileName, outputFile) == false &&
                 ShouldProcessFile(textureFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)

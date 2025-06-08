@@ -342,6 +342,16 @@ static partial class Program
 
         WorkScheduler.WaitForTasks();
 
+        //First phase of processing textures
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessTextures(platform, texturecPath, path, outPath);
+        }
+
+        WorkScheduler.WaitForTasks();
+
         foreach (var path in inputPaths)
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
@@ -351,6 +361,7 @@ static partial class Program
 
         WorkScheduler.WaitForTasks();
 
+        //Second phase of processing textures because some textures might be generated
         foreach (var path in inputPaths)
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
