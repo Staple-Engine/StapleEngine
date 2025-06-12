@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 using UFBX;
 
 namespace Baker;
@@ -623,11 +624,8 @@ public partial class Program
         }
         #endregion
 
-        //TODO
-        /*
         #region Animations
-        var animations = scene.Animations;
-        var animationCounter = 0;
+        var animations = scene->Animations;
 
         for (var j = 0; j < animations.Length; j++)
         {
@@ -635,43 +633,96 @@ public partial class Program
 
             var a = new MeshAssetAnimation()
             {
-                duration = (float)(animation->MDuration / animation->MTicksPerSecond),
-                name = animation->MName.AsString ?? $"Unnamed {++animationCounter}",
+                duration = animation.endTime - animation.startTime,
+                name = animation.name.Value,
             };
 
-            var channels = animation->Channels();
-
-            foreach (var channel in channels)
+            for(var k = 0; k < scene->nodeCount; k++)
             {
-                var positionKeys = channel->PositionKeys()
-                    .Select(x => new MeshAssetVectorAnimationKey()
-                    {
-                        time = (float)(x.MTime / animation->MTicksPerSecond),
-                        value = new(x.MValue),
-                    })
-                    .ToList();
+                var frame = animation.nodes[k];
 
-                var rotationKeys = channel->RotationKeys()
-                    .Select(x => new MeshAssetQuaternionAnimationKey()
-                    {
-                        time = (float)(x.MTime / animation->MTicksPerSecond),
-                        value = new(x.MValue),
-                    })
-                    .ToList();
+                var positionKeys = new List<MeshAssetVectorAnimationKey>();
+                var rotationKeys = new List<MeshAssetQuaternionAnimationKey>();
+                var scaleKeys = new List<MeshAssetVectorAnimationKey>();
 
-                var scaleKeys = channel->ScaleKeys()
-                    .Select(x => new MeshAssetVectorAnimationKey()
+                if (frame.positions == null)
+                {
+                    for(var l = 0; l < animation.frameCount; l++)
                     {
-                        time = (float)(x.MTime / animation->MTicksPerSecond),
-                        value = new(x.MValue),
-                    })
-                    .ToList();
+                        positionKeys.Add(new MeshAssetVectorAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(frame.constantPosition),
+                        });
+                    }
+                }
+                else
+                {
+                    var s = new Span<Vector3>(frame.positions, animation.frameCount);
 
-                var node = FindNode(scene->MRootNode, channel->MNodeName.AsString);
+                    for (var l = 0; l < animation.frameCount; l++)
+                    {
+                        positionKeys.Add(new MeshAssetVectorAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(s[l]),
+                        });
+                    }
+                }
+
+                if (frame.rotations == null)
+                {
+                    for (var l = 0; l < animation.frameCount; l++)
+                    {
+                        rotationKeys.Add(new MeshAssetQuaternionAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(frame.constantRotation),
+                        });
+                    }
+                }
+                else
+                {
+                    var s = new Span<Vector3>(frame.rotations, animation.frameCount);
+
+                    for (var l = 0; l < animation.frameCount; l++)
+                    {
+                        rotationKeys.Add(new MeshAssetQuaternionAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(s[l]),
+                        });
+                    }
+                }
+
+                if (frame.scales == null)
+                {
+                    for (var l = 0; l < animation.frameCount; l++)
+                    {
+                        scaleKeys.Add(new MeshAssetVectorAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(frame.constantScale),
+                        });
+                    }
+                }
+                else
+                {
+                    var s = new Span<Vector3>(frame.scales, animation.frameCount);
+
+                    for (var l = 0; l < animation.frameCount; l++)
+                    {
+                        scaleKeys.Add(new MeshAssetVectorAnimationKey()
+                        {
+                            time = l / (float)animation.frameCount * a.duration,
+                            value = new(s[l]),
+                        });
+                    }
+                }
 
                 var c = new MeshAssetAnimationChannel()
                 {
-                    nodeIndex = nodeToIndex[(nint)node],
+                    nodeIndex = nodes.FindIndex(x => x.name == scene->nodes[k].name.Value),
                     positionKeys = positionKeys,
                     rotationKeys = rotationKeys,
                     scaleKeys = scaleKeys,
@@ -683,7 +734,6 @@ public partial class Program
             meshData.animations.Add(a);
         }
         #endregion
-        */
 
         UFBX.UFBX.FreeScene(scene);
 

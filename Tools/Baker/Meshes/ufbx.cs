@@ -197,6 +197,31 @@ public unsafe struct UFBXNode
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXNodeAnimation
+{
+    public float startTime;
+    public float frameRate;
+    public Vector3 constantPosition;
+    public Quaternion constantRotation;
+    public Vector3 constantScale;
+    public Vector3* positions;
+    public Quaternion* rotations;
+    public Vector3* scales;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXAnimation
+{
+    public UFBXString name;
+    public float startTime;
+    public float endTime;
+    public float frameRate;
+    public int frameCount;
+
+    public UFBXNodeAnimation* nodes;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXScene
 {
     public UFBXNode* nodes;
@@ -208,11 +233,16 @@ public unsafe struct UFBXScene
     public UFBXMaterial* materials;
     public int materialCount;
 
+    public UFBXAnimation* animations;
+    public int animationCount;
+
     public readonly Span<UFBXNode> Nodes => nodeCount > 0 ? new(nodes, nodeCount) : default;
 
     public readonly Span<UFBXMesh> Meshes => meshCount > 0 ? new(meshes, meshCount) : default;
 
     public readonly Span<UFBXMaterial> Materials => materialCount > 0 ? new(materials, materialCount) : default;
+
+    public readonly Span<UFBXAnimation> Animations => animationCount > 0 ? new(animations, animationCount) : default;
 }
 
 public partial class UFBX

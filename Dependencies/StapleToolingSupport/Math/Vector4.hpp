@@ -14,4 +14,24 @@ public:
 	Vector4(const ufbx_vec4 v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
 	Vector4(const ufbx_quat v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
+
+	friend bool operator==(const Vector4& lhs, const Vector4& rhs)
+	{
+		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+	}
+
+	friend bool operator!=(const Vector4& lhs, const Vector4& rhs)
+	{
+		return lhs.x != rhs.x || lhs.y != rhs.y || lhs.z != rhs.z || lhs.w != rhs.w;
+	}
+
+	static float Dot(const Vector4& a, const Vector4& b)
+	{
+		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+	}
+
+	Vector4 Negated()
+	{
+		return Vector4(-x, -y, -z, -w);
+	}
 };

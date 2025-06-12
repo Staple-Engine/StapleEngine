@@ -338,6 +338,343 @@ public:
 	{
 	}
 
+	void ReadMesh(ufbx_node *node, ufbx_mesh* mesh, std::vector<Mesh>& meshCache)
+	{
+		std::vector<Mesh> meshes;
+
+		std::vector<int32_t> meshIndices;
+
+		for (size_t j = 0; j < mesh->material_parts.count; j++)
+		{
+			const ufbx_mesh_part& part = mesh->material_parts[j];
+
+			if (part.num_triangles == 0)
+			{
+				continue;
+			}
+
+			Mesh ownMesh;
+
+			ownMesh.isSkinned = mesh->skin_deformers.count > 0;
+
+			ufbx_material* material = node->materials[j];
+
+			ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
+
+			std::vector<Vertex> vertices;
+
+			bool hasTangents = false;
+			bool hasBitangents = false;
+			bool hasColors[4] = { 0 };
+			bool hasUVs[8] = { 0 };
+
+			std::vector<MeshBone> bones;
+
+			for (size_t faceIndex = 0; faceIndex < part.num_faces; faceIndex++)
+			{
+				const ufbx_face& face = mesh->faces[part.face_indices.data[faceIndex]];
+
+				size_t triangleIndexCount = mesh->max_face_triangles * 3;
+
+				std::vector<uint32_t> indices(triangleIndexCount);
+
+				size_t triangleCount = ufbx_triangulate_face(indices.data(), triangleIndexCount, mesh, face);
+
+				size_t vertexCount = triangleCount * 3;
+
+				for (size_t k = 0; k < vertexCount; k++)
+				{
+					uint32_t index = indices[k];
+
+					Vertex v;
+
+					uint32_t vertexIndex = mesh->vertex_indices[index];
+
+					v.position = Vector3(mesh->vertices[vertexIndex]);
+
+					{
+						uint32_t normalIndex = mesh->vertex_normal.indices[index];
+
+						if (normalIndex < mesh->vertex_normal.values.count)
+						{
+							v.normal = Vector3(mesh->vertex_normal.values[normalIndex]);
+						}
+					}
+
+					if (mesh->vertex_tangent.exists)
+					{
+						hasTangents = true;
+
+						uint32_t tangentIndex = mesh->vertex_tangent.indices[index];
+
+						if (tangentIndex < mesh->vertex_tangent.values.count)
+						{
+							v.tangent = Vector3(mesh->vertex_tangent.values[tangentIndex]);
+						}
+					}
+
+					if (mesh->vertex_bitangent.exists)
+					{
+						hasBitangents = true;
+
+						uint32_t bitangentIndex = mesh->vertex_bitangent.indices[index];
+
+						if (bitangentIndex < mesh->vertex_bitangent.values.count)
+						{
+							v.tangent = Vector3(mesh->vertex_bitangent.values[bitangentIndex]);
+						}
+					}
+
+					uint32_t uvCount = mesh->uv_sets.count < 8 ? (uint32_t)mesh->uv_sets.count : 8;
+
+					Vector2* uvs[8] =
+					{
+						&v.uv0,
+						&v.uv1,
+						&v.uv2,
+						&v.uv3,
+						&v.uv4,
+						&v.uv5,
+						&v.uv6,
+						&v.uv7,
+					};
+
+					hasUVs[0] = uvCount >= 1;
+					hasUVs[1] = uvCount >= 2;
+					hasUVs[2] = uvCount >= 3;
+					hasUVs[3] = uvCount >= 4;
+					hasUVs[4] = uvCount >= 5;
+					hasUVs[5] = uvCount >= 6;
+					hasUVs[6] = uvCount >= 7;
+					hasUVs[7] = uvCount >= 8;
+
+					for (uint32_t l = 0; l < uvCount; l++)
+					{
+						const ufbx_uv_set& UVSet = mesh->uv_sets[l];
+
+						uint32_t UVIndex = UVSet.vertex_uv.indices[index];
+
+						if (UVIndex < UVSet.vertex_uv.values.count)
+						{
+							*uvs[l] = Vector2(UVSet.vertex_uv.values[UVIndex]);
+						}
+					}
+
+					Vector4* colors[4]
+					{
+						&v.color0,
+						&v.color1,
+						&v.color2,
+						&v.color3,
+					};
+
+					uint32_t colorCount = mesh->color_sets.count < 4 ? (uint32_t)mesh->color_sets.count : 4;
+
+					hasColors[0] = colorCount >= 1;
+					hasColors[1] = colorCount >= 2;
+					hasColors[2] = colorCount >= 3;
+					hasColors[3] = colorCount >= 4;
+
+					for (uint32_t l = 0; l < colorCount; l++)
+					{
+						const ufbx_color_set& colorSet = mesh->color_sets[l];
+
+						uint32_t colorIndex = colorSet.vertex_color.indices[index];
+
+						if (colorIndex < colorSet.vertex_color.values.count)
+						{
+							*colors[l] = colorSet.vertex_color.values[colorIndex];
+						}
+					}
+
+					if (skin != nullptr)
+					{
+						const ufbx_skin_vertex& skinVertex = skin->vertices[vertexIndex];
+
+						uint32_t weightCount = skinVertex.num_weights <= 4 ? skinVertex.num_weights : 4;
+
+						float* boneIndices[4] =
+						{
+							&v.boneIndices.x,
+							&v.boneIndices.y,
+							&v.boneIndices.z,
+							&v.boneIndices.w,
+						};
+
+						float* boneWeights[4] =
+						{
+							&v.boneWeights.x,
+							&v.boneWeights.y,
+							&v.boneWeights.z,
+							&v.boneWeights.w,
+						};
+
+						float weightSum = 0.0f;
+
+						for (uint32_t l = 0; l < weightCount; l++)
+						{
+							const ufbx_skin_weight& weight = skin->weights[skinVertex.weight_begin + l];
+
+							uint32_t clusterIndex = weight.cluster_index;
+
+							ufbx_skin_cluster* cluster = skin->clusters[clusterIndex];
+
+							uint32_t nodeIndex = cluster->bone_node->typed_id;
+
+							uint32_t boneIndex = 0;
+
+							bool found = false;
+
+							for (size_t m = 0; m < bones.size(); m++)
+							{
+								if (bones[m].nodeIndex == nodeIndex)
+								{
+									found = true;
+
+									boneIndex = (uint32_t)m;
+
+									break;
+								}
+							}
+
+							if (found == false)
+							{
+								MeshBone bone;
+
+								bone.nodeIndex = nodeIndex;
+								bone.offsetMatrix = cluster->geometry_to_bone;
+
+								boneIndex = (uint32_t)bones.size();
+
+								bones.push_back(bone);
+							}
+
+							float jointIndex = (float)boneIndex;
+							float w = weight.weight;
+
+							weightSum += w;
+
+							*boneIndices[l] = jointIndex;
+							*boneWeights[l] = w;
+						}
+
+						if (weightSum > 0)
+						{
+							v.boneWeights.x /= weightSum;
+							v.boneWeights.y /= weightSum;
+							v.boneWeights.z /= weightSum;
+							v.boneWeights.w /= weightSum;
+						}
+					}
+
+					vertices.push_back(v);
+				}
+			}
+
+			ufbx_vertex_stream vertexStream = { 0 };
+
+			vertexStream.data = vertices.data();
+			vertexStream.vertex_count = vertices.size();
+			vertexStream.vertex_size = sizeof(Vertex);
+
+			std::vector<uint32_t> indices(vertices.size());
+
+			ufbx_error indexError;
+
+			uint32_t vertexCount = (uint32_t)ufbx_generate_indices(&vertexStream, 1, indices.data(), vertices.size(), nullptr, &indexError);
+
+			if (indexError.type != UFBX_ERROR_NONE)
+			{
+				PrintError(&indexError, "Mesh index generation failed");
+			}
+			else
+			{
+				ownMesh.vertices = new Vector3[vertexCount];
+				ownMesh.normals = new Vector3[vertexCount];
+				ownMesh.tangents = hasTangents ? new Vector3[vertexCount] : nullptr;
+				ownMesh.bitangents = hasBitangents ? new Vector3[vertexCount] : nullptr;
+				ownMesh.color0 = hasColors[0] ? new Vector4[vertexCount] : nullptr;
+				ownMesh.color1 = hasColors[1] ? new Vector4[vertexCount] : nullptr;
+				ownMesh.color2 = hasColors[2] ? new Vector4[vertexCount] : nullptr;
+				ownMesh.color3 = hasColors[3] ? new Vector4[vertexCount] : nullptr;
+				ownMesh.uv0 = hasUVs[0] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv1 = hasUVs[1] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv2 = hasUVs[2] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv3 = hasUVs[3] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv4 = hasUVs[4] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv5 = hasUVs[5] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv6 = hasUVs[6] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.uv7 = hasUVs[7] ? new Vector2[vertexCount] : nullptr;
+				ownMesh.boneIndices = skin != nullptr ? new Vector4[vertexCount] : nullptr;
+				ownMesh.boneWeights = skin != nullptr ? new Vector4[vertexCount] : nullptr;
+
+				ownMesh.vertexCount = vertexCount;
+				ownMesh.indexCount = (int32_t)indices.size();
+				ownMesh.materialIndex = material->typed_id;
+
+				ownMesh.indices = new uint32_t[indices.size()];
+
+				memcpy(ownMesh.indices, indices.data(), indices.size() * sizeof(uint32_t));
+
+				if (bones.size() > 0)
+				{
+					ownMesh.boneCount = (int32_t)bones.size();
+
+					ownMesh.bones = new MeshBone[ownMesh.boneCount];
+
+					for (size_t k = 0; k < ownMesh.boneCount; k++)
+					{
+						ownMesh.bones[k] = bones[k];
+					}
+				}
+
+				for (size_t k = 0; k < vertexCount; k++)
+				{
+					const Vertex& v = vertices[k];
+
+					ownMesh.vertices[k] = v.position;
+					ownMesh.normals[k] = v.normal;
+
+#define COPYIF(condition, to, from)\
+	if(condition)\
+	{\
+		to[k] = from;\
+	}
+
+					COPYIF(hasTangents, ownMesh.tangents, v.tangent);
+					COPYIF(hasBitangents, ownMesh.bitangents, v.bitangent);
+					COPYIF(hasColors[0], ownMesh.color0, v.color0);
+					COPYIF(hasColors[1], ownMesh.color1, v.color1);
+					COPYIF(hasColors[2], ownMesh.color2, v.color2);
+					COPYIF(hasColors[3], ownMesh.color3, v.color3);
+					COPYIF(hasUVs[0], ownMesh.uv0, v.uv0);
+					COPYIF(hasUVs[1], ownMesh.uv1, v.uv1);
+					COPYIF(hasUVs[2], ownMesh.uv2, v.uv2);
+					COPYIF(hasUVs[3], ownMesh.uv3, v.uv3);
+					COPYIF(hasUVs[4], ownMesh.uv4, v.uv4);
+					COPYIF(hasUVs[5], ownMesh.uv5, v.uv5);
+					COPYIF(hasUVs[6], ownMesh.uv6, v.uv6);
+					COPYIF(hasUVs[7], ownMesh.uv7, v.uv7);
+					COPYIF(skin != nullptr, ownMesh.boneIndices, v.boneIndices);
+					COPYIF(skin != nullptr, ownMesh.boneWeights, v.boneWeights);
+#undef COPYIF
+				}
+
+				meshIndices.push_back((int32_t)meshCache.size());
+
+				meshCache.push_back(ownMesh);
+			}
+		}
+
+		if (meshIndices.size() > 0)
+		{
+			this->meshCount = (int32_t)meshIndices.size();
+			this->meshIndices = new int32_t[meshIndices.size()];
+
+			memcpy(this->meshIndices, meshIndices.data(), meshIndices.size() * sizeof(int32_t));
+		}
+	}
+
 	void Read(ufbx_scene *scene, ufbx_node* node, std::vector<Mesh> &meshCache)
 	{
 		if (node->name.length == 0)
@@ -370,341 +707,7 @@ public:
 
 		if (node->mesh != nullptr)
 		{
-			ufbx_mesh* mesh = node->mesh;
-
-			std::vector<Mesh> meshes;
-
-			std::vector<int32_t> meshIndices;
-
-			for (size_t j = 0; j < mesh->material_parts.count; j++)
-			{
-				const ufbx_mesh_part& part = mesh->material_parts[j];
-
-				if (part.num_triangles == 0)
-				{
-					continue;
-				}
-
-				Mesh ownMesh;
-
-				ownMesh.isSkinned = mesh->skin_deformers.count > 0;
-
-				ufbx_material *material = node->materials[j];
-
-				ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
-
-				std::vector<Vertex> vertices;
-
-				bool hasTangents = false;
-				bool hasBitangents = false;
-				bool hasColors[4] = { 0 };
-				bool hasUVs[8] = { 0 };
-
-				std::vector<MeshBone> bones;
-
-				for (size_t faceIndex = 0; faceIndex < part.num_faces; faceIndex++)
-				{
-					const ufbx_face& face = mesh->faces[part.face_indices.data[faceIndex]];
-
-					size_t triangleIndexCount = mesh->max_face_triangles * 3;
-
-					std::vector<uint32_t> indices(triangleIndexCount);
-
-					size_t triangleCount = ufbx_triangulate_face(indices.data(), triangleIndexCount, mesh, face);
-
-					size_t vertexCount = triangleCount * 3;
-
-					for(size_t k = 0; k < vertexCount; k++)
-					{
-						uint32_t index = indices[k];
-
-						Vertex v;
-
-						uint32_t vertexIndex = mesh->vertex_indices[index];
-
-						v.position = Vector3(mesh->vertices[vertexIndex]);
-
-						{
-							uint32_t normalIndex = mesh->vertex_normal.indices[index];
-
-							if (normalIndex < mesh->vertex_normal.values.count)
-							{
-								v.normal = Vector3(mesh->vertex_normal.values[normalIndex]);
-							}
-						}
-
-						if (mesh->vertex_tangent.exists)
-						{
-							hasTangents = true;
-
-							uint32_t tangentIndex = mesh->vertex_tangent.indices[index];
-
-							if (tangentIndex < mesh->vertex_tangent.values.count)
-							{
-								v.tangent = Vector3(mesh->vertex_tangent.values[tangentIndex]);
-							}
-						}
-
-						if (mesh->vertex_bitangent.exists)
-						{
-							hasBitangents = true;
-
-							uint32_t bitangentIndex = mesh->vertex_bitangent.indices[index];
-
-							if (bitangentIndex < mesh->vertex_bitangent.values.count)
-							{
-								v.tangent = Vector3(mesh->vertex_bitangent.values[bitangentIndex]);
-							}
-						}
-
-						uint32_t uvCount = mesh->uv_sets.count < 8 ? (uint32_t)mesh->uv_sets.count : 8;
-
-						Vector2* uvs[8] =
-						{
-							&v.uv0,
-							&v.uv1,
-							&v.uv2,
-							&v.uv3,
-							&v.uv4,
-							&v.uv5,
-							&v.uv6,
-							&v.uv7,
-						};
-
-						hasUVs[0] = uvCount >= 1;
-						hasUVs[1] = uvCount >= 2;
-						hasUVs[2] = uvCount >= 3;
-						hasUVs[3] = uvCount >= 4;
-						hasUVs[4] = uvCount >= 5;
-						hasUVs[5] = uvCount >= 6;
-						hasUVs[6] = uvCount >= 7;
-						hasUVs[7] = uvCount >= 8;
-
-						for (uint32_t l = 0; l < uvCount; l++)
-						{
-							const ufbx_uv_set& UVSet = mesh->uv_sets[l];
-
-							uint32_t UVIndex = UVSet.vertex_uv.indices[index];
-
-							if (UVIndex < UVSet.vertex_uv.values.count)
-							{
-								*uvs[l] = Vector2(UVSet.vertex_uv.values[UVIndex]);
-							}
-						}
-
-						Vector4* colors[4]
-						{
-							&v.color0,
-							&v.color1,
-							&v.color2,
-							&v.color3,
-						};
-
-						uint32_t colorCount = mesh->color_sets.count < 4 ? (uint32_t)mesh->color_sets.count : 4;
-
-						hasColors[0] = colorCount >= 1;
-						hasColors[1] = colorCount >= 2;
-						hasColors[2] = colorCount >= 3;
-						hasColors[3] = colorCount >= 4;
-
-						for (uint32_t l = 0; l < colorCount; l++)
-						{
-							const ufbx_color_set& colorSet = mesh->color_sets[l];
-
-							uint32_t colorIndex = colorSet.vertex_color.indices[index];
-
-							if (colorIndex < colorSet.vertex_color.values.count)
-							{
-								*colors[l] = colorSet.vertex_color.values[colorIndex];
-							}
-						}
-
-						if (skin != nullptr)
-						{
-							const ufbx_skin_vertex& skinVertex = skin->vertices[vertexIndex];
-
-							uint32_t weightCount = skinVertex.num_weights <= 4 ? skinVertex.num_weights : 4;
-
-							float* boneIndices[4] =
-							{
-								&v.boneIndices.x,
-								&v.boneIndices.y,
-								&v.boneIndices.z,
-								&v.boneIndices.w,
-							};
-
-							float* boneWeights[4] =
-							{
-								&v.boneWeights.x,
-								&v.boneWeights.y,
-								&v.boneWeights.z,
-								&v.boneWeights.w,
-							};
-
-							float weightSum = 0.0f;
-
-							for (uint32_t l = 0; l < weightCount; l++)
-							{
-								const ufbx_skin_weight &weight = skin->weights[skinVertex.weight_begin + l];
-
-								uint32_t clusterIndex = weight.cluster_index;
-
-								ufbx_skin_cluster *cluster = skin->clusters[clusterIndex];
-
-								uint32_t nodeIndex = cluster->bone_node->typed_id;
-
-								uint32_t boneIndex = 0;
-
-								bool found = false;
-
-								for(size_t m = 0; m < bones.size(); m++)
-								{
-									if (bones[m].nodeIndex == nodeIndex)
-									{
-										found = true;
-
-										boneIndex = (uint32_t)m;
-
-										break;
-									}
-								}
-
-								if (found == false)
-								{
-									MeshBone bone;
-
-									bone.nodeIndex = nodeIndex;
-									bone.offsetMatrix = cluster->geometry_to_bone;
-
-									boneIndex = (uint32_t)bones.size();
-
-									bones.push_back(bone);
-								}
-
-								float jointIndex = (float)boneIndex;
-								float w = weight.weight;
-
-								weightSum += w;
-
-								*boneIndices[l] = jointIndex;
-								*boneWeights[l] = w;
-							}
-
-							if (weightSum > 0)
-							{
-								v.boneWeights.x /= weightSum;
-								v.boneWeights.y /= weightSum;
-								v.boneWeights.z /= weightSum;
-								v.boneWeights.w /= weightSum;
-							}
-						}
-
-						vertices.push_back(v);
-					}
-				}
-
-				ufbx_vertex_stream vertexStream = { 0 };
-
-				vertexStream.data = vertices.data();
-				vertexStream.vertex_count = vertices.size();
-				vertexStream.vertex_size = sizeof(Vertex);
-
-				std::vector<uint32_t> indices(vertices.size());
-
-				ufbx_error indexError;
-
-				uint32_t vertexCount = (uint32_t)ufbx_generate_indices(&vertexStream, 1, indices.data(), vertices.size(), nullptr, &indexError);
-
-				if (indexError.type != UFBX_ERROR_NONE)
-				{
-					PrintError(&indexError, "Mesh index generation failed");
-				}
-				else
-				{
-					ownMesh.vertices = new Vector3[vertexCount];
-					ownMesh.normals = new Vector3[vertexCount];
-					ownMesh.tangents = hasTangents ? new Vector3[vertexCount] : nullptr;
-					ownMesh.bitangents = hasBitangents ? new Vector3[vertexCount] : nullptr;
-					ownMesh.color0 = hasColors[0] ? new Vector4[vertexCount] : nullptr;
-					ownMesh.color1 = hasColors[1] ? new Vector4[vertexCount] : nullptr;
-					ownMesh.color2 = hasColors[2] ? new Vector4[vertexCount] : nullptr;
-					ownMesh.color3 = hasColors[3] ? new Vector4[vertexCount] : nullptr;
-					ownMesh.uv0 = hasUVs[0] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv1 = hasUVs[1] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv2 = hasUVs[2] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv3 = hasUVs[3] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv4 = hasUVs[4] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv5 = hasUVs[5] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv6 = hasUVs[6] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.uv7 = hasUVs[7] ? new Vector2[vertexCount] : nullptr;
-					ownMesh.boneIndices = skin != nullptr ? new Vector4[vertexCount] : nullptr;
-					ownMesh.boneWeights = skin != nullptr ? new Vector4[vertexCount] : nullptr;
-
-					ownMesh.vertexCount = vertexCount;
-					ownMesh.indexCount = (int32_t)indices.size();
-					ownMesh.materialIndex = material->typed_id;
-
-					ownMesh.indices = new uint32_t[indices.size()];
-
-					memcpy(ownMesh.indices, indices.data(), indices.size() * sizeof(uint32_t));
-
-					if (bones.size() > 0)
-					{
-						ownMesh.boneCount = (int32_t)bones.size();
-
-						ownMesh.bones = new MeshBone[ownMesh.boneCount];
-
-						for (size_t k = 0; k < ownMesh.boneCount; k++)
-						{
-							ownMesh.bones[k] = bones[k];
-						}
-					}
-
-					for (size_t k = 0; k < vertexCount; k++)
-					{
-						const Vertex& v = vertices[k];
-
-						ownMesh.vertices[k] = v.position;
-						ownMesh.normals[k] = v.normal;
-
-#define COPYIF(condition, to, from)\
-	if(condition)\
-	{\
-		to[k] = from;\
-	}
-
-						COPYIF(hasTangents, ownMesh.tangents, v.tangent);
-						COPYIF(hasBitangents, ownMesh.bitangents, v.bitangent);
-						COPYIF(hasColors[0], ownMesh.color0, v.color0);
-						COPYIF(hasColors[1], ownMesh.color1, v.color1);
-						COPYIF(hasColors[2], ownMesh.color2, v.color2);
-						COPYIF(hasColors[3], ownMesh.color3, v.color3);
-						COPYIF(hasUVs[0], ownMesh.uv0, v.uv0);
-						COPYIF(hasUVs[1], ownMesh.uv1, v.uv1);
-						COPYIF(hasUVs[2], ownMesh.uv2, v.uv2);
-						COPYIF(hasUVs[3], ownMesh.uv3, v.uv3);
-						COPYIF(hasUVs[4], ownMesh.uv4, v.uv4);
-						COPYIF(hasUVs[5], ownMesh.uv5, v.uv5);
-						COPYIF(hasUVs[6], ownMesh.uv6, v.uv6);
-						COPYIF(hasUVs[7], ownMesh.uv7, v.uv7);
-						COPYIF(skin != nullptr, ownMesh.boneIndices, v.boneIndices);
-						COPYIF(skin != nullptr, ownMesh.boneWeights, v.boneWeights);
-#undef COPYIF
-					}
-
-					meshIndices.push_back((int32_t)meshCache.size());
-
-					meshCache.push_back(ownMesh);
-				}
-			}
-
-			if (meshIndices.size() > 0)
-			{
-				this->meshCount = (int32_t)meshIndices.size();
-				this->meshIndices = new int32_t[meshIndices.size()];
-
-				memcpy(this->meshIndices, meshIndices.data(), meshIndices.size() * sizeof(int32_t));
-			}
+			ReadMesh(node, node->mesh, meshCache);
 		}
 	}
 };
@@ -837,6 +840,148 @@ public:
 	}
 };
 
+class NodeAnimation
+{
+public:
+
+	float startTime;
+	float frameRate;
+	Vector3 constantPosition;
+	Vector4 constantRotation;
+	Vector3 constantScale;
+	Vector3* positions;
+	Vector4* rotations;
+	Vector3* scales;
+
+	NodeAnimation() : startTime(0), frameRate(0), positions(nullptr), rotations(nullptr), scales(nullptr)
+	{
+	}
+
+	~NodeAnimation()
+	{
+		DELETE(positions);
+		DELETE(rotations);
+		DELETE(scales);
+	}
+};
+
+class Animation
+{
+public:
+	String name;
+
+	float startTime;
+	float endTime;
+	float frameRate;
+	int32_t frameCount;
+
+	NodeAnimation* nodes;
+
+	Animation() : startTime(0), endTime(0), frameRate(0), frameCount(0), nodes(nullptr)
+	{
+	}
+
+	~Animation()
+	{
+		DELETE(nodes);
+	}
+
+	void Read(ufbx_anim_stack* stack, ufbx_scene* scene)
+	{
+		const float targetFrameRate = 30;
+		const int32_t maxFrames = 4096;
+
+		float duration = (float)stack->time_end - (float)stack->time_begin;
+		frameCount = (int32_t)ClampSize((size_t)(duration * targetFrameRate), 2, maxFrames);
+		frameRate = (float)(frameCount - 1) / duration;
+
+		name = String(stack->name.data, stack->name.length);
+
+		startTime = (float)stack->time_begin;
+		endTime = (float)stack->time_end;
+
+		nodes = new NodeAnimation[scene->nodes.count];
+
+		for (size_t i = 0; i < scene->nodes.count; i++)
+		{
+			ufbx_node* node = scene->nodes[i];
+
+			NodeAnimation* nodeAnimation = &nodes[i];
+
+			nodeAnimation->positions = new Vector3[frameCount];
+			nodeAnimation->rotations = new Vector4[frameCount];
+			nodeAnimation->scales = new Vector3[frameCount];
+
+			bool constPosition = true;
+			bool constRotation = true;
+			bool constScale = true;
+
+			for (int32_t j = 0; j < frameCount; j++)
+			{
+				double time = stack->time_begin + (double)j / frameRate;
+
+				ufbx_transform transform = ufbx_evaluate_transform(stack->anim, node, time);
+
+				nodeAnimation->positions[j] = transform.translation;
+				nodeAnimation->rotations[j] = transform.rotation;
+				nodeAnimation->scales[j] = transform.scale;
+
+				if (j > 0)
+				{
+					Vector4 a = nodeAnimation->rotations[j];
+					Vector4 b = nodeAnimation->rotations[j - 1];
+
+					if (Vector4::Dot(a, b) < 0)
+					{
+						nodeAnimation->rotations[j] = a.Negated();
+					}
+
+					if (a != b)
+					{
+						constRotation = false;
+					}
+
+					Vector3 posA = nodeAnimation->positions[j];
+					Vector3 posB = nodeAnimation->positions[j - 1];
+					Vector3 scaleA = nodeAnimation->scales[j];
+					Vector3 scaleB = nodeAnimation->scales[j - 1];
+
+					if (posA != posB)
+					{
+						constPosition = false;
+					}
+
+					if (scaleA != scaleB)
+					{
+						constScale = false;
+					}
+				}
+			}
+
+			if (constPosition)
+			{
+				nodeAnimation->constantPosition = nodeAnimation->positions[0];
+
+				DELETE(nodeAnimation->positions);
+			}
+
+			if (constRotation)
+			{
+				nodeAnimation->constantRotation = nodeAnimation->rotations[0];
+
+				DELETE(nodeAnimation->rotations);
+			}
+
+			if (constScale)
+			{
+				nodeAnimation->constantScale = nodeAnimation->scales[0];
+
+				DELETE(nodeAnimation->scales);
+			}
+		}
+	}
+};
+
 class Scene
 {
 public:
@@ -852,13 +997,21 @@ public:
 
 	int32_t materialCount;
 
-	Scene() : nodes(nullptr), nodeCount(0), meshes(nullptr), meshCount(0), materials(nullptr), materialCount(0) {}
+	Animation* animations;
+
+	int32_t animationCount;
+
+	Scene() : nodes(nullptr), nodeCount(0),
+		meshes(nullptr), meshCount(0),
+		materials(nullptr), materialCount(0),
+		animations(nullptr), animationCount(0) {}
 
 	~Scene()
 	{
 		DELETE(nodes);
 		DELETE(meshes);
 		DELETE(materials);
+		DELETE(animations);
 	}
 
 	void Read(ufbx_scene* scene)
@@ -895,6 +1048,18 @@ public:
 			for (int32_t i = 0; i < materialCount; i++)
 			{
 				materials[i].Read(scene->materials[i]);
+			}
+		}
+
+		animationCount = (int32_t)scene->anim_stacks.count;
+
+		if (animationCount > 0)
+		{
+			animations = new Animation[animationCount];
+
+			for (int32_t i = 0; i < animationCount; i++)
+			{
+				animations[i].Read(scene->anim_stacks[i], scene);
 			}
 		}
 	}
