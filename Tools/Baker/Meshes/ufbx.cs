@@ -187,12 +187,6 @@ public unsafe struct UFBXNode
 
     public UFBXTransform localTransform;
 
-    public Matrix4x4 geometryToNode;
-    public Matrix4x4 nodeToParent;
-    public Matrix4x4 nodeToWorld;
-    public Matrix4x4 geometryToWorld;
-    public Matrix4x4 normalToWorld;
-
     public readonly Span<int> MeshIndices => meshCount > 0 ? new(meshIndices, meshCount) : default;
 }
 

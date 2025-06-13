@@ -328,12 +328,6 @@ public:
 
 	Transform localTransform;
 
-	Matrix4x4 geometryToNode;
-	Matrix4x4 nodeToParent;
-	Matrix4x4 nodeToWorld;
-	Matrix4x4 geometryToWorld;
-	Matrix4x4 normalToWorld;
-
 	Node() : parentIndex(-1), meshIndices(nullptr), meshCount(0)
 	{
 	}
@@ -699,12 +693,6 @@ public:
 		localTransform.rotation = Vector4(node->local_transform.rotation);
 		localTransform.scale = Vector3(node->local_transform.scale);
 
-		nodeToParent = Matrix4x4(node->node_to_parent);
-		nodeToWorld = Matrix4x4(node->node_to_world);
-		geometryToNode = Matrix4x4(node->geometry_to_node);
-		geometryToWorld = Matrix4x4(node->geometry_to_world);
-		normalToWorld = Matrix4x4(ufbx_matrix_for_normals(&node->geometry_to_world));
-
 		if (node->mesh != nullptr)
 		{
 			ReadMesh(node, node->mesh, meshCache);
@@ -916,7 +904,7 @@ public:
 			return;
 		}
 
-		duration = bakedAnim->playback_duration;
+		duration = (float)bakedAnim->playback_duration;
 
 		name = String(stack->name.data, stack->name.length);
 
