@@ -633,96 +633,44 @@ public partial class Program
 
             var a = new MeshAssetAnimation()
             {
-                duration = animation.endTime - animation.startTime,
+                duration = animation.duration,
                 name = animation.name.Value,
             };
 
-            for(var k = 0; k < scene->nodeCount; k++)
+            for(var k = 0; k < animation.nodeCount; k++)
             {
                 var frame = animation.nodes[k];
 
-                var positionKeys = new List<MeshAssetVectorAnimationKey>();
-                var rotationKeys = new List<MeshAssetQuaternionAnimationKey>();
-                var scaleKeys = new List<MeshAssetVectorAnimationKey>();
-
-                if (frame.positions == null)
-                {
-                    for(var l = 0; l < animation.frameCount; l++)
+                var positionKeys = frame.Positions
+                    .ToArray()
+                    .Select(x => new MeshAssetVectorAnimationKey()
                     {
-                        positionKeys.Add(new MeshAssetVectorAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(frame.constantPosition),
-                        });
-                    }
-                }
-                else
-                {
-                    var s = new Span<Vector3>(frame.positions, animation.frameCount);
+                        time = x.time,
+                        value = new(x.value)
+                    })
+                    .ToList();
 
-                    for (var l = 0; l < animation.frameCount; l++)
+                var rotationKeys = frame.Rotations
+                    .ToArray()
+                    .Select(x => new MeshAssetQuaternionAnimationKey()
                     {
-                        positionKeys.Add(new MeshAssetVectorAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(s[l]),
-                        });
-                    }
-                }
+                        time = x.time,
+                        value = new(x.value)
+                    })
+                    .ToList();
 
-                if (frame.rotations == null)
-                {
-                    for (var l = 0; l < animation.frameCount; l++)
+                var scaleKeys = frame.Scales
+                    .ToArray()
+                    .Select(x => new MeshAssetVectorAnimationKey()
                     {
-                        rotationKeys.Add(new MeshAssetQuaternionAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(frame.constantRotation),
-                        });
-                    }
-                }
-                else
-                {
-                    var s = new Span<Vector3>(frame.rotations, animation.frameCount);
-
-                    for (var l = 0; l < animation.frameCount; l++)
-                    {
-                        rotationKeys.Add(new MeshAssetQuaternionAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(s[l]),
-                        });
-                    }
-                }
-
-                if (frame.scales == null)
-                {
-                    for (var l = 0; l < animation.frameCount; l++)
-                    {
-                        scaleKeys.Add(new MeshAssetVectorAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(frame.constantScale),
-                        });
-                    }
-                }
-                else
-                {
-                    var s = new Span<Vector3>(frame.scales, animation.frameCount);
-
-                    for (var l = 0; l < animation.frameCount; l++)
-                    {
-                        scaleKeys.Add(new MeshAssetVectorAnimationKey()
-                        {
-                            time = l / (float)animation.frameCount * a.duration,
-                            value = new(s[l]),
-                        });
-                    }
-                }
+                        time = x.time,
+                        value = new(x.value)
+                    })
+                    .ToList();
 
                 var c = new MeshAssetAnimationChannel()
                 {
-                    nodeIndex = nodes.FindIndex(x => x.name == scene->nodes[k].name.Value),
+                    nodeIndex = nodes.FindIndex(x => x.name == scene->nodes[frame.nodeIndex].name.Value),
                     positionKeys = positionKeys,
                     rotationKeys = rotationKeys,
                     scaleKeys = scaleKeys,

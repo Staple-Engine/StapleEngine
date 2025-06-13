@@ -840,20 +840,43 @@ public:
 	}
 };
 
+class Vector3Key
+{
+public:
+	float time;
+	Vector3 value;
+
+	Vector3Key() : time(0)
+	{
+	}
+};
+
+class QuaternionKey
+{
+public:
+	float time;
+	Vector4 value;
+
+	QuaternionKey() : time(0)
+	{
+	}
+};
+
 class NodeAnimation
 {
 public:
 
-	float startTime;
-	float frameRate;
-	Vector3 constantPosition;
-	Vector4 constantRotation;
-	Vector3 constantScale;
-	Vector3* positions;
-	Vector4* rotations;
-	Vector3* scales;
+	int32_t nodeIndex;
+	Vector3Key* positions;
+	QuaternionKey* rotations;
+	Vector3Key* scales;
 
-	NodeAnimation() : startTime(0), frameRate(0), positions(nullptr), rotations(nullptr), scales(nullptr)
+	int32_t positionCount;
+	int32_t rotationCount;
+	int32_t scaleCount;
+
+	NodeAnimation() : nodeIndex(-1), positions(nullptr), rotations(nullptr), scales(nullptr),
+		positionCount(0), rotationCount(0), scaleCount(0)
 	{
 	}
 
@@ -870,14 +893,12 @@ class Animation
 public:
 	String name;
 
-	float startTime;
-	float endTime;
-	float frameRate;
-	int32_t frameCount;
+	float duration;
 
 	NodeAnimation* nodes;
+	int32_t nodeCount;
 
-	Animation() : startTime(0), endTime(0), frameRate(0), frameCount(0), nodes(nullptr)
+	Animation() : duration(0), nodes(nullptr), nodeCount(0)
 	{
 	}
 
@@ -888,97 +909,65 @@ public:
 
 	void Read(ufbx_anim_stack* stack, ufbx_scene* scene)
 	{
-		const float targetFrameRate = 30;
-		const int32_t maxFrames = 4096;
+		ufbx_baked_anim* bakedAnim = ufbx_bake_anim(scene, stack->anim, NULL, NULL);
 
-		float duration = (float)stack->time_end - (float)stack->time_begin;
-		frameCount = (int32_t)ClampSize((size_t)(duration * targetFrameRate), 2, maxFrames);
-		frameRate = (float)(frameCount - 1) / duration;
+		if (bakedAnim == nullptr)
+		{
+			return;
+		}
+
+		duration = bakedAnim->playback_duration;
 
 		name = String(stack->name.data, stack->name.length);
 
-		startTime = (float)stack->time_begin;
-		endTime = (float)stack->time_end;
+		nodeCount = (int32_t)bakedAnim->nodes.count;
 
-		nodes = new NodeAnimation[scene->nodes.count];
+		nodes = new NodeAnimation[nodeCount];
 
-		for (size_t i = 0; i < scene->nodes.count; i++)
+		for (int32_t i = 0; i < nodeCount; i++)
 		{
-			ufbx_node* node = scene->nodes[i];
+			ufbx_baked_node* node = &bakedAnim->nodes[i];
+			NodeAnimation& animatedNode = nodes[i];
 
-			NodeAnimation* nodeAnimation = &nodes[i];
+			animatedNode.nodeIndex = node->typed_id;
 
-			nodeAnimation->positions = new Vector3[frameCount];
-			nodeAnimation->rotations = new Vector4[frameCount];
-			nodeAnimation->scales = new Vector3[frameCount];
+			animatedNode.positionCount = (int32_t)node->translation_keys.count;
+			animatedNode.rotationCount = (int32_t)node->rotation_keys.count;
+			animatedNode.scaleCount = (int32_t)node->scale_keys.count;
 
-			bool constPosition = true;
-			bool constRotation = true;
-			bool constScale = true;
+			animatedNode.positions = new Vector3Key[animatedNode.positionCount];
+			animatedNode.rotations = new QuaternionKey[animatedNode.rotationCount];
+			animatedNode.scales = new Vector3Key[animatedNode.scaleCount];
 
-			for (int32_t j = 0; j < frameCount; j++)
+			for (int32_t j = 0; j < node->translation_keys.count; j++)
 			{
-				double time = stack->time_begin + (double)j / frameRate;
+				Vector3Key* key = &animatedNode.positions[j];
+				ufbx_baked_vec3* v = &node->translation_keys[j];
 
-				ufbx_transform transform = ufbx_evaluate_transform(stack->anim, node, time);
-
-				nodeAnimation->positions[j] = transform.translation;
-				nodeAnimation->rotations[j] = transform.rotation;
-				nodeAnimation->scales[j] = transform.scale;
-
-				if (j > 0)
-				{
-					Vector4 a = nodeAnimation->rotations[j];
-					Vector4 b = nodeAnimation->rotations[j - 1];
-
-					if (Vector4::Dot(a, b) < 0)
-					{
-						nodeAnimation->rotations[j] = a.Negated();
-					}
-
-					if (a != b)
-					{
-						constRotation = false;
-					}
-
-					Vector3 posA = nodeAnimation->positions[j];
-					Vector3 posB = nodeAnimation->positions[j - 1];
-					Vector3 scaleA = nodeAnimation->scales[j];
-					Vector3 scaleB = nodeAnimation->scales[j - 1];
-
-					if (posA != posB)
-					{
-						constPosition = false;
-					}
-
-					if (scaleA != scaleB)
-					{
-						constScale = false;
-					}
-				}
+				key->time = (float)(v->time - stack->time_begin);
+				key->value = v->value;
 			}
 
-			if (constPosition)
+			for (int32_t j = 0; j < node->rotation_keys.count; j++)
 			{
-				nodeAnimation->constantPosition = nodeAnimation->positions[0];
+				QuaternionKey* key = &animatedNode.rotations[j];
+				ufbx_baked_quat* v = &node->rotation_keys[j];
 
-				DELETE(nodeAnimation->positions);
+				key->time = (float)(v->time - stack->time_begin);
+				key->value = v->value;
 			}
 
-			if (constRotation)
+			for (int32_t j = 0; j < node->scale_keys.count; j++)
 			{
-				nodeAnimation->constantRotation = nodeAnimation->rotations[0];
+				Vector3Key* key = &animatedNode.scales[j];
+				ufbx_baked_vec3* v = &node->scale_keys[j];
 
-				DELETE(nodeAnimation->rotations);
-			}
-
-			if (constScale)
-			{
-				nodeAnimation->constantScale = nodeAnimation->scales[0];
-
-				DELETE(nodeAnimation->scales);
+				key->time = (float)(v->time - stack->time_begin);
+				key->value = v->value;
 			}
 		}
+
+		ufbx_free_baked_anim(bakedAnim);
 	}
 };
 

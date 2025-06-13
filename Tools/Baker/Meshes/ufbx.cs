@@ -197,28 +197,46 @@ public unsafe struct UFBXNode
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXVector3Key
+{
+    public float time;
+    public Vector3 value;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXQuaternionKey
+{
+    public float time;
+    public Quaternion value;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXNodeAnimation
 {
-    public float startTime;
-    public float frameRate;
-    public Vector3 constantPosition;
-    public Quaternion constantRotation;
-    public Vector3 constantScale;
-    public Vector3* positions;
-    public Quaternion* rotations;
-    public Vector3* scales;
+    public int nodeIndex;
+    public UFBXVector3Key* positions;
+    public UFBXQuaternionKey* rotations;
+    public UFBXVector3Key* scales;
+
+    public int positionCount;
+    public int rotationCount;
+    public int scaleCount;
+
+    public readonly Span<UFBXVector3Key> Positions => positionCount > 0 ? new(positions, positionCount) : default;
+
+    public readonly Span<UFBXQuaternionKey> Rotations => rotationCount > 0 ? new(rotations, rotationCount) : default;
+
+    public readonly Span<UFBXVector3Key> Scales => scaleCount > 0 ? new(scales, scaleCount) : default;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXAnimation
 {
     public UFBXString name;
-    public float startTime;
-    public float endTime;
-    public float frameRate;
-    public int frameCount;
+    public float duration;
 
     public UFBXNodeAnimation* nodes;
+    public int nodeCount;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
