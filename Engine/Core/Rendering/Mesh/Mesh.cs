@@ -1405,8 +1405,9 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="name">The new entity name</param>
     /// <param name="mesh">The mesh to instantiate</param>
     /// <param name="parentEntity">The parent entity</param>
+    /// <param name="options">Optional options</param>
     /// <returns>The new entity</returns>
-    public static Entity InstanceMesh(string name, Mesh mesh, Entity parentEntity = default)
+    public static Entity InstanceMesh(string name, Mesh mesh, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
         if(mesh == null)
         {
@@ -1429,7 +1430,7 @@ public sealed partial class Mesh : IGuidAsset
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetSerialization.StandardShaderGUID)];
 
-        if (mesh.HasBoneIndices)
+        if (mesh.HasBoneIndices && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
         {
             var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
@@ -1455,8 +1456,9 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="name">The new entity name</param>
     /// <param name="asset">The mesh asset</param>
     /// <param name="parentEntity">The parent entity</param>
+    /// <param name="options">Optional options</param>
     /// <returns>The new entity</returns>
-    public static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default)
+    public static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
         if(asset == null)
         {
@@ -1543,7 +1545,7 @@ public sealed partial class Mesh : IGuidAsset
 
                     if (outMesh != null)
                     {
-                        if (isSkinned)
+                        if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
                         {
                             var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
@@ -1582,7 +1584,7 @@ public sealed partial class Mesh : IGuidAsset
 
                 if (outMesh != null)
                 {
-                    if (isSkinned)
+                    if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
                     {
                         var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
