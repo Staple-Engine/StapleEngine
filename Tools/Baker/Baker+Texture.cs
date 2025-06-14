@@ -48,7 +48,7 @@ static partial class Program
         {
             var textureFileName = textureFiles[i];
 
-            Console.WriteLine($"\t{textureFileName.Replace(".meta", "")}");
+            //Console.WriteLine($"\t{textureFileName.Replace(".meta", "")}");
 
             try
             {
@@ -91,7 +91,7 @@ static partial class Program
             {
                 var inputFile = textureFileName.Replace(".meta", "");
 
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 TextureMetadata metadata;

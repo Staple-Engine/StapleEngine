@@ -63,16 +63,13 @@ static partial class Program
 
                 var header = new AppSettingsHeader();
 
-                using (var stream = File.OpenWrite(outputFile))
-                {
-                    using (var writer = new BinaryWriter(stream))
-                    {
-                        var encoded = MessagePackSerializer.Serialize(header)
-                            .Concat(MessagePackSerializer.Serialize(settings));
+                using var stream = File.OpenWrite(outputFile);
+                using var writer = new BinaryWriter(stream);
 
-                        writer.Write(encoded.ToArray());
-                    }
-                }
+                var encoded = MessagePackSerializer.Serialize(header)
+                    .Concat(MessagePackSerializer.Serialize(settings));
+
+                writer.Write(encoded.ToArray());
 
                 Console.WriteLine($"\tProcessed app settings");
             }

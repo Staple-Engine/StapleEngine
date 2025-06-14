@@ -29,7 +29,7 @@ static partial class Program
         {
             var materialFileName = materialFiles[i];
 
-            Console.WriteLine($"\t{materialFileName}");
+            //Console.WriteLine($"\t{materialFileName}");
 
             try
             {
@@ -62,7 +62,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(materialFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 MaterialMetadata metadata;

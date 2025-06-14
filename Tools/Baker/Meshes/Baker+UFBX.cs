@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Channels;
 using UFBX;
 
 namespace Baker;
@@ -598,14 +596,12 @@ public partial class Program
                 {
                     var bone = bones[j];
 
-                    Matrix4x4.Decompose(Matrix4x4.Transpose(bone.offsetMatrix), out var scale, out var rotation, out var translation);
-
                     m.bones.Add(new()
                     {
                         nodeIndex = bone.nodeIndex,
-                        offsetPosition = new(translation),
-                        offsetScale = new(scale),
-                        offsetRotation = new(rotation),
+                        offsetPosition = new(bone.offsetTransform.position),
+                        offsetScale = new(bone.offsetTransform.scale),
+                        offsetRotation = new(bone.offsetTransform.rotation),
                     });
                 }
 

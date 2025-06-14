@@ -104,20 +104,20 @@ class MeshBone
 {
 public:
 	int32_t nodeIndex;
-	Matrix4x4 offsetMatrix;
+	Transform offsetTransform;
 
 	MeshBone() : nodeIndex(-1)
 	{
 	}
 
-	MeshBone(const MeshBone& o) : nodeIndex(o.nodeIndex), offsetMatrix(o.offsetMatrix)
+	MeshBone(const MeshBone& o) : nodeIndex(o.nodeIndex), offsetTransform(o.offsetTransform)
 	{
 	}
 
 	MeshBone& operator=(const MeshBone& o)
 	{
 		nodeIndex = o.nodeIndex;
-		offsetMatrix = o.offsetMatrix;
+		offsetTransform = o.offsetTransform;
 
 		return *this;
 	}
@@ -533,10 +533,14 @@ public:
 
 							if (found == false)
 							{
+								ufbx_transform transform = ufbx_matrix_to_transform(&cluster->geometry_to_bone);
+
 								MeshBone bone;
 
 								bone.nodeIndex = nodeIndex;
-								bone.offsetMatrix = cluster->geometry_to_bone;
+								bone.offsetTransform.position = transform.translation;
+								bone.offsetTransform.rotation = transform.rotation;
+								bone.offsetTransform.scale = transform.scale;
 
 								boneIndex = (uint32_t)bones.size();
 

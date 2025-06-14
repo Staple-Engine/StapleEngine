@@ -30,7 +30,7 @@ static partial class Program
         {
             var assetFileName = assetFiles[i];
 
-            Console.WriteLine($"\t{assetFileName}");
+            //Console.WriteLine($"\t{assetFileName}");
 
             try
             {
@@ -61,7 +61,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(assetFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 try
                 {

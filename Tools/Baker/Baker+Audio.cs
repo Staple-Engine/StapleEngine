@@ -34,7 +34,7 @@ static partial class Program
         {
             var audioFileName = audioFiles[i];
 
-            Console.WriteLine($"\t{audioFileName}");
+            //Console.WriteLine($"\t{audioFileName}");
 
             try
             {
@@ -73,7 +73,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(audioFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 try
                 {

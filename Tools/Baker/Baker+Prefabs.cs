@@ -30,7 +30,7 @@ static partial class Program
         {
             var prefabFileName = prefabFiles[i];
 
-            Console.WriteLine($"\t{prefabFileName}");
+            //Console.WriteLine($"\t{prefabFileName}");
 
             try
             {
@@ -63,7 +63,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(prefabFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 SerializablePrefab prefab;

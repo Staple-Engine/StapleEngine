@@ -30,7 +30,7 @@ static partial class Program
         {
             var sceneFileName = sceneFiles[i];
 
-            Console.WriteLine($"\t{sceneFileName}");
+            //Console.WriteLine($"\t{sceneFileName}");
 
             try
             {
@@ -63,7 +63,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 List<SceneObject> metadata;

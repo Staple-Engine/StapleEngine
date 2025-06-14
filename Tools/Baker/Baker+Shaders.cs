@@ -127,7 +127,7 @@ vec4 i_data4        :   TEXCOORD3;
         {
             var currentShader = shaderFiles[i];
 
-            Console.WriteLine($"\t{currentShader}");
+            //Console.WriteLine($"\t{currentShader}");
 
             var guid = FindGuid<Shader>(currentShader);
 
@@ -151,7 +151,7 @@ vec4 i_data4        :   TEXCOORD3;
                     continue;
                 }
 
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 WorkScheduler.Dispatch(Path.GetFileName(currentShader.Replace(".meta", "")), () =>
                 {

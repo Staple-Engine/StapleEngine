@@ -204,7 +204,7 @@ static partial class Program
             WorkScheduler.Dispatch(Path.GetFileName(meshFileName.Replace(".meta", "")), () =>
             {
                 #endregion
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 string text;
                 MeshAssetMetadata metadata;

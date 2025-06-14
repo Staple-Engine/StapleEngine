@@ -32,7 +32,7 @@ static partial class Program
         {
             var fontFileName = fontFiles[i];
 
-            Console.WriteLine($"\t{fontFileName}");
+            //Console.WriteLine($"\t{fontFileName}");
 
             try
             {
@@ -65,7 +65,7 @@ static partial class Program
 
             WorkScheduler.Dispatch(Path.GetFileName(fontFileName.Replace(".meta", "")), () =>
             {
-                Console.WriteLine($"\t\t -> {outputFile}");
+                //Console.WriteLine($"\t\t -> {outputFile}");
 
                 try
                 {

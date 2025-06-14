@@ -18,7 +18,7 @@ public struct UFBXTransform
 public unsafe struct UFBXMeshBone
 {
     public int nodeIndex;
-    public Matrix4x4 offsetMatrix;
+    public UFBXTransform offsetTransform;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
