@@ -693,9 +693,17 @@ public:
 
 		parentIndex = node->parent ? node->parent->typed_id : -1;
 
-		localTransform.position = Vector3(node->local_transform.translation);
-		localTransform.rotation = Vector4(node->local_transform.rotation);
-		localTransform.scale = Vector3(node->local_transform.scale);
+		if (node->mesh == nullptr || node->mesh->skin_deformers.count == 0)
+		{
+			localTransform.position = Vector3(node->local_transform.translation);
+			localTransform.rotation = Vector4(node->local_transform.rotation);
+			localTransform.scale = Vector3(node->local_transform.scale);
+		}
+		else
+		{
+			localTransform.rotation = Vector4(0, 0, 0, 1);
+			localTransform.scale = Vector3(1, 1, 1);
+		}
 
 		if (node->mesh != nullptr)
 		{
