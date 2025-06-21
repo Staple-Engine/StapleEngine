@@ -49,10 +49,4 @@
     <Compile Include="PackerUtils.cs" />
     <Compile Include="Packer.cs" />
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)Packer\bin\$(Configuration)\net9.0\*.exe $(SolutionDir)bin\
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)..\Dependencies\JsonNet\*.dll $(SolutionDir)bin\
-	</PostBuildEvent>
-  </PropertyGroup>
 </Project>
