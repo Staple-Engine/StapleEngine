@@ -83,10 +83,16 @@ internal class AssetSerializationTests
         public int notSerialized2 = 0;
     }
 
-    internal class Base64ListAsset : IStapleAsset
+    internal class HexAsset : IStapleAsset
     {
-        [SerializeAsBase64]
-        public List<int> values = new();
+        [SerializeAsHex]
+        public List<int> values = [];
+    }
+
+    internal class HexDebugAsset : IStapleAsset
+    {
+        [SerializeAsHex]
+        public List<byte> values = [];
     }
 
     internal class SerializableAsset : IStapleAsset
@@ -110,7 +116,7 @@ internal class AssetSerializationTests
     {
         public bool[] flags;
 
-        [SerializeAsBase64]
+        [SerializeAsHex]
         public int[] values;
 
         public float[] floatValues;
@@ -402,7 +408,7 @@ internal class AssetSerializationTests
     {
         StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
-        var asset = new Base64ListAsset
+        var asset = new HexAsset
         {
             values = [1, 2, 3]
         };
@@ -411,7 +417,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(Base64ListAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).FullName));
 
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 
@@ -419,9 +425,9 @@ internal class AssetSerializationTests
 
         Assert.That(deserialized, Is.Not.Null);
 
-        Assert.That(deserialized, Is.TypeOf<Base64ListAsset>());
+        Assert.That(deserialized, Is.TypeOf<HexAsset>());
 
-        if (deserialized is Base64ListAsset newAsset)
+        if (deserialized is HexAsset newAsset)
         {
             Assert.That(newAsset.values, Is.Not.Null);
             Assert.That(newAsset.values.Count, Is.EqualTo(3));
@@ -436,7 +442,7 @@ internal class AssetSerializationTests
     {
         StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
-        var asset = new Base64ListAsset
+        var asset = new HexAsset
         {
             values = [1, 2, 3]
         };
@@ -445,7 +451,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(Base64ListAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).FullName));
 
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 
@@ -453,9 +459,9 @@ internal class AssetSerializationTests
 
         Assert.That(deserialized, Is.Not.Null);
 
-        Assert.That(deserialized, Is.TypeOf<Base64ListAsset>());
+        Assert.That(deserialized, Is.TypeOf<HexAsset>());
 
-        if (deserialized is Base64ListAsset newAsset)
+        if (deserialized is HexAsset newAsset)
         {
             Assert.That(newAsset.values, Is.Not.Null);
             Assert.That(newAsset.values.Count, Is.EqualTo(3));
@@ -699,5 +705,26 @@ internal class AssetSerializationTests
         Assert.That(newAsset.v4, Is.EqualTo(new Vector4(1, 2, 3, 4)));
         Assert.That(newAsset.v4i, Is.EqualTo(new Vector4Int(5, 6, 7, 8)));
         Assert.That(newAsset.str, Is.EqualTo("asdf"));
+    }
+
+    [Test]
+    public void TestHexDebug()
+    {
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+        var asset = new HexDebugAsset
+        {
+            values = [0xAB, 0xCD, 0xEF, 0x01]
+        };
+
+        var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Text);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(HexDebugAsset).FullName));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(1));
+
+        Assert.That(result.parameters[nameof(HexDebugAsset.values)].value, Is.EqualTo("ABCDEF01"));
     }
 }

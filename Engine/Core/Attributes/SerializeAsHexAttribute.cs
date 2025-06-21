@@ -7,6 +7,6 @@ namespace Staple;
 /// This only applies to fields that are arrays and Lists of .NET primary types (excluding string arrays).
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
-public class SerializeAsBase64Attribute : Attribute
+public class SerializeAsHexAttribute : Attribute
 {
 }

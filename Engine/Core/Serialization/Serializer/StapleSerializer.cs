@@ -427,13 +427,13 @@ internal static class StapleSerializer
                 }
                 else if(elementType.IsPrimitive)
                 {
-                    if(mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                    if(mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                     {
                         var buffer = SerializePrimitiveArray(array);
 
                         if (buffer != null)
                         {
-                            context.setField(field, field.FieldType.FullName, Convert.ToBase64String(buffer, Base64FormattingOptions.None));
+                            context.setField(field, field.FieldType.FullName, Convert.ToHexString(buffer));
                         }
                     }
                     else
@@ -558,7 +558,7 @@ internal static class StapleSerializer
                         }
                         else if (listType.IsPrimitive)
                         {
-                            if (mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                            if (mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                             {
                                 var list = (IList)value;
 
@@ -566,7 +566,7 @@ internal static class StapleSerializer
 
                                 if (buffer != null)
                                 {
-                                    context.setField(field, field.FieldType.FullName, Convert.ToBase64String(buffer, Base64FormattingOptions.None));
+                                    context.setField(field, field.FieldType.FullName, Convert.ToHexString(buffer));
                                 }
                             }
                             else
@@ -728,7 +728,7 @@ internal static class StapleSerializer
         var condensed = fieldInfo.value is JsonElement jsonElement ?
             GetJsonArray(type, field, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
 
-        object sourceValue = field.GetCustomAttribute<SerializeAsBase64Attribute>() != null && condensed is string s ?
+        object sourceValue = field.GetCustomAttribute<SerializeAsHexAttribute>() != null && condensed is string s ?
             s : condensed is object[] a ? a : condensed is List<string> l ? l : null;
 
         if (sourceValue is List<string> li)
@@ -1041,11 +1041,11 @@ internal static class StapleSerializer
                         return null;
                     }
                 }
-                else if (sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                else if (sourceValue is string hexString && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                 {
                     try
                     {
-                        var bytes = Convert.FromBase64String(base64Encoded);
+                        var bytes = Convert.FromHexString(hexString);
 
                         if (bytes != null)
                         {
@@ -1307,13 +1307,13 @@ internal static class StapleSerializer
 
                         return list;
                     }
-                    else if (sourceValue is string base64Encoded && field.GetCustomAttribute<SerializeAsBase64Attribute>() != null)
+                    else if (sourceValue is string hexString && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                     {
                         Array newValue = null;
 
                         try
                         {
-                            var bytes = Convert.FromBase64String(base64Encoded);
+                            var bytes = Convert.FromHexString(hexString);
 
                             if (bytes != null)
                             {
