@@ -4,6 +4,7 @@
 		<AppDesignerFolder>Properties</AppDesignerFolder>
 		<TargetFramework>net9.0</TargetFramework>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<PlatformTarget>AnyCPU</PlatformTarget>
@@ -80,7 +81,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
-	  <PackageReference Include="System.Text.Json" Version="9.0.4" />
+	  <PackageReference Include="System.Text.Json" Version="9.0.6" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Update="StirlingLabs.assimp.native.win-x64" Version="5.2.5.4" />
@@ -88,8 +89,16 @@
 	<PropertyGroup>
 		<PostBuildEvent>
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<PostBuildEvent>
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/StapleToolingSupport.[DLL] $(SolutionDir)bin\
 		</PostBuildEvent>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin\
+		</PostBuildEvent>
 	</PropertyGroup>
 </Project>
