@@ -17,30 +17,34 @@ internal partial class StapleEditor
         {
             editorSettings = new();
 
-            var path = Environment.GetEnvironmentVariable("PATH");
-
-            if(path != null)
+            if(string.IsNullOrEmpty(editorSettings.gitExternalPath))
             {
-                string[] pieces = [];
-                var extension = "";
+                var path = Environment.GetEnvironmentVariable("PATH");
 
-                if(Platform.IsWindows)
+                if (path != null)
                 {
-                    pieces = path.Split(';');
-                    extension = ".exe";
-                }
-                else
-                {
-                    pieces = path.Split(':');
-                }
+                    string[] pieces;
 
-                foreach(var piece in pieces)
-                {
-                    var t = Path.Combine(piece, $"git{extension}");
+                    var extension = "";
 
-                    if (File.Exists(t))
+                    if (Platform.IsWindows)
                     {
-                        editorSettings.gitExternalPath = t;
+                        pieces = path.Split(';');
+                        extension = ".exe";
+                    }
+                    else
+                    {
+                        pieces = path.Split(':');
+                    }
+
+                    foreach (var piece in pieces)
+                    {
+                        var t = Path.Combine(piece, $"git{extension}");
+
+                        if (File.Exists(t))
+                        {
+                            editorSettings.gitExternalPath = t;
+                        }
                     }
                 }
             }

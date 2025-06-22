@@ -412,7 +412,7 @@ internal partial class StapleEditor
 
             if(needsGameRecompile)
             {
-                EditorGUI.Menu("Apply code changes (Rebuild Game)", "Game.Rebuild", () =>
+                EditorGUI.Menu("Recompile Game", "Game.Rebuild", () =>
                 {
                     needsGameRecompile = false;
 

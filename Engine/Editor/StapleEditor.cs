@@ -45,6 +45,7 @@ internal partial class StapleEditor
     public class EditorSettings
     {
         public string gitExternalPath;
+        public bool autoRecompile = true;
     }
 
     [Serializable]
@@ -862,7 +863,15 @@ internal partial class StapleEditor
             {
                 if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
-                    if (needsRefreshStaging)
+                    if(editorSettings.autoRecompile && needsGameRecompile)
+                    {
+                        needsGameRecompile = false;
+
+                        UnloadGame();
+
+                        RefreshStaging(currentPlatform, null, true);
+                    }
+                    else if (needsRefreshStaging)
                     {
                         RefreshStaging(currentPlatform, null, false);
                     }

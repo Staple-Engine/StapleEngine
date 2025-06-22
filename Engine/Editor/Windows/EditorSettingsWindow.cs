@@ -6,6 +6,7 @@ internal class EditorSettingsWindow : EditorWindow
 {
     public StapleEditor.EditorSettings editorSettings;
     public string gitExternalPath;
+    public bool autoRecompile;
 
     private bool firstFrame = true;
 
@@ -16,6 +17,7 @@ internal class EditorSettingsWindow : EditorWindow
             firstFrame = false;
 
             gitExternalPath = editorSettings.gitExternalPath;
+            autoRecompile = editorSettings.autoRecompile;
         }
 
         gitExternalPath = EditorGUI.TextField("Git external path", "EditorSettingsWindow.GitPath", gitExternalPath);
@@ -35,9 +37,14 @@ internal class EditorSettingsWindow : EditorWindow
             }
         });
 
+        autoRecompile = EditorGUI.Toggle("Auto Recompile", "EditorSettingsWindow.AutoRecompile", autoRecompile);
+
+        EditorGUI.Tooltip("Whether the editor should recompile the game when code files are changed or moved");
+
         EditorGUI.Button("Apply Changes", "EditorSettings.ApplyChanges", () =>
         {
             editorSettings.gitExternalPath = gitExternalPath;
+            editorSettings.autoRecompile = autoRecompile;
 
             StapleEditor.instance.SaveEditorSettings();
         });
