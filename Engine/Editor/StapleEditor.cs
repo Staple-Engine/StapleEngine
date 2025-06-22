@@ -862,15 +862,7 @@ internal partial class StapleEditor
             {
                 if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
-                    if (needsGameRecompile)
-                    {
-                        needsGameRecompile = false;
-
-                        UnloadGame();
-
-                        RefreshStaging(currentPlatform, null);
-                    }
-                    else if (needsRefreshStaging)
+                    if (needsRefreshStaging)
                     {
                         RefreshStaging(currentPlatform, null, false);
                     }

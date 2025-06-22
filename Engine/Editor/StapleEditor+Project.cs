@@ -307,7 +307,8 @@ internal partial class StapleEditor
 
                 UpdateWindowTitle();
             });
-        });
+        },
+        true);
     }
 
     /// <summary>
@@ -344,7 +345,7 @@ internal partial class StapleEditor
     /// <param name="onFinish">Callback when finished</param>
     /// <param name="updateProject">Whether to update the project</param>
     /// <param name="checkBuild">Check whether to build the project</param>
-    public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = true, bool checkBuild = true)
+    public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = false, bool checkBuild = true)
     {
         if(gameLoadDisabled || refreshingAssets)
         {

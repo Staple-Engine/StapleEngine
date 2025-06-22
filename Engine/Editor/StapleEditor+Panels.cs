@@ -146,7 +146,7 @@ internal partial class StapleEditor
                             File.WriteAllBytes(assetPath, result);
                         }
 
-                        RefreshAssets(assetPath.EndsWith(".cs") || assetPath.EndsWith(".asmdef"), null);
+                        RefreshAssets(false, null);
                     }
                 }
                 catch (Exception e)
@@ -171,7 +171,7 @@ internal partial class StapleEditor
                 {
                     File.WriteAllBytes(assetPath, pair.Value);
 
-                    RefreshAssets(assetPath.EndsWith(".cs") || assetPath.EndsWith(".asmdef"), null);
+                    RefreshAssets(false, null);
                 }
                 catch (Exception e)
                 {
@@ -409,6 +409,18 @@ internal partial class StapleEditor
                     RefreshStaging(currentPlatform, null, false);
                 });
             });
+
+            if(needsGameRecompile)
+            {
+                EditorGUI.Menu("Apply code changes (Rebuild Game)", "Game.Rebuild", () =>
+                {
+                    needsGameRecompile = false;
+
+                    UnloadGame();
+
+                    RefreshStaging(currentPlatform, null, true);
+                });
+            }
 
             void Recursive(MenuItemInfo parent)
             {

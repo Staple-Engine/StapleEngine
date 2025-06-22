@@ -309,7 +309,7 @@ public static class EditorUtils
     /// <param name="onFinish">Callback when finished</param>
     public static void RefreshAssets(Action onFinish)
     {
-        RefreshAssets(true, onFinish);
+        RefreshAssets(false, onFinish);
     }
 
     /// <summary>
