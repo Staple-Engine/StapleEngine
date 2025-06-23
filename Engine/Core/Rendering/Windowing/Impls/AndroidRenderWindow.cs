@@ -88,13 +88,17 @@ internal class AndroidRenderWindow : IRenderWindow
         }
     }
 
+    public Vector2Int Size
+    {
+        get
+        {
+            return new(screenWidth, screenHeight);
+        }
+    }
+
     public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position, bool maximized, int monitorIndex)
     {
         return true;
-    }
-
-    public void Destroy()
-    {
     }
 
     public void EnterBackground()
@@ -117,15 +121,6 @@ internal class AndroidRenderWindow : IRenderWindow
         AudioSystem.Instance.EnterForeground();
     }
 
-    public void GetWindowSize(out int width, out int height)
-    {
-        lock(lockObject)
-        {
-            width = screenWidth;
-            height = screenHeight;
-        }
-    }
-
     public void HideCursor()
     {
     }
@@ -136,11 +131,6 @@ internal class AndroidRenderWindow : IRenderWindow
 
     public void LockCursor()
     {
-    }
-
-    public nint MonitorPointer(AppPlatform platform)
-    {
-        return nint.Zero;
     }
 
     public void PollEvents()
@@ -159,13 +149,15 @@ internal class AndroidRenderWindow : IRenderWindow
     {
     }
 
-    public nint WindowPointer(AppPlatform platform, out NativeWindowType type)
+    public void GetNativePlatformData(AppPlatform platform, out NativeWindowType type, out nint windowPointer, out nint monitorPointer)
     {
         type = NativeWindowType.Other;
 
+        monitorPointer = nint.Zero;
+
         lock(lockObject)
         {
-            return window;
+            windowPointer = window;
         }
     }
 

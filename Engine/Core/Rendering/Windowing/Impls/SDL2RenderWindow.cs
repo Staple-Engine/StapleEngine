@@ -93,6 +93,16 @@ internal class SDL2RenderWindow : IRenderWindow
         }
     }
 
+    public Vector2Int Size
+    {
+        get
+        {
+            SDL.SDL_GetWindowSize(window, out var w, out var h);
+
+            return new(w, h);
+        }
+    }
+
     public int MonitorIndex
     {
         get
@@ -182,21 +192,6 @@ internal class SDL2RenderWindow : IRenderWindow
         defaultCursor = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
 
         return true;
-    }
-
-    public void Destroy()
-    {
-        foreach (var cursor in cursors)
-        {
-            cursor.Dispose();
-        }
-
-        SDL.SDL_DestroyWindow(window);
-    }
-
-    public void GetWindowSize(out int width, out int height)
-    {
-        SDL.SDL_GetWindowSize(window, out width, out height);
     }
 
     private static KeyCode MapSDLKey(SDL.SDL_Keycode sym)
@@ -310,7 +305,7 @@ internal class SDL2RenderWindow : IRenderWindow
         };
     }
 
-    private AppEventModifierKeys GetModifiers(SDL.SDL_Keymod mod)
+    private static AppEventModifierKeys GetModifiers(SDL.SDL_Keymod mod)
     {
         AppEventModifierKeys modifiers = 0;
 
@@ -499,35 +494,37 @@ internal class SDL2RenderWindow : IRenderWindow
                     {
                         if (TryFindGamepad(_event.cdevice.which, out var key, out _))
                         {
-                            Input.GamepadButton(AppEvent.GamepadButton(key, (SDL.SDL_GameControllerButton)_event.cbutton.button switch
-                            {
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A => GamepadButton.A,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B => GamepadButton.B,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X => GamepadButton.X,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y => GamepadButton.Y,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK => GamepadButton.Back,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE => GamepadButton.Guide,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START => GamepadButton.Start,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK => GamepadButton.LeftStick,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK => GamepadButton.RightStick,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER => GamepadButton.LeftShoulder,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => GamepadButton.RightShoulder,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP => GamepadButton.DPadUp,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN => GamepadButton.DPadDown,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT => GamepadButton.DPadLeft,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT => GamepadButton.DPadRight,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MISC1 => GamepadButton.Misc1,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE1 => GamepadButton.Paddle1,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE2 => GamepadButton.Paddle2,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE3 => GamepadButton.Paddle3,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE4 => GamepadButton.Paddle4,
-                                SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_TOUCHPAD => GamepadButton.TouchPad,
-                                _ => GamepadButton.Invalid,
-                            }, _event.cbutton.state switch
-                            {
-                                SDL.SDL_PRESSED => AppEventInputState.Press,
-                                _ => AppEventInputState.Release,
-                            }));
+                            Input.GamepadButton(AppEvent.GamepadButton(key,
+                                (SDL.SDL_GameControllerButton)_event.cbutton.button switch
+                                {
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A => GamepadButton.A,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B => GamepadButton.B,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X => GamepadButton.X,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y => GamepadButton.Y,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK => GamepadButton.Back,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE => GamepadButton.Guide,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START => GamepadButton.Start,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK => GamepadButton.LeftStick,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK => GamepadButton.RightStick,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER => GamepadButton.LeftShoulder,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER => GamepadButton.RightShoulder,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP => GamepadButton.DPadUp,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN => GamepadButton.DPadDown,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT => GamepadButton.DPadLeft,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT => GamepadButton.DPadRight,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MISC1 => GamepadButton.Misc1,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE1 => GamepadButton.Paddle1,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE2 => GamepadButton.Paddle2,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE3 => GamepadButton.Paddle3,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_PADDLE4 => GamepadButton.Paddle4,
+                                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_TOUCHPAD => GamepadButton.TouchPad,
+                                    _ => GamepadButton.Invalid,
+                                },
+                                _event.cbutton.state switch
+                                {
+                                    SDL.SDL_PRESSED => AppEventInputState.Press,
+                                    _ => AppEventInputState.Release,
+                                }));
                         }
                     }
 
@@ -579,11 +576,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
                     unsafe
                     {
-                        byte[] buffer = new byte[SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE];
-
-                        Marshal.Copy((nint)_event.text.text, buffer, 0, buffer.Length);
-
-                        var text = Encoding.UTF8.GetString(buffer);
+                        var text = Encoding.UTF8.GetString(_event.text.text, SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE);
 
                         Input.HandleTextEvent(AppEvent.Text(text.Length > 0 ? (uint)text[0] : 0));
                     }
@@ -629,7 +622,12 @@ internal class SDL2RenderWindow : IRenderWindow
             }
         }
 
-        if(window != nint.Zero)
+        foreach (var cursor in cursors)
+        {
+            cursor.Dispose();
+        }
+
+        if (window != nint.Zero)
         {
             SDL.SDL_DestroyWindow(window);
         }
@@ -637,8 +635,11 @@ internal class SDL2RenderWindow : IRenderWindow
         SDL.SDL_Quit();
     }
 
-    public nint WindowPointer(AppPlatform platform, out NativeWindowType type)
+    public void GetNativePlatformData(AppPlatform platform, out NativeWindowType type, out nint windowPointer, out nint monitorPointer)
     {
+        windowPointer = nint.Zero;
+        monitorPointer = nint.Zero;
+
         var info = new SDL.SDL_SysWMinfo();
 
         SDL.SDL_GetVersion(out info.version);
@@ -646,8 +647,6 @@ internal class SDL2RenderWindow : IRenderWindow
         if (SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
         {
             type = NativeWindowType.Other;
-
-            return nint.Zero;
         }
 
         type = info.subsystem switch {
@@ -661,16 +660,24 @@ internal class SDL2RenderWindow : IRenderWindow
         {
             case AppPlatform.Windows:
 
-                return info.info.win.window;
+                windowPointer = info.info.win.window;
+
+                break;
 
             case AppPlatform.Linux:
 
                 if(info.subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND)
                 {
-                    return info.info.wl.surface;
+                    windowPointer = info.info.wl.surface;
+                    monitorPointer = info.info.wl.display;
+                }
+                else
+                {
+                    windowPointer = info.info.x11.window;
+                    monitorPointer = info.info.x11.display;
                 }
 
-                return info.info.x11.window;
+                break;
 
             case AppPlatform.MacOSX:
 
@@ -679,47 +686,9 @@ internal class SDL2RenderWindow : IRenderWindow
                     metalView = SDL.SDL_Metal_CreateView(window);
                 }
 
-                return SDL.SDL_Metal_GetLayer(metalView);
+                windowPointer = SDL.SDL_Metal_GetLayer(metalView);
 
-            default:
-
-                return nint.Zero;
-        }
-    }
-
-    public nint MonitorPointer(AppPlatform platform)
-    {
-        var info = new SDL.SDL_SysWMinfo();
-
-        SDL.SDL_GetVersion(out info.version);
-
-        if (SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
-        {
-            return nint.Zero;
-        }
-
-        switch (platform)
-        {
-            case AppPlatform.Windows:
-
-                return nint.Zero;
-
-            case AppPlatform.Linux:
-
-                if(info.subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND)
-                {
-                    return info.info.wl.display;
-                }
-
-                return info.info.x11.display;
-
-            case AppPlatform.MacOSX:
-
-                return nint.Zero;
-
-            default:
-
-                return nint.Zero;
+                break;
         }
     }
 

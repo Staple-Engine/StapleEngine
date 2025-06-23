@@ -408,12 +408,12 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             return;
         }
 
-        renderWindow.window.GetWindowSize(out var currentW, out var currentH);
+        var size = renderWindow.window.Size;
 
-        if ((currentW != renderWindow.width || currentH != renderWindow.height) && renderWindow.window.ShouldClose == false)
+        if ((size.X != renderWindow.width || size.Y != renderWindow.height) && renderWindow.window.ShouldClose == false)
         {
-            renderWindow.width = currentW;
-            renderWindow.height = currentH;
+            renderWindow.width = size.X;
+            renderWindow.height = size.Y;
 
             try
             {
