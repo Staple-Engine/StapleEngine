@@ -35,7 +35,7 @@ internal interface IRenderWindow
 
     nint MonitorPointer(AppPlatform platform);
 
-    nint WindowPointer(AppPlatform platform);
+    nint WindowPointer(AppPlatform platform, out NativeWindowType type);
 
     void LockCursor();
 

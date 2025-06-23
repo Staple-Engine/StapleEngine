@@ -161,8 +161,10 @@ internal class iOSRenderWindow : IRenderWindow
     {
     }
 
-    public nint WindowPointer(AppPlatform platform)
+    public nint WindowPointer(AppPlatform platform, out NativeWindowType type)
     {
+        type = NativeWindowType.Other;
+
         lock(lockObject)
         {
             return metalView?.Layer.Handle.Handle ?? nint.Zero;

@@ -637,7 +637,7 @@ internal class SDL2RenderWindow : IRenderWindow
         SDL.SDL_Quit();
     }
 
-    public nint WindowPointer(AppPlatform platform)
+    public nint WindowPointer(AppPlatform platform, out NativeWindowType type)
     {
         var info = new SDL.SDL_SysWMinfo();
 
@@ -645,8 +645,17 @@ internal class SDL2RenderWindow : IRenderWindow
 
         if (SDL.SDL_GetWindowWMInfo(window, ref info) == SDL.SDL_bool.SDL_FALSE)
         {
+            type = NativeWindowType.Other;
+
             return nint.Zero;
         }
+
+        type = info.subsystem switch {
+
+            SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND => NativeWindowType.Wayland,
+            SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11 => NativeWindowType.X11,
+            _ => NativeWindowType.Other,
+        };
 
         switch (platform)
         {
@@ -656,7 +665,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
             case AppPlatform.Linux:
 
-                if (info.info.wl.surface != nint.Zero)
+                if(info.subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND)
                 {
                     return info.info.wl.surface;
                 }
@@ -697,7 +706,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
             case AppPlatform.Linux:
 
-                if(info.info.wl.display != nint.Zero)
+                if(info.subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND)
                 {
                     return info.info.wl.display;
                 }

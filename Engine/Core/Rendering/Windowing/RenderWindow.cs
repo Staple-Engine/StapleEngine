@@ -508,7 +508,12 @@ internal class RenderWindow
             currentPlatform = platform.Value;
 
             init.platformData.ndt = window.MonitorPointer(currentPlatform).ToPointer();
-            init.platformData.nwh = window.WindowPointer(currentPlatform).ToPointer();
+            init.platformData.nwh = window.WindowPointer(currentPlatform, out var nativeType).ToPointer();
+
+            if (nativeType == NativeWindowType.Wayland)
+            {
+                init.platformData.type = bgfx.NativeWindowHandleType.Wayland;
+            }
 
             Log.Debug($"[RenderWindow] platformData ndt: {(nint)init.platformData.ndt} nwh {(nint)init.platformData.nwh}");
 

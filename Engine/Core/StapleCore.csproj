@@ -203,6 +203,7 @@
 		<Compile Include="Rendering\Vertex\VertexAttribute.cs" />
 		<Compile Include="Rendering\Vertex\VertexAttributeType.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
+		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
 		<Compile Include="Serialization\Asset\GuidHasher.cs" />

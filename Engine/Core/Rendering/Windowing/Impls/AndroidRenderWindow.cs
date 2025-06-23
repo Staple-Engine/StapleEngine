@@ -159,8 +159,10 @@ internal class AndroidRenderWindow : IRenderWindow
     {
     }
 
-    public nint WindowPointer(AppPlatform platform)
+    public nint WindowPointer(AppPlatform platform, out NativeWindowType type)
     {
+        type = NativeWindowType.Other;
+
         lock(lockObject)
         {
             return window;
