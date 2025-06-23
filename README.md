@@ -91,7 +91,7 @@ export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 #### Arch
 
 ```bash
-sudo pacman -Syu premake git base-devel libxi libxinerama librandr libxcursor libx11 gtk3 cmake clang
+sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 cmake clang
 ```
 
 ##### To install .NET
