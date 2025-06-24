@@ -1,5 +1,3 @@
-Type VertexFragment
-
 Begin Parameters
 
 varying vec3 a_position : POSITION

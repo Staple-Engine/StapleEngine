@@ -29,6 +29,11 @@ internal static partial class AssetSerialization
     public static readonly string ShaderExtension = "shader";
 
     /// <summary>
+    /// File extension for Compute Shaders
+    /// </summary>
+    public static readonly string ComputeShaderExtension = "computeshader";
+
+    /// <summary>
     /// File extension for Assets
     /// </summary>
     public static readonly string AssetExtension = "asset";

@@ -64,6 +64,7 @@ vec4 i_data4        :   TEXCOORD3;
         try
         {
             shaderFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.ShaderExtension}", SearchOption.AllDirectories));
+            shaderFiles.AddRange(Directory.GetFiles(inputPath, $"*.{AssetSerialization.ComputeShaderExtension}", SearchOption.AllDirectories));
         }
         catch (Exception)
         {
@@ -153,7 +154,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                 //Console.WriteLine($"\t\t -> {outputFile}");
 
-                WorkScheduler.Dispatch(Path.GetFileName(currentShader.Replace(".meta", "")), () =>
+                WorkScheduler.Dispatch(Path.GetFileName(currentShader), () =>
                 {
                     try
                     {
@@ -172,11 +173,15 @@ vec4 i_data4        :   TEXCOORD3;
                     }
 
                     string text;
-                    UnprocessedShader shader = new();
+
+                    var shader = new UnprocessedShader()
+                    {
+                        type = currentShader.EndsWith(AssetSerialization.ComputeShaderExtension) ? ShaderType.Compute : ShaderType.VertexFragment,
+                    };
 
                     try
                     {
-                        text = File.ReadAllText(currentShader.Replace(".meta", ""));
+                        text = File.ReadAllText(currentShader);
                     }
                     catch (Exception e)
                     {
@@ -185,7 +190,7 @@ vec4 i_data4        :   TEXCOORD3;
                         return;
                     }
 
-                    if (ShaderParser.Parse(text, out shader.type, out var blendMode, out var shaderParameters, out shader.variants,
+                    if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
                         out var instancingParameters, out var vertex, out var fragment, out var compute) == false)
                     {
                         Console.WriteLine("\t\tError: File has invalid format");

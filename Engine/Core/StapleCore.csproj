@@ -192,6 +192,7 @@
 		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
+		<Compile Include="Rendering\Shader\ComputeShader.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />

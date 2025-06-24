@@ -34,6 +34,7 @@ internal class ResourceManager
     internal readonly Dictionary<string, Texture> cachedTextures = [];
     internal readonly Dictionary<string, Material> cachedMaterials = [];
     internal readonly Dictionary<string, Shader> cachedShaders = [];
+    internal readonly Dictionary<string, ComputeShader> cachedComputeShaders = [];
     internal readonly Dictionary<string, Mesh> cachedMeshes = [];
     internal readonly Dictionary<string, AudioClip> cachedAudioClips = [];
     internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = [];
@@ -156,6 +157,14 @@ internal class ResourceManager
             }
         }
 
+        foreach (var pair in cachedComputeShaders)
+        {
+            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
         foreach (var pair in cachedMeshes)
         {
             if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
@@ -209,6 +218,7 @@ internal class ResourceManager
             cachedTextures.Remove(key);
             cachedMaterials.Remove(key);
             cachedShaders.Remove(key);
+            cachedComputeShaders.Remove(key);
             cachedMeshes.Remove(key);
             cachedAudioClips.Remove(key);
             cachedMeshAssets.Remove(key);
@@ -240,6 +250,16 @@ internal class ResourceManager
         }
 
         foreach (var pair in cachedMaterials)
+        {
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            {
+                continue;
+            }
+
+            pair.Value?.Destroy();
+        }
+
+        foreach (var pair in cachedComputeShaders)
         {
             if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
             {
@@ -369,6 +389,21 @@ internal class ResourceManager
             catch (Exception e)
             {
                 Log.Debug($"Failed to recreate shader: {e}");
+            }
+        }
+
+        foreach (var pair in cachedComputeShaders)
+        {
+            try
+            {
+                if (pair.Value?.Create() ?? false)
+                {
+                    Log.Debug($"Recreated compute shader {pair.Key}");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"Failed to recreate compute shader: {e}");
             }
         }
 
@@ -1088,31 +1123,19 @@ internal class ResourceManager
                 return null;
             }
 
-            switch (shaderData.metadata.type)
+            if (shaderData.metadata.type != ShaderType.VertexFragment)
             {
-                case ShaderType.Compute:
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Not a vertex/fragment shader");
 
-                    foreach(var pair in shaderData.data)
-                    {
-                        if ((pair.Value.computeShader?.Length ?? 0) == 0)
-                        {
-                            return null;
-                        }
-                    }
+                return null;
+            }
 
-                    break;
-
-                case ShaderType.VertexFragment:
-
-                    foreach (var pair in shaderData.data)
-                    {
-                        if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
-                        {
-                            return null;
-                        }
-                    }
-
-                    break;
+            foreach (var pair in shaderData.data)
+            {
+                if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
+                {
+                    return null;
+                }
             }
 
             shader = Shader.Create(shaderData);
@@ -1132,6 +1155,116 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load a compute shader from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <param name="ignoreCache">Whether to ignore the cache</param>
+    /// <returns>The shader, or null</returns>
+    public ComputeShader LoadComputeShader(string path, bool ignoreCache = false)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var prefix = ShaderPrefix;
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        if (path.StartsWith(prefix) == false)
+        {
+            path = prefix + path;
+        }
+
+        guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+
+        if (guid == null)
+        {
+            return null;
+        }
+
+        if (ignoreCache == false &&
+            cachedComputeShaders.TryGetValue(path, out var shader) &&
+            shader != null &&
+            shader.Disposed == false)
+        {
+            return shader;
+        }
+
+        byte[] data = LoadFile(guid, ShaderPrefix);
+
+        if (data == null)
+        {
+            data = LoadFile(path);
+        }
+
+        if (data == null)
+        {
+            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}");
+
+            return null;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+
+            if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+                header.version != SerializableShaderHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
+
+                return null;
+            }
+
+            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+
+            if (shaderData == null || shaderData.metadata == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid shader data");
+
+                return null;
+            }
+
+            if(shaderData.metadata.type != ShaderType.Compute)
+            {
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Not a compute shader");
+
+                return null;
+            }
+
+            foreach (var pair in shaderData.data)
+            {
+                if ((pair.Value.computeShader?.Length ?? 0) == 0)
+                {
+                    return null;
+                }
+            }
+
+            shader = ComputeShader.Create(shaderData);
+
+            if (shader != null)
+            {
+                shader.Guid.Guid = guid;
+
+                if (ignoreCache == false)
+                {
+                    cachedComputeShaders.AddOrSetKey(path, shader);
+                }
+            }
+
+            return shader;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: {e}");
 
             return null;
         }
