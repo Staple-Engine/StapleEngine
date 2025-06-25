@@ -890,14 +890,10 @@ public partial class Program
 
                             var offsetMatrix = skin.InverseBindMatrices[pair.Key];
 
-                            Matrix4x4.Decompose(offsetMatrix, out var localScale, out var localRotation, out var localPosition);
-
                             m.bones[target] = new()
                             {
                                 nodeIndex = localBone.LogicalIndex,
-                                offsetPosition = new(localPosition),
-                                offsetRotation = new(localRotation),
-                                offsetScale = new(localScale),
+                                offsetMatrix = Matrix4x4Holder.FromMatrix(offsetMatrix),
                             };
                         }
 

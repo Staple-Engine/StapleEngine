@@ -650,9 +650,7 @@ public partial class Program
                     m.bones.Add(new()
                     {
                         nodeIndex = bone.nodeIndex,
-                        offsetPosition = new(bone.offsetTransform.position),
-                        offsetScale = new(bone.offsetTransform.scale),
-                        offsetRotation = new(bone.offsetTransform.rotation),
+                        offsetMatrix = Matrix4x4Holder.FromMatrix(Matrix4x4.Transpose(bone.offsetMatrix)),
                     });
                 }
 

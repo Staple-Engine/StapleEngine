@@ -1965,7 +1965,7 @@ internal class ResourceManager
                     bones = [m.bones.Select(x => new MeshAsset.Bone()
                     {
                         nodeIndex = x.nodeIndex,
-                        offsetMatrix = Math.TransformationMatrix(x.offsetPosition.ToVector3(), x.offsetScale.ToVector3(), x.offsetRotation.ToQuaternion()),
+                        offsetMatrix = x.offsetMatrix.ToMatrix(),
                     }).ToArray()],
                 };
 

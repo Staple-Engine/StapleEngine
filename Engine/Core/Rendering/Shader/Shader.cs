@@ -84,6 +84,11 @@ public partial class Shader : IGuidAsset
 
             return handle.Valid;
         }
+
+        public override string ToString()
+        {
+            return uniform.name;
+        }
     }
 
     internal class ShaderInstance
