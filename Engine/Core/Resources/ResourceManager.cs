@@ -1066,14 +1066,24 @@ internal class ResourceManager
         var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
 
-        if (path.StartsWith(prefix) == false)
+        var assetPath = AssetDatabase.GetAssetPath(path, ShaderPrefix);
+
+        if(assetPath != null)
         {
-            path = prefix + path;
+            guid = path;
+            path = assetPath;
+        }
+        else
+        {
+            if (path.StartsWith(prefix) == false && path.StartsWith("Assets/" + prefix) == false)
+            {
+                path = prefix + path;
+            }
+
+            guid = AssetDatabase.GetAssetGuid(path) ?? guid;
         }
 
-        guid = AssetDatabase.GetAssetGuid(path) ?? guid;
-
-        if(guid == null)
+        if (guid == null)
         {
             return null;
         }

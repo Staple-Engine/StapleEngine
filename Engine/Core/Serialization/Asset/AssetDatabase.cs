@@ -118,11 +118,18 @@ public static class AssetDatabase
 
                         if(holder.typeName == typeof(Shader).FullName)
                         {
+                            var shaderPath = ResourceManager.ShaderPrefix + asset.path;
+
+                            if(asset.path.StartsWith("Assets/"))
+                            {
+                                shaderPath = string.Concat("Assets/", ResourceManager.ShaderPrefix, asset.path.AsSpan("Assets/".Length));
+                            }
+
                             assets.Add(new()
                             {
                                 guid = holder.guid,
                                 name = asset.name,
-                                path = ResourceManager.ShaderPrefix + asset.path,
+                                path = shaderPath,
                                 typeName = holder.typeName,
                             });
                         }
@@ -175,7 +182,10 @@ public static class AssetDatabase
     /// <returns>The path or null</returns>
     public static string GetAssetPath(string guid, string prefix)
     {
-        var path = assets.FirstOrDefault(x => x.guid == guid && x.path.StartsWith(prefix))?.path;
+        var assetsPrefx = "Assets/" + prefix;
+
+        var path = assets.FirstOrDefault(x => x.guid == guid &&
+            (x.path.StartsWith(prefix) || x.path.StartsWith(assetsPrefx)))?.path;
 
         if (path == null)
         {
