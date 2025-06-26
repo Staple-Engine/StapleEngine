@@ -40,8 +40,7 @@ public interface IRenderSystem
     /// <param name="entities">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Preprocess((Entity, Transform, IComponent)[] entities,
-        Camera activeCamera, Transform activeCameraTransform);
+    void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Processes the entity.
@@ -51,8 +50,7 @@ public interface IRenderSystem
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
     /// <param name="viewID">The current view ID</param>
-    void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera,
-        Transform activeCameraTransform, ushort viewID);
+    void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID);
 
     /// <summary>
     /// Submits all rendering commands for a specific view to the renderer

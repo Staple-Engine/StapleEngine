@@ -85,7 +85,7 @@ public sealed class LightSystem : IRenderSystem
     {
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
     }
 

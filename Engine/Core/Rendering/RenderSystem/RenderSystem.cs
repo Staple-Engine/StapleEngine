@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -12,6 +11,11 @@ namespace Staple.Internal;
 [AdditionalLibrary(AppPlatform.Android, "bgfx")]
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
+    /// <summary>
+    /// The ID of the first camera in the scene
+    /// </summary>
+    public const ushort FirstCameraViewID = 1;
+
     /// <summary>
     /// Contains information on a draw call
     /// </summary>
@@ -179,22 +183,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         return default;
     }
 
-    /// <summary>
-    /// Removes all subsystems belonging to an assembly
-    /// </summary>
-    /// <param name="assembly">The assembly to check</param>
-    internal void RemoveAllSubsystems(Assembly assembly)
+    public void MarkDirty()
     {
         lock(lockObject)
         {
-            for(var i = renderSystems.Count - 1; i >= 0; i--)
+            foreach(var system in renderSystems)
             {
-                if (renderSystems[i].GetType().Assembly == assembly)
-                {
-                    renderSystems[i].Shutdown();
-
-                    renderSystems.RemoveAt(i);
-                }
+                system.NeedsUpdate = true;
             }
         }
     }

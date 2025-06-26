@@ -117,8 +117,7 @@ public class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess((Entity, Transform, IComponent)[] entities,
-        Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var (_, transform, relatedComponent) in entities)
         {

@@ -48,8 +48,13 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
+        if(viewID != RenderSystem.FirstCameraViewID)
+        {
+            return;
+        }
+
         foreach (var (entity, transform, relatedComponent) in entities)
         {
             var animator = relatedComponent as SkinnedMeshAnimator;

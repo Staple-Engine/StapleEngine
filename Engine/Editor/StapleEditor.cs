@@ -613,7 +613,11 @@ internal partial class StapleEditor
                 Screen.Width = gameRenderTarget.width;
                 Screen.Height = gameRenderTarget.height;
 
+                RenderSystem.Instance.MarkDirty();
+
                 RenderSystem.Instance.Update();
+
+                RenderSystem.Instance.MarkDirty();
 
                 Screen.Width = window.width;
                 Screen.Height = window.height;

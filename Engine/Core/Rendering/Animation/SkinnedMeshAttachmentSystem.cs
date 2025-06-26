@@ -32,9 +32,14 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
     {
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
-        foreach (var (entity, transform, relatedComponent) in entities)
+        if(viewID != RenderSystem.FirstCameraViewID)
+        {
+            return;
+        }
+
+        foreach(var (entity, transform, relatedComponent) in entities)
         {
             if (relatedComponent is not SkinnedMeshAttachment attachment ||
                 attachment.mesh == null ||

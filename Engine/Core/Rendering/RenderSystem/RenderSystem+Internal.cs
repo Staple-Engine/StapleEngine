@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Staple.Internal;
@@ -245,6 +246,26 @@ public sealed partial class RenderSystem
         foreach (var system in renderSystems)
         {
             system.NeedsUpdate = false;
+        }
+    }
+
+    /// <summary>
+    /// Removes all subsystems belonging to an assembly
+    /// </summary>
+    /// <param name="assembly">The assembly to check</param>
+    internal void RemoveAllSubsystems(Assembly assembly)
+    {
+        lock (lockObject)
+        {
+            for (var i = renderSystems.Count - 1; i >= 0; i--)
+            {
+                if (renderSystems[i].GetType().Assembly == assembly)
+                {
+                    renderSystems[i].Shutdown();
+
+                    renderSystems.RemoveAt(i);
+                }
+            }
         }
     }
 

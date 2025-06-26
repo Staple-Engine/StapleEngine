@@ -43,8 +43,13 @@ public class SkinnedAnimationPoserSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewId)
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
+        if(viewID != RenderSystem.FirstCameraViewID)
+        {
+            return;
+        }
+
         timer += Time.deltaTime;
 
         var shouldUpdate = timer >= 1 / Screen.RefreshRate;
