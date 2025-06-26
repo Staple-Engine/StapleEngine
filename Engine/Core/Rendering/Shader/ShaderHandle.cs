@@ -7,28 +7,26 @@ namespace Staple.Internal;
 /// Direct access to a shader uniform, used for caching.
 /// </summary>
 /// <param name="uniform">The uniform to store</param>
-public readonly struct ShaderHandle(Shader.UniformInfo uniform)
+public readonly struct ShaderHandle(object owner, Shader.UniformInfo uniform)
 {
     internal readonly Shader.UniformInfo uniform = uniform;
+    internal readonly WeakReference<object> owner = new(owner);
 
-    internal bool TryGetUniform(out Shader.UniformInfo uniform)
+    internal bool TryGetUniform(object owner, out Shader.UniformInfo uniform)
     {
-        if(IsValid)
+        if(IsValid &&
+            this.owner.TryGetTarget(out var actualOwner) &&
+            ReferenceEquals(actualOwner, owner))
         {
             uniform = this.uniform;
 
             return true;
         }
 
-        if(this.uniform == null)
-        {
-            uniform = null;
+        uniform = null;
 
-            return false;
-        }
-
-        throw new ArgumentException("Shader Handle is no longer valid. You should ensure your shader handles are validated as editor reloads can make them invalid!");
+        return false;
     }
 
-    public bool IsValid => uniform?.handle.Valid ?? false;
+    public bool IsValid => (uniform?.handle.Valid ?? false) && (owner?.TryGetTarget(out _) ?? false);
 }

@@ -1,5 +1,3 @@
-Type Compute
-
 Begin Parameters
 
 WOBuffer<vec4> myBuffer : 0

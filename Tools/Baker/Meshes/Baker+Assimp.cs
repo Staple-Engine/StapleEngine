@@ -885,8 +885,6 @@ public partial class Program
                 {
                     var bone = bones[j];
 
-                    Matrix4x4.Decompose(Matrix4x4.Transpose(bone->MOffsetMatrix), out var scale, out var rotation, out var translation);
-
                     var boneNode = FindNode(scene->MRootNode, bone->MName.AsString);
 
                     var validBone = boneNode != null;
@@ -905,9 +903,7 @@ public partial class Program
                     m.bones.Add(new()
                     {
                         nodeIndex = nodeIndex,
-                        offsetPosition = new(translation),
-                        offsetScale = new(scale),
-                        offsetRotation = new(rotation),
+                        offsetMatrix = Matrix4x4Holder.FromMatrix(Matrix4x4.Transpose(bone->MOffsetMatrix)),
                     });
 
                     var weights = bone->GetWeights();

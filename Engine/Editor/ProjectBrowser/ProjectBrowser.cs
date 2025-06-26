@@ -21,6 +21,7 @@ internal class ProjectBrowser
         { $".{AssetSerialization.AssetExtension}", ProjectBrowserResourceType.Asset },
         { $".{AssetSerialization.MaterialExtension}", ProjectBrowserResourceType.Material },
         { $".{AssetSerialization.ShaderExtension}", ProjectBrowserResourceType.Shader },
+        { $".{AssetSerialization.ComputeShaderExtension}", ProjectBrowserResourceType.ComputeShader },
         { $".{AssetSerialization.SceneExtension}", ProjectBrowserResourceType.Scene },
         { $".{AssetSerialization.PrefabExtension}", ProjectBrowserResourceType.Prefab },
         { $".{AssetSerialization.AssemblyDefinitionExtension}", ProjectBrowserResourceType.AssemblyDefinition },
@@ -160,7 +161,7 @@ internal class ProjectBrowser
             ProjectBrowserResourceType.Scene => GetEditorResource("SceneIcon"),
             ProjectBrowserResourceType.Prefab => GetEditorResource("PrefabIcon"),
             ProjectBrowserResourceType.Font => GetEditorResource("FontIcon"),
-            ProjectBrowserResourceType.Shader => GetEditorResource("ShaderIcon"),
+            ProjectBrowserResourceType.Shader or ProjectBrowserResourceType.ComputeShader => GetEditorResource("ShaderIcon"),
             ProjectBrowserResourceType.Asset => GetEditorResource("AssetIcon"),
             ProjectBrowserResourceType.Audio => GetEditorResource("AudioIcon"),
             ProjectBrowserResourceType.AssemblyDefinition => GetEditorResource("FileIcon"),
@@ -299,6 +300,12 @@ internal class ProjectBrowser
                         case ProjectBrowserResourceType.Shader:
 
                             node.typeName = typeof(Shader).FullName;
+
+                            break;
+
+                        case ProjectBrowserResourceType.ComputeShader:
+
+                            node.typeName = typeof(ComputeShader).FullName;
 
                             break;
 
@@ -545,6 +552,28 @@ internal class ProjectBrowser
                                 {
                                     guid = Hash(),
                                     typeName = typeof(Shader).FullName,
+                                },
+                                Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                File.WriteAllText($"{path}.meta", jsonData);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        break;
+
+                    case ProjectBrowserResourceType.ComputeShader:
+
+                        try
+                        {
+                            if (File.Exists($"{path}.meta") == false)
+                            {
+                                var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                {
+                                    guid = Hash(),
+                                    typeName = typeof(ComputeShader).FullName,
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 

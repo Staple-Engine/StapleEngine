@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -147,19 +148,81 @@ public class MeshAssetMetadata
 }
 
 [MessagePackObject]
+public class Matrix4x4Holder
+{
+    [Key(0)]
+    public float M11;
+    [Key(1)]
+    public float M12;
+    [Key(2)]
+    public float M13;
+    [Key(3)]
+    public float M14;
+    [Key(4)]
+    public float M21;
+    [Key(5)]
+    public float M22;
+    [Key(6)]
+    public float M23;
+    [Key(7)]
+    public float M24;
+    [Key(8)]
+    public float M31;
+    [Key(9)]
+    public float M32;
+    [Key(10)]
+    public float M33;
+    [Key(11)]
+    public float M34;
+    [Key(12)]
+    public float M41;
+    [Key(13)]
+    public float M42;
+    [Key(14)]
+    public float M43;
+    [Key(15)]
+    public float M44;
+
+    public Matrix4x4 ToMatrix()
+    {
+        return new(M11, M12, M13, M14,
+            M21, M22, M23, M24,
+            M31, M32, M33, M34,
+            M41, M42, M43, M44);
+    }
+
+    public static Matrix4x4Holder FromMatrix(Matrix4x4 matrix)
+    {
+        return new()
+        {
+            M11 = matrix.M11,
+            M12 = matrix.M12,
+            M13 = matrix.M13,
+            M14 = matrix.M14,
+            M21 = matrix.M21,
+            M22 = matrix.M22,
+            M23 = matrix.M23,
+            M24 = matrix.M24,
+            M31 = matrix.M31,
+            M32 = matrix.M32,
+            M33 = matrix.M33,
+            M34 = matrix.M34,
+            M41 = matrix.M41,
+            M42 = matrix.M42,
+            M43 = matrix.M43,
+            M44 = matrix.M44,
+        };
+    }
+}
+
+[MessagePackObject]
 public class MeshAssetBone
 {
     [Key(0)]
     public int nodeIndex;
 
     [Key(1)]
-    public Vector3Holder offsetPosition;
-
-    [Key(2)]
-    public Vector3Holder offsetRotation;
-
-    [Key(3)]
-    public Vector3Holder offsetScale;
+    public Matrix4x4Holder offsetMatrix;
 }
 
 [MessagePackObject]

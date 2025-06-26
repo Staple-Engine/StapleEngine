@@ -100,6 +100,35 @@ static class PackerUtils
                 return null;
             }
         }
+        else if (path.EndsWith($".{AssetSerialization.ComputeShaderExtension}"))
+        {
+            typeName = typeof(ComputeShader).FullName;
+
+            try
+            {
+                var data = File.ReadAllBytes(path);
+
+                using var stream = new MemoryStream(data);
+
+                var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+
+                if (header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+                    header.version != SerializableShaderHeader.ValidVersion)
+                {
+                    return null;
+                }
+
+                var value = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+
+                return value.metadata.guid;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                return null;
+            }
+        }
         else if (path.EndsWith($".{AssetSerialization.PrefabExtension}"))
         {
             typeName = typeof(Prefab).FullName;

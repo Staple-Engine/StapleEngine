@@ -38,49 +38,20 @@ public static class Resources
             return null;
         }
 
-        switch(nativeType)
+        return nativeType switch
         {
-            case Type t when t == typeof(Scene):
-
-                //Scenes are not loadable this way
-                return null;
-
-            case Type t when t == typeof(Material):
-
-                return ResourceManager.instance.LoadMaterial(guid);
-
-            case Type t when t == typeof(Shader):
-
-                return ResourceManager.instance.LoadShader(guid);
-
-            case Type t when t == typeof(Texture):
-
-                return ResourceManager.instance.LoadTexture(guid);
-
-            case Type t when t == typeof(AudioClip):
-
-                return ResourceManager.instance.LoadAudioClip(guid);
-
-            case Type t when t == typeof(Mesh):
-
-                return ResourceManager.instance.LoadMesh(guid);
-
-            case Type t when t == typeof(MeshAsset):
-
-                return ResourceManager.instance.LoadMeshAsset(guid);
-
-            case Type t when t == typeof(FontAsset):
-
-                return ResourceManager.instance.LoadFont(guid);
-
-            case Type t when t.GetInterface(typeof(IStapleAsset).FullName) != null:
-
-                return ResourceManager.instance.LoadAsset(guid);
-
-            default:
-
-                return null;
-        }
+            Type t when t == typeof(Scene) => null, //Scenes are not loadable this way
+            Type t when t == typeof(Material) => ResourceManager.instance.LoadMaterial(guid),
+            Type t when t == typeof(Shader) => ResourceManager.instance.LoadShader(guid),
+            Type t when t == typeof(ComputeShader) => ResourceManager.instance.LoadComputeShader(guid),
+            Type t when t == typeof(Texture) => ResourceManager.instance.LoadTexture(guid),
+            Type t when t == typeof(AudioClip) => ResourceManager.instance.LoadAudioClip(guid),
+            Type t when t == typeof(Mesh) => ResourceManager.instance.LoadMesh(guid),
+            Type t when t == typeof(MeshAsset) => ResourceManager.instance.LoadMeshAsset(guid),
+            Type t when t == typeof(FontAsset) => ResourceManager.instance.LoadFont(guid),
+            Type t when t.GetInterface(typeof(IStapleAsset).FullName) != null => ResourceManager.instance.LoadAsset(guid),
+            _ => null,
+        };
     }
 
     /// <summary>

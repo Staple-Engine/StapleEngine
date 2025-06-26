@@ -243,6 +243,26 @@ internal class AssetPickerWindow : EditorWindow
 
                         break;
 
+                    case ProjectBrowserResourceType.ComputeShader:
+
+                        try
+                        {
+                            var shader = ResourceManager.instance.LoadComputeShader(guid);
+
+                            if (shader != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
+                                }
+                            }
+                        }
+                        catch (System.Exception)
+                        {
+                        }
+
+                        break;
+
                     case ProjectBrowserResourceType.Audio:
 
                         try

@@ -30,7 +30,6 @@ public static partial class ShaderParser
         public List<string> outputs = [];
     }
 
-    private static Regex typeRegex = TypeRegex();
     private static Regex parametersRegex = ParametersRegex();
     private static Regex vertexRegex = VertexRegex();
     private static Regex fragmentRegex = FragmentRegex();
@@ -68,9 +67,6 @@ public static partial class ShaderParser
     [GeneratedRegex("(\\w+) (\\w+)")]
     private static partial Regex InstancingParameterRegex();
 
-    [GeneratedRegex("Type (\\w+)")]
-    private static partial Regex TypeRegex();
-
     [GeneratedRegex("\\$input (.*)")]
     private static partial Regex InputRegex();
 
@@ -83,27 +79,10 @@ public static partial class ShaderParser
     [GeneratedRegex("Variants (.*)")]
     private static partial Regex VariantsRegex();
 
-    public static bool Parse(string source, out ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
+    public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
         out List<string> variants, out List<InstanceParameter> instanceParameters, out ShaderPiece vertex, out ShaderPiece fragment,
         out ShaderPiece compute)
     {
-        var typeMatch = typeRegex.Match(source);
-
-        if(typeMatch.Success == false ||
-            Enum.TryParse(typeMatch.Groups[1].Value.Trim(), true, out type) == false)
-        {
-            type = default;
-            parameters = default;
-            variants = [];
-            vertex = default;
-            fragment = default;
-            compute = default;
-            blendMode = default;
-            instanceParameters = default;
-
-            return false;
-        }
-
         if(type == ShaderType.VertexFragment)
         {
             var variantsMatch = variantsRegex.Match(source);

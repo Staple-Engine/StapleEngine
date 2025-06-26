@@ -141,12 +141,12 @@ internal class RenderWindow
                 continue;
             }
 
-            window.GetWindowSize(out var currentW, out var currentH);
+            var size = window.Size;
 
-            if ((currentW != width || currentH != height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y!= height) && window.ShouldClose == false)
             {
-                width = currentW;
-                height = currentH;
+                width = size.X;
+                height = size.Y;
 
                 try
                 {
@@ -328,12 +328,12 @@ internal class RenderWindow
                 continue;
             }
 
-            window.GetWindowSize(out var currentW, out var currentH);
+            var size = window.Size;
 
-            if ((currentW != width || currentH != height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y != height) && window.ShouldClose == false)
             {
-                width = currentW;
-                height = currentH;
+                width = size.X;
+                height = size.Y;
 
                 try
                 {
@@ -507,10 +507,12 @@ internal class RenderWindow
 
             currentPlatform = platform.Value;
 
-            init.platformData.ndt = window.MonitorPointer(currentPlatform).ToPointer();
-            init.platformData.nwh = window.WindowPointer(currentPlatform, out var nativeType).ToPointer();
+            window.GetNativePlatformData(currentPlatform, out var nativeWindowType, out var windowPointer, out var monitorPointer);
 
-            if (nativeType == NativeWindowType.Wayland)
+            init.platformData.ndt = monitorPointer.ToPointer();
+            init.platformData.nwh = windowPointer.ToPointer();
+
+            if (nativeWindowType == NativeWindowType.Wayland)
             {
                 init.platformData.type = bgfx.NativeWindowHandleType.Wayland;
             }
@@ -541,7 +543,9 @@ internal class RenderWindow
             }
         }
 
-        window.GetWindowSize(out width, out height);
+        var size = window.Size;
+
+        (width, height) = (size.X, size.Y);
 
         rendererType = bgfx.RendererType.Count;
 

@@ -9,8 +9,6 @@ public class ShaderParserTests
     public void TestParse()
     {
         var shader = $$"""
-Type VertexFragment
-
 Variants A, B, C
 
 Begin Parameters
@@ -37,10 +35,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
+        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
-
-        Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -124,10 +120,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
+        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
-
-        Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -221,10 +215,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
+        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
-
-        Assert.That(type, Is.EqualTo(ShaderType.Compute));
 
         Assert.That(variants.Count, Is.EqualTo(0));
 
@@ -283,10 +275,8 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, out var type, out var blend, out var parameters, out var variants, out var instanceParameters,
+        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
             out var vertex, out var fragment, out var compute));
-
-        Assert.That(type, Is.EqualTo(ShaderType.VertexFragment));
 
         Assert.That(blend, Is.Null);
 
