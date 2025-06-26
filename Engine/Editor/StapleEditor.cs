@@ -62,6 +62,7 @@ internal partial class StapleEditor
         public bool debugBuild = false;
         public bool nativeBuild = false;
         public bool debugRedists = false;
+        public bool publishSingleFile = true;
 
         public Dictionary<AppPlatform, string> lastPickedBuildDirectories = [];
     }
@@ -299,6 +300,8 @@ internal partial class StapleEditor
     internal bool buildPlayerNativeAOT = false;
 
     internal bool buildPlayerDebugRedists = false;
+
+    internal bool buildPlayerSingleFile = true;
 
     private readonly CSProjManager csProjManager = new();
 
@@ -1157,6 +1160,7 @@ internal partial class StapleEditor
             debugBuild = buildPlayerDebug,
             nativeBuild = buildPlayerNativeAOT,
             debugRedists = buildPlayerDebugRedists,
+            publishSingleFile = buildPlayerSingleFile,
         });
     }
 

@@ -33,6 +33,7 @@ internal class CSProjManager
         IsPlayer = (1 << 5),
         Debug = (1 << 6),
         NativeAOT = (1 << 7),
+        PublishSingleFile = (1 << 8),
     }
 
     private readonly Dictionary<string, DateTime> fileModifyStates = [];
@@ -856,7 +857,7 @@ internal class CSProjManager
                     else
                     {
                         p.SetProperty("PublishTrimmed", "true");
-                        p.SetProperty("PublishSingleFile", "true");
+                        p.SetProperty("PublishSingleFile", flags.HasFlag(ProjectGenerationFlags.PublishSingleFile).ToString());
                         p.SetProperty("IsTrimmable", "true");
                         p.SetProperty("EnableTrimAnalyzer", "true");
                         p.SetProperty("EnableSingleFileAnalyzer", "true");
@@ -1100,7 +1101,8 @@ internal class CSProjManager
     /// <param name="debug">Whether it's a debug build</param>
     /// <param name="nativeAOT">Whether to build natively</param>
     /// <param name="debugRedists">Whether to use debug dependencies</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists)
+    /// <param name="publishSingleFile">Whether to build to a single file</param>
+    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists, bool publishSingleFile)
     {
         var platform = backend.platform;
 
@@ -1170,6 +1172,11 @@ internal class CSProjManager
         else if (platformUsesSeparateProjects)
         {
             flags |= ProjectGenerationFlags.AllowMultiProject;
+        }
+
+        if(publishSingleFile)
+        {
+            flags |= ProjectGenerationFlags.PublishSingleFile;
         }
 
         GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, asmDefProjectProperties, projectAppSettings,

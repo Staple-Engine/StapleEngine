@@ -18,8 +18,10 @@ internal partial class StapleEditor
     /// <param name="outPath">The output path</param>
     /// <param name="debug">Whether to make a debug build</param>
     /// <param name="nativeAOT">Whether to build natively</param>
+    /// <param name="debugRedists">Whether to use debug redistributables</param>
     /// <param name="assetsOnly">Whether to just pack and copy assets</param>
-    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool debugRedists, bool assetsOnly)
+    /// <param name="publishSingleFile">Whether to build into a single file</param>
+    public void BuildPlayer(PlayerBackend backend, string outPath, bool debug, bool nativeAOT, bool debugRedists, bool assetsOnly, bool publishSingleFile)
     {
         SetBackgroundProgress(0, "Building...");
 
@@ -86,7 +88,7 @@ internal partial class StapleEditor
             }
         }
 
-        csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists);
+        csProjManager.GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists, publishSingleFile);
 
         RefreshStaging(backend.platform, () =>
         {
@@ -272,11 +274,20 @@ internal partial class StapleEditor
 
             if (backend.publish)
             {
-                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" --self-contained -p:UseAppHost=true";
+                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
             }
             else
             {
                 args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
+            }
+
+            if(nativeAOT || publishSingleFile)
+            {
+                args += " --self-contained";
+            }
+            else
+            {
+                args += " --no-self-contained";
             }
 
             var processInfo = new ProcessStartInfo("dotnet", args)
@@ -284,7 +295,7 @@ internal partial class StapleEditor
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory
+                WorkingDirectory = Environment.CurrentDirectory,
             };
 
             var process = new Process

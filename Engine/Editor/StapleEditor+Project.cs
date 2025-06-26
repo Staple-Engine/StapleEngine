@@ -196,6 +196,7 @@ internal partial class StapleEditor
             buildPlayerDebug = lastSession.debugBuild;
             buildPlayerNativeAOT = lastSession.nativeBuild;
             buildPlayerDebugRedists = lastSession.debugRedists;
+            buildPlayerSingleFile = lastSession.publishSingleFile;
         }
         else
         {
@@ -205,6 +206,7 @@ internal partial class StapleEditor
             buildPlayerDebug = true;
             buildPlayerNativeAOT = false;
             buildPlayerDebugRedists = false;
+            buildPlayerSingleFile = true;
         }
 
         projectBrowser.currentPlatform = currentPlatform;
@@ -588,7 +590,7 @@ internal partial class StapleEditor
     {
         if(Path.IsPathRooted(assetPath) == false)
         {
-            assetPath = Path.Combine(instance.BasePath, "Assets", assetPath);
+            assetPath = Path.Combine(instance.BasePath, assetPath);
         }
 
         var existed = false;

@@ -136,9 +136,21 @@ internal class BuildWindow : EditorWindow
             StapleEditor.instance.buildBackend = PlayerBackendManager.BackendNames[current];
         }
 
-        StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug Build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
-        StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native Build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
-        StapleEditor.instance.buildPlayerDebugRedists = EditorGUI.Toggle("Use Debug Redistributables", "BuildWindowDebugRedist", StapleEditor.instance.buildPlayerDebugRedists);
+        StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
+
+        var has = Platform.CurrentPlatform == StapleEditor.instance.currentPlatform;
+        EditorGUI.Disabled(has == false, () =>
+        {
+            StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
+
+            if(has == false)
+            {
+                StapleEditor.instance.buildPlayerNativeAOT = false;
+            }
+        });
+
+        StapleEditor.instance.buildPlayerDebugRedists = EditorGUI.Toggle("Use debug redistributables", "BuildWindowDebugRedist", StapleEditor.instance.buildPlayerDebugRedists);
+        StapleEditor.instance.buildPlayerSingleFile = EditorGUI.Toggle("Publish single file", "BuildWindowSingleFile", StapleEditor.instance.buildPlayerSingleFile);
 
         var backend = PlayerBackendManager.Instance.GetBackend(StapleEditor.instance.buildBackend);
 
@@ -161,7 +173,7 @@ internal class BuildWindow : EditorWindow
                 StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, false);
+                        StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile);
                 })));
             }
             else
@@ -186,7 +198,7 @@ internal class BuildWindow : EditorWindow
                 StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
                     StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, true);
+                        StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile);
                 })));
             }
             else
