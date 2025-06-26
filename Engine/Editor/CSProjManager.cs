@@ -431,13 +431,20 @@ internal class CSProjManager
         var projectDefines = flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) ? $"STAPLE_EDITOR{platformDefinesString}" :
             platformDefinesString;
 
+        var configurationName = flags.HasFlag(ProjectGenerationFlags.Debug) ? "Debug" : "Release";
+
+        var backendStapleCorePath = Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll");
+
         var p = MakeProject(collection, projectDefines, projectProperties);
 
-        p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-
-        if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+        if (flags.HasFlag(ProjectGenerationFlags.IsPlayer) == false)
         {
-            p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+            p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+
+            if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+            {
+                p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+            }
         }
 
         var projects = new Dictionary<string, ProjectInfo>();
@@ -475,45 +482,52 @@ internal class CSProjManager
                             AssemblyDefinition def = null;
                             Project asmProj = null;
 
+                            try
+                            {
+                                def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
+
+                                var meta = File.ReadAllText($"{parentAsmDef}.meta");
+
+                                var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
+
+                                def.guid = holder.guid;
+                            }
+                            catch (Exception)
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
+                            if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
+                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
+                            {
+                                excludedAsmDefs.Add(parentAsmDef);
+
+                                continue;
+                            }
+
                             if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                             {
-                                try
-                                {
-                                    def = JsonConvert.DeserializeObject<AssemblyDefinition>(File.ReadAllText(parentAsmDef), Tooling.Utilities.JsonSettings);
-
-                                    var meta = File.ReadAllText($"{parentAsmDef}.meta");
-
-                                    var holder = JsonConvert.DeserializeObject<AssetHolder>(meta, Tooling.Utilities.JsonSettings);
-
-                                    def.guid = holder.guid;
-                                }
-                                catch (Exception)
-                                {
-                                    excludedAsmDefs.Add(parentAsmDef);
-
-                                    continue;
-                                }
-
-                                if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
-                                    (def.anyPlatform == false && def.platforms.Contains(platform) == false))
-                                {
-                                    excludedAsmDefs.Add(parentAsmDef);
-
-                                    continue;
-                                }
-
                                 asmProj = MakeProject(collection, projectDefines, asmDefProperties);
-
-                                asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-
-                                if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
-                                {
-                                    asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
-                                }
 
                                 if(def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
                                 {
                                     asmProj.SetProperty("AllowUnsafeBlocks", "true");
+                                }
+
+                                if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
+                                {
+                                    asmProj.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
+                                }
+                                else
+                                {
+                                    asmProj.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+
+                                    if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                                    {
+                                        asmProj.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+                                    }
                                 }
                             }
 
@@ -570,11 +584,18 @@ internal class CSProjManager
                     {
                         var project = MakeProject(collection, projectDefines, asmDefProperties);
 
-                        project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
-
-                        if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                        if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
                         {
-                            project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+                            project.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
+                        }
+                        else
+                        {
+                            project.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleCore.dll"))]);
+
+                            if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                            {
+                                project.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll"))]);
+                            }
                         }
 
                         var counter = 0;
@@ -630,7 +651,7 @@ internal class CSProjManager
         {
             try
             {
-                assemblies.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
+                assemblies.AddRange(Directory.GetFiles(directory, "*.dll.meta", SearchOption.AllDirectories));
             }
             catch (Exception)
             {
@@ -715,37 +736,38 @@ internal class CSProjManager
 
         foreach (var pair in projects)
         {
-            if(pair.Value.project == null)
-            {
-                continue;
-            }
-
             var counter = pair.Value.counter == 0 ? "" : pair.Value.counter.ToString();
 
             var projectName = pair.Value.asmDef is null ? Path.GetFileName(pair.Key) : Path.GetFileNameWithoutExtension(pair.Key);
 
             var name = $"{projectName}{counter}";
 
-            asmDefNames.Add(name);
-
-            if (pair.Value.asmDef?.autoReferenced ?? true)
+            if (pair.Value.project != null)
             {
-                p.AddItem("ProjectReference", $"{name}.csproj");
+                asmDefNames.Add(name);
+
+                if (pair.Value.asmDef?.autoReferenced ?? true)
+                {
+                    p.AddItem("ProjectReference", $"{name}.csproj");
+                }
             }
 
             if (pair.Value.asmDef != null)
             {
-                foreach (var assembly in pair.Value.asmDef.referencedAssemblies)
+                if (pair.Value.project != null)
                 {
-                    var targetAssembly = projects.FirstOrDefault(x => x.Value.asmDef.guid != null && x.Value.asmDef.guid == assembly);
-
-                    if (targetAssembly.Value.asmDef != null)
+                    foreach (var assembly in pair.Value.asmDef.referencedAssemblies)
                     {
-                        counter = targetAssembly.Value.counter == 0 ? "" : targetAssembly.Value.counter.ToString();
+                        var targetAssembly = projects.FirstOrDefault(x => x.Value.asmDef.guid != null && x.Value.asmDef.guid == assembly);
 
-                        var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+                        if (targetAssembly.Value.asmDef != null && targetAssembly.Value.project != null)
+                        {
+                            counter = targetAssembly.Value.counter == 0 ? "" : targetAssembly.Value.counter.ToString();
 
-                        pair.Value.project.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                            var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
+
+                            pair.Value.project.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                        }
                     }
                 }
 
@@ -764,7 +786,14 @@ internal class CSProjManager
 
                             if (PluginAsset.IsAssembly(path))
                             {
-                                pair.Value.project.AddItem("Reference", path);
+                                if (pair.Value.project != null)
+                                {
+                                    pair.Value.project.AddItem("Reference", path);
+                                }
+                                else
+                                {
+                                    p.AddItem("Reference", path);
+                                }
                             }
                         }
                         catch(Exception)
@@ -781,9 +810,16 @@ internal class CSProjManager
 
                     foreach (var projectPair in projects)
                     {
-                        if (Path.GetFileName(projectPair.Key) == targetName)
+                        if (Path.GetFileName(projectPair.Key) == targetName && projectPair.Value.project != null)
                         {
-                            pair.Value.project.AddItem("ProjectReference", $"{targetName}.csproj");
+                            if (pair.Value.project != null)
+                            {
+                                pair.Value.project.AddItem("ProjectReference", $"{targetName}.csproj");
+                            }
+                            else
+                            {
+                                p.AddItem("ProjectReference", $"{targetName}.csproj");
+                            }
 
                             break;
                         }
@@ -791,7 +827,10 @@ internal class CSProjManager
                 }
             }
 
-            pair.Value.project.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
+            if (pair.Value.project != null)
+            {
+                pair.Value.project.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
+            }
         }
 
         if(flags.HasFlag(ProjectGenerationFlags.IsPlayer))
@@ -848,8 +887,6 @@ internal class CSProjManager
 
                     break;
             }
-
-            var configurationName = flags.HasFlag(ProjectGenerationFlags.Debug) ? "Debug" : "Release";
 
             p.AddItem("Reference", "StapleCore",
                 [
