@@ -949,9 +949,10 @@ internal partial class StapleEditor
                         }
                         else
                         {
-                            defaultEditor.target = localComponent;
-
-                            defaultEditor.OnInspectorGUI();
+                            cachedEditors.Add($"{counter}{localComponent.GetType().FullName}", new Editor()
+                            {
+                                target = localComponent
+                            });
                         }
                     }
 

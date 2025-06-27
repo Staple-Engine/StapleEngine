@@ -259,8 +259,6 @@ internal partial class StapleEditor
 
     private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = [];
 
-    private readonly Editor defaultEditor = new();
-
     private readonly Dictionary<string, byte[]> registeredAssetTemplates = [];
 
     private readonly Dictionary<string, Type> registeredAssetTypes = [];
