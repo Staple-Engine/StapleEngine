@@ -207,7 +207,7 @@ public class Editor
                 {
                     try
                     {
-                        drawer.OnGUI(name, getter, setter, attributes);
+                        drawer.OnGUI(name, IDSuffix, getter, setter, attributes);
                     }
                     catch (Exception e)
                     {
@@ -352,42 +352,59 @@ public class Editor
                         {
                             var changed = false;
 
-                            EditorGUI.TreeNode(name, $"{name}Node{IDSuffix}", false, () =>
-                            {
-
-                                ImGui.BeginGroup();
-
-                                for (var i = 0; i < list.Count; i++)
+                            EditorGUI.TreeNode(name, $"{name}Node{IDSuffix}", false,
+                                () =>
                                 {
-                                    var entry = list[i];
+                                    ImGui.BeginGroup();
 
-                                    FieldInspector(entry, name, $"{name}{i}{IDSuffix}", true);
+                                    for (var i = 0; i < list.Count; i++)
+                                    {
+                                        var entry = list[i];
 
-                                    list[i] = entry;
+                                        PropertyInspector(listType, "", $"{name}{i}{IDSuffix}", () => entry,
+                                            (value) =>
+                                            {
+                                                if (value != entry)
+                                                {
+                                                    changed = true;
 
+                                                    list[i] = value;
+                                                }
+                                            },
+                                            (attribute) =>
+                                            {
+                                                if (attribute.IsSubclassOf(typeof(Attribute)))
+                                                {
+                                                    return listType.GetCustomAttribute(attribute);
+                                                }
+
+                                                return null;
+                                            });
+
+                                        EditorGUI.SameLine();
+
+                                        EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                        {
+                                            changed = true;
+
+                                            list.RemoveAt(i);
+                                        });
+                                    }
+
+                                    ImGui.EndGroup();
+                                },
+                                null,
+                                () =>
+                                {
                                     EditorGUI.SameLine();
 
-                                    EditorGUI.Button("-", $"{name}Remove{i}{IDSuffix}", () =>
+                                    EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
                                     {
                                         changed = true;
 
-                                        list.RemoveAt(i);
+                                        list.Add(Activator.CreateInstance(listType));
                                     });
-                                }
-
-                                ImGui.EndGroup();
-                            }, null,
-                            () =>
-                            {
-                                EditorGUI.SameLine();
-
-                                EditorGUI.Button("+", $"{name}Add{IDSuffix}", () =>
-                                {
-                                    changed = true;
-
-                                    list.Add(Activator.CreateInstance(listType));
                                 });
-                            });
 
                             if (changed)
                             {

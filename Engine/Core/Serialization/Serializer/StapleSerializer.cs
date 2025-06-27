@@ -1425,6 +1425,11 @@ internal static class StapleSerializer
                 {
                     var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
+                    if(field is null)
+                    {
+                        continue;
+                    }
+
                     var value = DeserializeField(type, field, field.FieldType, pair.Value, mode);
 
                     if(value is null || value.GetType().IsAssignableTo(field.FieldType) == false)

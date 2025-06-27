@@ -8,7 +8,7 @@ namespace Staple.Editor;
 [CustomPropertyDrawer(typeof(EntityCallback))]
 internal class EntityCallbackPropertyDrawer : PropertyDrawer
 {
-    public override void OnGUI(string name, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
+    public override void OnGUI(string name, string ID, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
     {
         if (getter() is not EntityCallback value)
         {
@@ -19,7 +19,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("+", $"{name}Add", () =>
+        EditorGUI.Button("+", $"{ID}.Add", () =>
         {
             value.AddPersistentCallback(new());
         });
@@ -42,7 +42,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 var entity = Scene.FindEntity(callback.entityID);
 
-                entity = EditorGUI.EntityField("Entity", entity, $"{name}{GetType().FullName}{i}");
+                entity = EditorGUI.EntityField("Entity", entity, $"{ID}.{GetType().FullName}{i}");
 
                 callback.entityID = entity.Identifier.ID;
 
@@ -50,7 +50,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
                 {
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("-", $"{name}CallbackRemove{counter}", () =>
+                    EditorGUI.Button("-", $"{ID}.CallbackRemove{counter}", () =>
                     {
                         counter++;
 
@@ -71,7 +71,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 var index = componentTypes.FindIndex(x => x.FullName == callback.className);
 
-                var newIndex = EditorGUI.Dropdown("Component", $"{name}Component{counter}", componentTypes.Select(x => x.Name).ToArray(), index);
+                var newIndex = EditorGUI.Dropdown("Component", $"{ID}.Component{counter}", componentTypes.Select(x => x.Name).ToArray(), index);
 
                 if (newIndex != index && newIndex < componentTypes.Count)
                 {
@@ -84,7 +84,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
                 {
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("-", $"{name}CallbackRemove2{counter}", () =>
+                    EditorGUI.Button("-", $"{ID}.CallbackRemove2{counter}", () =>
                     {
                         counter++;
 
@@ -108,7 +108,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 index = methodNames.IndexOf(callback.methodName);
 
-                newIndex = EditorGUI.Dropdown("Method", $"{name}CallbackRemove3{counter}", methodNames.ToArray(), index);
+                newIndex = EditorGUI.Dropdown("Method", $"{ID}.CallbackRemove3{counter}", methodNames.ToArray(), index);
 
                 if (newIndex != index && newIndex < methods.Length)
                 {
@@ -117,7 +117,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 EditorGUI.SameLine();
 
-                EditorGUI.Button("-", $"{name}CallbackRemove4{counter}", () =>
+                EditorGUI.Button("-", $"{ID}.CallbackRemove4{counter}", () =>
                 {
                     counter++;
 
@@ -145,7 +145,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 [CustomPropertyDrawer(typeof(EntityCallback<>))]
 internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 {
-    public override void OnGUI(string name, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
+    public override void OnGUI(string name, string ID, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
     {
         var value = getter();
 
@@ -173,7 +173,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
         EditorGUI.SameLine();
 
-        EditorGUI.Button("+", $"{name}Add", () =>
+        EditorGUI.Button("+", $"{ID}.Add", () =>
         {
             addPersistentCallbackMethod.Invoke(value, [0, null, null]);
         });
@@ -199,7 +199,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     var entity = Scene.FindEntity(entry.entityID);
 
-                    entity = EditorGUI.EntityField("Entity", entity, $"{name}{GetType().FullName}{counter}");
+                    entity = EditorGUI.EntityField("Entity", entity, $"{ID}.{GetType().FullName}{counter}");
 
                     entry.entityID = entity.Identifier.ID;
 
@@ -207,7 +207,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("-", $"{name}CallbackRemove{counter}", () =>
+                        EditorGUI.Button("-", $"{ID}.CallbackRemove{counter}", () =>
                         {
                             counter++;
 
@@ -228,7 +228,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     var index = componentTypes.FindIndex(x => x.FullName == entry.className);
 
-                    var newIndex = EditorGUI.Dropdown("Component", $"{name}Component{counter}", componentTypes.Select(x => x.Name).ToArray(), index);
+                    var newIndex = EditorGUI.Dropdown("Component", $"{ID}.Component{counter}", componentTypes.Select(x => x.Name).ToArray(), index);
 
                     if (newIndex != index && newIndex < componentTypes.Count)
                     {
@@ -241,7 +241,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
                     {
                         EditorGUI.SameLine();
 
-                        EditorGUI.Button("-", $"{name}CallbackRemove2{counter}", () =>
+                        EditorGUI.Button("-", $"{ID}.CallbackRemove2{counter}", () =>
                         {
                             counter++;
 
@@ -287,7 +287,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     index = methodNames.IndexOf(entry.methodName);
 
-                    newIndex = EditorGUI.Dropdown("Method", $"{name}CallbackRemove3{counter}", methodNames.ToArray(), index);
+                    newIndex = EditorGUI.Dropdown("Method", $"{ID}.CallbackRemove3{counter}", methodNames.ToArray(), index);
 
                     if (newIndex != index && newIndex < methods.Count)
                     {
@@ -296,7 +296,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     EditorGUI.SameLine();
 
-                    EditorGUI.Button("-", $"{name}CallbackRemove4{counter}", () =>
+                    EditorGUI.Button("-", $"{ID}.CallbackRemove4{counter}", () =>
                     {
                         counter++;
 

@@ -463,12 +463,12 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, string key, T value) where T: struct, Enum
     {
-        if (cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false)
+        if (cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false || v is not List<T>)
         {
             v = Enum.GetValues<T>()
                 .ToList();
 
-            cachedEnumValues.Add(typeof(T).FullName, v);
+            cachedEnumValues.AddOrSetKey(typeof(T).FullName, v);
         }
 
         var values = v as List<T>;

@@ -5,7 +5,7 @@ namespace Staple.Editor;
 [CustomPropertyDrawer(typeof(RangeAttribute))]
 internal class RangePropertyDrawer : PropertyDrawer
 {
-    public override void OnGUI(string name, Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
+    public override void OnGUI(string name, string ID,Func<object> getter, Action<object> setter, Func<Type, object> getAttribute)
     {
         var range = getAttribute(typeof(RangeAttribute)) as RangeAttribute;
 
@@ -13,7 +13,7 @@ internal class RangePropertyDrawer : PropertyDrawer
 
         if(value is int i)
         {
-            var newValue = EditorGUI.IntSlider(name, $"Range{name}Value", i, (int)range.minValue, (int)range.maxValue);
+            var newValue = EditorGUI.IntSlider(name, $"Range{ID}.Value", i, (int)range.minValue, (int)range.maxValue);
 
             if(newValue != i)
             {
@@ -22,7 +22,7 @@ internal class RangePropertyDrawer : PropertyDrawer
         }
         else if (value is uint u)
         {
-            var newValue = (uint)EditorGUI.IntSlider(name, $"Range{name}Value", (int)u, (int)range.minValue, (int)range.maxValue);
+            var newValue = (uint)EditorGUI.IntSlider(name, $"Range{ID}.Value", (int)u, (int)range.minValue, (int)range.maxValue);
 
             if (newValue != u)
             {
@@ -31,7 +31,7 @@ internal class RangePropertyDrawer : PropertyDrawer
         }
         else if (value is float f)
         {
-            var newValue = EditorGUI.FloatSlider(name, $"Range{name}Value", f, (int)range.minValue, (int)range.maxValue);
+            var newValue = EditorGUI.FloatSlider(name, $"Range{ID}.Value", f, (int)range.minValue, (int)range.maxValue);
 
             if (newValue != f)
             {
