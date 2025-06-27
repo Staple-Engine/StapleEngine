@@ -16,6 +16,7 @@ public sealed class VertexBuffer
     internal bgfx.DynamicVertexBufferHandle dynamicHandle;
     internal bgfx.TransientVertexBuffer transientHandle;
     internal VertexLayout layout;
+
     public readonly RenderBufferType type;
 
     /// <summary>

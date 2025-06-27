@@ -48,6 +48,11 @@ public class Editor
     private readonly Dictionary<string, PropertyDrawer> cachedPropertyDrawers = [];
 
     /// <summary>
+    /// Keeps track of all available extra buttons for this editor
+    /// </summary>
+    private readonly Dictionary<string, Action> cachedButtonAttributes = [];
+
+    /// <summary>
     /// Attempts to draw a property.
     /// Override this to change how a property appears.
     /// Return true if you rendered the property or false if you want to use default rendering
@@ -70,6 +75,11 @@ public class Editor
     public virtual void OnInspectorGUI()
     {
         FieldInspector(target, "", "", false);
+
+        foreach(var pair in cachedButtonAttributes)
+        {
+            pair.Value();
+        }
     }
 
     public virtual void Destroy()
@@ -162,6 +172,39 @@ public class Editor
                 }
             }
             */
+
+            var methods = target.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
+            foreach(var method in methods)
+            {
+                var key = $"{targetName}{IDSuffix}{method.Name}";
+
+                if (method.GetCustomAttribute<ButtonAttribute>() is ButtonAttribute button &&
+                    method.GetParameters().Length == 0 && cachedButtonAttributes.ContainsKey(key) == false)
+                {
+                    cachedButtonAttributes.Add(key, () =>
+                    {
+                        EditorGUI.Button(button.title, key, () =>
+                        {
+                            try
+                            {
+                                if (method.IsStatic == false)
+                                {
+                                    method.Invoke(target, null);
+                                }
+                                else
+                                {
+                                    method.Invoke(null, null);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e.ToString());
+                            }
+                        });
+                    });
+                }
+            }
         }
 
         if (indent)
@@ -903,7 +946,7 @@ public class Editor
                 {
                     var value = (IComponent)getter();
 
-                    setter(EditorGUI.ComponentField(name, value, IDSuffix));
+                    setter(EditorGUI.ComponentField(name, t, value, IDSuffix));
                 }
 
                 break;

@@ -1465,9 +1465,9 @@ public static class EditorGUI
     /// <param name="value">The current value of the component</param>
     /// <param name="key">A unique key for this UI element</param>
     /// <returns>The new value of the component, if any</returns>
-    public static T ComponentField<T>(string name, T value, string key) where T: IComponent
+    public static IComponent ComponentField(string name, Type type, IComponent value, string key)
     {
-        Label($"{name} ({typeof(T).Name})");
+        Label($"{name} ({type.Name})");
 
         SameLine();
 
@@ -1480,11 +1480,11 @@ public static class EditorGUI
             Label("(None)");
         }
 
-        DragDropTarget(typeof(T), (v) =>
+        DragDropTarget(type, (v) =>
         {
-            if (v is T c)
+            if (v.GetType() == type)
             {
-                value = c;
+                value = (IComponent)v;
             }
         });
 

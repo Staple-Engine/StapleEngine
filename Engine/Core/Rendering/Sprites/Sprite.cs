@@ -15,6 +15,23 @@ public sealed class Sprite
     public Rect Rect => IsValid ? texture.metadata.sprites[spriteIndex].rect : default;
 
     [JsonIgnore]
+    public RectFloat RectFloat
+    {
+        get
+        {
+            if(IsValid == false)
+            {
+                return default;
+            }
+
+            var rect = texture.metadata.sprites[spriteIndex].rect;
+
+            return new(rect.left / (float)texture.Width, rect.right / (float)texture.Width,
+                rect.top / (float)texture.Height, rect.bottom / (float)texture.Height);
+        }
+    }
+
+    [JsonIgnore]
     public TextureSpriteRotation Rotation => IsValid ? texture.metadata.sprites[spriteIndex].rotation : TextureSpriteRotation.None;
 
     [JsonIgnore]

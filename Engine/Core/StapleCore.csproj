@@ -98,6 +98,7 @@
 		<Compile Include="Assets\TextAsset.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
+		<Compile Include="Attributes\ButtonAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
 		<Compile Include="Attributes\MinAttribute.cs" />
 		<Compile Include="Attributes\MultilineAttribute.cs" />
