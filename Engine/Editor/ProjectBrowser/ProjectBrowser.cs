@@ -27,6 +27,17 @@ internal class ProjectBrowser
         { $".{AssetSerialization.AssemblyDefinitionExtension}", ProjectBrowserResourceType.AssemblyDefinition },
     };
 
+    public static readonly string[] CodeExtensions = [
+        "cs",
+        "json",
+        "lua",
+        "c",
+        "cpp",
+        "h",
+        "hpp",
+        "js",
+        ];
+
     public static readonly Dictionary<string, string> DefaultResourceIcons = new()
     {
         { "FolderIcon", "Textures/open-folder.png" },
@@ -39,6 +50,7 @@ internal class ProjectBrowser
         { "AssetIcon", "Textures/asset.png" },
         { "AudioIcon", "Textures/audio.png" },
         { "ShaderIcon", "Textures/shader.png" },
+        { "CodeIcon", "Textures/code.png" },
     };
 
     static ProjectBrowser()
@@ -57,6 +69,7 @@ internal class ProjectBrowser
         AddAll(AssetSerialization.FontExtensions, ProjectBrowserResourceType.Font);
         AddAll(AssetSerialization.PluginExtensions, ProjectBrowserResourceType.Plugin);
         AddAll(AssetSerialization.PluginFolderSuffixes, ProjectBrowserResourceType.Plugin);
+        AddAll(CodeExtensions, ProjectBrowserResourceType.Code);
     }
 
     public const float contentPanelThumbnailSize = 64;
@@ -166,6 +179,7 @@ internal class ProjectBrowser
             ProjectBrowserResourceType.Audio => GetEditorResource("AudioIcon"),
             ProjectBrowserResourceType.AssemblyDefinition => GetEditorResource("FileIcon"),
             ProjectBrowserResourceType.Plugin => GetEditorResource("FileIcon"),
+            ProjectBrowserResourceType.Code => GetEditorResource("CodeIcon"),
             _ => GetEditorResource("FileIcon"),
         };
 
@@ -187,7 +201,7 @@ internal class ProjectBrowser
         {
             projectBrowserNodes.Clear();
 
-            void Recursive(string p, List<ProjectBrowserNode> nodes)
+            void Recursive(string p, List<ProjectBrowserNode> nodes, ProjectBrowserNode parent)
             {
                 string[] directories = [];
                 string[] files = [];
@@ -220,6 +234,7 @@ internal class ProjectBrowser
                             extension = $".{pluginExtension}",
                             path = directory.Replace("\\", "/"),
                             type = ProjectBrowserNodeType.File,
+                            parent = parent,
                             subnodes = [],
                             typeName = typeof(PluginAsset).FullName,
                         };
@@ -233,17 +248,18 @@ internal class ProjectBrowser
 
                     var subnodes = new List<ProjectBrowserNode>();
 
-                    Recursive(directory, subnodes);
-
                     var node = new ProjectBrowserNode()
                     {
                         name = Path.GetFileName(directory),
                         extension = "",
                         path = directory.Replace("\\", "/"),
                         type = ProjectBrowserNodeType.Folder,
+                        parent = parent,
                         subnodes = subnodes,
                         typeName = typeof(FolderAsset).FullName,
                     };
+
+                    Recursive(directory, subnodes, node);
 
                     nodes.Add(node);
 
@@ -262,6 +278,7 @@ internal class ProjectBrowser
                         name = Path.GetFileNameWithoutExtension(file),
                         extension = Path.GetExtension(file).ToLowerInvariant(),
                         path = file.Replace("\\", "/"),
+                        parent = parent,
                         subnodes = [],
                         type = ProjectBrowserNodeType.File
                     };
@@ -368,7 +385,16 @@ internal class ProjectBrowser
                 }
             }
 
-            Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes);
+            var dummyParent = new ProjectBrowserNode()
+            {
+                name = "Assets",
+                path = basePath,
+                type = ProjectBrowserNodeType.Folder,
+            };
+
+            Recursive(Path.Combine(basePath, "Assets"), projectBrowserNodes, dummyParent);
+
+            dummyParent.subnodes = projectBrowserNodes;
 
             var currentPath = currentContentNode?.path;
 
@@ -995,6 +1021,16 @@ internal class ProjectBrowser
         }
 
         ImGui.BeginChild("ProjectBrowserContentAssets", ImGuiChildFlags.None);
+
+        EditorGUI.Disabled(currentContentNode == null || currentContentNode.path == basePath, () =>
+        {
+            EditorGUI.Button("Up", "ProjectBrowser.Up", () =>
+            {
+                currentContentNode = currentContentNode.parent;
+
+                UpdateCurrentContentNodes(currentContentNode.subnodes);
+            });
+        });
 
         ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
             "ASSET", true,

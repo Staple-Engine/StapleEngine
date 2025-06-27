@@ -17,5 +17,6 @@ internal enum ProjectBrowserResourceType
     Font,
     AssemblyDefinition,
     Plugin,
+    Code,
     Other
 }

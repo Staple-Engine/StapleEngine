@@ -1087,7 +1087,7 @@ internal partial class StapleEditor
     {
         projectBrowser.Draw(io, (item) =>
         {
-            if(item == selectedProjectNode)
+            if (item == selectedProjectNode)
             {
                 return;
             }
@@ -1134,14 +1134,14 @@ internal partial class StapleEditor
                     {
                         var holder = JsonConvert.DeserializeObject<AssetHolder>(data);
 
-                        if((holder?.guid?.Length ?? 0) > 0)
+                        if ((holder?.guid?.Length ?? 0) > 0)
                         {
                             guid = holder.guid;
 
                             return true;
                         }
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
 
@@ -1150,14 +1150,14 @@ internal partial class StapleEditor
                     return false;
                 }
 
-                if(GetAssetGUID(out var guid) && GeneratorAssetManager.TryGetGeneratorAsset(guid, out var generator))
+                if (GetAssetGUID(out var guid) && GeneratorAssetManager.TryGetGeneratorAsset(guid, out var generator))
                 {
                     original = generator;
                     selectedProjectNodeData = generator;
 
                     var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                    if(editor != null)
+                    if (editor != null)
                     {
                         editor.original = original;
                         editor.path = item.path;
@@ -1307,7 +1307,7 @@ internal partial class StapleEditor
 
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if(editor is AssetEditor e)
+                        if (editor is AssetEditor e)
                         {
                             e.original = original;
                             e.path = $"{item.path}.meta";
@@ -1336,7 +1336,7 @@ internal partial class StapleEditor
                     {
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if(editor is AssetEditor e)
+                        if (editor is AssetEditor e)
                         {
                             e.original = original;
                             e.path = $"{item.path}.meta";
@@ -1403,7 +1403,7 @@ internal partial class StapleEditor
                 {
                     var type = TypeCache.GetType(item.typeName);
 
-                    if(type != null && typeof(IStapleAsset).IsAssignableFrom(type))
+                    if (type != null && typeof(IStapleAsset).IsAssignableFrom(type))
                     {
                         try
                         {
@@ -1413,12 +1413,12 @@ internal partial class StapleEditor
 
                             var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
 
-                            if(header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
+                            if (header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
                                 header.version == SerializableStapleAssetHeader.ValidVersion)
                             {
                                 var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
 
-                                if(asset != null)
+                                if (asset != null)
                                 {
                                     selectedProjectNodeData = AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
                                     original = AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
@@ -1427,19 +1427,16 @@ internal partial class StapleEditor
                                     {
                                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                                        if (editor == null)
+                                        editor ??= new StapleAssetEditor()
                                         {
-                                            editor = new StapleAssetEditor()
-                                            {
-                                                target = selectedProjectNodeData,
-                                            };
-                                        }
+                                            target = selectedProjectNodeData,
+                                        };
 
                                         editor.original = original;
                                         editor.path = item.path;
                                         editor.cachePath = cachePath;
 
-                                        if(editor is AssetEditor e)
+                                        if (editor is AssetEditor e)
                                         {
                                             e.recreateOriginal = () =>
                                             {
@@ -1454,7 +1451,7 @@ internal partial class StapleEditor
                                                 {
                                                     var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
 
-                                                    if(asset != null)
+                                                    if (asset != null)
                                                     {
                                                         return AssetSerialization.Deserialize(asset, StapleSerializationMode.Binary);
                                                     }
@@ -1469,7 +1466,7 @@ internal partial class StapleEditor
                                 }
                             }
                         }
-                        catch(Exception)
+                        catch (Exception)
                         {
                         }
                     }
@@ -1478,61 +1475,71 @@ internal partial class StapleEditor
         },
         (item) =>
         {
-            if(item.type != ProjectBrowserNodeType.File)
+            switch (item.type)
             {
-                return;
-            }
+                case ProjectBrowserNodeType.File:
 
-            switch (item.action)
-            {
-                case ProjectBrowserNodeAction.InspectScene:
-
-                    World.Current?.Iterate((entity) =>
+                    switch (item.action)
                     {
-                        World.Current.IterateComponents(entity, (ref IComponent component) =>
-                        {
-                            if(component is IComponentDisposable disposable)
+                        case ProjectBrowserNodeAction.InspectScene:
+
+                            World.Current?.Iterate((entity) =>
                             {
-                                disposable.DisposeComponent();
+                                World.Current.IterateComponents(entity, (ref IComponent component) =>
+                                {
+                                    if (component is IComponentDisposable disposable)
+                                    {
+                                        disposable.DisposeComponent();
+                                    }
+                                });
+                            });
+
+                            ResourceManager.instance.Clear();
+
+                            Scene scene = null;
+
+                            if (item.path.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                            {
+                                var prefab = ResourceManager.instance.LoadRawPrefabFromPath(item.path);
+
+                                if (prefab != null)
+                                {
+                                    World.Current = new();
+                                    scene = Scene.current = new();
+
+                                    SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                }
                             }
-                        });
-                    });
+                            else
+                            {
+                                scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
+                            }
 
-                    ResourceManager.instance.Clear();
+                            Scene.SetActiveScene(scene);
 
-                    Scene scene = null;
+                            undoStack.Clear();
 
-                    if(item.path.EndsWith($".{AssetSerialization.PrefabExtension}"))
-                    {
-                        var prefab = ResourceManager.instance.LoadRawPrefabFromPath(item.path);
+                            if (scene != null)
+                            {
+                                lastOpenScene = item.path;
 
-                        if(prefab != null)
-                        {
-                            World.Current = new();
-                            scene = Scene.current = new();
+                                UpdateLastSession();
 
-                            SceneSerialization.InstantiatePrefab(default, prefab.data);
-                        }
+                                ResetScenePhysics(true);
+
+                                UpdateWindowTitle();
+                            }
+
+                            break;
                     }
-                    else
-                    {
-                        scene = ResourceManager.instance.LoadRawSceneFromPath(item.path);
-                    }
 
-                    Scene.SetActiveScene(scene);
+                    break;
 
-                    undoStack.Clear();
+                case ProjectBrowserNodeType.Folder:
 
-                    if (scene != null)
-                    {
-                        lastOpenScene = item.path;
+                    projectBrowser.currentContentNode = item;
 
-                        UpdateLastSession();
-
-                        ResetScenePhysics(true);
-
-                        UpdateWindowTitle();
-                    }
+                    projectBrowser.UpdateCurrentContentNodes(item.subnodes);
 
                     break;
             }

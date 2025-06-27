@@ -33,9 +33,14 @@ internal class ProjectBrowserNode
     public string typeName;
 
     /// <summary>
+    /// The parent node of this node
+    /// </summary>
+    public ProjectBrowserNode parent;
+
+    /// <summary>
     /// The subnodes in this project item
     /// </summary>
-    public List<ProjectBrowserNode> subnodes = new();
+    public List<ProjectBrowserNode> subnodes = [];
 
     /// <summary>
     /// The action to execute on double click
