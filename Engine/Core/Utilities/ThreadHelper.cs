@@ -10,8 +10,8 @@ namespace Staple;
 public static class ThreadHelper
 {
     private static Thread mainThread;
-    private static readonly List<Action> pendingActions = new();
-    private static readonly object threadLock = new();
+    private static readonly List<Action> pendingActions = [];
+    private static readonly Lock threadLock = new();
 
     public static bool IsMainThread => mainThread == Thread.CurrentThread;
 

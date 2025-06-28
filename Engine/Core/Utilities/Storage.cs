@@ -31,11 +31,17 @@ public static class Storage
 #else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("Roaming", "LocalLow");
+                var pieces = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace('\\', '/').Split('/').ToList();
+
+                pieces[^1] = "LocalLow";
+
+                basePath = string.Join('/', pieces);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
             {
-                basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
+                var homePath = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+                basePath = Path.Combine(homePath, ".config", "StapleEngine");
 
                 try
                 {
@@ -47,15 +53,7 @@ public static class Storage
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "StapleEngine");
-
-                try
-                {
-                    Directory.CreateDirectory(basePath);
-                }
-                catch (Exception)
-                {
-                }
+                basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support");
             }
             else
             {
@@ -67,7 +65,7 @@ public static class Storage
         }
     }
 
-    private static Lazy<string> stapleBasePath = new(() =>
+    private static readonly Lazy<string> stapleBasePath = new(() =>
     {
         var higherDir = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
 

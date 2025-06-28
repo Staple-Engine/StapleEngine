@@ -49,11 +49,37 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Atan2(float x, float y) => (float)System.Math.Atan2(x, y);
 
+    /// <summary>
+    /// Rounds a float value to the next highest value
+    /// </summary>
+    /// <param name="f">The value</param>
+    /// <returns>The rounded value</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Ceil(float f) => (float)System.Math.Ceiling(f);
 
+    /// <summary>
+    /// Rounds a float value to the next highest value as an int
+    /// </summary>
+    /// <param name="f">The value</param>
+    /// <returns>The rounded value</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int CeilToInt(float f) => (int)System.Math.Ceiling(f);
+
+    /// <summary>
+    /// Rounds a float value to the next lowest value
+    /// </summary>
+    /// <param name="f">The value</param>
+    /// <returns>The rounded value</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float Floor(float f) => (float)System.Math.Floor(f);
+
+    /// <summary>
+    /// Rounds a float value to the next lowest value as an int
+    /// </summary>
+    /// <param name="f">The value</param>
+    /// <returns>The rounded value</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int FloorToInt(float f) => (int)System.Math.Floor(f);
 
     /// <summary>
     /// Limits a value to a min/max range
@@ -81,12 +107,6 @@ public static class Math
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Exp(float x) => (float)System.Math.Exp(x);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Floor(float f) => (float)System.Math.Floor(f);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int FloorToInt(float f) => (int)System.Math.Floor(f);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPowerOfTwo(int x) => (x & 1) == 0;
