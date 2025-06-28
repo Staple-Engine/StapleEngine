@@ -10,7 +10,7 @@ internal class LightGizmoEditor : GizmoEditor
         var start = transform.Position;
         var end = transform.Position + transform.Forward;
 
-        var t = Math.TransformationMatrix(default, Vector3.One, transform.Rotation);
+        var t = Math.TRS(default, Vector3.One, transform.Rotation);
 
         for (var i = 0.0f; i < 360; i += 45)
         {

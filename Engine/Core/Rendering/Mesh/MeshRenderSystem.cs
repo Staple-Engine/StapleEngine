@@ -63,7 +63,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         mesh.UploadMeshData();
 
-        var matrix = Math.TransformationMatrix(position, scale, rotation);
+        var matrix = Math.TRS(position, scale, rotation);
 
         bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
             bgfx.StateFlags.WriteA |

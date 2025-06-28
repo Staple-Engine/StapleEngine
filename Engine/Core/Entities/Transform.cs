@@ -349,7 +349,7 @@ public class Transform : IComponent
         {
             changed = false;
 
-            matrix = Math.TransformationMatrix(position, scale, rotation);
+            matrix = Math.TRS(position, scale, rotation);
 
             finalMatrix = parent != null ? matrix * parent.Matrix : matrix;
 

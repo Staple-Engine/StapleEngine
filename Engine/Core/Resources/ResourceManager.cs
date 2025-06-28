@@ -1847,7 +1847,7 @@ internal class ResourceManager
             {
                 var node = meshAssetData.nodes[i];
 
-                var transform = Math.TransformationMatrix(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
+                var transform = Math.TRS(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
 
                 asset.nodes[i] = new MeshAsset.Node()
                 {

@@ -15,6 +15,7 @@ public static class Math
     public const float ZeroTolerance = 1e-4f;
 
     public const float Deg2Rad = PI / 180;
+
     public const float Rad2Deg = 180 / PI;
 
     /// <summary>
@@ -33,11 +34,6 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RoundToInt(float value) => value < 0.0f ? (int)(value - 0.5f) : (int)(value + 0.5f);
 
-    /// <summary>
-    /// Gets the absolute value of a float
-    /// </summary>
-    /// <param name="f">The float</param>
-    /// <returns>The absolute value</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Abs(float f) => (float)System.Math.Abs(f);
 
@@ -172,7 +168,8 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int NextPowerOfTwo(int value)
     {
-        int power = 2;
+        var power = 2;
+
         value--;
 
         while((value >>= 1) != 0)
@@ -201,36 +198,73 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Tan(float value) => (float)System.Math.Tan(value);
 
+    /// <summary>
+    /// Converts this into a Vector2
+    /// </summary>
+    /// <param name="v">This</param>
+    /// <returns>The Vector2</returns>
     public static Vector2 ToVector2(this Vector3 v)
     {
         return new Vector2(v.X, v.Y);
     }
 
+    /// <summary>
+    /// Converts this into a Vector2
+    /// </summary>
+    /// <param name="v">This</param>
+    /// <returns>The Vector2</returns>
     public static Vector2 ToVector2(this Vector4 v)
     {
         return new Vector2(v.X, v.Y);
     }
 
+    /// <summary>
+    /// Converts this into a Vector3
+    /// </summary>
+    /// <param name="v">This</param>
+    /// <returns>The Vector3</returns>
     public static Vector3 ToVector3(this Vector2 v)
     {
         return new Vector3(v.X, v.Y, 0);
     }
 
+    /// <summary>
+    /// Converts this into a Vector3
+    /// </summary>
+    /// <param name="v">This</param>
+    /// <returns>The Vector3</returns>
     public static Vector3 ToVector3(this Vector4 v)
     {
         return new Vector3(v.X, v.Y, v.Z);
     }
 
+    /// <summary>
+    /// Converts this into a Vector4
+    /// </summary>
+    /// <param name="v">this</param>
+    /// <param name="transform">Whether to keep the transform portion of the vector</param>
+    /// <returns>The Vector4</returns>
     public static Vector4 ToVector4(this Vector2 v, bool transform = false)
     {
         return new Vector4(v.X, v.Y, 0, transform ? 1 : 0);
     }
 
+    /// <summary>
+    /// Converts this into a Vector4
+    /// </summary>
+    /// <param name="v">this</param>
+    /// <param name="transform">Whether to keep the transform portion of the vector</param>
+    /// <returns>The Vector4</returns>
     public static Vector4 ToVector4(this Vector3 v, bool transform = false)
     {
         return new Vector4(v.X, v.Y, v.Z, transform ? 1 : 0);
     }
 
+    /// <summary>
+    /// Converts this into a Matrix3x3
+    /// </summary>
+    /// <param name="m">this</param>
+    /// <returns>The 3x3 matrix</returns>
     public static Matrix3x3 ToMatrix3x3(this Matrix4x4 m)
     {
         return new()
@@ -248,7 +282,7 @@ public static class Math
     }
 
     /// <summary>
-    /// Converts a quaternion to a vector3 representation of each angle rotation as degrees
+    /// Converts this to a vector3 representation of each angle rotation as degrees
     /// </summary>
     /// <param name="q">The quaternion</param>
     /// <returns>The angles as a vector3 of degrees</returns>
@@ -330,7 +364,7 @@ public static class Math
     /// <param name="scale">The scale</param>
     /// <param name="rotation">The rotation</param>
     /// <returns>The transformation matrix</returns>
-    public static Matrix4x4 TransformationMatrix(Vector3 position, Vector3 scale, Quaternion rotation)
+    public static Matrix4x4 TRS(Vector3 position, Vector3 scale, Quaternion rotation)
     {
         return Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
     }
@@ -461,6 +495,11 @@ public static class Math
         return quaternion;
     }
 
+    /// <summary>
+    /// Gets a matrix4x4 containing the 3x3 portion of this matrix
+    /// </summary>
+    /// <param name="matrix">this</param>
+    /// <returns>A matrix4x4 containing the 3x3 portion of this matrix</returns>
     public static Matrix4x4 ContainingMatrix3x3(this Matrix4x4 matrix)
     {
         var outValue = matrix;
@@ -471,24 +510,60 @@ public static class Math
         return outValue;
     }
 
-    public static bool IsCloseToIdentity(this Matrix4x4 matrix)
+    /// <summary>
+    /// Calculates the angle between two vectors
+    /// </summary>
+    /// <param name="from">The vector we want to check the angle from</param>
+    /// <param name="to">The vector we want to check the angle to</param>
+    /// <returns>The angle, or 0 if too small</returns>
+    public static float Angle(Vector2 from, Vector2 to)
     {
-        return Abs(matrix.M11 - 1f) < ZeroTolerance &&
-            Abs(matrix.M22 - 1f) < ZeroTolerance &&
-            Abs(matrix.M33 - 1f) < ZeroTolerance &&
-            Abs(matrix.M44 - 1f) < ZeroTolerance &&
-            Abs(matrix.M12) < ZeroTolerance &&
-            Abs(matrix.M13) < ZeroTolerance &&
-            Abs(matrix.M14) < ZeroTolerance &&
-            Abs(matrix.M21) < ZeroTolerance &&
-            Abs(matrix.M23) < ZeroTolerance &&
-            Abs(matrix.M24) < ZeroTolerance &&
-            Abs(matrix.M31) < ZeroTolerance &&
-            Abs(matrix.M32) < ZeroTolerance &&
-            Abs(matrix.M34) < ZeroTolerance &&
-            Abs(matrix.M41) < ZeroTolerance &&
-            Abs(matrix.M42) < ZeroTolerance &&
-            Abs(matrix.M43) < ZeroTolerance;
+        var dot = Vector2.Dot(from, to);
+        var magnitude = from.Length() * to.Length();
+
+        if (magnitude < ZeroTolerance)
+        {
+            return 0;
+        }
+
+        return Acos(dot / magnitude) * Rad2Deg;
     }
 
+    /// <summary>
+    /// Calculates the angle between two vectors
+    /// </summary>
+    /// <param name="from">The vector we want to check the angle from</param>
+    /// <param name="to">The vector we want to check the angle to</param>
+    /// <returns>The angle, or 0 if too small</returns>
+    public static float Angle(Vector3 from, Vector3 to)
+    {
+        var dot = Vector3.Dot(from, to);
+        var magnitude = from.Length() * to.Length();
+
+        if (magnitude < ZeroTolerance)
+        {
+            return 0;
+        }
+
+        return Acos(dot / magnitude) * Rad2Deg;
+    }
+
+    /// <summary>
+    /// Calculates the angle between two vectors
+    /// </summary>
+    /// <param name="from">The vector we want to check the angle from</param>
+    /// <param name="to">The vector we want to check the angle to</param>
+    /// <returns>The angle, or 0 if too small</returns>
+    public static float Angle(Vector4 from, Vector4 to)
+    {
+        var dot = Vector4.Dot(from, to);
+        var magnitude = from.Length() * to.Length();
+
+        if (magnitude < ZeroTolerance)
+        {
+            return 0;
+        }
+
+        return Acos(dot / magnitude) * Rad2Deg;
+    }
 }

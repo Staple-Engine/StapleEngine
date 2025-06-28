@@ -475,7 +475,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            nodeCache[i].Transform = Math.TransformationMatrix(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
+            nodeCache[i].Transform = Math.TRS(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
         }
     }
 }

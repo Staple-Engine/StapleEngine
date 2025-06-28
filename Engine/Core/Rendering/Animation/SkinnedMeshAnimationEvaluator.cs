@@ -248,7 +248,7 @@ internal class SkinnedMeshAnimationEvaluator
             lastScaleIndex.AddOrSetKey(i, scaleIndex);
             lastRotationIndex.AddOrSetKey(i, rotationIndex);
 
-            node.Transform = Math.TransformationMatrix(position, scale, rotation);
+            node.Transform = Math.TRS(position, scale, rotation);
         }
 
         lastTime = time;
