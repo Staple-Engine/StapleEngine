@@ -31,7 +31,7 @@ internal class RangePropertyDrawer : PropertyDrawer
         }
         else if (value is float f)
         {
-            var newValue = EditorGUI.FloatSlider(name, $"Range{ID}.Value", f, (int)range.minValue, (int)range.maxValue);
+            var newValue = EditorGUI.FloatSlider(name, $"Range{ID}.Value", f, range.minValue, range.maxValue);
 
             if (newValue != f)
             {

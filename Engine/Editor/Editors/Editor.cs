@@ -250,7 +250,7 @@ public class Editor
                 {
                     try
                     {
-                        drawer.OnGUI(name, IDSuffix, getter, setter, attributes);
+                        drawer.OnGUI(name, $"{name}{IDSuffix}", getter, setter, attributes);
                     }
                     catch (Exception e)
                     {
