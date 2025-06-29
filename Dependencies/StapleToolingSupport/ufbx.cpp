@@ -454,7 +454,7 @@ public:
 						}
 					}
 
-					Vector4* colors[4]
+					Vector4* colors[4] = 
 					{
 						&v.color0,
 						&v.color1,
