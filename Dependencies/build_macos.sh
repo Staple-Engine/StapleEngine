@@ -40,6 +40,9 @@ xcodebuild -scheme bgfx -configuration Release build -workspace Dependencies.xcw
 xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
 
+xcodebuild -scheme StapleToolingSupport -configuration Debug build -workspace Dependencies.xcworkspace
+xcodebuild -scheme StapleToolingSupport -configuration Release build -workspace Dependencies.xcworkspace
+
 cd ../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net9.0
