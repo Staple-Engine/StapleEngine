@@ -1409,7 +1409,7 @@ public sealed partial class Mesh : IGuidAsset
     /// <returns>The new entity</returns>
     public static Entity InstanceMesh(string name, Mesh mesh, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
-        if(mesh == null)
+        if(mesh is null)
         {
             return default;
         }
@@ -1430,8 +1430,10 @@ public sealed partial class Mesh : IGuidAsset
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetSerialization.StandardShaderGUID)];
 
-        if (mesh.HasBoneIndices && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
+        if (mesh.HasBoneIndices && mesh.meshAsset != null && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
         {
+            meshEntity.AddComponent<SkinnedMeshInstance>();
+
             var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
             skinnedRenderer.mesh = mesh;
@@ -1460,7 +1462,7 @@ public sealed partial class Mesh : IGuidAsset
     /// <returns>The new entity</returns>
     public static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
-        if(asset == null)
+        if(asset is null)
         {
             return default;
         }
@@ -1476,6 +1478,11 @@ public sealed partial class Mesh : IGuidAsset
         var baseTransform = baseEntity.GetComponent<Transform>();
 
         baseTransform.SetParent(parent);
+
+        if(asset.BoneCount > 0)
+        {
+            baseEntity.AddComponent<SkinnedMeshInstance>();
+        }
 
         Transform stapleRootNodeTransform = null;
 

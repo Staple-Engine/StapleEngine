@@ -6,7 +6,7 @@ namespace Staple;
 /// <summary>
 /// Skinned Mesh Renderer component
 /// </summary>
-public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
+public sealed class SkinnedMeshRenderer : Renderable
 {
     /// <summary>
     /// The mesh used for this
@@ -19,39 +19,7 @@ public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
     public List<Material> materials = [];
 
     /// <summary>
-    /// A query to get a data source in self or parent
+    /// Skinned mesh instance query
     /// </summary>
-    internal EntityQuery<ISkinnedMeshDataSource> dataSource;
-
-    /// <summary>
-    /// Cached bone matrices
-    /// </summary>
-    internal Matrix4x4[] boneMatrices;
-
-    /// <summary>
-    /// Cached bone buffer
-    /// </summary>
-    internal VertexBuffer boneBuffer;
-
-    /// <summary>
-    /// Cached transforms
-    /// </summary>
-    internal Transform[] transformCache;
-
-    /// <summary>
-    /// Cached nodes
-    /// </summary>
-    internal MeshAsset.Node[] nodeCache;
-
-    /// <summary>
-    /// Timer for updating transforms
-    /// </summary>
-    internal float transformUpdateTimer;
-
-    public void DisposeComponent()
-    {
-        boneBuffer?.Destroy();
-
-        boneBuffer = null;
-    }
+    internal EntityQuery<SkinnedMeshInstance> instance;
 }

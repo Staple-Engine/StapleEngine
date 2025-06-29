@@ -31,6 +31,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
 
+    private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
+
     public bool NeedsUpdate { get; set; }
 
     public bool UsesOwnRenderProcess => false;
@@ -54,7 +56,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
             var renderer = relatedComponent as SkinnedMeshRenderer;
 
@@ -90,8 +92,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            renderer.dataSource ??= new(entity, EntityQueryMode.SelfAndParent, false);
-
             renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center * transform.LocalScale, renderer.mesh.bounds.size * transform.LocalScale);
             renderer.bounds = new(transform.Position + renderer.mesh.bounds.center * transform.Scale, renderer.mesh.bounds.size * transform.Scale);
         }
@@ -115,7 +115,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             container.Clear();
         }
 
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var (entity, transform, relatedComponent) in entities)
         {
             var renderer = relatedComponent as SkinnedMeshRenderer;
 
@@ -144,43 +144,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            var mesh = renderer.mesh;
-            var meshAsset = mesh.meshAsset;
-
-            Matrix4x4[] boneMatrices;
-
-            if((renderer.boneMatrices?.Length ?? 0) == 0)
-            {
-                renderer.boneMatrices = boneMatrices = new Matrix4x4[meshAsset.BoneCount];
-
-                renderer.nodeCache = meshAsset.nodes;
-                renderer.transformCache = new Transform[meshAsset.nodes.Length];
-
-                var rootTransform = FindRootTransform(transform, renderer.nodeCache.FirstOrDefault());
-
-                if(rootTransform != null)
-                {
-                    GatherNodeTransforms(rootTransform, renderer.transformCache, renderer.nodeCache);
-                }
-
-                UpdateBoneMatrices(meshAsset, boneMatrices, renderer.transformCache);
-            }
-            else
-            {
-                boneMatrices = renderer.boneMatrices;
-            }
-
-            if ((renderer.boneBuffer?.Disposed ?? true))
-            {
-                renderer.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
-
-                renderer.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
-            }
+            renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
 
             container.Add(new()
             {
@@ -215,6 +179,77 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
+        foreach(var (entity, instance, transform) in instances.Contents)
+        {
+            if(instance.mesh?.MeshAssetMesh is null)
+            {
+                var animator = entity.GetComponent<SkinnedMeshAnimator>();
+
+                if(animator?.mesh is not null)
+                {
+                    instance.mesh = animator.mesh;
+                }
+
+                var renderers = entity.GetComponentsInChildren<SkinnedMeshRenderer>();
+
+                foreach(var renderer in renderers)
+                {
+                    if(renderer.mesh is not null)
+                    {
+                        instance.mesh = renderer.mesh;
+                    }
+                }
+
+                if(instance.mesh is null)
+                {
+                    continue;
+                }
+            }
+
+            Matrix4x4[] boneMatrices;
+
+            if ((instance.boneMatrices?.Length ?? 0) == 0)
+            {
+                instance.boneMatrices = boneMatrices = new Matrix4x4[instance.mesh.meshAsset.BoneCount];
+
+                instance.nodeCache = instance.mesh.meshAsset.nodes;
+                instance.transformCache = new Transform[instance.mesh.meshAsset.nodes.Length];
+
+                GatherNodeTransforms(transform, instance.transformCache, instance.nodeCache);
+
+                UpdateBoneMatrices(instance.mesh.meshAsset, boneMatrices, instance.transformCache);
+            }
+            else
+            {
+                boneMatrices = instance.boneMatrices;
+            }
+
+            if ((instance.boneBuffer?.Disposed ?? true))
+            {
+                instance.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
+                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
+
+                instance.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
+            }
+
+            instance.transformUpdateTimer += Time.deltaTime;
+
+            var limit = instance.mesh.meshAsset.syncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / instance.mesh.meshAsset.frameRate;
+
+            if (instance.transformUpdateTimer >= limit)
+            {
+                instance.transformUpdateTimer -= limit;
+
+                UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
+
+                instance.boneBuffer.Update(instance.boneMatrices.AsSpan(), 0, true);
+            }
+        }
+
         var l = content.Length;
 
         for (var i = 0; i < l; i++)
@@ -222,26 +257,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var item = content.Contents[i];
 
             var renderer = item.renderer;
+            var instance = renderer.instance.Content;
+
+            if(instance == null)
+            {
+                continue;
+            }
+
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var dataSource = renderer.dataSource.Content;
             var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.lighting;
-
-            if(dataSource == null)
-            {
-                renderer.transformUpdateTimer += Time.deltaTime;
-
-                var limit = meshAsset.syncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / meshAsset.frameRate;
-
-                if (renderer.transformUpdateTimer >= limit)
-                {
-                    renderer.transformUpdateTimer -= limit;
-
-                    UpdateBoneMatrices(renderer.mesh.meshAsset, renderer.boneMatrices, renderer.transformCache);
-
-                    renderer.boneBuffer.Update(renderer.boneMatrices.AsSpan(), 0, true);
-                }
-            }
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
@@ -316,8 +341,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var flags = bgfx.DiscardFlags.State;
 
-                var buffer = dataSource != null ? dataSource.GetSkinningBuffer(renderer) ?? renderer.boneBuffer :
-                    renderer.boneBuffer;
+                var buffer = instance.boneBuffer;
 
                 buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 

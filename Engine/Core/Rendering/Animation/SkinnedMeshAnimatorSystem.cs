@@ -45,13 +45,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     }
     #endregion
 
-    internal void UpdateRenderBuffer(SkinnedMeshAnimator animator)
-    {
-        SkinnedMeshRenderSystem.UpdateBoneMatrices(animator.mesh.meshAsset, animator.cachedBoneMatrices, animator.transformCache);
-
-        animator.boneMatrixBuffer.Update(animator.cachedBoneMatrices.AsSpan(), 0, true);
-    }
-
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
         if(viewID != RenderSystem.FirstCameraViewID && (Platform.IsEditor == false || viewID != RenderSystem.EditorSceneViewID))
@@ -88,19 +81,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 }
             }
 
-            if(animator.boneMatrixBuffer?.Disposed ?? true)
-            {
-                animator.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                    .Build(),
-                    RenderBufferFlags.ComputeRead, true, (uint)animator.mesh.meshAsset.BoneCount);
-
-                animator.cachedBoneMatrices = new Matrix4x4[animator.mesh.meshAsset.BoneCount];
-            }
-
             if (Platform.IsPlaying || animator.playInEditMode)
             {
                 if ((animator.evaluator == null ||
@@ -119,10 +99,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     }
                 }
 
-                if(animator.evaluator?.Evaluate() ?? false)
-                {
-                    UpdateRenderBuffer(animator);
-                }
+                animator.evaluator?.Evaluate();
             }
             else if (animator.playInEditMode == false)
             {
@@ -131,8 +108,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
 
                     animator.evaluator = null;
-
-                    UpdateRenderBuffer(animator);
                 }
             }
         }

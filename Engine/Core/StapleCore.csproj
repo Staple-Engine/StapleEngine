@@ -174,11 +174,11 @@
 		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Hooks\StapleHooks.cs" />
-		<Compile Include="Rendering\Animation\ISkinnedMeshDataSource.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationController.cs" />
 		<Compile Include="Rendering\Animation\SkinnedMeshAttachment.cs" />
 		<Compile Include="Rendering\Animation\SkinnedMeshAttachmentSystem.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationStateMachine.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshInstance.cs" />
 		<Compile Include="Rendering\Camera\CameraViewMode.cs" />
 		<Compile Include="Rendering\CullingMode.cs" />
 		<Compile Include="Rendering\FPSCounter.cs" />
