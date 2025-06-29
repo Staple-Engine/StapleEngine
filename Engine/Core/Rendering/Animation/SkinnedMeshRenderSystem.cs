@@ -231,9 +231,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 renderer.transformUpdateTimer += Time.deltaTime;
 
-                if (renderer.transformUpdateTimer >= 1 / Screen.RefreshRate)
+                var limit = meshAsset.syncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / meshAsset.frameRate;
+
+                if (renderer.transformUpdateTimer >= limit)
                 {
-                    renderer.transformUpdateTimer -= 1 / Screen.RefreshRate;
+                    renderer.transformUpdateTimer -= limit;
 
                     UpdateBoneMatrices(renderer.mesh.meshAsset, renderer.boneMatrices, renderer.transformCache);
 
