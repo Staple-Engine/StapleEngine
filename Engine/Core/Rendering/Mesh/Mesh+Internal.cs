@@ -213,6 +213,22 @@ public sealed partial class Mesh
     internal List<SubmeshInfo> submeshes = [];
 
     /// <summary>
+    /// Gets the mesh asset mesh of this mesh
+    /// </summary>
+    internal MeshAsset.MeshInfo MeshAssetMesh
+    {
+        get
+        {
+            if(meshAsset == null || meshAssetIndex < 0 || meshAssetIndex >= meshAsset.meshes.Count)
+            {
+                return null;
+            }
+
+            return meshAsset.meshes[meshAssetIndex];
+        }
+    }
+
+    /// <summary>
     /// Internal list of vertex layouts for each a unique key
     /// </summary>
     internal static Dictionary<string, VertexLayout> vertexLayouts = [];

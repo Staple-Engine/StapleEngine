@@ -17,6 +17,11 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public const ushort FirstCameraViewID = 1;
 
     /// <summary>
+    /// The ID of the editor scene view
+    /// </summary>
+    public const ushort EditorSceneViewID = 253;
+
+    /// <summary>
     /// Contains information on a draw call
     /// </summary>
     internal class DrawCall

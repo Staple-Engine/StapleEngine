@@ -1,6 +1,7 @@
 ﻿using Bgfx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -23,26 +24,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public SkinnedMeshRenderer renderer;
 
         /// <summary>
-        /// The render cache
-        /// </summary>
-        public RenderCache cache;
-
-        /// <summary>
         /// The transform of the object
         /// </summary>
         public Transform transform;
     }
 
-    private class RenderCache
-    {
-        public Matrix4x4[] boneMatrices;
-
-        public VertexBuffer boneBuffer;
-    }
-
     private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
-
-    private readonly Dictionary<int, RenderCache> renderCache = [];
 
     public bool NeedsUpdate { get; set; }
 
@@ -126,15 +113,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             container.Clear();
         }
 
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
             var renderer = relatedComponent as SkinnedMeshRenderer;
 
             if (renderer.isVisible == false ||
-                renderer.mesh == null ||
-                renderer.mesh.meshAsset == null ||
-                renderer.mesh.meshAssetIndex < 0 ||
-                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+                renderer.mesh?.MeshAssetMesh is not MeshAsset.MeshInfo meshAssetMesh ||
                 renderer.materials == null ||
                 renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
@@ -158,48 +142,47 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            renderer.animator ??= new(entity, EntityQueryMode.Parent, false);
-            renderer.poser ??= new(entity, EntityQueryMode.Parent, false);
-
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
 
             Matrix4x4[] boneMatrices;
 
-            if (renderCache.TryGetValue(meshAsset.Guid.GuidHash, out var cache) == false)
+            if((renderer.boneMatrices?.Length ?? 0) == 0)
             {
-                boneMatrices = new Matrix4x4[meshAsset.BoneCount];
+                renderer.boneMatrices = boneMatrices = new Matrix4x4[meshAsset.BoneCount];
 
-                cache = new()
+                renderer.nodeCache = meshAsset.nodes;
+                renderer.transformCache = new Transform[meshAsset.nodes.Length];
+
+                var rootTransform = FindRootTransform(transform, renderer.nodeCache.FirstOrDefault());
+
+                if(rootTransform != null)
                 {
-                    boneMatrices = boneMatrices,
-                };
+                    GatherNodeTransforms(rootTransform, renderer.transformCache, renderer.nodeCache);
+                }
 
-                renderCache.Add(meshAsset.Guid.GuidHash, cache);
-
-                UpdateBoneMatrices(meshAsset, boneMatrices, meshAsset.nodes);
+                UpdateBoneMatrices(meshAsset, boneMatrices, renderer.transformCache);
             }
             else
             {
-                boneMatrices = cache.boneMatrices;
+                boneMatrices = renderer.boneMatrices;
             }
 
-            if ((cache.boneBuffer?.Disposed ?? true))
+            if ((renderer.boneBuffer?.Disposed ?? true))
             {
-                cache.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
+                renderer.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
                     .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
                     .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
                     .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
 
-                cache.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                renderer.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
             }
 
             container.Add(new()
             {
                 renderer = renderer,
-                cache = cache,
                 transform = transform,
             });
         }
@@ -223,7 +206,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             bgfx.StateFlags.DepthTestLequal;
 
         Material lastMaterial = null;
-        SkinnedMeshAnimator lastAnimator = null;
 
         var lastMeshAsset = 0;
         var lastLighting = MaterialLighting.Unlit;
@@ -238,12 +220,20 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var item = content.Contents[i];
 
             var renderer = item.renderer;
-            var cache = item.cache;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var animator = renderer.animator.Content;
-            var poser = renderer.poser.Content;
             var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.lighting;
+
+            renderer.transformUpdateTimer += Time.deltaTime;
+
+            if (renderer.transformUpdateTimer >= 1 / Screen.RefreshRate)
+            {
+                renderer.transformUpdateTimer -= 1 / Screen.RefreshRate;
+
+                UpdateBoneMatrices(renderer.mesh.meshAsset, renderer.boneMatrices, renderer.transformCache);
+
+                renderer.boneBuffer.Update(renderer.boneMatrices.AsSpan(), 0, true);
+            }
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
@@ -251,13 +241,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var material = renderer.materials[j];
 
-                var useAnimator = animator != null && animator.evaluator != null;
-
-                var usePoser = poser != null;
-
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.StateHash != (lastMaterial?.StateHash ?? 0) ||
-                    lastAnimator != animator ||
                     lastLighting != lighting ||
                     lastTopology != renderer.mesh.MeshTopology;
 
@@ -276,7 +261,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     lastMeshAsset = assetGuid;
                     lastMaterial = material;
-                    lastAnimator = animator;
                     lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
 
@@ -324,9 +308,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var flags = bgfx.DiscardFlags.State;
 
-                var buffer = useAnimator ? animator.GetBoneMatrixBuffer(meshAsset.Guid.GuidHash) :
-                    usePoser ? poser.boneMatrixBuffer :
-                    cache.boneBuffer;
+                var buffer = renderer.boneBuffer;
 
                 buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 
@@ -338,16 +320,75 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     }
 
     /// <summary>
+    /// Attempts to find the root transform for a node
+    /// </summary>
+    /// <param name="current">The current transform</param>
+    /// <param name="rootNode">The root node</param>
+    /// <returns>The transform, or null</returns>
+    public static Transform FindRootTransform(Transform current, MeshAsset.Node rootNode)
+    {
+        if(current == null || rootNode == null)
+        {
+            return null;
+        }
+
+        if(current.entity.Name == rootNode.name)
+        {
+            return current;
+        }
+
+        //If we have a staple root, we need to go one more ahead
+        if(rootNode.name == "StapleRoot")
+        {
+            if(current.parent?.parent?.parent?.entity.Name == rootNode.name)
+            {
+                return current.parent.parent.parent;
+            }
+        }
+
+        //All Skinned Meshes are in a child of a child of the root
+        var expectedRoot = current.parent?.parent;
+
+        if(expectedRoot == null)
+        {
+            return null;
+        }
+
+        foreach(var child in expectedRoot.Children)
+        {
+            if(child.entity.Name == rootNode.name)
+            {
+                return child.parent;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Updates an span of bone matrices. The span must have the same length as a mesh asset's BoneCount
     /// </summary>
     /// <param name="meshAsset">The mesh asset to get info from</param>
     /// <param name="boneMatrices">The bone matrices to update</param>
-    /// <param name="nodes">The node we're updating from</param>
-    public static void UpdateBoneMatrices(MeshAsset meshAsset, Span<Matrix4x4> boneMatrices, MeshAsset.Node[] nodes)
+    /// <param name="transforms">The transforms of the nodes</param>
+    public static void UpdateBoneMatrices(MeshAsset meshAsset, Span<Matrix4x4> boneMatrices, Transform[] transforms)
     {
-        if(boneMatrices.Length != meshAsset.BoneCount)
+        if (boneMatrices.Length != meshAsset.BoneCount ||
+            transforms.Length == 0)
         {
             return;
+        }
+
+        var reverseParentTransform = Matrix4x4.Identity;
+
+        if (transforms[0]?.parent != null)
+        {
+            var parent = transforms[0].parent;
+
+            if (parent != null)
+            {
+                Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
+            }
         }
 
         for (var i = 0; i < meshAsset.meshes.Count; i++)
@@ -364,15 +405,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     var bone = bones[k];
 
-                    var renderNode = meshAsset.nodes[bone.nodeIndex];
+                    var localTransform = bone.nodeIndex >= 0 && bone.nodeIndex < transforms.Length ?
+                        transforms[bone.nodeIndex] : null;
 
-                    var localIndex = Array.FindIndex(nodes, (x => x.name == renderNode.name));
+                    var transformMatrix = localTransform?.Matrix ?? Matrix4x4.Identity;
 
-                    var localNode = localIndex >= 0 && localIndex < nodes.Length ?
-                        nodes[localIndex] : null;
+                    if (localTransform != null)
+                    {
+                        transformMatrix *= reverseParentTransform;
+                    }
 
-                    boneMatrices[m.startBoneIndex + k] = localNode != null ?
-                        bone.offsetMatrix * localNode.GlobalTransform : bone.offsetMatrix;
+                    boneMatrices[m.startBoneIndex + k] = localTransform != null ?
+                        bone.offsetMatrix * transformMatrix : bone.offsetMatrix;
                 }
             }
         }
@@ -421,6 +465,29 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     }
 
     /// <summary>
+    /// Applies a node's transform to a single element in a more effective way
+    /// </summary>
+    /// <param name="index">The node index</param>
+    /// <param name="position">The new position</param>
+    /// <param name="rotation">The new rotation</param>
+    /// <param name="scale">The new scale</param>
+    /// <param name="transformCache">The transform cache</param>
+    public static void ApplyNodeTransformQuick(int index, Vector3 position, Quaternion rotation, Vector3 scale, Transform[] transformCache)
+    {
+        if(transformCache == null ||
+            index < 0 ||
+            index >= transformCache.Length ||
+            transformCache[index] is not Transform transform)
+        {
+            return;
+        }
+
+        transform.LocalPosition = position;
+        transform.LocalRotation = rotation;
+        transform.LocalScale = scale;
+    }
+
+    /// <summary>
     /// Applies the transforms of a node cache into its related entity transforms
     /// </summary>
     /// <param name="nodeCache">The node cache</param>
@@ -449,33 +516,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             transform.LocalPosition = original ? node.OriginalPosition : node.Position;
             transform.LocalRotation = original ? node.OriginalRotation : node.Rotation;
             transform.LocalScale = original ? node.OriginalScale : node.Scale;
-        }
-    }
-
-    /// <summary>
-    /// Applies transforms to nodes. This lets you override the animation transforms.
-    /// </summary>
-    /// <param name="nodeCache">The node cache</param>
-    /// <param name="transformCache">The transform cache</param>
-    public static void ApplyTransformsToNodes(MeshAsset.Node[] nodeCache, Transform[] transformCache)
-    {
-        if(nodeCache == null ||
-            transformCache == null ||
-            nodeCache.Length != transformCache.Length)
-        {
-            return;
-        }
-
-        for (var i = 0; i < nodeCache.Length; i++)
-        {
-            var transform = transformCache[i];
-
-            if (transform == null)
-            {
-                continue;
-            }
-
-            nodeCache[i].Transform = Math.TRS(transform.LocalPosition, transform.LocalScale, transform.LocalRotation);
         }
     }
 }

@@ -59,8 +59,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
             {
                 if ((nodes?.Length ?? 0) == 0 ||
                     attachment.nodeIndex < 0 ||
-                    attachment.nodeIndex >= nodes.Length ||
-                    (animator?.shouldRender ?? first) == false)
+                    attachment.nodeIndex >= nodes.Length)
                 {
                     return;
                 }

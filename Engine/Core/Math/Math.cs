@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Staple;
@@ -585,5 +586,62 @@ public static class Math
         }
 
         return Acos(dot / magnitude) * Rad2Deg;
+    }
+
+    /// <summary>
+    /// Checks if this is close to equal to another Vector2
+    /// </summary>
+    /// <param name="a">This</param>
+    /// <param name="b">The other</param>
+    /// <param name="delta">The distance we want to check</param>
+    /// <returns>Whether it's close to equal</returns>
+    public static bool IsCloseToEqual(this Vector2 a, Vector2 b, float delta = ZeroTolerance)
+    {
+        return Abs(a.X - b.X) < delta &&
+            Abs(a.Y - b.Y) < delta;
+    }
+
+    /// <summary>
+    /// Checks if this is close to equal to another Vector3
+    /// </summary>
+    /// <param name="a">This</param>
+    /// <param name="b">The other</param>
+    /// <param name="delta">The distance we want to check</param>
+    /// <returns>Whether it's close to equal</returns>
+    public static bool IsCloseToEqual(this Vector3 a, Vector3 b, float delta = ZeroTolerance)
+    {
+        return Abs(a.X - b.X) < delta &&
+            Abs(a.Y - b.Y) < delta &&
+            Abs(a.Z - b.Z) < delta;
+    }
+
+    /// <summary>
+    /// Checks if this is close to equal to another Vector4
+    /// </summary>
+    /// <param name="a">This</param>
+    /// <param name="b">The other</param>
+    /// <param name="delta">The distance we want to check</param>
+    /// <returns>Whether it's close to equal</returns>
+    public static bool IsCloseToEqual(this Vector4 a, Vector4 b, float delta = ZeroTolerance)
+    {
+        return Abs(a.X - b.X) < delta &&
+            Abs(a.Y - b.Y) < delta &&
+            Abs(a.Z - b.Z) < delta &&
+            Abs(a.W - b.W) < delta;
+    }
+
+    /// <summary>
+    /// Checks if this is close to equal to another Quaternion
+    /// </summary>
+    /// <param name="a">This</param>
+    /// <param name="b">The other</param>
+    /// <param name="delta">The distance we want to check</param>
+    /// <returns>Whether it's close to equal</returns>
+    public static bool IsCloseToEqual(this Quaternion a, Quaternion b, float delta = ZeroTolerance)
+    {
+        return Abs(a.X - b.X) < delta &&
+            Abs(a.Y - b.Y) < delta &&
+            Abs(a.Z - b.Z) < delta &&
+            Abs(a.W - b.W) < delta;
     }
 }

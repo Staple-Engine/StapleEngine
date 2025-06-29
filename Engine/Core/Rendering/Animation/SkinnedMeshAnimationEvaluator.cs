@@ -248,13 +248,9 @@ internal class SkinnedMeshAnimationEvaluator
             lastScaleIndex.AddOrSetKey(i, scaleIndex);
             lastRotationIndex.AddOrSetKey(i, rotationIndex);
 
-            node.Transform = Math.TRS(position, scale, rotation);
+            SkinnedMeshRenderSystem.ApplyNodeTransformQuick(channel.nodeIndex, position, rotation, scale, animator.transformCache);
         }
 
         lastTime = time;
-
-        SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache);
-
-        animator.shouldRender = true;
     }
 }

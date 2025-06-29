@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple;
 
 /// <summary>
 /// Skinned Mesh Renderer component
 /// </summary>
-public sealed class SkinnedMeshRenderer : Renderable
+public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
 {
     /// <summary>
     /// The mesh used for this
@@ -17,13 +18,20 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// </summary>
     public List<Material> materials = [];
 
-    /// <summary>
-    /// Cached animator for this renderer
-    /// </summary>
-    internal EntityQuery<SkinnedMeshAnimator> animator;
+    internal Matrix4x4[] boneMatrices;
 
-    /// <summary>
-    /// Cached poser for this renderer
-    /// </summary>
-    internal EntityQuery<SkinnedAnimationPoser> poser;
+    internal VertexBuffer boneBuffer;
+
+    internal Transform[] transformCache;
+
+    internal MeshAsset.Node[] nodeCache;
+
+    internal float transformUpdateTimer;
+
+    public void DisposeComponent()
+    {
+        boneBuffer?.Destroy();
+
+        boneBuffer = null;
+    }
 }

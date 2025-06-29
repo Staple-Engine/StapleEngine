@@ -1,6 +1,4 @@
-﻿using Staple.Jobs;
-using System;
-using System.Numerics;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -37,25 +35,16 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, _, relatedComponent) in entities)
-        {
-            if (relatedComponent is SkinnedMeshAnimator animator)
-            {
-                animator.shouldRender = false;
-
-                animator.renderers ??= new(entity, EntityQueryMode.Children, false);
-            }
-        }
     }
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
-        if(viewID != RenderSystem.FirstCameraViewID)
+        if(viewID != RenderSystem.FirstCameraViewID && (Platform.IsEditor == false || viewID != RenderSystem.EditorSceneViewID))
         {
             return;
         }
 
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var (_, transform, relatedComponent) in entities)
         {
             var animator = relatedComponent as SkinnedMeshAnimator;
 
@@ -64,8 +53,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 animator.mesh.meshAssetIndex < 0 ||
                 animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
                 (animator.animation?.Length ?? 0) == 0 ||
-                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false ||
-                animator.renderers.Length == 0)
+                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false)
             {
                 return;
             }
@@ -99,75 +87,17 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                         animator.nodeCache = animator.evaluator.nodes;
 
-                        animator.shouldRender = true;
-
                         animator.playTime = 0;
                     }
                 }
 
                 animator.evaluator?.Evaluate();
-
-                if(animator.shouldRender)
-                {
-                    foreach(var renderer in animator.renderers.Contents)
-                    {
-                        if(renderer.mesh?.meshAsset == null)
-                        {
-                            continue;
-                        }
-
-                        if(animator.renderInfos.TryGetValue(renderer.mesh.meshAsset.Guid.GuidHash, out var renderInfo) == false)
-                        {
-                            renderInfo = new();
-
-                            animator.renderInfos.Add(renderer.mesh.meshAsset.Guid.GuidHash, renderInfo);
-                        }
-
-                        if (renderInfo.boneMatrixBuffer?.Disposed ?? true)
-                        {
-                            renderInfo.boneMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                                .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                                .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                                .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                                .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                                .Build(), RenderBufferFlags.ComputeRead, true, (uint)renderer.mesh.meshAsset.BoneCount);
-
-                            renderInfo.cachedBoneMatrices = new Matrix4x4[renderer.mesh.meshAsset.BoneCount];
-                        }
-                    }
-
-                    if (animator.boneUpdateHandle.Valid && animator.boneUpdateHandle.Completed == false)
-                    {
-                        animator.boneUpdateHandle.Complete();
-                    }
-
-                    animator.boneUpdateHandle = JobScheduler.Schedule(new ActionJob(() =>
-                    {
-                        foreach(var renderer in animator.renderers.Contents)
-                        {
-                            if(renderer.mesh?.meshAsset?.Guid?.GuidHash == null ||
-                                animator.renderInfos.TryGetValue(renderer.mesh.meshAsset.Guid.GuidHash, out var renderInfo) == false)
-                            {
-                                continue;
-                            }
-
-                            SkinnedMeshRenderSystem.UpdateBoneMatrices(renderer.mesh.meshAsset, renderInfo.cachedBoneMatrices, animator.nodeCache);
-
-                            ThreadHelper.Dispatch(() =>
-                            {
-                                renderInfo.boneMatrixBuffer.Update(renderInfo.cachedBoneMatrices.AsSpan(), 0, true);
-                            });
-                        }
-                    }));
-                }
             }
             else if (animator.playInEditMode == false)
             {
                 if (animator.evaluator != null)
                 {
                     SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
-
-                    animator.shouldRender = true;
 
                     animator.evaluator = null;
                 }

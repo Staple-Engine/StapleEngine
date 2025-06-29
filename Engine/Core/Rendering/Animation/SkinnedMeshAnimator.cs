@@ -1,28 +1,12 @@
 ﻿using Staple.Internal;
-using Staple.Jobs;
-using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple;
 
 /// <summary>
 /// Skinned mesh animator component
 /// </summary>
-public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
+public sealed class SkinnedMeshAnimator : IComponent
 {
-    internal class RenderInfo
-    {
-        /// <summary>
-        /// A cache of bone matrices
-        /// </summary>
-        internal Matrix4x4[] cachedBoneMatrices;
-
-        /// <summary>
-        /// The bone matrix compute buffer for skinning
-        /// </summary>
-        internal VertexBuffer boneMatrixBuffer;
-    }
-
     /// <summary>
     /// The mesh to use
     /// </summary>
@@ -72,48 +56,6 @@ public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable
     /// The animation evaluator
     /// </summary>
     internal SkinnedMeshAnimationEvaluator evaluator;
-
-    /// <summary>
-    /// Whether we should render
-    /// </summary>
-    internal bool shouldRender = true;
-
-    /// <summary>
-    /// A list of all the renderers in self and children
-    /// </summary>
-    internal EntityQuery<SkinnedMeshRenderer> renderers;
-
-    /// <summary>
-    /// THe handle for the last bone update job
-    /// </summary>
-    internal JobHandle boneUpdateHandle;
-
-    /// <summary>
-    /// Rendering info per mesh asset
-    /// </summary>
-    internal readonly Dictionary<int, RenderInfo> renderInfos = [];
-
-    /// <summary>
-    /// Gets the bone matrix buffer for a specific mesh asset
-    /// </summary>
-    /// <param name="meshAssetGuid">The mesh asset guid</param>
-    /// <returns>The vertex buffer, if any</returns>
-    public VertexBuffer GetBoneMatrixBuffer(int meshAssetGuid)
-    {
-        return renderInfos.TryGetValue(meshAssetGuid, out var info) ? info.boneMatrixBuffer : null;
-    }
-
-    public void DisposeComponent()
-    {
-        foreach (var pair in renderInfos)
-        {
-            pair.Value.boneMatrixBuffer?.Destroy();
-
-            pair.Value.boneMatrixBuffer = null;
-        }
-
-        renderInfos.Clear();
-    }
 
     /// <summary>
     /// Sets the current animation
