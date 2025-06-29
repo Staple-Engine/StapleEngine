@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 
 namespace Staple;
 
@@ -14,6 +13,11 @@ public enum EntityQueryMode
     /// Get the component from the closest parent
     /// </summary>
     Parent,
+
+    /// <summary>
+    /// Gets the component from self or the closest parent
+    /// </summary>
+    SelfAndParent,
 
     /// <summary>
     /// Get multiple components from children
@@ -104,10 +108,11 @@ public sealed class EntityQuery<T> : ISceneQuery
 
         var items = queryMode switch
         {
-            EntityQueryMode.Self => [target.GetComponent(typeof(T))],
-            EntityQueryMode.Parent => [target.GetComponentInParent(typeof(T))],
-            EntityQueryMode.Children => target.GetComponentsInChildren(typeof(T), false),
-            EntityQueryMode.SelfAndChildren => target.GetComponentsInChildren(typeof(T)),
+            EntityQueryMode.Self => [target.GetComponent<T>()],
+            EntityQueryMode.Parent => [target.GetComponentInParent<T>()],
+            EntityQueryMode.SelfAndParent => [target.GetComponent<T>(), target.GetComponentInParent<T>()],
+            EntityQueryMode.Children => target.GetComponentsInChildren<T>(false),
+            EntityQueryMode.SelfAndChildren => target.GetComponentsInChildren<T>(true),
             _ => [],
         };
 

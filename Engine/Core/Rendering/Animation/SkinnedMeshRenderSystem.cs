@@ -54,7 +54,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var (entity, transform, relatedComponent) in entities)
         {
             var renderer = relatedComponent as SkinnedMeshRenderer;
 
@@ -89,6 +89,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 continue;
             }
+
+            renderer.dataSource ??= new(entity, EntityQueryMode.SelfAndParent, false);
 
             renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center * transform.LocalScale, renderer.mesh.bounds.size * transform.LocalScale);
             renderer.bounds = new(transform.Position + renderer.mesh.bounds.center * transform.Scale, renderer.mesh.bounds.size * transform.Scale);
@@ -222,17 +224,21 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var renderer = item.renderer;
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
+            var dataSource = renderer.dataSource.Content;
             var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.lighting;
 
-            renderer.transformUpdateTimer += Time.deltaTime;
-
-            if (renderer.transformUpdateTimer >= 1 / Screen.RefreshRate)
+            if(dataSource == null)
             {
-                renderer.transformUpdateTimer -= 1 / Screen.RefreshRate;
+                renderer.transformUpdateTimer += Time.deltaTime;
 
-                UpdateBoneMatrices(renderer.mesh.meshAsset, renderer.boneMatrices, renderer.transformCache);
+                if (renderer.transformUpdateTimer >= 1 / Screen.RefreshRate)
+                {
+                    renderer.transformUpdateTimer -= 1 / Screen.RefreshRate;
 
-                renderer.boneBuffer.Update(renderer.boneMatrices.AsSpan(), 0, true);
+                    UpdateBoneMatrices(renderer.mesh.meshAsset, renderer.boneMatrices, renderer.transformCache);
+
+                    renderer.boneBuffer.Update(renderer.boneMatrices.AsSpan(), 0, true);
+                }
             }
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
@@ -308,7 +314,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var flags = bgfx.DiscardFlags.State;
 
-                var buffer = renderer.boneBuffer;
+                var buffer = dataSource != null ? dataSource.GetSkinningBuffer(renderer) ?? renderer.boneBuffer :
+                    renderer.boneBuffer;
 
                 buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 

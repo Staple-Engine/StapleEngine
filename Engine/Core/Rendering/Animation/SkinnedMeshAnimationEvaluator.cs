@@ -86,11 +86,12 @@ internal class SkinnedMeshAnimationEvaluator
     /// <summary>
     /// Evaluates the current animation frame
     /// </summary>
-    public void Evaluate()
+    /// <returns>Returns true when the animation was updated</returns>
+    public bool Evaluate()
     {
         if (animation == null || meshAsset == null)
         {
-            return;
+            return false;
         }
 
         animator.playTime += Time.deltaTime;
@@ -99,7 +100,7 @@ internal class SkinnedMeshAnimationEvaluator
 
         if(updateTimer < timeBetweenFrames)
         {
-            return;
+            return false;
         }
 
         updateTimer = 0;
@@ -122,8 +123,6 @@ internal class SkinnedMeshAnimationEvaluator
             {
                 continue;
             }
-
-            var node = nodes[channel.nodeIndex];
 
             Vector3 GetVector3(List<MeshAsset.AnimationKey<Vector3>> keys, ref int last)
             {
@@ -252,5 +251,7 @@ internal class SkinnedMeshAnimationEvaluator
         }
 
         lastTime = time;
+
+        return true;
     }
 }

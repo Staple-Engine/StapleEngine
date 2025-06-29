@@ -18,14 +18,34 @@ public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
     /// </summary>
     public List<Material> materials = [];
 
+    /// <summary>
+    /// A query to get a data source in self or parent
+    /// </summary>
+    internal EntityQuery<ISkinnedMeshDataSource> dataSource;
+
+    /// <summary>
+    /// Cached bone matrices
+    /// </summary>
     internal Matrix4x4[] boneMatrices;
 
+    /// <summary>
+    /// Cached bone buffer
+    /// </summary>
     internal VertexBuffer boneBuffer;
 
+    /// <summary>
+    /// Cached transforms
+    /// </summary>
     internal Transform[] transformCache;
 
+    /// <summary>
+    /// Cached nodes
+    /// </summary>
     internal MeshAsset.Node[] nodeCache;
 
+    /// <summary>
+    /// Timer for updating transforms
+    /// </summary>
     internal float transformUpdateTimer;
 
     public void DisposeComponent()

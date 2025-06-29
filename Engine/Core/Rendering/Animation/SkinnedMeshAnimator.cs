@@ -1,11 +1,13 @@
 ﻿using Staple.Internal;
+using Staple.Jobs;
+using System.Numerics;
 
 namespace Staple;
 
 /// <summary>
 /// Skinned mesh animator component
 /// </summary>
-public sealed class SkinnedMeshAnimator : IComponent
+public sealed class SkinnedMeshAnimator : IComponent, IComponentDisposable, ISkinnedMeshDataSource
 {
     /// <summary>
     /// The mesh to use
@@ -56,6 +58,21 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// The animation evaluator
     /// </summary>
     internal SkinnedMeshAnimationEvaluator evaluator;
+    
+    /// <summary>
+    /// A cache of bone matrices
+    /// </summary>
+    internal Matrix4x4[] cachedBoneMatrices;
+
+    /// <summary>
+    /// The bone matrix compute buffer for skinning
+    /// </summary>
+    internal VertexBuffer boneMatrixBuffer;
+
+    /// <summary>
+    /// The handle for the last bone update job
+    /// </summary>
+    internal JobHandle boneUpdateHandle;
 
     /// <summary>
     /// Sets the current animation
@@ -70,4 +87,13 @@ public sealed class SkinnedMeshAnimator : IComponent
         playTime = 0;
         evaluator = null;
     }
+
+    public void DisposeComponent()
+    {
+        boneMatrixBuffer?.Destroy();
+
+        boneMatrixBuffer = null;
+    }
+
+    public VertexBuffer GetSkinningBuffer(SkinnedMeshRenderer renderer) => boneMatrixBuffer;
 }
