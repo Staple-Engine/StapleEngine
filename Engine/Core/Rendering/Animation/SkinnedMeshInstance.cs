@@ -34,6 +34,16 @@ public class SkinnedMeshInstance : IComponent, IComponentDisposable
     /// </summary>
     internal float transformUpdateTimer;
 
+    /// <summary>
+    /// List of modifiers
+    /// </summary>
+    internal EntityQuery<Transform, ISkeletonModifier> modifiers;
+
+    /// <summary>
+    /// Whether we have an animator
+    /// </summary>
+    internal EntityQuery<SkinnedMeshAnimator> animator;
+
     public void DisposeComponent()
     {
         boneBuffer?.Destroy();

@@ -144,7 +144,19 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
+            if(renderer.instance == null)
+            {
+                var rootTransform = FindRootTransform(transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
+
+                if (rootTransform != null && rootTransform.entity.TryGetComponent<SkinnedMeshInstance>(out var instance) == false)
+                {
+                    instance = rootTransform.entity.AddComponent<SkinnedMeshInstance>();
+
+                    instance.mesh = renderer.mesh;
+                }
+
+                renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
+            }
 
             container.Add(new()
             {
@@ -243,6 +255,20 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             if (instance.transformUpdateTimer >= limit)
             {
                 instance.transformUpdateTimer -= limit;
+
+                instance.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+
+                instance.animator ??= new(entity, EntityQueryMode.Self, false);
+
+                foreach(var (t, modifier) in instance.modifiers.Contents)
+                {
+                    if(instance.animator.Content?.evaluator != null)
+                    {
+                        continue;
+                    }
+
+                    modifier.Apply(t, false);
+                }
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
 

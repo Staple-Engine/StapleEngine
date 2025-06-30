@@ -52,7 +52,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             return;
         }
 
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var (entity, transform, relatedComponent) in entities)
         {
             var animator = relatedComponent as SkinnedMeshAnimator;
 
@@ -99,7 +99,15 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     }
                 }
 
-                animator.evaluator?.Evaluate();
+                if(animator.evaluator?.Evaluate() ?? false)
+                {
+                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+
+                    foreach(var (t, modifier) in animator.modifiers.Contents)
+                    {
+                        modifier.Apply(t, true);
+                    }
+                }
             }
             else if (animator.playInEditMode == false)
             {
@@ -108,6 +116,13 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
 
                     animator.evaluator = null;
+
+                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+
+                    foreach (var (t, modifier) in animator.modifiers.Contents)
+                    {
+                        modifier.Apply(t, true);
+                    }
                 }
             }
         }
