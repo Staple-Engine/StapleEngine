@@ -568,31 +568,34 @@ internal partial class StapleEditor
 
             if (viewportType == ViewportType.Scene)
             {
-                var axis = Vector3.Zero;
-
-                if(Input.GetKey(KeyCode.A))
+                if(io.WantTextInput == false)
                 {
-                    axis += cameraTransform.Left;
+                    var axis = Vector3.Zero;
+
+                    if (Input.GetKey(KeyCode.A))
+                    {
+                        axis += cameraTransform.Left;
+                    }
+
+                    if (Input.GetKey(KeyCode.D))
+                    {
+                        axis += cameraTransform.Right;
+                    }
+
+                    if (Input.GetKey(KeyCode.W))
+                    {
+                        axis += cameraTransform.Forward;
+                    }
+
+                    if (Input.GetKey(KeyCode.S))
+                    {
+                        axis += cameraTransform.Back;
+                    }
+
+                    cameraTransform.LocalPosition += axis * 5 * Time.unscaledDeltaTime * (Input.GetKey(KeyCode.LeftShift) ? 2 : Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1);
                 }
 
-                if(Input.GetKey(KeyCode.D))
-                {
-                    axis += cameraTransform.Right;
-                }
-
-                if(Input.GetKey(KeyCode.W))
-                {
-                    axis += cameraTransform.Forward;
-                }
-
-                if(Input.GetKey(KeyCode.S))
-                {
-                    axis += cameraTransform.Back;
-                }
-
-                cameraTransform.LocalPosition += axis * 10 * Time.unscaledDeltaTime;
-
-                if(Input.GetMouseButton(MouseButton.Right))
+                if (io.WantTextInput == false && Input.GetMouseButton(MouseButton.Right))
                 {
                     var rotation = cameraTransform.LocalRotation.ToEulerAngles();
 
