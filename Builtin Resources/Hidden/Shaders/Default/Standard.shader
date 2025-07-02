@@ -1,6 +1,6 @@
 Type VertexFragment
 
-Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING
+Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP
 
 Begin Parameters
 
@@ -9,6 +9,8 @@ varying vec3 v_fragPos : TEXCOORD1
 varying vec3 v_normal : NORMAL
 varying vec4 v_color : COLOR
 varying int v_instanceID : TEXCOORD2
+varying vec3 v_tangent : TANGENT
+varying vec3 v_bitangent : BITANGENT
 
 uniform texture ambientOcclusionTexture
 uniform color diffuseColor
@@ -28,8 +30,8 @@ End Instancing
 
 Begin Vertex
 
-$input a_position, a_texcoord0, a_normal, a_color0
-$output v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID
+$input a_position, a_texcoord0, a_normal, a_color0, a_tangent, a_bitangent
+$output v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent
 
 #include "StapleLighting.sh"
 
@@ -52,6 +54,9 @@ void main()
 	v_fragPos = mul(viewWorld, vec4(a_position, 1.0)).xyz;
 	v_normal = a_normal;
 	
+	v_tangent = a_tangent;
+	v_bitangent = a_bitangent;
+	
 	v_instanceID = StapleInstanceID;
 	
 #if LIT && PER_VERTEX_LIGHTING
@@ -68,7 +73,7 @@ End Vertex
 
 Begin Fragment
 
-$input v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID
+$input v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent
 
 #include "StapleLighting.sh"
 
@@ -83,7 +88,16 @@ void main()
 #if LIT && PER_VERTEX_LIGHTING
 	gl_FragColor = diffuse;
 #elif LIT
+
+	#if NORMALMAP
+	mat3 tbn = mtxFromCols(normalize(v_tangent), normalize(v_bitangent), normalize(v_normal));
+
+	vec3 normalMapNormal = normalize(texture2D(normalTexture, v_texcoord0).xyz * 2.0 - 1.0);
+
+	vec3 light = StapleProcessLightsTangent(int(v_instanceID), u_viewPos, v_fragPos, normalMapNormal, tbn);
+	#else
 	vec3 light = StapleProcessLights(int(v_instanceID), u_viewPos, v_fragPos, v_normal);
+	#endif
 
 	gl_FragColor = vec4(light, 1) * diffuse;
 #else
