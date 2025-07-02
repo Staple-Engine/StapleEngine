@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 
 namespace Baker;
@@ -251,6 +252,69 @@ static partial class Program
                 if(meshData == null)
                 {
                     return;
+                }
+
+                foreach (var mesh in meshData.meshes)
+                {
+                    if ((mesh.tangents?.Count ?? 0) == 0 &&
+                        mesh.topology == MeshTopology.Triangles &&
+                        (mesh.UV1?.Count ?? 0) > 0 &&
+                        (mesh.normals?.Count ?? 0) > 0)
+                    {
+                        var tangents = new Vector3[mesh.vertices.Count];
+                        var bitangents = new Vector3[mesh.vertices.Count];
+
+                        for (var j = 0; j < mesh.indices.Count; j += 3)
+                        {
+                            var indices = (mesh.indices[j], mesh.indices[j + 1], mesh.indices[j + 2]);
+
+                            var vectors = (mesh.vertices[indices.Item1].ToVector3(),
+                                mesh.vertices[indices.Item2].ToVector3(),
+                                mesh.vertices[indices.Item3].ToVector3());
+
+                            var uvs = (mesh.UV1[indices.Item1].ToVector2(),
+                                mesh.UV1[indices.Item2].ToVector2(),
+                                mesh.UV1[indices.Item3].ToVector2());
+
+                            var edge1 = vectors.Item2 - vectors.Item1;
+                            var edge2 = vectors.Item3 - vectors.Item1;
+
+                            var uvDelta1 = uvs.Item2 - uvs.Item1;
+                            var uvDelta2 = uvs.Item3 - uvs.Item1;
+
+                            var f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+
+                            var tangent = Vector3.Normalize(f * (uvDelta2.Y * edge1 - uvDelta1.Y * edge2));
+                            var bitangent = Vector3.Normalize(f * (-uvDelta2.X * edge1 + uvDelta1.X * edge2));
+
+                            tangents[indices.Item1] += tangent;
+                            tangents[indices.Item2] += tangent;
+                            tangents[indices.Item3] += tangent;
+
+                            bitangents[indices.Item1] += bitangent;
+                            bitangents[indices.Item2] += bitangent;
+                            bitangents[indices.Item3] += bitangent;
+                        }
+
+                        for (var j = 0; j < mesh.vertices.Count; j++)
+                        {
+                            var normal = mesh.normals[j].ToVector3();
+                            var t = Vector3.Normalize(tangents[j]);
+                            var b = Vector3.Normalize(bitangents[j]);
+
+                            var tangent = Vector3.Normalize(t - normal * Vector3.Dot(normal, t));
+
+                            var bitangent = Vector3.Cross(normal, Vector3.Normalize(tangent));
+
+                            if(Vector3.Dot(bitangent, b) < 0)
+                            {
+                                bitangent = -bitangent;
+                            }
+
+                            mesh.tangents.Add(new(tangent));
+                            mesh.bitangents.Add(new(bitangent));
+                        }
+                    }
                 }
 
                 try

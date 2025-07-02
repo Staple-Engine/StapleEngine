@@ -30,18 +30,23 @@ uniform vec3 u_viewPos;
 #define StapleLightTypePosition u_lightTypePosition
 #define StapleLightSpotDirection u_lightSpotDirection
 
-vec3 StapleLightNormal(vec3 normal, int instanceID)
+mat3 StapleNormalMatrix(int instanceID)
 {
 #ifdef INSTANCING
-	mat4 m = mtxFromCols(StapleLightingNormalMatrices[instanceID * 4],
+	return mtxFromCols(StapleLightingNormalMatrices[instanceID * 4],
 		StapleLightingNormalMatrices[instanceID * 4 + 1],
 		StapleLightingNormalMatrices[instanceID * 4 + 2],
 		StapleLightingNormalMatrices[instanceID * 4 + 3]);
-	
-	return normalize(mul(m, vec4(normal, 0)));
 #else
-	return normalize(mul(u_normalMatrix, normal));
+	return u_normalMatrix;
 #endif
+}
+
+vec3 StapleLightNormal(vec3 normal, int instanceID)
+{
+	mat3 normalMatrix = StapleNormalMatrix(instanceID);
+
+	return normalize(mul(normalMatrix, normal));
 }
 
 float StapleLightScaling(float dotProduct)
@@ -101,6 +106,39 @@ vec3 StapleProcessLights(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal
 	for(int i = 0; i < StapleLightCount; i++)
 	{
 		vec3 lightDir = StapleLightDirection(i, fragPos);
+		
+		float diffuseFactor = StapleLightDiffuseFactor(lightNormal, lightDir);
+		
+		diffuse += diffuseFactor * StapleLightDiffuse[i].rgb;
+		
+		float shininess = StapleLightSpecular[i].a;
+		
+		float specularFactor = StapleLightSpecularFactor(viewPos, fragPos, lightDir, lightNormal, shininess);
+		
+		specular += specularFactor * StapleLightDiffuse[i].rgb;
+	}
+	
+	if(StapleLightCount == 0)
+	{
+		return ambient;
+	}
+	
+	return ambient + diffuse; //+ specular;
+}
+
+vec3 StapleProcessLightsTangent(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal, mat3 tangentMatrix)
+{
+	vec3 ambient = StapleLightAmbient.rgb;
+	
+	vec3 lightNormal = StapleLightNormal(normal, instanceID);
+	vec3 diffuse = vec3(0, 0, 0);
+	vec3 specular = vec3(0, 0, 0);
+	
+	for(int i = 0; i < StapleLightCount; i++)
+	{
+		vec3 lightDir = StapleLightDirection(i, fragPos);
+		
+		lightDir = normalize(mul(lightDir, tangentMatrix));
 		
 		float diffuseFactor = StapleLightDiffuseFactor(lightNormal, lightDir);
 		
