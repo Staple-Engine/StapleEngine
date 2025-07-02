@@ -689,17 +689,9 @@ public:
 
 		parentIndex = node->parent ? node->parent->typed_id : -1;
 
-		if (node->mesh == nullptr || node->mesh->skin_deformers.count == 0)
-		{
-			localTransform.position = Vector3(node->local_transform.translation);
-			localTransform.rotation = Vector4(node->local_transform.rotation);
-			localTransform.scale = Vector3(node->local_transform.scale);
-		}
-		else
-		{
-			localTransform.rotation = Vector4(0, 0, 0, 1);
-			localTransform.scale = Vector3(1, 1, 1);
-		}
+		localTransform.position = Vector3(node->local_transform.translation);
+		localTransform.rotation = Vector4(node->local_transform.rotation);
+		localTransform.scale = Vector3(node->local_transform.scale);
 
 		if (node->mesh != nullptr)
 		{
@@ -1059,8 +1051,6 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 	opts.load_external_files = true;
 	opts.ignore_missing_external_files = true;
 	opts.generate_missing_normals = true;
-
-	opts.evaluate_skinning = true;
 
 	opts.target_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;
 	opts.target_axes.up = UFBX_COORDINATE_AXIS_POSITIVE_Y;

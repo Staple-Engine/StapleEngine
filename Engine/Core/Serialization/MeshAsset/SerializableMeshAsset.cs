@@ -52,32 +52,29 @@ public class MeshAssetMetadata
     public bool flipWindingOrder = true;
 
     [Key(3)]
-    public bool convertUnits = false;
-
-    [Key(4)]
     public bool regenerateNormals;
 
-    [Key(5)]
+    [Key(4)]
     public bool useSmoothNormals;
 
-    [Key(6)]
+    [Key(5)]
     public MaterialLighting lighting = MaterialLighting.Lit;
 
-    [Key(7)]
+    [Key(6)]
     public MeshAssetRotation rotation;
 
-    [Key(8)]
+    [Key(7)]
     public float scale = 1.0f;
 
-    [Key(9)]
+    [Key(8)]
     public int frameRate = 60;
 
-    [Key(10)]
+    [Key(9)]
     [Tooltip("Whether to sync the animation to the screen refresh rate")]
     public bool syncAnimationToRefreshRate = false;
 
     [HideInInspector]
-    [Key(11)]
+    [Key(10)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -86,7 +83,6 @@ public class MeshAssetMetadata
             lhs.flipUVs == rhs.flipUVs &&
             lhs.flipWindingOrder == rhs.flipWindingOrder &&
             lhs.typeName == rhs.typeName &&
-            lhs.convertUnits == rhs.convertUnits &&
             lhs.regenerateNormals == rhs.regenerateNormals &&
             lhs.useSmoothNormals == rhs.useSmoothNormals &&
             lhs.lighting == rhs.lighting &&
@@ -102,7 +98,6 @@ public class MeshAssetMetadata
             lhs.flipUVs != rhs.flipUVs ||
             lhs.flipWindingOrder != rhs.flipWindingOrder ||
             lhs.typeName != rhs.typeName ||
-            lhs.convertUnits != rhs.convertUnits ||
             lhs.regenerateNormals != rhs.regenerateNormals ||
             lhs.useSmoothNormals != rhs.useSmoothNormals ||
             lhs.lighting != rhs.lighting ||
@@ -134,7 +129,6 @@ public class MeshAssetMetadata
         hash.Add(guid);
         hash.Add(flipUVs);
         hash.Add(flipWindingOrder);
-        hash.Add(convertUnits);
         hash.Add(regenerateNormals);
         hash.Add(useSmoothNormals);
         hash.Add(lighting);

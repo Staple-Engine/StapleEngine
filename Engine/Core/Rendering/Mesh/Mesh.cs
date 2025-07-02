@@ -1515,13 +1515,6 @@ public sealed partial class Mesh : IGuidAsset
                     {
                         continue;
                     }
-
-                    if(asset.meshes[meshIndex].type == MeshAssetType.Skinned)
-                    {
-                        nodeTarget = (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
-
-                        break;
-                    }
                 }
 
                 nodeTransform.SetParent(nodeTarget);
@@ -1545,7 +1538,7 @@ public sealed partial class Mesh : IGuidAsset
 
                     var isSkinned = mesh.bones.Any(x => x.Length > 0);
 
-                    meshTransform.SetParent(nodeTransform);
+                    meshTransform.SetParent(isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false ? baseTransform : nodeTransform);
 
                     var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
                     var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();

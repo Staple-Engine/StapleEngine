@@ -440,59 +440,8 @@ public partial class Program
             {
                 var aabb = AABB.CreateFromPoints(mesh.Vertices);
 
-                var position = Vector3.Zero;
-                var scale = Vector3.One;
-
-                if(mesh.isSkinned)
-                {
-                    var meshIndex = meshData.meshes.Count;
-
-                    Vector3 GetPosition(MeshAssetNode node)
-                    {
-                        var p = node.position.ToVector3();
-                        var index = nodes.IndexOf(node);
-
-                        for (var i = 0; i < nodes.Count; i++)
-                        {
-                            if (nodes[i].children.Contains(index))
-                            {
-                                return GetPosition(nodes[i]) + p;
-                            }
-                        }
-
-                        return p;
-                    }
-
-                    Vector3 GetScale(MeshAssetNode node)
-                    {
-                        var s = node.scale.ToVector3();
-                        var index = nodes.IndexOf(node);
-
-                        for(var i = 0; i < nodes.Count; i++)
-                        {
-                            if (nodes[i].children.Contains(index))
-                            {
-                                return GetScale(nodes[i]) * s;
-                            }
-                        }
-
-                        return s;
-                    }
-
-                    foreach(var node in nodes)
-                    {
-                        if(node.meshIndices.Contains(meshIndex))
-                        {
-                            scale = GetScale(node);
-                            position = GetPosition(node);
-
-                            break;
-                        }
-                    }
-                }
-
-                m.boundsCenter = new Vector3Holder((aabb.center + position) * scale);
-                m.boundsExtents = new Vector3Holder(aabb.size * scale);
+                m.boundsCenter = new Vector3Holder(aabb.center);
+                m.boundsExtents = new Vector3Holder(aabb.size);
             }
 
             var vertexCount = mesh.vertexCount;

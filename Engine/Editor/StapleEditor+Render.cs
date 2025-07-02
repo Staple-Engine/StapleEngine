@@ -150,6 +150,8 @@ internal partial class StapleEditor
 
         var renderSystem = RenderSystem.Instance;
 
+        RenderSystem.CulledRenderers = 0;
+
         foreach (var system in renderSystem.renderSystems)
         {
             system.Prepare();

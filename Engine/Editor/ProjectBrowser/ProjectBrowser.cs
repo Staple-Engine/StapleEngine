@@ -643,7 +643,6 @@ internal class ProjectBrowser
                                 var jsonData = JsonConvert.SerializeObject(new MeshAssetMetadata()
                                 {
                                     guid = Hash(),
-                                    convertUnits = path.EndsWith(".fbx"),
                                     flipUVs = path.EndsWith(".fbx"),
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);

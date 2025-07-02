@@ -183,6 +183,11 @@ public sealed class MeshAsset : IGuidAsset
         public AABB bounds;
 
         /// <summary>
+        /// The transformed bounds of the mesh. If it's a skinned mesh, it'll be transformed to the expected position in model space.
+        /// </summary>
+        public AABB transformedBounds;
+
+        /// <summary>
         /// A list of submeshes
         /// </summary>
         public SubmeshInfo[] submeshes = [];

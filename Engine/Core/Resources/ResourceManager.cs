@@ -1724,7 +1724,7 @@ internal class ResourceManager
 
                 meshTopology = m.topology,
                 indexFormat = MeshIndexFormat.UInt32,
-                bounds = m.bounds,
+                bounds = m.transformedBounds,
 
                 meshAsset = asset,
                 meshAssetIndex = index,
@@ -2018,6 +2018,24 @@ internal class ResourceManager
 
                 newMesh.submeshMaterialGuids = [ m.materialGuid ];
 
+                newMesh.transformedBounds = newMesh.bounds;
+
+                foreach(var node in asset.nodes)
+                {
+                    if(node.meshIndices.Contains(asset.meshes.Count))
+                    {
+                        Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
+
+                        var size = Vector3.Abs(Vector3.Transform(newMesh.bounds.size * scale, rotation));
+
+                        var center = Vector3.Transform(newMesh.bounds.center * scale, rotation);
+
+                        newMesh.transformedBounds = new(center + position, size);
+
+                        break;
+                    }
+                }
+
                 asset.meshes.Add(newMesh);
             }
 
@@ -2025,7 +2043,7 @@ internal class ResourceManager
 
             if(asset.meshes.Count == 1)
             {
-                asset.Bounds = asset.meshes[0].bounds;
+                asset.Bounds = asset.meshes[0].transformedBounds;
             }
             else if(asset.meshes.Count > 0)
             {
@@ -2034,34 +2052,34 @@ internal class ResourceManager
 
                 foreach(var m in asset.meshes)
                 {
-                    if(min.X > m.bounds.center.X)
+                    if(min.X > m.transformedBounds.center.X)
                     {
-                        min.X = m.bounds.center.X;
+                        min.X = m.transformedBounds.center.X;
                     }
 
-                    if (min.Y > m.bounds.center.Y)
+                    if (min.Y > m.transformedBounds.center.Y)
                     {
-                        min.Y = m.bounds.center.Y;
+                        min.Y = m.transformedBounds.center.Y;
                     }
 
-                    if (min.Z > m.bounds.center.Z)
+                    if (min.Z > m.transformedBounds.center.Z)
                     {
-                        min.Z = m.bounds.center.Z;
+                        min.Z = m.transformedBounds.center.Z;
                     }
 
-                    if (max.X < m.bounds.center.X + m.bounds.size.X)
+                    if (max.X < m.transformedBounds.center.X + m.transformedBounds.size.X)
                     {
-                        max.X = m.bounds.center.X + m.bounds.size.X;
+                        max.X = m.transformedBounds.center.X + m.transformedBounds.size.X;
                     }
 
-                    if (max.Y < m.bounds.center.Y + m.bounds.size.Y)
+                    if (max.Y < m.transformedBounds.center.Y + m.transformedBounds.size.Y)
                     {
-                        max.Y = m.bounds.center.Y + m.bounds.size.Y;
+                        max.Y = m.transformedBounds.center.Y + m.transformedBounds.size.Y;
                     }
 
-                    if (max.Z < m.bounds.center.Z + m.bounds.size.Z)
+                    if (max.Z < m.transformedBounds.center.Z + m.transformedBounds.size.Z)
                     {
-                        max.Z = m.bounds.center.Z + m.bounds.size.Z;
+                        max.Z = m.transformedBounds.center.Z + m.transformedBounds.size.Z;
                     }
                 }
 

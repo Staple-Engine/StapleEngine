@@ -696,7 +696,7 @@ public partial class Program
 
         MeshAssetNode rootNode = null;
 
-        if (metadata.scale != 1 || metadata.convertUnits || metadata.rotation != MeshAssetRotation.None)
+        if (metadata.scale != 1 || metadata.rotation != MeshAssetRotation.None)
         {
             var rotation = metadata.rotation switch
             {
@@ -705,7 +705,7 @@ public partial class Program
                 _ => Quaternion.Identity,
             };
 
-            var scale = Vector3.One * metadata.scale * (metadata.convertUnits ? 0.01f : 1.0f);
+            var scale = Vector3.One * metadata.scale;
 
             rootNode = new()
             {

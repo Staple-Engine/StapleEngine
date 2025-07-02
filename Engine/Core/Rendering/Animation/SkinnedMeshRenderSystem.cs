@@ -92,8 +92,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center * transform.LocalScale, renderer.mesh.bounds.size * transform.LocalScale);
-            renderer.bounds = new(transform.Position + renderer.mesh.bounds.center * transform.Scale, renderer.mesh.bounds.size * transform.Scale);
+            var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
+
+            var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
+
+            renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
+                localSize * transform.LocalScale);
+
+            renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
+                globalSize * transform.Scale);
         }
     }
 

@@ -2286,11 +2286,10 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(12);
+            writer.WriteArrayHeader(11);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.flipUVs);
             writer.Write(value.flipWindingOrder);
-            writer.Write(value.convertUnits);
             writer.Write(value.regenerateNormals);
             writer.Write(value.useSmoothNormals);
             formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
@@ -2327,30 +2326,27 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.flipWindingOrder = reader.ReadBoolean();
                         break;
                     case 3:
-                        ____result.convertUnits = reader.ReadBoolean();
-                        break;
-                    case 4:
                         ____result.regenerateNormals = reader.ReadBoolean();
                         break;
-                    case 5:
+                    case 4:
                         ____result.useSmoothNormals = reader.ReadBoolean();
                         break;
-                    case 6:
+                    case 5:
                         ____result.lighting = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Deserialize(ref reader, options);
                         break;
-                    case 7:
+                    case 6:
                         ____result.rotation = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Deserialize(ref reader, options);
                         break;
-                    case 8:
+                    case 7:
                         ____result.scale = reader.ReadSingle();
                         break;
-                    case 9:
+                    case 8:
                         ____result.frameRate = reader.ReadInt32();
                         break;
-                    case 10:
+                    case 9:
                         ____result.syncAnimationToRefreshRate = reader.ReadBoolean();
                         break;
-                    case 11:
+                    case 10:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
