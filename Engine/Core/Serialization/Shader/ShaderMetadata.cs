@@ -37,6 +37,15 @@ public class ShaderUniform
 
     [Key(2)]
     public int slot;
+
+    [Key(3)]
+    public string attribute;
+
+    [Key(4)]
+    public string variant;
+
+    [Key(5)]
+    public string defaultValue;
 }
 
 [MessagePackObject]

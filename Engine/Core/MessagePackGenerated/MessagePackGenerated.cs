@@ -4190,10 +4190,13 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(3);
+            writer.WriteArrayHeader(6);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Serialize(ref writer, value.type, options);
             writer.Write(value.slot);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.attribute, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.variant, options);
+            formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.defaultValue, options);
         }
 
         public global::Staple.Internal.ShaderUniform Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4220,6 +4223,15 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 2:
                         ____result.slot = reader.ReadInt32();
+                        break;
+                    case 3:
+                        ____result.attribute = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 4:
+                        ____result.variant = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        break;
+                    case 5:
+                        ____result.defaultValue = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

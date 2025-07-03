@@ -52,19 +52,19 @@ End Compute
         Assert.That(parameters[0].type, Is.EqualTo("varying"));
         Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].attribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
         Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
 
         Assert.That(parameters[1].type, Is.EqualTo("varying"));
         Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].attribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
         Assert.That(parameters[2].type, Is.EqualTo("uniform"));
         Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].attribute, Is.Null);
+        Assert.That(parameters[2].vertexAttribute, Is.Null);
         Assert.That(parameters[2].initializer, Is.Null);
 
         Assert.That(vertex, Is.Not.Null);
@@ -146,19 +146,19 @@ End Compute
         Assert.That(parameters[0].type, Is.EqualTo("varying"));
         Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].attribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
         Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
 
         Assert.That(parameters[1].type, Is.EqualTo("varying"));
         Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].attribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
         Assert.That(parameters[2].type, Is.EqualTo("uniform"));
         Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].attribute, Is.Null);
+        Assert.That(parameters[2].vertexAttribute, Is.Null);
         Assert.That(parameters[2].initializer, Is.EqualTo("vec2(1.0, 1.0)"));
 
         Assert.That(vertex, Is.Not.Null);
@@ -229,25 +229,25 @@ End Compute
         Assert.That(parameters[0].type, Is.EqualTo("varying"));
         Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].attribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
         Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
 
         Assert.That(parameters[1].type, Is.EqualTo("varying"));
         Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].attribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
         Assert.That(parameters[2].type, Is.EqualTo("uniform"));
         Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].attribute, Is.Null);
+        Assert.That(parameters[2].vertexAttribute, Is.Null);
         Assert.That(parameters[2].initializer, Is.Null);
 
         Assert.That(parameters[3].type, Is.EqualTo("ROBuffer"));
         Assert.That(parameters[3].dataType, Is.EqualTo("vec4"));
         Assert.That(parameters[3].name, Is.EqualTo("myBuffer"));
-        Assert.That(parameters[3].attribute, Is.Null);
+        Assert.That(parameters[3].vertexAttribute, Is.Null);
         Assert.That(parameters[3].initializer, Is.EqualTo("0"));
 
         Assert.That(vertex, Is.Null);
@@ -283,5 +283,35 @@ End Fragment
         Assert.That(instanceParameters, Is.Not.Null);
 
         Assert.That(instanceParameters.Count, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void TestParseAttributeVariant()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Begin Parameters
+[Attribute] variant: ATTRIBUTE uniform texture myTexture
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute));
+
+        Assert.That(parameters.Length, Is.EqualTo(1));
+
+        Assert.That(parameters[0].attribute, Is.EqualTo("Attribute"));
+
+        Assert.That(parameters[0].variant, Is.EqualTo("ATTRIBUTE"));
     }
 }

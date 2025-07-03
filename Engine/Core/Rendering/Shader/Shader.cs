@@ -22,6 +22,27 @@ public partial class Shader : IGuidAsset
         SkinningKeyword,
     ];
 
+    internal class DefaultUniform
+    {
+        public string name;
+        public ShaderUniformType type;
+        public string attribute;
+        public string variant;
+        public string defaultValue;
+
+        public static DefaultUniform FromShaderUniform(ShaderUniform uniform)
+        {
+            return new()
+            {
+                name = uniform.name,
+                type = uniform.type,
+                attribute = uniform.attribute,
+                variant = uniform.variant,
+                defaultValue = uniform.defaultValue
+            };
+        }
+    }
+
     public class UniformInfo
     {
         internal ShaderUniform uniform;
@@ -104,7 +125,7 @@ public partial class Shader : IGuidAsset
     internal readonly ShaderMetadata metadata;
     internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
-    internal static readonly List<(string, ShaderUniformType)> DefaultUniforms = [];
+    internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
     internal readonly Dictionary<string, ShaderInstance> instances = [];
 
@@ -243,22 +264,22 @@ public partial class Shader : IGuidAsset
         {
             foreach (var uniform in metadata.uniforms)
             {
-                AddUniform(uniform.name, uniform.type);
+                AddUniform(DefaultUniform.FromShaderUniform(uniform));
             }
 
-            void EnsureUniform(string name, ShaderUniformType type)
+            void EnsureUniform(DefaultUniform u)
             {
-                var uniform = GetUniform(name.GetHashCode());
+                var uniform = GetUniform(u.name.GetHashCode());
 
                 if (uniform == null)
                 {
-                    AddUniform(name, type);
+                    AddUniform(u);
                 }
             }
 
             foreach(var uniform in DefaultUniforms)
             {
-                EnsureUniform(uniform.Item1, uniform.Item2);
+                EnsureUniform(uniform);
             }
         }
 
@@ -267,10 +288,10 @@ public partial class Shader : IGuidAsset
         return true;
     }
 
-    internal void AddUniform(string name, ShaderUniformType type)
+    internal void AddUniform(DefaultUniform uniform)
     {
-        var normalizedName = NormalizeUniformName(name, type);
-        var nameHash = name.GetHashCode();
+        var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
+        var nameHash = uniform.name.GetHashCode();
         var normalizedHash = normalizedName.GetHashCode();
 
         var uniformIndex = uniformIndices.IndexOf(nameHash);
@@ -292,14 +313,17 @@ public partial class Shader : IGuidAsset
             uniform = new()
             {
                 name = normalizedName,
-                type = type,
+                type = uniform.type,
+                attribute = uniform.attribute,
+                variant = uniform.variant,
+                defaultValue = uniform.defaultValue,
             },
-            count = NormalizeUniformCount(name),
+            count = NormalizeUniformCount(uniform.name),
         };
 
         if (u.Create())
         {
-            if (type == ShaderUniformType.Texture)
+            if (uniform.type == ShaderUniformType.Texture)
             {
                 u.stage = (byte)usedTextureStages;
 
@@ -324,7 +348,10 @@ public partial class Shader : IGuidAsset
                     uniform = new()
                     {
                         name = u.uniform.name,
-                        type = type,
+                        type = uniform.type,
+                        attribute = uniform.attribute,
+                        variant = uniform.variant,
+                        defaultValue = uniform.defaultValue,
                     },
                 }]).ToArray();
             }

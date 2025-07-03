@@ -54,15 +54,59 @@ public sealed class LightSystem : IRenderSystem
 
     public LightSystem()
     {
-        Shader.DefaultUniforms.Add((LightAmbientKey, ShaderUniformType.Color));
-        Shader.DefaultUniforms.Add((LightCountKey, ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add(($"{LightDiffuseKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add(($"{LightSpecularKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add(($"{LightTypePositionKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add(($"{LightSpotDirectionKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add(($"{LightSpotValuesKey}[{MaxLights}]", ShaderUniformType.Vector4));
-        Shader.DefaultUniforms.Add((NormalMatrixKey, ShaderUniformType.Matrix3x3));
-        Shader.DefaultUniforms.Add((ViewPosKey, ShaderUniformType.Vector3));
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = LightAmbientKey,
+            type = ShaderUniformType.Color,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = LightCountKey,
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = $"{LightDiffuseKey}[{MaxLights}]",
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = $"{LightSpecularKey}[{MaxLights}]",
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = $"{LightTypePositionKey}[{MaxLights}]",
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = $"{LightSpotDirectionKey}[{MaxLights}]",
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = $"{LightSpotValuesKey}[{MaxLights}]",
+            type = ShaderUniformType.Vector4,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = NormalMatrixKey,
+            type = ShaderUniformType.Matrix3x3,
+        });
+
+        Shader.DefaultUniforms.Add(new()
+        {
+            name = ViewPosKey,
+            type = ShaderUniformType.Vector3,
+        });
     }
 
     public void Startup()

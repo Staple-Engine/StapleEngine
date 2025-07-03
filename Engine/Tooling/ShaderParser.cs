@@ -13,8 +13,10 @@ public static partial class ShaderParser
         public string type;
         public string dataType;
         public string name;
-        public string attribute;
+        public string vertexAttribute;
         public string initializer;
+        public string attribute;
+        public string variant;
     }
 
     public class InstanceParameter
@@ -43,7 +45,7 @@ public static partial class ShaderParser
     private static Regex instancingRegex = InstancingRegex();
     private static Regex instancingParameterRegex = InstancingParameterRegex();
 
-    [GeneratedRegex("(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
+    [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
 
     [GeneratedRegex("(ROBuffer|RWBuffer|WOBuffer)\\<(\\w+)\\>([ ]*)(\\w+)([ ]*)\\:([ ]*)([0-9]+)")]
@@ -130,16 +132,29 @@ public static partial class ShaderParser
             {
                 var parameter = new Parameter
                 {
-                    type = match.Groups[1].Value.Trim(),
-                    dataType = match.Groups[2].Value.Trim(),
-                    name = match.Groups[3].Value.Trim(),
-                    attribute = match.Groups[7].Value.Trim(),
-                    initializer = match.Groups[11].Value.Trim()
+                    type = match.Groups[3].Value.Trim(),
+                    dataType = match.Groups[4].Value.Trim(),
+                    name = match.Groups[5].Value.Trim(),
+                    vertexAttribute = match.Groups[9].Value.Trim(),
+                    initializer = match.Groups[13].Value.Trim()
                 };
 
-                if (parameter.attribute.Length == 0)
+                var attribute = match.Groups[1].Value.Trim();
+                var variant = match.Groups[2].Value.Trim();
+
+                if((attribute?.Length ?? 0) > 0)
                 {
-                    parameter.attribute = default;
+                    parameter.attribute = attribute[1..^1];
+                }
+
+                if((variant?.Length ?? 0) > 0)
+                {
+                    parameter.variant = variant["variant: ".Length..];
+                }
+
+                if (parameter.vertexAttribute.Length == 0)
+                {
+                    parameter.vertexAttribute = default;
                 }
 
                 if (parameter.initializer.Length == 0)

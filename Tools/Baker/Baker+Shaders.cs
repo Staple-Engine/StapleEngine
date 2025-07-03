@@ -209,8 +209,10 @@ vec4 i_data4        :   TEXCOORD3;
                         var p = new ShaderParameter
                         {
                             name = parameter.name,
-                            attribute = parameter.attribute,
+                            vertexAttribute = parameter.vertexAttribute,
                             defaultValue = parameter.initializer,
+                            attribute = parameter.attribute,
+                            variant = shader.variants.Contains(parameter.variant) ? parameter.variant : null,
                         };
 
                         p.semantic = parameter.type switch
@@ -240,7 +242,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                                 typeValue = (int)ShaderUniformType.ReadOnlyBuffer;
 
-                                p.attribute = parameter.dataType;
+                                p.vertexAttribute = parameter.dataType;
 
                                 break;
 
@@ -248,7 +250,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                                 typeValue = (int)ShaderUniformType.WriteOnlyBuffer;
 
-                                p.attribute = parameter.dataType;
+                                p.vertexAttribute = parameter.dataType;
 
                                 break;
 
@@ -256,7 +258,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                                 typeValue = (int)ShaderUniformType.ReadWriteBuffer;
 
-                                p.attribute = parameter.dataType;
+                                p.vertexAttribute = parameter.dataType;
 
                                 break;
                         }
@@ -377,6 +379,9 @@ vec4 i_data4        :   TEXCOORD3;
                                 type = x.type,
                                 slot = Array.IndexOf([ShaderUniformType.ReadOnlyBuffer, ShaderUniformType.WriteOnlyBuffer, ShaderUniformType.ReadWriteBuffer], x.type) >= 0 &&
                                     int.TryParse(x.defaultValue, out var bufferIndex) ? bufferIndex : -1,
+                                attribute = x.attribute,
+                                variant = x.variant,
+                                defaultValue = x.defaultValue,
                             }).ToList();
                     }
 
@@ -573,9 +578,9 @@ vec4 i_data4        :   TEXCOORD3;
                             ShaderUniformType.Texture => $"SAMPLER2D({name}, {index})",
                             ShaderUniformType.Matrix3x3 => $"{uniformString}mat3 {name}",
                             ShaderUniformType.Matrix4x4 => $"{uniformString}mat4 {name}",
-                            ShaderUniformType.ReadOnlyBuffer => $"BUFFER_RO({name}, {parameter.attribute}, {bufferIndex})",
-                            ShaderUniformType.WriteOnlyBuffer => $"BUFFER_WO({name}, {parameter.attribute}, {bufferIndex})",
-                            ShaderUniformType.ReadWriteBuffer => $"BUFFER_RW({name}, {parameter.attribute}, {bufferIndex})",
+                            ShaderUniformType.ReadOnlyBuffer => $"BUFFER_RO({name}, {parameter.vertexAttribute}, {bufferIndex})",
+                            ShaderUniformType.WriteOnlyBuffer => $"BUFFER_WO({name}, {parameter.vertexAttribute}, {bufferIndex})",
+                            ShaderUniformType.ReadWriteBuffer => $"BUFFER_RW({name}, {parameter.vertexAttribute}, {bufferIndex})",
                             _ => $"{uniformString}vec4 {name}",
                         };
                     }
@@ -1033,9 +1038,9 @@ vec4 i_data4        :   TEXCOORD3;
 
                                             varying += $"\n{GetNativeShaderType(parameter, counter, false)}";
 
-                                            if ((parameter.attribute?.Length ?? 0) > 0)
+                                            if ((parameter.vertexAttribute?.Length ?? 0) > 0)
                                             {
-                                                varying += $" : {parameter.attribute}";
+                                                varying += $" : {parameter.vertexAttribute}";
                                             }
 
                                             if ((parameter.defaultValue?.Length ?? 0) > 0)

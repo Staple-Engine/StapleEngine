@@ -14,7 +14,7 @@ public partial class ComputeShader : IGuidAsset
 {
     internal readonly ShaderMetadata metadata;
 
-    internal static readonly List<(string, ShaderUniformType)> DefaultUniforms = [];
+    internal static readonly List<Shader.DefaultUniform> DefaultUniforms = [];
 
     private Shader.UniformInfo[] uniforms = [];
     private readonly IntLookupCache<int> uniformIndices = new();
@@ -131,22 +131,22 @@ public partial class ComputeShader : IGuidAsset
         {
             foreach (var uniform in metadata.uniforms)
             {
-                AddUniform(uniform.name, uniform.type);
+                AddUniform(Shader.DefaultUniform.FromShaderUniform(uniform));
             }
 
-            void EnsureUniform(string name, ShaderUniformType type)
+            void EnsureUniform(Shader.DefaultUniform u)
             {
-                var uniform = GetUniform(name.GetHashCode());
+                var uniform = GetUniform(u.name.GetHashCode());
 
                 if (uniform == null)
                 {
-                    AddUniform(name, type);
+                    AddUniform(u);
                 }
             }
 
             foreach (var uniform in DefaultUniforms)
             {
-                EnsureUniform(uniform.Item1, uniform.Item2);
+                EnsureUniform(uniform);
             }
         }
 
@@ -155,10 +155,10 @@ public partial class ComputeShader : IGuidAsset
         return true;
     }
 
-    internal void AddUniform(string name, ShaderUniformType type)
+    internal void AddUniform(Shader.DefaultUniform uniform)
     {
-        var normalizedName = NormalizeUniformName(name, type);
-        var nameHash = name.GetHashCode();
+        var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
+        var nameHash = uniform.name.GetHashCode();
         var normalizedHash = normalizedName.GetHashCode();
 
         var uniformIndex = uniformIndices.IndexOf(nameHash);
@@ -180,14 +180,17 @@ public partial class ComputeShader : IGuidAsset
             uniform = new()
             {
                 name = normalizedName,
-                type = type,
+                type = uniform.type,
+                attribute = uniform.attribute,
+                variant = uniform.variant,
+                defaultValue = uniform.defaultValue,
             },
-            count = NormalizeUniformCount(name),
+            count = NormalizeUniformCount(uniform.name),
         };
 
         if (u.Create())
         {
-            if (type == ShaderUniformType.Texture)
+            if (uniform.type == ShaderUniformType.Texture)
             {
                 u.stage = (byte)usedTextureStages;
 
@@ -212,7 +215,10 @@ public partial class ComputeShader : IGuidAsset
                     uniform = new()
                     {
                         name = u.uniform.name,
-                        type = type,
+                        type = uniform.type,
+                        attribute = uniform.attribute,
+                        variant = uniform.variant,
+                        defaultValue = uniform.defaultValue,
                     },
                 }]).ToArray();
             }

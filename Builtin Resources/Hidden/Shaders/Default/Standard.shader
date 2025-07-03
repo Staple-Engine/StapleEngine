@@ -13,13 +13,13 @@ varying vec3 v_tangent : TANGENT
 varying vec3 v_bitangent : BITANGENT
 
 uniform texture ambientOcclusionTexture
-uniform color diffuseColor
-uniform texture diffuseTexture
+uniform color diffuseColor = #FFFFFFFF
+uniform texture diffuseTexture = WHITE
 uniform texture displacementTexture
 uniform color emissiveColor
 uniform texture emissiveTexture
 uniform texture heightTexture
-uniform texture normalTexture
+variant: NORMALMAP uniform texture normalTexture
 uniform color specularColor
 uniform texture specularTexture
 

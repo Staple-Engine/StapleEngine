@@ -28,5 +28,23 @@ public readonly struct ShaderHandle(object owner, Shader.UniformInfo uniform)
         return false;
     }
 
+    /// <summary>
+    /// Whether this handle is valid
+    /// </summary>
     public bool IsValid => (uniform?.handle.Valid ?? false) && (owner?.TryGetTarget(out _) ?? false);
+
+    /// <summary>
+    /// The uniform's attribute, if any
+    /// </summary>
+    public string Attribute => IsValid ? uniform.uniform.attribute : null;
+
+    /// <summary>
+    /// The uniform's variant, if any
+    /// </summary>
+    public string Variant => IsValid ? uniform.uniform.variant : null;
+
+    /// <summary>
+    /// The default value of this uniform, if any
+    /// </summary>
+    public string DefaultValue => IsValid ? uniform.uniform.defaultValue : null;
 }
