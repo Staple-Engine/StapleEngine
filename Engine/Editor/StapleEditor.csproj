@@ -43,7 +43,9 @@
     <Compile Include="Editors\Assets\NoiseGeneratorSettingsEditor.cs" />
     <Compile Include="Editors\Assets\PluginAssetEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
+    <Compile Include="Editors\Default\MeshRendererGizmo.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
+    <Compile Include="Editors\Default\SkinnedMeshRendererGizmo.cs" />
     <Compile Include="Generators\GeneratorAssetManager.cs" />
     <Compile Include="Generators\IGeneratorAsset.cs" />
     <Compile Include="Assets\VisualShaderAsset.cs" />

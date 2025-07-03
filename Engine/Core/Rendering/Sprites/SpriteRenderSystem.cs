@@ -90,8 +90,6 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly Dictionary<ushort, List<SpriteRenderInfo>> sprites = [];
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
     public void Startup()

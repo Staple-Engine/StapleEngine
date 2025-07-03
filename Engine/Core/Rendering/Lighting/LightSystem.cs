@@ -48,8 +48,6 @@ public sealed class LightSystem : IRenderSystem
     private readonly Dictionary<int, ShaderHandle[]> cachedMaterialInfo = [];
     private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
     public LightSystem()

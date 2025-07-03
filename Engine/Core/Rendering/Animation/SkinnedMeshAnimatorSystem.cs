@@ -1,6 +1,4 @@
-﻿using Staple.Jobs;
-using System;
-using System.Numerics;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -10,8 +8,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
     #region Lifecycle

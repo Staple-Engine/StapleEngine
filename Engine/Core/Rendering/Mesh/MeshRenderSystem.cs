@@ -175,11 +175,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
-        if (NeedsUpdate == false)
-        {
-            return;
-        }
-
         if (instanceCache.TryGetValue(viewID, out var instance) == false)
         {
             instance = [];

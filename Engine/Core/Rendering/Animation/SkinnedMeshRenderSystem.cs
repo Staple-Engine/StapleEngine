@@ -106,11 +106,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
-        if(NeedsUpdate == false)
-        {
-            return;
-        }
-
         if(renderers.TryGetValue(viewID, out var container) == false)
         {
             container = new();

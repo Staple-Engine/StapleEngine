@@ -16,8 +16,6 @@ public class UICanvasSystem : IRenderSystem
 
     private readonly SceneQuery<Transform, UICanvas> canvases = new();
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => true;
 
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);

@@ -10,12 +10,6 @@ namespace Staple;
 public interface IRenderSystem
 {
     /// <summary>
-    /// Lets the render system know that the visibility of a renderer changed since the last frame, or the world changed since the last frame.
-    /// This will trigger for each renderer that changed, so if you need to perform heavy computations, you should do so on <see cref="Prepare" />.
-    /// </summary>
-    bool NeedsUpdate { get; set; }
-
-    /// <summary>
     /// Whether this render system uses its own render process.
     /// It will not be given its own view ID and should ignore the <see cref="Process"/> and <see cref="Submit(ushort)"/> viewID parameter.
     /// </summary>

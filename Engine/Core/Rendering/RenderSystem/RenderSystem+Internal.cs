@@ -241,11 +241,6 @@ public sealed partial class RenderSystem
                 }
             }
         }
-
-        foreach (var system in renderSystems)
-        {
-            system.NeedsUpdate = false;
-        }
     }
 
     /// <summary>
@@ -273,11 +268,6 @@ public sealed partial class RenderSystem
         lock (lockObject)
         {
             renderQueue.Clear();
-
-            foreach(var system in renderSystems)
-            {
-                system.NeedsUpdate = true;
-            }
 
             var cameras = World.Current.SortedCameras;
 
@@ -367,8 +357,6 @@ public sealed partial class RenderSystem
             {
                 if (content[j].Item3 is Renderable renderable)
                 {
-                    var wasVisible = renderable.isVisible;
-
                     renderable.isVisible = renderable.enabled &&
                         renderable.forceRenderingOff == false;
 
@@ -380,11 +368,6 @@ public sealed partial class RenderSystem
                         {
                             CulledRenderers++;
                         }
-                    }
-
-                    if (wasVisible != renderable.isVisible)
-                    {
-                        system.NeedsUpdate = true;
                     }
                 }
             }
@@ -427,9 +410,6 @@ public sealed partial class RenderSystem
             {
                 continue;
             }
-
-            //Force the world visibility to change
-            system.NeedsUpdate = true;
 
             system.Prepare();
         }
@@ -646,8 +626,6 @@ public sealed partial class RenderSystem
                     {
                         if (contents[j].Item3 is Renderable renderable)
                         {
-                            var wasVisible = renderable.isVisible;
-
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                             if(renderable.isVisible)
@@ -662,11 +640,6 @@ public sealed partial class RenderSystem
                                 {
                                     CulledRenderers++;
                                 }
-                            }
-
-                            if(wasVisible != renderable.isVisible)
-                            {
-                                system.NeedsUpdate = true;
                             }
                         }
                     }

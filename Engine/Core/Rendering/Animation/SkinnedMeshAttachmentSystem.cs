@@ -8,8 +8,6 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshAttachmentSystem : IRenderSystem
 {
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
     public void Startup()

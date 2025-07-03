@@ -22,8 +22,6 @@ public class TextRenderSystem : IRenderSystem
 
     private readonly Dictionary<ushort, List<TextInfo>> texts = [];
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
     public void Startup()

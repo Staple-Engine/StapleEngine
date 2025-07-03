@@ -187,15 +187,4 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         return default;
     }
-
-    public void MarkDirty()
-    {
-        lock(lockObject)
-        {
-            foreach(var system in renderSystems)
-            {
-                system.NeedsUpdate = true;
-            }
-        }
-    }
 }

@@ -191,8 +191,6 @@ internal partial class StapleEditor
                         if (related is Renderable renderable &&
                             renderable.enabled)
                         {
-                            var wasVisible = renderable.isVisible;
-
                             renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                             if(renderable.isVisible)
@@ -203,11 +201,6 @@ internal partial class StapleEditor
                                 {
                                     RenderSystem.CulledRenderers++;
                                 }
-                            }
-
-                            if (wasVisible != renderable.isVisible)
-                            {
-                                system.NeedsUpdate = true;
                             }
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
@@ -227,8 +220,6 @@ internal partial class StapleEditor
                     pair.Key.Process(pair.Value.ToArray(), renderCamera, cameraTransform, SceneView);
 
                     pair.Key.Submit(SceneView);
-
-                    pair.Key.NeedsUpdate = false;
                 });
             }
 
