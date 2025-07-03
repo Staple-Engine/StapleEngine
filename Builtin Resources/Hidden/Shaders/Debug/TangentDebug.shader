@@ -1,14 +1,11 @@
-Variants BITANGENT
+Variants BITANGENT_COLOR
 
 Begin Parameters
 
-varying vec3 a_position : POSITION
-varying vec3 a_tangent : TANGENT
-varying vec3 a_bitangent : BITANGENT
 varying vec3 v_tangent : TANGENT
 varying vec3 v_bitangent : BITANGENT
 
-variant: BITANGENT uniform float tangentOrBitangent
+variant: BITANGENT_COLOR uniform float tangentOrBitangent
 
 End Parameters
 
