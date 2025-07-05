@@ -118,7 +118,7 @@
 ## UFBX
 
 - Upstream: https://github.com/ufbx/ufbx
-- Version: Unknown (latest from master, a63ff0a47485328880b3300e7bcdf01413343a45)
+- Version: Unknown (latest from main branch, a63ff0a47485328880b3300e7bcdf01413343a45)
 - License: MIT
 
 # Dependencies in Engine folder

@@ -1,12 +1,14 @@
-![Github top languages](https://img.shields.io/github/languages/top/littlecodingfox/stapleengine)
-[![GitHub version](https://img.shields.io/github/v/release/littlecodingfox/stapleengine?include_prereleases&style=flat-square)](https://github.com/littlecodingfox/stapleengine/releases) 
-[![GitHub license](https://img.shields.io/github/license/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/blob/main/LICENSE) 
-[![GitHub issues](https://img.shields.io/github/issues/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/issues) 
-[![GitHub stars](https://img.shields.io/github/stars/littlecodingfox/stapleengine?style=flat-square)](https://github.com/littlecodingfox/stapleengine/stargazers) 
+![Github top languages](https://img.shields.io/github/languages/top/staple-engine/stapleengine)
+[![GitHub version](https://img.shields.io/github/v/release/staple-engine/stapleengine?include_prereleases&style=flat-square)](https://github.com/staple-engine/stapleengine/releases) 
+[![GitHub license](https://img.shields.io/github/license/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/blob/main/LICENSE) 
+[![GitHub issues](https://img.shields.io/github/issues/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/issues) 
+[![GitHub stars](https://img.shields.io/github/stars/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/stargazers) 
 
 .NET Game Engine "stapled" together
 
-Status: Early state, usable for small demos
+# Status
+
+Early state, usable for small demos
 
 # Features
 
@@ -31,11 +33,15 @@ Status: Early state, usable for small demos
 
 You can grab binaries from the releases page. You also need the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
+Please note that binaries aren't as updated as the main branch, so you'll likely want to build either way.
+
 # Building
 
 You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
-## Windows
+<details>
+
+<summary>Windows</summary>
 
 You need visual studio 2022.
 
@@ -49,7 +55,11 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the windows DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
 
-## MacOS
+</details>
+
+<details>
+
+<summary>MacOS</summary>
 
 You need xcode.
 
@@ -63,7 +73,11 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
 
-## Linux
+</details>
+
+<details>
+
+<summary>Linux</summary>
 
 ### Required Packages
 
@@ -78,7 +92,7 @@ sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version latest
+./dotnet-install.sh --version 9.0.301
 ```
 
 ##### Don't forget to add to your shell
@@ -99,7 +113,7 @@ sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 c
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version latest
+./dotnet-install.sh --version 9.0.301
 ```
 
 ##### Don't forget to add to your shell
@@ -120,3 +134,4 @@ After that, you will need to compile the tools, so go to `Tools` and run `build_
 After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
 
 Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
+</details>
