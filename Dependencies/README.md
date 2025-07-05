@@ -26,6 +26,10 @@
 	- spirv-headers (Khronos/MIT)
 	- spirv-tools (Apache 2.0)
 	- stb (Public Domain)
+	
+## CrossCopy
+
+- Part of Staple, developed internally
 
 ## Dr. Libs
 
@@ -109,6 +113,12 @@
 
 - Upstream: https://github.com/vpenades/SharpGLTF
 - Version: 1.0.4 (5c4bd9643aef7c600304eac85b1325bb249feb70, 2025)
+- License: MIT
+
+## UFBX
+
+- Upstream: https://github.com/ufbx/ufbx
+- Version: Unknown (latest from master, a63ff0a47485328880b3300e7bcdf01413343a45)
 - License: MIT
 
 # Dependencies in Engine folder
