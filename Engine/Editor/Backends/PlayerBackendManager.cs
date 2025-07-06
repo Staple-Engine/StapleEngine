@@ -30,7 +30,7 @@ internal class PlayerBackendManager
             return;
         }
 
-        var basePath = Path.Combine(EditorUtils.EditorPath.Value, "Player Backends");
+        var basePath = Path.Combine(EditorUtils.EditorPath.Value, "PlayerBackends");
 
         try
         {

@@ -12,10 +12,10 @@ build
 Staging
 Tools/packages
 launchSettings.json
-Test Project/Cache
+TestProject/Cache
 DefaultResources
 .DS_Store
 dist
-Test Project/*.csproj
-Test Project/*.sln
+TestProject/*.csproj
+TestProject/*.sln
 .idea

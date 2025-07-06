@@ -48,7 +48,9 @@
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Windows/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/PlayerBackends/Windows/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.joltphysics/Plugins/Windows/joltc.dll" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.openal/Plugins/Windows/soft_oal.dll" "$(SolutionDir)../Staging"
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
 	  </PostBuildEvent>
 	</PropertyGroup>
@@ -59,7 +61,9 @@
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/Linux/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/PlayerBackends/Linux/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+    $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.joltphysics/Plugins/Linux/libjoltc.so" "$(SolutionDir)../Staging"
+    $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.openal/Plugins/Linux/libopenal.so" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
@@ -70,7 +74,9 @@
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
-      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Player Backends/MacOSX/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/PlayerBackends/MacOSX/Redist/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.joltphysics/Plugins/MacOS/libjoltc.dylib" "$(SolutionDir)../Staging"
+      $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.openal/Plugins/MacOS/libopenal.1.dylib" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
