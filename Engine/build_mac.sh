@@ -1,5 +1,7 @@
 #!/bin/sh
 
+dotnet workload restore
+
 dotnet build Engine.sln -c Debug
 dotnet build Engine.sln -c Release
 

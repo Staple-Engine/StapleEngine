@@ -1,4 +1,7 @@
 #!/bin/sh
+
+dotnet workload restore
+
 dotnet build "Core/StapleCore.csproj" -c Debug -o "../Staging/PlayerBackends/Windows/Runtime/Debug" /p:STAPLE_WINDOWS=true /p:TargetFramework=net9.0
 dotnet build "Core/StapleCore.csproj" -c Debug -o "../Staging/PlayerBackends/Linux/Runtime/Debug" /p:STAPLE_LINUX=true /p:TargetFramework=net9.0
 dotnet build "Core/StapleCore.csproj" -c Debug -o "../Staging/PlayerBackends/MacOSX/Runtime/Debug" /p:STAPLE_OSX=true /p:TargetFramework=net9.0
