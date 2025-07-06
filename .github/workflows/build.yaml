@@ -173,7 +173,7 @@ jobs:
             - run: 'dotnet workload restore'
               working-directory: './Engine/'
 
-            - run: 'sh build_linux.sh'
+            - run: 'sh build_mac.sh'
               working-directory: './Engine/'
 
             - run: 'sh build_backends.sh'

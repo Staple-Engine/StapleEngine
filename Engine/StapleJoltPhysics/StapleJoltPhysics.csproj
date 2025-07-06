@@ -6,8 +6,6 @@
 		<TargetFrameworks>net9.0</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macOS'))">$(TargetFrameworks);net9.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -41,6 +39,7 @@
 
 	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
+		<TargetFrameworks>$(TargetFrameworks);net9.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>

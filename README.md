@@ -125,7 +125,7 @@ To compile dependencies, go to `Dependencies` and run `build_linux.sh`.
 
 After that, you will need to compile the engine, so go to `Engine` and run `build_linux.sh` and then run `build_backends.sh`.
 
-Note: The `build_linux.sh` script should add an entry on your DE's start menu in the Development category
+Optionally, run `make_linux_menu_entry.sh` which should add an entry on your DE's start menu in the Development category
 
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
