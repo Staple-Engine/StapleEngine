@@ -133,7 +133,7 @@ internal class ProjectBrowser
     /// <param name="path">The texture path</param>
     public void LoadEditorTexture(string name, string path)
     {
-        path = Path.Combine(Environment.CurrentDirectory, "Editor Resources", path);
+        path = Path.Combine(Environment.CurrentDirectory, "EditorResources", path);
 
         try
         {

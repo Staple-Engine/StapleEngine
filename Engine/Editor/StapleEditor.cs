@@ -415,7 +415,7 @@ internal partial class StapleEditor
 
             projectBrowser.LoadEditorTextures();
 
-            var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "Icon.png");
+            var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "Icon.png");
 
             ThumbnailCache.GetTexture(iconPath, force: true);
 
@@ -1047,7 +1047,7 @@ internal partial class StapleEditor
 
         EditorUtils.CreateDirectory(Path.Combine(path, "Assets"));
 
-        if(EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "ProjectSettings"), Path.Combine(path, "Settings")) == false)
+        if(EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectSettings"), Path.Combine(path, "Settings")) == false)
         {
             Log.Error($"Failed to create project: Failed to copy editor resources");
 
@@ -1337,7 +1337,7 @@ internal partial class StapleEditor
 
         try
         {
-            files = Directory.GetFiles(Path.Combine(EditorUtils.EditorPath.Value, "Editor Resources", "AssetTemplates"));
+            files = Directory.GetFiles(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "AssetTemplates"));
         }
         catch(Exception)
         {

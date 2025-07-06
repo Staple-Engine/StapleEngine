@@ -272,7 +272,7 @@ internal partial class StapleEditor
 
             string args = "";
 
-            if (backend.publish)
+            if (backend.publish && (nativeAOT || publishSingleFile))
             {
                 args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
             }
