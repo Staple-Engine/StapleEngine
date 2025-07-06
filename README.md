@@ -69,9 +69,9 @@ After that, you will need to compile the engine, so go to `Engine` and run `buil
 
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in macOS, so you'll be limited to OpenGL, Metal, and Vulkan there.
 
-Finally, go to the `Redist` folder in `Dependencies` and copy the linux DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
+Finally, go to the `Redist` folder in `Dependencies` and copy the macOS DLLs to the `Staging` folder. You can now run `StapleEditorApp`.
 
 </details>
 
