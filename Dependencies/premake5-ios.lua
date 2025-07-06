@@ -233,7 +233,7 @@ project "bx"
 
 project "StapleSupport"
 	kind "SharedLib"
-	language "C"
+	language "C++"
 	
 	includedirs {
 		"freetype/include"
