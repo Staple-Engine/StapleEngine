@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-	  <PostBuildEvent>
+    <PostBuildEvent Condition="'$(SelfContained)'=='false'">
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		  $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
@@ -56,7 +56,7 @@
 	</PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <PostBuildEvent>
+    <PostBuildEvent Condition="'$(SelfContained)'=='false'">
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
@@ -65,11 +65,11 @@
     $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.joltphysics/Plugins/Linux/libjoltc.so" "$(SolutionDir)../Staging"
     $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.openal/Plugins/Linux/libopenal.so" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
-	</PostBuildEvent>
+	  </PostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
-  	<PostBuildEvent>
+    <PostBuildEvent Condition="'$(SelfContained)'=='false'">
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
@@ -78,6 +78,6 @@
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.joltphysics/Plugins/MacOS/libjoltc.dylib" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Staging/Packages/com.staple.openal/Plugins/MacOS/libopenal.1.dylib" "$(SolutionDir)../Staging"
       $(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/runtimes" "$(SolutionDir)../Staging"
-	</PostBuildEvent>
+  	</PostBuildEvent>
   </PropertyGroup>
 </Project>

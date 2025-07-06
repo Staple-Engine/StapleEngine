@@ -165,10 +165,10 @@
 	  <ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>
+    <PostBuildEvent Condition="'$(SelfContained)'=='false'">
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Editor/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/NativeFileDialog/binaries/*.[DLL]" "$(SolutionDir)../Staging"
-	</PostBuildEvent>
+	  </PostBuildEvent>
   </PropertyGroup>
 </Project>
