@@ -18,5 +18,6 @@ internal enum ProjectBrowserResourceType
     AssemblyDefinition,
     Plugin,
     Code,
+    Text,
     Other
 }

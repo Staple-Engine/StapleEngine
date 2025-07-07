@@ -49,6 +49,7 @@ public static class Resources
             Type t when t == typeof(Mesh) => ResourceManager.instance.LoadMesh(guid),
             Type t when t == typeof(MeshAsset) => ResourceManager.instance.LoadMeshAsset(guid),
             Type t when t == typeof(FontAsset) => ResourceManager.instance.LoadFont(guid),
+            Type t when t == typeof(TextAsset) => ResourceManager.instance.LoadTextAsset(guid),
             Type t when t.GetInterface(typeof(IStapleAsset).FullName) != null => ResourceManager.instance.LoadAsset(guid),
             _ => null,
         };

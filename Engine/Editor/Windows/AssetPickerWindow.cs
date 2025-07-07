@@ -362,6 +362,26 @@ internal class AssetPickerWindow : EditorWindow
                         }
 
                         break;
+
+                    case ProjectBrowserResourceType.Text:
+
+                        try
+                        {
+                            var textAsset = ResourceManager.instance.LoadTextAsset(guid);
+
+                            if (textAsset != null)
+                            {
+                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                                {
+                                    EditorGUI.pendingObjectPickers[assetPickerKey] = textAsset;
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        break;
                 }
 
                 Close();

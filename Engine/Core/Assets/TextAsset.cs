@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public class TextAsset : IStapleAsset, IGuidAsset
+public class TextAsset : IGuidAsset
 {
     public string text;
 
@@ -14,6 +14,6 @@ public class TextAsset : IStapleAsset, IGuidAsset
 
     public static object Create(string guid)
     {
-        return ResourceManager.instance.LoadAsset<TextAsset>(guid);
+        return ResourceManager.instance.LoadTextAsset(guid);
     }
 }

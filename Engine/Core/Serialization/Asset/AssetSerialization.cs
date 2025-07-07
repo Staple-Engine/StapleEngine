@@ -142,6 +142,18 @@ internal static partial class AssetSerialization
     ];
 
     /// <summary>
+    /// All text file extensions
+    /// </summary>
+    public static readonly string[] TextExtensions =
+    [
+        "txt",
+        "log",
+        "json",
+        "lua",
+        "xml"
+    ];
+
+    /// <summary>
     /// Gets the asset path for an asset from a cache path
     /// </summary>
     /// <param name="path">The asset path</param>

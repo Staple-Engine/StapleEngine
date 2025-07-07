@@ -2445,6 +2445,54 @@ internal class ResourceManager
     }
 
     /// <summary>
+    /// Attempts to load a text or binary file as a text asset
+    /// </summary>
+    /// <param name="path">The path to load from</param>
+    /// <returns>The text asset, or null</returns>
+    public TextAsset LoadTextAsset(string path)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        var data = LoadFile(path);
+
+        if (data == null)
+        {
+            return default;
+        }
+
+        var outAsset = new TextAsset()
+        {
+            bytes = data,
+        };
+
+        outAsset.Guid.Guid = path;
+
+        var assetPath = AssetDatabase.GetAssetPath(path);
+
+        var extension = Path.GetExtension(assetPath ?? path);
+
+        if(Array.IndexOf(AssetSerialization.TextExtensions, extension) >= 0)
+        {
+            try
+            {
+                outAsset.text = Encoding.UTF8.GetString(data);
+            }
+            catch(Exception)
+            {
+            }
+        }
+
+        return outAsset;
+    }
+
+    /// <summary>
     /// Locks an asset guid so it's not cleared when reloading the scene
     /// </summary>
     /// <param name="guid">The asset guid</param>

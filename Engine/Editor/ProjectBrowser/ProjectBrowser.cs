@@ -29,8 +29,6 @@ internal class ProjectBrowser
 
     public static readonly string[] CodeExtensions = [
         "cs",
-        "json",
-        "lua",
         "c",
         "cpp",
         "h",
@@ -69,6 +67,7 @@ internal class ProjectBrowser
         AddAll(AssetSerialization.FontExtensions, ProjectBrowserResourceType.Font);
         AddAll(AssetSerialization.PluginExtensions, ProjectBrowserResourceType.Plugin);
         AddAll(AssetSerialization.PluginFolderSuffixes, ProjectBrowserResourceType.Plugin);
+        AddAll(AssetSerialization.TextExtensions, ProjectBrowserResourceType.Text);
         AddAll(CodeExtensions, ProjectBrowserResourceType.Code);
     }
 
@@ -180,6 +179,7 @@ internal class ProjectBrowser
             ProjectBrowserResourceType.AssemblyDefinition => GetEditorResource("FileIcon"),
             ProjectBrowserResourceType.Plugin => GetEditorResource("FileIcon"),
             ProjectBrowserResourceType.Code => GetEditorResource("CodeIcon"),
+            ProjectBrowserResourceType.Text => GetEditorResource("TextIcon"),
             _ => GetEditorResource("FileIcon"),
         };
 
@@ -373,6 +373,12 @@ internal class ProjectBrowser
                         case ProjectBrowserResourceType.Plugin:
 
                             node.typeName = typeof(PluginAsset).FullName;
+
+                            break;
+
+                        case ProjectBrowserResourceType.Text:
+
+                            node.typeName = typeof(TextAsset).FullName;
 
                             break;
 
@@ -835,6 +841,28 @@ internal class ProjectBrowser
                                 {
                                     guid = Hash(),
                                     typeName = typeof(Prefab).FullName,
+                                },
+                                Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                File.WriteAllText($"{path}.meta", jsonData);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        break;
+
+                    case ProjectBrowserResourceType.Text:
+
+                        try
+                        {
+                            if (File.Exists($"{path}.meta") == false)
+                            {
+                                var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                {
+                                    guid = Hash(),
+                                    typeName = typeof(TextAsset).FullName,
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 

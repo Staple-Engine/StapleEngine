@@ -1399,6 +1399,32 @@ internal partial class StapleEditor
                         }
                     }
                 }
+                else if (item.typeName == typeof(TextAsset).FullName)
+                {
+                    try
+                    {
+                        original = ResourceManager.instance.LoadTextAsset(guid);
+                        selectedProjectNodeData = ResourceManager.instance.LoadTextAsset(guid);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    if (original != null && selectedProjectNodeData != null)
+                    {
+                        var editor = Editor.CreateEditor(selectedProjectNodeData);
+
+                        if (editor is AssetEditor e)
+                        {
+                            e.original = original;
+                            e.path = item.path;
+                            e.cachePath = cachePath;
+                            e.recreateOriginal = () => ResourceManager.instance.LoadTextAsset(guid);
+
+                            cachedEditors.Add("", editor);
+                        }
+                    }
+                }
                 else
                 {
                     var type = TypeCache.GetType(item.typeName);
