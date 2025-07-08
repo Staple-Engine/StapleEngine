@@ -973,7 +973,7 @@ internal partial class StapleEditor
                         removed = true;
                         resetSelection = true;
                     });
-                });
+                }, true);
             });
 
             if(ImGui.Button("Add Component"))

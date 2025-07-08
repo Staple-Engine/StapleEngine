@@ -946,15 +946,21 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler for when it is clicked</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
     /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNode(string label, string key, bool leaf, Action openHandler, Action clickHandler,
-        Action prefixHandler = null)
+        Action prefixHandler = null, bool defaultOpen = false)
     {
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
 
         if (leaf)
         {
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        if(defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
         }
 
         var open = ImGui.TreeNodeEx($"##{key}", flags);
@@ -1012,15 +1018,21 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler for when it is clicked</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
     /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNodeIcon(Texture icon, Color color, string label, string key, bool leaf,
-        Action openHandler, Action clickHandler, Action prefixHandler = null)
+        Action openHandler, Action clickHandler, Action prefixHandler = null, bool defaultOpen = false)
     {
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
 
         if (leaf)
         {
             flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        if (defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
         }
 
         var open = ImGui.TreeNodeEx($"##{key}", flags);
