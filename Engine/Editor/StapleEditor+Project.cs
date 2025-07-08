@@ -320,11 +320,11 @@ internal partial class StapleEditor
     {
         if((lastOpenScene?.Length ?? 0) > 0)
         {
-            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)} - {Path.GetFileNameWithoutExtension(lastOpenScene)}";
+            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)} - {Path.GetFileNameWithoutExtension(lastOpenScene)} - {RenderWindow.CurrentRenderer}";
         }
         else
         {
-            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)}";
+            window.Title = $"Staple Editor - {Path.GetFileName(BasePath)} - {RenderWindow.CurrentRenderer}";
         }
     }
 

@@ -421,8 +421,10 @@ internal partial class StapleEditor
 
             if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
             {
-                window.window.SetIcon(icon);
+                window.SetIcon(icon);
             }
+
+            window.Title = $"Staple Editor - {RenderWindow.CurrentRenderer}";
 
             if (ImGuiProxy.instance.Initialize() == false)
             {

@@ -885,6 +885,15 @@ internal class RenderWindow
     }
 
     /// <summary>
+    /// Sets the window's icon
+    /// </summary>
+    /// <param name="icon">Raw image data for the icon</param>
+    public void SetIcon(RawTextureData icon)
+    {
+        window.SetIcon(icon);
+    }
+
+    /// <summary>
     /// Creates a render window
     /// </summary>
     /// <param name="width">The window's width</param>
