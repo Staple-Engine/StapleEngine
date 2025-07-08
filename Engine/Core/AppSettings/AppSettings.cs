@@ -194,7 +194,10 @@ public class AppSettings
                     {
                         AppPlatform.Windows,
                         [
-                            RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan
+#if STAPLE_SUPPORTS_D3D12
+                            RendererType.Direct3D12,
+#endif
+                            RendererType.Direct3D11, RendererType.Vulkan
                         ]
                     },
                     {

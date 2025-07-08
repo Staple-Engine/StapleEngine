@@ -58,7 +58,9 @@ internal class ResourceManager
             return RenderWindow.CurrentRenderer switch
             {
                 RendererType.Direct3D11 => "d3d11/",
+#if STAPLE_SUPPORTS_D3D12
                 RendererType.Direct3D12 => "d3d12/",
+#endif
                 RendererType.Metal => "metal/",
                 RendererType.OpenGL => "opengl/",
                 RendererType.OpenGLES => "opengles/",

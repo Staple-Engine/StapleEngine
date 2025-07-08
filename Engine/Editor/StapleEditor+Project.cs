@@ -401,11 +401,13 @@ internal partial class StapleEditor
 
                                     break;
 
+#if STAPLE_SUPPORTS_D3D12
                                 case RendererType.Direct3D12:
 
                                     rendererParameters.Add("-r d3d12");
 
                                     break;
+#endif
 
                                 case RendererType.Metal:
 
