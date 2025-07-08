@@ -135,20 +135,20 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         foreach (var (_, transform, relatedComponent) in entities)
         {
-            var r = relatedComponent as MeshRenderer;
+            var renderer = relatedComponent as MeshRenderer;
 
-            if (r.mesh == null ||
-                r.materials == null ||
-                r.materials.Count == 0)
+            if (renderer.mesh == null ||
+                renderer.materials == null ||
+                renderer.materials.Count == 0)
             {
                 continue;
             }
 
             var skip = false;
 
-            for (var i = 0; i < r.materials.Count; i++)
+            for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((r.materials[i]?.IsValid ?? false) == false)
+                if ((renderer.materials[i]?.IsValid ?? false) == false)
                 {
                     skip = true;
 
@@ -161,15 +161,22 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
+            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
                 continue;
             }
 
-            r.mesh.UploadMeshData();
+            renderer.mesh.UploadMeshData();
 
-            r.localBounds = new(transform.LocalPosition + r.mesh.bounds.center * transform.LocalScale, r.mesh.bounds.size * transform.LocalScale);
-            r.bounds = new(transform.Position + r.mesh.bounds.center * transform.Scale, r.mesh.bounds.size * transform.Scale);
+            var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
+
+            var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
+
+            renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
+                localSize * transform.LocalScale);
+
+            renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
+                globalSize * transform.Scale);
         }
     }
 
@@ -191,21 +198,21 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
-            var r = relatedComponent as MeshRenderer;
+            var renderer = relatedComponent as MeshRenderer;
 
-            if (r.isVisible == false ||
-                r.mesh == null ||
-                r.materials == null ||
-                r.materials.Count == 0)
+            if (renderer.isVisible == false ||
+                renderer.mesh == null ||
+                renderer.materials == null ||
+                renderer.materials.Count == 0)
             {
                 continue;
             }
 
             var skip = false;
 
-            for (var i = 0; i < r.materials.Count; i++)
+            for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((r.materials[i]?.IsValid ?? false) == false)
+                if ((renderer.materials[i]?.IsValid ?? false) == false)
                 {
                     skip = true;
 
@@ -218,7 +225,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (r.mesh.submeshes.Count > 0 && r.materials.Count != r.mesh.submeshes.Count)
+            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
                 continue;
             }
@@ -230,11 +237,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 instanceCache.Add(viewID, cache);
             }
 
-            var lighting = (r.overrideLighting ? r.lighting : r.mesh.meshAsset?.lighting) ?? r.lighting;
+            var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.lighting) ?? renderer.lighting;
 
             void Add(Material material, int submeshIndex)
             {
-                var key = r.mesh.Guid.GuidHash ^ material.StateHash ^ (int)lighting;
+                var key = renderer.mesh.Guid.GuidHash ^ material.StateHash ^ (int)lighting;
 
                 if (cache.TryGetValue(key, out var meshCache) == false)
                 {
@@ -245,7 +252,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 meshCache.instanceInfos.Add(new()
                 {
-                    mesh = r.mesh,
+                    mesh = renderer.mesh,
                     material = material,
                     lighting = lighting,
                     transform = transform,
@@ -253,15 +260,15 @@ public sealed class MeshRenderSystem : IRenderSystem
                 });
             }
 
-            if (r.mesh.submeshes.Count == 0)
+            if (renderer.mesh.submeshes.Count == 0)
             {
-                Add(r.materials[0], 0);
+                Add(renderer.materials[0], 0);
             }
             else
             {
-                for (var i = 0; i < r.mesh.submeshes.Count; i++)
+                for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
                 {
-                    Add(r.materials[0], i);
+                    Add(renderer.materials[0], i);
                 }
             }
         }

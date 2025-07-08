@@ -2022,19 +2022,22 @@ internal class ResourceManager
 
                 newMesh.transformedBounds = newMesh.bounds;
 
-                foreach(var node in asset.nodes)
+                if(newMesh.type == MeshAssetType.Skinned)
                 {
-                    if(node.meshIndices.Contains(asset.meshes.Count))
+                    foreach (var node in asset.nodes)
                     {
-                        Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
+                        if (node.meshIndices.Contains(asset.meshes.Count))
+                        {
+                            Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
 
-                        var size = Vector3.Abs(Vector3.Transform(newMesh.bounds.size * scale, rotation));
+                            var size = Vector3.Abs(Vector3.Transform(newMesh.bounds.size * scale, rotation));
 
-                        var center = Vector3.Transform(newMesh.bounds.center * scale, rotation);
+                            var center = Vector3.Transform(newMesh.bounds.center * scale, rotation);
 
-                        newMesh.transformedBounds = new(center + position, size);
+                            newMesh.transformedBounds = new(center + position, size);
 
-                        break;
+                            break;
+                        }
                     }
                 }
 
