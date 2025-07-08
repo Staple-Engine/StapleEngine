@@ -38,15 +38,15 @@ internal class ThumbnailCache
         public bool persistentCache;
     }
 
-    private static readonly Dictionary<string, TextureInfo> cachedThumbnails = new();
-    private static readonly Dictionary<string, Texture> cachedTextures = new();
-    private static readonly List<Texture> pendingDestructionTextures = new();
-    private static readonly Dictionary<string, RawTextureData> cachedTextureData = new();
-    private static readonly Dictionary<string, Texture> persistentTextures = new();
+    private static readonly Dictionary<string, TextureInfo> cachedThumbnails = [];
+    private static readonly Dictionary<string, Texture> cachedTextures = [];
+    private static readonly List<Texture> pendingDestructionTextures = [];
+    private static readonly Dictionary<string, RawTextureData> cachedTextureData = [];
+    private static readonly Dictionary<string, Texture> persistentTextures = [];
 
-    private static readonly Dictionary<string, RenderRequest> pendingRenderRequests = new();
-    private static readonly Dictionary<string, RenderRequest> pendingMainThreadRenderRequests = new();
-    private static readonly object renderRequestLock = new();
+    private static readonly Dictionary<string, RenderRequest> pendingRenderRequests = [];
+    private static readonly Dictionary<string, RenderRequest> pendingMainThreadRenderRequests = [];
+    private static readonly Lock renderRequestLock = new();
     private static bool mayRenderInMainThread = true;
 
     internal static string basePath;

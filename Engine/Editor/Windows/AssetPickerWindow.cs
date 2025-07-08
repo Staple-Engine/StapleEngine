@@ -66,15 +66,30 @@ internal class AssetPickerWindow : EditorWindow
 
         projectBrowser.editorResources.TryGetValue("FileIcon", out var fileIcon);
 
+        string ThumbnailPath(string path)
+        {
+            if(File.Exists(path))
+            {
+                return path;
+            }
+
+            if(File.Exists(Path.Combine(basePath, path)))
+            {
+                return Path.Combine(basePath, path);
+            }
+
+            return path;
+        }
+
         gridItems = validItems
             .Select(x => new ImGuiUtils.ContentGridItem()
             {
                 name = x?.name ?? "(None)",
                 ensureValidTexture = (texture) =>
                 {
-                    if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(x.path)))
+                    if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(ThumbnailPath(x.path))))
                     {
-                        return ThumbnailCache.GetThumbnail(x.path) ?? projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
+                        return ThumbnailCache.GetThumbnail(ThumbnailPath(x.path)) ?? projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
                     }
 
                     return texture ?? fileIcon;
