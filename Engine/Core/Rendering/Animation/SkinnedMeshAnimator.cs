@@ -60,7 +60,7 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// <summary>
     /// List of modifiers
     /// </summary>
-    internal EntityQuery<Transform, ISkeletonModifier> modifiers;
+    internal EntityQuery<Transform, ISkinModifier> modifiers;
 
     /// <summary>
     /// Sets the current animation

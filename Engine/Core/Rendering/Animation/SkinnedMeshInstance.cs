@@ -37,7 +37,7 @@ public class SkinnedMeshInstance : IComponent, IComponentDisposable
     /// <summary>
     /// List of modifiers
     /// </summary>
-    internal EntityQuery<Transform, ISkeletonModifier> modifiers;
+    internal EntityQuery<Transform, ISkinModifier> modifiers;
 
     /// <summary>
     /// Whether we have an animator

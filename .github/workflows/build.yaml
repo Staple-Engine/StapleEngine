@@ -178,8 +178,8 @@ jobs:
 
             - run: 'sh build_backends.sh'
               working-directory: './Engine/'
-             
-            - run: 'dotnet workload restore -p:TargetFramework=net9.0-ios'
+
+            - run: 'dotnet workload restore -p:STAPLE_IOS=true'
               working-directory: './Engine/'
 
             - run: 'sh build_backends_mac.sh'
