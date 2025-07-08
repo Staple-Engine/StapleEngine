@@ -179,11 +179,12 @@ jobs:
             - run: 'sh build_backends.sh'
               working-directory: './Engine/'
 
-            - run: 'dotnet workload restore -p:STAPLE_IOS=true --project Engine.sln'
-              working-directory: './Engine/'
+            # TODO: Figure out how to make this work
+            #- run: 'dotnet workload restore -p:STAPLE_IOS=true --project Engine.sln'
+            #  working-directory: './Engine/'
 
-            - run: 'sh build_backends_mac.sh'
-              working-directory: './Engine/'
+            #- run: 'sh build_backends_mac.sh'
+            #  working-directory: './Engine/'
 
             - run: 'sh build_linux.sh'
               working-directory: './Tools/'
