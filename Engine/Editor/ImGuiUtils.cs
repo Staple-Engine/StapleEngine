@@ -45,11 +45,14 @@ internal static class ImGuiUtils
 
             ImGui.PushID($"{item.name}##0");
 
-            item.texture = item.ensureValidTexture(item.texture);
-
             ImGui.ImageButton("", ImGuiProxy.GetImGuiTexture(item.texture), new Vector2(thumbnailSize, thumbnailSize), new Vector2(0, 0), new Vector2(1, 1));
 
-            if(ImGui.IsItemHovered())
+            if(ImGui.IsItemVisible())
+            {
+                item.texture = item.ensureValidTexture(item.texture);
+            }
+
+            if (ImGui.IsItemHovered())
             {
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                 {
