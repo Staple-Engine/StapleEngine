@@ -160,17 +160,11 @@ internal class FrustumCuller
         {
             var plane = planes[i];
             var normal = plane.Normal;
-            var distance = plane.D;
-            var planeVector = new Vector4(normal.X, normal.Y, normal.Z, distance);
+            var planeVector = new Vector4(normal.X, normal.Y, normal.Z, plane.D);
 
             var positive = new Vector4(normal.X > 0 ? max.X : min.X,
                 normal.Y > 0 ? max.Y : min.Y,
                 normal.Z > 0 ? max.Z : min.Z,
-                1.0f);
-                
-            var negative = new Vector4(normal.X > 0 ? min.X : max.X,
-                normal.Y > 0 ? min.Y : max.Y,
-                normal.Z > 0 ? min.Z : max.Z,
                 1.0f);
 
             var t = Vector4.Dot(positive, planeVector);
@@ -178,13 +172,6 @@ internal class FrustumCuller
             if(t < 0)
             {
                 return FrustumResult.Invisible;
-            }
-
-            t = Vector4.Dot(negative, planeVector);
-
-            if(t < 0)
-            {
-                result = FrustumResult.Intersecting;
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Staple.Internal;
+using System.Numerics;
 
 namespace Staple;
 
@@ -74,6 +75,31 @@ public sealed class Camera : IComponent
     /// Actual height of this camera viewport
     /// </summary>
     internal float Height => viewport.W * Screen.Height;
+
+    /// <summary>
+    /// The frustum culler for this camera
+    /// </summary>
+    private readonly FrustumCuller frustumCuller = new();
+
+    /// <summary>
+    /// Checks whether some bounds are visible for this camera
+    /// </summary>
+    /// <param name="bounds">The bounds to check</param>
+    /// <returns>Whether it's visible</returns>
+    public bool IsVisible(AABB bounds)
+    {
+        return frustumCuller.AABBTest(bounds) != FrustumResult.Invisible;
+    }
+
+    /// <summary>
+    /// Updates the frustum for this camera
+    /// </summary>
+    /// <param name="view">The view matrix</param>
+    /// <param name="projection">The projection matrix</param>
+    internal void UpdateFrustum(Matrix4x4 view, Matrix4x4 projection)
+    {
+        frustumCuller.Update(view, projection);
+    }
 
     /// <summary>
     /// Calculates projection matrix for a camera

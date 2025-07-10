@@ -1421,7 +1421,7 @@ public sealed partial class Mesh : IGuidAsset
             parent = parentEntity.GetComponent<Transform>();
         }
 
-        var meshEntity = Entity.Create(name, typeof(Transform));
+        var meshEntity = Entity.Create(name, typeof(Transform), typeof(CullingVolume));
         var meshTransform = meshEntity.GetComponent<Transform>();
 
         meshTransform.SetParent(parent);
@@ -1474,7 +1474,7 @@ public sealed partial class Mesh : IGuidAsset
             parent = parentEntity.GetComponent<Transform>();
         }
 
-        var baseEntity = Entity.Create(name, typeof(Transform));
+        var baseEntity = Entity.Create(name, typeof(Transform), typeof(CullingVolume));
         var baseTransform = baseEntity.GetComponent<Transform>();
 
         baseTransform.SetParent(parent);

@@ -181,8 +181,6 @@ internal partial class StapleEditor
     #region Rendering
     private RenderWindow window;
 
-    private readonly FrustumCuller frustumCuller = new();
-
     private int activeBottomTab = 0;
 
     private RenderTarget gameRenderTarget;

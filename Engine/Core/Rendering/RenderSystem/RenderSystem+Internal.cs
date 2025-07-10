@@ -157,6 +157,7 @@ public sealed partial class RenderSystem
     #region Lifecycle
     public void Startup()
     {
+        RegisterSystem(new CullingVolumeSystem());
         RegisterSystem(new LightSystem());
         RegisterSystem(new SpriteRenderSystem());
         RegisterSystem(new SkinnedMeshAnimatorSystem());
@@ -358,11 +359,12 @@ public sealed partial class RenderSystem
                 if (content[j].Item3 is Renderable renderable)
                 {
                     renderable.isVisible = renderable.enabled &&
-                        renderable.forceRenderingOff == false;
+                        renderable.forceRenderingOff == false &&
+                        renderable.culled == false;
 
                     if(renderable.isVisible && cull)
                     {
-                        renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
                         if(renderable.isVisible == false)
                         {
@@ -445,7 +447,7 @@ public sealed partial class RenderSystem
 
                         if (renderable.isVisible && cull)
                         {
-                            renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+                            renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
                             if (renderable.isVisible == false)
                             {
@@ -516,7 +518,7 @@ public sealed partial class RenderSystem
                 {
                     var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
 
-                    if (call.renderable.enabled)
+                    if (call.renderable.isVisible)
                     {
                         var currentPosition = call.position;
                         var currentRotation = call.rotation;
@@ -610,7 +612,7 @@ public sealed partial class RenderSystem
 
                     Matrix4x4.Invert(view, out view);
 
-                    frustumCuller.Update(view, projection);
+                    camera.UpdateFrustum(view, projection);
                 }
 
                 foreach (var systemInfo in pair.Item2)
@@ -626,11 +628,13 @@ public sealed partial class RenderSystem
                     {
                         if (contents[j].Item3 is Renderable renderable)
                         {
-                            renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+                            renderable.isVisible = renderable.enabled &&
+                                renderable.forceRenderingOff == false &&
+                                renderable.culled == false;
 
                             if(renderable.isVisible)
                             {
-                                renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+                                renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
                                 if (renderable.isVisible)
                                 {
@@ -666,7 +670,7 @@ public sealed partial class RenderSystem
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="viewID">The view ID</param>
-    private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
+    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
     {
         unsafe
         {
@@ -677,7 +681,7 @@ public sealed partial class RenderSystem
 
             bgfx.set_view_transform(viewID, &view, &projection);
 
-            frustumCuller.Update(view, projection);
+            camera.UpdateFrustum(view, projection);
         }
 
         switch (camera.clearMode)

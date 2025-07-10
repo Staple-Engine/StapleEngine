@@ -82,11 +82,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     private readonly Lock lockObject = new();
 
     /// <summary>
-    /// The frustum culler to use with a camera
-    /// </summary>
-    private readonly FrustumCuller frustumCuller = new();
-
-    /// <summary>
     /// Whether we need to generate draw calls (interpolator only)
     /// </summary>
     private bool needsDrawCalls = false;

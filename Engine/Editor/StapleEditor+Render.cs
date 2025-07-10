@@ -44,7 +44,7 @@ internal partial class StapleEditor
 
             Matrix4x4.Invert(view, out view);
 
-            frustumCuller.Update(view, projection);
+            camera.UpdateFrustum(view, projection);
 
             bgfx.set_view_transform(SceneView, &view, &projection);
             bgfx.set_view_transform(WireframeView, &view, &projection);
@@ -161,8 +161,6 @@ internal partial class StapleEditor
 
         if (World.Current != null)
         {
-            var renderCamera = Scene.SortedCameras.FirstOrDefault()?.camera ?? camera;
-
             //TODO: Cache this
             var transforms = Scene.Query<Transform>();
 
@@ -191,11 +189,13 @@ internal partial class StapleEditor
                         if (related is Renderable renderable &&
                             renderable.enabled)
                         {
-                            renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+                            renderable.isVisible = renderable.enabled &&
+                                renderable.forceRenderingOff == false &&
+                                renderable.culled == false;
 
                             if(renderable.isVisible)
                             {
-                                renderable.isVisible = renderable.isVisible && frustumCuller.AABBTest(renderable.bounds) != FrustumResult.Invisible;
+                                renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
                                 if(renderable.isVisible == false)
                                 {
@@ -215,9 +215,9 @@ internal partial class StapleEditor
             {
                 ExecuteBlock(pair.Key, () =>
                 {
-                    pair.Key.Preprocess(pair.Value.ToArray(), renderCamera, cameraTransform);
+                    pair.Key.Preprocess(pair.Value.ToArray(), camera, cameraTransform);
 
-                    pair.Key.Process(pair.Value.ToArray(), renderCamera, cameraTransform, SceneView);
+                    pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, SceneView);
 
                     pair.Key.Submit(SceneView);
                 });

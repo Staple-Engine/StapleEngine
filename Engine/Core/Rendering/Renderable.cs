@@ -56,4 +56,9 @@ public class Renderable : IComponent
     /// Lighting mode
     /// </summary>
     public MaterialLighting lighting = MaterialLighting.Unlit;
+
+    /// <summary>
+    /// Whether this has been culled by another system
+    /// </summary>
+    internal bool culled;
 }

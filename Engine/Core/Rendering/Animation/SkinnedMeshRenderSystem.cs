@@ -150,11 +150,19 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 var rootTransform = FindRootTransform(transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
 
-                if (rootTransform != null && rootTransform.entity.TryGetComponent<SkinnedMeshInstance>(out var instance) == false)
+                if (rootTransform != null)
                 {
-                    instance = rootTransform.entity.AddComponent<SkinnedMeshInstance>();
+                    if(rootTransform.entity.GetComponent<SkinnedMeshInstance>() == null)
+                    {
+                        var instance = rootTransform.entity.AddComponent<SkinnedMeshInstance>();
 
-                    instance.mesh = renderer.mesh;
+                        instance.mesh = renderer.mesh;
+                    }
+
+                    if(rootTransform.entity.GetComponent<CullingVolume>() == null)
+                    {
+                        rootTransform.entity.AddComponent<CullingVolume>();
+                    }
                 }
 
                 renderer.instance ??= new(entity, EntityQueryMode.Parent, false);

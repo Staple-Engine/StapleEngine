@@ -182,6 +182,8 @@
 		<Compile Include="Rendering\Animation\SkinnedMeshInstance.cs" />
 		<Compile Include="Rendering\Camera\CameraViewMode.cs" />
 		<Compile Include="Rendering\CullingMode.cs" />
+		<Compile Include="Rendering\CullingVolume\CullingVolume.cs" />
+		<Compile Include="Rendering\CullingVolume\CullingVolumeSystem.cs" />
 		<Compile Include="Rendering\FPSCounter.cs" />
 		<Compile Include="Rendering\FPSCounterSystem.cs" />
 		<Compile Include="Rendering\Graphics.cs" />
