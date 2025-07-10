@@ -196,6 +196,22 @@ public sealed partial class RenderSystem
 
         usedViewIDs.Clear();
 
+        foreach(var pair in renderQueue)
+        {
+            foreach(var item in pair.Item2)
+            {
+                foreach(var (_, _, renderable) in item.Item2)
+                {
+                    if(renderable is not Renderable r)
+                    {
+                        continue;
+                    }
+
+                    r.cullingState = CullingState.None;
+                }
+            }
+        }
+
         foreach(var system in renderSystems)
         {
             if(system.UsesOwnRenderProcess == false)
@@ -360,16 +376,21 @@ public sealed partial class RenderSystem
                 {
                     renderable.isVisible = renderable.enabled &&
                         renderable.forceRenderingOff == false &&
-                        renderable.culled == false;
+                        renderable.cullingState != CullingState.Invisible;
 
                     if(renderable.isVisible && cull)
                     {
-                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
-
-                        if(renderable.isVisible == false)
+                        if(renderable.cullingState == CullingState.None)
                         {
-                            CulledRenderers++;
+                            renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
                         }
+                    }
+
+                    if (renderable.isVisible == false)
+                    {
+                        CulledRenderers++;
                     }
                 }
             }
@@ -630,11 +651,16 @@ public sealed partial class RenderSystem
                         {
                             renderable.isVisible = renderable.enabled &&
                                 renderable.forceRenderingOff == false &&
-                                renderable.culled == false;
+                                renderable.cullingState != CullingState.Invisible;
 
                             if(renderable.isVisible)
                             {
-                                renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
+                                if (renderable.cullingState == CullingState.None)
+                                {
+                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                }
 
                                 if (renderable.isVisible)
                                 {

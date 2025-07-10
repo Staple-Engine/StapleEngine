@@ -1,4 +1,6 @@
-﻿namespace Staple;
+﻿using Staple.Internal;
+
+namespace Staple;
 
 /// <summary>
 /// Renderable base component
@@ -60,5 +62,5 @@ public class Renderable : IComponent
     /// <summary>
     /// Whether this has been culled by another system
     /// </summary>
-    internal bool culled;
+    internal CullingState cullingState = CullingState.None;
 }

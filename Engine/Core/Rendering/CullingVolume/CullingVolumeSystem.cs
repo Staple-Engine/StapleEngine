@@ -52,7 +52,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
             foreach (var renderer in volume.renderers.Contents)
             {
-                renderer.Item2.culled = isVisible == false;
+                renderer.Item2.cullingState = isVisible ? CullingState.Visible : CullingState.Invisible;
             }
         }
     }

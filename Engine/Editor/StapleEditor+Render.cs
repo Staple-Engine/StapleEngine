@@ -190,17 +190,22 @@ internal partial class StapleEditor
                             renderable.enabled)
                         {
                             renderable.isVisible = renderable.enabled &&
-                                renderable.forceRenderingOff == false &&
-                                renderable.culled == false;
+                                renderable.forceRenderingOff == false;
+                            renderable.cullingState = CullingState.None;
 
-                            if(renderable.isVisible)
+                            if (renderable.isVisible)
                             {
-                                renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
-
-                                if(renderable.isVisible == false)
+                                if(renderable.cullingState == CullingState.None)
                                 {
-                                    RenderSystem.CulledRenderers++;
+                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
                                 }
+                            }
+
+                            if (renderable.isVisible == false)
+                            {
+                                RenderSystem.CulledRenderers++;
                             }
 
                             ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
