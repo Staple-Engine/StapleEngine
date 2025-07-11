@@ -27,11 +27,27 @@ internal partial class StapleEditor
 
     internal const string RenderTargetLayerName = "STAPLE_EDITOR_RENDER_TARGET_LAYER";
 
+    internal static string StapleBasePath => Storage.StapleBasePath;
+
+    private static Color PrefabColor = new Color32("#00CED1");
+
+    internal const int ClearView = 0;
+    internal const int MeshRenderView = 252;
+    internal const int SceneView = 253;
+    internal const int WireframeView = 254;
+
     #region Classes
     enum ViewportType
     {
         Scene,
         Game
+    }
+
+    enum PlayMode
+    {
+        Stopped,
+        Playing,
+        Paused,
     }
 
     internal class DragDropPayload
@@ -154,15 +170,6 @@ internal partial class StapleEditor
         }
     }
     #endregion
-
-    internal static string StapleBasePath => Storage.StapleBasePath;
-
-    private static Color PrefabColor = new Color32("#00CED1");
-
-    internal const int ClearView = 0;
-    internal const int MeshRenderView = 252;
-    internal const int SceneView = 253;
-    internal const int WireframeView = 254;
 
     #region Background Tasks
     private readonly Lock backgroundLock = new();
@@ -326,6 +333,10 @@ internal partial class StapleEditor
     private Action messageBoxNoAction;
 
     private bool refreshingAssets = false;
+    #endregion
+
+    #region PlayMode
+    private PlayMode playMode = PlayMode.Stopped;
     #endregion
 
     private static WeakReference<StapleEditor> privInstance;
@@ -618,6 +629,15 @@ internal partial class StapleEditor
 
                 Screen.Width = window.width;
                 Screen.Height = window.height;
+            }
+
+            if(playMode == PlayMode.Playing)
+            {
+                SubsystemManager.instance.Update(SubsystemType.Update);
+
+                Physics3D.Instance.Update();
+
+                EntitySystemManager.Instance.Update();
             }
 
             if(resetSelection)
@@ -926,6 +946,16 @@ internal partial class StapleEditor
                 {
                     SetSelectedEntity(default);
                 }
+            }
+        };
+
+        window.OnFixedUpdate = () =>
+        {
+            if (playMode == PlayMode.Playing)
+            {
+                SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
+
+                EntitySystemManager.Instance.UpdateFixed();
             }
         };
 

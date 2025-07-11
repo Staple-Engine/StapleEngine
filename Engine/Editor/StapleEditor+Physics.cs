@@ -94,7 +94,7 @@ internal partial class StapleEditor
     /// <param name="bounds">The entity's bounds</param>
     public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
     {
-        if(bounds.extents.LengthSquared() == 0)
+        if(bounds.extents.LengthSquared() == 0 || playMode != PlayMode.Stopped)
         {
             return;
         }
