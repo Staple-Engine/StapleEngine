@@ -790,6 +790,50 @@ internal partial class StapleEditor
 
         mouseIsHoveringImGui = (viewportType == ViewportType.Scene && ImGui.IsItemActive()) == false;
 
+        var horizontalSpace = EditorGUI.RemainingHorizontalSpace();
+
+        var buttonSizes = EditorGUI.GetTextSize("Play").X + EditorGUI.GetTextSize("Stop").X + ImGui.GetStyle().FramePadding.X * 4;
+
+        var centerSpace = (horizontalSpace - buttonSizes) / 2;
+
+        EditorGUI.SetCurrentGUICursorPosition(EditorGUI.CurrentGUICursorPosition() + new Vector2(centerSpace, 0));
+
+        EditorGUI.Button("Play", "GameView.Play", () =>
+        {
+            if (playMode == PlayMode.Playing)
+            {
+                Platform.IsPlaying = false;
+
+                playMode = PlayMode.Paused;
+            }
+            else if(playMode != PlayMode.Paused)
+            {
+                RecordScene();
+
+                playMode = PlayMode.Playing;
+
+                Platform.IsPlaying = true;
+            }
+        });
+
+        EditorGUI.SameLine();
+
+        EditorGUI.Disabled(playMode == PlayMode.Stopped, () =>
+        {
+            EditorGUI.Button("Stop", "GameView.Stop", () =>
+            {
+                playMode = PlayMode.Stopped;
+
+                Platform.IsPlaying = false;
+
+                ResetScenePhysics(true);
+
+                LoadRecordedScene();
+
+                ResetScenePhysics(false);
+            });
+        });
+
         EditorGUI.TabBar(["Scene", "Game"], "SCENEGAME", (tabIndex) =>
         {
             switch (tabIndex)

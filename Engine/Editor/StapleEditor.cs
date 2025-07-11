@@ -51,6 +51,13 @@ internal partial class StapleEditor
         Normal,
         Build,
     }
+    
+    enum PlayMode
+    {
+        Stopped,
+        Playing,
+        Paused,
+    }
 
     internal class DragDropPayload
     {
@@ -348,6 +355,10 @@ internal partial class StapleEditor
 
     private string buildOutputDirectory;
 
+    #endregion
+
+    #region PlayMode
+    private PlayMode playMode = PlayMode.Stopped;
     #endregion
 
     private static WeakReference<StapleEditor> privInstance;
@@ -821,7 +832,16 @@ internal partial class StapleEditor
                 Screen.Height = window.height;
             }
 
-            if (resetSelection)
+            if(playMode == PlayMode.Playing)
+            {
+                SubsystemManager.instance.Update(SubsystemType.Update);
+
+                Physics3D.Instance.Update();
+
+                EntitySystemManager.Instance.Update();
+            }
+
+            if(resetSelection)
             {
                 resetSelection = false;
 
@@ -1132,6 +1152,16 @@ internal partial class StapleEditor
                 {
                     SetSelectedEntity(default);
                 }
+            }
+        };
+
+        window.OnFixedUpdate = () =>
+        {
+            if (playMode == PlayMode.Playing)
+            {
+                SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
+
+                EntitySystemManager.Instance.UpdateFixed();
             }
         };
 
