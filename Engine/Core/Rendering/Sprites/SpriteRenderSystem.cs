@@ -12,7 +12,8 @@ namespace Staple.Internal;
 /// </summary>
 public class SpriteRenderSystem : IRenderSystem
 {
-    private const int NinePatchVertexCount = 54;
+    public const int NinePatchVertexCount = 54;
+
     private const int MaxNinePatchCacheFrames = 10;
 
     /// <summary>
@@ -41,7 +42,7 @@ public class SpriteRenderSystem : IRenderSystem
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    internal struct SpriteVertex
+    public struct SpriteVertex
     {
         public Vector3 position;
         public Vector2 uv;
@@ -109,7 +110,7 @@ public class SpriteRenderSystem : IRenderSystem
 
     public bool UsesOwnRenderProcess => false;
 
-    internal static void MakeNinePatchGeometry(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset, Vector2 sizeOverride, Span<SpriteVertex> vertices)
+    internal static void MakeNinePatchGeometrySlice(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset, Vector2 sizeOverride, Span<SpriteVertex> vertices)
     {
         if(vertices.IsEmpty ||
             vertices.Length != 6)
@@ -130,6 +131,94 @@ public class SpriteRenderSystem : IRenderSystem
         vertices[1].uv = new Vector2(rect.left, rect.bottom) / textureSize;
         vertices[2].uv = vertices[3].uv = new Vector2(rect.right, rect.bottom) / textureSize;
         vertices[4].uv = new Vector2(rect.right, rect.top) / textureSize;
+    }
+
+    public static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size, Rect border, bool pixelCoordinates)
+    {
+        if(vertices.IsEmpty ||
+            vertices.Length != NinePatchVertexCount ||
+            indices.IsEmpty ||
+            indices.Length != NinePatchVertexCount)
+        {
+            return;
+        }
+
+        var textureSize = texture.Size;
+        var localScale = Vector2.Abs(size);
+        var invertedLocal = new Vector2(1 / localScale.X, 1 / localScale.Y);
+
+        if(pixelCoordinates)
+        {
+            invertedLocal = Vector2.One;
+        }
+
+        var fragmentPositions = new Vector2[9]
+        {
+            Vector2.Zero,
+            new(textureSize.X - border.right, 0),
+            new(0, textureSize.Y - border.bottom),
+            new(textureSize.X - border.right, textureSize.Y - border.bottom),
+            new(border.left, border.top),
+            new(border.left, 0),
+            new(border.left, textureSize.Y - border.bottom),
+            new(0, border.top),
+            new(textureSize.X - border.right, border.top),
+        };
+
+        var fragmentSizes = new Vector2[9]
+        {
+            new(border.left, border.top),
+            new(border.right, border.top),
+            new(border.left, border.bottom),
+            new(border.right, border.bottom),
+            new(textureSize.X - border.left - border.right, textureSize.Y - border.top - border.bottom),
+            new(textureSize.X - border.left - border.right, border.top),
+            new(textureSize.X - border.left - border.right, border.bottom),
+            new(border.left, textureSize.Y - border.top - border.bottom),
+            new(border.right, textureSize.Y - border.top - border.bottom),
+        };
+
+        var fragmentOffsets = new Vector2[9]
+        {
+            new(-border.left * invertedLocal.X, localScale.Y),
+            localScale,
+            new(-border.left * invertedLocal.X, -border.top * invertedLocal.Y),
+            new(localScale.X, -border.top * invertedLocal.Y),
+            Vector2.Zero,
+            new(0, localScale.Y),
+            new(0, -border.top * invertedLocal.Y),
+            new(-border.left * invertedLocal.X, 0),
+            new(localScale.X, 0),
+        };
+
+        var fragmentSizeOverrides = new Vector2[9]
+        {
+            new(border.left * invertedLocal.X, border.top * invertedLocal.Y),
+            new(border.right * invertedLocal.X, border.top * invertedLocal.Y),
+            new(border.left * invertedLocal.X, border.bottom * invertedLocal.Y),
+            new(border.right * invertedLocal.X, border.bottom * invertedLocal.Y),
+            localScale,
+            new(localScale.X, border.top * invertedLocal.Y),
+            new(localScale.X, border.bottom * invertedLocal.Y),
+            new(border.left * invertedLocal.X, localScale.Y),
+            new(border.right * invertedLocal.X, localScale.Y),
+        };
+
+        for (int j = 0, index = 0; j < 9; j++, index += 6)
+        {
+            var position = fragmentPositions[j];
+            var fragmentSize = fragmentSizes[j];
+            var offset = fragmentOffsets[j];
+            var sizeOverride = fragmentSizeOverrides[j];
+
+            MakeNinePatchGeometrySlice(textureSize, position, fragmentSize * texture.SpriteScale, fragmentSize, offset, sizeOverride,
+                vertices.Slice(index, 6));
+        }
+
+        for (var j = 0; j < indices.Length; j++)
+        {
+            indices[j] = (uint)j;
+        }
     }
 
     public void Startup()
@@ -438,78 +527,7 @@ public class SpriteRenderSystem : IRenderSystem
                                 indices = new uint[NinePatchVertexCount],
                             };
 
-                            var border = s.border;
-                            var textureSize = s.texture.Size;
-                            var localScale = Vector3.Abs(s.localScale);
-                            var invertedLocal = new Vector2(1 / s.localScale.X, 1 / s.localScale.Y);
-
-                            var fragmentPositions = new Vector2[9]
-                            {
-                                Vector2.Zero,
-                                new(textureSize.X - border.right, 0),
-                                new(0, textureSize.Y - border.bottom),
-                                new(textureSize.X - border.right, textureSize.Y - border.bottom),
-                                new(border.left, border.top),
-                                new(border.left, 0),
-                                new(border.left, textureSize.Y - border.bottom),
-                                new(0, border.top),
-                                new(textureSize.X - border.right, border.top),
-                            };
-
-                            var fragmentSizes = new Vector2[9]
-                            {
-                                new(border.left, border.top),
-                                new(border.right, border.top),
-                                new(border.left, border.bottom),
-                                new(border.right, border.bottom),
-                                new(textureSize.X - border.left - border.right, textureSize.Y - border.top - border.bottom),
-                                new(textureSize.X - border.left - border.right, border.top),
-                                new(textureSize.X - border.left - border.right, border.bottom),
-                                new(border.left, textureSize.Y - border.top - border.bottom),
-                                new(border.right, textureSize.Y - border.top - border.bottom),
-                            };
-
-                            var fragmentOffsets = new Vector2[9]
-                            {
-                                new(-border.left * invertedLocal.X, localScale.Y),
-                                localScale.ToVector2(),
-                                new(-border.left * invertedLocal.X, -border.top * invertedLocal.Y),
-                                new(localScale.X, -border.top * invertedLocal.Y),
-                                Vector2.Zero,
-                                new(0, localScale.Y),
-                                new(0, -border.top * invertedLocal.Y),
-                                new(-border.left * invertedLocal.X, 0),
-                                new(localScale.X, 0),
-                            };
-
-                            var fragmentSizeOverrides = new Vector2[9]
-                            {
-                                new(border.left * invertedLocal.X, border.top * invertedLocal.Y),
-                                new(border.right * invertedLocal.X, border.top * invertedLocal.Y),
-                                new(border.left * invertedLocal.X, border.bottom * invertedLocal.Y),
-                                new(border.right * invertedLocal.X, border.bottom * invertedLocal.Y),
-                                localScale.ToVector2(),
-                                new(localScale.X, border.top * invertedLocal.Y),
-                                new(localScale.X, border.bottom * invertedLocal.Y),
-                                new(border.left * invertedLocal.X, localScale.Y),
-                                new(border.right * invertedLocal.X, localScale.Y),
-                            };
-
-                            for (int j = 0, index = 0; j < 9; j++, index += 6)
-                            {
-                                var position = fragmentPositions[j];
-                                var size = fragmentSizes[j];
-                                var offset = fragmentOffsets[j];
-                                var sizeOverride = fragmentSizeOverrides[j];
-
-                                MakeNinePatchGeometry(textureSize, position, size * s.texture.SpriteScale, size, offset, sizeOverride,
-                                    cache.vertices.AsSpan().Slice(index, 6));
-                            }
-
-                            for (var j = 0; j < cache.indices.Length; j++)
-                            {
-                                cache.indices[j] = (uint)j;
-                            }
+                            MakeNinePatchGeometry(cache.vertices, cache.indices, s.texture, s.localScale.ToVector2(), s.border, false);
 
                             cachedNinePatchGeometries.Add(key, cache);
                         }
