@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System;
 using MessagePack;
+using System.Numerics;
 
 namespace Staple;
 
@@ -33,6 +34,10 @@ public struct Vector2Int
 
     [IgnoreMember]
     public static readonly Vector2Int One = new(1, 1);
+
+    public static implicit operator Vector2(Vector2Int v) => new(v.X, v.Y);
+
+    public static implicit operator Vector2Int(Vector2 v) => new((int)v.X, (int)v.Y);
 
     public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
 

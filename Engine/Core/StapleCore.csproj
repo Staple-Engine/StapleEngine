@@ -199,6 +199,7 @@
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
+		<Compile Include="Rendering\Sprites\SpriteRenderMode.cs" />
 		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />

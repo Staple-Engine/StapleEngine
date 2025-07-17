@@ -419,11 +419,9 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static Vector2Int Vector2IntField(string label, string key, Vector2Int value)
     {
-        var values = new int[] { value.X, value.Y };
+        Changed |= ImGui.InputInt2(MakeIdentifier(label, key), ref value.X);
 
-        Changed |= ImGui.InputInt2(MakeIdentifier(label, key), ref values[0]);
-
-        return new Vector2Int(values[0], values[1]);
+        return value;
     }
 
     /// <summary>
@@ -441,6 +439,20 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Shows a text field for a Vector3Int
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static Vector3Int Vector3IntField(string label, string key, Vector3Int value)
+    {
+        Changed |= ImGui.InputInt3(MakeIdentifier(label, key), ref value.X);
+
+        return value;
+    }
+
+    /// <summary>
     /// Shows a text field for a Vector4
     /// </summary>
     /// <param name="label">The label for the field</param>
@@ -450,6 +462,51 @@ public static class EditorGUI
     public static Vector4 Vector4Field(string label, string key, Vector4 value)
     {
         Changed |= ImGui.InputFloat4(MakeIdentifier(label, key), ref value);
+
+        return value;
+    }
+
+    /// <summary>
+    /// Shows a text field for a Vector4Int
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static Vector4Int Vector4IntField(string label, string key, Vector4Int value)
+    {
+        Changed |= ImGui.InputInt4(MakeIdentifier(label, key), ref value.X);
+
+        return value;
+    }
+
+    /// <summary>
+    /// Shows a text field for a Rect
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static Rect RectField(string label, string key, Rect value)
+    {
+        Changed |= ImGui.InputInt4(MakeIdentifier(label, key), ref value.left);
+
+        return value;
+    }
+
+    /// <summary>
+    /// Shows a text field for a Vector4
+    /// </summary>
+    /// <param name="label">The label for the field</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="value">The current value of the field</param>
+    /// <returns>The new value</returns>
+    public static RectFloat RectFloatField(string label, string key, RectFloat value)
+    {
+        unsafe
+        {
+            Changed |= ImGui.InputFloat4(MakeIdentifier(label, key), &value.left);
+        }
 
         return value;
     }

@@ -838,6 +838,36 @@ public class Editor
 
                 break;
 
+            case Type t when t == typeof(Rect):
+
+                {
+                    var rect = (Rect)getter();
+
+                    var newValue = EditorGUI.RectField(name, $"{name}Rect{IDSuffix}", rect);
+
+                    if (newValue != rect)
+                    {
+                        setter(newValue);
+                    }
+                }
+
+                break;
+
+            case Type t when t == typeof(RectFloat):
+
+                {
+                    var rect = (RectFloat)getter();
+
+                    var newValue = EditorGUI.RectFloatField(name, $"{name}Rect{IDSuffix}", rect);
+
+                    if (newValue != rect)
+                    {
+                        setter(newValue);
+                    }
+                }
+
+                break;
+
             case Type t when typeof(IGuidAsset).IsAssignableFrom(t):
 
                 {

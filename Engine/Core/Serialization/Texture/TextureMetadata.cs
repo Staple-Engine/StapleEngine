@@ -311,7 +311,7 @@ public class TextureMetadata
 
     [HideInInspector]
     [Key(17)]
-    public List<TextureSpriteInfo> sprites = new();
+    public List<TextureSpriteInfo> sprites = [];
 
     [Key(18)]
     public bool shouldPack = false;

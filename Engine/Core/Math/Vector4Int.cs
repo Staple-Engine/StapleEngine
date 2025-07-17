@@ -1,6 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using MessagePack;
 using System;
-using MessagePack;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -41,6 +42,10 @@ public struct Vector4Int
 
     [IgnoreMember]
     public static readonly Vector4Int One = new(1, 1, 1, 1);
+
+    public static implicit operator Vector4(Vector4Int v) => new(v.X, v.Y, v.Z, v.W);
+
+    public static implicit operator Vector4Int(Vector4 v) => new((int)v.X, (int)v.Y, (int)v.Z, (int)v.W);
 
     public static Vector4Int operator +(Vector4Int a, Vector4Int b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
 

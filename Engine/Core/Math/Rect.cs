@@ -23,6 +23,18 @@ public struct Rect
     [Key(3)]
     public int bottom;
 
+    /// <summary>
+    /// Gets the top left coordinate of this <see cref="Rect"/>
+    /// </summary>
+    [IgnoreMember]
+    public readonly Vector2Int Position => new(left, top);
+
+    /// <summary>
+    /// Gets the size of this <see cref="Rect"/>
+    /// </summary>
+    [IgnoreMember]
+    public readonly Vector2Int Size => new(right - left, bottom - top);
+
     public Rect()
     {
     }
@@ -102,7 +114,7 @@ public struct Rect
             lhs.bottom != rhs.bottom;
     }
 
-    public override bool Equals([NotNullWhen(true)] object obj)
+    public override readonly bool Equals([NotNullWhen(true)] object obj)
     {
         if(obj is Rect rhs)
         {

@@ -39,9 +39,14 @@ public class Texture : IGuidAsset
     public int Height => info.height;
 
     /// <summary>
+    /// The size of the texture as a Vector2Int
+    /// </summary>
+    public Vector2Int Size => new(Width, Height);
+
+    /// <summary>
     /// The texture's sprite scale
     /// </summary>
-    public float SpriteScale => 1.0f / (float)metadata.spritePixelsPerUnit;
+    public float SpriteScale => 1.0f / metadata.spritePixelsPerUnit;
 
     /// <summary>
     /// The contained sprites of this texture
