@@ -121,10 +121,10 @@ public class SpriteRenderSystem : IRenderSystem
 
         var actualSize = sizeOverride.X != -1 ? sizeOverride : size;
 
-        vertices[0].position = vertices[5].position = new Vector3(offset, 0);
-        vertices[1].position = new Vector3(offset + new Vector2(0, actualSize.Y), 0);
-        vertices[2].position = vertices[3].position = new Vector3(offset + actualSize, 0);
-        vertices[4].position = new Vector3(offset + new Vector2(actualSize.X, 0), 0);
+        vertices[0].position = vertices[5].position = new Vector3(offset.X, offset.Y + actualSize.Y, 0);
+        vertices[1].position = new Vector3(offset, 0);
+        vertices[2].position = vertices[3].position = new Vector3(offset.X + actualSize.X, offset.Y, 0);
+        vertices[4].position = new Vector3(offset + actualSize, 0);
 
         vertices[0].uv = vertices[5].uv = rect.Position / textureSize;
         vertices[1].uv = new Vector2(rect.left, rect.bottom) / textureSize;
@@ -471,13 +471,13 @@ public class SpriteRenderSystem : IRenderSystem
 
                             var fragmentOffsets = new Vector2[9]
                             {
-                                new(-border.left * invertedLocal.X, -border.top * invertedLocal.Y),
-                                new(localScale.X, -border.top * invertedLocal.Y),
                                 new(-border.left * invertedLocal.X, localScale.Y),
                                 localScale.ToVector2(),
+                                new(-border.left * invertedLocal.X, -border.top * invertedLocal.Y),
+                                new(localScale.X, -border.top * invertedLocal.Y),
                                 Vector2.Zero,
-                                new(0, -border.top * invertedLocal.Y),
                                 new(0, localScale.Y),
+                                new(0, -border.top * invertedLocal.Y),
                                 new(-border.left * invertedLocal.X, 0),
                                 new(localScale.X, 0),
                             };
