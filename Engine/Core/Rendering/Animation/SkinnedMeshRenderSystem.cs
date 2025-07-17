@@ -33,25 +33,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
 
-    public void Startup()
-    {
-    }
-
-    public void Shutdown()
-    {
-    }
+    public Type RelatedComponent => typeof(SkinnedMeshRenderer);
 
     public void ClearRenderData(ushort viewID)
     {
         renderers.Remove(viewID);
-    }
-
-    public void Prepare()
-    {
     }
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
@@ -174,11 +162,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 transform = transform,
             });
         }
-    }
-
-    public Type RelatedComponent()
-    {
-        return typeof(SkinnedMeshRenderer);
     }
 
     public void Submit(ushort viewID)
@@ -587,4 +570,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             transform.LocalScale = original ? node.OriginalScale : node.Scale;
         }
     }
+
+    #region Lifecycle
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
+    {
+    }
+
+    public void Prepare()
+    {
+    }
+    #endregion
 }

@@ -50,6 +50,8 @@ public sealed class LightSystem : IRenderSystem
 
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => null;
+
     public LightSystem()
     {
         Shader.DefaultUniforms.Add(new()
@@ -107,6 +109,7 @@ public sealed class LightSystem : IRenderSystem
         });
     }
 
+    #region Lifecycle
     public void Startup()
     {
     }
@@ -131,14 +134,10 @@ public sealed class LightSystem : IRenderSystem
     {
     }
 
-    public Type RelatedComponent()
-    {
-        return null;
-    }
-
     public void Submit(ushort viewID)
     {
     }
+    #endregion
 
     /// <summary>
     /// Applies the material-specific lighting state

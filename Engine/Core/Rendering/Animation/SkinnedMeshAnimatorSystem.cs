@@ -10,6 +10,8 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 {
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => typeof(SkinnedMeshAnimator);
+
     #region Lifecycle
     public void Startup()
     {
@@ -21,11 +23,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
     public void ClearRenderData(ushort viewID)
     {
-    }
-
-    public Type RelatedComponent()
-    {
-        return typeof(SkinnedMeshAnimator);
     }
 
     public void Prepare()

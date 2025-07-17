@@ -10,6 +10,8 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
 {
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => typeof(SkinnedMeshAttachment);
+
     public void Startup()
     {
     }
@@ -85,11 +87,6 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
                 Apply(false);
             }
         }
-    }
-
-    public Type RelatedComponent()
-    {
-        return typeof(SkinnedMeshAttachment);
     }
 
     public void Submit(ushort viewID)

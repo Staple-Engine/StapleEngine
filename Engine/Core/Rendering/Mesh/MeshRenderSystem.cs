@@ -36,9 +36,23 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     private readonly Dictionary<ushort, Dictionary<int, InstanceData>> instanceCache = [];
 
-    public bool NeedsUpdate { get; set; }
-
     public bool UsesOwnRenderProcess => false;
+
+    public Type RelatedComponent => typeof(MeshRenderer);
+
+    #region Lifecycle
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
+    {
+    }
+
+    public void Prepare()
+    {
+    }
+    #endregion
 
     /// <summary>
     /// Renders a mesh
@@ -106,14 +120,6 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Startup()
-    {
-    }
-
-    public void Shutdown()
-    {
-    }
-
     public void ClearRenderData(ushort viewID)
     {
         if (instanceCache.TryGetValue(viewID, out var renderData))
@@ -125,10 +131,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             instanceCache.Remove(viewID);
         }
-    }
-
-    public void Prepare()
-    {
     }
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
@@ -286,11 +288,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 }
             }
         }
-    }
-
-    public Type RelatedComponent()
-    {
-        return typeof(MeshRenderer);
     }
 
     public void Submit(ushort viewID)

@@ -175,7 +175,7 @@ internal partial class StapleEditor
 
                 foreach(var system in renderSystem.renderSystems)
                 {
-                    var related = entity.GetComponent(system.RelatedComponent());
+                    var related = entity.GetComponent(system.RelatedComponent);
 
                     if (related != null)
                     {

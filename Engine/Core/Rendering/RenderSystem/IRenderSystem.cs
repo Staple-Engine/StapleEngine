@@ -18,8 +18,7 @@ public interface IRenderSystem
     /// <summary>
     /// The type of the component that this render system uses
     /// </summary>
-    /// <returns>The component type</returns>
-    Type RelatedComponent();
+    Type RelatedComponent { get; }
 
     /// <summary>
     /// Prepares the render system for rendering.

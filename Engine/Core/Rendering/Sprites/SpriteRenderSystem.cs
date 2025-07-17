@@ -34,6 +34,9 @@ public class SpriteRenderSystem : IRenderSystem
         public Vector3 localScale;
     }
 
+    /// <summary>
+    /// Contains the geometry for a nine patch sprite
+    /// </summary>
     private class NinePatchCacheItem
     {
         public SpriteVertex[] vertices;
@@ -41,8 +44,11 @@ public class SpriteRenderSystem : IRenderSystem
         public int framesSinceUse;
     }
 
+    /// <summary>
+    /// A vertex structure for a sprite vertex
+    /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct SpriteVertex
+    internal struct SpriteVertex
     {
         public Vector3 position;
         public Vector2 uv;
@@ -56,6 +62,9 @@ public class SpriteRenderSystem : IRenderSystem
             .Build();
     });
 
+    /// <summary>
+    /// Gets the default material for sprites
+    /// </summary>
     public static Lazy<Material> DefaultMaterial = new(() =>
     {
         var material = ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
@@ -104,12 +113,31 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly Dictionary<ushort, List<SpriteRenderInfo>> sprites = [];
 
+    /// <summary>
+    /// Contains a list of all nine patch sprites' geometry data
+    /// Key: HashCode for the sprite texture Guid and the size of the sprite
+    /// </summary>
     private readonly Dictionary<int, NinePatchCacheItem> cachedNinePatchGeometries = [];
 
+    /// <summary>
+    /// List of nine patch cache items to remove this frame
+    /// </summary>
     private readonly HashSet<int> ninePatchItemsToRemove = [];
 
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => typeof(SpriteRenderer);
+
+    /// <summary>
+    /// Calculates nine patch geometry for a part of the sprite 
+    /// </summary>
+    /// <param name="textureSize">The size of the texture</param>
+    /// <param name="position">The position in the texture space</param>
+    /// <param name="size">The size of the area we're generating</param>
+    /// <param name="uvSize">The size of the area in UV coordinates</param>
+    /// <param name="offset">The 3D offset for the piece</param>
+    /// <param name="sizeOverride">If we're overriding the size, we can do so here</param>
+    /// <param name="vertices">The vertices to fill in</param>
     internal static void MakeNinePatchGeometrySlice(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset, Vector2 sizeOverride, Span<SpriteVertex> vertices)
     {
         if(vertices.IsEmpty ||
@@ -133,9 +161,19 @@ public class SpriteRenderSystem : IRenderSystem
         vertices[4].uv = new Vector2(rect.right, rect.top) / textureSize;
     }
 
-    public static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size, Rect border, bool pixelCoordinates)
+    /// <summary>
+    /// Calculates nine patch geometry for a sprite
+    /// </summary>
+    /// <param name="vertices">The vertices to update. They should have <see cref="NinePatchVertexCount"/> elements</param>
+    /// <param name="indices">The indices to update. They should have <see cref="NinePatchVertexCount"/> elements</param>
+    /// <param name="texture">The texture to use</param>
+    /// <param name="size">The size of the sprite in world space</param>
+    /// <param name="border">The nine patch border, in pixels</param>
+    /// <param name="pixelCoordinates">Whether we're using world or pixel coordinates</param>
+    internal static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size, Rect border, bool pixelCoordinates)
     {
-        if(vertices.IsEmpty ||
+        if((texture?.Disposed ?? true) ||
+            vertices.IsEmpty ||
             vertices.Length != NinePatchVertexCount ||
             indices.IsEmpty ||
             indices.Length != NinePatchVertexCount)
@@ -233,11 +271,6 @@ public class SpriteRenderSystem : IRenderSystem
     public void ClearRenderData(ushort viewID)
     {
         sprites.Remove(viewID);
-    }
-
-    public Type RelatedComponent()
-    {
-        return typeof(SpriteRenderer);
     }
 
     public void Prepare()

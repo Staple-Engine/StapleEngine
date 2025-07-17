@@ -24,6 +24,8 @@ public class TextRenderSystem : IRenderSystem
 
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => typeof(Text);
+
     public void Startup()
     {
     }
@@ -37,8 +39,6 @@ public class TextRenderSystem : IRenderSystem
     {
         texts.Remove(viewID);
     }
-
-    public Type RelatedComponent() => typeof(Text);
 
     public void Prepare()
     {

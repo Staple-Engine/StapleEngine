@@ -7,6 +7,9 @@ public sealed class CullingVolumeSystem : IRenderSystem
 {
     public bool UsesOwnRenderProcess => false;
 
+    public Type RelatedComponent => typeof(CullingVolume);
+
+    #region Lifecycle
     public void ClearRenderData(ushort viewID)
     {
     }
@@ -14,6 +17,23 @@ public sealed class CullingVolumeSystem : IRenderSystem
     public void Prepare()
     {
     }
+
+    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    {
+    }
+
+    public void Shutdown()
+    {
+    }
+
+    public void Startup()
+    {
+    }
+
+    public void Submit(ushort viewID)
+    {
+    }
+    #endregion
 
     public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
     {
@@ -55,23 +75,5 @@ public sealed class CullingVolumeSystem : IRenderSystem
                 renderer.Item2.cullingState = isVisible ? CullingState.Visible : CullingState.Invisible;
             }
         }
-    }
-
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
-    {
-    }
-
-    public Type RelatedComponent() => typeof(CullingVolume);
-
-    public void Shutdown()
-    {
-    }
-
-    public void Startup()
-    {
-    }
-
-    public void Submit(ushort viewID)
-    {
     }
 }

@@ -16,12 +16,15 @@ public class UICanvasSystem : IRenderSystem
 
     private readonly SceneQuery<Transform, UICanvas> canvases = new();
 
-    public bool UsesOwnRenderProcess => true;
-
     public delegate void ObserverCallback(Vector2Int position, Vector2Int size, UIElement element);
 
     public ObserverCallback observer;
 
+    public bool UsesOwnRenderProcess => true;
+
+    public Type RelatedComponent => typeof(UICanvas);
+
+    #region Lifecycle
     public void Startup()
     {
     }
@@ -45,8 +48,7 @@ public class UICanvasSystem : IRenderSystem
     public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
     }
-
-    public Type RelatedComponent() => typeof(UICanvas);
+    #endregion
 
     public void Submit(ushort viewID)
     {

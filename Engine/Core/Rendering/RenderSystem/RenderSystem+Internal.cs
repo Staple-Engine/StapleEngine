@@ -310,7 +310,7 @@ public sealed partial class RenderSystem
                                 continue;
                             }
 
-                            if (entityInfo.Item1.TryGetComponent(system.RelatedComponent(), out var component))
+                            if (entityInfo.Item1.TryGetComponent(system.RelatedComponent, out var component))
                             {
                                 if(collected.TryGetValue(system, out var content) == false)
                                 {
@@ -457,8 +457,8 @@ public sealed partial class RenderSystem
                     systemQueues.Add(system, queue);
                 }
 
-                if (system.RelatedComponent() != null &&
-                    e.TryGetComponent(system.RelatedComponent(), out var related))
+                if (system.RelatedComponent != null &&
+                    e.TryGetComponent(system.RelatedComponent, out var related))
                 {
                     system.Preprocess([(e, t, related)], camera, cameraTransform);
 
@@ -564,7 +564,7 @@ public sealed partial class RenderSystem
 
                         foreach (var system in systems)
                         {
-                            if (call.relatedComponent.GetType() == system.RelatedComponent())
+                            if (call.relatedComponent.GetType() == system.RelatedComponent)
                             {
                                 system.Process([(call.entity, stagingTransform, call.relatedComponent)],
                                     camera, cameraTransform, viewID);
