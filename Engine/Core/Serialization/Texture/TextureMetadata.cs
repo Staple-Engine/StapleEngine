@@ -323,6 +323,9 @@ public class TextureMetadata
     public bool trimDuplicates = false;
 
     [Key(21)]
+    public Rect border;
+
+    [Key(22)]
     public Dictionary<AppPlatform, TextureMetadataOverride> overrides = new()
     {
         {
@@ -342,7 +345,7 @@ public class TextureMetadata
     };
 
     [HideInInspector]
-    [Key(22)]
+    [Key(23)]
     public string typeName = typeof(Texture).FullName;
 
     public TextureMetadata Clone()
@@ -372,6 +375,7 @@ public class TextureMetadata
             padding = padding,
             trimDuplicates = trimDuplicates,
             typeName = typeName,
+            border = border,
         };
     }
 
@@ -411,7 +415,8 @@ public class TextureMetadata
             lhs.shouldPack == rhs.shouldPack &&
             lhs.padding == rhs.padding &&
             lhs.trimDuplicates == rhs.trimDuplicates &&
-            lhs.typeName == rhs.typeName;
+            lhs.typeName == rhs.typeName &&
+            lhs.border == rhs.border;
     }
 
     public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
@@ -451,7 +456,8 @@ public class TextureMetadata
             lhs.padding != rhs.padding ||
             lhs.overrides != rhs.overrides ||
             lhs.trimDuplicates != rhs.trimDuplicates ||
-            lhs.typeName != rhs.typeName;
+            lhs.typeName != rhs.typeName ||
+            lhs.border != rhs.border;
     }
 
     public override bool Equals(object obj)
@@ -496,6 +502,7 @@ public class TextureMetadata
         hash.Add(trimDuplicates);
         hash.Add(overrides);
         hash.Add(typeName);
+        hash.Add(border);
 
         return hash.ToHashCode();
     }

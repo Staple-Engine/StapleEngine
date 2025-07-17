@@ -36,6 +36,11 @@ public sealed class SpriteRenderer : Renderable
     public SpriteAnimation animation;
 
     /// <summary>
+    /// How to render the sprite (<see cref="SpriteRenderMode"/>)
+    /// </summary>
+    public SpriteRenderMode renderMode = SpriteRenderMode.Normal;
+
+    /// <summary>
     /// The current animation frame
     /// </summary>
     internal int currentFrame;

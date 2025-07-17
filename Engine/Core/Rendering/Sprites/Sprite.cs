@@ -15,6 +15,9 @@ public sealed class Sprite
     public Rect Rect => IsValid ? texture.metadata.sprites[spriteIndex].rect : default;
 
     [JsonIgnore]
+    public Rect Border => IsValid ? texture.metadata.border : default;
+
+    [JsonIgnore]
     public RectFloat RectFloat
     {
         get

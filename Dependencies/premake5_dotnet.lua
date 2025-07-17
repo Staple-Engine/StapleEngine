@@ -66,15 +66,6 @@ project "NfdSharp"
 		"NfdSharp/**.cs"
 	}
 
-project "MessagePack"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-
-	files {
-		"MessagePack/**.cs"
-	}
-
 project "OggVorbisEncoder"
 	kind "SharedLib"
 	language "C#"

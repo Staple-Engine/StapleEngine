@@ -68,6 +68,10 @@ internal class TextureAssetEditor : AssetEditor
 
                 return metadata.shouldPack == false;
 
+            case nameof(TextureMetadata.border):
+
+                return metadata.type != TextureType.Sprite;
+
             case nameof(TextureMetadata.maxSize):
 
                 {
@@ -252,6 +256,16 @@ internal class TextureAssetEditor : AssetEditor
                         var rect = new Rect(position, size);
 
                         EditorGUI.AddRectangle(rect, Color32.White);
+
+                        if(sprites.Count == 1 && metadata.border != default)
+                        {
+                            var borderRect = new Rect(rect.left + Math.RoundToInt(metadata.border.left * scale),
+                                rect.right - Math.RoundToInt(metadata.border.right * scale),
+                                rect.top + Math.RoundToInt(metadata.border.top * scale),
+                                rect.bottom - Math.RoundToInt(metadata.border.bottom * scale));
+
+                            EditorGUI.AddRectangle(borderRect, new Color32(255, 255, 0, 255));
+                        }
 
                         if (isOriginal)
                         {

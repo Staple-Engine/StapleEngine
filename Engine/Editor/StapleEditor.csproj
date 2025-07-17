@@ -25,9 +25,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-	</Reference>
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
@@ -146,7 +143,8 @@
     <Compile Include="Windows\VisualShaderAssetWindow.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="17.12.6" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Build" Version="17.14.8" />
     <PackageReference Include="Hexa.NET.ImGui" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImGuizmo" Version="1.0.3" />
     <PackageReference Include="Hexa.NET.ImNodes" Version="1.0.3" />

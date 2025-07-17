@@ -31,9 +31,6 @@
 		<Reference Include="SharpGLTF.Core">
 			<HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
 		</Reference>
-		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-		</Reference>
 		<Reference Include="StapleCore">
 			<HintPath>..\..\Engine\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 		</Reference>
@@ -80,8 +77,9 @@
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="MessagePack" Version="3.1.4" />
 	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
-	  <PackageReference Include="System.Text.Json" Version="9.0.6" />
+	  <PackageReference Include="System.Text.Json" Version="9.0.7" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Update="StirlingLabs.assimp.native.win-x64" Version="5.2.5.4" />

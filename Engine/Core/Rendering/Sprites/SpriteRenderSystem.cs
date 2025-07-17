@@ -12,6 +12,9 @@ namespace Staple.Internal;
 /// </summary>
 public class SpriteRenderSystem : IRenderSystem
 {
+    private const int NinePatchVertexCount = 54;
+    private const int MaxNinePatchCacheFrames = 10;
+
     /// <summary>
     /// Contains render information for a sprite
     /// </summary>
@@ -25,6 +28,16 @@ public class SpriteRenderSystem : IRenderSystem
         public Rect textureRect;
         public int sortingOrder;
         public uint layer;
+        public SpriteRenderMode renderMode;
+        public Rect border;
+        public Vector3 localScale;
+    }
+
+    private class NinePatchCacheItem
+    {
+        public SpriteVertex[] vertices;
+        public uint[] indices;
+        public int framesSinceUse;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -90,7 +103,34 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly Dictionary<ushort, List<SpriteRenderInfo>> sprites = [];
 
+    private readonly Dictionary<int, NinePatchCacheItem> cachedNinePatchGeometries = [];
+
+    private readonly HashSet<int> ninePatchItemsToRemove = [];
+
     public bool UsesOwnRenderProcess => false;
+
+    internal static void MakeNinePatchGeometry(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset, Vector2 sizeOverride, Span<SpriteVertex> vertices)
+    {
+        if(vertices.IsEmpty ||
+            vertices.Length != 6)
+        {
+            return;
+        }
+
+        var rect = new RectFloat(position.X, position.X + uvSize.X, position.Y, position.Y + uvSize.Y);
+
+        var actualSize = sizeOverride.X != -1 ? sizeOverride : size;
+
+        vertices[0].position = vertices[5].position = new Vector3(offset, 0);
+        vertices[1].position = new Vector3(offset + new Vector2(0, actualSize.Y), 0);
+        vertices[2].position = vertices[3].position = new Vector3(offset + actualSize, 0);
+        vertices[4].position = new Vector3(offset + new Vector2(actualSize.X, 0), 0);
+
+        vertices[0].uv = vertices[5].uv = rect.Position / textureSize;
+        vertices[1].uv = new Vector2(rect.left, rect.bottom) / textureSize;
+        vertices[2].uv = vertices[3].uv = new Vector2(rect.right, rect.bottom) / textureSize;
+        vertices[4].uv = new Vector2(rect.right, rect.top) / textureSize;
+    }
 
     public void Startup()
     {
@@ -98,6 +138,7 @@ public class SpriteRenderSystem : IRenderSystem
 
     public void Shutdown()
     {
+        cachedNinePatchGeometries.Clear();
     }
 
     public void ClearRenderData(ushort viewID)
@@ -186,7 +227,13 @@ public class SpriteRenderSystem : IRenderSystem
                 return;
             }
 
-            var size = new Vector3(sprite.Rect.Width * sprite.texture.SpriteScale, sprite.Rect.Height * sprite.texture.SpriteScale, 0);
+            var spriteSize = r.renderMode switch
+            {
+                SpriteRenderMode.Sliced => transform.LocalScale.ToVector2(),
+                _ => (Vector2)sprite.Rect.Size,
+            };
+
+            var size = new Vector3(spriteSize * sprite.texture.SpriteScale, 0);
 
             r.localBounds = new AABB(Vector3.Zero, size);
 
@@ -262,13 +309,24 @@ public class SpriteRenderSystem : IRenderSystem
                 return;
             }
 
+            var spriteSize = r.renderMode switch
+            {
+                SpriteRenderMode.Sliced => Vector2.One,
+                _ => (Vector2)sprite.Rect.Size,
+            };
+
             var scale = Vector3.Zero;
 
             if (sprite != null)
             {
-                scale.X = sprite.Rect.Width * sprite.texture.SpriteScale;
-                scale.Y = sprite.Rect.Height * sprite.texture.SpriteScale;
+                scale = new(spriteSize * sprite.texture.SpriteScale, 1);
             }
+
+            var localScale = r.renderMode switch
+            {
+                SpriteRenderMode.Sliced => transform.LocalScale,
+                _ => scale,
+            };
 
             switch (sprite.Rotation)
             {
@@ -305,6 +363,9 @@ public class SpriteRenderSystem : IRenderSystem
                 scale = scale,
                 sortingOrder = r.sortingOrder,
                 layer = r.sortingLayer,
+                border = sprite.Border,
+                renderMode = r.renderMode,
+                localScale = localScale,
             });
         }
     }
@@ -330,33 +391,171 @@ public class SpriteRenderSystem : IRenderSystem
             .ThenBy(x => x.sortingOrder)
             .ToList();
 
+        foreach(var pair in cachedNinePatchGeometries)
+        {
+            if(pair.Value is NinePatchCacheItem item)
+            {
+                item.framesSinceUse++;
+
+                if(item.framesSinceUse >= MaxNinePatchCacheFrames)
+                {
+                    ninePatchItemsToRemove.Add(pair.Key);
+                }
+            }
+        }
+
+        if(ninePatchItemsToRemove.Count > 0)
+        {
+            foreach(var key in ninePatchItemsToRemove)
+            {
+                cachedNinePatchGeometries.Remove(key);
+            }
+
+            ninePatchItemsToRemove.Clear();
+        }
+
         for (var i = 0; i < orderedSprites.Count; i++)
         {
             var s = orderedSprites[i];
 
-            spriteVertices[0].uv.X = s.textureRect.left / (float)s.texture.Width;
-            spriteVertices[0].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+            VertexBuffer vertexBuffer = null;
+            IndexBuffer indexBuffer = null;
+            uint vertexCount = 4;
+            uint indexCount = 6;
 
-            spriteVertices[1].uv.X = s.textureRect.left / (float)s.texture.Width;
-            spriteVertices[1].uv.Y = s.textureRect.top / (float)s.texture.Height;
+            switch(s.renderMode)
+            {
+                case SpriteRenderMode.Sliced:
 
-            spriteVertices[2].uv.X = s.textureRect.right / (float)s.texture.Width;
-            spriteVertices[2].uv.Y = s.textureRect.top / (float)s.texture.Height;
+                    {
+                        var key = HashCode.Combine(s.texture.Guid.GuidHash, s.border, s.localScale);
 
-            spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
-            spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+                        if (cachedNinePatchGeometries.TryGetValue(key, out var cache) == false)
+                        {
+                            cache = new()
+                            {
+                                vertices = new SpriteVertex[NinePatchVertexCount],
+                                indices = new uint[NinePatchVertexCount],
+                            };
 
-            var vertexBuffer = VertexBuffer.CreateTransient(spriteVertices.AsSpan(), vertexLayout.Value);
+                            var border = s.border;
+                            var textureSize = s.texture.Size;
+                            var localScale = Vector3.Abs(s.localScale);
+                            var invertedLocal = new Vector2(1 / s.localScale.X, 1 / s.localScale.Y);
 
-            var indexBuffer = IndexBuffer.CreateTransient(indices);
+                            var fragmentPositions = new Vector2[9]
+                            {
+                                Vector2.Zero,
+                                new(textureSize.X - border.right, 0),
+                                new(0, textureSize.Y - border.bottom),
+                                new(textureSize.X - border.right, textureSize.Y - border.bottom),
+                                new(border.left, border.top),
+                                new(border.left, 0),
+                                new(border.left, textureSize.Y - border.bottom),
+                                new(0, border.top),
+                                new(textureSize.X - border.right, border.top),
+                            };
+
+                            var fragmentSizes = new Vector2[9]
+                            {
+                                new(border.left, border.top),
+                                new(border.right, border.top),
+                                new(border.left, border.bottom),
+                                new(border.right, border.bottom),
+                                new(textureSize.X - border.left - border.right, textureSize.Y - border.top - border.bottom),
+                                new(textureSize.X - border.left - border.right, border.top),
+                                new(textureSize.X - border.left - border.right, border.bottom),
+                                new(border.left, textureSize.Y - border.top - border.bottom),
+                                new(border.right, textureSize.Y - border.top - border.bottom),
+                            };
+
+                            var fragmentOffsets = new Vector2[9]
+                            {
+                                new(-border.left * invertedLocal.X, -border.top * invertedLocal.Y),
+                                new(localScale.X, -border.top * invertedLocal.Y),
+                                new(-border.left * invertedLocal.X, localScale.Y),
+                                localScale.ToVector2(),
+                                Vector2.Zero,
+                                new(0, -border.top * invertedLocal.Y),
+                                new(0, localScale.Y),
+                                new(-border.left * invertedLocal.X, 0),
+                                new(localScale.X, 0),
+                            };
+
+                            var fragmentSizeOverrides = new Vector2[9]
+                            {
+                                new(border.left * invertedLocal.X, border.top * invertedLocal.Y),
+                                new(border.right * invertedLocal.X, border.top * invertedLocal.Y),
+                                new(border.left * invertedLocal.X, border.bottom * invertedLocal.Y),
+                                new(border.right * invertedLocal.X, border.bottom * invertedLocal.Y),
+                                localScale.ToVector2(),
+                                new(localScale.X, border.top * invertedLocal.Y),
+                                new(localScale.X, border.bottom * invertedLocal.Y),
+                                new(border.left * invertedLocal.X, localScale.Y),
+                                new(border.right * invertedLocal.X, localScale.Y),
+                            };
+
+                            for (int j = 0, index = 0; j < 9; j++, index += 6)
+                            {
+                                var position = fragmentPositions[j];
+                                var size = fragmentSizes[j];
+                                var offset = fragmentOffsets[j];
+                                var sizeOverride = fragmentSizeOverrides[j];
+
+                                MakeNinePatchGeometry(textureSize, position, size * s.texture.SpriteScale, size, offset, sizeOverride,
+                                    cache.vertices.AsSpan().Slice(index, 6));
+                            }
+
+                            for (var j = 0; j < cache.indices.Length; j++)
+                            {
+                                cache.indices[j] = (uint)j;
+                            }
+
+                            cachedNinePatchGeometries.Add(key, cache);
+                        }
+
+                        cache.framesSinceUse = 0;
+
+                        vertexCount = (uint)cache.vertices.Length;
+                        indexCount = (uint)cache.indices.Length;
+
+                        vertexBuffer = VertexBuffer.CreateTransient(cache.vertices.AsSpan(), vertexLayout.Value);
+
+                        indexBuffer = IndexBuffer.CreateTransient(cache.indices);
+                    }
+
+                    break;
+
+                case SpriteRenderMode.Normal:
+
+                    {
+                        spriteVertices[0].uv.X = s.textureRect.left / (float)s.texture.Width;
+                        spriteVertices[0].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+
+                        spriteVertices[1].uv.X = s.textureRect.left / (float)s.texture.Width;
+                        spriteVertices[1].uv.Y = s.textureRect.top / (float)s.texture.Height;
+
+                        spriteVertices[2].uv.X = s.textureRect.right / (float)s.texture.Width;
+                        spriteVertices[2].uv.Y = s.textureRect.top / (float)s.texture.Height;
+
+                        spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
+                        spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+
+                        vertexBuffer = VertexBuffer.CreateTransient(spriteVertices.AsSpan(), vertexLayout.Value);
+
+                        indexBuffer = IndexBuffer.CreateTransient(indices);
+                    }
+
+                    break;
+            }
 
             if (vertexBuffer == null || indexBuffer == null)
             {
                 continue;
             }
 
-            vertexBuffer.SetActive(0, 0, 4);
-            indexBuffer.SetActive(0, 6);
+            vertexBuffer.SetActive(0, 0, vertexCount);
+            indexBuffer.SetActive(0, indexCount);
 
             unsafe
             {

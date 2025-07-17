@@ -31,9 +31,6 @@
 	<Reference Include="StapleTooling">
 		<HintPath>..\..\Engine\Tooling\bin\Release\net9.0\StapleTooling.dll</HintPath>
 	</Reference>
-	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 	<Reference Include="StapleCore">
@@ -48,5 +45,8 @@
   <ItemGroup>
     <Compile Include="PackerUtils.cs" />
     <Compile Include="Packer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
   </ItemGroup>
 </Project>
