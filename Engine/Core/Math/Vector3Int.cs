@@ -43,25 +43,25 @@ public struct Vector3Int
 
     public static implicit operator Vector3Int(Vector3 v) => new((int)v.X, (int)v.Y, (int)v.Z);
 
-    public static Vector3Int operator +(Vector3Int a, Vector3Int b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+    public static Vector3Int operator+(Vector3Int a, Vector3Int b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 
-    public static Vector3Int operator -(Vector3Int a, Vector3Int b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+    public static Vector3Int operator-(Vector3Int a, Vector3Int b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
 
-    public static Vector3Int operator *(Vector3Int a, Vector3Int b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+    public static Vector3Int operator*(Vector3Int a, Vector3Int b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
 
-    public static Vector3Int operator *(Vector3Int a, int b) => new(a.X * b, a.Y * b, a.Z * b);
+    public static Vector3Int operator*(Vector3Int a, int b) => new(a.X * b, a.Y * b, a.Z * b);
 
-    public static Vector3Int operator *(Vector3Int a, float b) => new((int)(a.X * b), (int)(a.Y * b), (int)(a.Z * b));
+    public static Vector3Int operator*(Vector3Int a, float b) => new((int)(a.X * b), (int)(a.Y * b), (int)(a.Z * b));
 
-    public static Vector3Int operator /(Vector3Int a, Vector3Int b) => new(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
+    public static Vector3Int operator/(Vector3Int a, Vector3Int b) => new(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
 
-    public static Vector3Int operator /(Vector3Int a, int b) => new(a.X / b, a.Y / b, a.Z / b);
+    public static Vector3Int operator/(Vector3Int a, int b) => new(a.X / b, a.Y / b, a.Z / b);
 
-    public static Vector3Int operator /(Vector3Int a, float b) => new((int)(a.X / b), (int)(a.Y / b), (int)(a.Z / b));
+    public static Vector3Int operator/(Vector3Int a, float b) => new((int)(a.X / b), (int)(a.Y / b), (int)(a.Z / b));
 
-    public static bool operator ==(Vector3Int a, Vector3Int b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+    public static bool operator==(Vector3Int a, Vector3Int b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
 
-    public static bool operator !=(Vector3Int a, Vector3Int b) => a.X != b.X || a.Y != b.Y || a.Z != b.Z;
+    public static bool operator!=(Vector3Int a, Vector3Int b) => a.X != b.X || a.Y != b.Y || a.Z != b.Z;
 
     public override readonly int GetHashCode()
     {

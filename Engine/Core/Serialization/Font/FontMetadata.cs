@@ -29,16 +29,16 @@ public class FontMetadata
     [Key(5)]
     public string typeName = typeof(FontAsset).FullName;
 
-    public static bool operator ==(FontMetadata lhs, FontMetadata rhs)
+    public static bool operator==(FontMetadata lhs, FontMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.guid == rhs.guid &&
@@ -49,16 +49,16 @@ public class FontMetadata
             lhs.typeName == rhs.typeName;
     }
 
-    public static bool operator !=(FontMetadata lhs, FontMetadata rhs)
+    public static bool operator!=(FontMetadata lhs, FontMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.guid != rhs.guid ||

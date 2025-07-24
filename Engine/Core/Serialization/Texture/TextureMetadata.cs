@@ -154,14 +154,14 @@ public class TextureMetadataOverride
 
     public static bool operator==(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.shouldOverride == rhs.shouldOverride &&
@@ -173,14 +173,14 @@ public class TextureMetadataOverride
 
     public static bool operator !=(TextureMetadataOverride lhs, TextureMetadataOverride rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.shouldOverride != rhs.shouldOverride ||
@@ -381,14 +381,14 @@ public class TextureMetadata
 
     public static bool operator==(TextureMetadata lhs, TextureMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.guid == rhs.guid &&
@@ -421,14 +421,14 @@ public class TextureMetadata
 
     public static bool operator !=(TextureMetadata lhs, TextureMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.guid != rhs.guid ||

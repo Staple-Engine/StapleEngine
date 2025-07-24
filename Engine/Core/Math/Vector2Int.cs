@@ -39,25 +39,25 @@ public struct Vector2Int
 
     public static implicit operator Vector2Int(Vector2 v) => new((int)v.X, (int)v.Y);
 
-    public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
+    public static Vector2Int operator+(Vector2Int a, Vector2Int b) => new(a.X + b.X, a.Y + b.Y);
 
-    public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new(a.X - b.X, a.Y - b.Y);
+    public static Vector2Int operator-(Vector2Int a, Vector2Int b) => new(a.X - b.X, a.Y - b.Y);
 
-    public static Vector2Int operator *(Vector2Int a, Vector2Int b) => new(a.X * b.X, a.Y * b.Y);
+    public static Vector2Int operator*(Vector2Int a, Vector2Int b) => new(a.X * b.X, a.Y * b.Y);
 
-    public static Vector2Int operator *(Vector2Int a, int b) => new(a.X * b, a.Y * b);
+    public static Vector2Int operator*(Vector2Int a, int b) => new(a.X * b, a.Y * b);
 
-    public static Vector2Int operator *(Vector2Int a, float b) => new((int)(a.X * b), (int)(a.Y * b));
+    public static Vector2Int operator*(Vector2Int a, float b) => new((int)(a.X * b), (int)(a.Y * b));
 
-    public static Vector2Int operator /(Vector2Int a, Vector2Int b) => new(a.X / b.X, a.Y / b.Y);
+    public static Vector2Int operator/(Vector2Int a, Vector2Int b) => new(a.X / b.X, a.Y / b.Y);
 
-    public static Vector2Int operator /(Vector2Int a, int b) => new(a.X / b, a.Y / b);
+    public static Vector2Int operator/(Vector2Int a, int b) => new(a.X / b, a.Y / b);
 
-    public static Vector2Int operator /(Vector2Int a, float b) => new((int)(a.X / b), (int)(a.Y / b));
+    public static Vector2Int operator/(Vector2Int a, float b) => new((int)(a.X / b), (int)(a.Y / b));
 
-    public static bool operator ==(Vector2Int a, Vector2Int b) => a.X == b.X && a.Y == b.Y;
+    public static bool operator==(Vector2Int a, Vector2Int b) => a.X == b.X && a.Y == b.Y;
 
-    public static bool operator !=(Vector2Int a, Vector2Int b) => a.X != b.X || a.Y != b.Y;
+    public static bool operator!=(Vector2Int a, Vector2Int b) => a.X != b.X || a.Y != b.Y;
 
     public override readonly int GetHashCode()
     {

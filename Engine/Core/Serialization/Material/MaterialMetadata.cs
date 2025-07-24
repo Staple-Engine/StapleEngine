@@ -78,14 +78,14 @@ public class Vector2Holder
 
     public static bool operator==(Vector2Holder lhs, Vector2Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.x == rhs.x &&
@@ -94,14 +94,14 @@ public class Vector2Holder
 
     public static bool operator !=(Vector2Holder lhs, Vector2Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.x != rhs.x ||
@@ -186,16 +186,16 @@ public class Vector3Holder
         return Math.FromEulerAngles(ToVector3());
     }
 
-    public static bool operator ==(Vector3Holder lhs, Vector3Holder rhs)
+    public static bool operator==(Vector3Holder lhs, Vector3Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.x == rhs.x &&
@@ -203,16 +203,16 @@ public class Vector3Holder
             lhs.z == rhs.z;
     }
 
-    public static bool operator !=(Vector3Holder lhs, Vector3Holder rhs)
+    public static bool operator!=(Vector3Holder lhs, Vector3Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.x != rhs.x ||
@@ -309,16 +309,16 @@ public class Vector4Holder
         return new Quaternion(x, y, z, w);
     }
 
-    public static bool operator ==(Vector4Holder lhs, Vector4Holder rhs)
+    public static bool operator==(Vector4Holder lhs, Vector4Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.x == rhs.x &&
@@ -327,16 +327,16 @@ public class Vector4Holder
             lhs.w == rhs.w;
     }
 
-    public static bool operator !=(Vector4Holder lhs, Vector4Holder rhs)
+    public static bool operator!=(Vector4Holder lhs, Vector4Holder rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.x != rhs.x ||
@@ -469,16 +469,16 @@ public class MaterialParameter
         return outValue;
     }
 
-    public static bool operator ==(MaterialParameter lhs, MaterialParameter rhs)
+    public static bool operator==(MaterialParameter lhs, MaterialParameter rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.type == rhs.type &&
@@ -493,16 +493,16 @@ public class MaterialParameter
             lhs.source == rhs.source;
     }
 
-    public static bool operator !=(MaterialParameter lhs, MaterialParameter rhs)
+    public static bool operator!=(MaterialParameter lhs, MaterialParameter rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.type != rhs.type ||
@@ -594,16 +594,16 @@ public class MaterialMetadata
 
     public bool ShouldSerializetypeName() => false;
 
-    public static bool operator ==(MaterialMetadata lhs, MaterialMetadata rhs)
+    public static bool operator==(MaterialMetadata lhs, MaterialMetadata rhs)
     {
-        if(lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if(lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.guid == rhs.guid &&
@@ -616,16 +616,16 @@ public class MaterialMetadata
             lhs.typeName == rhs.typeName;
     }
 
-    public static bool operator !=(MaterialMetadata lhs, MaterialMetadata rhs)
+    public static bool operator!=(MaterialMetadata lhs, MaterialMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.guid != rhs.guid ||

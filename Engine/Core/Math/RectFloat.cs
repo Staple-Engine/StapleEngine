@@ -96,7 +96,7 @@ public struct RectFloat
             v.Y >= top && v.Y <= bottom;
     }
 
-    public static bool operator ==(RectFloat lhs, RectFloat rhs)
+    public static bool operator==(RectFloat lhs, RectFloat rhs)
     {
         return lhs.left == rhs.left &&
             lhs.right == rhs.right &&
@@ -104,7 +104,7 @@ public struct RectFloat
             lhs.bottom == rhs.bottom;
     }
 
-    public static bool operator !=(RectFloat lhs, RectFloat rhs)
+    public static bool operator!=(RectFloat lhs, RectFloat rhs)
     {
         return lhs.left != rhs.left ||
             lhs.right != rhs.right ||

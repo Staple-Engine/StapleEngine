@@ -77,8 +77,18 @@ public class MeshAssetMetadata
     [Key(10)]
     public string typeName = typeof(Mesh).FullName;
 
-    public static bool operator ==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
+    public static bool operator==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
+        if(lhs is null)
+        {
+            return rhs is null;
+        }
+
+        if(rhs is null)
+        {
+            return lhs is null;
+        }
+
         return lhs.guid == rhs.guid &&
             lhs.flipUVs == rhs.flipUVs &&
             lhs.flipWindingOrder == rhs.flipWindingOrder &&
@@ -92,8 +102,18 @@ public class MeshAssetMetadata
             lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate;
     }
 
-    public static bool operator !=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
+    public static bool operator!=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
     {
+        if (lhs is null)
+        {
+            return rhs is not null;
+        }
+
+        if (rhs is null)
+        {
+            return lhs is not null;
+        }
+
         return lhs.guid != rhs.guid ||
             lhs.flipUVs != rhs.flipUVs ||
             lhs.flipWindingOrder != rhs.flipWindingOrder ||

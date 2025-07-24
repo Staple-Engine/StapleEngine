@@ -42,16 +42,16 @@ public class AudioClipMetadata
         };
     }
 
-    public static bool operator ==(AudioClipMetadata lhs, AudioClipMetadata rhs)
+    public static bool operator==(AudioClipMetadata lhs, AudioClipMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return true;
+            return rhs is null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return false;
+            return lhs is null;
         }
 
         return lhs.guid == rhs.guid &&
@@ -61,16 +61,16 @@ public class AudioClipMetadata
             lhs.recompressionQuality == rhs.recompressionQuality;
     }
 
-    public static bool operator !=(AudioClipMetadata lhs, AudioClipMetadata rhs)
+    public static bool operator!=(AudioClipMetadata lhs, AudioClipMetadata rhs)
     {
-        if (lhs is null && rhs is null)
+        if (lhs is null)
         {
-            return false;
+            return rhs is not null;
         }
 
-        if (lhs is null || rhs is null)
+        if (rhs is null)
         {
-            return true;
+            return lhs is not null;
         }
 
         return lhs.guid != rhs.guid ||

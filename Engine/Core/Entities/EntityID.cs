@@ -18,12 +18,12 @@ public struct EntityID
     /// </summary>
     public int generation;
 
-    public static bool operator ==(EntityID a, EntityID b)
+    public static bool operator==(EntityID a, EntityID b)
     {
         return a.ID == b.ID && a.generation == b.generation;
     }
 
-    public static bool operator !=(EntityID a, EntityID b)
+    public static bool operator!=(EntityID a, EntityID b)
     {
         return a.ID != b.ID || a.generation == b.generation;
     }

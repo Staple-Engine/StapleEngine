@@ -83,24 +83,24 @@ public struct Color32
 
     public static implicit operator Vector4(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
-    public static Color32 operator +(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),
+    public static Color32 operator+(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),
         (byte)Math.Clamp(a.g + b.g, 0, 255),
         (byte)Math.Clamp(a.b + b.b, 0, 255),
         (byte)Math.Clamp(a.a + b.a, 0, 255));
 
-    public static Color32 operator -(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r - b.r, 0, 255),
+    public static Color32 operator-(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r - b.r, 0, 255),
         (byte)Math.Clamp(a.g - b.g, 0, 255),
         (byte)Math.Clamp(a.b - b.b, 0, 255),
         (byte)Math.Clamp(a.a - b.a, 0, 255));
 
-    public static Color32 operator *(Color32 a, Color32 b) => new((byte)(Math.Clamp01(a.r / 255.0f * b.r / 255.0f) * 255),
+    public static Color32 operator*(Color32 a, Color32 b) => new((byte)(Math.Clamp01(a.r / 255.0f * b.r / 255.0f) * 255),
         (byte)(Math.Clamp01(a.g / 255.0f * b.g / 255.0f) * 255),
         (byte)(Math.Clamp01(a.b / 255.0f + b.b / 255.0f) * 255),
         (byte)(Math.Clamp01(a.a / 255.0f + b.a / 255.0f) * 255));
 
-    public static bool operator ==(Color32 a, Color32 b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
+    public static bool operator==(Color32 a, Color32 b) => a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
 
-    public static bool operator !=(Color32 a, Color32 b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
+    public static bool operator!=(Color32 a, Color32 b) => a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 
     public override readonly int GetHashCode()
     {

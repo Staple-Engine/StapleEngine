@@ -53,13 +53,13 @@ public readonly struct JobHandle : IEquatable<JobHandle>
         return HashCode.Combine(task);
     }
 
-    public static bool operator ==(JobHandle left, JobHandle right)
+    public static bool operator==(JobHandle left, JobHandle right)
     {
         return left.task == right.task;
     }
 
-    public static bool operator !=(JobHandle left, JobHandle right)
+    public static bool operator!=(JobHandle left, JobHandle right)
     {
-        return !(left == right);
+        return left.task != right.task;
     }
 }
