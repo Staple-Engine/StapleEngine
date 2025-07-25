@@ -363,7 +363,7 @@ public sealed class VertexBuffer
         {
             fixed (bgfx.VertexLayout* vertexLayout = &layout.layout)
             {
-                bgfx.Memory* outData = bgfx.alloc((uint)(data.Length * size));
+                bgfx.Memory* outData = bgfx.alloc((uint)data.Length);
 
                 var target = new Span<byte>(outData->data, data.Length);
 

@@ -76,6 +76,25 @@ public static class Input
     /// </summary>
     public static Vector2 MouseDelta { get; private set; }
 
+    /// <summary>
+    /// Gets the position of the current pointer input. Use this to not have to manually support <see cref="MousePosition"/> or <see cref="GetTouchPosition(int)"/>
+    /// </summary>
+    public static Vector2 PointerPosition
+    {
+        get
+        {
+            if(Platform.IsMobilePlatform)
+            {
+                if(TouchCount > 0)
+                {
+                    return GetTouchPosition(GetPointerID(0));
+                }
+            }
+
+            return MousePosition;
+        }
+    }
+
     internal static Vector2 previousMousePosition;
 
     internal static IRenderWindow window;

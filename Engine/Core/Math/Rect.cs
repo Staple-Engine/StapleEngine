@@ -35,6 +35,13 @@ public struct Rect
     [IgnoreMember]
     public readonly Vector2Int Size => new(right - left, bottom - top);
 
+    /// <summary>
+    /// Gets the absolute size of this <see cref="Rect"/>
+    /// The absolute size is the size with the position combined
+    /// </summary>
+    [IgnoreMember]
+    public readonly Vector2Int AbsoluteSize => Position + Size;
+
     public Rect()
     {
     }

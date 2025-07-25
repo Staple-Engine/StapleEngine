@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Staple.Internal;
 
@@ -185,6 +186,205 @@ public class TextRenderer
         {
             fontSize--;
         }
+    }
+
+    public string[] FitTextOnRect(string str, TextParameters parameters, Vector2Int rectSize)
+    {
+        var lines = new List<string>();
+
+        var offset = 0;
+        var previousOffset = 0;
+
+        var fragments = new List<string>();
+
+        for (; ; )
+        {
+            previousOffset = offset;
+
+            var matchSpace = str.IndexOf(' ', previousOffset);
+            var matchNewLine = str.IndexOf('\n', previousOffset);
+
+            var match = -1;
+
+            if (matchSpace >= 0)
+            {
+                match = matchSpace;
+            }
+
+            if (matchNewLine >= 0 && (matchSpace == -1 || matchNewLine < matchSpace))
+            {
+                match = matchNewLine;
+            }
+
+            if (match < 0)
+            {
+                if (offset < str.Length)
+                {
+                    fragments.Add(str.Substring(offset));
+                }
+
+                break;
+            }
+
+            if (match - previousOffset > 0)
+            {
+                fragments.Add(str.Substring(previousOffset, match - previousOffset));
+
+                if (match == matchNewLine)
+                {
+                    fragments.Add("\n");
+                }
+            }
+            else if (match == matchNewLine)
+            {
+                fragments.Add("\n");
+            }
+
+            offset = match + 1;
+        }
+
+        var currentSize = Vector2Int.Zero;
+
+        var builder = new StringBuilder();
+        var builder2 = new StringBuilder();
+
+        var first = true;
+
+        var currentText = new StringBuilder();
+
+        var newLineIndex = -1;
+
+        while (currentSize.Y < rectSize.Y)
+        {
+            if (first == false)
+            {
+                builder.Append(' ');
+            }
+
+            if (first)
+            {
+                first = false;
+            }
+
+            if (fragments.Count > 0 && fragments[0][0] != '\n')
+            {
+                builder.Append(fragments[0]);
+            }
+
+            if (fragments.Count > 0 && ((newLineIndex = fragments[0].IndexOf('\n')) == 0 || newLineIndex == 1))
+            {
+                if (first == false)
+                {
+                    var s = builder.ToString().Substring(0, builder.Length - 1);
+
+                    builder.Clear();
+                    builder.Append(s);
+                }
+
+                lines.Add(builder.ToString());
+
+                builder.Append('\n');
+
+                currentText.Append(builder);
+
+                builder.Clear();
+                builder2.Clear();
+
+                fragments.RemoveAt(0);
+
+                first = true;
+
+                continue;
+            }
+
+            currentSize = MeasureTextSimple(currentText + builder.ToString(), parameters).AbsoluteSize;
+
+            //Early out
+            if (currentSize.Y > rectSize.Y)
+            {
+                return lines.ToArray();
+            }
+
+            if (currentSize.X > rectSize.X)
+            {
+                if (builder2.Length > 0)
+                {
+                    builder.Clear();
+                    builder.Append(builder2);
+                }
+
+                currentSize = MeasureTextSimple(builder.ToString(), parameters).AbsoluteSize;
+
+                //So by default it would exceed the size
+                if (currentSize.X > rectSize.X)
+                {
+                    return lines.ToArray();
+                }
+
+                //Verify the old text
+                currentSize = MeasureTextSimple(currentText + builder.ToString(), parameters).AbsoluteSize;
+
+                var ignoreNewline = currentText.Length > 0 && currentText[currentText.Length - 1] == '\n';
+
+                if (ignoreNewline == false)
+                {
+                    //Remove extra space
+                    if (first == false)
+                    {
+                        var s = currentText.ToString().Substring(0, currentText.Length - 1);
+
+                        currentText.Clear();
+                        currentText.Append(s);
+                    }
+
+                    currentText.Append('\n');
+                }
+
+                //If we added text, add that line to our lines and reset everything
+
+                if (builder.Length > 0)
+                {
+                    lines.Add(builder.ToString());
+                }
+
+                builder.Clear();
+                builder2.Clear();
+
+                first = true;
+
+                continue;
+            }
+
+            //Save the last working text here
+            if (fragments.Count > 0)
+            {
+                builder2.Clear();
+                builder2.Append(builder);
+
+                fragments.RemoveAt(0);
+            }
+            //Final check here
+            else
+            {
+                currentSize = MeasureTextSimple(currentText + builder.ToString(), parameters).AbsoluteSize;
+
+                if (currentSize.X > rectSize.X || currentSize.Y > rectSize.Y)
+                {
+                    return lines.ToArray();
+                }
+
+                lines.Add(builder.ToString());
+
+                return lines.ToArray();
+            }
+        }
+
+        if (builder.Length > 0)
+        {
+            lines.Add(builder.ToString());
+        }
+
+        return lines.ToArray();
     }
 
     public Rect MeasureTextLines(IEnumerable<string> lines, TextParameters parameters)

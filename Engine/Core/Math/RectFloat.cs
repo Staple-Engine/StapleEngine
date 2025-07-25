@@ -25,16 +25,23 @@ public struct RectFloat
     public float bottom;
 
     /// <summary>
-    /// Gets the top left coordinate of this <see cref="Rect"/>
+    /// Gets the top left coordinate of this <see cref="RectFloat"/>
     /// </summary>
     [IgnoreMember]
     public readonly Vector2 Position => new(left, top);
 
     /// <summary>
-    /// Gets the size of this <see cref="Rect"/>
+    /// Gets the size of this <see cref="RectFloat"/>
     /// </summary>
     [IgnoreMember]
     public readonly Vector2 Size => new(right - left, bottom - top);
+
+    /// <summary>
+    /// Gets the absolute size of this <see cref="RectFloat"/>
+    /// The absolute size is the size with the position combined
+    /// </summary>
+    [IgnoreMember]
+    public readonly Vector2 AbsoluteSize => Position + Size;
 
     public RectFloat()
     {
