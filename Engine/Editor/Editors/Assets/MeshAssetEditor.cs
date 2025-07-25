@@ -175,6 +175,90 @@ internal class MeshAssetEditor : AssetEditor
                 EditorGUI.Label("Warning: There are one or more meshes with excessive bone count. " +
                     "Please change import settings to reduce bones or split meshes.");
             }
+
+            if(meshCount > 0)
+            {
+                EditorGUI.Label("Used Components:");
+
+                var mesh = meshAsset.meshes[0];
+
+                EditorGUI.Label("Position");
+
+                if(mesh.normals.Length > 0)
+                {
+                    EditorGUI.Label("Normal");
+                }
+
+                if (mesh.tangents.Length > 0)
+                {
+                    EditorGUI.Label("Tangent");
+                }
+
+                if (mesh.bitangents.Length > 0)
+                {
+                    EditorGUI.Label("Bitangent");
+                }
+
+                if (mesh.colors.Length > 0)
+                {
+                    EditorGUI.Label("Color");
+                }
+
+                if (mesh.colors2.Length > 0)
+                {
+                    EditorGUI.Label("Color2");
+                }
+
+                if (mesh.colors3.Length > 0)
+                {
+                    EditorGUI.Label("Color3");
+                }
+
+                if (mesh.colors4.Length > 0)
+                {
+                    EditorGUI.Label("Color4");
+                }
+
+                if (mesh.UV1.Length > 0)
+                {
+                    EditorGUI.Label("UV1");
+                }
+
+                if (mesh.UV2.Length > 0)
+                {
+                    EditorGUI.Label("UV2");
+                }
+
+                if (mesh.UV3.Length > 0)
+                {
+                    EditorGUI.Label("UV3");
+                }
+
+                if (mesh.UV4.Length > 0)
+                {
+                    EditorGUI.Label("UV4");
+                }
+
+                if (mesh.UV5.Length > 0)
+                {
+                    EditorGUI.Label("UV5");
+                }
+
+                if (mesh.UV6.Length > 0)
+                {
+                    EditorGUI.Label("UV6");
+                }
+
+                if (mesh.UV7.Length > 0)
+                {
+                    EditorGUI.Label("UV7");
+                }
+
+                if (mesh.UV8.Length > 0)
+                {
+                    EditorGUI.Label("UV8");
+                }
+            }
         }
     }
 }
