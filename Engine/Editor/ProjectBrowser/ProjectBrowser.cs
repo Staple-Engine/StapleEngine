@@ -436,6 +436,11 @@ internal class ProjectBrowser
 
                     item.ensureValidTexture = (texture) =>
                     {
+                        if(StapleEditor.instance.RefreshingAssets)
+                        {
+                            return texture;
+                        }
+
                         if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(node.path))
                         {
                             return ThumbnailCache.GetThumbnail(node.path) ?? GetResourceIcon(ResourceTypeForExtension(node.extension));
@@ -450,6 +455,11 @@ internal class ProjectBrowser
 
                     item.ensureValidTexture = (texture) =>
                     {
+                        if (StapleEditor.instance.RefreshingAssets)
+                        {
+                            return texture;
+                        }
+
                         if (texture?.Disposed ?? true || ThumbnailCache.HasCachedThumbnail(node.path))
                         {
                             var resourceType = ResourceTypeForExtension(node.extension);

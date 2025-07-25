@@ -18,6 +18,15 @@ public enum MeshAssetRotation
     NinetyNegative,
 }
 
+public enum MeshSimplifyTarget
+{
+    None,
+    Lowpoly,
+    Normal,
+    Highpoly,
+    CustomPolyCount,
+}
+
 [MessagePackObject]
 public class SerializableMeshAssetHeader
 {
@@ -73,8 +82,14 @@ public class MeshAssetMetadata
     [Tooltip("Whether to sync the animation to the screen refresh rate")]
     public bool syncAnimationToRefreshRate = false;
 
-    [HideInInspector]
     [Key(10)]
+    public MeshSimplifyTarget simplify = MeshSimplifyTarget.None;
+
+    [Key(11)]
+    public int targetPolyCount = 1000;
+
+    [HideInInspector]
+    [Key(12)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -99,7 +114,9 @@ public class MeshAssetMetadata
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
             lhs.frameRate == rhs.frameRate &&
-            lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate;
+            lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate &&
+            lhs.simplify == rhs.simplify &&
+            lhs.targetPolyCount == rhs.targetPolyCount;
     }
 
     public static bool operator!=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -124,7 +141,9 @@ public class MeshAssetMetadata
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
             lhs.frameRate != rhs.frameRate ||
-            lhs.syncAnimationToRefreshRate != rhs.syncAnimationToRefreshRate;
+            lhs.syncAnimationToRefreshRate != rhs.syncAnimationToRefreshRate ||
+            lhs.simplify != rhs.simplify ||
+            lhs.targetPolyCount != rhs.targetPolyCount;
     }
 
     public override bool Equals(object obj)

@@ -325,7 +325,7 @@ internal partial class StapleEditor
 
     private Action messageBoxNoAction;
 
-    private bool refreshingAssets = false;
+    internal bool RefreshingAssets { get; private set; } = false;
     #endregion
 
     private static WeakReference<StapleEditor> privInstance;
@@ -954,7 +954,7 @@ internal partial class StapleEditor
 
             if(hadFocus != hasFocus && hasFocus)
             {
-                if (csProjManager.NeedsGameRecompile() && refreshingAssets == false)
+                if (csProjManager.NeedsGameRecompile() && RefreshingAssets == false)
                 {
                     needsGameRecompile = true;
                 }

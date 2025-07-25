@@ -224,7 +224,7 @@ internal partial class StapleEditor
         {
             lock(backgroundLock)
             {
-                if (refreshingAssets == false)
+                if (RefreshingAssets == false)
                 {
                     try
                     {
@@ -253,7 +253,7 @@ internal partial class StapleEditor
         {
             lock (backgroundLock)
             {
-                if (refreshingAssets == false)
+                if (RefreshingAssets == false)
                 {
                     if (e.FullPath.EndsWith(".cs") ||
                         (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
@@ -349,7 +349,7 @@ internal partial class StapleEditor
     /// <param name="checkBuild">Check whether to build the project</param>
     public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = false, bool checkBuild = true)
     {
-        if(gameLoadDisabled || refreshingAssets)
+        if(gameLoadDisabled || RefreshingAssets)
         {
             return;
         }
@@ -358,7 +358,7 @@ internal partial class StapleEditor
 
         lock (backgroundLock)
         {
-            refreshingAssets = true;
+            RefreshingAssets = true;
             needsRefreshStaging = false;
         }
 
@@ -374,7 +374,7 @@ internal partial class StapleEditor
             {
                 lock (backgroundLock)
                 {
-                    refreshingAssets = false;
+                    RefreshingAssets = false;
                 }
 
                 return;
@@ -487,7 +487,7 @@ internal partial class StapleEditor
 
                         lock (backgroundLock)
                         {
-                            refreshingAssets = false;
+                            RefreshingAssets = false;
                         }
                     }
                 }
@@ -495,7 +495,7 @@ internal partial class StapleEditor
                 {
                     lock (backgroundLock)
                     {
-                        refreshingAssets = false;
+                        RefreshingAssets = false;
                     }
                 }
 

@@ -47,6 +47,10 @@ public partial class Program
         {
             var context = SharpGLTF.Schema2.ReadContext.Create(FileReader);
 
+            //Not skipping causes models with issues such as material values outside of the allowed range to not load at all,
+            //which is not acceptable.
+            context.Validation = SharpGLTF.Validation.ValidationMode.Skip;
+
             model = SharpGLTF.Schema2.ModelRoot.Load(Path.GetFileName(meshFileName), context);
 
             if (model == null)

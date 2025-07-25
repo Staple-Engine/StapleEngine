@@ -254,6 +254,8 @@ static partial class Program
                     return;
                 }
 
+                meshData = Staple.Tooling.MeshOptimization.OptimizeMeshAsset(meshData);
+
                 foreach (var mesh in meshData.meshes)
                 {
                     if ((mesh.tangents?.Count ?? 0) == 0 &&

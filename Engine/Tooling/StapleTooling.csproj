@@ -27,8 +27,12 @@
 	<ItemGroup>
 	  <Compile Include="FloatConverter.cs" />
 	  <Compile Include="IgnorableSerializerContractResolver.cs" />
+	  <Compile Include="MeshOptimization.cs" />
 	  <Compile Include="ShaderParser.cs" />
 	  <Compile Include="Utilities.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.1.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Newtonsoft.Json">

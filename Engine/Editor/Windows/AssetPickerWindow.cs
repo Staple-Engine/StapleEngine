@@ -87,6 +87,11 @@ internal class AssetPickerWindow : EditorWindow
                 name = x?.name ?? "(None)",
                 ensureValidTexture = (texture) =>
                 {
+                    if (StapleEditor.instance.RefreshingAssets)
+                    {
+                        return texture;
+                    }
+
                     if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(ThumbnailPath(x.path))))
                     {
                         return ThumbnailCache.GetThumbnail(ThumbnailPath(x.path)) ?? projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
