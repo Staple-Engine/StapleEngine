@@ -5,5 +5,8 @@
 /// </summary>
 public class UICanvas : IComponent
 {
-    public UIInteractible focusedElement { get; internal set; }
+    public readonly UIManager manager = new()
+    {
+        CanvasSize = new(Screen.Width, Screen.Height),
+    };
 }

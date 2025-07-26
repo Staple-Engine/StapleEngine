@@ -489,7 +489,8 @@ public class TextRenderer
         }
     }
 
-    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY, out PosTexVertex[] vertices, out ushort[] indices)
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY,
+        out PosTexVertex[] vertices, out ushort[] indices)
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -629,6 +630,190 @@ public class TextRenderer
 
         vertices = outVertices.ToArray();
         indices = outIndices.ToArray();
+
+        return true;
+    }
+
+    public bool MakeTextGeometry(string text, TextParameters parameters, float scale, bool flipY,
+        ref PosTexVertex[] vertices, ref ushort[] indices, out int vertexCount, out int indexCount)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        vertexCount = 0;
+        indexCount = 0;
+
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+
+        if (font == null)
+        {
+            vertices = default;
+            indices = default;
+
+            return false;
+        }
+
+        font.TextColor = parameters.textColor;
+        font.SecondaryTextColor = parameters.secondaryTextColor;
+        font.BorderSize = parameters.borderSize;
+        font.BorderColor = parameters.borderColor;
+        font.FontSize = parameters.fontSize;
+
+        var lineSpace = font.LineSpacing(parameters) * scale;
+        var spaceSize = parameters.fontSize * 2 / 3.0f * scale;
+
+        var position = new Vector2(parameters.position.X, parameters.position.Y);
+
+        var initialPosition = position;
+
+        var lines = text.Replace("\r", "").Split('\n');
+
+        //First: Get count
+
+        foreach (var line in lines)
+        {
+            for (var j = 0; j < line.Length; j++)
+            {
+                switch (line[j])
+                {
+                    case ' ':
+
+                        break;
+
+                    default:
+
+                        var glyph = font.GetGlyph(line[j]);
+
+                        if (glyph != null)
+                        {
+                            indexCount += 6;
+                            vertexCount += 4;
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        //Second: Fill
+
+        if(vertexCount > vertices.Length)
+        {
+            Array.Resize(ref vertices, vertexCount);
+        }
+
+        if (indexCount > indices.Length)
+        {
+            Array.Resize(ref indices, indexCount);
+        }
+
+        var vertexCounter = 0;
+        var indexCounter = 0;
+
+        foreach (var line in lines)
+        {
+            for (var j = 0; j < line.Length; j++)
+            {
+                switch (line[j])
+                {
+                    case ' ':
+
+                        position.X += spaceSize;
+
+                        break;
+
+                    default:
+
+                        if (j > 0)
+                        {
+                            position.X += font.Kerning(line[j - 1], line[j], parameters) * scale;
+                        }
+
+                        var glyph = font.GetGlyph(line[j]);
+
+                        if (glyph != null)
+                        {
+                            var size = new Vector2(glyph.bounds.Width * scale, glyph.bounds.Height * scale);
+
+                            var advance = glyph.xAdvance * scale;
+
+                            var yOffset = flipY ? -glyph.yOffset : (glyph.yOffset - glyph.bounds.Height);
+
+                            var p = position + new Vector2(glyph.xOffset * scale, yOffset * scale);
+
+                            indices[indexCounter++] = (ushort)vertexCounter;
+                            indices[indexCounter++] = (ushort)(vertexCounter + 1);
+                            indices[indexCounter++] = (ushort)(vertexCounter + 2);
+                            indices[indexCounter++] = (ushort)(vertexCounter + 2);
+                            indices[indexCounter++] = (ushort)(vertexCounter + 3);
+                            indices[indexCounter++] = (ushort)vertexCounter;
+
+                            if (flipY)
+                            {
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + new Vector2(0, size.Y),
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p,
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + new Vector2(size.X, 0),
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + size,
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                };
+                            }
+                            else
+                            {
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p,
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.bottom)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + new Vector2(0, size.Y),
+                                    uv = new Vector2(glyph.uvBounds.left, glyph.uvBounds.top)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + size,
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.top)
+                                };
+
+                                vertices[vertexCounter++] = new()
+                                {
+                                    position = p + new Vector2(size.X, 0),
+                                    uv = new Vector2(glyph.uvBounds.right, glyph.uvBounds.bottom)
+                                };
+                            }
+
+                            position.X += advance;
+                        }
+                        else
+                        {
+                            position.X += spaceSize;
+                        }
+
+                        break;
+                }
+            }
+
+            position.X = initialPosition.X;
+            position.Y += lineSpace;
+        }
 
         return true;
     }

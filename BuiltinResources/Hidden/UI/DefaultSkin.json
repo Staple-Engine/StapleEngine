@@ -1,0 +1,129 @@
+{
+	"data": {
+		"General": {
+			"DefaultFontColor": "#E3E0E3AA",
+			"DefaultSeconndaryFontColor": "#7D7A7DAA",
+			"DefaultFontSize": 12,
+			"BackgroundColor": "#332E2BFF"
+		},
+		"Frame": {
+			"BackgroundTexture": "UIThemes/PolyCode/windowBg.png",
+			"TextureRect": {
+				"left": 17,
+				"right": 17,
+				"top": 24,
+				"bottom": 17
+			}
+		},
+		"Button": {
+			"BackgroundTexture": "UIThemes/PolyCode/button.png",
+			"FocusedTexture": "UIThemes/PolyCode/buttonFocused.png",
+			"FontSize": 12,
+			"FontColor": "#E3E0E3C7",
+			"LabelOffset": {
+				"x": 0,
+				"y": 4
+			},
+			"TextureRect": {
+				"left": 12,
+				"right": 12,
+				"top": 12,
+				"bottom": 12
+			}
+		},
+		"Window": {
+			"BackgroundTexture": "UIThemes/PolyCode/windowBg.png",
+			"TextureRect": {
+				"left": 17,
+				"right": 17,
+				"top": 24,
+				"bottom": 17
+			},
+			"Padding": 15,
+			"TitleBarHeight": 25,
+			"TitleBarOffset": 5,
+			"TitlePosition": {
+				"x": 15,
+				"y": 10
+			},
+			"TitleFontSize": 14,
+			"TitleFontColor": "#E3E0E3C7",
+			"CloseButtonTexture": "UIThemes/PolyCode/closeIcon.png",
+			"CloseButtonPosition": {
+				"x": 11,
+				"y": 11
+			}
+		},
+		"TextBox": {
+			"BackgroundTexture": "UIThemes/PolyCode/textfield.png",
+			"BackgroundTextureMultiline": "UIThemes/PolyCode/textfield_multi.png",
+			"TextureRect": {
+				"left": 9,
+				"right": 9,
+				"top": 9,
+				"bottom": 9
+			},
+			"Padding": 9,
+			"EditLineSpacing": 14
+		},
+		"CheckBox": {
+			"CheckTexture": "UIThemes/PolyCode/checkbox_checked.png",
+			"UnCheckTexture": "UIThemes/PolyCode/checkbox_unchecked.png",
+			"LabelOffset": {
+				"x": 4,
+				"y": 3
+			}
+		},
+		"Menu": {
+			"BackgroundTexture": "UIThemes/PolyCode/menu_bg.png",
+			"TextureRect": {
+				"left": 6,
+				"right": 6,
+				"top": 4,
+				"bottom": 9
+			},
+			"SelectorBackgroundTexture": "UIThemes/PolyCode/menu_selector.png",
+			"Padding": {
+				"x": 3,
+				"y": 10
+			},
+			"SelectorPadding": 3,
+			"TextOffset": {
+				"x": 10,
+				"y": -1
+			},
+			"ItemHeight": 22
+		},
+		"Scrollbar": {
+			"BackgroundTexture": "UIThemes/PolyCode/scrollBg.png",
+			"BackgroundTextureRect": {
+				"left": 8,
+				"right": 8,
+				"top": 8,
+				"bottom": 8
+			},
+			"HandleTexture": "UIThemes/PolyCode/scrollHandle.png",
+			"HandleTextureRect": {
+				"left": 6,
+				"right": 6,
+				"top": 6,
+				"bottom": 6
+			},
+			"Padding": 1,
+			"MinSize": 16
+		},
+		"Dropdown": {
+			"BackgroundTexture": "UIThemes/PolyCode/combobox_bg.png",
+			"DropdownTexture": "UIThemes/PolyCode/combobox_drop.png",
+			"Height": 24,
+			"Offset": {
+				"x": 6,
+				"y": 5
+			},
+			"TextOffset": {
+				"x": 7,
+				"y": 4
+			}
+		}
+	}
+}

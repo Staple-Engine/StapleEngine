@@ -416,6 +416,15 @@ static partial class Program
 
         WorkScheduler.WaitForTasks();
 
+        foreach (var path in inputPaths)
+        {
+            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+            ProcessTextAssets(platform, path, outPath);
+        }
+
+        WorkScheduler.WaitForTasks();
+
         Console.WriteLine($"Cleaning up moved and deleted files in the output folder");
 
         foreach (var path in inputPaths)

@@ -2472,29 +2472,61 @@ internal class ResourceManager
             return default;
         }
 
-        var outAsset = new TextAsset()
+        using var stream = new MemoryStream(data);
+
+        try
         {
-            bytes = data,
-        };
+            var header = MessagePackSerializer.Deserialize<SerializableTextAssetHeader>(stream);
 
-        outAsset.Guid.Guid = path;
-
-        var assetPath = AssetDatabase.GetAssetPath(path);
-
-        var extension = Path.GetExtension(assetPath ?? path);
-
-        if(Array.IndexOf(AssetSerialization.TextExtensions, extension) >= 0)
-        {
-            try
+            if (header == null ||
+                header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) == false ||
+                header.version != SerializableTextAssetHeader.ValidVersion)
             {
-                outAsset.text = Encoding.UTF8.GetString(data);
+                Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid header");
+
+                return default;
             }
-            catch(Exception)
+
+            var textData = MessagePackSerializer.Deserialize<SerializableTextAsset>(stream);
+
+            if (textData == null)
             {
+                Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid data");
+
+                return default;
             }
+
+            var outAsset = new TextAsset()
+            {
+                bytes = textData.data,
+            };
+
+            outAsset.Guid.Guid = textData.metadata.guid;
+
+            var assetPath = AssetDatabase.GetAssetPath(path);
+
+            var extension = Path.GetExtension(assetPath ?? path);
+
+            if(string.IsNullOrEmpty(extension) == false &&
+                Array.IndexOf(AssetSerialization.TextExtensions, extension[1..]) >= 0)
+            {
+                try
+                {
+                    outAsset.text = Encoding.UTF8.GetString(outAsset.bytes);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return outAsset;
         }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load text asset at path {path}: {e}");
 
-        return outAsset;
+            return default;
+        }
     }
 
     /// <summary>

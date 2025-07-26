@@ -869,7 +869,7 @@ internal class ProjectBrowser
                         {
                             if (File.Exists($"{path}.meta") == false)
                             {
-                                var jsonData = JsonConvert.SerializeObject(new AssetHolder()
+                                var jsonData = JsonConvert.SerializeObject(new TextAssetMetadata()
                                 {
                                     guid = Hash(),
                                     typeName = typeof(TextAsset).FullName,

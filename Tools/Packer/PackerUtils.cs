@@ -303,6 +303,35 @@ static class PackerUtils
                 return null;
             }
         }
+        else if (AssetSerialization.TextExtensions.Any(x => path.EndsWith($".{x}")))
+        {
+            typeName = typeof(TextAsset).FullName;
+
+            try
+            {
+                var data = File.ReadAllBytes(path);
+
+                using var stream = new MemoryStream(data);
+
+                var header = MessagePackSerializer.Deserialize<SerializableTextAssetHeader>(stream);
+
+                if (header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) == false ||
+                    header.version != SerializableTextAssetHeader.ValidVersion)
+                {
+                    return null;
+                }
+
+                var value = MessagePackSerializer.Deserialize<SerializableTextAsset>(stream);
+
+                return value.metadata.guid;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to get the guid for {path}: {e}");
+
+                return null;
+            }
+        }
         else
         {
             return null;

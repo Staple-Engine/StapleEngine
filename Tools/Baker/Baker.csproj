@@ -56,6 +56,7 @@
 		<Compile Include="Baker+Folders.cs" />
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
+		<Compile Include="Baker+TextAssets.cs" />
 		<Compile Include="Meshes\AssimpExtensions.cs" />
 		<Compile Include="Meshes\Baker+Assimp.cs" />
 		<Compile Include="Meshes\Baker+Meshes.cs" />
