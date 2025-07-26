@@ -183,8 +183,6 @@
 		<Compile Include="Rendering\CullingState.cs" />
 		<Compile Include="Rendering\CullingVolume\CullingVolume.cs" />
 		<Compile Include="Rendering\CullingVolume\CullingVolumeSystem.cs" />
-		<Compile Include="Rendering\FPSCounter.cs" />
-		<Compile Include="Rendering\FPSCounterSystem.cs" />
 		<Compile Include="Rendering\Graphics.cs" />
 		<Compile Include="Rendering\Instancing\InstanceBuffer.cs" />
 		<Compile Include="Rendering\Lighting\Light.cs" />

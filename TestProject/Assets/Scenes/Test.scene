@@ -38,6 +38,7 @@
             "z": 1.0,
             "w": 1.0
           },
+          "depth": 0,
           "clearColor": "#82A1FFFF",
           "cullingLayers": 4294967295
         }
@@ -85,11 +86,14 @@
           "flipX": false,
           "flipY": false,
           "animation": "2cb79246-de34-4a18-9bdb-87b3f1f0ef67",
+          "renderMode": "Normal",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
           "sortingLayer": 0,
-          "sortingOrder": 0
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
         }
       },
       {
@@ -193,11 +197,14 @@
           "flipX": false,
           "flipY": false,
           "animation": "a2b3fb16-c445-4e44-b3bc-e7db88ccc9c6",
+          "renderMode": "Normal",
           "enabled": true,
           "forceRenderingOff": false,
           "receiveShadows": true,
           "sortingLayer": 0,
-          "sortingOrder": 0
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
         }
       },
       {
@@ -296,6 +303,7 @@
             "z": 1.0,
             "w": 1.0
           },
+          "depth": 0,
           "clearColor": "#82A1FFFF",
           "cullingLayers": 4294967295
         }
@@ -371,64 +379,6 @@
     "components": [
       {
         "type": "Staple.UI.UICanvas",
-        "data": {}
-      }
-    ],
-    "layer": "Default",
-    "enabled": true,
-    "prefabGuid": null,
-    "prefabLocalID": 0
-  },
-  {
-    "kind": "Entity",
-    "name": "UI Text",
-    "ID": 7,
-    "parent": 6,
-    "transform": {
-      "position": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "rotation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "scale": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0
-      }
-    },
-    "components": [
-      {
-        "type": "Staple.UI.UIText",
-        "data": {
-          "text": "FPS",
-          "fontSize": 30,
-          "autoSizeText": false,
-          "minFontSize": 14,
-          "maxFontSize": 30,
-          "textColor": "#FFFFFFFF",
-          "secondaryTextColor": "#FFFFFFFF",
-          "borderSize": 0,
-          "borderColor": "#00000000",
-          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
-          "alignment": "TopRight",
-          "position": {
-            "x": -30.0,
-            "y": 30.0
-          },
-          "size": {
-            "x": 54.0,
-            "y": 30.0
-          },
-          "adjustToIntrinsicSize": true
-        }
-      },
-      {
-        "type": "TestGame.FPSCounterComponent",
         "data": {}
       }
     ],

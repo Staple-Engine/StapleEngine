@@ -76,7 +76,6 @@
     <Compile Include="Editors\Default\SkinnedMeshAttachmentEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
     <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
-    <Compile Include="Editors\Default\UIImageEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="Editors\EditorWindow.cs" />
@@ -117,9 +116,6 @@
     <Compile Include="Templates\SphereTemplate.cs" />
     <Compile Include="Templates\SpriteTemplate.cs" />
     <Compile Include="Templates\UICanvasTemplate.cs" />
-    <Compile Include="Templates\UIContainerTemplate.cs" />
-    <Compile Include="Templates\UIImageTemplate.cs" />
-    <Compile Include="Templates\UITextTemplate.cs" />
     <Compile Include="UndoStack.cs" />
     <Compile Include="Windows\EditorSettingsWindow.cs" />
     <Compile Include="Windows\PackageManagerWindow.cs" />

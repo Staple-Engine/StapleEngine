@@ -9,4 +9,6 @@ public class UICanvas : IComponent
     {
         CanvasSize = new(Screen.Width, Screen.Height),
     };
+
+    public TextAsset layout;
 }
