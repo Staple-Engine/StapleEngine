@@ -355,7 +355,7 @@ public sealed partial class Mesh
         {
             if (_sphere == null)
             {
-                _sphere = GenerateSphere(36, 18, 0.5f);
+                _sphere = GenerateSphere(36, 18, 0.5f, false);
 
                 _sphere.Guid.Guid = "Internal/Sphere";
 
@@ -372,11 +372,12 @@ public sealed partial class Mesh
     /// <param name="sectorCount">The amount of sectors</param>
     /// <param name="stackCount">The amount of stacks</param>
     /// <param name="radius">The radius of the mesh</param>
+    /// <param name="writable">Whether the sphere is writable</param>
     /// <returns>The mesh</returns>
-    internal static Mesh GenerateSphere(int sectorCount, int stackCount, float radius)
+    internal static Mesh GenerateSphere(int sectorCount, int stackCount, float radius, bool writable)
     {
         //Based on https://www.songho.ca/opengl/gl_sphere.html
-        var outValue = new Mesh(false, false)
+        var outValue = new Mesh(false, writable)
         {
             meshTopology = MeshTopology.Triangles,
             indexFormat = MeshIndexFormat.UInt32,

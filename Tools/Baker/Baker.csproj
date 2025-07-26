@@ -77,6 +77,7 @@
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.1.1" />
 	  <PackageReference Include="MessagePack" Version="3.1.4" />
 	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 	  <PackageReference Include="System.Text.Json" Version="9.0.7" />

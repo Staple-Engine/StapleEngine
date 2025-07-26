@@ -145,6 +145,13 @@ internal class FrustumCuller
     }
 
     /// <summary>
+    /// Checks if a <see cref="BoundingSphere"/> is visible
+    /// </summary>
+    /// <param name="sphere">The <see cref="BoundingSphere"/> to test</param>
+    /// <returns>The result of the test. If it's not Invisible, then it's at least partially visible</returns>
+    public FrustumResult SphereTest(BoundingSphere sphere) => SphereTest(sphere.center, sphere.radius);
+
+    /// <summary>
     /// Checks if an Axis Aligned Bounding Box is visible
     /// </summary>
     /// <param name="aabb">The AABB</param>

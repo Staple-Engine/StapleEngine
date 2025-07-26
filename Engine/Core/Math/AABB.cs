@@ -8,7 +8,7 @@ namespace Staple;
 /// Axis Aligned Bounding Box
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
-public struct AABB
+public readonly struct AABB
 {
     /// <summary>
     /// The center of the box

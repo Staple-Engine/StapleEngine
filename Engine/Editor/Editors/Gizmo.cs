@@ -11,6 +11,7 @@ public static class Gizmo
 {
     private static Material meshMaterial;
     private static Mesh wireCube = null;
+    private static Mesh wireSphere = null;
     private static VertexLayout lineLayout = null;
 
     /// <summary>
@@ -92,6 +93,46 @@ public static class Gizmo
         }
 
         MeshRenderSystem.RenderMesh(wireCube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+    }
+    /// <summary>
+    /// Shows a sphere
+    /// </summary>
+    /// <param name="position">The position of the sphere</param>
+    /// <param name="rotation">The rotation of the sphere</param>
+    /// <param name="scale">The scale of the sphere</param>
+    /// <param name="color">The color of the sphere</param>
+    public static void Sphere(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
+    {
+        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+
+        meshMaterial.MainColor = color;
+
+        MeshRenderSystem.RenderMesh(Mesh.Sphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+    }
+
+    /// <summary>
+    /// Shows a wireframe sphere
+    /// </summary>
+    /// <param name="position">The position of the sphere</param>
+    /// <param name="rotation">The rotation of the sphere</param>
+    /// <param name="scale">The scale of the sphere</param>
+    /// <param name="color">The color of the sphere</param>
+    public static void WireframeSphere(Vector3 position, Quaternion rotation, Vector3 scale, Color color)
+    {
+        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+
+        meshMaterial.MainColor = color;
+
+        if (wireSphere == null)
+        {
+            wireSphere = Mesh.GenerateSphere(18, 9, 0.5f, true);
+
+            wireSphere.MeshTopology = MeshTopology.LineStrip;
+
+            wireSphere.UploadMeshData();
+        }
+
+        MeshRenderSystem.RenderMesh(wireSphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
     }
 
     public static void Line(Vector3 from, Vector3 to, Color color)
