@@ -65,26 +65,18 @@ public class UICanvasSystem : IRenderSystem
 
         foreach(var (_, canvas) in canvases.Contents)
         {
-            if(canvas.manager.GetElement("Window") == null)
+            if(canvas.Manager == null)
             {
-                var window = canvas.manager.CreateElement<UIWindow>("Window");
-
-                window.Size = new Vector2Int(200, 300);
-                window.Position = new(100, 100);
-                window.title = "My Window";
-
-                var button = canvas.manager.CreateElement<UIButton>("Button");
-
-                button.Size = new Vector2Int(100, 50);
-                button.caption = "Button";
-
-                button.Parent = window;
+                canvas.Manager = new()
+                {
+                    CanvasSize = new(Screen.Width, Screen.Height)
+                };
             }
 
-            canvas.manager.Update();
-            canvas.manager.Draw();
+            canvas.Manager.Update();
+            canvas.Manager.Draw();
 
-            IsPointerOverUI |= canvas.manager.MouseOverElement != null;
+            IsPointerOverUI |= canvas.Manager.MouseOverElement != null;
         }
     }
 }

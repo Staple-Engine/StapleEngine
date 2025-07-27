@@ -241,6 +241,7 @@
 		<Compile Include="UI\UIMenu.cs" />
 		<Compile Include="UI\UIMenuBar.cs" />
 		<Compile Include="UI\UIMessageBox.cs" />
+		<Compile Include="UI\UIPanel+API.cs" />
 		<Compile Include="UI\UIPanel+Internal.cs" />
 		<Compile Include="UI\UIPanel.cs" />
 		<Compile Include="UI\UIScrollableFrame.cs" />
