@@ -35,6 +35,11 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
     public int TitleOffset {  get; private set; }
 
+    protected override void OnConstructed()
+    {
+        OnClick += CheckClosePressed;
+    }
+
     public override void SetSkin(UISkin skin)
     {
         backgroundTexture = skin.GetTexture("Window", "BackgroundTexture");
@@ -45,9 +50,13 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
         titleFontSize = skin.GetInt("Window", "TitleFontSize");
         titlePosition = skin.GetVector2Int("Window", "TitlePosition");
         closeButtonPosition = skin.GetVector2Int("Window", "CloseButtonPosition");
+        TitleHeight = skin.GetInt("Window", "TitleBarHeight");
+        TitleOffset = skin.GetInt("Window", "TitleBarOffset");
+
+        ChildOffset = new Vector2Int(0, TitleOffset + TitleHeight);
     }
 
-    private void CheckClosePressed()
+    private void CheckClosePressed(UIPanel p)
     {
         var position = Position - new Vector2Int(padding, 0) + ParentPosition;
 
@@ -102,14 +111,12 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
             position += difference;
             Position += difference;
 
-            /*
             if(Manager.CurrentMenuBar != null && ParentPosition.Y + Position.Y < 30)
             {
                 Position = new(Position.X, 30);
 
                 position.Y = 30;
             }
-            */
 
             var x = ParentPosition.X + Position.X;
 
@@ -125,7 +132,7 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
         foreach(var child in Children)
         {
-            child.Update(position);
+            child.Update(position + ChildOffset);
         }
     }
 
@@ -140,19 +147,19 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
         var size = Size + new Vector2Int(padding * 2, textureRect.top);
 
-        DrawSpriteSliced(position + new Vector2Int(padding, 0), size, backgroundTexture, textureRect, Color.White);
+        DrawSpriteSliced(position - new Vector2Int(padding, 0), size, backgroundTexture, textureRect, Color.White);
 
         RenderText(title, new TextParameters()
             .TextColor(titleFontColor)
             .Position(position + titlePosition - new Vector2Int(padding, 0)));
 
-        DrawSprite(position - new Vector2Int(padding, 0) +
-            new Vector2Int(size.X - closeButtonTexture.Width - closeButtonPosition.X, closeButtonPosition.Y),
+        DrawSprite(position +
+            new Vector2Int(size.X - closeButtonTexture.Width - closeButtonPosition.X - padding, closeButtonPosition.Y),
             closeButtonTexture.Size, closeButtonTexture, Color.White);
 
         foreach(var child in Children)
         {
-            child.Draw(position);
+            child.Draw(position + ChildOffset);
         }
     }
 }

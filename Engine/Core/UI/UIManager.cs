@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text.Json;
 
@@ -9,6 +10,55 @@ namespace Staple.UI;
 public sealed class UIManager
 {
     private static readonly string DefaultSkinPath = "Hidden/UI/DefaultSkin.json";
+
+    private class InputObserverProxy(UIManager owner) : IInputObserver
+    {
+        public UIManager owner = owner;
+
+        public void OnCharacterEntered(char character)
+        {
+            owner.OnCharacterEntered(character);
+        }
+
+        public void OnKeyJustPressed(KeyCode key)
+        {
+            owner.OnKeyJustPressed(key);
+        }
+
+        public void OnKeyPressed(KeyCode key)
+        {
+            owner.OnKeyPressed(key);
+        }
+
+        public void OnKeyReleased(KeyCode key)
+        {
+            owner.OnKeyReleased(key);
+        }
+
+        public void OnMouseButtonJustPressed(MouseButton button)
+        {
+            owner.OnMouseJustPressed(button);
+        }
+
+        public void OnMouseButtonPressed(MouseButton button)
+        {
+            owner.OnMousePressed(button);
+        }
+
+        public void OnMouseButtonReleased(MouseButton button)
+        {
+            owner.OnMouseReleased(button);
+        }
+
+        public void OnMouseMove(Vector2Int position)
+        {
+            owner.OnMouseMove(position);
+        }
+
+        public void OnMouseWheelScrolled(Vector2 delta)
+        {
+        }
+    }
 
     internal class Element
     {
@@ -28,6 +78,8 @@ public sealed class UIManager
 
     private UISkin skin = new();
 
+    private readonly InputObserverProxy inputProxy;
+
     public readonly ushort ViewID = UICanvasSystem.UIViewID;
 
     public Color DefaultFontColor { get; private set; }
@@ -38,50 +90,11 @@ public sealed class UIManager
 
     public UIPanel FocusedElement { get; private set; }
 
-    public UIPanel MouseOverElement
-    {
-        get
-        {
-            UpdateDrawOrderCache();
+    public UIMenu CurrentMenu { get; private set; }
 
-            UIPanel foundElement = null;
-            UIPanel inputBlocker = GetInputBlocker();
+    public UIMenuBar CurrentMenuBar { get; private set; }
 
-            if(inputBlocker != null)
-            {
-                RecursiveFindFocusedElement(Vector2Int.Zero, inputBlocker, ref foundElement);
-            }
-            else
-            {
-                for(var i = drawOrderCounter; i >= 0; i--)
-                {
-                    for(var j = 0; j < drawOrderCache.Count; j++)
-                    {
-                        var p = drawOrderCache[j];
-
-                        if(p.panel.AllowMouseInput == false || p.drawOrder != i)
-                        {
-                            continue;
-                        }
-
-                        RecursiveFindFocusedElement(Vector2Int.Zero, p.panel, ref foundElement);
-
-                        if(foundElement != null)
-                        {
-                            break;
-                        }
-                    }
-
-                    if(foundElement != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return foundElement;
-        }
-    }
+    public UIPanel MouseOverElement { get; private set; }
 
     public Vector2Int CanvasSize { get; internal set; }
 
@@ -93,6 +106,10 @@ public sealed class UIManager
         {
             LoadSkin(skinGuid);
         }
+
+        inputProxy = new(this);
+
+        Input.RegisterInputObserver(inputProxy);
     }
 
     internal void RecursiveFindFocusedElement(Vector2Int parentPosition, UIPanel parent, ref UIPanel foundElement)
@@ -115,7 +132,7 @@ public sealed class UIManager
 
             foreach (var child in parent.Children)
             {
-                RecursiveFindFocusedElement(parentPosition + parent.Position, child, ref foundElement);
+                RecursiveFindFocusedElement(parentPosition + parent.Position - parent.Translation + parent.ChildOffset, child, ref foundElement);
             }
         }
     }
@@ -167,12 +184,59 @@ public sealed class UIManager
         catch(Exception e)
         {
             Log.Error($"Failed to load UI skin {guid}: {e}");
+
+            return;
+        }
+
+        if(skin != null)
+        {
+            DefaultFontColor = skin.GetColor("General", "DefaultFontColor");
+            DefaultSecondaryFontColor = skin.GetColor("General", "DefaultSecondaryFontColor");
+            DefaultFontSize = skin.GetInt("General", "DefaultFontSize");
         }
     }
 
     public void Update()
     {
         UpdateDrawOrderCache();
+        UpdateDrawOrderCache();
+
+        UIPanel foundElement = null;
+        UIPanel inputBlocker = GetInputBlocker();
+
+        if (inputBlocker != null)
+        {
+            RecursiveFindFocusedElement(Vector2Int.Zero, inputBlocker, ref foundElement);
+        }
+        else
+        {
+            for (var i = drawOrderCounter; i >= 0; i--)
+            {
+                for (var j = 0; j < drawOrderCache.Count; j++)
+                {
+                    var p = drawOrderCache[j];
+
+                    if (p.panel.AllowMouseInput == false || p.drawOrder != i)
+                    {
+                        continue;
+                    }
+
+                    RecursiveFindFocusedElement(Vector2Int.Zero, p.panel, ref foundElement);
+
+                    if (foundElement != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (foundElement != null)
+                {
+                    break;
+                }
+            }
+        }
+
+        MouseOverElement = foundElement;
 
         for (var i = 0; i < drawOrderCache.Count; i++)
         {
@@ -218,6 +282,27 @@ public sealed class UIManager
 
                 p.panel.Draw(Vector2Int.Zero);
             }
+        }
+    }
+
+    public T CreateElement<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+        T>(string ID) where T: UIPanel
+    {
+        try
+        {
+            var instance = (T)Activator.CreateInstance(typeof(T), [this]);
+
+            if(instance != null && AddElement(ID, instance))
+            {
+                return instance;
+            }
+
+            return null;
+        }
+        catch(Exception)
+        {
+            return null;
         }
     }
 
@@ -306,11 +391,11 @@ public sealed class UIManager
         }
     }
 
-    internal void OnMouseMove()
+    internal void OnMouseMove(Vector2Int position)
     {
         if(FocusedElement != null)
         {
-            FocusedElement.OnMouseMoveInternal();
+            FocusedElement.OnMouseMoveInternal(position);
 
             //TODO: Consume Input
         }
@@ -360,6 +445,13 @@ public sealed class UIManager
 
     public bool AddElement(string ID, UIPanel element)
     {
+        if(element == null)
+        {
+            return false;
+        }
+
+        element.ID = ID;
+
         drawOrderCacheDirty = true;
 
         if(elements.TryGetValue(ID, out var e))
@@ -406,6 +498,37 @@ public sealed class UIManager
     }
 
     public UIPanel GetElement(string ID) => elements.TryGetValue(ID, out var e) ? e.panel : null;
+
+    public T GetElement<T>(string ID) where T : UIPanel => elements.TryGetValue(ID, out var e) ? e.panel as T : null;
+
+    public UIMenu CreateMenu(Vector2Int position)
+    {
+        if(CurrentMenu != null)
+        {
+            RemoveElement(CurrentMenu.ID);
+        }
+
+        CurrentMenu = CreateElement<UIMenu>("UIManager.CurrentMenu");
+
+        if(CurrentMenu != null)
+        {
+            CurrentMenu.Position = position;
+        }
+
+        return CurrentMenu;
+    }
+
+    public UIMenuBar CreateMenuBar()
+    {
+        if(CurrentMenuBar != null)
+        {
+            RemoveElement(CurrentMenuBar.ID);
+        }
+
+        CurrentMenuBar = CreateElement<UIMenuBar>("UIManager.CurrentMenuBar");
+
+        return CurrentMenuBar;
+    }
 
     public void Clear()
     {

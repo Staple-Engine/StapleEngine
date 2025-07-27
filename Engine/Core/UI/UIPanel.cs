@@ -25,6 +25,8 @@ public abstract class UIPanel
 
     public Vector2Int SelectBoxExtraSize { get; set; }
 
+    public Vector2Int ChildOffset { get; protected set; }
+
     public float Alpha { get; set; }
 
     public bool ShouldRespondToTooltips {  get; set; }
@@ -79,7 +81,7 @@ public abstract class UIPanel
 
     public Action<UIPanel, char> OnCharacterEntered;
 
-    public Action<UIPanel> OnMouseMove;
+    public Action<UIPanel, Vector2Int> OnMouseMove;
 
     public Action<UIPanel, MouseButton> OnMouseJustPressed;
 
@@ -156,6 +158,12 @@ public abstract class UIPanel
         Enabled = AllowMouseInput = AllowKeyboardInput = Visible = true;
 
         Alpha = 1;
+
+        OnConstructed();
+    }
+
+    protected virtual void OnConstructed()
+    {
     }
 
     protected bool IsCulled(Vector2Int position)
@@ -241,14 +249,14 @@ public abstract class UIPanel
         OnMouseReleased?.Invoke(this, button);
     }
 
-    internal void OnMouseMoveInternal()
+    internal void OnMouseMoveInternal(Vector2Int position)
     {
         if (AllowMouseInput == false || Enabled == false)
         {
             return;
         }
 
-        OnMouseMove?.Invoke(this);
+        OnMouseMove?.Invoke(this, position);
     }
 
     internal void OnKeyJustPressedInternal(KeyCode key)
@@ -328,8 +336,11 @@ public abstract class UIPanel
             return;
         }
 
-        material.shader.SetColor(material.GetShaderHandle(Material.MainColorProperty), color);
-        material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), texture);
+        var c = material.MainColor;
+        var t = material.MainTexture;
+
+        material.MainColor = color;
+        material.MainTexture = texture;
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
@@ -337,6 +348,9 @@ public abstract class UIPanel
         Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
             Manager.ViewID);
+
+        material.MainColor = c;
+        material.MainTexture = t;
     }
 
     protected void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Rect rect, Color color)
@@ -366,8 +380,11 @@ public abstract class UIPanel
             return;
         }
 
-        material.shader.SetColor(material.GetShaderHandle(Material.MainColorProperty), color);
-        material.shader.SetTexture(material.GetShaderHandle(Material.MainTextureProperty), texture);
+        var c = material.MainColor;
+        var t = material.MainTexture;
+
+        material.MainColor = color;
+        material.MainTexture = texture;
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
@@ -375,6 +392,9 @@ public abstract class UIPanel
         Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
             Manager.ViewID);
+
+        material.MainColor = c;
+        material.MainTexture = t;
     }
 
     protected void DrawSpriteSliced(Vector2Int position, Vector2Int size, Texture texture, Rect border, Color color)
@@ -439,6 +459,8 @@ public abstract class UIPanel
     {
         material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
 
+        parameters.Position(parameters.position + new Vector2(0, parameters.fontSize));
+
         if (TextRenderer.instance.MakeTextGeometry(str, parameters, 1, true, ref textVertices, ref textIndices,
             out var vertexCount, out var indexCount) == false)
         {
@@ -459,8 +481,7 @@ public abstract class UIPanel
         material.MainTexture = texture;
 
         Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(parameters.position.X, parameters.position.Y, 0)),
-            MeshTopology.Triangles, MaterialLighting.Unlit, Manager.ViewID);
+            Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit, Manager.ViewID);
     }
 
     public bool RespondsToTooltips() => ShouldRespondToTooltips && string.IsNullOrEmpty(Tooltip);

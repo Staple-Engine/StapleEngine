@@ -45,6 +45,9 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup>
 	<Reference Include="StapleCore">
 		<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
 	</Reference>

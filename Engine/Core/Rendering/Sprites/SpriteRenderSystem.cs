@@ -170,7 +170,8 @@ public class SpriteRenderSystem : IRenderSystem
     /// <param name="size">The size of the sprite in world space</param>
     /// <param name="border">The nine patch border, in pixels</param>
     /// <param name="pixelCoordinates">Whether we're using world or pixel coordinates</param>
-    internal static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size, Rect border, bool pixelCoordinates)
+    internal static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size,
+        Rect border, bool pixelCoordinates)
     {
         if((texture?.Disposed ?? true) ||
             vertices.IsEmpty ||
@@ -231,13 +232,13 @@ public class SpriteRenderSystem : IRenderSystem
 
         var fragmentSizeOverrides = new Vector2[9]
         {
-            new(border.left * invertedLocal.X, border.top * invertedLocal.Y),
-            new(border.right * invertedLocal.X, border.top * invertedLocal.Y),
             new(border.left * invertedLocal.X, border.bottom * invertedLocal.Y),
             new(border.right * invertedLocal.X, border.bottom * invertedLocal.Y),
+            new(border.left * invertedLocal.X, border.top * invertedLocal.Y),
+            new(border.right * invertedLocal.X, border.top * invertedLocal.Y),
             localScale,
-            new(localScale.X, border.top * invertedLocal.Y),
             new(localScale.X, border.bottom * invertedLocal.Y),
+            new(localScale.X, border.top * invertedLocal.Y),
             new(border.left * invertedLocal.X, localScale.Y),
             new(border.right * invertedLocal.X, localScale.Y),
         };

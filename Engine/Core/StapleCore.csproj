@@ -151,6 +151,7 @@
 		<Compile Include="Input\GamepadAxis.cs" />
 		<Compile Include="Input\GamepadButton.cs" />
 		<Compile Include="Input\GamepadConnectionState.cs" />
+		<Compile Include="Input\IInputObserver.cs" />
 		<Compile Include="Input\IInputReceiver.cs" />
 		<Compile Include="Input\InputAction.cs" />
 		<Compile Include="Input\InputActionContext.cs" />

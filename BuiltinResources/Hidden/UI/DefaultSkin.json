@@ -2,7 +2,7 @@
 	"data": {
 		"General": {
 			"DefaultFontColor": "#E3E0E3AA",
-			"DefaultSeconndaryFontColor": "#7D7A7DAA",
+			"DefaultSecondaryFontColor": "#7D7A7DAA",
 			"DefaultFontSize": 12,
 			"BackgroundColor": "#332E2BFF"
 		},

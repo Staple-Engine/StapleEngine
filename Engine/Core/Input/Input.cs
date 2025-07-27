@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Staple;
 
@@ -38,6 +39,12 @@ public static class Input
         public Assembly assembly;
     }
 
+    private class InputObserver
+    {
+        public IInputObserver observer;
+        public Assembly assembly;
+    }
+
     private static readonly Dictionary<KeyCode, InputState> keyStates = [];
 
     private static readonly Dictionary<MouseButton, InputState> mouseButtonStates = [];
@@ -52,14 +59,18 @@ public static class Input
 
     private static readonly Dictionary<int, InputCallback> inputCallbacks = [];
 
+    private static readonly Dictionary<int, InputObserver> inputObservers = [];
+
     private static readonly Lock lockObject = new();
 
     private static int inputCallbackCounter = 0;
 
+    private static int inputObserverCounter = 0;
+
     /// <summary>
     /// Last input character
     /// </summary>
-    public static uint Character { get; private set; }
+    public static char Character { get; private set; }
 
     /// <summary>
     /// Current mouse position
@@ -510,6 +521,58 @@ public static class Input
 
         lock(lockObject)
         {
+            foreach(var pair in inputObservers)
+            {
+                //TODO: Gamepad and Touch
+                foreach (var statePair in keyStates)
+                {
+                    switch (statePair.Value)
+                    {
+                        case InputState.Press:
+
+                            pair.Value.observer.OnKeyPressed(statePair.Key);
+
+                            break;
+
+                        case InputState.FirstPress:
+
+                            pair.Value.observer.OnKeyJustPressed(statePair.Key);
+
+                            break;
+
+                        case InputState.FirstRelease:
+
+                            pair.Value.observer.OnKeyReleased(statePair.Key);
+
+                            break;
+                    }
+                }
+
+                foreach (var statePair in mouseButtonStates)
+                {
+                    switch (statePair.Value)
+                    {
+                        case InputState.Press:
+
+                            pair.Value.observer.OnMouseButtonPressed(statePair.Key);
+
+                            break;
+
+                        case InputState.FirstPress:
+
+                            pair.Value.observer.OnMouseButtonJustPressed(statePair.Key);
+
+                            break;
+
+                        case InputState.FirstRelease:
+
+                            pair.Value.observer.OnMouseButtonReleased(statePair.Key);
+
+                            break;
+                    }
+                }
+            }
+
             touchKeysToRemove.Clear();
 
             foreach (var key in touchStates.Keys)
@@ -530,7 +593,7 @@ public static class Input
             Handle(mouseButtonStates);
             Handle(touchStates);
 
-            Character = 0;
+            Character = (char)0;
             MouseDelta = Vector2.Zero;
             MouseRelativePosition = Vector2.Zero;
 
@@ -630,6 +693,11 @@ public static class Input
         lock (lockObject)
         {
             MouseDelta = appEvent.mouseDelta.delta;
+
+            foreach(var pair in inputObservers)
+            {
+                pair.Value.observer.OnMouseWheelScrolled(MouseDelta);
+            }
         }
     }
 
@@ -705,6 +773,11 @@ public static class Input
                 MousePosition = newPos;
 
                 MouseRelativePosition = newPos - previousMousePosition;
+
+                foreach(var pair in inputObservers)
+                {
+                    pair.Value.observer.OnMouseMove(newPos);
+                }
             }
         }
     }
@@ -713,7 +786,12 @@ public static class Input
     {
         lock (lockObject)
         {
-            Character = appEvent.character;
+            Character = (char)appEvent.character;
+
+            foreach(var pair in inputObservers)
+            {
+                pair.Value.observer.OnCharacterEntered(Character);
+            }
         }
     }
 
@@ -1107,6 +1185,67 @@ public static class Input
             foreach (var key in cleared)
             {
                 inputCallbacks.Remove(key);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Registers an input observer to get input events automatically
+    /// </summary>
+    /// <param name="observer">The input observer</param>
+    /// <returns>An ID to unregister the observer later</returns>
+    internal static int RegisterInputObserver(IInputObserver observer)
+    {
+        if(observer == null)
+        {
+            return -1;
+        }
+
+        lock (lockObject)
+        {
+            inputObservers.Add(inputObserverCounter, new()
+            {
+                assembly = observer.GetType().Assembly,
+                observer = observer,
+            });
+
+            return inputObserverCounter++;
+        }
+    }
+
+    /// <summary>
+    /// Unregisters an input observer to no longer receive input events
+    /// </summary>
+    /// <param name="ID">The observer ID</param>
+    internal static void UnregisterInputObserver(int ID)
+    {
+        lock(lockObject)
+        {
+            inputObservers.Remove(ID);
+        }
+    }
+
+    /// <summary>
+    /// Clears all observers belonging to a specific assembly
+    /// </summary>
+    /// <param name="assembly">The assembly to clear</param>
+    internal static void ClearAssemblyObservers(Assembly assembly)
+    {
+        lock (lockObject)
+        {
+            var cleared = new HashSet<int>();
+
+            foreach (var pair in inputObservers)
+            {
+                if (pair.Value.assembly == assembly)
+                {
+                    cleared.Add(pair.Key);
+                }
+            }
+
+            foreach (var key in cleared)
+            {
+                inputObservers.Remove(key);
             }
         }
     }

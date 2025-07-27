@@ -18,7 +18,7 @@ public static class StaplePlayer
 #if _DEBUG
         baseDirectory = Environment.CurrentDirectory;
 #endif
-         
+
         try
         {
             var pakFiles = Directory.GetFiles(Path.Combine(baseDirectory, "Data"), "*.pak");
