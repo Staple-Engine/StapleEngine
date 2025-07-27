@@ -14,6 +14,8 @@ namespace Staple.Editor;
 /// </summary>
 internal class CSProjManager
 {
+    internal static readonly string MessagePackVersion = "3.1.4";
+
     public class ProjectInfo
     {
         public AssemblyDefinition asmDef;
@@ -894,9 +896,9 @@ internal class CSProjManager
                     new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "StapleCore.dll"))
                 ]);
 
-            p.AddItem("Reference", "MessagePack",
+            p.AddItem("PackageReference", "MessagePack",
                 [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
+                    new("Version", MessagePackVersion)
                 ]);
 
             p.AddItem("Reference", "NAudio",
