@@ -1,6 +1,8 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UIText(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     public int fontSize;
 
@@ -40,6 +42,11 @@ public class UIText(UIManager manager) : UIPanel(manager)
 
         parameters.TextColor(Manager.DefaultFontColor)
             .SecondaryTextColor(Manager.DefaultSecondaryFontColor);
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     public override void Update(Vector2Int parentPosition)

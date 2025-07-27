@@ -1,6 +1,8 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UITooltip(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UITooltip(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     internal UIPanel source;
 
@@ -11,6 +13,10 @@ public class UITooltip(UIManager manager) : UIPanel(manager)
     public override void SetSkin(UISkin skin)
     {
         fontSize = Manager.DefaultFontSize;
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
     }
 
     protected override void PerformLayout()

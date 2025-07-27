@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Staple.UI;
 
-public class UIMessageBox : UIPanel
+public class UIMessageBox(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private readonly string title;
     private readonly string message;
@@ -14,17 +15,16 @@ public class UIMessageBox : UIPanel
 
     public Action<UIMessageBox, int> OnButtonpressed;
 
-    public UIMessageBox(UIManager manager, string title, string message, string buttonTitle, string secondaryButtonTitle) : base(manager)
+    protected override void OnConstructed()
     {
-        this.title = title;
-        this.message = message;
-        this.buttonTitle = buttonTitle;
-        this.secondaryButtonTitle = secondaryButtonTitle;
-
         BlockingInput = true;
     }
 
     public override void SetSkin(UISkin skin)
+    {
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
     }
 

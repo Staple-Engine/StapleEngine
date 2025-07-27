@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Staple.UI;
 
-public class UIList(UIManager manager) : UIPanel(manager)
+public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Texture selectorBackgroundTexture;
 
@@ -20,6 +20,10 @@ public class UIList(UIManager manager) : UIPanel(manager)
         selectorBackgroundTexture = skin.GetTexture("Menu", "SelectorBackgroundTexture");
 
         fontSize = Manager.DefaultFontSize;
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
     }
 
     protected void OnItemClickCheck(UIPanel self)

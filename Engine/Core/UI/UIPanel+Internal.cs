@@ -1,11 +1,99 @@
 ﻿using Staple.Internal;
-using System;
-using System.Numerics;
+using System.Collections.Generic;
 
 namespace Staple.UI;
 
 public partial class UIPanel
 {
+    internal UIPanel parent;
+
+    internal HashSet<UIPanel> children = [];
+
+    /// <summary>
+    /// Timer for checking when to consider a click
+    /// </summary>
+    internal float clickTimer;
+
+    /// <summary>
+    /// Whether the mouse is currently pressed on this element
+    /// </summary>
+    internal bool clickPressed;
+
+    /// <summary>
+    /// The ID of this element
+    /// </summary>
+    internal readonly string ID;
+
+    /// <summary>
+    /// Cached ninepatch vertices
+    /// </summary>
+    private SpriteRenderSystem.SpriteVertex[] ninePatchVertices = [];
+
+    /// <summary>
+    /// Cached ninepatch indices
+    /// </summary>
+    private uint[] ninePatchIndices = [];
+
+    /// <summary>
+    /// Global material used for rendering
+    /// </summary>
+    private static Material material;
+
+    /// <summary>
+    /// Cached normal sprite vertices
+    /// </summary>
+    private static readonly SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
+
+    /// <summary>
+    /// Cached normal sprite indices
+    /// </summary>
+    private static readonly ushort[] indices = [0, 1, 2, 2, 3, 0];
+
+    /// <summary>
+    /// Cached text vertices when rendering text
+    /// </summary>
+    private TextRenderer.PosTexVertex[] textVertices = [];
+
+    /// <summary>
+    /// Cached text indices when rendering text
+    /// </summary>
+    private ushort[] textIndices = [];
+
+    /// <summary>
+    /// Adds a child to this panel
+    /// </summary>
+    /// <param name="child">The child panel</param>
+    private void AddChild(UIPanel child)
+    {
+        if (child == null)
+        {
+            return;
+        }
+
+        child.parent?.RemoveChild(child);
+
+        children.Add(child);
+
+        if (child.parent != this)
+        {
+            child.parent = this;
+        }
+    }
+
+    /// <summary>
+    /// Removes a child from this panel
+    /// </summary>
+    /// <param name="child">The child to remove</param>
+    private void RemoveChild(UIPanel child)
+    {
+        if (child != null)
+        {
+            child.parent = null;
+        }
+
+        children.Remove(child);
+    }
+
     internal void OnMouseJustPressedInternal(MouseButton button)
     {
         if (AllowMouseInput == false || Enabled == false)

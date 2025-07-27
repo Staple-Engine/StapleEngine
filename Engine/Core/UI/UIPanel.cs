@@ -1,5 +1,4 @@
-﻿using Staple.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Staple.UI;
@@ -12,7 +11,7 @@ public abstract partial class UIPanel
     /// <summary>
     /// The UI manager that owns this panel
     /// </summary>
-    internal UIManager Manager { get; set; }
+    public UIManager Manager { get; internal set; }
 
     /// <summary>
     /// Whether this panel is visible
@@ -74,8 +73,6 @@ public abstract partial class UIPanel
     /// </summary>
     public string Tooltip { get; set; }
 
-    internal UIPanel parent;
-
     /// <summary>
     /// The parent panel
     /// </summary>
@@ -93,62 +90,10 @@ public abstract partial class UIPanel
         }
     }
 
-    internal HashSet<UIPanel> children = [];
-
     /// <summary>
     /// A list of all children this panel has
     /// </summary>
     public IEnumerable<UIPanel> Children => children;
-
-    /// <summary>
-    /// Timer for checking when to consider a click
-    /// </summary>
-    internal float clickTimer;
-
-    /// <summary>
-    /// Whether the mouse is currently pressed on this element
-    /// </summary>
-    internal bool clickPressed;
-
-    /// <summary>
-    /// The ID of this element
-    /// </summary>
-    internal string ID;
-
-    /// <summary>
-    /// Cached ninepatch vertices
-    /// </summary>
-    private SpriteRenderSystem.SpriteVertex[] ninePatchVertices = [];
-
-    /// <summary>
-    /// Cached ninepatch indices
-    /// </summary>
-    private uint[] ninePatchIndices = [];
-
-    /// <summary>
-    /// Global material used for rendering
-    /// </summary>
-    private static Material material;
-
-    /// <summary>
-    /// Cached normal sprite vertices
-    /// </summary>
-    private static readonly SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
-
-    /// <summary>
-    /// Cached normal sprite indices
-    /// </summary>
-    private static readonly ushort[] indices = [0, 1, 2, 2, 3, 0];
-
-    /// <summary>
-    /// Cached text vertices when rendering text
-    /// </summary>
-    private TextRenderer.PosTexVertex[] textVertices = [];
-
-    /// <summary>
-    /// Cached text indices when rendering text
-    /// </summary>
-    private ushort[] textIndices = [];
 
     /// <summary>
     /// Whether this blocks input
@@ -277,8 +222,10 @@ public abstract partial class UIPanel
         }
     }
 
-    public UIPanel(UIManager manager)
+    public UIPanel(UIManager manager, string ID)
     {
+        this.ID = ID;
+
         Manager = manager;
 
         Enabled = AllowMouseInput = AllowKeyboardInput = Visible = true;
@@ -311,41 +258,6 @@ public abstract partial class UIPanel
     }
 
     /// <summary>
-    /// Adds a child to this panel
-    /// </summary>
-    /// <param name="child">The child panel</param>
-    private void AddChild(UIPanel child)
-    {
-        if (child == null)
-        {
-            return;
-        }
-
-        child.parent?.RemoveChild(child);
-
-        children.Add(child);
-
-        if(child.parent != this)
-        {
-            child.parent = this;
-        }
-    }
-
-    /// <summary>
-    /// Removes a child from this panel
-    /// </summary>
-    /// <param name="child">The child to remove</param>
-    private void RemoveChild(UIPanel child)
-    {
-        if (child != null)
-        {
-            child.parent = null;
-        }
-
-        children.Remove(child);
-    }
-
-    /// <summary>
     /// Calculates the layout of this panel and its children
     /// </summary>
     protected virtual void PerformLayout()
@@ -361,6 +273,12 @@ public abstract partial class UIPanel
     /// </summary>
     /// <param name="skin">The UI Skin</param>
     public abstract void SetSkin(UISkin skin);
+
+    /// <summary>
+    /// Applies properties from a layout, if any. These properties likely have <see cref="System.Text.Json"/> types!
+    /// </summary>
+    /// <param name="properties">The layout properties</param>
+    public abstract void ApplyLayoutProperties(Dictionary<string, object> properties);
 
     /// <summary>
     /// Handles update logic to this panel

@@ -285,15 +285,50 @@ public sealed class UIManager
         }
     }
 
+    public UIPanel CreateElement(string typeName, string ID)
+    {
+        try
+        {
+            var type = TypeCache.GetType(typeName) ?? TypeCache.GetType($"Staple.UI.{typeName}");
+
+            if(type == null)
+            {
+                Log.Debug($"Failed to create UI Panel: Type {typeName}/Staple.UI.{typeName} not found");
+
+                return null;
+            }
+
+            if(type.IsAssignableTo(typeof(UIPanel)) == false)
+            {
+                Log.Debug($"Failed to create UI Panel: Type {typeName}/Staple.UI.{typeName} is not a UIPanel");
+
+                return null;
+            }
+
+            var instance = (UIPanel)Activator.CreateInstance(type, [this, ID]);
+
+            if (instance != null && AddElement(instance))
+            {
+                return instance;
+            }
+
+            return null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     public T CreateElement<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
         T>(string ID) where T: UIPanel
     {
         try
         {
-            var instance = (T)Activator.CreateInstance(typeof(T), [this]);
+            var instance = (T)Activator.CreateInstance(typeof(T), [this, ID]);
 
-            if(instance != null && AddElement(ID, instance))
+            if(instance != null && AddElement(instance))
             {
                 return instance;
             }
@@ -443,20 +478,18 @@ public sealed class UIManager
         }
     }
 
-    public bool AddElement(string ID, UIPanel element)
+    public bool AddElement(UIPanel element)
     {
         if(element == null)
         {
             return false;
         }
 
-        element.ID = ID;
-
         drawOrderCacheDirty = true;
 
-        if(elements.TryGetValue(ID, out var e))
+        if(elements.TryGetValue(element.ID, out var e))
         {
-            Log.Debug($"Failed to add element {ID}: Duplicate ID!");
+            Log.Debug($"Failed to add element {element.ID}: Duplicate ID!");
 
             return false;
         }
@@ -474,7 +507,7 @@ public sealed class UIManager
 
         element.SetSkin(skin);
 
-        elements.Add(ID, e);
+        elements.Add(element.ID, e);
 
         return true;
     }
@@ -488,6 +521,83 @@ public sealed class UIManager
 
     public bool LoadLayouts(string data, UIPanel parent = null)
     {
+        try
+        {
+            var layout = JsonSerializer.Deserialize(data, UILayoutSerializationContext.Default.UILayout);
+
+            if(layout == null)
+            {
+                return false;
+            }
+
+            void Recursive(string layoutName, Dictionary<string, UILayout.UIPanelData> panels, UIPanel parent)
+            {
+                foreach (var pair in panels)
+                {
+                    if(pair.Value == null)
+                    {
+                        continue;
+                    }
+
+                    var elementID = $"{layoutName}.{pair.Key}";
+
+                    if(elements.ContainsKey(elementID))
+                    {
+                        continue;
+                    }
+
+                    var panelData = pair.Value;
+
+                    var element = CreateElement(panelData.control ?? "", elementID);
+
+                    if(element == null)
+                    {
+                        continue;
+                    }
+
+                    element.Parent = parent;
+                    element.Visible = panelData.visible;
+
+                    if(panelData.x != null && panelData.y != null &&
+                        int.TryParse(panelData.x, out var x) && int.TryParse(panelData.y, out var y))
+                    {
+                        element.Position = new(x, y);
+                    }
+
+                    if (panelData.wide != null && panelData.wide != null &&
+                        int.TryParse(panelData.wide, out var w) && int.TryParse(panelData.tall, out var h))
+                    {
+                        element.Size = new(w, h);
+                    }
+
+                    if((panelData.properties?.Count ?? 0) > 0)
+                    {
+                        element.ApplyLayoutProperties(panelData.properties);
+                    }
+
+                    Recursive(elementID, pair.Value.children, element);
+                }
+            }
+
+            foreach (var layoutPair in layout.data)
+            {
+                if(layoutPair.Value == null)
+                {
+                    continue;
+                }
+
+                Recursive(layoutPair.Key, layoutPair.Value, parent);
+            }
+
+            return true;
+        }
+        catch(Exception e)
+        {
+            Log.Error($"Failed to load UI Layout: {e}");
+
+            return false;
+        }
+
         //TODO
         return false;
     }

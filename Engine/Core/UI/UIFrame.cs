@@ -1,6 +1,8 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UIFrame(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UIFrame(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     protected Texture backgroundTexture;
     protected Rect textureRect;
@@ -9,6 +11,10 @@ public class UIFrame(UIManager manager) : UIPanel(manager)
     {
         backgroundTexture = skin.GetTexture("Frame", "BackgroundTexture");
         textureRect = skin.GetRect("Frame", "TextureRect");
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
     }
 
     public override void Update(Vector2Int parentPosition)

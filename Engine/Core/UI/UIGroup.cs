@@ -1,8 +1,14 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UIGroup(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UIGroup(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     public override void SetSkin(UISkin skin)
+    {
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
     }
 

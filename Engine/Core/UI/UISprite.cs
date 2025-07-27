@@ -1,11 +1,18 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UISprite(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UISprite(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     public Sprite sprite;
 
     public override void SetSkin(UISkin skin)
     {
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

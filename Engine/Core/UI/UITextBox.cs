@@ -1,9 +1,10 @@
 ﻿using Staple.Internal;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.UI;
 
-public class UITextBox(UIManager manager) : UIPanel(manager)
+public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     protected Texture backgroundTexture;
     protected Rect textureRect;
@@ -38,6 +39,11 @@ public class UITextBox(UIManager manager) : UIPanel(manager)
         padding = skin.GetInt("TextBox", "Padding");
 
         SelectBoxExtraSize = new(textureRect.left + textureRect.right, textureRect.top + textureRect.bottom);
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

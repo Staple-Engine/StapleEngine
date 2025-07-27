@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Staple.UI;
 
-public class UIMenuBar(UIManager manager) : UIPanel(manager)
+public class UIMenuBar(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     public class Item
     {
@@ -32,6 +32,11 @@ public class UIMenuBar(UIManager manager) : UIPanel(manager)
         textureRect = skin.GetRect("Menu", "TextureRect");
         fontSize = Manager.DefaultFontSize;
         fontColor = Manager.DefaultFontColor;
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Staple.UI;
 
-public class UICheckBox(UIManager manager) : UIPanel(manager)
+public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Texture checkTexture;
     private Texture uncheckTexture;
@@ -50,6 +51,11 @@ public class UICheckBox(UIManager manager) : UIPanel(manager)
         fontSize = Manager.DefaultFontSize;
         fontColor = Manager.DefaultFontColor;
         labelOffset = skin.GetVector2Int("CheckBox", "LabelOffset");
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

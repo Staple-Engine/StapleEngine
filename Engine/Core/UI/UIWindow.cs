@@ -1,8 +1,9 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple.UI;
 
-public class UIWindow(UIManager manager) : UIPanel(manager)
+public class UIWindow(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     protected Texture backgroundTexture;
     protected Texture closeButtonTexture;
@@ -35,11 +36,6 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
     public int TitleOffset {  get; private set; }
 
-    protected override void OnConstructed()
-    {
-        OnClickHandler += CheckClosePressed;
-    }
-
     public override void SetSkin(UISkin skin)
     {
         backgroundTexture = skin.GetTexture("Window", "BackgroundTexture");
@@ -56,7 +52,12 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
         ChildOffset = new Vector2Int(0, TitleOffset + TitleHeight);
     }
 
-    private void CheckClosePressed(UIPanel p)
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
+    }
+
+    protected override void OnClick()
     {
         var position = Position - new Vector2Int(padding, 0) + GlobalPosition;
 

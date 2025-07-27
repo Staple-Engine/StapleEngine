@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Staple.UI;
 
-public class UIScrollBar(UIManager manager, bool vertical) : UIPanel(manager)
+public class UIScrollBar(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Rect backgroundTextureRect;
     private Rect handleTextureRect;
@@ -10,8 +11,8 @@ public class UIScrollBar(UIManager manager, bool vertical) : UIPanel(manager)
     private int minSize;
     private Texture backgroundTexture;
     private Texture handleTexture;
-    private readonly bool vertical = vertical;
 
+    public bool vertical;
     public int minValue;
     public int maxValue = 100;
     public int currentStep;
@@ -40,6 +41,11 @@ public class UIScrollBar(UIManager manager, bool vertical) : UIPanel(manager)
         minSize = skin.GetInt("Scrollbar", "MinSize");
         backgroundTexture = skin.GetTexture("Scrollbar", "BackgroundTexture");
         handleTexture = skin.GetTexture("Scrollbar", "HandleTexture");
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Staple.UI;
 
-public class UIDropdown(UIManager manager) : UIPanel(manager)
+public class UIDropdown(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Texture backgroundTexture;
     private Texture dropdownTexture;
@@ -28,6 +28,11 @@ public class UIDropdown(UIManager manager) : UIPanel(manager)
         dropdownOffset = skin.GetVector2Int("Dropdown", "Offset");
         dropdownHeight = skin.GetInt("Dropdown", "Height");
         textureRect = skin.GetRect("Dropdown", "TextureRect");
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

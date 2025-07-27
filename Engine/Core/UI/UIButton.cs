@@ -1,6 +1,8 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UIButton(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UIButton(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     protected Texture normalTexture;
     protected Texture focusedTexture;
@@ -21,6 +23,11 @@ public class UIButton(UIManager manager) : UIPanel(manager)
         labelOffset = skin.GetVector2Int("Button", "LabelOffset");
         fontColor = skin.GetColor("Button", "FontColor");
         fontSize = skin.GetInt("Button", "FontSize");
+    }
+
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
     }
 
     protected override void PerformLayout()

@@ -1,6 +1,8 @@
-﻿namespace Staple.UI;
+﻿using System.Collections.Generic;
 
-public class UIScrollableFrame(UIManager manager) : UIPanel(manager)
+namespace Staple.UI;
+
+public class UIScrollableFrame(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     public const int ScrollbarDraggableSize = 15;
 
@@ -14,13 +16,17 @@ public class UIScrollableFrame(UIManager manager) : UIPanel(manager)
     {
     }
 
+    public override void ApplyLayoutProperties(Dictionary<string, object> properties)
+    {
+        //TODO
+    }
+
     protected void MakeScrolls()
     {
-        verticalScrollbar = new UIScrollBar(Manager, true);
-        horizontalScrollbar = new UIScrollBar(Manager, false);
+        verticalScrollbar = Manager.CreateElement<UIScrollBar>($"{ID}.VerticalScroll");
+        horizontalScrollbar = Manager.CreateElement<UIScrollBar>($"{ID}.HorizontalScroll");
 
-        Manager.AddElement($"{ID}.VerticalScroll", verticalScrollbar);
-        Manager.AddElement($"{ID}.HorizontalScroll", horizontalScrollbar);
+        verticalScrollbar.vertical = true;
     }
 
     public override void Update(Vector2Int parentPosition)

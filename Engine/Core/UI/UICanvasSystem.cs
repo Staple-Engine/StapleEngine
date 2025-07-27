@@ -71,6 +71,11 @@ public class UICanvasSystem : IRenderSystem
                 {
                     CanvasSize = new(Screen.Width, Screen.Height)
                 };
+
+                if(canvas.layout?.text != null)
+                {
+                    canvas.Manager.LoadLayouts(canvas.layout.text);
+                }
             }
 
             canvas.Manager.Update();
