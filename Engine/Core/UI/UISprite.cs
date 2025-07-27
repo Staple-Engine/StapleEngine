@@ -8,7 +8,7 @@ public class UISprite(UIManager manager) : UIPanel(manager)
     {
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
     }
 
@@ -24,7 +24,7 @@ public class UISprite(UIManager manager) : UIPanel(manager)
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = ParentPosition + Position;
+        var position = GlobalPosition + Position;
 
         if(IsCulled(position))
         {

@@ -37,7 +37,7 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
     protected override void OnConstructed()
     {
-        OnClick += CheckClosePressed;
+        OnClickHandler += CheckClosePressed;
     }
 
     public override void SetSkin(UISkin skin)
@@ -58,7 +58,7 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
 
     private void CheckClosePressed(UIPanel p)
     {
-        var position = Position - new Vector2Int(padding, 0) + ParentPosition;
+        var position = Position - new Vector2Int(padding, 0) + GlobalPosition;
 
         var size = Size + new Vector2Int(padding * 2, textureRect.top);
 
@@ -111,14 +111,14 @@ public class UIWindow(UIManager manager) : UIPanel(manager)
             position += difference;
             Position += difference;
 
-            if(Manager.CurrentMenuBar != null && ParentPosition.Y + Position.Y < 30)
+            if(Manager.CurrentMenuBar != null && GlobalPosition.Y + Position.Y < 30)
             {
                 Position = new(Position.X, 30);
 
                 position.Y = 30;
             }
 
-            var x = ParentPosition.X + Position.X;
+            var x = GlobalPosition.X + Position.X;
 
             if(x < 0)
             {

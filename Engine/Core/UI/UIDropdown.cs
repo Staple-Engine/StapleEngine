@@ -30,7 +30,7 @@ public class UIDropdown(UIManager manager) : UIPanel(manager)
         textureRect = skin.GetRect("Dropdown", "TextureRect");
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         Size = new(Size.X, dropdownHeight);
     }

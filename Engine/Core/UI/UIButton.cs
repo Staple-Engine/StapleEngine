@@ -23,7 +23,7 @@ public class UIButton(UIManager manager) : UIPanel(manager)
         fontSize = skin.GetInt("Button", "FontSize");
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         var size = MeasureTextSimple(caption, new TextParameters().FontSize(fontSize));
 

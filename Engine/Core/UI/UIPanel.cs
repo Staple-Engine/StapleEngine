@@ -1,40 +1,84 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple.UI;
 
-public abstract class UIPanel
+/// <summary>
+/// Base class for UI elements
+/// </summary>
+public abstract partial class UIPanel
 {
+    /// <summary>
+    /// The UI manager that owns this panel
+    /// </summary>
     internal UIManager Manager { get; set; }
 
+    /// <summary>
+    /// Whether this panel is visible
+    /// </summary>
     public bool Visible { get; set; }
 
+    /// <summary>
+    /// Whether this panel is enabled
+    /// </summary>
     public bool Enabled { get; set; }
 
+    /// <summary>
+    /// Whether this panel allows mouse input
+    /// </summary>
     public bool AllowMouseInput { get; set; }
 
+    /// <summary>
+    /// Whether this panel allows keyboard input
+    /// </summary>
     public bool AllowKeyboardInput { get; set; }
 
+    /// <summary>
+    /// The position of this panel
+    /// </summary>
     public Vector2Int Position { get; set; }
 
+    /// <summary>
+    /// The size of this panel
+    /// </summary>
     public Vector2Int Size { get; set; }
 
+    /// <summary>
+    /// The translation for child panels
+    /// </summary>
     public Vector2Int Translation { get; set; }
 
+    /// <summary>
+    /// Extra size for this panel
+    /// </summary>
     public Vector2Int SelectBoxExtraSize { get; set; }
 
+    /// <summary>
+    /// Offset for how children should update or draw
+    /// </summary>
     public Vector2Int ChildOffset { get; protected set; }
 
+    /// <summary>
+    /// The alpha transparency of this element
+    /// </summary>
     public float Alpha { get; set; }
 
+    /// <summary>
+    /// Whether this handles tooltips
+    /// </summary>
     public bool ShouldRespondToTooltips {  get; set; }
 
+    /// <summary>
+    /// The tooltip value
+    /// </summary>
     public string Tooltip { get; set; }
 
     internal UIPanel parent;
 
+    /// <summary>
+    /// The parent panel
+    /// </summary>
     public UIPanel Parent
     {
         get => parent;
@@ -51,51 +95,130 @@ public abstract class UIPanel
 
     internal HashSet<UIPanel> children = [];
 
+    /// <summary>
+    /// A list of all children this panel has
+    /// </summary>
     public IEnumerable<UIPanel> Children => children;
 
+    /// <summary>
+    /// Timer for checking when to consider a click
+    /// </summary>
     internal float clickTimer;
 
+    /// <summary>
+    /// Whether the mouse is currently pressed on this element
+    /// </summary>
     internal bool clickPressed;
 
+    /// <summary>
+    /// The ID of this element
+    /// </summary>
     internal string ID;
 
+    /// <summary>
+    /// Cached ninepatch vertices
+    /// </summary>
     private SpriteRenderSystem.SpriteVertex[] ninePatchVertices = [];
+
+    /// <summary>
+    /// Cached ninepatch indices
+    /// </summary>
     private uint[] ninePatchIndices = [];
 
+    /// <summary>
+    /// Global material used for rendering
+    /// </summary>
     private static Material material;
 
+    /// <summary>
+    /// Cached normal sprite vertices
+    /// </summary>
     private static readonly SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
 
+    /// <summary>
+    /// Cached normal sprite indices
+    /// </summary>
     private static readonly ushort[] indices = [0, 1, 2, 2, 3, 0];
 
+    /// <summary>
+    /// Cached text vertices when rendering text
+    /// </summary>
     private TextRenderer.PosTexVertex[] textVertices = [];
+
+    /// <summary>
+    /// Cached text indices when rendering text
+    /// </summary>
     private ushort[] textIndices = [];
 
+    /// <summary>
+    /// Whether this blocks input
+    /// </summary>
     public bool BlockingInput { get; protected set; }
 
-    public Action<UIPanel> OnClick;
+    /// <summary>
+    /// Whether this panel currently responds to tooltips
+    /// </summary>
+    public bool RespondsToTooltips => ShouldRespondToTooltips && string.IsNullOrEmpty(Tooltip);
 
-    public Action<UIPanel> OnLoseFocus;
+    /// <summary>
+    /// On Click event
+    /// </summary>
+    public Action<UIPanel> OnClickHandler;
 
-    public Action<UIPanel> OnGainFocus;
+    /// <summary>
+    /// Called when this panel loses focus
+    /// </summary>
+    public Action<UIPanel> OnLoseFocusHandler;
 
-    public Action<UIPanel, char> OnCharacterEntered;
+    /// <summary>
+    /// Called when this panel gains focus
+    /// </summary>
+    public Action<UIPanel> OnGainFocusHandler;
 
-    public Action<UIPanel, Vector2Int> OnMouseMove;
+    /// <summary>
+    /// Called when a character is typed while this panel is focused
+    /// </summary>
+    public Action<UIPanel, char> OnCharacterEnteredHandler;
 
-    public Action<UIPanel, MouseButton> OnMouseJustPressed;
+    /// <summary>
+    /// Called when the mouse is moved while this panel is focused
+    /// </summary>
+    public Action<UIPanel, Vector2Int> OnMouseMoveHandler;
 
-    public Action<UIPanel, MouseButton> OnMousePressed;
+    /// <summary>
+    /// Called when a mouse button was just pressed while this panel is focused
+    /// </summary>
+    public Action<UIPanel, MouseButton> OnMouseJustPressedHandler;
 
-    public Action<UIPanel, MouseButton> OnMouseReleased;
+    /// <summary>
+    /// Called when a mouse button was pressed while this panel is focused
+    /// </summary>
+    public Action<UIPanel, MouseButton> OnMousePressedHandler;
 
-    public Action<UIPanel, KeyCode> OnKeyJustPressed;
+    /// <summary>
+    /// Called when a mouse button was just released while this panel is focused
+    /// </summary>
+    public Action<UIPanel, MouseButton> OnMouseReleasedHandler;
 
-    public Action<UIPanel, KeyCode> OnKeyPressed;
+    /// <summary>
+    /// Called when a key was just pressed while this panel is focused
+    /// </summary>
+    public Action<UIPanel, KeyCode> OnKeyJustPressedHandler;
 
-    public Action<UIPanel, KeyCode> OnKeyReleased;
+    /// <summary>
+    /// Called when a key was pressed while this panel is focused
+    /// </summary>
+    public Action<UIPanel, KeyCode> OnKeyPressedHandler;
 
-    public Vector2Int ParentPosition
+    /// <summary>
+    /// Called when a key was just released while this panel is focused
+    /// </summary>
+    public Action<UIPanel, KeyCode> OnKeyReleasedHandler;
+
+    /// <summary>
+    /// Finds the global position of this element
+    /// </summary>
+    public Vector2Int GlobalPosition
     {
         get
         {
@@ -119,6 +242,9 @@ public abstract class UIPanel
         }
     }
 
+    /// <summary>
+    /// Gets the size of all children in this panel
+    /// </summary>
     public Vector2Int ChildrenSize
     {
         get
@@ -162,10 +288,18 @@ public abstract class UIPanel
         OnConstructed();
     }
 
+    /// <summary>
+    /// Called when this element has just been constructed
+    /// </summary>
     protected virtual void OnConstructed()
     {
     }
 
+    /// <summary>
+    /// Checks if this element is not visible in the screen
+    /// </summary>
+    /// <param name="position">The element's position</param>
+    /// <returns>Whether this element should not be rendered</returns>
     protected bool IsCulled(Vector2Int position)
     {
         return Visible == false ||
@@ -176,6 +310,10 @@ public abstract class UIPanel
             position.Y > Manager.CanvasSize.Y;
     }
 
+    /// <summary>
+    /// Adds a child to this panel
+    /// </summary>
+    /// <param name="child">The child panel</param>
     private void AddChild(UIPanel child)
     {
         if (child == null)
@@ -193,6 +331,10 @@ public abstract class UIPanel
         }
     }
 
+    /// <summary>
+    /// Removes a child from this panel
+    /// </summary>
+    /// <param name="child">The child to remove</param>
     private void RemoveChild(UIPanel child)
     {
         if (child != null)
@@ -203,290 +345,10 @@ public abstract class UIPanel
         children.Remove(child);
     }
 
-    internal void OnMouseJustPressedInternal(MouseButton button)
-    {
-        if (AllowMouseInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        if (button == MouseButton.Left)
-        {
-            clickTimer = Time.time;
-            clickPressed = true;
-        }
-
-        OnMouseJustPressed?.Invoke(this, button);
-    }
-
-    internal void OnMousePressedInternal(MouseButton button)
-    {
-        if (AllowMouseInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnMousePressed?.Invoke(this, button);
-    }
-
-    internal void OnMouseReleasedInternal(MouseButton button)
-    {
-        if (AllowMouseInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        if(button == MouseButton.Left)
-        {
-            clickPressed = false;
-
-            if(Time.time - clickTimer < 0.5f)
-            {
-                OnClick?.Invoke(this);
-            }
-        }
-
-        OnMouseReleased?.Invoke(this, button);
-    }
-
-    internal void OnMouseMoveInternal(Vector2Int position)
-    {
-        if (AllowMouseInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnMouseMove?.Invoke(this, position);
-    }
-
-    internal void OnKeyJustPressedInternal(KeyCode key)
-    {
-        if(AllowKeyboardInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnKeyJustPressed?.Invoke(this, key);
-    }
-
-    internal void OnKeyPressedInternal(KeyCode key)
-    {
-        if (AllowKeyboardInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnKeyPressed?.Invoke(this, key);
-    }
-
-    internal void OnKeyReleasedInternal(KeyCode key)
-    {
-        if (AllowKeyboardInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnKeyReleased?.Invoke(this, key);
-    }
-
-    internal void OnCharacterEnteredInternal(char character)
-    {
-        if (AllowKeyboardInput == false || Enabled == false)
-        {
-            return;
-        }
-
-        OnCharacterEntered?.Invoke(this, character);
-    }
-
-    internal void OnLoseFocusInternal()
-    {
-        OnLoseFocus?.Invoke(this);
-    }
-
-    internal void OnGainFocusInternal()
-    {
-        OnGainFocus?.Invoke(this);
-    }
-
-    protected void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Color color)
-    {
-        if (texture?.Disposed ?? true)
-        {
-            return;
-        }
-
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
-
-        vertices[0].position = new(0, size.Y, 0);
-        vertices[0].uv = new(0, 1);
-        vertices[1].position = Vector3.Zero;
-        vertices[1].uv = new(0, 0);
-        vertices[2].position = new(size.X, 0, 0);
-        vertices[2].uv = new(1, 0);
-        vertices[3].position = new(size.X, size.Y, 0);
-        vertices[3].uv = new(1, 1);
-
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-        if (vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
-
-        var c = material.MainColor;
-        var t = material.MainTexture;
-
-        material.MainColor = color;
-        material.MainTexture = texture;
-
-        material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
-
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
-
-        material.MainColor = c;
-        material.MainTexture = t;
-    }
-
-    protected void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Rect rect, Color color)
-    {
-        if (texture?.Disposed ?? true)
-        {
-            return;
-        }
-
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
-
-        vertices[0].position = new(0, size.Y, 0);
-        vertices[0].uv = new(rect.left / (float)texture.Width, rect.bottom / (float)texture.Height);
-        vertices[1].position = Vector3.Zero;
-        vertices[1].uv = new(rect.left / (float)texture.Width, rect.top / (float)texture.Height);
-        vertices[2].position = new(size.X, 0, 0);
-        vertices[2].uv = new(rect.right / (float)texture.Width, rect.top / (float)texture.Height);
-        vertices[3].position = new(size.X, size.Y, 0);
-        vertices[3].uv = new(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
-
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-        if(vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
-
-        var c = material.MainColor;
-        var t = material.MainTexture;
-
-        material.MainColor = color;
-        material.MainTexture = texture;
-
-        material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
-
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
-
-        material.MainColor = c;
-        material.MainTexture = t;
-    }
-
-    protected void DrawSpriteSliced(Vector2Int position, Vector2Int size, Texture texture, Rect border, Color color)
-    {
-        if (texture?.Disposed ?? true)
-        {
-            return;
-        }
-
-        if (ninePatchVertices.Length != SpriteRenderSystem.NinePatchVertexCount)
-        {
-            Array.Resize(ref ninePatchVertices, SpriteRenderSystem.NinePatchVertexCount);
-            Array.Resize(ref ninePatchIndices, SpriteRenderSystem.NinePatchVertexCount);
-        }
-
-        var actualSize = size;
-
-        actualSize.X -= border.left + border.right;
-        actualSize.Y -= border.top + border.bottom;
-
-        SpriteRenderSystem.MakeNinePatchGeometry(ninePatchVertices.AsSpan(), ninePatchIndices.AsSpan(), texture, actualSize, border, true);
-
-        position += border.Position;
-
-        var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(ninePatchIndices);
-
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
-
-        if (vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
-
-        var c = material.MainColor;
-        var t = material.MainTexture;
-
-        material.MainColor = color;
-        material.MainTexture = texture;
-
-        material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
-
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, ninePatchVertices.Length, 0, ninePatchIndices.Length, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
-
-        material.MainColor = c;
-        material.MainTexture = t;
-    }
-
-    protected Rect MeasureTextSimple(string str, TextParameters parameters) => TextRenderer.instance.MeasureTextSimple(str, parameters);
-
-    protected void FitTextAroundLength(string str, TextParameters parameters, float lengthInPixels, out int fontSize) =>
-        TextRenderer.instance.FitTextAroundLength(str, parameters, lengthInPixels, out fontSize);
-
-    protected string[] FitTextOnRect(string str, TextParameters parameters, Vector2Int rectSize) =>
-        TextRenderer.instance.FitTextOnRect(str, parameters, rectSize);
-
-    public void RenderText(string str, TextParameters parameters)
-    {
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
-
-        parameters.Position(parameters.position + new Vector2(0, parameters.fontSize));
-
-        if (TextRenderer.instance.MakeTextGeometry(str, parameters, 1, true, ref textVertices, ref textIndices,
-            out var vertexCount, out var indexCount) == false)
-        {
-            return;
-        }
-
-        var texture = TextRenderer.instance.FontTexture(parameters);
-
-        if (texture == null)
-        {
-            return;
-        }
-
-        var vertexBuffer = VertexBuffer.CreateTransient(textVertices.AsSpan(), TextRenderer.VertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(textIndices);
-
-        material.MainTexture = texture;
-
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
-            Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit, Manager.ViewID);
-    }
-
-    public bool RespondsToTooltips() => ShouldRespondToTooltips && string.IsNullOrEmpty(Tooltip);
-
-    public virtual void PerformLayout()
+    /// <summary>
+    /// Calculates the layout of this panel and its children
+    /// </summary>
+    protected virtual void PerformLayout()
     {
         foreach (var child in children)
         {
@@ -494,9 +356,106 @@ public abstract class UIPanel
         }
     }
 
+    /// <summary>
+    /// Applies a UI Skin to this panel
+    /// </summary>
+    /// <param name="skin">The UI Skin</param>
     public abstract void SetSkin(UISkin skin);
 
+    /// <summary>
+    /// Handles update logic to this panel
+    /// </summary>
+    /// <param name="parentPosition">The position of the parent element</param>
     public abstract void Update(Vector2Int parentPosition);
 
+    /// <summary>
+    /// Draws this panel
+    /// </summary>
+    /// <param name="parentPosition">The position of the parent element</param>
     public abstract void Draw(Vector2Int parentPosition);
+
+    /// <summary>
+    /// Called when this panel is clicked
+    /// </summary>
+    protected virtual void OnClick()
+    {
+    }
+
+    /// <summary>
+    /// Called when a mouse button was just pressed on this panel
+    /// </summary>
+    /// <param name="button">The button</param>
+    protected virtual void OnMouseJustPressed(MouseButton button)
+    {
+    }
+
+    /// <summary>
+    /// Called when a mouse button was pressed on this panel
+    /// </summary>
+    /// <param name="button">The button</param>
+    protected virtual void OnMousePressed(MouseButton button)
+    {
+    }
+
+    /// <summary>
+    /// Called when a mouse button was just released on this panel
+    /// </summary>
+    /// <param name="button">The button</param>
+    protected virtual void OnMouseReleased(MouseButton button)
+    {
+    }
+
+    /// <summary>
+    /// Called when the mouse was moved while this panel is focused
+    /// </summary>
+    /// <param name="position">The mouse's current position</param>
+    protected virtual void OnMouseMove(Vector2Int position)
+    {
+    }
+
+    /// <summary>
+    /// Called when a key was just pressed on this panel
+    /// </summary>
+    /// <param name="key">The key</param>
+    protected virtual void OnKeyJustPressed(KeyCode key)
+    {
+    }
+
+    /// <summary>
+    /// Called when a key was pressed on this panel
+    /// </summary>
+    /// <param name="key">The key</param>
+    protected virtual void OnKeyPressed(KeyCode key)
+    {
+    }
+
+    /// <summary>
+    /// Called when a key was just released on this panel
+    /// </summary>
+    /// <param name="key">The key</param>
+    protected virtual void OnKeyReleased(KeyCode key)
+    {
+    }
+
+    /// <summary>
+    /// Called when a character was typed onto this panel
+    /// </summary>
+    /// <param name="character">The character</param>
+    protected virtual void OnCharacterEntered(char character)
+    {
+    }
+
+    /// <summary>
+    /// Called when this element stops being focused
+    /// </summary>
+    protected virtual void OnLoseFocus()
+    {
+    }
+
+    /// <summary>
+    /// Called when this element gains focus
+    /// </summary>
+    protected virtual void OnGainFocus()
+    {
+    }
 }

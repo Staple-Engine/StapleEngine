@@ -34,7 +34,7 @@ public class UIMenuBar(UIManager manager) : UIPanel(manager)
         fontColor = Manager.DefaultFontColor;
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         Size = new(Manager.CanvasSize.X, 25);
     }

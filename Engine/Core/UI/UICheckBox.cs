@@ -52,7 +52,7 @@ public class UICheckBox(UIManager manager) : UIPanel(manager)
         labelOffset = skin.GetVector2Int("CheckBox", "LabelOffset");
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         Size = new Vector2Int((checkTexture != null ? checkTexture.Size.X : 0) +
             MeasureTextSimple(caption, new TextParameters().FontSize(fontSize)).AbsoluteSize.X + labelOffset.X,

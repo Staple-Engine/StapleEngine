@@ -42,7 +42,7 @@ public class UIScrollBar(UIManager manager, bool vertical) : UIPanel(manager)
         handleTexture = skin.GetTexture("Scrollbar", "HandleTexture");
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
     }
 

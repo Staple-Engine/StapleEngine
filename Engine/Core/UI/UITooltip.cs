@@ -13,7 +13,7 @@ public class UITooltip(UIManager manager) : UIPanel(manager)
         fontSize = Manager.DefaultFontSize;
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         var text = source?.Tooltip ?? overrideText ?? "";
 

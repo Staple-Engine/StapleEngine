@@ -40,7 +40,7 @@ public class UITextBox(UIManager manager) : UIPanel(manager)
         SelectBoxExtraSize = new(textureRect.left + textureRect.right, textureRect.top + textureRect.bottom);
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         if(Size.Y < fontSize + 10)
         {

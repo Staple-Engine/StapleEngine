@@ -28,7 +28,7 @@ public class UIMessageBox : UIPanel
     {
     }
 
-    public override void PerformLayout()
+    protected override void PerformLayout()
     {
         base.PerformLayout();
     }

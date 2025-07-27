@@ -65,6 +65,22 @@ public class UICanvasSystem : IRenderSystem
 
         foreach(var (_, canvas) in canvases.Contents)
         {
+            if(canvas.manager.GetElement("Window") == null)
+            {
+                var window = canvas.manager.CreateElement<UIWindow>("Window");
+
+                window.Size = new Vector2Int(200, 300);
+                window.Position = new(100, 100);
+                window.title = "My Window";
+
+                var button = canvas.manager.CreateElement<UIButton>("Button");
+
+                button.Size = new Vector2Int(100, 50);
+                button.caption = "Button";
+
+                button.Parent = window;
+            }
+
             canvas.manager.Update();
             canvas.manager.Draw();
 
