@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -54,7 +55,23 @@ public class UIWindow(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(title), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                title = p.GetString();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(isClosed), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.True || p.ValueKind == JsonValueKind.False))
+            {
+                IsClosed = p.GetBoolean();
+            }
+        }
     }
 
     protected override void OnClick()
@@ -148,15 +165,15 @@ public class UIWindow(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var size = Size + new Vector2Int(padding * 2, textureRect.top);
 
-        DrawSpriteSliced(position - new Vector2Int(padding, 0), size, backgroundTexture, textureRect, Color.White);
+        DrawSpriteSliced(position - new Vector2Int(padding, 0), size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
 
-        RenderText(title, new TextParameters()
-            .TextColor(titleFontColor)
+        RenderText(Title, new TextParameters()
+            .TextColor(titleFontColor.WithAlpha(Alpha))
             .Position(position + titlePosition - new Vector2Int(padding, 0)));
 
         DrawSprite(position +
             new Vector2Int(size.X - closeButtonTexture.Width - closeButtonPosition.X - padding, closeButtonPosition.Y),
-            closeButtonTexture.Size, closeButtonTexture, Color.White);
+            closeButtonTexture.Size, closeButtonTexture, Color.White.WithAlpha(Alpha));
 
         foreach(var child in Children)
         {

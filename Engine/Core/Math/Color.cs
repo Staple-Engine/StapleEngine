@@ -79,6 +79,20 @@ public struct Color
         a = ((byte)(v & 0x000000FF)) / 255.0f;
     }
 
+    /// <summary>
+    /// Gets a copy of this color with a different alpha value
+    /// </summary>
+    /// <param name="alpha">The new alpha value</param>
+    /// <returns>The copy</returns>
+    public readonly Color WithAlpha(float alpha) => new(r, g, b, alpha);
+
+    /// <summary>
+    /// Gets a copy of this color with the alpha value multiplied with another
+    /// </summary>
+    /// <param name="alpha">The alpha value to multiply</param>
+    /// <returns>The copy</returns>
+    public readonly Color MultiplyAlpha(float alpha) => new(r, g, b, a * alpha);
+
     public static implicit operator Color32(Color v) => new((byte)(v.r * 255.0f), (byte)(v.g * 255.0f), (byte)(v.b * 255.0f), (byte)(v.a * 255.0f));
 
     public static implicit operator Vector4(Color v) => new(v.r, v.g, v.b, v.a);

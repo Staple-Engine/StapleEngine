@@ -66,11 +66,11 @@ public class UITooltip(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        DrawSprite(position, Size, Material.WhiteTexture, new Color(0.98f, 0.96f, 0.815f, 1));
+        DrawSprite(position, Size, Material.WhiteTexture, new Color(0.98f, 0.96f, 0.815f, Alpha));
 
         RenderText(text, new TextParameters()
             .FontSize(fontSize)
-            .TextColor(Color.Black)
+            .TextColor(Color.Black.WithAlpha(Alpha))
             .Position(position + (Size - actualFontSize) / 2));
     }
 }

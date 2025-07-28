@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -27,7 +28,14 @@ public class UIButton(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(caption), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                caption = p.GetString();
+            }
+        }
     }
 
     protected override void PerformLayout()
@@ -69,12 +77,12 @@ public class UIButton(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var size = MeasureTextSimple(caption, new TextParameters().FontSize(fontSize)).AbsoluteSize;
 
-        DrawSpriteSliced(position, Size, clickPressed ? focusedTexture : normalTexture, textureRect, Color.White);
+        DrawSpriteSliced(position, Size, clickPressed ? focusedTexture : normalTexture, textureRect, Color.White.WithAlpha(Alpha));
 
-        var offset = new Vector2Int((Size.X - size.X) / 2 + labelOffset.X, labelOffset.Y);
+        var offset = new Vector2Int((Size.X - size.X) / 2 + labelOffset.X, (Size.Y - size.Y) / 2 + labelOffset.Y);
 
         var textParameters = new TextParameters()
-            .TextColor(fontColor)
+            .TextColor(fontColor.WithAlpha(Alpha))
             .FontSize(fontSize)
             .Position(position + offset);
 

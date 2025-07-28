@@ -16,22 +16,22 @@ public abstract partial class UIPanel
     /// <summary>
     /// Whether this panel is visible
     /// </summary>
-    public bool Visible { get; set; }
+    public bool Visible { get; set; } = true;
 
     /// <summary>
     /// Whether this panel is enabled
     /// </summary>
-    public bool Enabled { get; set; }
+    public bool Enabled { get; set; } = true;
 
     /// <summary>
     /// Whether this panel allows mouse input
     /// </summary>
-    public bool AllowMouseInput { get; set; }
+    public bool AllowMouseInput { get; set; } = true;
 
     /// <summary>
     /// Whether this panel allows keyboard input
     /// </summary>
-    public bool AllowKeyboardInput { get; set; }
+    public bool AllowKeyboardInput { get; set; } = true;
 
     /// <summary>
     /// The position of this panel
@@ -66,7 +66,25 @@ public abstract partial class UIPanel
     /// <summary>
     /// The alpha transparency of this element
     /// </summary>
-    public float Alpha { get; set; }
+    public float LocalAlpha { get; set; } = 1;
+
+    /// <summary>
+    /// The alpha transparency of this element with the parents combined
+    /// </summary>
+    public float Alpha
+    {
+        get
+        {
+            var alpha = LocalAlpha;
+
+            if(parent != null)
+            {
+                alpha *= parent.Alpha;
+            }
+
+            return alpha;
+        }
+    }
 
     /// <summary>
     /// Whether this handles tooltips
@@ -232,10 +250,6 @@ public abstract partial class UIPanel
         this.ID = ID;
 
         Manager = manager;
-
-        Enabled = AllowMouseInput = AllowKeyboardInput = Visible = true;
-
-        Alpha = 1;
 
         OnConstructed();
     }

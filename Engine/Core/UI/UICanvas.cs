@@ -3,7 +3,7 @@
 /// <summary>
 /// Canvas component, used as a container for UI.
 /// </summary>
-public class UICanvas : IComponent
+public class UICanvas : IComponent, IComponentDisposable
 {
     /// <summary>
     /// The UI Manager for this canvas
@@ -19,4 +19,9 @@ public class UICanvas : IComponent
     /// The last used layout in this canvas
     /// </summary>
     internal TextAsset lastLayout;
+
+    public void DisposeComponent()
+    {
+        manager.UnregisterInput();
+    }
 }

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.Json;
 
 namespace Staple.UI;
 
 public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Texture selectorBackgroundTexture;
+    private int fontSize;
 
     public readonly List<string> items = [];
-
-    public int fontSize;
 
     public Action<UIList, int> OnItemMouseOver;
     public Action<UIList, int> OnItemClick;
@@ -24,6 +24,22 @@ public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
+        {
+            if (properties.TryGetValue(nameof(items), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Array)
+            {
+                items.Clear();
+
+                foreach(var element in p.EnumerateArray())
+                {
+                    if(element.ValueKind == JsonValueKind.String)
+                    {
+                        items.Add(element.GetString());
+                    }
+                }
+            }
+        }
     }
 
     protected void OnItemClickCheck(UIPanel self)
@@ -142,7 +158,7 @@ public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
             {
                 DrawSprite(aabb.min.ToVector2(),
                     new Vector2Int(Size.X, (int)aabb.size.Y) / selectorBackgroundTexture.Size,
-                    selectorBackgroundTexture, Color.White);
+                    selectorBackgroundTexture, Color.White.WithAlpha(Alpha));
             }
 
             RenderText(items[i], new TextParameters()

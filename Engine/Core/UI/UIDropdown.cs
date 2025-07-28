@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -11,12 +13,11 @@ public class UIDropdown(UIManager manager, string ID) : UIPanel(manager, ID)
     private Vector2Int dropdownOffset;
     private int dropdownHeight;
     private Rect textureRect;
+    private int fontSize;
 
-    public int SelectedIndex = -1;
+    public int selectedIndex = -1;
 
     public readonly List<string> items = [];
-
-    public int fontSize = 16;
 
     public Action<UIDropdown> OnItemClicked;
 
@@ -28,11 +29,37 @@ public class UIDropdown(UIManager manager, string ID) : UIPanel(manager, ID)
         dropdownOffset = skin.GetVector2Int("Dropdown", "Offset");
         dropdownHeight = skin.GetInt("Dropdown", "Height");
         textureRect = skin.GetRect("Dropdown", "TextureRect");
+
+        fontSize = Manager.DefaultFontSize;
     }
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(selectedIndex), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                selectedIndex = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(items), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Array)
+            {
+                items.Clear();
+
+                foreach(var element in p.EnumerateArray())
+                {
+                    if(element.ValueKind == JsonValueKind.String)
+                    {
+                        items.Add(element.GetString());
+                    }
+                }
+            }
+        }
     }
 
     protected override void PerformLayout()
@@ -42,7 +69,7 @@ public class UIDropdown(UIManager manager, string ID) : UIPanel(manager, ID)
 
     private void SetSelectedItem(UIMenu.Item item)
     {
-        SelectedIndex = item.index;
+        selectedIndex = item.index;
 
         OnItemClicked?.Invoke(this);
     }
@@ -65,15 +92,15 @@ public class UIDropdown(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        DrawSpriteSliced(position, new(Size.X, dropdownHeight), backgroundTexture, textureRect, Color.White);
+        DrawSpriteSliced(position, new(Size.X, dropdownHeight), backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
 
-        var itemName = SelectedIndex < 0 || SelectedIndex >= items.Count ? "(None)" : items[SelectedIndex];
+        var itemName = selectedIndex < 0 || selectedIndex >= items.Count ? "(None)" : items[selectedIndex];
 
         RenderText(itemName, new TextParameters()
             .FontSize(fontSize)
             .Position(position + textOffset));
 
         DrawSprite(position + new Vector2Int(Size.X - dropdownOffset.X - dropdownTexture.Size.X, dropdownOffset.Y),
-            dropdownTexture.Size, dropdownTexture, textureRect, Color.White);
+            dropdownTexture.Size, dropdownTexture, textureRect, Color.White.WithAlpha(Alpha));
     }
 }

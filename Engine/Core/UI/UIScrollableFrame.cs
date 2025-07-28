@@ -18,7 +18,6 @@ public class UIScrollableFrame(UIManager manager, string ID) : UIPanel(manager, 
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
     }
 
     protected void MakeScrolls()

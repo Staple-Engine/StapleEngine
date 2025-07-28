@@ -159,11 +159,16 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
             yOffset = (Size.Y - (Strings.Length * (fontSize + 4))) / 2;
         }
 
+        var textColor = parameters.textColor;
+        var secondaryTextColor = parameters.secondaryTextColor;
+
         for (int i = 0, textYOffset = yOffset; i < Strings.Length; i++, textYOffset += fontSize + 4)
         {
             if(alignment.HasFlag(UITextAlignment.Center))
             {
                 RenderText(Strings[i], parameters
+                    .TextColor(textColor.WithAlpha(Alpha))
+                    .SecondaryTextColor(secondaryTextColor.WithAlpha(Alpha))
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(
                         (Size.X - MeasureTextSimple(Strings[i], new TextParameters().FontSize(fontSize)).AbsoluteSize.X) / 2, textYOffset)));
@@ -171,6 +176,8 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
             else if(alignment.HasFlag(UITextAlignment.Right))
             {
                 RenderText(Strings[i], parameters
+                    .TextColor(textColor.WithAlpha(Alpha))
+                    .SecondaryTextColor(secondaryTextColor.WithAlpha(Alpha))
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(
                         Size.X - MeasureTextSimple(Strings[i], new TextParameters().FontSize(fontSize)).AbsoluteSize.X, textYOffset)));
@@ -178,10 +185,15 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
             else
             {
                 RenderText(Strings[i], parameters
+                    .TextColor(textColor.WithAlpha(Alpha))
+                    .SecondaryTextColor(secondaryTextColor.WithAlpha(Alpha))
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(0, textYOffset)));
             }
         }
+
+        parameters.textColor = textColor;
+        parameters.secondaryTextColor = secondaryTextColor;
     }
 
     public void SetText(string text, bool autoExpandHeight = false)

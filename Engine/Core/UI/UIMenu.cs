@@ -15,7 +15,7 @@ public class UIMenu(UIManager manager, string ID) : UIPanel(manager, ID)
     private int fontSize;
     private Color fontColor;
 
-    private List<Item> items = [];
+    private readonly List<Item> items = [];
 
     public class Item(string caption, object userData, int index)
     {
@@ -85,7 +85,7 @@ public class UIMenu(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var size = Size + new Vector2Int(4 + padding.X, padding.Y);
 
-        DrawSpriteSliced(position, size, backgroundTexture, textureRect, Color.White);
+        DrawSpriteSliced(position, size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
 
         var pointerPosition = Input.PointerPosition;
 
@@ -102,7 +102,8 @@ public class UIMenu(UIManager manager, string ID) : UIPanel(manager, ID)
             {
                 drewSelector = true;
 
-                DrawSprite(min, new Vector2Int(size.X, itemHeight + selectorPadding), selectorBackgroundTexture, Color.White);
+                DrawSprite(min, new Vector2Int(size.X, itemHeight + selectorPadding), selectorBackgroundTexture,
+                    Color.White.WithAlpha(Alpha));
             }
 
             var textSize = MeasureTextSimple(items[i].caption, new TextParameters()
@@ -110,7 +111,7 @@ public class UIMenu(UIManager manager, string ID) : UIPanel(manager, ID)
 
             RenderText(items[i].caption, new TextParameters()
                 .FontSize(fontSize)
-                .TextColor(fontColor)
+                .TextColor(fontColor.WithAlpha(Alpha))
                 .Position(min + new Vector2Int(0, (itemHeight - textSize.Y) / 2)));
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -55,7 +56,23 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(caption), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                caption = p.GetString();
+            }
+        }
+
+        {
+            if (properties.TryGetValue("checked", out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.True || p.ValueKind == JsonValueKind.False))
+            {
+                checkedValue = p.GetBoolean();
+            }
+        }
     }
 
     protected override void PerformLayout()
@@ -81,11 +98,11 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var t = Checked ? checkTexture : uncheckTexture;
 
-        DrawSprite(position, t.Size, t, Color.White);
+        DrawSprite(position, t.Size, t, Color.White.WithAlpha(Alpha));
 
         RenderText(caption, new TextParameters()
             .FontSize(fontSize)
-            .TextColor(fontColor)
+            .TextColor(fontColor.WithAlpha(Alpha))
             .Position(position + new Vector2Int(t.Width, 0) + labelOffset));
     }
 }

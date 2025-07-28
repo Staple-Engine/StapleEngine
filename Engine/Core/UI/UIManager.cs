@@ -80,6 +80,8 @@ public sealed class UIManager
 
     private readonly InputObserverProxy inputProxy;
 
+    private readonly int inputProxyID;
+
     public readonly ushort ViewID = UICanvasSystem.UIViewID;
 
     public Color DefaultFontColor { get; private set; }
@@ -109,7 +111,12 @@ public sealed class UIManager
 
         inputProxy = new(this);
 
-        Input.RegisterInputObserver(inputProxy);
+        inputProxyID = Input.RegisterInputObserver(inputProxy);
+    }
+
+    internal void UnregisterInput()
+    {
+        Input.UnregisterInputObserver(inputProxyID);
     }
 
     internal void RecursiveFindFocusedElement(Vector2Int parentPosition, UIPanel parent, ref UIPanel foundElement)

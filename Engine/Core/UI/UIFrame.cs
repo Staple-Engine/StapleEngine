@@ -36,7 +36,7 @@ public class UIFrame(UIManager manager, string ID) : UIPanel(manager, ID)
 
         if((backgroundTexture?.Disposed ?? true) == false)
         {
-            DrawSpriteSliced(position, Size, backgroundTexture, textureRect, Color.White);
+            DrawSpriteSliced(position, Size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
         }
 
         foreach (var child in Children)

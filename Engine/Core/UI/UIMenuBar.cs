@@ -58,7 +58,7 @@ public class UIMenuBar(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        DrawSprite(Vector2Int.Zero, Size, Material.WhiteTexture, Color.Black);
+        DrawSprite(Vector2Int.Zero, Size, Material.WhiteTexture, Color.Black.WithAlpha(Alpha));
 
         var currentPosition = Vector2Int.Zero;
 
@@ -80,12 +80,13 @@ public class UIMenuBar(UIManager manager, string ID) : UIPanel(manager, ID)
             {
                 drewSelector = true;
 
-                DrawSpriteSliced(min, new Vector2Int(textSize.X, 22 + selectorPadding), selectorBackgroundTexture, textureRect, Color.White);
+                DrawSpriteSliced(min, new Vector2Int(textSize.X, 22 + selectorPadding), selectorBackgroundTexture, textureRect,
+                    Color.White.WithAlpha(Alpha));
             }
 
             RenderText(items[i].caption, new TextParameters()
                 .FontSize(fontSize)
-                .TextColor(fontColor)
+                .TextColor(fontColor.WithAlpha(Alpha))
                 .Position(min + new Vector2Int(0, (22 - 12) / 2)));
 
             currentPosition.X += textSize.X + 5;

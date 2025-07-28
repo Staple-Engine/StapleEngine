@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -45,7 +47,53 @@ public class UIScrollBar(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(vertical), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.True || p.ValueKind == JsonValueKind.False))
+            {
+                vertical = p.GetBoolean();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(minValue), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.Number))
+            {
+                minValue = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(maxValue), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.Number))
+            {
+                maxValue = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(valueStep), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.Number))
+            {
+                valueStep = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(currentStep), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.Number))
+            {
+                if(maxValue >= 0 && valueStep >= 0)
+                {
+                    currentStep = (int)Math.Clamp(p.GetNumberValue<int>(), 0, maxValue / valueStep);
+                }
+            }
+        }
     }
 
     protected override void PerformLayout()

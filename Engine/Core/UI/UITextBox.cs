@@ -1,6 +1,6 @@
 ﻿using Staple.Internal;
 using System.Collections.Generic;
-using System.Numerics;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -13,12 +13,11 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
     protected int textOffset;
     protected int padding;
     protected string fontName;
+    protected int fontSize;
 
     protected Vector2Int lastSize;
 
-    public int fontSize = 12;
-
-    public bool IsPassword;
+    public bool isPassword;
 
     public string Text
     {
@@ -37,13 +36,30 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
         backgroundTexture = skin.GetTexture("TextBox", "BackgroundTexture");
         textureRect = skin.GetRect("TextBox", "TextureRect");
         padding = skin.GetInt("TextBox", "Padding");
+        fontSize = Manager.DefaultFontSize;
 
         SelectBoxExtraSize = new(textureRect.left + textureRect.right, textureRect.top + textureRect.bottom);
     }
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(text), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                text = p.GetString();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(isPassword), out var t) &&
+                t is JsonElement p &&
+                (p.ValueKind == JsonValueKind.True || p.ValueKind == JsonValueKind.False))
+            {
+                isPassword = p.GetBoolean();
+            }
+        }
     }
 
     protected override void PerformLayout()
@@ -70,11 +86,11 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        DrawSpriteSliced(position, size, backgroundTexture, textureRect, Color.White);
+        DrawSpriteSliced(position, size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
 
         var text = Text;
 
-        if(IsPassword)
+        if(isPassword)
         {
             text = new string('*', text?.Length ?? 0);
         }
@@ -101,7 +117,7 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var textParameters = new TextParameters()
             .FontSize(fontSize)
-            .TextColor(new Color(0, 0, 0, 1))
+            .TextColor(new Color(0, 0, 0, Alpha))
             .Position(position + offset);
 
         RenderText(text.Substring(textOffset, count), textParameters);
@@ -124,9 +140,7 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
                 x = cursorSize.X;
             }
 
-            MeshRenderSystem.RenderMesh(Mesh.Quad, new Vector3((Vector2)position + new Vector2(x + padding, 0), 0),
-                Quaternion.Identity, new Vector3(1, fontSize, 1), SpriteRenderSystem.DefaultMaterial.Value, MaterialLighting.Unlit,
-                Manager.ViewID);
+            DrawSprite(position + new Vector2Int(x + padding, 0), new(1, fontSize), Material.WhiteTexture, Color.Black.WithAlpha(Alpha));
         }
     }
 }
