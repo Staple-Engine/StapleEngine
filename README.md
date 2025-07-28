@@ -19,7 +19,7 @@ Early state, usable for small demos
 * Graphics API using BGFX as the base
 * Entities inspired by both modern ECS and Unity
 * Input (Keyboard, Mouse, Touch, Gamepad) and Input Actions
-* Meshes, including some imported formats and skeletal animation
+* Meshes, including some imported formats like FBX, GLTF/GLB, OBJ, skeletal animation/skinning, instancing, and simplification
 * Physics (3D: Jolt Physics)
 * Audio (MP3, WAV, OGG) through OpenAL
 * Baking pipeline (Baker) that processes game assets into engine-ready formats
@@ -28,6 +28,8 @@ Early state, usable for small demos
 * Package manager to manage builtin features, local and git packages
 * Unity-style Assembly Definition system for defining specific projects per parts of the project
 * Unity-style Plugin system for defining native dependencies for specific platforms
+* Shaders and Compute Shaders with variants and toggleable variants based on set properties
+* Culling Volumes for more performant culling of parts of the world or characters
 
 # Installation
 
