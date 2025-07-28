@@ -167,7 +167,7 @@ public class UIWindow(UIManager manager, string ID) : UIPanel(manager, ID)
 
         DrawSpriteSliced(position - new Vector2Int(padding, 0), size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
 
-        RenderText(Title, new TextParameters()
+        RenderText(title, new TextParameters()
             .TextColor(titleFontColor.WithAlpha(Alpha))
             .Position(position + titlePosition - new Vector2Int(padding, 0)));
 
