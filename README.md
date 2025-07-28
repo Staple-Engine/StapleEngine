@@ -4,6 +4,8 @@
 [![GitHub issues](https://img.shields.io/github/issues/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/issues) 
 [![GitHub stars](https://img.shields.io/github/stars/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/stargazers) 
 
+![Screenshot of Staple Editor in use](Screenshots/MainSample.png)
+
 .NET Game Engine "stapled" together
 
 # Status
