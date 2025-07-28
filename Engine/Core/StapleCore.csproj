@@ -230,6 +230,7 @@
 		<Compile Include="UI\IUIDroppable.cs" />
 		<Compile Include="UI\UICheckBox.cs" />
 		<Compile Include="UI\UIDropdown.cs" />
+		<Compile Include="UI\UIFPSCounter.cs" />
 		<Compile Include="UI\UIFrame.cs" />
 		<Compile Include="UI\UIGroup.cs" />
 		<Compile Include="UI\UILayout.cs" />

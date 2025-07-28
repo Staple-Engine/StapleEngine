@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Staple.Internal;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Staple.UI;
 
@@ -10,7 +12,14 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public UITextAlignment alignment = UITextAlignment.Left;
 
-    public string Text { get; private set; } = "";
+    private string text;
+
+    public string Text
+    {
+        get => text;
+
+        set => SetText(value);
+    }
 
     public string[] Strings { get; private set; } = [];
 
@@ -36,6 +45,13 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
         }
     }
 
+    protected override void OnConstructed()
+    {
+        base.OnConstructed();
+
+        DefaultSize = new(200, 16);
+    }
+
     public override void SetSkin(UISkin skin)
     {
         fontSize = Manager.DefaultFontSize;
@@ -46,7 +62,81 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
-        //TODO
+        {
+            if (properties.TryGetValue(nameof(TextParameters.fontSize), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                fontSize = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.textColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.textColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.secondaryTextColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.secondaryTextColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.borderColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.borderColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.borderSize), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                parameters.borderSize = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.font), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                var guid = AssetDatabase.GetAssetGuid(p.GetString());
+
+                guid ??= p.GetString();
+
+                parameters.font = guid;
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.rotation), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                parameters.rotation = p.GetNumberValue<float>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(text), out var t) &&
+                t is JsonElement str &&
+                str.ValueKind == JsonValueKind.String)
+            {
+                Text = str.GetString();
+            }
+        }
     }
 
     public override void Update(Vector2Int parentPosition)
@@ -73,21 +163,21 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
         {
             if(alignment.HasFlag(UITextAlignment.Center))
             {
-                RenderText(Strings[i], new TextParameters()
+                RenderText(Strings[i], parameters
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(
                         (Size.X - MeasureTextSimple(Strings[i], new TextParameters().FontSize(fontSize)).AbsoluteSize.X) / 2, textYOffset)));
             }
             else if(alignment.HasFlag(UITextAlignment.Right))
             {
-                RenderText(Strings[i], new TextParameters()
+                RenderText(Strings[i], parameters
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(
                         Size.X - MeasureTextSimple(Strings[i], new TextParameters().FontSize(fontSize)).AbsoluteSize.X, textYOffset)));
             }
             else
             {
-                RenderText(Strings[i], new TextParameters()
+                RenderText(Strings[i], parameters
                     .FontSize(fontSize)
                     .Position(position + new Vector2Int(0, textYOffset)));
             }
@@ -96,7 +186,8 @@ public class UIText(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public void SetText(string text, bool autoExpandHeight = false)
     {
-        Text = text;
+        this.text = text;
+
         Strings = FitTextOnRect(text, new TextParameters()
             .FontSize(fontSize), autoExpandHeight ? new(Size.X, 999999) : Size);
 

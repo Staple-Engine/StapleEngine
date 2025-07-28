@@ -558,17 +558,39 @@ public sealed class UIManager
                     element.Parent = parent;
                     element.Visible = panelData.visible;
 
-                    if(panelData.x != null && panelData.y != null &&
-                        int.TryParse(panelData.x, out var x) && int.TryParse(panelData.y, out var y))
+                    var position = Vector2Int.Zero;
+                    var size = element.DefaultSize;
+
                     {
-                        element.Position = new(x, y);
+                        if (panelData.x != null && int.TryParse(panelData.x, out var v))
+                        {
+                            position.X = v;
+                        }
                     }
 
-                    if (panelData.wide != null && panelData.wide != null &&
-                        int.TryParse(panelData.wide, out var w) && int.TryParse(panelData.tall, out var h))
                     {
-                        element.Size = new(w, h);
+                        if (panelData.y != null && int.TryParse(panelData.y, out var v))
+                        {
+                            position.Y = v;
+                        }
                     }
+
+                    {
+                        if (panelData.wide != null && int.TryParse(panelData.wide, out var v))
+                        {
+                            size.X = v;
+                        }
+                    }
+
+                    {
+                        if (panelData.tall != null && int.TryParse(panelData.tall, out var v))
+                        {
+                            size.Y = v;
+                        }
+                    }
+
+                    element.Position = position;
+                    element.Size = size;
 
                     if((panelData.properties?.Count ?? 0) > 0)
                     {

@@ -329,7 +329,7 @@ public class TextRenderer
                 if (ignoreNewline == false)
                 {
                     //Remove extra space
-                    if (first == false)
+                    if (first == false && currentText.Length > 0)
                     {
                         var s = currentText.ToString().Substring(0, currentText.Length - 1);
 

@@ -65,23 +65,24 @@ public class UICanvasSystem : IRenderSystem
 
         foreach(var (_, canvas) in canvases.Contents)
         {
-            if(canvas.Manager == null)
-            {
-                canvas.Manager = new()
-                {
-                    CanvasSize = new(Screen.Width, Screen.Height)
-                };
+            canvas.manager.CanvasSize = new(Screen.Width, Screen.Height);
 
-                if(canvas.layout?.text != null)
+            if (canvas.layout != canvas.lastLayout)
+            {
+                canvas.manager.Clear();
+
+                canvas.lastLayout = canvas.layout;
+
+                if (canvas.layout?.text != null)
                 {
-                    canvas.Manager.LoadLayouts(canvas.layout.text);
+                    canvas.manager.LoadLayouts(canvas.layout.text);
                 }
             }
 
-            canvas.Manager.Update();
-            canvas.Manager.Draw();
+            canvas.manager.Update();
+            canvas.manager.Draw();
 
-            IsPointerOverUI |= canvas.Manager.MouseOverElement != null;
+            IsPointerOverUI |= canvas.manager.MouseOverElement != null;
         }
     }
 }

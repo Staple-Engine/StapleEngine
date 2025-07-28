@@ -379,7 +379,9 @@
     "components": [
       {
         "type": "Staple.UI.UICanvas",
-        "data": {}
+        "data": {
+          "layout": "2c39c7ad-d2d6-44fd-bcdd-d4a4a5517392"
+        }
       }
     ],
     "layer": "Default",

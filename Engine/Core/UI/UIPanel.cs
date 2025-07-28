@@ -44,6 +44,11 @@ public abstract partial class UIPanel
     public Vector2Int Size { get; set; }
 
     /// <summary>
+    /// The default size of this panel, used for layouts
+    /// </summary>
+    public Vector2Int DefaultSize { get; set; }
+
+    /// <summary>
     /// The translation for child panels
     /// </summary>
     public Vector2Int Translation { get; set; }
