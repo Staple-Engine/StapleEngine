@@ -32,25 +32,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core\Staple.Core.csproj" />
 	<ProjectReference Include="..\StapleJoltPhysics\Staple.JoltPhysics.csproj" />
 	<ProjectReference Include="..\StapleOpenALAudio\Staple.OpenALAudio.csproj" />
 	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.4" />
-  </ItemGroup>
-  <ItemGroup>
-	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net9.0\StapleCore.dll</HintPath>
-	</Reference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

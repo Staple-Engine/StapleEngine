@@ -18,18 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core\Staple.Core.csproj" />
+    <ProjectReference Include="..\Tooling\Staple.Tooling.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
   <ItemGroup>
 	<Reference Include="Newtonsoft.Json">
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
-	</Reference>
-	<Reference Include="StapleCore">
-		<HintPath>..\Core\bin\Debug\net9.0\Staple.Core.dll</HintPath>
-	</Reference>
-	<Reference Include="StapleTooling">
-		<HintPath>..\Tooling\bin\Debug\net9.0\Staple.Tooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
 
