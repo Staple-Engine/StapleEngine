@@ -10,6 +10,8 @@ using NfdSharp;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using Staple.Jobs;
+using Staple.ProjectManagement;
+using Staple.PackageManagement;
 
 namespace Staple.Editor;
 
@@ -117,14 +119,16 @@ internal partial class StapleEditor
 
         BasePath =
             ThumbnailCache.basePath =
-            csProjManager.basePath =
+            ProjectManager.Instance.basePath =
             projectBrowser.basePath =
             PackageManager.instance.basePath =
             Path.GetFullPath(path);
 
-        PackageManager.instance.Refresh();
+        PackageManager.instance.gitPath = editorSettings.gitExternalPath;
 
-        csProjManager.stapleBasePath = StapleBasePath;
+        PackageManager.instance.Refresh(ResetAssetPaths);
+
+        ProjectManager.Instance.stapleBasePath = StapleBasePath;
 
         Log.Info($"Project Path: {BasePath}");
 
@@ -305,7 +309,7 @@ internal partial class StapleEditor
 
                 SaveLastProjects();
 
-                csProjManager.CollectGameScriptModifyStates();
+                ProjectManager.Instance.CollectGameScriptModifyStates();
 
                 UpdateWindowTitle();
             });

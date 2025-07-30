@@ -6,6 +6,8 @@ using Staple.Internal;
 using Staple.Jobs;
 using Staple.JoltPhysics;
 using Staple.OpenALAudio;
+using Staple.PackageManagement;
+using Staple.ProjectManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +19,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
 
-[assembly: InternalsVisibleTo("StapleEditorApp")]
+[assembly: InternalsVisibleTo("Staple.Editor.App")]
 
 namespace Staple.Editor;
 
@@ -241,7 +243,7 @@ internal partial class StapleEditor
 
     private readonly AppSettings editorAppSettings = AppSettings.Default;
 
-    private AppSettings projectAppSettings;
+    internal AppSettings projectAppSettings;
 
     private readonly ProjectBrowser projectBrowser = new();
 
@@ -298,8 +300,6 @@ internal partial class StapleEditor
     internal bool buildPlayerDebugRedists = false;
 
     internal bool buildPlayerSingleFile = true;
-
-    private readonly CSProjManager csProjManager = new();
 
     private bool needsGameRecompile = false;
 
@@ -362,7 +362,7 @@ internal partial class StapleEditor
 
         LoadEditorSettings();
 
-        PlayerBackendManager.Instance.Initialize();
+        PlayerBackendManager.Instance.Initialize(Path.Combine(EditorUtils.EditorPath.Value, "PlayerBackends"));
 
         Log.Info($"Current Platform: {Platform.CurrentPlatform.Value}");
 
@@ -928,7 +928,7 @@ internal partial class StapleEditor
 
             if(hadFocus != hasFocus && hasFocus)
             {
-                if (csProjManager.NeedsGameRecompile() && RefreshingAssets == false)
+                if (ProjectManager.Instance.NeedsGameRecompile() && RefreshingAssets == false)
                 {
                     needsGameRecompile = true;
                 }

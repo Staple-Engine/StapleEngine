@@ -1,4 +1,5 @@
 ﻿using NfdSharp;
+using Staple.PackageManagement;
 using System.Linq;
 using System.Numerics;
 
@@ -38,7 +39,9 @@ internal class PackageManagerWindow : EditorWindow
                 {
                     if(Nfd.OpenDialog("json", "", out var path) == Nfd.NfdResult.NFD_OKAY)
                     {
-                        PackageManager.instance.InstallLocalPackage(path);
+                        PackageManager.instance.InstallLocalPackage(path,
+                            () => EditorUtils.RefreshAssets(true, null), 
+                            () => StapleEditor.instance.ResetAssetPaths());
                     }
                 });
 
@@ -213,7 +216,9 @@ internal class PackageManagerWindow : EditorWindow
                 {
                     EditorGUI.Button("Remove", "PackageManager.Description.Remove", () =>
                     {
-                        PackageManager.instance.RemovePackage(currentPackage.name);
+                        PackageManager.instance.RemovePackage(currentPackage.name,
+                            () => EditorUtils.RefreshAssets(true, null),
+                            () => StapleEditor.instance.ResetAssetPaths());
                     });
                 });
             }
@@ -221,7 +226,9 @@ internal class PackageManagerWindow : EditorWindow
             {
                 EditorGUI.Button("Install", "PackageManager.Description.Install", () =>
                 {
-                    PackageManager.instance.AddPackage(currentPackage.name, currentPackage.version);
+                    PackageManager.instance.AddPackage(currentPackage.name, currentPackage.version,
+                            () => EditorUtils.RefreshAssets(true, null),
+                            () => StapleEditor.instance.ResetAssetPaths());
                 });
             }
 
@@ -299,7 +306,9 @@ internal class PackageManagerWindow : EditorWindow
 
             EditorGUI.Button("Clone", "PackageManager.AddGitPopup.Clone", () =>
             {
-                PackageManager.instance.InstallGitPackage(gitCloneURL);
+                PackageManager.instance.InstallGitPackage(gitCloneURL,
+                    () => EditorUtils.RefreshAssets(true, null),
+                    () => StapleEditor.instance.ResetAssetPaths());
             });
         });
     }

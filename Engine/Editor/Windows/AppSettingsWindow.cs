@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Staple.Internal;
 using System.Runtime.InteropServices;
+using Staple.ProjectManagement;
 
 namespace Staple.Editor;
 

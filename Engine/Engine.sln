@@ -8,12 +8,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "Player\Player.csp
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCore", "Core\StapleCore.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Core", "Core\Staple.Core.csproj", "{97D22183-838A-63D0-EC91-3C2CD868FEC0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CAAD8B33-701A-4505-8451-C3F5B76DC596} = {CAAD8B33-701A-4505-8451-C3F5B76DC596}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\StapleEditor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Editor", "Editor\Staple.Editor.csproj", "{3577BFD6-21DA-4E7B-CA5F-8731B6A11AFE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{947A5870-7477-4B24-8B21-E03CFCEB8708} = {947A5870-7477-4B24-8B21-E03CFCEB8708}
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
@@ -21,40 +21,44 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditor", "Editor\Stap
 		{B1931566-065A-4ED4-A87D-CF6F9CE3413A} = {B1931566-065A-4ED4-A87D-CF6F9CE3413A}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleEditorApp", "EditorApp\StapleEditorApp.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Editor.App", "EditorApp\Staple.Editor.App.csproj", "{764ABE13-E2D5-2BD8-EBE6-AECC57F187D8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleCoreTests", "StapleCoreTests\StapleCoreTests.csproj", "{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Core.Tests", "StapleCoreTests\Staple.Core.Tests.csproj", "{DD58EFAB-E5DF-429A-A67A-D0FF6428DCD1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeRegistration", "TypeRegistration\TypeRegistration.csproj", "{CAAD8B33-701A-4505-8451-C3F5B76DC596}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleTooling", "Tooling\StapleTooling.csproj", "{947A5870-7477-4B24-8B21-E03CFCEB8708}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Tooling", "Tooling\Staple.Tooling.csproj", "{947A5870-7477-4B24-8B21-E03CFCEB8708}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleToolingTests", "StapleToolingTests\StapleToolingTests.csproj", "{98EB2BBC-5782-463F-989F-6473845728E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.Tooling.Tests", "StapleToolingTests\Staple.Tooling.Tests.csproj", "{98EB2BBC-5782-463F-989F-6473845728E8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{947A5870-7477-4B24-8B21-E03CFCEB8708} = {947A5870-7477-4B24-8B21-E03CFCEB8708}
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleJoltPhysics", "StapleJoltPhysics\StapleJoltPhysics.csproj", "{A2579EE3-962F-4838-88E8-D5363ECECAF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.JoltPhysics", "StapleJoltPhysics\Staple.JoltPhysics.csproj", "{A2579EE3-962F-4838-88E8-D5363ECECAF7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StapleOpenALAudio", "StapleOpenALAudio\StapleOpenALAudio.csproj", "{B1931566-065A-4ED4-A87D-CF6F9CE3413A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Staple.OpenALAudio", "StapleOpenALAudio\Staple.OpenALAudio.csproj", "{B1931566-065A-4ED4-A87D-CF6F9CE3413A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StapleNetworking", "StapleNetworking\StapleNetworking.csproj", "{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.Networking", "StapleNetworking\Staple.Networking.csproj", "{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{97D22183-838A-63D0-EC91-3C2CD868FEC0} = {97D22183-838A-63D0-EC91-3C2CD868FEC0}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.ProjectManagerment", "Staple.ProjectManagerment\Staple.ProjectManagerment.csproj", "{EA6D9BBB-212D-48BA-81EC-BA06EF289049}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.PackageManagement", "Staple.PackageManagement\Staple.PackageManagement.csproj", "{AAFC41F3-8A02-4CB1-AACD-F6E07328C43F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,6 +110,14 @@ Global
 		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB3DE773-FDBC-4760-8967-1B5B052F9B1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA6D9BBB-212D-48BA-81EC-BA06EF289049}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA6D9BBB-212D-48BA-81EC-BA06EF289049}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA6D9BBB-212D-48BA-81EC-BA06EF289049}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA6D9BBB-212D-48BA-81EC-BA06EF289049}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAFC41F3-8A02-4CB1-AACD-F6E07328C43F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAFC41F3-8A02-4CB1-AACD-F6E07328C43F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAFC41F3-8A02-4CB1-AACD-F6E07328C43F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAFC41F3-8A02-4CB1-AACD-F6E07328C43F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

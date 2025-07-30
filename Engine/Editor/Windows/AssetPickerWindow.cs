@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.ProjectManagement;
 
 namespace Staple.Editor;
 

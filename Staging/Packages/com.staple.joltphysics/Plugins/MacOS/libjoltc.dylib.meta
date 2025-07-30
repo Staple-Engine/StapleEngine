@@ -5,5 +5,5 @@
   "platforms": [
     "MacOSX"
   ],
-  "typeName": "Staple.Editor.PluginAsset"
+  "typeName": "Staple.ProjectManagement.PluginAsset"
 }

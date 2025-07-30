@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.ProjectManagement;
+using System;
 using System.IO;
 
 namespace Staple.Editor;
@@ -24,15 +25,28 @@ internal partial class StapleEditor
 
         UnloadGame();
 
-        csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, false);
-        csProjManager.GenerateGameCSProj(backend, projectAppSettings, platform, true);
+        ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, false);
+        ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, true);
 
         void Build()
         {
-            BuildGame(() =>
+            if (gameLoadDisabled)
             {
                 onFinish();
-            });
+
+                return;
+            }
+
+            buildingGame = true;
+
+            var handle = ProjectManager.Instance.BuildGame(() =>
+            {
+                buildingGame = false;
+
+                onFinish();
+            }, SetBackgroundProgress);
+
+            StartBackgroundTask(handle);
         }
 
         if (checkBuild)
@@ -50,7 +64,7 @@ internal partial class StapleEditor
 
                 var assetsDirectory = Path.Combine(BasePath, "Assets");
 
-                var lastChange = csProjManager.GetLastFileChange(assetsDirectory);
+                var lastChange = ProjectManager.Instance.GetLastFileChange(assetsDirectory);
 
                 var editorPath = Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll");
 

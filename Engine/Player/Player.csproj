@@ -32,8 +32,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<ProjectReference Include="..\StapleJoltPhysics\StapleJoltPhysics.csproj" />
-	<ProjectReference Include="..\StapleOpenALAudio\StapleOpenALAudio.csproj" />
+	<ProjectReference Include="..\StapleJoltPhysics\Staple.JoltPhysics.csproj" />
+	<ProjectReference Include="..\StapleOpenALAudio\Staple.OpenALAudio.csproj" />
 	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

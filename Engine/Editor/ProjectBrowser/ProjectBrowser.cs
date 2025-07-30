@@ -1,6 +1,7 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.ProjectManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -438,7 +439,7 @@ internal class ProjectBrowser
                     {
                         if(StapleEditor.instance.RefreshingAssets)
                         {
-                            return texture;
+                            return GetResourceIcon(ResourceTypeForExtension(node.extension));
                         }
 
                         if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(node.path))
@@ -457,7 +458,7 @@ internal class ProjectBrowser
                     {
                         if (StapleEditor.instance.RefreshingAssets)
                         {
-                            return texture;
+                            return GetEditorResource("FolderIcon");
                         }
 
                         if (texture?.Disposed ?? true || ThumbnailCache.HasCachedThumbnail(node.path))

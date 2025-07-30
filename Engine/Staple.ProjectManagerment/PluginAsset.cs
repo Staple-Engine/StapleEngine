@@ -1,0 +1,92 @@
+﻿using Staple.Internal;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Staple.ProjectManagement;
+
+/// <summary>
+/// Configuration for how to handle a plugin
+/// </summary>
+[Serializable]
+public class PluginAsset : IGuidAsset
+{
+    private readonly GuidHasher hasher = new();
+
+    [HideInInspector]
+    public string guid;
+
+    public bool autoReferenced = true;
+
+    public bool anyPlatform = true;
+    public List<AppPlatform> platforms = [];
+
+    [HideInInspector]
+    public string typeName = typeof(PluginAsset).FullName;
+
+    public static bool IsAssembly(string path)
+    {
+        try
+        {
+            AssemblyName.GetAssemblyName(path);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public GuidHasher Guid => hasher;
+
+    public static object Create(string guid)
+    {
+        var path = AssetDatabase.GetAssetPath(guid);
+
+        if(path == null)
+        {
+            return null;
+        }
+
+        var text = File.ReadAllText(StorageUtils.GetRootPath(ProjectManager.Instance.basePath, $"{path}.meta"));
+
+        if (text == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var outValue = JsonSerializer.Deserialize(text, PluginAssetMetadataSerializationContext.Default.PluginAsset);
+
+            if (outValue != null)
+            {
+                outValue.guid = guid;
+                outValue.Guid.Guid = guid;
+            }
+
+            return outValue;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[PluginAsset] Failed to deserialize: {e}");
+        }
+
+        return null;
+    }
+}
+
+[JsonSourceGenerationOptions(IncludeFields = true, WriteIndented = true)]
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(List<string>))]
+[JsonSerializable(typeof(AppPlatform))]
+[JsonSerializable(typeof(List<AppPlatform>))]
+[JsonSerializable(typeof(bool))]
+[JsonSerializable(typeof(PluginAsset))]
+internal partial class PluginAssetMetadataSerializationContext : JsonSerializerContext
+{
+}

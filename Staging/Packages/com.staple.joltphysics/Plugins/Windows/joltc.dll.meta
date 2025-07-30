@@ -5,5 +5,5 @@
   "platforms": [
     "Windows"
   ],
-  "typeName": "Staple.Editor.PluginAsset"
+  "typeName": "Staple.ProjectManagement.PluginAsset"
 }

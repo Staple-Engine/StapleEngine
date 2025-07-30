@@ -1,4 +1,5 @@
 ﻿using NfdSharp;
+using Staple.PackageManagement;
 
 namespace Staple.Editor;
 
@@ -45,6 +46,8 @@ internal class EditorSettingsWindow : EditorWindow
         {
             editorSettings.gitExternalPath = gitExternalPath;
             editorSettings.autoRecompile = autoRecompile;
+
+            PackageManager.instance.gitPath = editorSettings.gitExternalPath;
 
             StapleEditor.instance.SaveEditorSettings();
         });

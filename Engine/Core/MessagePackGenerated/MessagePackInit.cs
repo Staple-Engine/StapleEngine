@@ -1,6 +1,5 @@
 ﻿using MessagePack;
 using MessagePack.Resolvers;
-using Staple.Internal;
 
 namespace Staple;
 

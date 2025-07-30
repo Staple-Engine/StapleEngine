@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using NfdSharp;
 using Staple.Jobs;
+using Staple.ProjectManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -172,8 +173,12 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
-                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile);
+                    ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
+                        StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                        StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile,
+                        StapleEditor.instance.SetBackgroundProgress,
+                        (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
+                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish));
                 })));
             }
             else
@@ -197,8 +202,12 @@ internal class BuildWindow : EditorWindow
 
                 StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
                 {
-                    StapleEditor.instance.BuildPlayer(backend, path, StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile);
+                    ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
+                        StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                        StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile,
+                        StapleEditor.instance.SetBackgroundProgress,
+                        (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
+                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish));
                 })));
             }
             else

@@ -1,7 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("StapleEditor")]
+[assembly: InternalsVisibleTo("Staple.Editor")]
+[assembly: InternalsVisibleTo("Staple.PackageManagement")]
+[assembly: InternalsVisibleTo("Staple.ProjectManagerment")]
 [assembly: InternalsVisibleTo("Baker")]
 [assembly: InternalsVisibleTo("Packer")]
-[assembly: InternalsVisibleTo("StapleCoreTests")]
+[assembly: InternalsVisibleTo("Staple.Core.Tests")]
 [assembly: InternalsVisibleTo("Player")]

@@ -3,6 +3,7 @@ using Hexa.NET.ImGuizmo;
 using MessagePack;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.ProjectManagement;
 using System;
 using System.IO;
 using System.Linq;
@@ -381,8 +382,8 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    csProjManager.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true);
-                    csProjManager.OpenGameSolution();
+                    ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true);
+                    ProjectManager.Instance.OpenGameSolution();
                 });
             });
 

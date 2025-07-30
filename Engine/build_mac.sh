@@ -3,9 +3,9 @@
 dotnet build Engine.sln -c Debug
 dotnet build Engine.sln -c Release
 
-dotnet build EditorApp/StapleEditorApp.csproj -r osx-arm64 -c Release --self-contained
+dotnet build EditorApp/Staple.Editor.App.csproj -r osx-arm64 -c Release --self-contained
 
-../Dependencies/build/dotnet/bin/Release/net9.0/CrossCopy "EditorApp/bin/Release/net9.0/osx-arm64/StapleEditorApp*" "../Staging"
+../Dependencies/build/dotnet/bin/Release/net9.0/CrossCopy "EditorApp/bin/Release/net9.0/osx-arm64/Staple.Editor.App*" "../Staging"
 ../Dependencies/build/dotnet/bin/Release/net9.0/CrossCopy "EditorApp/bin/Release/net9.0/osx-arm64/*.dll" "../Staging"
 ../Dependencies/build/dotnet/bin/Release/net9.0/CrossCopy "EditorApp/bin/Release/net9.0/osx-arm64/*.[DLL]" "../Staging"
 ../Dependencies/build/dotnet/bin/Release/net9.0/CrossCopy "../Dependencies/build/native/bin/Release/*.[DLL]" "../Staging"
