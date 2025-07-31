@@ -869,7 +869,7 @@ public static class EditorGUI
                             }
                         };
 
-                    ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
+                    ProjectBrowser.dropType = ProjectBrowserDropType.AssetObjectPicker;
 
                     p.action(p.index, p.item);
 

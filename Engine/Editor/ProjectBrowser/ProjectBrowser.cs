@@ -1189,20 +1189,13 @@ internal class ProjectBrowser
                                         return;
                                     }
 
-                                    if(StapleEditor.instance.dropTargetEntity != default)
-                                    {
-                                        var targetEntity = StapleEditor.instance.dropTargetEntity;
+                                    var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                        Entity.Instantiate(prefab, targetEntity.GetComponent<Transform>());
+                                    Entity.Instantiate(prefab, targetEntity.GetComponent<Transform>());
 
-                                        StapleEditor.instance.dropTargetEntity = default;
-                                        StapleEditor.instance.dropTargetObjectPickerAction = null;
-                                        StapleEditor.instance.dropTargetObjectPickerType = null;
-                                    }
-                                    else
-                                    {
-                                        SetObjectPicker(prefab);
-                                    }
+                                    StapleEditor.instance.dropTargetEntity = default;
+                                    StapleEditor.instance.dropTargetObjectPickerAction = null;
+                                    StapleEditor.instance.dropTargetObjectPickerType = null;
                                 }
 
                                 break;
@@ -1217,20 +1210,50 @@ internal class ProjectBrowser
                                         return;
                                     }
 
-                                    if (StapleEditor.instance.dropTargetEntity != default)
-                                    {
-                                        var targetEntity = StapleEditor.instance.dropTargetEntity;
+                                    var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                        Mesh.InstanceMesh(item.name, asset, targetEntity);
+                                    Mesh.InstanceMesh(item.name, asset, targetEntity);
 
-                                        StapleEditor.instance.dropTargetEntity = default;
-                                        StapleEditor.instance.dropTargetObjectPickerAction = null;
-                                        StapleEditor.instance.dropTargetObjectPickerType = null;
-                                    }
-                                    else
+                                    StapleEditor.instance.dropTargetEntity = default;
+                                    StapleEditor.instance.dropTargetObjectPickerAction = null;
+                                    StapleEditor.instance.dropTargetObjectPickerType = null;
+                                }
+
+                                break;
+                        }
+
+                        break;
+
+                    case ProjectBrowserDropType.AssetObjectPicker:
+
+                        switch (item.typeName)
+                        {
+                            case string t when t == typeof(Prefab).FullName:
+
+                                {
+                                    var prefab = ResourceManager.instance.LoadPrefab(guid);
+
+                                    if (prefab == null)
                                     {
-                                        SetObjectPicker(asset);
+                                        return;
                                     }
+
+                                    SetObjectPicker(prefab);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(Mesh).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadMeshAsset(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
                                 }
 
                                 break;
@@ -1240,7 +1263,7 @@ internal class ProjectBrowser
                                 {
                                     var asset = ResourceManager.instance.LoadMaterial(guid);
 
-                                    if(asset == null)
+                                    if (asset == null)
                                     {
                                         return;
                                     }

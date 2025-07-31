@@ -16,6 +16,11 @@ internal enum ProjectBrowserDropType
     Asset,
 
     /// <summary>
+    /// Dropping an asset to an object picker
+    /// </summary>
+    AssetObjectPicker,
+
+    /// <summary>
     /// Dragging a scene for the scene list
     /// </summary>
     SceneList
