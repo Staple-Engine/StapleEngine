@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Baker;
 
@@ -539,13 +540,15 @@ static partial class Program
                     }
                 };
 
-                Utilities.ExecuteAndCollectProcess(process, null);
+                var log = new StringBuilder();
+
+                Utilities.ExecuteAndCollectProcess(process, (msg) => log.AppendLine(msg));
 
                 if (process.ExitCode != 0)
                 {
                     Console.WriteLine($"\t\t\tArguments: {process.StartInfo.Arguments}");
 
-                    Console.WriteLine($"\t\tError:\n");
+                    Console.WriteLine($"\t\tError:\n{log}");
 
                     try
                     {

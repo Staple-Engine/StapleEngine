@@ -60,6 +60,7 @@ internal static partial class AssetSerialization
     [
         "bmp",
         "dds",
+        "exr",
         "gif",
         "jpg",
         "jpeg",
@@ -68,7 +69,7 @@ internal static partial class AssetSerialization
         "png",
         "psd",
         "pvr",
-        "tga"
+        "tga",
     ];
 
     /// <summary>

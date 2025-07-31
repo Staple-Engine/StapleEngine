@@ -579,7 +579,7 @@ public partial class Program
                     var m = new MeshAssetMeshInfo
                     {
                         name = $"{mesh.Name} {primitive.LogicalIndex}",
-                        materialGuid = primitive.Material.LogicalIndex >= 0 && primitive.Material.LogicalIndex < materialMapping.Count ?
+                        materialGuid = (primitive.Material?.LogicalIndex ?? -1) >= 0 && primitive.Material.LogicalIndex < materialMapping.Count ?
                             materialMapping[primitive.Material.LogicalIndex] : "",
                         type = node.Skin != null &&
                             primitive.VertexAccessors.ContainsKey("JOINTS_0") &&
@@ -629,30 +629,122 @@ public partial class Program
                             continue;
                     }
 
-                    var vert = primitive.GetVertexAccessor("POSITION").AsVector3Array();
-                    var tan = primitive.GetVertexAccessor("TANGENT")?.AsVector4Array();
-                    var nor = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                    var bi = primitive.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
-                    var bw = primitive.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
+                    List<Vector2> SafeGetVertexAccessorVector2(string name, bool debug)
+                    {
+                        var accessor = primitive.GetVertexAccessor(name);
+
+                        if((accessor?.Count ?? 0) == 0)
+                        {
+                            return null;
+                        }
+
+                        if(accessor.Dimensions == SharpGLTF.Schema2.DimensionType.VEC2)
+                        {
+                            return [.. accessor.AsVector2Array()];
+                        }
+
+                        if (debug)
+                        {
+                            Log.Debug($"Failed to get Vector2 vertex accessor {name}: Dimensions were {accessor.Dimensions}");
+                        }
+
+                        return null;
+                    }
+
+                    List<Vector3> SafeGetVertexAccessorVector3(string name, bool debug)
+                    {
+                        var accessor = primitive.GetVertexAccessor(name);
+
+                        if ((accessor?.Count ?? 0) == 0)
+                        {
+                            return null;
+                        }
+
+                        if (accessor.Dimensions == SharpGLTF.Schema2.DimensionType.VEC3)
+                        {
+                            return [.. accessor.AsVector3Array()];
+                        }
+
+                        if(debug)
+                        {
+                            Log.Debug($"Failed to get Vector3 vertex accessor {name}: Dimensions were {accessor.Dimensions}");
+                        }
+
+                        return null;
+                    }
+
+                    List<Vector4> SafeGetVertexAccessorVector4(string name, bool debug)
+                    {
+                        var accessor = primitive.GetVertexAccessor(name);
+
+                        if ((accessor?.Count ?? 0) == 0)
+                        {
+                            return null;
+                        }
+
+                        if (accessor.Dimensions == SharpGLTF.Schema2.DimensionType.VEC4)
+                        {
+                            return [.. accessor.AsVector4Array()];
+                        }
+
+                        if (debug)
+                        {
+                            Log.Debug($"Failed to get Vector4 vertex accessor {name}: Dimensions were {accessor.Dimensions}");
+                        }
+
+                        return null;
+                    }
+
+                    List<Vector4> SafeGetVertexColor(string name)
+                    {
+                        var l = SafeGetVertexAccessorVector4(name, false);
+
+                        if(l != null)
+                        {
+                            return l;
+                        }
+
+                        var l2 = SafeGetVertexAccessorVector3(name, false);
+
+                        if(l2 != null)
+                        {
+                            var newList = new Vector4[l2.Count];
+
+                            for(var i = 0; i < l2.Count; i++)
+                            {
+                                newList[i] = new(l2[i], 1);
+                            }
+
+                            return [.. newList];
+                        }
+
+                        return null;
+                    }
+
+                    var vert = SafeGetVertexAccessorVector3("POSITION", true);
+                    var tan = SafeGetVertexAccessorVector4("TANGENT", true);
+                    var nor = SafeGetVertexAccessorVector3("NORMAL", true);
+                    var bi = SafeGetVertexAccessorVector4("JOINTS_0", true);
+                    var bw = SafeGetVertexAccessorVector4("WEIGHTS_0", true);
 
                     var texcoords = new IList<Vector2>[]
                     {
-                        primitive.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_1")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_2")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_3")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_4")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_5")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_6")?.AsVector2Array(),
-                        primitive.GetVertexAccessor("TEXCOORD_7")?.AsVector2Array(),
+                        SafeGetVertexAccessorVector2("TEXCOORD_0", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_1", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_2", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_3", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_4", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_5", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_6", true),
+                        SafeGetVertexAccessorVector2("TEXCOORD_7", true),
                     };
 
                     var colors = new IList<Vector4>[]
                     {
-                        primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array(),
-                        primitive.GetVertexAccessor("COLOR_1")?.AsVector4Array(),
-                        primitive.GetVertexAccessor("COLOR_2")?.AsVector4Array(),
-                        primitive.GetVertexAccessor("COLOR_3")?.AsVector4Array(),
+                        SafeGetVertexColor("COLOR_0"),
+                        SafeGetVertexColor("COLOR_1"),
+                        SafeGetVertexColor("COLOR_2"),
+                        SafeGetVertexColor("COLOR_3"),
                     };
 
                     var vertexCount = vert.Count;

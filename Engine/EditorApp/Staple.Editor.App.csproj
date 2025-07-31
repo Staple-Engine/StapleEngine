@@ -45,7 +45,7 @@
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 	<!-- For some reason visual studio on windows builds solutions with self contained, so... ignore that. -->
 	<PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/Staple.Editor.App*" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
@@ -59,7 +59,7 @@
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <PostBuildEvent Condition="'$(SelfContained)'=='false'">
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/Staple.Editor.App*" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
@@ -73,7 +73,7 @@
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
     <PostBuildEvent Condition="'$(SelfContained)'=='false'">
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/StapleEditorApp*" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/Staple.Editor.App*" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)EditorApp/bin/$(Configuration)/net9.0/*.[DLL]" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
