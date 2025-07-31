@@ -1,17 +1,17 @@
 ﻿using Newtonsoft.Json;
-using System.IO;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using Staple.Internal;
-using System.Reflection;
-using System.Linq;
 using NfdSharp;
-using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
+using Staple.Internal;
 using Staple.Jobs;
-using Staple.ProjectManagement;
 using Staple.PackageManagement;
+using Staple.ProjectManagement;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace Staple.Editor;
 
@@ -317,6 +317,100 @@ internal partial class StapleEditor
         true);
     }
 
+    private void LoadProjectForBuilding(string path, Action<bool> onFinish)
+    {
+        try
+        {
+            var json = File.ReadAllText(Path.Combine(path, "ProjectInfo.json"));
+
+            var projectInfo = JsonConvert.DeserializeObject<ProjectInfo>(json);
+
+            if (projectInfo.stapleVersion != StapleVersion)
+            {
+                Log.Error($"Project version is not compatible\nGot {projectInfo.stapleVersion}, expected: {StapleVersion}");
+
+                onFinish(false);
+
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to load: {e}");
+
+            onFinish(false);
+
+            return;
+        }
+
+        BasePath =
+            ThumbnailCache.basePath =
+            ProjectManager.Instance.basePath =
+            projectBrowser.basePath =
+            PackageManager.instance.basePath =
+            Path.GetFullPath(path);
+
+        PackageManager.instance.gitPath = editorSettings.gitExternalPath;
+
+        PackageManager.instance.Refresh(ResetAssetPaths);
+
+        ProjectManager.Instance.stapleBasePath = StapleBasePath;
+
+        Log.Info($"Project Path: {BasePath}");
+
+        projectBrowser.UpdateProjectBrowserNodes();
+
+        projectBrowser.CreateMissingMetaFiles();
+
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
+
+            projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to load project app settings: {e}");
+
+            onFinish(false);
+
+            return;
+        }
+
+        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
+
+        foreach (var pair in projectAppSettings.renderers)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        projectBrowser.currentPlatform = currentPlatform;
+
+        RefreshAssets(true, () => onFinish(true));
+    }
+
     /// <summary>
     /// Updates the current window title with the project name and active scene
     /// </summary>
@@ -353,17 +447,20 @@ internal partial class StapleEditor
     /// <param name="checkBuild">Check whether to build the project</param>
     public void RefreshStaging(AppPlatform platform, Action onFinish, bool updateProject = false, bool checkBuild = true)
     {
-        if(gameLoadDisabled || RefreshingAssets)
+        if(editorMode == EditorMode.Normal)
         {
-            return;
-        }
+            if (gameLoadDisabled || RefreshingAssets)
+            {
+                return;
+            }
 
-        RecordScene();
+            RecordScene();
 
-        lock (backgroundLock)
-        {
-            RefreshingAssets = true;
-            needsRefreshStaging = false;
+            lock (backgroundLock)
+            {
+                RefreshingAssets = true;
+                needsRefreshStaging = false;
+            }
         }
 
         projectBrowser.UpdateProjectBrowserNodes();
@@ -503,72 +600,79 @@ internal partial class StapleEditor
                     }
                 }
 
-                ThreadHelper.Dispatch(() =>
+                if(editorMode == EditorMode.Normal)
                 {
-                    try
+                    ThreadHelper.Dispatch(() =>
                     {
-                        if(updateProject)
+                        try
                         {
-                            UnloadGame();
-                            LoadGame();
-                        }
-
-                        World.Current?.Iterate((entity) =>
-                        {
-                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            if (updateProject)
                             {
-                                if (component is IComponentDisposable disposable)
-                                {
-                                    disposable.DisposeComponent();
-                                }
-                            });
-                        });
+                                UnloadGame();
+                                LoadGame();
+                            }
 
-                        ResourceManager.instance.Clear();
-
-                        AssetDatabase.Reload();
-                        projectBrowser.UpdateProjectBrowserNodes();
-
-                        if (LoadRecordedScene() == false)
-                        {
-                            if ((lastOpenScene?.Length ?? 0) > 0)
+                            World.Current?.Iterate((entity) =>
                             {
-                                Scene scene = null;
-
-                                if(lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                World.Current.IterateComponents(entity, (ref IComponent component) =>
                                 {
-                                    World.Current = new();
-                                    scene = new();
-
-                                    var prefab = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
-
-                                    if(prefab != null)
+                                    if (component is IComponentDisposable disposable)
                                     {
-                                        SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                        disposable.DisposeComponent();
                                     }
+                                });
+                            });
+
+                            ResourceManager.instance.Clear();
+
+                            AssetDatabase.Reload();
+                            projectBrowser.UpdateProjectBrowserNodes();
+
+                            if (LoadRecordedScene() == false)
+                            {
+                                if ((lastOpenScene?.Length ?? 0) > 0)
+                                {
+                                    Scene scene = null;
+
+                                    if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                    {
+                                        World.Current = new();
+                                        scene = new();
+
+                                        var prefab = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
+
+                                        if (prefab != null)
+                                        {
+                                            SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+                                    }
+
+                                    Scene.SetActiveScene(scene);
                                 }
                                 else
                                 {
-                                    scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+                                    Scene.SetActiveScene(null);
                                 }
+                            }
 
-                                Scene.SetActiveScene(scene);
-                            }
-                            else
-                            {
-                                Scene.SetActiveScene(null);
-                            }
+                            ResetScenePhysics(false);
+
+                            onFinish?.Invoke();
                         }
-
-                        ResetScenePhysics(false);
-
-                        onFinish?.Invoke();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e.ToString());
-                    }
-                });
+                        catch (Exception e)
+                        {
+                            Log.Error(e.ToString());
+                        }
+                    });
+                }
+                else
+                {
+                    onFinish?.Invoke();
+                }
             }));
 
             StartBackgroundTask(handle);

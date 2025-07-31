@@ -1159,6 +1159,20 @@ internal class ProjectBrowser
                     return;
                 }
 
+                void SetObjectPicker(object t)
+                {
+                    if (StapleEditor.instance.dropTargetObjectPickerAction != null &&
+                        StapleEditor.instance.dropTargetObjectPickerType != null &&
+                        t.GetType().IsAssignableTo(StapleEditor.instance.dropTargetObjectPickerType))
+                    {
+                        StapleEditor.instance.dropTargetObjectPickerAction(t);
+
+                        StapleEditor.instance.dropTargetEntity = default;
+                        StapleEditor.instance.dropTargetObjectPickerAction = null;
+                        StapleEditor.instance.dropTargetObjectPickerType = null;
+                    }
+                }
+
                 switch(dropType)
                 {
                     case ProjectBrowserDropType.Asset:
@@ -1175,9 +1189,20 @@ internal class ProjectBrowser
                                         return;
                                     }
 
-                                    var targetEntity = StapleEditor.instance.dropTargetEntity;
+                                    if(StapleEditor.instance.dropTargetEntity != default)
+                                    {
+                                        var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                    Entity.Instantiate(prefab, targetEntity.GetComponent<Transform>());
+                                        Entity.Instantiate(prefab, targetEntity.GetComponent<Transform>());
+
+                                        StapleEditor.instance.dropTargetEntity = default;
+                                        StapleEditor.instance.dropTargetObjectPickerAction = null;
+                                        StapleEditor.instance.dropTargetObjectPickerType = null;
+                                    }
+                                    else
+                                    {
+                                        SetObjectPicker(prefab);
+                                    }
                                 }
 
                                 break;
@@ -1192,9 +1217,170 @@ internal class ProjectBrowser
                                         return;
                                     }
 
-                                    var targetEntity = StapleEditor.instance.dropTargetEntity;
+                                    if (StapleEditor.instance.dropTargetEntity != default)
+                                    {
+                                        var targetEntity = StapleEditor.instance.dropTargetEntity;
 
-                                    Mesh.InstanceMesh(item.name, asset, targetEntity);
+                                        Mesh.InstanceMesh(item.name, asset, targetEntity);
+
+                                        StapleEditor.instance.dropTargetEntity = default;
+                                        StapleEditor.instance.dropTargetObjectPickerAction = null;
+                                        StapleEditor.instance.dropTargetObjectPickerType = null;
+                                    }
+                                    else
+                                    {
+                                        SetObjectPicker(asset);
+                                    }
+                                }
+
+                                break;
+
+                            case string t when t == typeof(Material).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadMaterial(guid);
+
+                                    if(asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(Texture).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadTexture(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(Shader).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadShader(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(FontAsset).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadFont(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(TextAsset).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadTextAsset(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(ComputeShader).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadComputeShader(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(PluginAsset).FullName:
+
+                                {
+                                    var asset = PluginAsset.Create(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(AssemblyDefinition).FullName:
+
+                                {
+                                    var asset = AssemblyDefinition.Create(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            case string t when t == typeof(AudioClip).FullName:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadAudioClip(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
+                                }
+
+                                break;
+
+                            default:
+
+                                {
+                                    var asset = ResourceManager.instance.LoadAsset(guid);
+
+                                    if (asset == null)
+                                    {
+                                        return;
+                                    }
+
+                                    SetObjectPicker(asset);
                                 }
 
                                 break;

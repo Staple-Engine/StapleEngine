@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Text;
 using System.Threading;
 
 [assembly: InternalsVisibleTo("Staple.Editor.App")]
@@ -29,11 +30,26 @@ internal partial class StapleEditor
 
     internal const string RenderTargetLayerName = "STAPLE_EDITOR_RENDER_TARGET_LAYER";
 
+    internal static string StapleBasePath => Storage.StapleBasePath;
+
+    private static Color PrefabColor = new Color32("#00CED1");
+
+    internal const int ClearView = 0;
+    internal const int MeshRenderView = 252;
+    internal const int SceneView = 253;
+    internal const int WireframeView = 254;
+
     #region Classes
     enum ViewportType
     {
         Scene,
         Game
+    }
+
+    public enum EditorMode
+    {
+        Normal,
+        Build,
     }
 
     internal class DragDropPayload
@@ -157,15 +173,6 @@ internal partial class StapleEditor
     }
     #endregion
 
-    internal static string StapleBasePath => Storage.StapleBasePath;
-
-    private static Color PrefabColor = new Color32("#00CED1");
-
-    internal const int ClearView = 0;
-    internal const int MeshRenderView = 252;
-    internal const int SceneView = 253;
-    internal const int WireframeView = 254;
-
     #region Background Tasks
     private readonly Lock backgroundLock = new();
 
@@ -250,6 +257,10 @@ internal partial class StapleEditor
     private LastProjectInfo lastProjects = new();
 
     internal Dictionary<string, DragDropPayload> dragDropPayloads = [];
+
+    internal Type dropTargetObjectPickerType = null;
+
+    internal Action<object> dropTargetObjectPickerAction;
     #endregion
 
     #region Editor
@@ -278,6 +289,8 @@ internal partial class StapleEditor
     private ImGuizmoOperation transformOperation = ImGuizmoOperation.Translate;
 
     internal readonly UndoStack undoStack = new();
+
+    public EditorMode editorMode = EditorMode.Normal;
 
     public EditorSettings editorSettings = new();
     #endregion
@@ -326,13 +339,20 @@ internal partial class StapleEditor
     private Action messageBoxNoAction;
 
     internal bool RefreshingAssets { get; private set; } = false;
+
+    private string projectToLoad;
+
+    private string buildOutputDirectory;
+
+    private AppPlatform targetPlatform;
+
     #endregion
 
     private static WeakReference<StapleEditor> privInstance;
 
     public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
 
-    public void Run()
+    public void Run(string[] args)
     {
         privInstance = new WeakReference<StapleEditor>(this);
 
@@ -377,16 +397,203 @@ internal partial class StapleEditor
             return;
         }
 
+        for(var i = 0; i < args.Length; i++)
+        {
+            switch(args[i].ToLowerInvariant())
+            {
+                case "-build":
+
+                    editorMode = EditorMode.Build;
+
+                    break;
+
+                case "-project":
+
+                    if(i + 1 < args.Length)
+                    {
+                        projectToLoad = args[i + 1];
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-o":
+
+                    if(i + 1 < args.Length)
+                    {
+                        buildOutputDirectory = args[i + 1];
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-buildtarget":
+
+                    if(i + 1 < args.Length)
+                    {
+                        var target = PlayerBackendManager.BackendNames.FirstOrDefault(x => x.Equals(args[i + 1],
+                            StringComparison.InvariantCultureIgnoreCase));
+
+                        if(target == null)
+                        {
+                            var backendList = new StringBuilder();
+
+                            foreach (var name in PlayerBackendManager.BackendNames)
+                            {
+                                backendList.AppendLine($"\t{name}");
+                            }
+
+                            Log.Error($"Invalid backend {args[i + 1]}.\nList of available backends:\n{backendList}");
+
+                            Environment.Exit(1);
+                        }
+                        else
+                        {
+                            buildBackend = target;
+                        }
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-builddebug":
+
+                    if(i + 1 < args.Length)
+                    {
+                        var v = args[i + 1].ToLowerInvariant();
+
+                        buildPlayerDebug = v == "true" || v == "1";
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-buildnative":
+
+                    if (i + 1 < args.Length)
+                    {
+                        var v = args[i + 1].ToLowerInvariant();
+
+                        buildPlayerNativeAOT = v == "true" || v == "1";
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-builddebugredists":
+
+                    if (i + 1 < args.Length)
+                    {
+                        var v = args[i + 1].ToLowerInvariant();
+
+                        buildPlayerDebugRedists = v == "true" || v == "1";
+
+                        i++;
+                    }
+
+                    break;
+
+                case "-buildsinglefile":
+
+                    if (i + 1 < args.Length)
+                    {
+                        var v = args[i + 1].ToLowerInvariant();
+
+                        buildPlayerSingleFile = v == "true" || v == "1";
+
+                        i++;
+                    }
+
+                    break;
+            }
+        }
+
+        ReloadAssetTemplates();
+
+        switch(editorMode)
+        {
+            case EditorMode.Normal:
+
+                NormalEditorLoop();
+
+                break;
+
+            case EditorMode.Build:
+
+                if(projectToLoad == null)
+                {
+                    Log.Error($"Missing project to build. Did you forget to specify it with `-project path`?");
+
+                    Environment.Exit(1);
+                }
+
+                if(buildOutputDirectory == null)
+                {
+                    Log.Error($"Missing build output directory. Did you forget to specify it with `-o path`?");
+
+                    Environment.Exit(1);
+                }
+
+                if(buildBackend == null ||
+                    PlayerBackendManager.Instance.GetBackend(buildBackend) is not PlayerBackend backend)
+                {
+                    Log.Error($"Missing build backend, Did you forget to specify it with `-backend name`?");
+
+                    var backendList = new StringBuilder();
+
+                    foreach (var name in PlayerBackendManager.BackendNames)
+                    {
+                        backendList.AppendLine($"\t{name}");
+                    }
+
+                    Log.Error($"List of available backends:\n{backendList}");
+
+                    Environment.Exit(1);
+
+                    return;
+                }
+
+                LoadProjectForBuilding(projectToLoad, (result) =>
+                {
+                    if (result == false)
+                    {
+                        Environment.Exit(1);
+                    }
+
+                    if (buildPlayerNativeAOT)
+                    {
+                        if (Platform.CurrentPlatform != backend.platform)
+                        {
+                            buildPlayerNativeAOT = false;
+                        }
+                    }
+
+                    ProjectManager.Instance.BuildPlayer(backend, projectAppSettings, buildOutputDirectory,
+                        buildPlayerDebug, buildPlayerNativeAOT, buildPlayerDebugRedists, false, buildPlayerSingleFile,
+                        (percent, message) => Log.Info($"[{(int)(percent * 100)}%] {message}"),
+                        (message) => Log.Info(message),
+                        (platform, finish) => RefreshStaging(platform, finish));
+                });
+
+                break;
+        }
+    }
+
+    private void NormalEditorLoop()
+    {
+        playerSettings = PlayerSettings.Load(editorAppSettings);
+
         AudioSystem.AudioListenerImpl = typeof(OpenALAudioListener);
         AudioSystem.AudioSourceImpl = typeof(OpenALAudioSource);
         AudioSystem.AudioClipImpl = typeof(OpenALAudioClip);
         AudioSystem.AudioDeviceImpl = typeof(OpenALAudioDevice);
 
         SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
-
-        ReloadAssetTemplates();
-
-        playerSettings = PlayerSettings.Load(editorAppSettings);
 
         if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
         {
@@ -400,7 +607,7 @@ internal partial class StapleEditor
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
             playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
 
-        if(window == null)
+        if (window == null)
         {
             return;
         }
@@ -417,7 +624,7 @@ internal partial class StapleEditor
 
             ThumbnailCache.GetTexture(iconPath, force: true);
 
-            if(ThumbnailCache.TryGetTextureData(iconPath, out var icon))
+            if (ThumbnailCache.TryGetTextureData(iconPath, out var icon))
             {
                 window.SetIcon(icon);
             }
@@ -507,7 +714,7 @@ internal partial class StapleEditor
 
                 lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
 
@@ -528,7 +735,7 @@ internal partial class StapleEditor
 
             bgfx.touch(ClearView);
 
-            if(window.width == 0 || window.height == 0)
+            if (window.width == 0 || window.height == 0)
             {
                 return;
             }
@@ -542,7 +749,7 @@ internal partial class StapleEditor
 
             if (viewportType == ViewportType.Scene)
             {
-                if(io.WantTextInput == false)
+                if (io.WantTextInput == false)
                 {
                     var axis = Vector3.Zero;
 
@@ -594,21 +801,24 @@ internal partial class StapleEditor
                 Screen.Height = window.height;
             }
 
-            if(resetSelection)
+            if (resetSelection)
             {
                 resetSelection = false;
 
                 SetSelectedEntity(selectedEntity);
             }
 
-            if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Z))
+            if(io.WantTextInput == false)
             {
-                undoStack.Undo();
-            }
+                if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Z))
+                {
+                    undoStack.Undo();
+                }
 
-            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Y))
-            {
-                undoStack.Redo();
+                if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Y))
+                {
+                    undoStack.Redo();
+                }
             }
 
             mouseIsHoveringImGui = true;
@@ -649,7 +859,7 @@ internal partial class StapleEditor
 
                 ImGui.Spacing();
 
-                if(ImGui.BeginTable("##ProjectsList", 3))
+                if (ImGui.BeginTable("##ProjectsList", 3))
                 {
                     var items = lastProjects.items.OrderByDescending(x => x.date).ToArray();
 
@@ -719,31 +929,31 @@ internal partial class StapleEditor
 
             var currentWindows = new List<EditorWindow>(editorWindows);
 
-            for(var i = 0; i < currentWindows.Count; i++)
+            for (var i = 0; i < currentWindows.Count; i++)
             {
                 var window = currentWindows[i];
                 var shouldShow = false;
 
                 var flags = ImGuiWindowFlags.None;
 
-                if(window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
+                if (window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoDocking;
                 }
 
-                if(window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
+                if (window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
                 {
                     flags |= ImGuiWindowFlags.NoResize;
                 }
 
-                if(window.windowFlags.HasFlag(EditorWindowFlags.MenuBar))
+                if (window.windowFlags.HasFlag(EditorWindowFlags.MenuBar))
                 {
                     flags |= ImGuiWindowFlags.MenuBar;
                 }
 
                 var otherFlags = ImGuiWindowFlags.None;
 
-                if(window.windowFlags.HasFlag(EditorWindowFlags.HorizontalScrollbar))
+                if (window.windowFlags.HasFlag(EditorWindowFlags.HorizontalScrollbar))
                 {
                     otherFlags |= ImGuiWindowFlags.HorizontalScrollbar;
                 }
@@ -770,7 +980,7 @@ internal partial class StapleEditor
                         ImGui.SetNextWindowSize(new Vector2(window.size.X, window.size.Y));
                         ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - window.size.X) / 2, (io.DisplaySize.Y - window.size.Y) / 2));
 
-                        if(window.windowType == EditorWindowType.Popup)
+                        if (window.windowType == EditorWindowType.Popup)
                         {
                             shouldShow = ImGui.BeginPopup($"{window.title}##Popup{window.GetType().Name}", otherFlags);
                         }
@@ -826,7 +1036,7 @@ internal partial class StapleEditor
                             break;
                     }
 
-                    if(isOpen == false)
+                    if (isOpen == false)
                     {
                         window.Close();
                     }
@@ -837,11 +1047,11 @@ internal partial class StapleEditor
                 }
             }
 
-            lock(backgroundLock)
+            lock (backgroundLock)
             {
                 if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
-                    if(editorSettings.autoRecompile && needsGameRecompile)
+                    if (editorSettings.autoRecompile && needsGameRecompile)
                     {
                         needsGameRecompile = false;
 
@@ -922,11 +1132,11 @@ internal partial class StapleEditor
 
             bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
             bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-            
+
             bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
             bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
 
-            if(hadFocus != hasFocus && hasFocus)
+            if (hadFocus != hasFocus && hasFocus)
             {
                 if (ProjectManager.Instance.NeedsGameRecompile() && RefreshingAssets == false)
                 {
@@ -949,7 +1159,7 @@ internal partial class StapleEditor
 
         window.OnCleanup = () =>
         {
-            for(; ; )
+            for (; ; )
             {
                 if (backgroundHandles.Count == 0 ||
                     backgroundHandles.All(x => x.Completed))

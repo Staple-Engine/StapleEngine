@@ -8,7 +8,7 @@ namespace StapleEditorApp
         [STAThread]
         static void Main(string[] args)
         {
-            new StapleEditor().Run();
+            new StapleEditor().Run(args);
         }
     }
 }

@@ -10,7 +10,14 @@ internal partial class StapleEditor
     /// <param name="handle">The job handle</param>
     public void StartBackgroundTask(JobHandle handle)
     {
-        lock(backgroundLock)
+        if (editorMode != EditorMode.Normal)
+        {
+            handle.Complete();
+
+            return;
+        }
+
+        lock (backgroundLock)
         {
             backgroundHandles.Add(handle);
 
@@ -26,6 +33,11 @@ internal partial class StapleEditor
     /// <param name="message">The message</param>
     public void SetBackgroundProgress(float progress, string message)
     {
+        if(editorMode != EditorMode.Normal)
+        {
+            return;
+        }
+
         ThreadHelper.Dispatch(() =>
         {
             progressFraction = progress;

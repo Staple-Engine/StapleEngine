@@ -839,6 +839,7 @@ internal partial class StapleEditor
 
         ImGui.End();
 
+        if(io.WantTextInput == false)
         {
             if (Input.GetKeyUp(KeyCode.E))
             {

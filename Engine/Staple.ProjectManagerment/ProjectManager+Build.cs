@@ -23,8 +23,8 @@ public partial class ProjectManager
     /// <param name="assetsOnly">Whether to just pack and copy assets</param>
     /// <param name="publishSingleFile">Whether to build into a single file</param>
     public void BuildPlayer(PlayerBackend backend, AppSettings projectAppSettings, string outPath, bool debug, bool nativeAOT,
-        bool debugRedists, bool assetsOnly, bool publishSingleFile, Action<float, string> progress,
-        Action<string> failure, Action<AppPlatform, Action> refreshStaging)
+        bool debugRedists, bool assetsOnly, bool publishSingleFile, Action<float, string> progress, Action<string> failure,
+        Action<AppPlatform, Action> refreshStaging)
     {
         progress?.Invoke(0, "Building...");
 

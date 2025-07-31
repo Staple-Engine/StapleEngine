@@ -137,9 +137,17 @@ internal class BuildWindow : EditorWindow
             StapleEditor.instance.buildBackend = PlayerBackendManager.BackendNames[current];
         }
 
+        var backend = PlayerBackendManager.Instance.GetBackend(StapleEditor.instance.buildBackend);
+
+        if (backend == null)
+        {
+            return;
+        }
+
         StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
 
-        var has = Platform.CurrentPlatform == StapleEditor.instance.currentPlatform;
+        var has = Platform.CurrentPlatform == (backend?.platform ?? StapleEditor.instance.currentPlatform);
+
         EditorGUI.Disabled(has == false, () =>
         {
             StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
@@ -152,13 +160,6 @@ internal class BuildWindow : EditorWindow
 
         StapleEditor.instance.buildPlayerDebugRedists = EditorGUI.Toggle("Use debug redistributables", "BuildWindowDebugRedist", StapleEditor.instance.buildPlayerDebugRedists);
         StapleEditor.instance.buildPlayerSingleFile = EditorGUI.Toggle("Publish single file", "BuildWindowSingleFile", StapleEditor.instance.buildPlayerSingleFile);
-
-        var backend = PlayerBackendManager.Instance.GetBackend(StapleEditor.instance.buildBackend);
-
-        if(backend == null)
-        {
-            return;
-        }
 
         EditorGUI.Button("Build", "BuildWindowBuild", () =>
         {

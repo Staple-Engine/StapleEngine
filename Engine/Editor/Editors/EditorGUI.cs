@@ -851,9 +851,33 @@ public static class EditorGUI
             ImGui.Text(selectedName);
         }
 
-        ImGui.SameLine();
-
         var key = $"{type.FullName}{name}{current}{identifier}";
+
+        DragDropTarget("ASSET",
+            () =>
+            {
+                if (StapleEditor.instance.dragDropPayloads.TryGetValue("ASSET", out var p))
+                {
+                    StapleEditor.instance.dropTargetEntity = default;
+                    StapleEditor.instance.dropTargetObjectPickerType = type;
+                    StapleEditor.instance.dropTargetObjectPickerAction =
+                        (value) =>
+                        {
+                            if (value != null && value.GetType().IsAssignableTo(type))
+                            {
+                                pendingObjectPickers[key] = value;
+                            }
+                        };
+
+                    ProjectBrowser.dropType = ProjectBrowserDropType.Asset;
+
+                    p.action(p.index, p.item);
+
+                    StapleEditor.instance.dragDropPayloads.Clear();
+                }
+            });
+
+        ImGui.SameLine();
 
         if (ImGui.SmallButton(MakeIdentifier("O", key)))
         {
@@ -1330,6 +1354,26 @@ public static class EditorGUI
         if (ImGui.Selectable(MakeIdentifier(text, key), (ImGuiSelectableFlags)flags))
         {
             ExecuteHandler(handler, $"{text} Selectable");
+        }
+    }
+
+    /// <summary>
+    /// Manages a drop target with a specific payload
+    /// </summary>
+    /// <param name="payload">The payload</param>
+    /// <param name="success">Triggered if successful</param>
+    public static void DragDropTarget(string payload, Action success)
+    {
+        if(ImGui.BeginDragDropTarget())
+        {
+            var result = ImGui.AcceptDragDropPayload(payload);
+
+            if(result.IsNull == false)
+            {
+                success();
+            }
+
+            ImGui.EndDragDropTarget();
         }
     }
 
