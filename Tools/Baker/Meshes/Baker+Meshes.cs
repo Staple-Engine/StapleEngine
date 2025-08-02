@@ -161,7 +161,7 @@ static partial class Program
         {
             var meshFileName = meshFiles[i];
 
-            Console.WriteLine($"\t{meshFileName}");
+            //Console.WriteLine($"\t{meshFileName}");
 
             try
             {

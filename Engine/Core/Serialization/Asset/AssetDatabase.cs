@@ -25,7 +25,9 @@ public static class AssetDatabase
         }
     }
 
-    internal static readonly List<AssetInfo> assets = [];
+    internal static readonly Dictionary<string, List<AssetInfo>> assets = [];
+    internal static readonly Dictionary<string, string> assetGuids = [];
+    internal static readonly Dictionary<string, string[]> assetsByType = [];
 
     internal static List<string> assetDirectories = [];
 
@@ -40,6 +42,33 @@ public static class AssetDatabase
     public static void Reload()
     {
         assets.Clear();
+        assetGuids.Clear();
+        assetsByType.Clear();
+
+        var typeList = new Dictionary<string, List<string>>();
+
+        void AddAsset(AssetInfo asset)
+        {
+            if(assets.TryGetValue(asset.guid, out var container) == false)
+            {
+                container = [];
+
+                assets.Add(asset.guid, container);
+            }
+
+            container.Add(asset);
+
+            assetGuids.AddOrSetKey(asset.path, asset.guid);
+
+            if(typeList.TryGetValue(asset.typeName, out var types) == false)
+            {
+                types = [];
+
+                typeList.Add(asset.typeName, types);
+            }
+
+            types.Add(asset.guid);
+        }
 
         foreach(var pair in Mesh.defaultMeshes)
         {
@@ -51,7 +80,7 @@ public static class AssetDatabase
                 typeName = typeof(Mesh).FullName,
             };
 
-            assets.Add(asset);
+            AddAsset(asset);
         }
 
         var files = new Dictionary<string, string[]>();
@@ -81,7 +110,7 @@ public static class AssetDatabase
                     typeName = file.typeName,
                 };
 
-                assets.Add(asset);
+                AddAsset(asset);
             }
         }
 
@@ -97,7 +126,7 @@ public static class AssetDatabase
 
                     if (holder != null && (holder.guid?.Length ?? 0) > 0 && (holder.typeName?.Length ?? 0) > 0)
                     {
-                        if (assets.Any(x => x.guid == holder.guid))
+                        if (assets.ContainsKey(holder.guid))
                         {
                             Log.Warning($"[AssetDatabase] Duplicate guid found for '{holder.guid}' at {file}, skipping...");
 
@@ -114,7 +143,7 @@ public static class AssetDatabase
                             typeName = holder.typeName,
                         };
 
-                        assets.Add(asset);
+                        AddAsset(asset);
 
                         if(holder.typeName == typeof(Shader).FullName)
                         {
@@ -125,7 +154,7 @@ public static class AssetDatabase
                                 shaderPath = string.Concat("Assets/", ResourceManager.ShaderPrefix, asset.path.AsSpan("Assets/".Length));
                             }
 
-                            assets.Add(new()
+                            AddAsset(new()
                             {
                                 guid = holder.guid,
                                 name = asset.name,
@@ -144,6 +173,11 @@ public static class AssetDatabase
             }
         }
 
+        foreach(var pair in typeList)
+        {
+            assetsByType.Add(pair.Key, pair.Value.ToArray());
+        }
+
         Log.Info($"[AssetDatabase] Reloaded Asset Database with {assets.Count} assets");
     }
 
@@ -152,10 +186,8 @@ public static class AssetDatabase
     /// </summary>
     /// <param name="guid">The asset guid</param>
     /// <returns>The entry or null</returns>
-    internal static AssetInfo GetAssetEntry(string guid)
-    {
-        return assets.FirstOrDefault(x => x.guid == guid);
-    }
+    internal static AssetInfo GetAssetEntry(string guid) => assets.TryGetValue(guid, out var a) &&
+        (a?.Count ?? 0) > 0 ? a[0] : null;
 
     /// <summary>
     /// Gets the path to an asset by guid
@@ -164,12 +196,13 @@ public static class AssetDatabase
     /// <returns>The path or null</returns>
     public static string GetAssetPath(string guid)
     {
-        var path = assets.FirstOrDefault(x => x.guid == guid)?.path;
-
-        if(path == null)
+        if(assets.TryGetValue(guid, out var container) == false ||
+            (container?.Count ?? 0) == 0)
         {
             return null;
         }
+
+        var path = container[0].path;
 
         return assetPathResolver?.Invoke(path) ?? path;
     }
@@ -182,10 +215,26 @@ public static class AssetDatabase
     /// <returns>The path or null</returns>
     public static string GetAssetPath(string guid, string prefix)
     {
-        var assetsPrefx = "Assets/" + prefix;
+        var assetsPrefix = "Assets/" + prefix;
 
-        var path = assets.FirstOrDefault(x => x.guid == guid &&
-            (x.path.StartsWith(prefix) || x.path.StartsWith(assetsPrefx)))?.path;
+        if(assets.TryGetValue(guid, out var container) == false)
+        {
+            return null;
+        }
+
+        string path = null;
+
+        for(var i = 0; i < container.Count; i++)
+        {
+            var asset = container[i];
+
+            if (asset.path.StartsWith(prefix) || asset.path.StartsWith(assetsPrefix))
+            {
+                path = asset.path;
+
+                break;
+            }
+        }
 
         if (path == null)
         {
@@ -207,7 +256,7 @@ public static class AssetDatabase
             return null;
         }
 
-        if(guid.Contains(":"))
+        if(guid.Contains(':'))
         {
             var parts = guid.Split(':');
 
@@ -217,7 +266,7 @@ public static class AssetDatabase
             }
         }
 
-        return assets.FirstOrDefault(x => x.guid == guid)?.name;
+        return GetAssetEntry(guid)?.name;
     }
 
     /// <summary>
@@ -225,23 +274,7 @@ public static class AssetDatabase
     /// </summary>
     /// <param name="path">The path for the asset</param>
     /// <returns>The guid or null</returns>
-    public static string GetAssetGuid(string path)
-    {
-        var l = assets.Count;
-
-        for(var i = 0; i < l; i++)
-        {
-            var asset = assets[i];
-
-            if(asset.path == path ||
-                asset.guid == path)
-            {
-                return asset.guid;
-            }
-        }
-
-        return null;
-    }
+    public static string GetAssetGuid(string path) => assetGuids.TryGetValue(path, out var guid) ? guid : null;
 
     /// <summary>
     /// Gets an asset guid for a path with a prefix
@@ -253,19 +286,7 @@ public static class AssetDatabase
     {
         var t = prefix + path;
 
-        var l = assets.Count;
-
-        for (var i = 0; i < l; i++)
-        {
-            var asset = assets[i];
-
-            if(asset.path == t)
-            {
-                return asset.guid;
-            }
-        }
-
-        return null;
+        return GetAssetGuid(t);
     }
 
     /// <summary>
@@ -273,45 +294,15 @@ public static class AssetDatabase
     /// </summary>
     /// <param name="guid">The asset guid</param>
     /// <returns>The asset type, or null</returns>
-    public static string GetAssetType(string guid)
-    {
-        var l = assets.Count;
-
-        for (var i = 0; i < l; i++)
-        {
-            var asset = assets[i];
-
-            if (asset.guid == guid)
-            {
-                return asset.typeName;
-            }
-        }
-
-        return null;
-    }
+    public static string GetAssetType(string guid) => assets.TryGetValue(guid, out var container) &&
+        (container?.Count ?? 0) > 0 ? container[0].typeName : null;
 
     /// <summary>
     /// Attempts to find an asset of a specific type name
     /// </summary>
     /// <param name="typeName">The full name of the type the asset should have</param>
     /// <returns>A list of asset guids</returns>
-    public static string[] FindAssetsByType(string typeName)
-    {
-        var outValue = new List<string>();
-        var l = assets.Count;
-
-        for (var i = 0; i < l; i++)
-        {
-            var asset = assets[i];
-
-            if (asset.typeName == typeName)
-            {
-                outValue.Add(asset.guid);
-            }
-        }
-
-        return outValue.ToArray();
-    }
+    public static string[] FindAssetsByType(string typeName) => assetsByType.TryGetValue(typeName, out var c) ? c : [];
 
     /// <summary>
     /// Attempts to resolve the full path of an asset by guid

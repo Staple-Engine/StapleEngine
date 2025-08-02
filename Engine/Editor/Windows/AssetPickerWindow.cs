@@ -39,13 +39,16 @@ internal class AssetPickerWindow : EditorWindow
             null
         };
 
-        foreach (var asset in AssetDatabase.assets)
+        foreach (var pair in AssetDatabase.assets)
         {
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
-                asset.name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false)
+                (pair.Value.Count == 0 ||
+                pair.Value[0].name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false))
             {
                 continue;
             }
+
+            var asset = pair.Value[0];
 
             if(Array.IndexOf(ignoredGuids, asset.guid) >= 0 ||
                 assetPickerType.FullName != asset.typeName ||

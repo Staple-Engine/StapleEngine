@@ -176,11 +176,22 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
+                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
+
+                        if(renderTarget == null)
+                        {
+                            Cleanup();
+
+                            return;
+                        }
+
                         var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
                         if(tempEntity.IsValid == false)
                         {
                             Cleanup();
+
+                            renderTarget.Destroy();
 
                             return;
                         }
@@ -199,8 +210,6 @@ internal class ThumbnailCache
                             r.overrideLighting = true;
                             r.lighting = MaterialLighting.Unlit;
                         }
-
-                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
 
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 
@@ -1030,30 +1039,6 @@ internal class ThumbnailCache
 
                 MainThreadRenderTask(current.Value);
             }
-        }
-
-        if (World.Current != null)
-        {
-            Scene.IterateEntities((entity) =>
-            {
-                entity.IterateComponents((ref IComponent component) =>
-                {
-                    var fields = component.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                    foreach (var field in fields)
-                    {
-                        if (field.FieldType == typeof(Texture))
-                        {
-                            var value = (Texture)field.GetValue(component);
-
-                            if (value != null && value.Disposed && (value.Guid?.Guid?.Length ?? 0) > 0)
-                            {
-                                field.SetValue(component, ResourceManager.instance.LoadTexture(value.Guid.Guid));
-                            }
-                        }
-                    }
-                });
-            });
         }
     }
 

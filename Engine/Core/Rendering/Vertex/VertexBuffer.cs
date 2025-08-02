@@ -403,7 +403,12 @@ public sealed class VertexBuffer
 
                 var handle = bgfx.create_dynamic_vertex_buffer(elementCount, vertexLayout, (ushort)BGFXUtils.GetBGFXBufferFlags(flags));
 
-                return new VertexBuffer(layout, handle);
+                if(handle.Valid)
+                {
+                    return new VertexBuffer(layout, handle);
+                }
+
+                return null;
             }
         }
     }

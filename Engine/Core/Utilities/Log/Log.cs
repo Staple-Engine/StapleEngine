@@ -184,7 +184,7 @@ public class Log
 
             case LogFormat.DateTime:
 
-                message = $"[{DateTime.Now:MM/dd/yyyy HH:mm:ss}] {message}";
+                message = $"[{DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}] {message}";
 
                 break;
         }

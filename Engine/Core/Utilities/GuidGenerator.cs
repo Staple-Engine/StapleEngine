@@ -8,13 +8,15 @@ namespace Staple.Internal;
 /// </summary>
 public static class GuidGenerator
 {
+    private const int timeBetween = 5;
+
     /// <summary>
     /// Generates a new GUID. Do notice that it'll cause a delay of 25ms each time.
     /// </summary>
     /// <returns>The new Guid</returns>
     public static Guid Generate()
     {
-        Thread.Sleep(25);
+        Thread.Sleep(timeBetween);
 
         return Guid.NewGuid();
     }

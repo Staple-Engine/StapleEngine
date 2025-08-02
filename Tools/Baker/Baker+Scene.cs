@@ -61,6 +61,12 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
+            if (ShouldProcessFile(sceneFileName, outputFile) == false &&
+                ShouldProcessFile(sceneFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
+            {
+                continue;
+            }
+
             WorkScheduler.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");

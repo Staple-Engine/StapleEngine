@@ -50,83 +50,83 @@ internal static class ImGuiUtils
             if(ImGui.IsItemVisible())
             {
                 item.texture = item.ensureValidTexture(item.texture);
-            }
 
-            if (ImGui.IsItemHovered())
-            {
-                if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                if (ImGui.IsItemHovered())
                 {
-                    onDoubleClick?.Invoke(i, item);
-                }
-                else if(Input.GetMouseButtonUp(MouseButton.Left))
-                {
-                    foreach(var j in items)
+                    if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
-                        j.selected = false;
-                        j.renaming = false;
+                        onDoubleClick?.Invoke(i, item);
                     }
-
-                    item.selected = true;
-
-                    onClick?.Invoke(i, item);
-                }
-                else if(dragPayload != null &&
-                    StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) == false &&
-                    ImGui.BeginDragDropSource())
-                {
-                    unsafe
+                    else if (Input.GetMouseButtonUp(MouseButton.Left))
                     {
-                        ImGui.SetDragDropPayload(dragPayload, null, 0);
-                    }
-
-                    StapleEditor.instance.dragDropPayloads.AddOrSetKey(dragPayload, new StapleEditor.DragDropPayload()
-                    {
-                        index = index,
-                        item = item,
-                        action = onDragDropped,
-                    });
-
-                    ImGui.EndDragDropSource();
-                }
-                else if (Input.GetMouseButton(MouseButton.Left) == false)
-                {
-                    StapleEditor.instance.dragDropPayloads.Clear();
-                }
-            }
-
-            if (item.selected)
-            {
-                if (Input.GetKeyUp(KeyCode.Enter))
-                {
-                    item.renaming = true;
-                    item.renamedName = item.name;
-                }
-                else if(Input.GetKeyUp(KeyCode.Delete))
-                {
-                    EditorUtils.ShowMessageBox($"Are you sure you want to delete {item.name}?", "OK", "Cancel",
-                        () =>
+                        foreach (var j in items)
                         {
-                            onDelete?.Invoke(index, item);
-                        },
-                        null);
-                }
-            }
+                            j.selected = false;
+                            j.renaming = false;
+                        }
 
-            if (item.renaming && Input.GetKeyDown(KeyCode.Escape) == false)
-            {
-                if (ImGui.InputText("##RENAME", ref item.renamedName, 1000, ImGuiInputTextFlags.EnterReturnsTrue |
-                    ImGuiInputTextFlags.AutoSelectAll))
+                        item.selected = true;
+
+                        onClick?.Invoke(i, item);
+                    }
+                    else if (dragPayload != null &&
+                        StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) == false &&
+                        ImGui.BeginDragDropSource())
+                    {
+                        unsafe
+                        {
+                            ImGui.SetDragDropPayload(dragPayload, null, 0);
+                        }
+
+                        StapleEditor.instance.dragDropPayloads.AddOrSetKey(dragPayload, new StapleEditor.DragDropPayload()
+                        {
+                            index = index,
+                            item = item,
+                            action = onDragDropped,
+                        });
+
+                        ImGui.EndDragDropSource();
+                    }
+                    else if (Input.GetMouseButton(MouseButton.Left) == false)
+                    {
+                        StapleEditor.instance.dragDropPayloads.Clear();
+                    }
+                }
+
+                if (item.selected)
+                {
+                    if (Input.GetKeyUp(KeyCode.Enter))
+                    {
+                        item.renaming = true;
+                        item.renamedName = item.name;
+                    }
+                    else if (Input.GetKeyUp(KeyCode.Delete))
+                    {
+                        EditorUtils.ShowMessageBox($"Are you sure you want to delete {item.name}?", "OK", "Cancel",
+                            () =>
+                            {
+                                onDelete?.Invoke(index, item);
+                            },
+                            null);
+                    }
+                }
+
+                if (item.renaming && Input.GetKeyDown(KeyCode.Escape) == false)
+                {
+                    if (ImGui.InputText("##RENAME", ref item.renamedName, 1000, ImGuiInputTextFlags.EnterReturnsTrue |
+                        ImGuiInputTextFlags.AutoSelectAll))
+                    {
+                        item.renaming = false;
+
+                        onRename?.Invoke(index, item, item.renamedName);
+                    }
+                }
+                else
                 {
                     item.renaming = false;
 
-                    onRename?.Invoke(index, item, item.renamedName);
+                    ImGui.TextWrapped(item.name);
                 }
-            }
-            else
-            {
-                item.renaming = false;
-
-                ImGui.TextWrapped(item.name);
             }
 
             ImGui.NextColumn();

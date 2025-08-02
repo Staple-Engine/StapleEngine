@@ -1841,7 +1841,7 @@ internal class ResourceManager
                 syncAnimationToRefreshRate = meshAssetData.metadata.syncAnimationToRefreshRate,
             };
 
-            asset.Guid.Guid = guid;
+            asset.Guid.Guid = guid ?? path;
 
             asset.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
 
