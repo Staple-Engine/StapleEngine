@@ -153,11 +153,11 @@ public partial class Shader : IGuidAsset
         return ResourceManager.instance.LoadShader(path);
     }
 
-    internal Shader(SerializableShader shader)
+    internal Shader(SerializableShader shader, Dictionary<string, SerializableShaderData> entries)
     {
         metadata = shader.metadata;
 
-        foreach(var pair in shader.data)
+        foreach(var pair in entries)
         {
             instances.AddOrSetKey(pair.Key, new()
             {
@@ -736,10 +736,11 @@ public partial class Shader : IGuidAsset
     /// Creates from shader data
     /// </summary>
     /// <param name="data">The data</param>
+    /// <param name="entries">The variant entries for the current renderer</param>
     /// <returns>The shader if valid</returns>
-    internal static Shader Create(SerializableShader data)
+    internal static Shader Create(SerializableShader data, Dictionary<string, SerializableShaderData> entries)
     {
-        var shader = new Shader(data);
+        var shader = new Shader(data, entries);
 
         if (shader.Create())
         {

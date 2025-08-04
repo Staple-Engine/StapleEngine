@@ -287,7 +287,9 @@ internal partial class StapleEditor
                     }
                     catch(Exception e)
                     {
-                        Log.Error($"Failed to initialize game: {e}");
+                        Log.Error($"Failed to initialize game: {e}\nForcing rebuild.");
+
+                        needsGameRecompile = forceGameRecompile = true;
                     }
                 }
 

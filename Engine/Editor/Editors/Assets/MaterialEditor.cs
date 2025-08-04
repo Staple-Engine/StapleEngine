@@ -27,7 +27,7 @@ internal class MaterialEditor : AssetEditor
             {
                 if (shaderPath.Length > 0)
                 {
-                    var guid = AssetDatabase.GetAssetGuid(shaderPath, ResourceManager.ShaderPrefix);
+                    var guid = AssetDatabase.GetAssetGuid(shaderPath);
 
                     if (guid != null)
                     {

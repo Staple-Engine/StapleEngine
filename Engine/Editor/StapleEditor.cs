@@ -318,6 +318,8 @@ internal partial class StapleEditor
 
     private bool needsGameRecompile = false;
 
+    private bool forceGameRecompile = false;
+
     private bool needsRefreshStaging = false;
 
     private bool gameLoadDisabled = false;
@@ -354,6 +356,8 @@ internal partial class StapleEditor
 
     public void Run(string[] args)
     {
+        MessagePackInit.Initialize();
+
         privInstance = new WeakReference<StapleEditor>(this);
 
         ReloadTypeCache();
@@ -1065,13 +1069,15 @@ internal partial class StapleEditor
             {
                 if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
-                    if (editorSettings.autoRecompile && needsGameRecompile)
+                    if ((editorSettings.autoRecompile || forceGameRecompile) && needsGameRecompile)
                     {
                         needsGameRecompile = false;
 
                         UnloadGame();
 
-                        RefreshStaging(currentPlatform, null, true);
+                        RefreshStaging(currentPlatform, null, true, forceGameRecompile == false);
+
+                        forceGameRecompile = false;
                     }
                     else if (needsRefreshStaging)
                     {

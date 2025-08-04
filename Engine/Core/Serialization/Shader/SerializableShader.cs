@@ -36,11 +36,24 @@ public class SerializableShaderData
 }
 
 [MessagePackObject]
+public class SerializableShaderEntry
+{
+    [Key(0)]
+    public Dictionary<string, SerializableShaderData> data = [];
+}
+
+[MessagePackObject]
 public class SerializableShader
 {
+    /// <summary>
+    /// Shader metadata
+    /// </summary>
     [Key(0)]
     public ShaderMetadata metadata;
 
+    /// <summary>
+    /// Renderer Type -> List of variants
+    /// </summary>
     [Key(1)]
-    public Dictionary<string, SerializableShaderData> data = [];
+    public Dictionary<RendererType, SerializableShaderEntry> data = [];
 }

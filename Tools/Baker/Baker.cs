@@ -124,6 +124,8 @@ static partial class Program
             return;
         }
 
+        MessagePackInit.Initialize();
+
         string ValidateTool(string name, string executable)
         {
 #if _DEBUG

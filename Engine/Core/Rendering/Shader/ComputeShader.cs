@@ -47,11 +47,11 @@ public partial class ComputeShader : IGuidAsset
         return ResourceManager.instance.LoadComputeShader(path);
     }
 
-    internal ComputeShader(SerializableShader shader)
+    internal ComputeShader(SerializableShader shader, Dictionary<string, SerializableShaderData> entries)
     {
         metadata = shader.metadata;
 
-        shaderSource = shader.data.FirstOrDefault().Value.computeShader ?? [];
+        shaderSource = entries.FirstOrDefault().Value.computeShader ?? [];
     }
 
     ~ComputeShader()
@@ -606,10 +606,11 @@ public partial class ComputeShader : IGuidAsset
     /// Creates from shader data
     /// </summary>
     /// <param name="data">The data</param>
+    /// <param name="entries">The variant entries for the current renderer</param>
     /// <returns>The shader if valid</returns>
-    internal static ComputeShader Create(SerializableShader data)
+    internal static ComputeShader Create(SerializableShader data, Dictionary<string, SerializableShaderData> entries)
     {
-        var shader = new ComputeShader(data);
+        var shader = new ComputeShader(data, entries);
 
         if (shader.Create())
         {

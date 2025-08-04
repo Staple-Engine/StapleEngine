@@ -134,92 +134,152 @@ vec4 i_data4        :   TEXCOORD3;
 
             processedShaders.Add(currentShader.Replace("\\", "/"), guid);
 
-            foreach (var renderer in renderers)
+            var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
+            var index = outputFile.IndexOf(inputPath);
+
+            if (index >= 0 && index < outputFile.Length)
             {
-                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, renderer.ToString(), directory, file);
-                var index = outputFile.IndexOf(inputPath);
+                outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
 
-                if (index >= 0 && index < outputFile.Length)
-                {
-                    outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-                }
+            if (ShouldProcessFile(currentShader, outputFile) == false)
+            {
+                continue;
+            }
 
-                if (ShouldProcessFile(currentShader, outputFile) == false)
-                {
-                    continue;
-                }
-
+            WorkScheduler.Dispatch(Path.GetFileName(currentShader), () =>
+            {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 
-                WorkScheduler.Dispatch(Path.GetFileName(currentShader), () =>
+                try
                 {
-                    try
-                    {
-                        File.Delete(outputFile);
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    File.Delete(outputFile);
+                }
+                catch (Exception)
+                {
+                }
 
-                    try
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-                    }
-                    catch (Exception)
-                    {
-                    }
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                }
+                catch (Exception)
+                {
+                }
 
-                    string text;
+                string text;
 
-                    var shader = new UnprocessedShader()
+                var shader = new UnprocessedShader()
+                {
+                    type = currentShader.EndsWith(AssetSerialization.ComputeShaderExtension) ? ShaderType.Compute : ShaderType.VertexFragment,
+                };
+
+                try
+                {
+                    text = File.ReadAllText(currentShader);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"\t\tError: Unable to read file: {e}");
+
+                    return;
+                }
+
+                if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
+                    out var instancingParameters, out var vertex, out var fragment, out var compute) == false)
+                {
+                    Console.WriteLine("\t\tError: File has invalid format");
+
+                    return;
+                }
+
+                if (blendMode.HasValue)
+                {
+                    shader.sourceBlend = blendMode.Value.Item1;
+                    shader.destinationBlend = blendMode.Value.Item2;
+                }
+
+                foreach (var parameter in shaderParameters)
+                {
+                    var p = new ShaderParameter
                     {
-                        type = currentShader.EndsWith(AssetSerialization.ComputeShaderExtension) ? ShaderType.Compute : ShaderType.VertexFragment,
+                        name = parameter.name,
+                        vertexAttribute = parameter.vertexAttribute,
+                        defaultValue = parameter.initializer,
+                        attribute = parameter.attribute,
+                        variant = shader.variants.Contains(parameter.variant) ? parameter.variant : null,
                     };
 
-                    try
+                    p.semantic = parameter.type switch
                     {
-                        text = File.ReadAllText(currentShader);
+                        "varying" => ShaderParameterSemantic.Varying,
+                        "uniform" => ShaderParameterSemantic.Uniform,
+                        _ => ShaderParameterSemantic.Uniform,
+                    };
+
+                    var typeValue = parameter.dataType switch
+                    {
+                        "int" => (int)ShaderUniformType.Int,
+                        "float" => (int)ShaderUniformType.Float,
+                        "vec2" => (int)ShaderUniformType.Vector2,
+                        "vec3" => (int)ShaderUniformType.Vector3,
+                        "vec4" => (int)ShaderUniformType.Vector4,
+                        "color" => (int)ShaderUniformType.Color,
+                        "texture" => (int)ShaderUniformType.Texture,
+                        "mat3" => (int)ShaderUniformType.Matrix3x3,
+                        "mat4" => (int)ShaderUniformType.Matrix4x4,
+                        _ => -1
+                    };
+
+                    switch (parameter.type)
+                    {
+                        case "ROBuffer":
+
+                            typeValue = (int)ShaderUniformType.ReadOnlyBuffer;
+
+                            p.vertexAttribute = parameter.dataType;
+
+                            break;
+
+                        case "WOBuffer":
+
+                            typeValue = (int)ShaderUniformType.WriteOnlyBuffer;
+
+                            p.vertexAttribute = parameter.dataType;
+
+                            break;
+
+                        case "RWBuffer":
+
+                            typeValue = (int)ShaderUniformType.ReadWriteBuffer;
+
+                            p.vertexAttribute = parameter.dataType;
+
+                            break;
                     }
-                    catch (Exception e)
+
+                    if (typeValue < 0)
                     {
-                        Console.WriteLine($"\t\tError: Unable to read file: {e}");
+                        Console.WriteLine($"\t\tError: Parameter has invalid type: {parameter.name} {parameter.dataType}");
 
                         return;
                     }
 
-                    if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                        out var instancingParameters, out var vertex, out var fragment, out var compute) == false)
-                    {
-                        Console.WriteLine("\t\tError: File has invalid format");
+                    p.type = (ShaderUniformType)typeValue;
 
-                        return;
-                    }
+                    shader.parameters.Add(p);
+                }
 
-                    if (blendMode.HasValue)
+                if (instancingParameters != null)
+                {
+                    foreach (var parameter in instancingParameters)
                     {
-                        shader.sourceBlend = blendMode.Value.Item1;
-                        shader.destinationBlend = blendMode.Value.Item2;
-                    }
-
-                    foreach (var parameter in shaderParameters)
-                    {
-                        var p = new ShaderParameter
+                        var p = new ShaderInstancingParameter()
                         {
                             name = parameter.name,
-                            vertexAttribute = parameter.vertexAttribute,
-                            defaultValue = parameter.initializer,
-                            attribute = parameter.attribute,
-                            variant = shader.variants.Contains(parameter.variant) ? parameter.variant : null,
                         };
 
-                        p.semantic = parameter.type switch
-                        {
-                            "varying" => ShaderParameterSemantic.Varying,
-                            "uniform" => ShaderParameterSemantic.Uniform,
-                            _ => ShaderParameterSemantic.Uniform,
-                        };
-
-                        var typeValue = parameter.dataType switch
+                        var typeValue = parameter.type switch
                         {
                             "int" => (int)ShaderUniformType.Int,
                             "float" => (int)ShaderUniformType.Float,
@@ -227,172 +287,131 @@ vec4 i_data4        :   TEXCOORD3;
                             "vec3" => (int)ShaderUniformType.Vector3,
                             "vec4" => (int)ShaderUniformType.Vector4,
                             "color" => (int)ShaderUniformType.Color,
-                            "texture" => (int)ShaderUniformType.Texture,
                             "mat3" => (int)ShaderUniformType.Matrix3x3,
                             "mat4" => (int)ShaderUniformType.Matrix4x4,
                             _ => -1
                         };
 
-                        switch (parameter.type)
-                        {
-                            case "ROBuffer":
-
-                                typeValue = (int)ShaderUniformType.ReadOnlyBuffer;
-
-                                p.vertexAttribute = parameter.dataType;
-
-                                break;
-
-                            case "WOBuffer":
-
-                                typeValue = (int)ShaderUniformType.WriteOnlyBuffer;
-
-                                p.vertexAttribute = parameter.dataType;
-
-                                break;
-
-                            case "RWBuffer":
-
-                                typeValue = (int)ShaderUniformType.ReadWriteBuffer;
-
-                                p.vertexAttribute = parameter.dataType;
-
-                                break;
-                        }
-
                         if (typeValue < 0)
                         {
-                            Console.WriteLine($"\t\tError: Parameter has invalid type: {parameter.name} {parameter.dataType}");
+                            Console.WriteLine($"\t\tError: Instancing Parameter has invalid type: {parameter.name} {parameter.type}");
 
                             return;
                         }
 
-                        p.type = (ShaderUniformType)typeValue;
+                        p.dataType = (ShaderUniformType)typeValue;
 
-                        shader.parameters.Add(p);
+                        shader.instancingParameters.Add(p);
                     }
+                }
+                else
+                {
+                    shader.instancingParameters = null;
+                }
 
-                    if (instancingParameters != null)
-                    {
-                        foreach (var parameter in instancingParameters)
+                switch (shader.type)
+                {
+                    case ShaderType.Compute:
+
+                        shader.compute = new()
                         {
-                            var p = new ShaderInstancingParameter()
-                            {
-                                name = parameter.name,
-                            };
+                            code = compute.content,
+                            inputs = compute.inputs,
+                            outputs = compute.outputs,
+                        };
 
-                            var typeValue = parameter.type switch
-                            {
-                                "int" => (int)ShaderUniformType.Int,
-                                "float" => (int)ShaderUniformType.Float,
-                                "vec2" => (int)ShaderUniformType.Vector2,
-                                "vec3" => (int)ShaderUniformType.Vector3,
-                                "vec4" => (int)ShaderUniformType.Vector4,
-                                "color" => (int)ShaderUniformType.Color,
-                                "mat3" => (int)ShaderUniformType.Matrix3x3,
-                                "mat4" => (int)ShaderUniformType.Matrix4x4,
-                                _ => -1
-                            };
+                        break;
 
-                            if (typeValue < 0)
-                            {
-                                Console.WriteLine($"\t\tError: Instancing Parameter has invalid type: {parameter.name} {parameter.type}");
+                    case ShaderType.VertexFragment:
 
-                                return;
-                            }
-
-                            p.dataType = (ShaderUniformType)typeValue;
-
-                            shader.instancingParameters.Add(p);
-                        }
-                    }
-                    else
-                    {
-                        shader.instancingParameters = null;
-                    }
-
-                    switch (shader.type)
-                    {
-                        case ShaderType.Compute:
-
-                            shader.compute = new()
-                            {
-                                code = compute.content,
-                                inputs = compute.inputs,
-                                outputs = compute.outputs,
-                            };
-
-                            break;
-
-                        case ShaderType.VertexFragment:
-
-                            shader.vertex = new()
-                            {
-                                code = vertex.content,
-                                inputs = vertex.inputs,
-                                outputs = vertex.outputs,
-                            };
-
-                            shader.fragment = new()
-                            {
-                                code = fragment.content,
-                                inputs = fragment.inputs,
-                                outputs = fragment.outputs,
-                            };
-
-                            break;
-                    }
-
-                    if (shader.instancingParameters != default)
-                    {
-                        shader.variants.Add(Shader.InstancingKeyword);
-                    }
-
-                    var variants = shader.type == ShaderType.VertexFragment ?
-                        Utilities.Combinations(shader.variants
-                            .Concat(Shader.DefaultVariants)
-                            .ToList()) : [];
-
-                    Console.WriteLine($"\t\tCompiling {variants.Count} variants");
-
-                    var generatedShader = new SerializableShader()
-                    {
-                        metadata = new ShaderMetadata()
+                        shader.vertex = new()
                         {
-                            guid = guid,
-                            sourceBlend = shader.sourceBlend,
-                            destinationBlend = shader.destinationBlend,
-                            variants = shader.variants,
-                        }
-                    };
+                            code = vertex.content,
+                            inputs = vertex.inputs,
+                            outputs = vertex.outputs,
+                        };
 
-                    if (shader.parameters != null)
+                        shader.fragment = new()
+                        {
+                            code = fragment.content,
+                            inputs = fragment.inputs,
+                            outputs = fragment.outputs,
+                        };
+
+                        break;
+                }
+
+                if (shader.instancingParameters != default)
+                {
+                    shader.variants.Add(Shader.InstancingKeyword);
+                }
+
+                var variants = shader.type == ShaderType.VertexFragment ?
+                    Utilities.Combinations(shader.variants
+                        .Concat(Shader.DefaultVariants)
+                        .ToList()) : [];
+
+                Console.WriteLine($"\t\tCompiling {variants.Count} variants");
+
+                var generatedShader = new SerializableShader()
+                {
+                    metadata = new ShaderMetadata()
                     {
-                        generatedShader.metadata.uniforms = shader.parameters
-                            .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform)
-                            .Select(x => new ShaderUniform()
-                            {
-                                name = x.name,
-                                type = x.type,
-                                slot = Array.IndexOf([ShaderUniformType.ReadOnlyBuffer, ShaderUniformType.WriteOnlyBuffer, ShaderUniformType.ReadWriteBuffer], x.type) >= 0 &&
-                                    int.TryParse(x.defaultValue, out var bufferIndex) ? bufferIndex : -1,
-                                attribute = x.attribute,
-                                variant = x.variant,
-                                defaultValue = x.defaultValue,
-                            }).ToList();
+                        guid = guid,
+                        sourceBlend = shader.sourceBlend,
+                        destinationBlend = shader.destinationBlend,
+                        variants = shader.variants,
+                    }
+                };
+
+                if (shader.parameters != null)
+                {
+                    generatedShader.metadata.uniforms = shader.parameters
+                        .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform)
+                        .Select(x => new ShaderUniform()
+                        {
+                            name = x.name,
+                            type = x.type,
+                            slot = Array.IndexOf([ShaderUniformType.ReadOnlyBuffer, ShaderUniformType.WriteOnlyBuffer, ShaderUniformType.ReadWriteBuffer], x.type) >= 0 &&
+                                int.TryParse(x.defaultValue, out var bufferIndex) ? bufferIndex : -1,
+                            attribute = x.attribute,
+                            variant = x.variant,
+                            defaultValue = x.defaultValue,
+                        }).ToList();
+                }
+
+                if (shader.instancingParameters != null)
+                {
+                    generatedShader.metadata.instanceParameters = shader.instancingParameters
+                        .Where(x => x != null)
+                        .Select(x => new ShaderInstanceParameter()
+                        {
+                            name = x.name,
+                            type = x.dataType,
+                        })
+                        .ToList();
+                }
+
+                foreach (var renderer in renderers)
+                {
+                    //PSSL and d3d12 ignored for now
+                    if (renderer == Renderer.pssl || renderer == Renderer.d3d12)
+                    {
+                        continue;
                     }
 
-                    if(shader.instancingParameters != null)
+                    var entries = new SerializableShaderEntry();
+
+                    generatedShader.data.Add(renderer switch
                     {
-                        generatedShader.metadata.instanceParameters = shader.instancingParameters
-                            .Where(x => x != null)
-                            .Select(x => new ShaderInstanceParameter()
-                            {
-                                name = x.name,
-                                type = x.dataType,
-                            })
-                            .ToList();
-                    }
+                        Renderer.spirv => RendererType.Vulkan,
+                        Renderer.opengl => RendererType.OpenGL,
+                        Renderer.opengles => RendererType.OpenGLES,
+                        Renderer.d3d11 => RendererType.Direct3D11,
+                        Renderer.metal => RendererType.Metal,
+                        _ => throw new InvalidOperationException($"Invalid renderer type {renderer} when mapping to regular renderer type"),
+                    },
+                    entries);
 
                     byte[] ProcessShader(string varyingFileName, string shaderFileName, List<string> extraDefines, ShaderCompilerType shaderType, Renderer renderer)
                     {
@@ -498,9 +517,9 @@ vec4 i_data4        :   TEXCOORD3;
 
                         var defineString = shaderDefineString;
 
-                        if(extraDefines.Count > 0)
+                        if (extraDefines.Count > 0)
                         {
-                            if(defineString.Length > 0)
+                            if (defineString.Length > 0)
                             {
                                 defineString += $";{string.Join(";", extraDefines)}";
                             }
@@ -560,7 +579,7 @@ vec4 i_data4        :   TEXCOORD3;
                         var uniformString = uniform ? "uniform " : "";
                         var name = parameter.name;
 
-                        if(int.TryParse(parameter.defaultValue, out var bufferIndex) == false)
+                        if (int.TryParse(parameter.defaultValue, out var bufferIndex) == false)
                         {
                             bufferIndex = -1;
                         }
@@ -620,7 +639,7 @@ vec4 i_data4        :   TEXCOORD3;
                                     code += $", {string.Join(", ", piece.inputs)}";
                                 }
                             }
-                            else if(type == ShaderCompilerType.fragment)
+                            else if (type == ShaderCompilerType.fragment)
                             {
                                 code += $"$input ";
 
@@ -644,11 +663,11 @@ vec4 i_data4        :   TEXCOORD3;
                             }
                             else
                             {
-                                if(type == ShaderCompilerType.vertex && instancing)
+                                if (type == ShaderCompilerType.vertex && instancing)
                                 {
                                     var fieldIndex = 0;
 
-                                    foreach(var instanceParameter in shader.instancingParameters)
+                                    foreach (var instanceParameter in shader.instancingParameters)
                                     {
                                         var dataIndex = fieldIndex / 4;
                                         var componentIndex = fieldIndex % 4;
@@ -692,7 +711,7 @@ vec4 i_data4        :   TEXCOORD3;
 
                                                 code += $"i_data{dataIndex}";
 
-                                                switch(componentIndex)
+                                                switch (componentIndex)
                                                 {
                                                     case 0:
                                                         code += ".x\n";
@@ -722,7 +741,7 @@ vec4 i_data4        :   TEXCOORD3;
                                             case ShaderUniformType.Color:
                                             case ShaderUniformType.Vector4:
 
-                                                switch(componentIndex)
+                                                switch (componentIndex)
                                                 {
                                                     case 0:
 
@@ -825,7 +844,7 @@ vec4 i_data4        :   TEXCOORD3;
                                                 {
                                                     case 0:
 
-                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " + 
+                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
                                                             $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x))\n";
 
                                                         break;
@@ -991,7 +1010,7 @@ vec4 i_data4        :   TEXCOORD3;
                                     return;
                                 }
 
-                                generatedShader.data.AddOrSetKey(variantKey, shaderObject);
+                                entries.data.AddOrSetKey(variantKey, shaderObject);
 
                                 break;
 
@@ -1089,7 +1108,7 @@ vec4 i_data4        :   TEXCOORD3;
                                     return;
                                 }
 
-                                generatedShader.data.AddOrSetKey(variantKey, shaderObject);
+                                entries.data.AddOrSetKey(variantKey, shaderObject);
 
                                 break;
                         }
@@ -1108,18 +1127,18 @@ vec4 i_data4        :   TEXCOORD3;
                             Build(variantKey, pair);
                         }
                     }
+                }
 
-                    var header = new SerializableShaderHeader();
+                var header = new SerializableShaderHeader();
 
-                    using var stream = File.OpenWrite(outputFile);
-                    using var writer = new BinaryWriter(stream);
+                using var stream = File.OpenWrite(outputFile);
+                using var writer = new BinaryWriter(stream);
 
-                    var encoded = MessagePackSerializer.Serialize(header)
-                        .Concat(MessagePackSerializer.Serialize(generatedShader));
+                var encoded = MessagePackSerializer.Serialize(header)
+                    .Concat(MessagePackSerializer.Serialize(generatedShader));
 
-                    writer.Write(encoded.ToArray());
-                });
-            }
+                writer.Write(encoded.ToArray());
+            });
         }
     }
 }

@@ -76,7 +76,7 @@ public sealed class Material : IGuidAsset
     internal static readonly int MainColorPropertyHash = MainColorProperty.GetHashCode();
     internal static readonly int MainTexturePropertyHash = MainTextureProperty.GetHashCode();
 
-    private static Texture whiteTexture;
+    internal static Texture whiteTexture;
 
     internal static Texture WhiteTexture
     {

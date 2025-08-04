@@ -370,25 +370,6 @@ public static class AssetDatabase
                             lock (threadLock)
                             {
                                 AddAsset(asset);
-
-                                if (holder.typeName == typeof(Shader).FullName)
-                                {
-                                    var shaderPath = ResourceManager.ShaderPrefix + asset.path;
-
-                                    if (asset.path.StartsWith("Assets/"))
-                                    {
-                                        shaderPath = string.Concat("Assets/", ResourceManager.ShaderPrefix, asset.path.AsSpan("Assets/".Length));
-                                    }
-
-                                    AddAsset(new()
-                                    {
-                                        guid = holder.guid,
-                                        name = asset.name,
-                                        path = shaderPath,
-                                        typeName = holder.typeName,
-                                        lastModified = currentModifiedTicks,
-                                    });
-                                }
                             }
                         }
 
@@ -504,19 +485,6 @@ public static class AssetDatabase
     /// <param name="path">The path for the asset</param>
     /// <returns>The guid or null</returns>
     public static string GetAssetGuid(string path) => assetGuids.TryGetValue(path, out var guid) ? guid : null;
-
-    /// <summary>
-    /// Gets an asset guid for a path with a prefix
-    /// </summary>
-    /// <param name="path">The path for the asset</param>
-    /// <param name="prefix">The prefix to search for</param>
-    /// <returns>The guid or null</returns>
-    public static string GetAssetGuid(string path, string prefix)
-    {
-        var t = prefix + path;
-
-        return GetAssetGuid(t);
-    }
 
     /// <summary>
     /// Gets the type name of an asset

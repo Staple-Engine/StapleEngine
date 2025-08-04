@@ -51,25 +51,6 @@ internal class ResourceManager
     /// </summary>
     internal readonly HashSet<int> lockedAssets = [];
 
-    public static string ShaderPrefix
-    {
-        get
-        {
-            return RenderWindow.CurrentRenderer switch
-            {
-                RendererType.Direct3D11 => "d3d11/",
-#if STAPLE_SUPPORTS_D3D12
-                RendererType.Direct3D12 => "d3d12/",
-#endif
-                RendererType.Metal => "metal/",
-                RendererType.OpenGL => "opengl/",
-                RendererType.OpenGLES => "opengles/",
-                RendererType.Vulkan => "spirv/",
-                _ => "",
-            };
-        }
-    }
-
     /// <summary>
     /// The default instance of the resource manager
     /// </summary>
@@ -238,7 +219,7 @@ internal class ResourceManager
     {
         if(mode != DestroyMode.UserOnly)
         {
-            Material.WhiteTexture?.Destroy();
+            Material.whiteTexture?.Destroy();
         }
 
         foreach (var pair in cachedTextures)
@@ -467,7 +448,7 @@ internal class ResourceManager
     /// </summary>
     /// <param name="path">The path to load</param>
     /// <returns>The byte array, or null</returns>
-    public byte[] LoadFile(string path, string prefix = null)
+    public byte[] LoadFile(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
@@ -485,7 +466,7 @@ internal class ResourceManager
 
         if(guid != null)
         {
-            var localPath = prefix != null ? AssetDatabase.GetAssetPath(guid, prefix) : AssetDatabase.GetAssetPath(guid);
+            var localPath = AssetDatabase.GetAssetPath(guid);
 
             if(localPath != null)
             {
@@ -995,22 +976,14 @@ internal class ResourceManager
             return null;
         }
 
-        var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
-
-        if (path.StartsWith(prefix) == false)
-        {
-            path = prefix + path;
-        }
-
-        guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
         if (guid == null)
         {
             return null;
         }
 
-        byte[] data = LoadFile(guid, ShaderPrefix);
+        byte[] data = LoadFile(guid);
 
         if (data == null)
         {
@@ -1065,10 +1038,9 @@ internal class ResourceManager
             return null;
         }
 
-        var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
 
-        var assetPath = AssetDatabase.GetAssetPath(path, ShaderPrefix);
+        var assetPath = AssetDatabase.GetAssetPath(path);
 
         if(assetPath != null)
         {
@@ -1077,11 +1049,6 @@ internal class ResourceManager
         }
         else
         {
-            if (path.StartsWith(prefix) == false && path.StartsWith("Assets/" + prefix) == false)
-            {
-                path = prefix + path;
-            }
-
             guid = AssetDatabase.GetAssetGuid(path) ?? guid;
         }
 
@@ -1098,12 +1065,9 @@ internal class ResourceManager
             return shader;
         }
 
-        byte[] data = LoadFile(guid, ShaderPrefix);
+        byte[] data = LoadFile(guid);
 
-        if(data == null)
-        {
-            data = LoadFile(path);
-        }
+        data ??= LoadFile(path);
 
         if (data == null)
         {
@@ -1142,7 +1106,15 @@ internal class ResourceManager
                 return null;
             }
 
-            foreach (var pair in shaderData.data)
+            if(shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries) == false)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
+                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
+
+                return null;
+            }
+
+            foreach (var pair in entries.data)
             {
                 if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
                 {
@@ -1150,7 +1122,7 @@ internal class ResourceManager
                 }
             }
 
-            shader = Shader.Create(shaderData);
+            shader = Shader.Create(shaderData, entries.data);
 
             if (shader != null)
             {
@@ -1185,13 +1157,7 @@ internal class ResourceManager
             return null;
         }
 
-        var prefix = ShaderPrefix;
         var guid = AssetDatabase.GetAssetGuid(path);
-
-        if (path.StartsWith(prefix) == false)
-        {
-            path = prefix + path;
-        }
 
         guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
@@ -1208,12 +1174,9 @@ internal class ResourceManager
             return shader;
         }
 
-        byte[] data = LoadFile(guid, ShaderPrefix);
+        byte[] data = LoadFile(guid);
 
-        if (data == null)
-        {
-            data = LoadFile(path);
-        }
+        data ??= LoadFile(path);
 
         if (data == null)
         {
@@ -1252,7 +1215,15 @@ internal class ResourceManager
                 return null;
             }
 
-            foreach (var pair in shaderData.data)
+            if (shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries) == false)
+            {
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
+                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
+
+                return null;
+            }
+
+            foreach (var pair in entries.data)
             {
                 if ((pair.Value.computeShader?.Length ?? 0) == 0)
                 {
@@ -1260,7 +1231,7 @@ internal class ResourceManager
                 }
             }
 
-            shader = ComputeShader.Create(shaderData);
+            shader = ComputeShader.Create(shaderData, entries.data);
 
             if (shader != null)
             {
@@ -2542,7 +2513,7 @@ internal class ResourceManager
             lockedAssets.Add(localGuid.GetHashCode());
         }
 
-        localGuid = AssetDatabase.GetAssetGuid(guid, ShaderPrefix);
+        localGuid = AssetDatabase.GetAssetGuid(guid);
 
         if (localGuid != null)
         {

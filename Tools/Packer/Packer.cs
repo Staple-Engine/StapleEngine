@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,8 @@ static class Program
 
             return;
         }
+
+        MessagePackInit.Initialize();
 
         for (var i = 0; i < args.Length; i++)
         {
