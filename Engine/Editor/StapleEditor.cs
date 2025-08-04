@@ -293,6 +293,8 @@ internal partial class StapleEditor
     public EditorMode editorMode = EditorMode.Normal;
 
     public EditorSettings editorSettings = new();
+
+    private bool initialized = false;
     #endregion
 
     #region Game
@@ -343,8 +345,6 @@ internal partial class StapleEditor
     private string projectToLoad;
 
     private string buildOutputDirectory;
-
-    private AppPlatform targetPlatform;
 
     #endregion
 
@@ -614,123 +614,137 @@ internal partial class StapleEditor
 
         window.OnInit = () =>
         {
-            AssetDatabase.Reload();
-
-            Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
-
-            projectBrowser.LoadEditorTextures();
-
-            var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "Icon.png");
-
-            ThumbnailCache.GetTexture(iconPath, force: true);
-
-            if (ThumbnailCache.TryGetTextureData(iconPath, out var icon))
+            AssetDatabase.Reload(null, () =>
             {
-                window.SetIcon(icon);
-            }
+                Time.fixedDeltaTime = 1000.0f / TargetFramerate / 1000.0f;
 
-            window.Title = $"Staple Editor - {RenderWindow.CurrentRenderer}";
+                projectBrowser.LoadEditorTextures();
 
-            if (ImGuiProxy.instance.Initialize() == false)
-            {
-                ImGuiProxy.instance.Destroy();
+                var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "Icon.png");
 
-                window.Cleanup();
+                ThumbnailCache.GetTexture(iconPath, force: true);
 
-                window.shouldStop = true;
+                if (ThumbnailCache.TryGetTextureData(iconPath, out var icon))
+                {
+                    window.SetIcon(icon);
+                }
 
-                return;
-            }
+                window.Title = $"Staple Editor - {RenderWindow.CurrentRenderer}";
 
-            var io = ImGui.GetIO();
+                if (ImGuiProxy.instance.Initialize() == false)
+                {
+                    ImGuiProxy.instance.Destroy();
 
-            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-            io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+                    window.Cleanup();
 
-            EditorGUI.io = io;
-            EditorGUI.editor = this;
+                    window.shouldStop = true;
 
-            SetupImGuiStyle();
+                    return;
+                }
 
-            var style = ImGui.GetStyle();
+                var io = ImGui.GetIO();
 
-            style.WindowPadding = Vector2.Zero;
+                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+                EditorGUI.io = io;
+                EditorGUI.editor = this;
 
-            bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
+                SetupImGuiStyle();
 
-            bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+                var style = ImGui.GetStyle();
 
-            Physics3D.Instance = new Physics3D(new JoltPhysics3D());
+                style.WindowPadding = Vector2.Zero;
 
-            Physics3D.Instance.Startup();
+                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
-            wireframeMaterial = SpriteRenderSystem.DefaultMaterial.Value;
+                bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
-            wireframeMesh = new Mesh(true, true)
-            {
-                Vertices =
-                [
-                    new Vector3(-0.5f, 0.5f, 0.5f),
-                    Vector3.One * 0.5f,
-                    new Vector3(-0.5f, -0.5f, 0.5f),
-                    new Vector3(0.5f, -0.5f, 0.5f),
-                    new Vector3(-0.5f, 0.5f, -0.5f),
-                    new Vector3(0.5f, 0.5f, -0.5f),
-                    Vector3.One * -0.5f,
-                    new Vector3(0.5f, -0.5f, -0.5f),
-                ],
+                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
+                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
 
-                Indices =
-                [
-                    0, 1, 2,
-                    3, 7, 1,
-                    5, 0, 4,
-                    2, 6, 7,
-                    4, 5
-                ],
+                Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
-                MeshTopology = MeshTopology.LineStrip,
-            };
+                Physics3D.Instance.Startup();
 
-            wireframeMesh.Guid.Guid = "WIREFRAME_MESH";
+                wireframeMaterial = SpriteRenderSystem.DefaultMaterial.Value;
 
-            ResourceManager.instance.LockAsset(wireframeMesh.Guid.Guid);
+                wireframeMesh = new Mesh(true, true)
+                {
+                    Vertices =
+                    [
+                        new Vector3(-0.5f, 0.5f, 0.5f),
+                        Vector3.One * 0.5f,
+                        new Vector3(-0.5f, -0.5f, 0.5f),
+                        new Vector3(0.5f, -0.5f, 0.5f),
+                        new Vector3(-0.5f, 0.5f, -0.5f),
+                        new Vector3(0.5f, 0.5f, -0.5f),
+                        Vector3.One * -0.5f,
+                        new Vector3(0.5f, -0.5f, -0.5f),
+                    ],
 
-            RenderSystem.Instance.Startup();
+                    Indices =
+                    [
+                        0, 1, 2,
+                        3, 7, 1,
+                        5, 0, 4,
+                        2, 6, 7,
+                        4, 5
+                        ],
 
-            World.AddChangeReceiver(RenderSystem.Instance);
+                    MeshTopology = MeshTopology.LineStrip,
+                };
 
-            cameraTransform.Position = new Vector3(0, 0, 5);
+                wireframeMesh.Guid.Guid = "WIREFRAME_MESH";
 
-            try
-            {
-                var json = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"));
+                ResourceManager.instance.LockAsset(wireframeMesh.Guid.Guid);
 
-                lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
-            }
-            catch (Exception)
-            {
-            }
+                RenderSystem.Instance.Startup();
 
-            lastProjects ??= new();
+                World.AddChangeReceiver(RenderSystem.Instance);
 
-            //Might re-enable this later
-            /*
-            if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
-            {
-                LoadProject(lastProjects.lastOpenProject);
-            }
-            */
+                cameraTransform.Position = new Vector3(0, 0, 5);
+
+                try
+                {
+                    var json = File.ReadAllText(Path.Combine(Storage.PersistentDataPath, "ProjectList.json"));
+
+                    lastProjects = JsonConvert.DeserializeObject<LastProjectInfo>(json);
+                }
+                catch (Exception)
+                {
+                }
+
+                lastProjects ??= new();
+
+                //Might re-enable this later
+                /*
+                if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
+                {
+                    LoadProject(lastProjects.lastOpenProject);
+                }
+                */
+
+                lock(backgroundLock)
+                {
+                    initialized = true;
+                }
+            });
         };
 
         window.OnUpdate = () =>
         {
+            lock (backgroundLock)
+            {
+                if (initialized == false)
+                {
+                    return;
+                }
+            }
+
             var io = ImGui.GetIO();
 
             bgfx.touch(ClearView);

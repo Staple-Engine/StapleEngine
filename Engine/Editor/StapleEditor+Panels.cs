@@ -1611,7 +1611,7 @@ internal partial class StapleEditor
 
             lock(backgroundLock)
             {
-                showingProgress = backgroundHandles.Count > 0 && backgroundHandles.Any(x => x.Completed == false);
+                showingProgress = backgroundHandles.Count == 0 || backgroundHandles.Any(x => x.Completed == false);
 
                 if (showingProgress == false)
                 {

@@ -21,6 +21,21 @@ public partial class Program
     {
         using var assimp = Silk.NET.Assimp.Assimp.GetApi();
 
+        var log = new StringBuilder();
+
+        var stream = new Silk.NET.Assimp.LogStream(Silk.NET.Assimp.PfnLogStreamCallback.From((msg, user) =>
+        {
+            var length = 0;
+
+            while (msg[length++] != 0) ;
+
+            var str = Encoding.UTF8.GetString(msg, length);
+
+            log.Append(str);
+        }));
+
+        assimp.AttachLogStream(ref stream);
+
         var flags = Silk.NET.Assimp.PostProcessSteps.CalculateTangentSpace |
             Silk.NET.Assimp.PostProcessSteps.Triangulate |
             Silk.NET.Assimp.PostProcessSteps.GenerateSmoothNormals |
@@ -123,7 +138,14 @@ public partial class Program
         }
         catch (Exception e)
         {
-            Console.WriteLine($"\t\tError: Failed to import file: {e}");
+            Console.WriteLine($"\t\tError: Failed to import file at {meshFileName}: {e}");
+
+            return null;
+        }
+
+        if(scene == null)
+        {
+            Console.WriteLine($"\t\tError: Failed to import file at {meshFileName}:\n{log}");
 
             return null;
         }

@@ -333,11 +333,35 @@ static partial class Program
             return;
         }
 
-        foreach (var path in inputPaths)
-        {
-            var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+        var finished = false;
+        var l = new Lock();
 
-            ProcessShaders(platform, shadercPath, path, outPath, shaderDefines, renderers);
+        AssetDatabase.Reload(null, () =>
+        {
+            foreach (var path in inputPaths)
+            {
+                var outPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+                ProcessShaders(platform, shadercPath, path, outPath, shaderDefines, renderers);
+            }
+
+            lock(l)
+            {
+                finished = true;
+            }
+        });
+
+        for(; ; )
+        {
+            lock(l)
+            {
+                if (finished)
+                {
+                    break;
+                }
+            }
+
+            Thread.Sleep(25);
         }
 
         WorkScheduler.WaitForTasks();

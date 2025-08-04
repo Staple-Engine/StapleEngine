@@ -27,6 +27,29 @@ internal partial class StapleEditor
     }
 
     /// <summary>
+    /// Shows the background progress bar
+    /// </summary>
+    public void ShowBackgroundProcess()
+    {
+        lock (backgroundLock)
+        {
+            showingProgress = true;
+            progressFraction = 0;
+        }
+    }
+
+    /// <summary>
+    /// Hides the background progress bar
+    /// </summary>
+    public void HideBackgroundProcess()
+    {
+        lock (backgroundLock)
+        {
+            showingProgress = false;
+        }
+    }
+
+    /// <summary>
     /// Sets the current background progress and message
     /// </summary>
     /// <param name="progress">The progress percentage (0-1)</param>

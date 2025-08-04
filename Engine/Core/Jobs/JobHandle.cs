@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Staple.Jobs;
@@ -36,6 +38,18 @@ public readonly struct JobHandle : IEquatable<JobHandle>
         }
 
         task.Wait();
+    }
+
+    /// <summary>
+    /// Waits for a set of jobs to complete
+    /// </summary>
+    /// <param name="jobs">The jobs to wawit</param>
+    public static void Complete(IEnumerable<JobHandle> jobs)
+    {
+        foreach(var job in jobs)
+        {
+            job.Complete();
+        }
     }
 
     public override readonly bool Equals(object obj)

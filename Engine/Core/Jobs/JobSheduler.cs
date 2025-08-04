@@ -55,6 +55,15 @@ public static class JobScheduler
             catch(Exception e)
             {
                 Log.Debug($"[JobScheduler] Failed to execute job {job.GetType().FullName}: {e}");
+
+                try
+                {
+                    job.Failure(e);
+                }
+                catch(Exception e2)
+                {
+                    Log.Debug($"[JobScheduler] Failed to execute failure handler for job {job.GetType().FullName}: {e2}");
+                }
             }
         });
 

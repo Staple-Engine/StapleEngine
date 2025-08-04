@@ -94,6 +94,7 @@
 
 	<ItemGroup>
 		<Compile Include="AppSettings\AppProfilingMode.cs" />
+		<Compile Include="Assets\IAssetDatabaseObserver.cs" />
 		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
 		<Compile Include="Assets\TextAsset.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
@@ -213,6 +214,7 @@
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
 		<Compile Include="Serialization\Asset\GuidHasher.cs" />
+		<Compile Include="Serialization\Asset\SerializableAssetDatabase.cs" />
 		<Compile Include="Serialization\Serializer\IStapleTypeSerializer.cs" />
 		<Compile Include="Serialization\Serializer\JsonExtensions.cs" />
 		<Compile Include="Serialization\Serializer\Serializers\StapleBaseTypeSerializer.cs" />
@@ -267,7 +269,7 @@
 		<Compile Include="Rendering\Animation\SkinnedMeshRenderSystem.cs" />
 		<Compile Include="Rendering\Screen.cs" />
 		<Compile Include="Resources\Resources.cs" />
-		<Compile Include="Serialization\Asset\AssetDatabase.cs" />
+		<Compile Include="Assets\AssetDatabase.cs" />
 		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
 		<Compile Include="Serialization\Asset\IGuidAsset.cs" />
 		<Compile Include="Serialization\Asset\IStapleAsset.cs" />

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace Baker;
 
@@ -54,8 +53,6 @@ vec4 i_data4        :   TEXCOORD3;
         var resourcesPath = Path.Combine(stapleBase, "DefaultResources", "DefaultResources-Windows.pak");
 
         ResourceManager.instance.LoadPak(resourcesPath);
-
-        AssetDatabase.Reload();
 
         var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
 

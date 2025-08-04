@@ -134,108 +134,135 @@ internal partial class StapleEditor
 
         projectBrowser.UpdateProjectBrowserNodes();
 
-        projectBrowser.CreateMissingMetaFiles();
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
-
-            projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
-        }
-        catch(Exception e)
-        {
-            Log.Error($"Failed to load project app settings: {e}");
-
-            projectAppSettings = AppSettings.Default;
-        }
-
-        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
-
-        AddEditorLayers();
-
-        Physics3D.Instance.Shutdown();
-
-        Physics3D.Instance.Startup();
-
-        AppSettings.Current.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
-        AppSettings.Current.ambientLight = projectAppSettings.ambientLight;
-        AppSettings.Current.enableLighting = projectAppSettings.enableLighting;
-
-        LightSystem.Enabled = projectAppSettings.enableLighting;
-
-        foreach(var pair in projectAppSettings.renderers)
+        projectBrowser.CreateMissingMetaFiles(() =>
         {
             try
             {
-                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
-        }
 
-        var lastSession = GetLastSession();
-
-        if(lastSession != null)
-        {
-            currentPlatform = lastSession.currentPlatform;
-            lastOpenScene = lastSession.lastOpenScene;
-            lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
-            buildPlayerDebug = lastSession.debugBuild;
-            buildPlayerNativeAOT = lastSession.nativeBuild;
-            buildPlayerDebugRedists = lastSession.debugRedists;
-            buildPlayerSingleFile = lastSession.publishSingleFile;
-        }
-        else
-        {
-            currentPlatform = Platform.CurrentPlatform.Value;
-            lastOpenScene = null;
-            lastPickedBuildDirectories.Clear();
-            buildPlayerDebug = true;
-            buildPlayerNativeAOT = false;
-            buildPlayerDebugRedists = false;
-            buildPlayerSingleFile = true;
-        }
-
-        projectBrowser.currentPlatform = currentPlatform;
-
-        if (fileSystemWatcher != null)
-        {
-            fileSystemWatcher.Dispose();
-
-            fileSystemWatcher = null;
-        }
-
-        fileSystemWatcher = new FileSystemWatcher(BasePath);
-
-        void FileSystemHandler(object sender, FileSystemEventArgs e)
-        {
-            lock(backgroundLock)
+            try
             {
-                if (RefreshingAssets == false)
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
+
+                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to load project app settings: {e}");
+
+                projectAppSettings = AppSettings.Default;
+            }
+
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
+
+            AddEditorLayers();
+
+            Physics3D.Instance.Shutdown();
+
+            Physics3D.Instance.Startup();
+
+            AppSettings.Current.fixedTimeFrameRate = projectAppSettings.fixedTimeFrameRate;
+            AppSettings.Current.ambientLight = projectAppSettings.ambientLight;
+            AppSettings.Current.enableLighting = projectAppSettings.enableLighting;
+
+            LightSystem.Enabled = projectAppSettings.enableLighting;
+
+            foreach (var pair in projectAppSettings.renderers)
+            {
+                try
                 {
-                    try
+                    Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            var lastSession = GetLastSession();
+
+            if (lastSession != null)
+            {
+                currentPlatform = lastSession.currentPlatform;
+                lastOpenScene = lastSession.lastOpenScene;
+                lastPickedBuildDirectories = lastSession.lastPickedBuildDirectories;
+                buildPlayerDebug = lastSession.debugBuild;
+                buildPlayerNativeAOT = lastSession.nativeBuild;
+                buildPlayerDebugRedists = lastSession.debugRedists;
+                buildPlayerSingleFile = lastSession.publishSingleFile;
+            }
+            else
+            {
+                currentPlatform = Platform.CurrentPlatform.Value;
+                lastOpenScene = null;
+                lastPickedBuildDirectories.Clear();
+                buildPlayerDebug = true;
+                buildPlayerNativeAOT = false;
+                buildPlayerDebugRedists = false;
+                buildPlayerSingleFile = true;
+            }
+
+            projectBrowser.currentPlatform = currentPlatform;
+
+            if (fileSystemWatcher != null)
+            {
+                fileSystemWatcher.Dispose();
+
+                fileSystemWatcher = null;
+            }
+
+            fileSystemWatcher = new FileSystemWatcher(BasePath);
+
+            void FileSystemHandler(object sender, FileSystemEventArgs e)
+            {
+                lock (backgroundLock)
+                {
+                    if (RefreshingAssets == false)
                     {
-                        if ((e.FullPath.EndsWith(".cs") ||
-                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted)) &&
+                        try
+                        {
+                            if ((e.FullPath.EndsWith(".cs") ||
+                                (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Deleted)) &&
+                                (e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")) ||
+                                e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages"))))
+                            {
+                                needsGameRecompile = true;
+                            }
+                            else if (Directory.Exists(e.FullPath) == false &&
+                                excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
+                                e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
+                            {
+                                needsRefreshStaging = true;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
+
+            void RenamedFileSystemHandler(object sender, RenamedEventArgs e)
+            {
+                lock (backgroundLock)
+                {
+                    if (RefreshingAssets == false)
+                    {
+                        if (e.FullPath.EndsWith(".cs") ||
+                            (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
                             (e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")) ||
-                            e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages"))))
+                            e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages")))))
                         {
                             needsGameRecompile = true;
                         }
@@ -246,75 +273,49 @@ internal partial class StapleEditor
                             needsRefreshStaging = true;
                         }
                     }
-                    catch (Exception)
-                    {
-                    }
                 }
             }
-        }
 
-        void RenamedFileSystemHandler(object sender, RenamedEventArgs e)
-        {
-            lock (backgroundLock)
+            fileSystemWatcher.Changed += FileSystemHandler;
+            fileSystemWatcher.Created += FileSystemHandler;
+            fileSystemWatcher.Deleted += FileSystemHandler;
+            fileSystemWatcher.Renamed += RenamedFileSystemHandler;
+
+            fileSystemWatcher.IncludeSubdirectories = true;
+
+            fileSystemWatcher.EnableRaisingEvents = true;
+
+            RefreshStaging(currentPlatform, () =>
             {
-                if (RefreshingAssets == false)
+                ThreadHelper.Dispatch(() =>
                 {
-                    if (e.FullPath.EndsWith(".cs") ||
-                        (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
-                        (e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")) ||
-                        e.FullPath.StartsWith(Path.Combine(BasePath, "Cache", "Packages")))))
+                    lastProjects.lastOpenProject = path;
+
+                    var target = lastProjects.items.FirstOrDefault(x => x.path == path);
+
+                    if (target != null)
                     {
-                        needsGameRecompile = true;
+                        target.date = DateTime.Now;
                     }
-                    else if (Directory.Exists(e.FullPath) == false &&
-                        excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
-                        e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
+                    else
                     {
-                        needsRefreshStaging = true;
+                        lastProjects.items.Add(new LastProjectItem()
+                        {
+                            name = Path.GetFileName(path),
+                            path = path,
+                            date = DateTime.Now,
+                        });
                     }
-                }
-            }
-        }
 
-        fileSystemWatcher.Changed += FileSystemHandler;
-        fileSystemWatcher.Created += FileSystemHandler;
-        fileSystemWatcher.Deleted += FileSystemHandler;
-        fileSystemWatcher.Renamed += RenamedFileSystemHandler;
+                    SaveLastProjects();
 
-        fileSystemWatcher.IncludeSubdirectories = true;
+                    ProjectManager.Instance.CollectGameScriptModifyStates();
 
-        fileSystemWatcher.EnableRaisingEvents = true;
-
-        RefreshStaging(currentPlatform, () =>
-        {
-            ThreadHelper.Dispatch(() =>
-            {
-                lastProjects.lastOpenProject = path;
-
-                var target = lastProjects.items.FirstOrDefault(x => x.path == path);
-
-                if (target != null)
-                {
-                    target.date = DateTime.Now;
-                }
-                else
-                {
-                    lastProjects.items.Add(new LastProjectItem()
-                    {
-                        name = Path.GetFileName(path),
-                        path = path,
-                        date = DateTime.Now,
-                    });
-                }
-
-                SaveLastProjects();
-
-                ProjectManager.Instance.CollectGameScriptModifyStates();
-
-                UpdateWindowTitle();
-            });
-        },
-        true);
+                    UpdateWindowTitle();
+                });
+            },
+            true);
+        });
     }
 
     private void LoadProjectForBuilding(string path, Action<bool> onFinish)
@@ -360,55 +361,56 @@ internal partial class StapleEditor
 
         projectBrowser.UpdateProjectBrowserNodes();
 
-        projectBrowser.CreateMissingMetaFiles();
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
-
-            projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Failed to load project app settings: {e}");
-
-            onFinish(false);
-
-            return;
-        }
-
-        LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
-
-        foreach (var pair in projectAppSettings.renderers)
+        projectBrowser.CreateMissingMetaFiles(() =>
         {
             try
             {
-                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache"));
             }
             catch (Exception)
             {
             }
-        }
 
-        projectBrowser.currentPlatform = currentPlatform;
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging"));
+            }
+            catch (Exception)
+            {
+            }
 
-        RefreshAssets(true, () => onFinish(true));
+            try
+            {
+                var json = File.ReadAllText(Path.Combine(BasePath, "Settings", "AppSettings.json"));
+
+                projectAppSettings = JsonConvert.DeserializeObject<AppSettings>(json);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to load project app settings: {e}");
+
+                onFinish(false);
+
+                return;
+            }
+
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
+
+            foreach (var pair in projectAppSettings.renderers)
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            projectBrowser.currentPlatform = currentPlatform;
+
+            RefreshAssets(true, () => onFinish(true));
+        });
     }
 
     /// <summary>
@@ -465,42 +467,42 @@ internal partial class StapleEditor
 
         projectBrowser.UpdateProjectBrowserNodes();
 
-        projectBrowser.CreateMissingMetaFiles();
-
-        var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
-
-        void Finish()
+        projectBrowser.CreateMissingMetaFiles(() =>
         {
-            if (projectAppSettings == null)
+            var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
+
+            void Finish()
             {
-                lock (backgroundLock)
+                if (projectAppSettings == null)
                 {
-                    RefreshingAssets = false;
+                    lock (backgroundLock)
+                    {
+                        RefreshingAssets = false;
+                    }
+
+                    return;
                 }
 
-                return;
-            }
+                var progress = 0.0f;
+                var message = "";
 
-            var progress = 0.0f;
-            var message = "";
-
-            var handle = JobScheduler.Schedule(new ActionJob(() =>
-            {
-                try
+                var handle = JobScheduler.Schedule(new ActionJob(() =>
                 {
-                    if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
+                    try
                     {
-                        var rendererParameters = new HashSet<string>();
-
-                        foreach (var item in renderers)
+                        if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
                         {
-                            switch (item)
+                            var rendererParameters = new HashSet<string>();
+
+                            foreach (var item in renderers)
                             {
-                                case RendererType.Direct3D11:
+                                switch (item)
+                                {
+                                    case RendererType.Direct3D11:
 
-                                    rendererParameters.Add("-r d3d11");
+                                        rendererParameters.Add("-r d3d11");
 
-                                    break;
+                                        break;
 
 #if STAPLE_SUPPORTS_D3D12
                                 case RendererType.Direct3D12:
@@ -510,184 +512,201 @@ internal partial class StapleEditor
                                     break;
 #endif
 
-                                case RendererType.Metal:
+                                    case RendererType.Metal:
 
-                                    rendererParameters.Add("-r metal");
+                                        rendererParameters.Add("-r metal");
 
-                                    break;
+                                        break;
 
-                                case RendererType.OpenGL:
+                                    case RendererType.OpenGL:
 
-                                    rendererParameters.Add("-r opengl");
+                                        rendererParameters.Add("-r opengl");
 
-                                    break;
+                                        break;
 
-                                case RendererType.OpenGLES:
+                                    case RendererType.OpenGLES:
 
-                                    rendererParameters.Add("-r opengles");
+                                        rendererParameters.Add("-r opengles");
 
-                                    break;
+                                        break;
 
-                                case RendererType.Vulkan:
+                                    case RendererType.Vulkan:
 
-                                    rendererParameters.Add("-r spirv");
+                                        rendererParameters.Add("-r spirv");
 
-                                    break;
+                                        break;
+                                }
+                            }
+
+                            string[] packageDirectories = [];
+
+                            try
+                            {
+                                packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            var packageArgs = "";
+
+                            foreach (var directory in packageDirectories)
+                            {
+                                packageArgs += $"-i \"{directory}\" ";
+                            }
+
+                            var args = $"-i \"{BasePath}/Assets\" {packageArgs} -o \"{BasePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
+
+                            var processInfo = new ProcessStartInfo(bakerPath, args)
+                            {
+                                CreateNoWindow = true,
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                WindowStyle = ProcessWindowStyle.Hidden,
+                                WorkingDirectory = Environment.CurrentDirectory
+                            };
+
+                            var process = new Process
+                            {
+                                StartInfo = processInfo
+                            };
+
+                            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process,
+                                (m) =>
+                                {
+                                    var match = stagingProgressRegex.Match(m);
+
+                                    if (match.Success &&
+                                        int.TryParse(match.Groups[1].Value, out var left) &&
+                                        int.TryParse(match.Groups[2].Value, out var right))
+                                    {
+                                        progress = left / (float)right;
+
+                                        message = match.Groups[3].Value;
+
+                                        instance.SetBackgroundProgress(progress, message);
+                                    }
+                                });
+
+                            lock (backgroundLock)
+                            {
+                                RefreshingAssets = false;
                             }
                         }
-
-                        string[] packageDirectories = [];
-
-                        try
-                        {
-                            packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
-                        }
-                        catch(Exception)
-                        {
-                        }
-
-                        var packageArgs = "";
-
-                        foreach (var directory in packageDirectories)
-                        {
-                            packageArgs += $"-i \"{directory}\" ";
-                        }
-
-                        var args = $"-i \"{BasePath}/Assets\" {packageArgs} -o \"{BasePath}/Cache/Staging/{platform}\" -platform {platform} -editor {string.Join(" ", rendererParameters)}".Replace("\\", "/");
-
-                        var processInfo = new ProcessStartInfo(bakerPath, args)
-                        {
-                            CreateNoWindow = true,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            WindowStyle = ProcessWindowStyle.Hidden,
-                            WorkingDirectory = Environment.CurrentDirectory
-                        };
-
-                        var process = new Process
-                        {
-                            StartInfo = processInfo
-                        };
-
-                        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process,
-                            (m) =>
-                            {
-                                var match = stagingProgressRegex.Match(m);
-
-                                if (match.Success &&
-                                    int.TryParse(match.Groups[1].Value, out var left) &&
-                                    int.TryParse(match.Groups[2].Value, out var right))
-                                {
-                                    progress = left / (float)right;
-
-                                    message = match.Groups[3].Value;
-
-                                    instance.SetBackgroundProgress(progress, message);
-                                }
-                            });
-
+                    }
+                    catch (Exception)
+                    {
                         lock (backgroundLock)
                         {
                             RefreshingAssets = false;
                         }
                     }
-                }
-                catch (Exception)
-                {
-                    lock (backgroundLock)
-                    {
-                        RefreshingAssets = false;
-                    }
-                }
 
-                if(editorMode == EditorMode.Normal)
-                {
-                    ThreadHelper.Dispatch(() =>
+                    if (editorMode == EditorMode.Normal)
                     {
-                        try
+                        ThreadHelper.Dispatch(() =>
                         {
-                            if (updateProject)
+                            try
                             {
-                                UnloadGame();
-                                LoadGame();
-                            }
-
-                            World.Current?.Iterate((entity) =>
-                            {
-                                World.Current.IterateComponents(entity, (ref IComponent component) =>
+                                if (updateProject)
                                 {
-                                    if (component is IComponentDisposable disposable)
-                                    {
-                                        disposable.DisposeComponent();
-                                    }
-                                });
-                            });
+                                    UnloadGame();
+                                    LoadGame();
+                                }
 
-                            ResourceManager.instance.Clear();
-
-                            AssetDatabase.Reload();
-                            projectBrowser.UpdateProjectBrowserNodes();
-
-                            if (LoadRecordedScene() == false)
-                            {
-                                if ((lastOpenScene?.Length ?? 0) > 0)
+                                World.Current?.Iterate((entity) =>
                                 {
-                                    Scene scene = null;
-
-                                    if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                    World.Current.IterateComponents(entity, (ref IComponent component) =>
                                     {
-                                        World.Current = new();
-                                        scene = new();
-
-                                        var prefab = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
-
-                                        if (prefab != null)
+                                        if (component is IComponentDisposable disposable)
                                         {
-                                            SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                            disposable.DisposeComponent();
                                         }
-                                    }
-                                    else
+                                    });
+                                });
+
+                                ResourceManager.instance.Clear();
+
+                                ShowBackgroundProcess();
+
+                                AssetDatabase.Reload(Path.Combine(BasePath, "Cache", "AssetDatabase"),
+                                    () =>
                                     {
-                                        scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
-                                    }
+                                        HideBackgroundProcess();
 
-                                    Scene.SetActiveScene(scene);
-                                }
-                                else
-                                {
-                                    Scene.SetActiveScene(null);
-                                }
+                                        ThreadHelper.Dispatch(() =>
+                                        {
+                                            projectBrowser.UpdateProjectBrowserNodes();
+
+                                            if (LoadRecordedScene() == false)
+                                            {
+                                                if ((lastOpenScene?.Length ?? 0) > 0)
+                                                {
+                                                    Scene scene = null;
+
+                                                    if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                                    {
+                                                        World.Current = new();
+                                                        scene = new();
+
+                                                        var prefab = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
+
+                                                        if (prefab != null)
+                                                        {
+                                                            SceneSerialization.InstantiatePrefab(default, prefab.data);
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        scene = ResourceManager.instance.LoadRawSceneFromPath(lastOpenScene);
+                                                    }
+
+                                                    Scene.SetActiveScene(scene);
+                                                }
+                                                else
+                                                {
+                                                    Scene.SetActiveScene(null);
+                                                }
+                                            }
+
+                                            ResetScenePhysics(false);
+
+                                            onFinish?.Invoke();
+                                        });
+                                    });
                             }
+                            catch (Exception e)
+                            {
+                                Log.Error(e.ToString());
+                            }
+                        });
+                    }
+                    else
+                    {
+                        onFinish?.Invoke();
+                    }
+                }));
 
-                            ResetScenePhysics(false);
+                StartBackgroundTask(handle);
+            }
 
-                            onFinish?.Invoke();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e.ToString());
-                        }
+            if (updateProject)
+            {
+                ShowBackgroundProcess();
+
+                AssetDatabase.Reload(Path.Combine(BasePath, "Cache", "AssetDatabase"), 
+                    () =>
+                    {
+                        HideBackgroundProcess();
+
+                        UpdateCSProj(platform, checkBuild, Finish);
                     });
-                }
-                else
-                {
-                    onFinish?.Invoke();
-                }
-            }));
-
-            StartBackgroundTask(handle);
-        }
-
-        if (updateProject)
-        {
-            AssetDatabase.Reload();
-
-            UpdateCSProj(platform, checkBuild, Finish);
-        }
-        else
-        {
-            Finish();
-        }
+            }
+            else
+            {
+                Finish();
+            }
+        });
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ internal class AssetPickerWindow : EditorWindow
             null
         };
 
-        foreach (var pair in AssetDatabase.assets)
+        foreach (var pair in AssetDatabase.database.assets)
         {
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
                 (pair.Value.Count == 0 ||

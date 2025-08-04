@@ -1,11 +1,14 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
 using Staple.Internal;
+using Staple.Jobs;
 using Staple.ProjectManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Staple.Editor;
 
@@ -492,61 +495,95 @@ internal class ProjectBrowser
     /// <summary>
     /// Creates any missing meta files
     /// </summary>
-    public void CreateMissingMetaFiles()
+    /// <param name="onFinish">Called when the process completes</param>
+    public void CreateMissingMetaFiles(Action onFinish)
     {
-        List<string> metaFiles = [];
+        StapleEditor.instance.ShowBackgroundProcess();
 
-        try
+        JobScheduler.Schedule(new ActionJob(() =>
         {
-            metaFiles.AddRange(Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories));
+            List<string> metaFiles = [];
 
-            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
-
-            foreach(var directory in packageDirectories)
-            {
-                metaFiles.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
-            }
-        }
-        catch (Exception)
-        {
-        }
-
-        foreach (var file in metaFiles)
-        {
             try
             {
-                var local = file[..^".meta".Length];
+                metaFiles.AddRange(Directory.GetFiles(basePath, "*.meta", SearchOption.AllDirectories));
 
-                var valid = File.Exists(local) || Directory.Exists(local);
+                var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
 
-                if(valid == false)
+                foreach (var directory in packageDirectories)
                 {
-                    File.Delete(file);
+                    metaFiles.AddRange(Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories));
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
-        }
 
-        static string Hash()
-        {
-            return GuidGenerator.Generate().ToString();
-        }
-
-        static void HandleFile(string path)
-        {
-            var extension = Path.GetExtension(path);
-
-            if (resourceTypes.TryGetValue(extension, out var type))
+            for(var i = 0; i < metaFiles.Count; i++)
             {
-                switch (type)
-                {
-                    case ProjectBrowserResourceType.Texture:
+                var file = metaFiles[i];
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                StapleEditor.instance.SetBackgroundProgress(i / (float)metaFiles.Count, "Processing project files...");
+
+                try
+                {
+                    var local = file[..^".meta".Length];
+
+                    var valid = File.Exists(local) || Directory.Exists(local);
+
+                    if (valid == false)
+                    {
+                        File.Delete(file);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            static string Hash()
+            {
+                return GuidGenerator.Generate().ToString();
+            }
+
+            var missingFiles = new List<string>();
+
+            void HandleFile(string path)
+            {
+                try
+                {
+                    if (File.Exists($"{path}.meta") == false)
+                    {
+                        missingFiles.Add(path);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            void ProcessFile(string path)
+            {
+                try
+                {
+                    if (File.Exists($"{path}.meta"))
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                var extension = Path.GetExtension(path);
+
+                if (resourceTypes.TryGetValue(extension, out var type))
+                {
+                    switch (type)
+                    {
+                        case ProjectBrowserResourceType.Texture:
+
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new TextureMetadata()
                                 {
@@ -556,18 +593,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Material:
+                        case ProjectBrowserResourceType.Material:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -578,18 +612,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Shader:
+                        case ProjectBrowserResourceType.Shader:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -600,18 +631,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.ComputeShader:
+                        case ProjectBrowserResourceType.ComputeShader:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -622,18 +650,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Scene:
+                        case ProjectBrowserResourceType.Scene:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -644,18 +669,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Mesh:
+                        case ProjectBrowserResourceType.Mesh:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new MeshAssetMetadata()
                                 {
@@ -666,18 +688,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Audio:
+                        case ProjectBrowserResourceType.Audio:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -688,18 +707,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Font:
+                        case ProjectBrowserResourceType.Font:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -710,18 +726,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.AssemblyDefinition:
+                        case ProjectBrowserResourceType.AssemblyDefinition:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -732,18 +745,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Plugin:
+                        case ProjectBrowserResourceType.Plugin:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var plugin = new PluginAsset()
                                 {
@@ -801,18 +811,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Asset:
+                        case ProjectBrowserResourceType.Asset:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var text = File.ReadAllText(path);
                                 var holder = JsonConvert.DeserializeObject<AssetHolder>(text);
@@ -835,18 +842,15 @@ internal class ProjectBrowser
                                     File.WriteAllText($"{path}.meta", jsonData);
                                 }
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Prefab:
+                        case ProjectBrowserResourceType.Prefab:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new AssetHolder()
                                 {
@@ -857,18 +861,15 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
 
-                    case ProjectBrowserResourceType.Text:
+                        case ProjectBrowserResourceType.Text:
 
-                        try
-                        {
-                            if (File.Exists($"{path}.meta") == false)
+                            try
                             {
                                 var jsonData = JsonConvert.SerializeObject(new TextAssetMetadata()
                                 {
@@ -879,21 +880,18 @@ internal class ProjectBrowser
 
                                 File.WriteAllText($"{path}.meta", jsonData);
                             }
-                        }
-                        catch (Exception)
-                        {
-                        }
+                            catch (Exception)
+                            {
+                            }
 
-                        break;
+                            break;
+                    }
                 }
-            }
-            else
-            {
-                if (path.EndsWith(".meta") == false)
+                else
                 {
-                    try
+                    if (path.EndsWith(".meta") == false)
                     {
-                        if (File.Exists($"{path}.meta") == false)
+                        try
                         {
                             var holder = new AssetHolder()
                             {
@@ -905,91 +903,136 @@ internal class ProjectBrowser
 
                             File.WriteAllText($"{path}.meta", json);
                         }
-                    }
-                    catch (Exception)
-                    {
+                        catch (Exception)
+                        {
+                        }
                     }
                 }
             }
-        }
 
-        static void HandleDirectory(string path)
-        {
+            static void HandleDirectory(string path)
+            {
+                try
+                {
+                    if (File.Exists($"{path}.meta") == false)
+                    {
+                        var holder = new FolderAsset()
+                        {
+                            guid = Hash(),
+                            typeName = typeof(FolderAsset).FullName,
+                        };
+
+                        var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                        File.WriteAllText($"{path}.meta", json);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            void RecursiveFile(string path)
+            {
+                try
+                {
+                    var directories = Directory.GetDirectories(path);
+                    var files = Directory.GetFiles(path);
+
+                    foreach (var directory in directories)
+                    {
+                        HandleDirectory(directory);
+
+                        RecursiveFile(directory);
+                    }
+
+                    foreach (var file in files)
+                    {
+                        HandleFile(file);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            void RecursiveProject(List<ProjectBrowserNode> nodes)
+            {
+                foreach (var node in nodes)
+                {
+                    if (node.type == ProjectBrowserNodeType.Folder)
+                    {
+                        HandleDirectory(node.path);
+
+                        RecursiveProject(node.subnodes);
+                    }
+                    else
+                    {
+                        HandleFile(node.path);
+                    }
+                }
+            }
+
             try
             {
-                if (File.Exists($"{path}.meta") == false)
+                var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
+
+                foreach (var directory in packageDirectories)
                 {
-                    var holder = new FolderAsset()
-                    {
-                        guid = Hash(),
-                        typeName = typeof(FolderAsset).FullName,
-                    };
-
-                    var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
-
-                    File.WriteAllText($"{path}.meta", json);
+                    RecursiveFile(directory);
                 }
             }
             catch (Exception)
             {
             }
-        }
 
-        static void RecursiveFile(string path)
-        {
-            try
+            RecursiveProject(projectBrowserNodes);
+
+            if (missingFiles.Count == 0)
             {
-                var directories = Directory.GetDirectories(path);
-                var files = Directory.GetFiles(path);
+                StapleEditor.instance.HideBackgroundProcess();
 
-                foreach (var directory in directories)
-                {
-                    HandleDirectory(directory);
+                ThreadHelper.Dispatch(onFinish);
 
-                    RecursiveFile(directory);
-                }
-
-                foreach (var file in files)
-                {
-                    HandleFile(file);
-                }
+                return;
             }
-            catch(Exception)
+
+            var chunkCount = JobScheduler.ChunkSize(missingFiles.Count);
+
+            var counter = Math.CeilToInt(missingFiles.Count / (float)chunkCount);
+
+            var l = new Lock();
+
+            for (var i = 0; i < missingFiles.Count; i += chunkCount)
             {
-            }
-        }
+                var start = i;
+                var end = i + chunkCount > missingFiles.Count ? missingFiles.Count - i : chunkCount;
 
-        static void RecursiveProject(List<ProjectBrowserNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                if (node.type == ProjectBrowserNodeType.Folder)
+                JobScheduler.Schedule(new ActionJob(() =>
                 {
-                    HandleDirectory(node.path);
+                    var slice = CollectionsMarshal.AsSpan(missingFiles)
+                        .Slice(start, end);
 
-                    RecursiveProject(node.subnodes);
-                }
-                else
-                {
-                    HandleFile(node.path);
-                }
+                    StapleEditor.instance.SetBackgroundProgress(start / (float)missingFiles.Count,
+                        $"Processing {counter * chunkCount - missingFiles.Count}/{missingFiles.Count} files...");
+
+                    for (var j = 0; j < slice.Length; j++)
+                    {
+                        ProcessFile(slice[j]);
+                    }
+
+                    lock (l)
+                    {
+                        counter--;
+
+                        if (counter <= 0)
+                        {
+                            ThreadHelper.Dispatch(onFinish);
+                        }
+                    }
+                }));
             }
-        }
-
-        try
-        {
-            var packageDirectories = Directory.GetDirectories(Path.Combine(basePath, "Cache", "Packages"));
-
-            foreach (var directory in packageDirectories)
-            {
-                RecursiveFile(directory);
-            }
-        }
-        catch (Exception)
-        {
-        }
-
-        RecursiveProject(projectBrowserNodes);
+        }));
     }
 
     /// <summary>

@@ -16,6 +16,8 @@ internal class AppPlayer
 
     internal const bool printTypeCacheTypes = false;
 
+    private bool initialized = false;
+
     public AppPlayer(string[] args, bool shouldConsoleLog)
     {
         instance = this;
@@ -86,149 +88,157 @@ internal class AppPlayer
 
         renderWindow.OnInit = () =>
         {
-            AssetDatabase.Reload();
-
-            try
+            AssetDatabase.Reload(null, () =>
             {
-                var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");
-
-                if(data != null)
+                try
                 {
-                    var rawInfo = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                    var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");
 
-                    if(rawInfo != null)
+                    if (data != null)
                     {
-                        var width = 256;
-                        var height = (int)(rawInfo.height / (float)rawInfo.width * 256);
+                        var rawInfo = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
 
-                        if(rawInfo.Resize(width, height))
+                        if (rawInfo != null)
                         {
-                            renderWindow.window.SetIcon(rawInfo);
+                            var width = 256;
+                            var height = (int)(rawInfo.height / (float)rawInfo.width * 256);
+
+                            if (rawInfo.Resize(width, height))
+                            {
+                                renderWindow.window.SetIcon(rawInfo);
+                            }
                         }
                     }
                 }
-            }
-            catch(Exception)
-            {
-            }
-
-            Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
-            Physics3D.PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
-
-            bool hasFocus = renderWindow.window.IsFocused;
-
-            if (AppSettings.Current.runInBackground == false && hasFocus == false)
-            {
-                ResetRendering(hasFocus);
-            }
-
-            Scene.sceneList = ResourceManager.instance.LoadSceneList();
-
-            if (Scene.sceneList == null || Scene.sceneList.Count == 0)
-            {
-                Log.Error($"Failed to load scene list");
-
-                renderWindow.shouldStop = true;
-
-                throw new Exception("Failed to load scene list");
-            }
-
-            Log.Info("Loaded scene list");
-
-            if(Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
-            {
-                Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
-
-                renderWindow.shouldStop = true;
-
-                throw new Exception("Failed to initialize physics");
-            }
-
-            var physicsInstance = Physics3D.ImplType != null ? ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType) : null;
-
-            try
-            {
-                Physics3D.Instance = new Physics3D(physicsInstance);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e.ToString());
-
-                renderWindow.shouldStop = true;
-
-                throw new Exception("Failed to initialize physics");
-            }
-
-            SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
-            SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
-            SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
-
-            if (Physics3D.Instance != null)
-            {
-                SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
-            }
-
-            void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
-            {
-                var types = TypeCache.AllTypes()
-                    .Where(x => check(x))
-                    .ToArray();
-
-                Log.Info($"Loading {types.Length} {caption}s");
-
-                foreach(var type in types)
+                catch (Exception)
                 {
-                    try
-                    {
-                        var instance = (T)Activator.CreateInstance(type);
+                }
 
-                        if (instance != null)
-                        {
-                            callback(instance);
+                Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
+                Physics3D.PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
 
-                            Log.Info($"Created {caption} {type.FullName}");
-                        }
-                        else
-                        {
-                            Log.Info($"Failed to create {caption} {type.FullName}");
-                        }
-                    }
-                    catch (Exception e)
+                bool hasFocus = renderWindow.window.IsFocused;
+
+                if (AppSettings.Current.runInBackground == false && hasFocus == false)
+                {
+                    ResetRendering(hasFocus);
+                }
+
+                Scene.sceneList = ResourceManager.instance.LoadSceneList();
+
+                if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                {
+                    Log.Error($"Failed to load scene list");
+
+                    renderWindow.shouldStop = true;
+
+                    throw new Exception("Failed to load scene list");
+                }
+
+                Log.Info("Loaded scene list");
+
+                if (Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
+                {
+                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
+
+                    renderWindow.shouldStop = true;
+
+                    throw new Exception("Failed to initialize physics");
+                }
+
+                var physicsInstance = Physics3D.ImplType != null ? ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType) : null;
+
+                try
+                {
+                    Physics3D.Instance = new Physics3D(physicsInstance);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.ToString());
+
+                    renderWindow.shouldStop = true;
+
+                    throw new Exception("Failed to initialize physics");
+                }
+
+                SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
+                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
+                SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
+
+                if (Physics3D.Instance != null)
+                {
+                    SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
+                }
+
+                void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
+                {
+                    var types = TypeCache.AllTypes()
+                        .Where(x => check(x))
+                        .ToArray();
+
+                    Log.Info($"Loading {types.Length} {caption}s");
+
+                    foreach (var type in types)
                     {
-                        Log.Warning($"Player: Failed to load {caption} {type.FullName}: {e}");
+                        try
+                        {
+                            var instance = (T)Activator.CreateInstance(type);
+
+                            if (instance != null)
+                            {
+                                callback(instance);
+
+                                Log.Info($"Created {caption} {type.FullName}");
+                            }
+                            else
+                            {
+                                Log.Info($"Failed to create {caption} {type.FullName}");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Warning($"Player: Failed to load {caption} {type.FullName}: {e}");
+                        }
                     }
                 }
-            }
 
-            HandleTypes<IRenderSystem>("render system",
-                (x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem)),
-                (instance => RenderSystem.Instance.RegisterSystem(instance)));
+                HandleTypes<IRenderSystem>("render system",
+                    (x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem)),
+                    (instance => RenderSystem.Instance.RegisterSystem(instance)));
 
-            HandleTypes<object>("entity system",
-                (x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
-                    (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
-                (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
+                HandleTypes<object>("entity system",
+                    (x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
+                        (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
+                    (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
 
-            var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+                var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
-            if (scene == null)
-            {
-                Log.Error($"Failed to load main scene");
+                if (scene == null)
+                {
+                    Log.Error($"Failed to load main scene");
 
-                renderWindow.shouldStop = true;
+                    renderWindow.shouldStop = true;
 
-                throw new Exception("Failed to load main scene");
-            }
+                    throw new Exception("Failed to load main scene");
+                }
 
-            Scene.SetActiveScene(scene);
+                Scene.SetActiveScene(scene);
 
-            Log.Info("Loaded first scene");
+                Log.Info("Loaded first scene");
 
-            Log.Info("Finished initializing");
+                Log.Info("Finished initializing");
+
+                initialized = true;
+            });
         };
 
         renderWindow.OnFixedUpdate = () =>
         {
+            if(initialized == false)
+            {
+                return;
+            }
+
             SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
 
             EntitySystemManager.Instance.UpdateFixed();
@@ -236,7 +246,12 @@ internal class AppPlayer
 
         renderWindow.OnUpdate = () =>
         {
-            if((AppSettings.Current?.allowFullscreenSwitch ?? true) && Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Enter))
+            if (initialized == false)
+            {
+                return;
+            }
+
+            if ((AppSettings.Current?.allowFullscreenSwitch ?? true) && Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Enter))
             {
                 Screen.SetResolution(Screen.Width, Screen.Height, Screen.WindowMode == WindowMode.Windowed ? WindowMode.BorderlessFullscreen : WindowMode.Windowed);
             }
