@@ -999,7 +999,7 @@ internal class ProjectBrowser
 
             var chunkCount = JobScheduler.ChunkSize(missingFiles.Count);
 
-            var counter = Math.CeilToInt(missingFiles.Count / (float)chunkCount);
+            var counter = missingFiles.Count;
 
             var l = new Lock();
 
@@ -1013,12 +1013,12 @@ internal class ProjectBrowser
                     var slice = CollectionsMarshal.AsSpan(missingFiles)
                         .Slice(start, end);
 
-                    StapleEditor.instance.SetBackgroundProgress(start / (float)missingFiles.Count,
-                        $"Processing {counter * chunkCount - missingFiles.Count}/{missingFiles.Count} files...");
-
                     for (var j = 0; j < slice.Length; j++)
                     {
                         ProcessFile(slice[j]);
+
+                        StapleEditor.instance.SetBackgroundProgress(1 - (counter / (float)missingFiles.Count),
+                            $"Processing {missingFiles.Count - counter}/{missingFiles.Count} files...");
                     }
 
                     lock (l)

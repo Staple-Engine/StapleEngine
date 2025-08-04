@@ -590,6 +590,8 @@ internal partial class StapleEditor
 
     private void NormalEditorLoop()
     {
+        AssetDatabase.databaseObserver = this;
+
         playerSettings = PlayerSettings.Load(editorAppSettings);
 
         AudioSystem.AudioListenerImpl = typeof(OpenALAudioListener);
