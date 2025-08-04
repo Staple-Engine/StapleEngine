@@ -118,7 +118,8 @@ public static class AssetDatabase
                                     {
                                         try
                                         {
-                                            var p = Path.Combine(directory, item.path);
+                                            //Remove the topmost directory name due to the way we resolve local paths
+                                            var p = Path.Combine(Path.GetDirectoryName(directory), item.path);
 
                                             if (File.Exists(p) ||
                                                 Directory.Exists(p))
@@ -130,6 +131,11 @@ public static class AssetDatabase
                                         }
                                         catch (Exception e)
                                         {
+                                        }
+
+                                        if(found)
+                                        {
+                                            break;
                                         }
                                     }
                                 }
@@ -248,7 +254,7 @@ public static class AssetDatabase
             {
                 try
                 {
-                    files.Add(path, Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories)
+                    files.Add(directory, Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories)
                         .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
                         .ToArray());
                 }
@@ -302,14 +308,18 @@ public static class AssetDatabase
 
         foreach (var pair in files)
         {
+            var key = pair.Key;
+
             foreach (var file in pair.Value)
             {
+                var f = file;
+
                 JobScheduler.Schedule(new ActionJob(() =>
                 {
                     try
                     {
-                        var prefix = file.Replace('\\', '/').Contains("/Cache/Packages/") ? "" : $"{Path.GetFileName(pair.Key)}/";
-                        var localPath = file.Replace($"{pair.Key}{Path.DirectorySeparatorChar}", prefix).Replace("\\", "/").Replace(".meta", "");
+                        var prefix = f.Replace('\\', '/').Contains("/Cache/Packages/") ? "" : $"{Path.GetFileName(key)}/";
+                        var localPath = f.Replace($"{key}{Path.DirectorySeparatorChar}", prefix).Replace("\\", "/").Replace(".meta", "");
 
                         var lastModifiedTicks = (long)0;
 
@@ -334,7 +344,7 @@ public static class AssetDatabase
 
                         try
                         {
-                            var lastModifiedMeta = File.GetLastWriteTimeUtc(file);
+                            var lastModifiedMeta = File.GetLastWriteTimeUtc(f);
 
                             if(lastModifiedMeta != null)
                             {
@@ -347,12 +357,12 @@ public static class AssetDatabase
 
                         if(currentModifiedTicks <= lastModifiedTicks)
                         {
-                            Counter(Path.GetFileNameWithoutExtension(file));
+                            Counter(Path.GetFileNameWithoutExtension(f));
 
                             return;
                         }
 
-                        var text = File.ReadAllText(file);
+                        var text = File.ReadAllText(f);
 
                         var holder = JsonSerializer.Deserialize(text, AssetHolderSerializationContext.Default.AssetHolder);
 
@@ -361,7 +371,7 @@ public static class AssetDatabase
                             var asset = new SerializableAssetDatabaseAssetInfo()
                             {
                                 guid = holder.guid,
-                                name = Path.GetFileNameWithoutExtension(file.Replace(".meta", "")),
+                                name = Path.GetFileNameWithoutExtension(f.Replace(".meta", "")),
                                 path = localPath,
                                 typeName = holder.typeName,
                                 lastModified = currentModifiedTicks,
@@ -373,13 +383,13 @@ public static class AssetDatabase
                             }
                         }
 
-                        Counter(Path.GetFileNameWithoutExtension(file));
+                        Counter(Path.GetFileNameWithoutExtension(f));
                     }
                     catch (Exception e)
                     {
-                        Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {file}. Skipping... (Exception: {e})");
+                        Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {f}. Skipping... (Exception: {e})");
 
-                        Counter(Path.GetFileNameWithoutExtension(file));
+                        Counter(Path.GetFileNameWithoutExtension(f));
                     }
                 }));
             }

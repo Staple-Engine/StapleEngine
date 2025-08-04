@@ -23,10 +23,19 @@ internal partial class StapleEditor
             return;
         }
 
+        ShowBackgroundProcess();
+
         UnloadGame();
 
+        SetBackgroundProgress(0, "Updating game project (1/2)");
+
         ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, false);
+
+        SetBackgroundProgress(0.5f, "Updating game project (2/2)");
+
         ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, true);
+
+        HideBackgroundProcess();
 
         void Build()
         {
