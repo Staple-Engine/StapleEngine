@@ -53,7 +53,7 @@ static partial class Program
         {
         }
 
-        if(from.EndsWith(".stsh"))
+        if(from.EndsWith($".{AssetSerialization.ShaderExtension}") || from.EndsWith($".{AssetSerialization.ComputeShaderExtension}"))
         {
             try
             {
