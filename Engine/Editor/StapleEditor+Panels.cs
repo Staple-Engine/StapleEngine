@@ -596,7 +596,11 @@ internal partial class StapleEditor
                 },
                 () =>
                 {
-                    if (Input.GetMouseButtonUp(MouseButton.Right))
+                    if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    {
+                        ZoomInEntity(transform.entity);
+                    }
+                    else if (Input.GetMouseButtonUp(MouseButton.Right))
                     {
                         ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
                     }
@@ -1676,5 +1680,34 @@ internal partial class StapleEditor
         }
 
         wasShowingMessageBox = showingMessageBox;
+    }
+
+    private void ZoomInEntity(Entity entity)
+    {
+        if(entity.TryGetComponent<Transform>(out var transform) == false)
+        {
+            return;
+        }
+
+        var renderables = entity.GetComponentsInChildren<Renderable>(true);
+
+        if(renderables.Length == 0)
+        {
+            cameraTransform.Position = transform.Position;
+
+            return;
+        }
+
+        var minMax = new Vector3[renderables.Length * 2];
+
+        for(var i = 0; i < renderables.Length; i++)
+        {
+            minMax[i * 2] = renderables[i].bounds.min;
+            minMax[i * 2 + 1] = renderables[i].bounds.min;
+        }
+
+        var aabb = AABB.CreateFromPoints(minMax);
+
+        cameraTransform.Position = aabb.center + aabb.size / 2;
     }
 }

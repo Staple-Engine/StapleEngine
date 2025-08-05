@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Staple.Internal;
+using System.Collections.Generic;
 
 namespace Staple;
 
@@ -20,7 +21,9 @@ public sealed class MeshRenderer : Renderable, IComponentDisposable
 
     public void DisposeComponent()
     {
-        if(mesh != null && mesh.Guid?.Guid == null)
+        if(mesh != null &&
+            mesh.Guid?.Guid != null &&
+            mesh.Guid.Guid.StartsWith("Internal/") == false)
         {
             mesh.Destroy();
         }

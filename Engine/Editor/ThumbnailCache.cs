@@ -419,6 +419,15 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
+                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
+
+                        if (renderTarget == null)
+                        {
+                            Cleanup();
+
+                            return;
+                        }
+
                         var tempEntity = Entity.CreatePrimitive(EntityPrimitiveType.Sphere);
 
                         if (tempEntity.IsValid == false || tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer) == false)
@@ -431,8 +440,6 @@ internal class ThumbnailCache
                         tempEntity.Name = "TEMP";
 
                         meshRenderer.materials = [material];
-
-                        var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
 
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 
