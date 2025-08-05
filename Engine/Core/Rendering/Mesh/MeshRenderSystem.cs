@@ -328,7 +328,14 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             material.ApplyProperties(Material.ApplyMode.All);
 
-            material.EnableShaderKeyword(Shader.InstancingKeyword);
+            if(contents.instanceInfos.Contents.Length > 1)
+            {
+                material.EnableShaderKeyword(Shader.InstancingKeyword);
+            }
+            else
+            {
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
+            }
 
             if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
             {
@@ -368,7 +375,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                         RenderBufferFlags.ComputeRead, true, (uint)contents.transforms.Length);
                 }
 
-                contents.normalMatrixBuffer.Update(contents.normalMatrices.AsSpan(), 0, true);
+                contents.normalMatrixBuffer?.Update(contents.normalMatrices.AsSpan(), 0, true);
 
                 for (var i = 0; i < contents.transforms.Length; i++)
                 {
@@ -383,7 +390,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     instanceBuffer.Bind(0, instanceBuffer.count);
 
-                    contents.normalMatrixBuffer.SetBufferActive(LightBufferIndex, Access.Read);
+                    contents.normalMatrixBuffer?.SetBufferActive(LightBufferIndex, Access.Read);
 
                     bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
                 }
