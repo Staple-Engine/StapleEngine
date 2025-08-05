@@ -571,7 +571,8 @@ internal partial class StapleEditor
                     HandleReorder(true);
                 }
 
-                EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName, $"{transform.entity}", transform.ChildCount == 0, () =>
+                EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName,
+                    $"{transform.entity}", transform.ChildCount == 0, () =>
                 {
                     foreach (var child in transform.Children)
                     {
@@ -609,6 +610,40 @@ internal partial class StapleEditor
                     if (hasPrefab)
                     {
                         ImGui.PopStyleColor();
+                    }
+
+                    if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
+                    {
+                        if (CreateEntityMenu(transform))
+                        {
+                            ImGui.EndPopup();
+
+                            skip = true;
+
+                            return;
+                        }
+
+                        if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                            ImGui.MenuItem("Duplicate"))
+                        {
+                            Entity.Instantiate(transform.entity, transform.parent);
+                        }
+
+                        if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                            ImGui.MenuItem("Delete"))
+                        {
+                            transform.entity.Destroy();
+
+                            ImGui.EndMenu();
+
+                            ImGui.EndPopup();
+
+                            skip = true;
+
+                            return;
+                        }
+
+                        ImGui.EndPopup();
                     }
 
                     if (ImGui.BeginDragDropTarget())
@@ -670,40 +705,6 @@ internal partial class StapleEditor
                 });
 
                 HandleReorder(false);
-
-                if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
-                {
-                    if (CreateEntityMenu(transform))
-                    {
-                        ImGui.EndPopup();
-
-                        skip = true;
-
-                        return;
-                    }
-
-                    if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
-                        ImGui.MenuItem("Duplicate"))
-                    {
-                        Entity.Instantiate(transform.entity, transform.parent);
-                    }
-
-                    if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
-                        ImGui.MenuItem("Delete"))
-                    {
-                        transform.entity.Destroy();
-
-                        ImGui.EndMenu();
-
-                        ImGui.EndPopup();
-
-                        skip = true;
-
-                        return;
-                    }
-
-                    ImGui.EndPopup();
-                }
             }
 
             Scene.IterateEntities((entity) =>
