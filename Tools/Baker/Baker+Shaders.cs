@@ -50,10 +50,6 @@ vec4 i_data4        :   TEXCOORD3;
 
         var stapleBase = Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces));
 
-        var resourcesPath = Path.Combine(stapleBase, "DefaultResources", "DefaultResources-Windows.pak");
-
-        ResourceManager.instance.LoadPak(resourcesPath);
-
         var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
 
         var shaderFiles = new List<string>();
@@ -74,51 +70,6 @@ vec4 i_data4        :   TEXCOORD3;
         if (shaderDefineString.Length > 0)
         {
             shaderDefineString = $"--define {shaderDefineString}";
-        }
-
-        bool ShouldClear()
-        {
-            for (var i = 0; i < shaderFiles.Count; i++)
-            {
-                var currentShader = shaderFiles[i];
-
-                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(currentShader));
-                var file = Path.GetFileName(currentShader);
-
-                foreach (var renderer in renderers)
-                {
-                    var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, renderer.ToString(), directory, file);
-                    var index = outputFile.IndexOf(inputPath);
-
-                    if (index >= 0 && index < outputFile.Length)
-                    {
-                        outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-                    }
-
-                    if (ShouldProcessFile(currentShader, outputFile))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        if(ShouldClear())
-        {
-            foreach (var renderer in renderers)
-            {
-                var outputDirectory = Path.Combine(outputPath == "." ? "" : outputPath, renderer.ToString());
-
-                try
-                {
-                    Directory.Delete(outputDirectory, true);
-                }
-                catch (Exception)
-                {
-                }
-            }
         }
 
         for (var i = 0; i < shaderFiles.Count; i++)

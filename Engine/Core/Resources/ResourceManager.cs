@@ -973,13 +973,28 @@ internal class ResourceManager
     {
         if ((path?.Length ?? 0) == 0)
         {
+            Log.Error($"[ResourceManager] Failed to load shader data: invalid path");
+
             return null;
         }
 
         var guid = AssetDatabase.GetAssetGuid(path);
 
+        var assetPath = AssetDatabase.GetAssetPath(path);
+
+        if (assetPath != null)
+        {
+            guid = path;
+        }
+        else
+        {
+            guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+        }
+
         if (guid == null)
         {
+            Log.Error($"[ResourceManager] Failed to load shader data: invalid guid");
+
             return null;
         }
 

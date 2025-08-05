@@ -38,7 +38,8 @@ public static class MeshOptimization
     {
         unsafe
         {
-            if(mesh.topology != MeshTopology.Triangles)
+            if(mesh.topology != MeshTopology.Triangles ||
+                mesh.vertices.Count == 0)
             {
                 return mesh;
             }
@@ -350,7 +351,8 @@ public static class MeshOptimization
 
             foreach (var mesh in meshAsset.meshes)
             {
-                if(mesh.topology != MeshTopology.Triangles)
+                if(mesh.topology != MeshTopology.Triangles ||
+                    mesh.vertices.Count == 0)
                 {
                     outValue.meshes.Add(mesh);
 

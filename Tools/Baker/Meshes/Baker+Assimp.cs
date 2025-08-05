@@ -23,6 +23,7 @@ public partial class Program
 
         var flags = Silk.NET.Assimp.PostProcessSteps.CalculateTangentSpace |
             Silk.NET.Assimp.PostProcessSteps.Triangulate |
+            Silk.NET.Assimp.PostProcessSteps.SortByPrimitiveType |
             Silk.NET.Assimp.PostProcessSteps.GenerateSmoothNormals |
             Silk.NET.Assimp.PostProcessSteps.LimitBoneWeights |
             Silk.NET.Assimp.PostProcessSteps.ImproveCacheLocality |
@@ -465,79 +466,115 @@ public partial class Program
                         }
                         else
                         {
+                            if (Path.IsPathRooted(path) == false)
+                            {
+                                var localPath = Path.GetDirectoryName(meshFileName);
+
+                                path = Path.GetFullPath(path, Path.GetDirectoryName(meshFileName));
+
+                                var index = path.IndexOf(localPath);
+
+                                if (index >= 0)
+                                {
+                                    path = path.Substring(index + localPath.Length + 1);
+                                }
+
+                                path = path.Replace(Path.PathSeparator, '/');
+                            }
+
                             var pieces = path.Replace("\\", "/").Split("/").ToList();
 
                             texturePath = path;
 
-                            while (pieces.Count > 0)
+                            var initialPath = Path.Combine(Path.GetDirectoryName(meshFileName), path);
+
+                            var ok = false;
+
+                            if (File.Exists(initialPath))
                             {
-                                try
+                                if(processedTextures.TryGetValue($"{initialPath}.meta", out var guid))
                                 {
-                                    var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
+                                    texturePath = guid;
 
-                                    var directories = Directory.GetDirectories(baseP);
+                                    ok = true;
+                                }
+                            }
 
-                                    bool Find(string path)
+                            if (ok == false)
+                            {
+                                while (pieces.Count > 0)
+                                {
+                                    try
                                     {
-                                        var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
+                                        var baseP = Path.Combine(Path.GetDirectoryName(meshFileName),
+                                            string.Join("/", pieces.Take(pieces.Count - 1)));
 
-                                        if (File.Exists(p))
+                                        var directories = Directory.GetDirectories(baseP);
+
+                                        bool Find(string path)
                                         {
-                                            texturePath = string.Join("/", pieces);
+                                            var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
 
-                                            if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                            if (File.Exists(p))
                                             {
-                                                texturePath = guid;
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+                                                texturePath = string.Join("/", pieces);
 
-                                                texturePath = "";
+                                                if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                                                {
+                                                    texturePath = guid;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine($"\t\t{Path.GetFileNameWithoutExtension(meshFileName)}: " +
+                                                        $"{name} - Unable to find local texture guid for {p}");
+
+                                                    texturePath = "";
+                                                }
+
+                                                return true;
                                             }
 
-                                            return true;
+                                            return false;
                                         }
 
-                                        return false;
-                                    }
+                                        var found = false;
 
-                                    var found = false;
+                                        foreach (var directory in directories)
+                                        {
+                                            found = Find(Path.Combine(baseP, directory));
 
-                                    foreach (var directory in directories)
-                                    {
-                                        found = Find(Path.Combine(baseP, directory));
+                                            if (found)
+                                            {
+                                                break;
+                                            }
+                                        }
+
+                                        if (found)
+                                        {
+                                            break;
+                                        }
+
+                                        found = Find(baseP);
 
                                         if (found)
                                         {
                                             break;
                                         }
                                     }
-
-                                    if (found)
+                                    catch (Exception)
                                     {
-                                        break;
                                     }
 
-                                    found = Find(baseP);
-
-                                    if (found)
-                                    {
-                                        break;
-                                    }
+                                    pieces.RemoveAt(0);
                                 }
-                                catch (Exception)
+
+                                if (pieces.Count == 0)
                                 {
+                                    Console.WriteLine($"\t\t{Path.GetFileNameWithoutExtension(meshFileName)}: " +
+                                        $"{name} - Unable to find local texture path for {path}");
+
+                                    texturePath = "";
                                 }
-
-                                pieces.RemoveAt(0);
-                            }
-
-                            if (pieces.Count == 0)
-                            {
-                                Console.WriteLine($"\t\tUnable to find local texture path for {path}");
-
-                                texturePath = "";
                             }
 
                             //Console.WriteLine($"\t\tSet Texture {name} to {texturePath}");
@@ -757,7 +794,7 @@ public partial class Program
 
                 default:
 
-                    Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} isn't composed of only triangles, adding as empty mesh...");
+                    Console.WriteLine($"\t\tWARNING: Mesh {m.name} of {Path.GetFileNameWithoutExtension(meshFileName)} isn't composed of only triangles ({mesh->MPrimitiveTypes}), adding as empty mesh...");
 
                     meshData.meshes.Add(m);
 

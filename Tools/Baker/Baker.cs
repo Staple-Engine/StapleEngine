@@ -90,12 +90,29 @@ static partial class Program
         {
         }
 
-        return lastFromWrite > lastToWrite || assemblyLastWrite > lastToWrite;
+        return lastFromWrite > lastToWrite || (checkAssemblyBuildTime && assemblyLastWrite > lastToWrite);
     }
 
     private static readonly Dictionary<string, string> processedTextures = [];
 
     private static readonly Dictionary<string, string> processedShaders = [];
+
+    internal static bool checkAssemblyBuildTime = true;
+
+    internal static string StapleBasePath
+    {
+        get
+        {
+            var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
+
+            while (pieces.Count > 0 && pieces.LastOrDefault() != "StapleEngine")
+            {
+                pieces.RemoveAt(pieces.Count - 1);
+            }
+
+            return Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces));
+        }
+    }
 
     public static void Main(string[] args)
     {
@@ -109,6 +126,7 @@ static partial class Program
                 "\t-i [path]: set input directory\n" +
                 "\t-sd [define]: add a shader define\n" +
                 "\t-editor: enable editor mode, which uses different directories\n" +
+                "\t-no-self-check: don't check this tool's last build time when checking whether to reimport a file\n" +
                 $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                 "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                 "\t\tValid values are:\n" +
@@ -307,6 +325,12 @@ static partial class Program
 
                     break;
 
+                case "-no-self-check":
+
+                    checkAssemblyBuildTime = false;
+
+                    break;
+
                 default:
 
                     Console.WriteLine($"Unknown argument `{args[i]}`");
@@ -337,6 +361,20 @@ static partial class Program
 
         var finished = false;
         var l = new Lock();
+
+        var resourcesFileName = Platform.CurrentPlatform switch
+        {
+            AppPlatform.Android => "DefaultResources-Android.pak",
+            AppPlatform.iOS => "DefaultResources-iOS.pak",
+            AppPlatform.Windows => "DefaultResources-Windows.pak",
+            AppPlatform.MacOSX => "DefaultResources-MacOSX.pak",
+            AppPlatform.Linux => "DefaultResources-Linux.pak",
+            _ => null,
+        };
+
+        var resourcesPath = Path.Combine(StapleBasePath, "DefaultResources", resourcesFileName);
+
+        ResourceManager.instance.LoadPak(resourcesPath);
 
         AssetDatabase.Reload(null, () =>
         {

@@ -682,7 +682,8 @@ internal class ProjectBrowser
                                 var jsonData = JsonConvert.SerializeObject(new MeshAssetMetadata()
                                 {
                                     guid = Hash(),
-                                    flipUVs = path.EndsWith(".fbx"),
+                                    flipUVs = (path.EndsWith(".glb") ||
+                                        path.EndsWith(".gltf")) == false,
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
@@ -1019,15 +1020,15 @@ internal class ProjectBrowser
 
                         StapleEditor.instance.SetBackgroundProgress(1 - (counter / (float)missingFiles.Count),
                             $"Processing {missingFiles.Count - counter}/{missingFiles.Count} files...");
-                    }
 
-                    lock (l)
-                    {
-                        counter--;
-
-                        if (counter <= 0)
+                        lock (l)
                         {
-                            ThreadHelper.Dispatch(onFinish);
+                            counter--;
+
+                            if (counter <= 0)
+                            {
+                                ThreadHelper.Dispatch(onFinish);
+                            }
                         }
                     }
                 }));

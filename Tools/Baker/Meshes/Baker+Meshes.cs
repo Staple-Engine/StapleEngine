@@ -152,6 +152,13 @@ static partial class Program
 
         var standardShader = ResourceManager.instance.LoadShaderData(AssetSerialization.StandardShaderGUID);
 
+        if(standardShader == null)
+        {
+            Console.WriteLine($"\t\tError: Failed to load standard shader");
+
+            return;
+        }
+
         bool ShaderHasParameter(string name)
         {
             return standardShader?.metadata.uniforms.Any(x => x.name == name) ?? false;
