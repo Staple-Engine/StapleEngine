@@ -78,6 +78,8 @@ public static class AssetDatabase
                         throw new Exception("Invalid data");
                     }
 
+                    var pathsToGuids = new Dictionary<string, List<string>>();
+
                     foreach (var pair in database.assets)
                     {
                         if (pair.Value == null ||
@@ -124,6 +126,15 @@ public static class AssetDatabase
                                             if (File.Exists(p) ||
                                                 Directory.Exists(p))
                                             {
+                                                if(pathsToGuids.TryGetValue(item.path, out var guids) == false)
+                                                {
+                                                    guids = [];
+
+                                                    pathsToGuids.Add(item.path, guids);
+                                                }
+
+                                                guids.Add(item.guid);
+
                                                 found = true;
 
                                                 break;
@@ -164,6 +175,17 @@ public static class AssetDatabase
                             }
 
                             list.Add(item.guid);
+                        }
+                    }
+
+                    foreach(var pair in pathsToGuids)
+                    {
+                        if(pair.Value.Count > 1)
+                        {
+                            foreach(var guid in pair.Value)
+                            {
+                                database.assets.Remove(guid);
+                            }
                         }
                     }
 

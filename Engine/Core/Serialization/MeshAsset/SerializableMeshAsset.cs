@@ -27,6 +27,28 @@ public enum MeshSimplifyTarget
     CustomPolyCount,
 }
 
+[Flags]
+public enum MeshAssetComponent
+{
+    None = 0,
+    UV1 = (1 << 1),
+    UV2 = (1 << 2),
+    UV3 = (1 << 3),
+    UV4 = (1 << 4),
+    UV5 = (1 << 5),
+    UV6 = (1 << 6),
+    UV7 = (1 << 7),
+    UV8 = (1 << 8),
+    Normal = (1 << 9),
+    Tangent = (1 << 10),
+    Bitangent = (1 << 111),
+    Color1 = (1 << 12),
+    Color2 = (1 << 13),
+    Color3 = (1 << 14),
+    Color4 = (1 << 15),
+    BoneIndicesWeights = (1 << 16),
+}
+
 [MessagePackObject]
 public class SerializableMeshAssetHeader
 {
@@ -175,6 +197,9 @@ public class MeshAssetMetadata
         hash.Add(scale);
         hash.Add(frameRate);
         hash.Add(typeName);
+        hash.Add(syncAnimationToRefreshRate);
+        hash.Add(simplify);
+        hash.Add(targetPolyCount);
 
         return hash.ToHashCode();
     }
@@ -338,6 +363,97 @@ public class MeshAssetMeshInfo
 
     [Key(25)]
     public List<Vector4Holder> colors4 = [];
+
+    [IgnoreMember]
+    public MeshAssetComponent Components
+    {
+        get
+        {
+            var result = MeshAssetComponent.None;
+
+            if ((UV1?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV1;
+            }
+
+            if ((UV2?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV2;
+            }
+
+            if ((UV3?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV3;
+            }
+
+            if ((UV4?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV4;
+            }
+
+            if ((UV5?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV5;
+            }
+
+            if ((UV6?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV6;
+            }
+
+            if ((UV7?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV7;
+            }
+
+            if ((UV8?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV8;
+            }
+
+            if ((normals?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Normal;
+            }
+
+            if ((tangents?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Tangent;
+            }
+
+            if ((bitangents?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Bitangent;
+            }
+
+            if ((colors?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color1;
+            }
+
+            if ((colors2?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color2;
+            }
+
+            if ((colors3?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color3;
+            }
+
+            if ((colors4?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color4;
+            }
+
+            if ((boneIndices?.Count ?? 0) > 0 || (boneWeights?.Count ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.BoneIndicesWeights;
+            }
+
+            return result;
+        }
+    }
 }
 
 [MessagePackObject]

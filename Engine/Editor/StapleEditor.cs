@@ -1160,7 +1160,7 @@ internal partial class StapleEditor
 
             if (hadFocus != hasFocus && hasFocus)
             {
-                if (ProjectManager.Instance.NeedsGameRecompile() && RefreshingAssets == false)
+                if (RefreshingAssets == false && ProjectManager.Instance.NeedsGameRecompile())
                 {
                     needsGameRecompile = true;
                 }
