@@ -105,6 +105,18 @@ internal static partial class AssetSerialization
     ];
 
     /// <summary>
+    /// All static (can't animate) 3D model (mesh) extensions
+    /// </summary>
+    public static readonly string[] StaticMeshExtensions =
+    [
+        "3ds",
+        "ase",
+        "obj",
+        "ply",
+        "stl",
+    ];
+
+    /// <summary>
     /// All audio file extensions
     /// </summary>
     public static readonly string[] AudioExtensions =

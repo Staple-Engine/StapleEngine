@@ -684,6 +684,7 @@ internal class ProjectBrowser
                                     guid = Hash(),
                                     flipUVs = (path.EndsWith(".glb") ||
                                         path.EndsWith(".gltf")) == false,
+                                    combineSimilarMeshes = AssetSerialization.StaticMeshExtensions.Any(x => path.EndsWith($".{x}")),
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 

@@ -2321,7 +2321,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(13);
+            writer.WriteArrayHeader(14);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.guid, options);
             writer.Write(value.flipUVs);
             writer.Write(value.flipWindingOrder);
@@ -2330,6 +2330,7 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::Staple.MaterialLighting>().Serialize(ref writer, value.lighting, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetRotation>().Serialize(ref writer, value.rotation, options);
             writer.Write(value.scale);
+            writer.Write(value.combineSimilarMeshes);
             writer.Write(value.frameRate);
             writer.Write(value.syncAnimationToRefreshRate);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshSimplifyTarget>().Serialize(ref writer, value.simplify, options);
@@ -2378,18 +2379,21 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.scale = reader.ReadSingle();
                         break;
                     case 8:
-                        ____result.frameRate = reader.ReadInt32();
+                        ____result.combineSimilarMeshes = reader.ReadBoolean();
                         break;
                     case 9:
-                        ____result.syncAnimationToRefreshRate = reader.ReadBoolean();
+                        ____result.frameRate = reader.ReadInt32();
                         break;
                     case 10:
-                        ____result.simplify = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshSimplifyTarget>().Deserialize(ref reader, options);
+                        ____result.syncAnimationToRefreshRate = reader.ReadBoolean();
                         break;
                     case 11:
-                        ____result.targetPolyCount = reader.ReadInt32();
+                        ____result.simplify = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshSimplifyTarget>().Deserialize(ref reader, options);
                         break;
                     case 12:
+                        ____result.targetPolyCount = reader.ReadInt32();
+                        break;
+                    case 13:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     default:

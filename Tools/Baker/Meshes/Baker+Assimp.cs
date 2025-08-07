@@ -40,6 +40,12 @@ public partial class Program
             flags |= Silk.NET.Assimp.PostProcessSteps.FlipWindingOrder;
         }
 
+        if(metadata.combineSimilarMeshes)
+        {
+            flags |= Silk.NET.Assimp.PostProcessSteps.OptimizeGraph |
+                Silk.NET.Assimp.PostProcessSteps.OptimizeMeshes;
+        }
+
         Silk.NET.Assimp.Scene* scene = null;
 
         try
@@ -50,6 +56,13 @@ public partial class Program
             assimp.SetImportPropertyInteger(store, "PP_LBW_MAX_WEIGHTS", 4);
 
             scene = assimp.ImportFileExWithProperties(meshFileName, 0, null, store);
+
+            if (scene == null)
+            {
+                Console.WriteLine($"\t\tError: Failed to import file at {meshFileName}");
+
+                return null;
+            }
 
             /*
             var upAxis = 1;
@@ -121,6 +134,8 @@ public partial class Program
             */
 
             assimp.ApplyPostProcessing(scene, (uint)flags | GenBoundingBoxes | PopulateArmatureData);
+
+            assimp.ReleasePropertyStore(store);
         }
         catch (Exception e)
         {
@@ -1041,6 +1056,8 @@ public partial class Program
             meshData.animations.Add(a);
         }
         #endregion
+
+        assimp.FreeScene(scene);
 
         return meshData;
     }

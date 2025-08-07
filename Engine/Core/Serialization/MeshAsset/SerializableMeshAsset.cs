@@ -97,21 +97,25 @@ public class MeshAssetMetadata
     [Key(7)]
     public float scale = 1.0f;
 
+    [Tooltip("Combines meshes together that use the same materials.\nMay cause problems with skinned meshes.")]
     [Key(8)]
-    public int frameRate = 60;
+    public bool combineSimilarMeshes = false;
 
     [Key(9)]
+    public int frameRate = 60;
+
+    [Key(10)]
     [Tooltip("Whether to sync the animation to the screen refresh rate")]
     public bool syncAnimationToRefreshRate = false;
 
-    [Key(10)]
+    [Key(11)]
     public MeshSimplifyTarget simplify = MeshSimplifyTarget.None;
 
-    [Key(11)]
+    [Key(12)]
     public int targetPolyCount = 1000;
 
     [HideInInspector]
-    [Key(12)]
+    [Key(13)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -138,7 +142,8 @@ public class MeshAssetMetadata
             lhs.frameRate == rhs.frameRate &&
             lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate &&
             lhs.simplify == rhs.simplify &&
-            lhs.targetPolyCount == rhs.targetPolyCount;
+            lhs.targetPolyCount == rhs.targetPolyCount &&
+            lhs.combineSimilarMeshes == rhs.combineSimilarMeshes;
     }
 
     public static bool operator!=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -165,7 +170,8 @@ public class MeshAssetMetadata
             lhs.frameRate != rhs.frameRate ||
             lhs.syncAnimationToRefreshRate != rhs.syncAnimationToRefreshRate ||
             lhs.simplify != rhs.simplify ||
-            lhs.targetPolyCount != rhs.targetPolyCount;
+            lhs.targetPolyCount != rhs.targetPolyCount ||
+            lhs.combineSimilarMeshes != rhs.combineSimilarMeshes;
     }
 
     public override bool Equals(object obj)
@@ -200,6 +206,7 @@ public class MeshAssetMetadata
         hash.Add(syncAnimationToRefreshRate);
         hash.Add(simplify);
         hash.Add(targetPolyCount);
+        hash.Add(combineSimilarMeshes);
 
         return hash.ToHashCode();
     }
