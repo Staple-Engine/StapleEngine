@@ -8,7 +8,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Handles serialization for Staple Assets
 /// </summary>
-internal static partial class AssetSerialization
+public static partial class AssetSerialization
 {
     private static readonly Regex cachePathRegex = CachePathRegex();
     private static readonly Regex assetPathRegex = AssetPathRegex();

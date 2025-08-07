@@ -31,9 +31,6 @@
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
-		<Reference Include="SharpGLTF.Core">
-			<HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
-		</Reference>
 		<Reference Include="StapleCore">
 			<HintPath>..\..\Engine\Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
 		</Reference>
@@ -60,17 +57,12 @@
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+TextAssets.cs" />
-		<Compile Include="Meshes\AssimpExtensions.cs" />
-		<Compile Include="Meshes\Baker+Assimp.cs" />
 		<Compile Include="Meshes\Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />
 		<Compile Include="Baker+Texture.cs" />
 		<Compile Include="Baker.cs" />
-		<Compile Include="Meshes\Baker+SharpGLTF.cs" />
-		<Compile Include="Meshes\Baker+UFBX.cs" />
-		<Compile Include="Meshes\ufbx.cs" />
 		<Compile Include="Renderer.cs" />
 		<Compile Include="Shaders\ShaderCompilerType.cs" />
 		<Compile Include="Shaders\ShaderInstancingParameter.cs" />
@@ -82,8 +74,12 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.1.1" />
-	  <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
-	  <PackageReference Include="System.Text.Json" Version="9.0.7" />
+	  <PackageReference Include="System.Text.Json" Version="9.0.8" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Staple.Assimp\Staple.Assimp.csproj" />
+	  <ProjectReference Include="..\Staple.SharpGLTF\Staple.SharpGLTF.csproj" />
+	  <ProjectReference Include="..\Staple.UFBX\Staple.UFBX.csproj" />
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>

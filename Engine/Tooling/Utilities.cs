@@ -5,6 +5,7 @@ using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -12,6 +13,45 @@ namespace Staple.Tooling;
 
 public class Utilities
 {
+    public static string FindGuid<T>(string path, bool ignoreType = false)
+    {
+        var meta = path.EndsWith(".meta") ? path : $"{path}.meta";
+
+        try
+        {
+            var json = File.ReadAllText(meta);
+            var holder = JsonConvert.DeserializeObject<AssetHolder>(json);
+
+            if (holder != null && (holder.guid?.Length ?? 0) > 0 && (ignoreType || holder.typeName == typeof(T).FullName))
+            {
+                return holder.guid;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        var guid = GuidGenerator.Generate().ToString();
+
+        try
+        {
+            var holder = new AssetHolder()
+            {
+                guid = guid,
+                typeName = typeof(T).FullName,
+            };
+
+            var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+            File.WriteAllText(meta, json);
+        }
+        catch (Exception)
+        {
+        }
+
+        return guid;
+    }
+
     public static bool TryGetShaderUniformType(string name, out ShaderUniformType type)
     {
         switch(name)

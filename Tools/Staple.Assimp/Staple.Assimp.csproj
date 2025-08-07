@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleCore">
+		<HintPath>..\..\Engine\Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleTooling">
+		<HintPath>..\..\Engine\Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+
+</Project>

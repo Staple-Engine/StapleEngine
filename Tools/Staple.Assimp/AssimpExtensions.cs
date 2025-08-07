@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 
-namespace Baker
+namespace Staple.Tooling
 {
     internal static class AssimpExtensions
     {
@@ -30,7 +30,7 @@ namespace Baker
             };
         }
 
-        public static bool TryGetName(this Material material, Assimp assimp, out string name)
+        public static bool TryGetName(this Silk.NET.Assimp.Material material, Assimp assimp, out string name)
         {
             unsafe
             {
@@ -49,7 +49,7 @@ namespace Baker
             return false;
         }
 
-        public static bool IsTwoSided(this Material material, Assimp assimp)
+        public static bool IsTwoSided(this Silk.NET.Assimp.Material material, Assimp assimp)
         {
             unsafe
             {
@@ -66,7 +66,7 @@ namespace Baker
             return false;
         }
 
-        public static bool TryGetColor(this Material material, string key, Assimp assimp, out Vector4 color)
+        public static bool TryGetColor(this Silk.NET.Assimp.Material material, string key, Assimp assimp, out Vector4 color)
         {
             unsafe
             {
@@ -85,7 +85,7 @@ namespace Baker
             return false;
         }
 
-        public static bool TryGetTexture(this Material material, TextureType type, Assimp assimp, out TextureSlot slot)
+        public static bool TryGetTexture(this Silk.NET.Assimp.Material material, TextureType type, Assimp assimp, out TextureSlot slot)
         {
             unsafe
             {
@@ -134,9 +134,9 @@ namespace Baker
             return false;
         }
 
-        public static unsafe Material*[] GetMaterials(this Scene scene)
+        public static unsafe Silk.NET.Assimp.Material*[] GetMaterials(this Silk.NET.Assimp.Scene scene)
         {
-            var outValue = new Material*[(int)scene.MNumMaterials];
+            var outValue = new Silk.NET.Assimp.Material*[(int)scene.MNumMaterials];
 
             for(var i = 0; i < scene.MNumMaterials; i++)
             {
@@ -146,7 +146,7 @@ namespace Baker
             return outValue;
         }
 
-        public static bool HasBones(this Scene scene)
+        public static bool HasBones(this Silk.NET.Assimp.Scene scene)
         {
             unsafe
             {
@@ -189,7 +189,7 @@ namespace Baker
             return outValue;
         }
 
-        public static unsafe Animation*[] Animations(this Scene scene)
+        public static unsafe Animation*[] Animations(this Silk.NET.Assimp.Scene scene)
         {
             var outValue = new Animation*[scene.MNumAnimations];
 
@@ -249,9 +249,9 @@ namespace Baker
             return outValue;
         }
 
-        public static unsafe Mesh*[] GetMeshes(this Scene scene)
+        public static unsafe Silk.NET.Assimp.Mesh*[] GetMeshes(this Silk.NET.Assimp.Scene scene)
         {
-            var outValue = new Mesh*[scene.MNumMeshes];
+            var outValue = new Silk.NET.Assimp.Mesh*[scene.MNumMeshes];
 
             for (var i = 0; i < outValue.Length; i++)
             {
@@ -261,7 +261,7 @@ namespace Baker
             return outValue;
         }
 
-        public static unsafe Face[] GetFaces(this Mesh mesh)
+        public static unsafe Face[] GetFaces(this Silk.NET.Assimp.Mesh mesh)
         {
             var outValue = new Face[mesh.MNumFaces];
 
@@ -288,7 +288,7 @@ namespace Baker
             return outValue;
         }
 
-        public static unsafe bool TryGetColors(this Mesh mesh, int index, out Staple.Internal.Vector4Holder[] colors)
+        public static unsafe bool TryGetColors(this Silk.NET.Assimp.Mesh mesh, int index, out Staple.Internal.Vector4Holder[] colors)
         {
             var source = mesh.MColors[index];
 
@@ -307,7 +307,7 @@ namespace Baker
             return true;
         }
 
-        public static unsafe bool TryGetTexCoords(this Mesh mesh, int index, out Staple.Internal.Vector2Holder[] uvs)
+        public static unsafe bool TryGetTexCoords(this Silk.NET.Assimp.Mesh mesh, int index, out Staple.Internal.Vector2Holder[] uvs)
         {
             var source = mesh.MTextureCoords[index];
 
@@ -326,7 +326,7 @@ namespace Baker
             return true;
         }
 
-        public static unsafe Bone *[] GetBones(this Mesh mesh)
+        public static unsafe Bone *[] GetBones(this Silk.NET.Assimp.Mesh mesh)
         {
             var outValue = new Bone *[mesh.MNumBones];
 

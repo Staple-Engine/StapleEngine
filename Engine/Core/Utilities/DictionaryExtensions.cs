@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-internal static class DictionaryExtensions
+public static class DictionaryExtensions
 {
     public static void AddOrSetKey<K, V>(this IDictionary<K, V> dictionary, K key, V value)
     {

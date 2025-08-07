@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Staple;
 using Staple.Internal;
 using System;
 using System.Collections.Generic;
@@ -8,13 +7,18 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Baker;
+namespace Staple.Tooling;
 
-public partial class Program
+public class SharpGLTFImporter : IMeshImporter
 {
-    public static SerializableMeshAsset ProcessSharpGLTFMesh(MeshAssetMetadata metadata, string meshFileName, string inputPath,
-        SerializableShader standardShader, Func<string, bool> ShaderHasParameter)
+    public bool HandlesExtension(string extension) => extension == ".gltf" || extension == ".glb";
+
+    public SerializableMeshAsset ImportMesh(MeshImporterContext context)
     {
+        var (metadata, meshFileName, inputPath, standardShader, ShaderHasParameter, meshMaterialLock, processedTextures) =
+            (context.metadata, context.meshFileName, context.inputPath, context.standardShader,
+            context.ShaderHasParameter, context.materialLock, context.processedTextures);
+
         SharpGLTF.Schema2.ModelRoot model = null;
 
         var textureData = new RawTextureData()
@@ -45,13 +49,13 @@ public partial class Program
 
         try
         {
-            var context = SharpGLTF.Schema2.ReadContext.Create(FileReader);
+            var gltfContext = SharpGLTF.Schema2.ReadContext.Create(FileReader);
 
             //Not skipping causes models with issues such as material values outside of the allowed range to not load at all,
             //which is not acceptable.
-            context.Validation = SharpGLTF.Validation.ValidationMode.Skip;
+            gltfContext.Validation = SharpGLTF.Validation.ValidationMode.Skip;
 
-            model = SharpGLTF.Schema2.ModelRoot.Load(Path.GetFileName(meshFileName), context);
+            model = SharpGLTF.Schema2.ModelRoot.Load(Path.GetFileName(meshFileName), gltfContext);
 
             if (model == null)
             {
@@ -96,7 +100,7 @@ public partial class Program
                 var fileName = $"{baseName}.{AssetSerialization.MaterialExtension}";
 
                 var target = Path.Combine(Path.GetDirectoryName(meshFileName), fileName);
-                var materialGuid = FindGuid<Material>($"{target}.meta");
+                var materialGuid = Utilities.FindGuid<Material>($"{target}.meta");
 
                 materialMapping.Add(materialGuid);
 
@@ -321,7 +325,7 @@ public partial class Program
                                 }
                                 else
                                 {
-                                    guid = FindGuid<Texture>(t);
+                                    guid = Utilities.FindGuid<Texture>(t);
                                 }
                             }
                             catch (Exception)

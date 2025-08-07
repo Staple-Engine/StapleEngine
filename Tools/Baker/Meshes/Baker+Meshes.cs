@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
+using Staple.Tooling;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,121 +11,6 @@ using System.Numerics;
 using System.Threading;
 
 namespace Baker;
-
-#region Classes
-class Vector4Filler
-{
-    public float x;
-    public float y;
-    public float z;
-    public float w;
-
-    public int index = 0;
-
-    public float this[int index]
-    {
-        get
-        {
-            return index switch
-            {
-                0 => x,
-                1 => y,
-                2 => z,
-                3 => w,
-                _ => 0,
-            };
-        }
-
-        set
-        {
-            switch(index)
-            {
-                case 0:
-
-                    x = value;
-
-                    break;
-
-                case 1:
-
-                    y = value;
-
-                    break;
-
-                case 2:
-
-                    z = value;
-
-                    break;
-
-                case 3:
-
-                    w = value;
-
-                    break;
-            }
-        }
-    }
-
-    public void Add(float value)
-    {
-        switch(index++)
-        {
-            case 0:
-
-                x = value;
-
-                break;
-
-            case 1:
-
-                y = value;
-                
-                break;
-
-            case 2:
-
-                z = value;
-
-                break;
-
-            case 3:
-
-                w = value;
-
-                break;
-
-            default:
-
-                break;
-        }
-    }
-
-    public Vector4Holder ToHolderNormalized()
-    {
-        var total = x + y + z + w;
-
-        return new()
-        {
-            x = x / total,
-            y = y / total,
-            z = z / total,
-            w = w / total,
-        };
-    }
-
-    public Vector4Holder ToHolder()
-    {
-        return new()
-        {
-            x = x,
-            y = y,
-            z = z,
-            w = w,
-        };
-    }
-}
-#endregion
 
 static partial class Program
 {
@@ -163,6 +49,13 @@ static partial class Program
         {
             return standardShader?.metadata.uniforms.Any(x => x.name == name) ?? false;
         }
+
+        List<IMeshImporter> importers =
+            [
+                new UFXImporter(),
+                new SharpGLTFImporter(),
+                new AssimpImporter(),
+            ];
 
         for (var i = 0; i < meshFiles.Count; i++)
         {
@@ -241,19 +134,29 @@ static partial class Program
                     return;
                 }
 
+                var context = new MeshImporterContext()
+                {
+                    inputPath = inputPath,
+                    materialLock = meshMaterialLock,
+                    meshFileName = meshFileName,
+                    metadata = metadata,
+                    processedTextures = processedTextures,
+                    ShaderHasParameter = ShaderHasParameter,
+                    standardShader = standardShader,
+                };
+
                 SerializableMeshAsset meshData = null;
 
-                if(meshFileName.EndsWith(".gltf.meta") || meshFileName.EndsWith(".glb.meta"))
+                var extension = Path.GetExtension(meshFileName.Replace(".meta", ""));
+
+                foreach(var importer in importers)
                 {
-                    meshData = ProcessSharpGLTFMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
-                }
-                else if(meshFileName.EndsWith(".fbx.meta"))
-                {
-                    meshData = ProcessUFBXMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
-                }
-                else
-                {
-                    meshData = ProcessAssimpMesh(metadata, meshFileName.Replace(".meta", ""), inputPath, standardShader, ShaderHasParameter);
+                    if(importer.HandlesExtension(extension))
+                    {
+                        meshData = importer.ImportMesh(context);
+
+                        break;
+                    }
                 }
 
                 if(meshData == null)
