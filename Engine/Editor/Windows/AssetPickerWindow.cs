@@ -48,6 +48,11 @@ internal class AssetPickerWindow : EditorWindow
                 continue;
             }
 
+            if(pair.Value.Count == 0)
+            {
+                continue;
+            }
+
             var asset = pair.Value[0];
 
             if(Array.IndexOf(ignoredGuids, asset.guid) >= 0 ||

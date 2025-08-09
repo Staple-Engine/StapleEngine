@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<Reference Include="SharpGLTF.Core">
+		<HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleCore">
+		<HintPath>..\..\Engine\Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+	</Reference>
+	<Reference Include="StapleTooling">
+		<HintPath>..\..\Engine\Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+	</Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="3.0.56" />
+  </ItemGroup>
+
+</Project>

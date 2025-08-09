@@ -55,6 +55,7 @@ static partial class Program
                 new UFXImporter(),
                 new SharpGLTFImporter(),
                 new AssimpImporter(),
+                new OBJImporter(),
             ];
 
         for (var i = 0; i < meshFiles.Count; i++)
@@ -138,7 +139,7 @@ static partial class Program
                 {
                     inputPath = inputPath,
                     materialLock = meshMaterialLock,
-                    meshFileName = meshFileName,
+                    meshFileName = meshFileName.Replace(".meta", ""),
                     metadata = metadata,
                     processedTextures = processedTextures,
                     ShaderHasParameter = ShaderHasParameter,
@@ -164,7 +165,7 @@ static partial class Program
                     return;
                 }
 
-                meshData = Staple.Tooling.MeshOptimization.OptimizeMeshAsset(meshData);
+                meshData = MeshOptimization.OptimizeMeshAsset(meshData);
 
                 foreach (var mesh in meshData.meshes)
                 {

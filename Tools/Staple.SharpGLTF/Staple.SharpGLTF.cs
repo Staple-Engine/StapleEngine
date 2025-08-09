@@ -71,6 +71,13 @@ public class SharpGLTFImporter : IMeshImporter
             return null;
         }
 
+        if(model == null)
+        {
+            Console.WriteLine($"\t\tError: Failed to import file {meshFileName}");
+
+            return null;
+        }
+
         if (metadata.frameRate <= 0)
         {
             metadata.frameRate = 30;

@@ -19,14 +19,13 @@ public class AssimpImporter : IMeshImporter
     {
         return extension switch
         {
-            "3ds" => true,
-            "ase" => true,
-            "bvh" => true,
-            "dae" => true,
-            "ms3d" => true,
-            "obj" => true,
-            "ply" => true,
-            "stl" => true,
+            ".3ds" => true,
+            ".ase" => true,
+            ".bvh" => true,
+            ".dae" => true,
+            ".ms3d" => true,
+            ".ply" => true,
+            ".stl" => true,
             _ => false,
         };
     }

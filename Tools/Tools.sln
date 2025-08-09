@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.SharpGLTF", "Staple.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.Assimp", "Staple.Assimp\Staple.Assimp.csproj", "{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.OBJ", "Staple.OBJ\Staple.OBJ.csproj", "{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Release|Any CPU.Build.0 = Release|Any CPU
+		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
