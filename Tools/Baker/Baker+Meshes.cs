@@ -165,15 +165,111 @@ static partial class Program
                     return;
                 }
 
-                meshData = MeshOptimization.OptimizeMeshAsset(meshData);
-
-                foreach(var mesh in meshData.meshes)
+                foreach (var mesh in meshData.meshes)
                 {
-                    if(string.IsNullOrEmpty(mesh.materialGuid))
+                    if (string.IsNullOrEmpty(mesh.materialGuid))
                     {
                         mesh.materialGuid = AssetDatabase.GetAssetGuid("Hidden/Materials/Standard.material") ?? mesh.materialGuid;
                     }
                 }
+
+                //Do this for OBJ only right now
+                if (metadata.combineSimilarMeshes && extension == ".obj")
+                {
+                    var combinableMeshes = new Dictionary<string, Dictionary<MeshAssetComponent, List<MeshAssetMeshInfo>>>();
+
+                    foreach (var mesh in meshData.meshes)
+                    {
+                        if (combinableMeshes.TryGetValue(mesh.materialGuid, out var contents) == false)
+                        {
+                            contents = [];
+
+                            combinableMeshes.Add(mesh.materialGuid, contents);
+                        }
+
+                        if (contents.TryGetValue(mesh.Components, out var meshes) == false)
+                        {
+                            meshes = [];
+
+                            contents.Add(mesh.Components, meshes);
+                        }
+
+                        meshes.Add(mesh);
+                    }
+
+                    var newMeshes = new List<MeshAssetMeshInfo>();
+
+                    foreach (var pair in combinableMeshes)
+                    {
+                        foreach (var meshPair in pair.Value)
+                        {
+                            if (meshPair.Value.Count == 1)
+                            {
+                                newMeshes.Add(meshPair.Value[0]);
+
+                                continue;
+                            }
+
+                            var first = meshPair.Value[0];
+
+                            var newMesh = new MeshAssetMeshInfo()
+                            {
+                                name = first.name,
+                                topology = first.topology,
+                                type = first.type,
+                                materialGuid = first.materialGuid,
+                            };
+
+                            foreach (var submesh in meshPair.Value)
+                            {
+                                var startVertex = newMesh.vertices.Count;
+
+                                newMesh.vertices.AddRange(submesh.vertices);
+                                newMesh.normals.AddRange(submesh.normals);
+                                newMesh.tangents.AddRange(submesh.tangents);
+                                newMesh.bitangents.AddRange(submesh.bitangents);
+                                newMesh.colors.AddRange(submesh.colors);
+                                newMesh.colors2.AddRange(submesh.colors2);
+                                newMesh.colors3.AddRange(submesh.colors3);
+                                newMesh.colors4.AddRange(submesh.colors4);
+                                newMesh.UV1.AddRange(submesh.UV1);
+                                newMesh.UV2.AddRange(submesh.UV2);
+                                newMesh.UV3.AddRange(submesh.UV3);
+                                newMesh.UV4.AddRange(submesh.UV4);
+                                newMesh.UV5.AddRange(submesh.UV5);
+                                newMesh.UV6.AddRange(submesh.UV6);
+                                newMesh.UV7.AddRange(submesh.UV7);
+                                newMesh.UV8.AddRange(submesh.UV8);
+                                newMesh.indices.AddRange(submesh.indices.Select(x => x + startVertex));
+                            }
+
+                            var p = newMesh.vertices.Select(x => x.ToVector3()).ToArray();
+
+                            var aabb = AABB.CreateFromPoints(p);
+
+                            newMesh.boundsCenter = new(aabb.center);
+                            newMesh.boundsExtents = new(aabb.size);
+
+                            newMeshes.Add(newMesh);
+                        }
+                    }
+
+                    meshData.meshes = newMeshes;
+
+                    meshData.nodes = 
+                        [
+                            new()
+                            {
+                                name = "root",
+                                meshIndices = newMeshes.Select((x, xIndex) => xIndex).ToList(),
+                                position = new(),
+                                rotation = new(Quaternion.Identity),
+                                scale = new(Vector3.One),
+                            }
+                        ];
+                }
+
+                meshData = MeshOptimization.OptimizeMeshAsset(meshData);
 
                 foreach (var mesh in meshData.meshes)
                 {
