@@ -79,6 +79,7 @@ public static class AssetDatabase
                     }
 
                     var pathsToGuids = new Dictionary<string, List<string>>();
+                    var guidsToRemove = new List<string>();
 
                     foreach (var pair in database.assets)
                     {
@@ -163,6 +164,11 @@ public static class AssetDatabase
                             }
                         }
 
+                        if (pair.Value.Count == 0)
+                        {
+                            guidsToRemove.Add(pair.Key);
+                        }
+
                         foreach (var item in pair.Value)
                         {
                             assetGuids.AddOrSetKey(item.path, item.guid);
@@ -187,6 +193,11 @@ public static class AssetDatabase
                                 database.assets.Remove(guid);
                             }
                         }
+                    }
+
+                    foreach(var guid in guidsToRemove)
+                    {
+                        database.assets.Remove(guid);
                     }
 
                     AssetDatabase.database = database;

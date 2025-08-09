@@ -36,7 +36,7 @@ static partial class Program
 
         RenderWindow.CurrentRenderer = RendererType.Direct3D11;
 
-        var standardShader = ResourceManager.instance.LoadShaderData(AssetSerialization.StandardShaderGUID);
+        var standardShader = ResourceManager.instance.LoadShaderData(AssetDatabase.GetAssetGuid(AssetSerialization.StandardShaderPath));
 
         if(standardShader == null)
         {
@@ -166,6 +166,14 @@ static partial class Program
                 }
 
                 meshData = MeshOptimization.OptimizeMeshAsset(meshData);
+
+                foreach(var mesh in meshData.meshes)
+                {
+                    if(string.IsNullOrEmpty(mesh.materialGuid))
+                    {
+                        mesh.materialGuid = AssetDatabase.GetAssetGuid("Hidden/Materials/Standard.material") ?? mesh.materialGuid;
+                    }
+                }
 
                 foreach (var mesh in meshData.meshes)
                 {

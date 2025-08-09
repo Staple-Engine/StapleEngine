@@ -238,7 +238,7 @@ public class AssimpImporter : IMeshImporter
 
                     var materialMetadata = new MaterialMetadata()
                     {
-                        shader = AssetSerialization.StandardShaderGUID,
+                        shader = standardShader.metadata.guid,
                     };
 
                     if (material->IsTwoSided(assimp))
@@ -806,7 +806,9 @@ public class AssimpImporter : IMeshImporter
                 var m = new MeshAssetMeshInfo
                 {
                     name = mesh->MName.AsString,
-                    materialGuid = mesh->MMaterialIndex >= 0 && mesh->MMaterialIndex < materialMapping.Count ? materialMapping[(int)mesh->MMaterialIndex] : "",
+                    materialGuid = mesh->MMaterialIndex >= 0 && mesh->MMaterialIndex < materialMapping.Count ?
+                        materialMapping[(int)mesh->MMaterialIndex] : 
+                        AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                     type = mesh->MNumBones > 0 ? MeshAssetType.Skinned : MeshAssetType.Normal,
                 };
 

@@ -49,9 +49,14 @@ public static partial class AssetSerialization
     public static readonly string AssemblyDefinitionExtension = "asmdef";
 
     /// <summary>
-    /// GUID for the standard shader
+    /// Path to the standard material
     /// </summary>
-    public static readonly string StandardShaderGUID = "1ca9a72c-161e-44db-ad76-bf0ae432f78b";
+    public static readonly string StandardMaterialPath = $"Hidden/Materials/Standard.{MaterialExtension}";
+
+    /// <summary>
+    /// Path to the standard shader
+    /// </summary>
+    public static readonly string StandardShaderPath = $"Hidden/Shaders/Default/Standard.{ShaderExtension}";
 
     /// <summary>
     /// All supported texture extensions

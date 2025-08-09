@@ -57,7 +57,7 @@
 		<Compile Include="Baker+Font.cs" />
 		<Compile Include="Baker+Material.cs" />
 		<Compile Include="Baker+TextAssets.cs" />
-		<Compile Include="Meshes\Baker+Meshes.cs" />
+		<Compile Include="Baker+Meshes.cs" />
 		<Compile Include="Baker+Prefabs.cs" />
 		<Compile Include="Baker+Scene.cs" />
 		<Compile Include="Baker+Shaders.cs" />

@@ -124,7 +124,7 @@ public class SharpGLTFImporter : IMeshImporter
 
                 var materialMetadata = new MaterialMetadata()
                 {
-                    shader = AssetSerialization.StandardShaderGUID,
+                    shader = standardShader.metadata.guid,
                 };
 
                 if (material.DoubleSided)
@@ -624,7 +624,8 @@ public class SharpGLTFImporter : IMeshImporter
                     {
                         name = $"{mesh.Name} {primitive.LogicalIndex}",
                         materialGuid = (primitive.Material?.LogicalIndex ?? -1) >= 0 && primitive.Material.LogicalIndex < materialMapping.Count ?
-                            materialMapping[primitive.Material.LogicalIndex] : "",
+                            materialMapping[primitive.Material.LogicalIndex] : 
+                            AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                         type = node.Skin != null &&
                             primitive.VertexAccessors.ContainsKey("JOINTS_0") &&
                             primitive.VertexAccessors.ContainsKey("WEIGHTS_0") ? MeshAssetType.Skinned : MeshAssetType.Normal,

@@ -103,7 +103,7 @@ public class OBJImporter : IMeshImporter
 
                     var materialMetadata = new MaterialMetadata()
                     {
-                        shader = AssetSerialization.StandardShaderGUID,
+                        shader = standardShader.metadata.guid,
                     };
 
                     var basePath = Path.GetDirectoryName(meshFileName).Replace(inputPath, "");
@@ -413,7 +413,8 @@ public class OBJImporter : IMeshImporter
                 name = group.Name,
                 topology = MeshTopology.Triangles,
                 type = MeshAssetType.Normal,
-                materialGuid = materialIndex >= 0 && materialIndex < materialMapping.Count ? materialMapping[materialIndex] : "",
+                materialGuid = materialIndex >= 0 && materialIndex < materialMapping.Count ? materialMapping[materialIndex] :
+                    AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
             };
 
             bool TryGetVertex(int index, out Vector3Holder position, out Vector4Holder color)

@@ -1428,7 +1428,7 @@ public sealed partial class Mesh : IGuidAsset
 
         var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.meshes[mesh.meshAssetIndex].submeshMaterialGuids
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
-            [ResourceManager.instance.LoadMaterial(AssetSerialization.StandardShaderGUID)];
+            [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
         if (mesh.HasBoneIndices && mesh.meshAsset != null && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
         {

@@ -77,7 +77,7 @@ public class UFXImporter : IMeshImporter
 
                     var materialMetadata = new MaterialMetadata()
                     {
-                        shader = AssetSerialization.StandardShaderGUID,
+                        shader = standardShader.metadata.guid,
                     };
 
                     //TODO: TwoSided
@@ -471,7 +471,8 @@ public class UFXImporter : IMeshImporter
                 var m = new MeshAssetMeshInfo
                 {
                     name = $"Mesh {meshData.meshes.Count}",
-                    materialGuid = mesh.materialIndex >= 0 && mesh.materialIndex < materialMapping.Count ? materialMapping[mesh.materialIndex] : "",
+                    materialGuid = mesh.materialIndex >= 0 && mesh.materialIndex < materialMapping.Count ? materialMapping[mesh.materialIndex] :
+                        AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                     type = mesh.isSkinned ? MeshAssetType.Skinned : MeshAssetType.Normal,
                     topology = MeshTopology.Triangles,
                 };
