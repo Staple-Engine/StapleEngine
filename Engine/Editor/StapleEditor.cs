@@ -178,6 +178,54 @@ internal partial class StapleEditor
             return null;
         }
     }
+
+    class RenderQueue : IWorldChangeReceiver
+    {
+        public readonly SceneQuery<Transform> transforms = new(true);
+        public readonly Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>> renderQueue = [];
+        public readonly List<Entity> disabledEntities = [];
+
+        public void WorldChanged()
+        {
+            renderQueue.Clear();
+            disabledEntities.Clear();
+
+            foreach (var (entity, transform) in transforms.Contents)
+            {
+                var layer = entity.Layer;
+
+                if (layer == LayerMask.NameToLayer(RenderTargetLayerName))
+                {
+                    continue;
+                }
+
+                if(entity.EnabledInHierarchy == false)
+                {
+                    disabledEntities.Add(entity);
+                }
+
+                foreach (var system in RenderSystem.Instance.renderSystems)
+                {
+                    if (system.UsesOwnRenderProcess)
+                    {
+                        continue;
+                    }
+
+                    if (entity.TryGetComponent(system.RelatedComponent, out var component))
+                    {
+                        if (renderQueue.TryGetValue(system, out var content) == false)
+                        {
+                            content = [];
+
+                            renderQueue.Add(system, content);
+                        }
+
+                        content.Add((entity, transform, component));
+                    }
+                }
+            }
+        }
+    }
     #endregion
 
     #region Background Tasks
@@ -232,6 +280,8 @@ internal partial class StapleEditor
     private Quaternion transformRotation;
 
     private Mesh gridMesh;
+
+    private readonly RenderQueue renderQueue = new();
     #endregion
 
     #region Entities
@@ -359,6 +409,7 @@ internal partial class StapleEditor
 
     #region PlayMode
     private PlayMode playMode = PlayMode.Stopped;
+    private bool forceCursorVisible = false;
     #endregion
 
     private static WeakReference<StapleEditor> privInstance;
@@ -629,6 +680,8 @@ internal partial class StapleEditor
             return;
         }
 
+        World.AddChangeReceiver(renderQueue);
+
         window.OnInit = () =>
         {
             AssetDatabase.Reload(null, () =>
@@ -778,7 +831,14 @@ internal partial class StapleEditor
             EditorGUI.OnFrameStart();
             ImGuiProxy.instance.BeginFrame();
 
-            if (viewportType == ViewportType.Scene)
+            if(Cursor.LockState == CursorLockMode.Locked &&
+                playMode != PlayMode.Stopped &&
+                Input.GetKeyUp(KeyCode.Escape))
+            {
+                forceCursorVisible = true;
+            }
+
+            if (viewportType == ViewportType.Scene && Cursor.LockState == CursorLockMode.None)
             {
                 if (io.WantTextInput == false)
                 {
@@ -820,7 +880,11 @@ internal partial class StapleEditor
 
             if (gameRenderTarget != null && Scene.current != null)
             {
-                RenderTarget.SetActive(1, gameRenderTarget);
+                for(var i = 0; i < Scene.SortedCameras.Length; i++)
+                {
+                    RenderTarget.SetActive((ushort)(i + 1), gameRenderTarget);
+                }
+
                 RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
 
                 Screen.Width = gameRenderTarget.width;
@@ -841,7 +905,13 @@ internal partial class StapleEditor
                 EntitySystemManager.Instance.Update();
             }
 
-            if(resetSelection)
+            if (forceCursorVisible)
+            {
+                Cursor.Visible = true;
+                Cursor.LockState = CursorLockMode.None;
+            }
+
+            if (resetSelection)
             {
                 resetSelection = false;
 

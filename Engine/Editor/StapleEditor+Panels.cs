@@ -798,21 +798,49 @@ internal partial class StapleEditor
 
         EditorGUI.SetCurrentGUICursorPosition(EditorGUI.CurrentGUICursorPosition() + new Vector2(centerSpace, 0));
 
-        EditorGUI.Button("Play", "GameView.Play", () =>
+        EditorGUI.Button(playMode == PlayMode.Playing ? "Pause" : "Play", "GameView.Play", () =>
         {
-            if (playMode == PlayMode.Playing)
+            switch(playMode)
             {
-                Platform.IsPlaying = false;
+                case PlayMode.Playing:
 
-                playMode = PlayMode.Paused;
-            }
-            else if(playMode != PlayMode.Paused)
-            {
-                RecordScene();
+                    Platform.IsPlaying = false;
 
-                playMode = PlayMode.Playing;
+                    playMode = PlayMode.Paused;
 
-                Platform.IsPlaying = true;
+                    break;
+
+                case PlayMode.Paused:
+
+                    Platform.IsPlaying = true;
+
+                    playMode = PlayMode.Playing;
+
+                    if (forceCursorVisible)
+                    {
+                        forceCursorVisible = false;
+
+                        Cursor.LockState = CursorLockMode.Locked;
+                        Cursor.Visible = false;
+                    }
+
+                    break;
+
+                case PlayMode.Stopped:
+
+                    RecordScene();
+
+                    playMode = PlayMode.Playing;
+
+                    viewportType = ViewportType.Game;
+
+                    Platform.IsPlaying = true;
+
+                    forceCursorVisible = false;
+
+                    EntitySystemManager.Instance.StartupAllSystems();
+
+                    break;
             }
         });
 
@@ -824,7 +852,11 @@ internal partial class StapleEditor
             {
                 playMode = PlayMode.Stopped;
 
+                EntitySystemManager.Instance.ShutdownAllSystems();
+
                 Platform.IsPlaying = false;
+
+                forceCursorVisible = false;
 
                 ResetScenePhysics(true);
 
@@ -834,23 +866,24 @@ internal partial class StapleEditor
             });
         });
 
-        EditorGUI.TabBar(["Scene", "Game"], "SCENEGAME", (tabIndex) =>
-        {
-            switch (tabIndex)
+        EditorGUI.TabBar(["Scene", "Game"], "SCENEGAME", null, 
+            (tabIndex) =>
             {
-                case 0:
+                switch (tabIndex)
+                {
+                    case 0:
 
-                    viewportType = ViewportType.Scene;
+                        viewportType = ViewportType.Scene;
 
-                    break;
+                        break;
 
-                case 1:
+                    case 1:
 
-                    viewportType = ViewportType.Game;
+                        viewportType = ViewportType.Game;
 
-                    break;
-            }
-        });
+                        break;
+                }
+            });
 
         switch(viewportType)
         {
@@ -879,6 +912,17 @@ internal partial class StapleEditor
                 if (texture != null)
                 {
                     EditorGUI.Texture(texture, new Vector2(width, height));
+
+                    if (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Left))
+                    {
+                        if (forceCursorVisible)
+                        {
+                            forceCursorVisible = false;
+
+                            Cursor.LockState = CursorLockMode.Locked;
+                            Cursor.Visible = false;
+                        }
+                    }
                 }
 
                 ImGui.End();
@@ -1083,7 +1127,7 @@ internal partial class StapleEditor
 
         ImGui.BeginChild(ImGui.GetID("Toolbar"), new Vector2(0, 32), ImGuiChildFlags.None);
 
-        EditorGUI.TabBar(["Folders", "Log"], "PROJECT", (tabIndex) =>
+        EditorGUI.TabBar(["Folders", "Log"], "PROJECT", null, (tabIndex) =>
         {
             activeBottomTab = tabIndex;
         });

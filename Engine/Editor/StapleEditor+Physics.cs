@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -62,9 +63,8 @@ internal partial class StapleEditor
     /// Replaces an entity's physics body in the scene
     /// </summary>
     /// <param name="entity">The entity</param>
-    /// <param name="transform">The entity transform</param>
     /// <param name="bounds">The entity bounds</param>
-    public void ReplaceEntityBody(Entity entity, Transform transform, AABB bounds)
+    public void ReplaceEntityBody(Entity entity, AABB bounds)
     {
         if(pickEntityBodies.TryGetValue(entity, out var pair))
         {
@@ -73,9 +73,7 @@ internal partial class StapleEditor
             pickEntityBodies.Remove(entity);
         }
 
-        var extents = bounds.extents * transform.Scale * 2;
-
-        if (Physics3D.Instance.CreateBox(entity, extents, transform.Position, transform.Rotation, BodyMotionType.Dynamic, 0, false,
+        if (Physics3D.Instance.CreateBox(entity, bounds.size, bounds.center, Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
             0, 0, 0, true, true, true, false, 1, out var body))
         {
             pickEntityBodies.Add(entity, new EntityBody()
@@ -92,16 +90,33 @@ internal partial class StapleEditor
     /// <param name="entity">The entity to replace</param>
     /// <param name="transform">The entity's transform</param>
     /// <param name="bounds">The entity's bounds</param>
-    public void ReplaceEntityBodyIfNeeded(Entity entity, Transform transform, AABB bounds)
+    public void ReplaceEntityBodyIfNeeded(Entity entity, AABB bounds)
     {
         if(bounds.extents.LengthSquared() == 0 || playMode != PlayMode.Stopped)
         {
             return;
         }
 
-        if (pickEntityBodies.TryGetValue(entity, out var pair) == false || (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
+        if (pickEntityBodies.TryGetValue(entity, out var pair) == false ||
+            (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
         {
-            ReplaceEntityBody(entity, transform, bounds);
+            ReplaceEntityBody(entity, bounds);
         }
+    }
+
+    /// <summary>
+    /// Removes an entity's body in the scene
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    public void ClearEntityBody(Entity entity)
+    {
+        if(pickEntityBodies.TryGetValue(entity, out var pair) == false)
+        {
+            return;
+        }
+
+        Physics3D.Instance.DestroyBody(pair.body);
+
+        pickEntityBodies.Remove(entity);
     }
 }

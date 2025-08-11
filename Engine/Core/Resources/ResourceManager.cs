@@ -2338,7 +2338,7 @@ internal class ResourceManager
                 data = prefabData,
             };
 
-            prefab.Guid.Guid = guid;
+            prefab.Guid.Guid = guid ?? path;
 
             if (ignoreCache == false)
             {

@@ -190,6 +190,8 @@ internal partial class StapleEditor
 
             StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
+            EntitySystemManager.Instance.Shutdown();
+
             void RegisterTypes(Type[] types)
             {
                 foreach (var v in types)
@@ -228,6 +230,21 @@ internal partial class StapleEditor
                             var instance = (IRenderSystem)Activator.CreateInstance(v);
 
                             RenderSystem.Instance.RegisterSystem(instance);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                    else if((typeof(IEntitySystemLifecycle).IsAssignableFrom(v) ||
+                        typeof(IEntitySystemUpdate).IsAssignableFrom(v) ||
+                        typeof(IEntitySystemFixedUpdate).IsAssignableFrom(v)) &&
+                        v.IsInterface == false)
+                    {
+                        try
+                        {
+                            var instance = Activator.CreateInstance(v);
+
+                            EntitySystemManager.Instance.RegisterSystem(instance);
                         }
                         catch (Exception)
                         {

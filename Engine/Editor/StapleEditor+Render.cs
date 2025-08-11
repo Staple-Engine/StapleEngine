@@ -161,63 +161,43 @@ internal partial class StapleEditor
 
         if (World.Current != null)
         {
-            //TODO: Cache this
-            var transforms = Scene.Query<Transform>();
-
-            var renderQueue = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
-
-            foreach ((Entity entity, Transform transform) in transforms)
+            foreach(var entity in renderQueue.disabledEntities)
             {
-                if(entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
-                {
-                    continue;
-                }
-
-                foreach(var system in renderSystem.renderSystems)
-                {
-                    var related = entity.GetComponent(system.RelatedComponent);
-
-                    if (related != null)
-                    {
-                        if(renderQueue.TryGetValue(system, out var content) == false)
-                        {
-                            content = [];
-
-                            renderQueue.Add(system, content);
-                        }
-
-                        if (related is Renderable renderable &&
-                            renderable.enabled)
-                        {
-                            renderable.isVisible = renderable.enabled &&
-                                renderable.forceRenderingOff == false;
-                            renderable.cullingState = CullingState.None;
-
-                            if (renderable.isVisible)
-                            {
-                                if(renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                }
-                            }
-
-                            if (renderable.isVisible == false)
-                            {
-                                RenderSystem.CulledRenderers++;
-                            }
-
-                            ReplaceEntityBodyIfNeeded(entity, transform, renderable.localBounds);
-                        }
-
-                        content.Add((entity, transform, related));
-                    }
-                }
+                ClearEntityBody(entity);
             }
 
-            foreach(var pair in renderQueue)
+            renderQueue.disabledEntities.Clear();
+
+            foreach(var pair in renderQueue.renderQueue)
             {
+                foreach(var item in pair.Value)
+                {
+                    if(item.Item3 is Renderable renderable &&
+                        renderable.enabled)
+                    {
+                        renderable.isVisible = renderable.enabled &&
+                            renderable.forceRenderingOff == false;
+                        renderable.cullingState = CullingState.None;
+
+                        if (renderable.isVisible)
+                        {
+                            if (renderable.cullingState == CullingState.None)
+                            {
+                                renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                            }
+                        }
+
+                        if (renderable.isVisible == false)
+                        {
+                            RenderSystem.CulledRenderers++;
+                        }
+
+                        ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
+                    }
+                }
+
                 ExecuteBlock(pair.Key, () =>
                 {
                     pair.Key.Preprocess(pair.Value.ToArray(), camera, cameraTransform);
@@ -248,18 +228,16 @@ internal partial class StapleEditor
                 });
             }
 
-            Scene.IterateEntities((entity) =>
+            foreach(var (entity, transform) in renderQueue.transforms.Contents)
             {
-                var transform = entity.GetComponent<Transform>();
-
                 if(transform == null || Vector3.Distance(transform.Position, cameraTransform.Position) < MinComponentIconDistance)
                 {
-                    return;
+                    continue;
                 }
 
                 if(componentIcons.TryGetValue(entity, out var icon) == false)
                 {
-                    return;
+                    continue;
                 }
 
                 componentIconMaterial ??= new Material(SpriteRenderSystem.DefaultMaterial.Value);
@@ -268,13 +246,11 @@ internal partial class StapleEditor
                     Math.Clamp01(Vector3.Distance(transform.Position, cameraTransform.Position) - MinComponentIconDistance));
                 componentIconMaterial.MainTexture = icon;
 
-                ReplaceEntityBodyIfNeeded(entity, transform, new AABB(Vector3.Zero, Vector3.One));
-
                 var rotation = Math.LookAt(Vector3.Normalize(cameraTransform.Position - transform.Position), Vector3.UnitY) *
                     Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 180 * Math.Deg2Rad);
 
                 MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, rotation, Vector3.One, componentIconMaterial, MaterialLighting.Unlit, WireframeView);
-            });
+            }
         }
     }
 }

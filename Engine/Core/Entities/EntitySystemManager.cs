@@ -170,25 +170,9 @@ internal sealed class EntitySystemManager : ISubsystem
             {
                 lifecycleSystems.Add(lifecycle);
 
-                try
+                if(Platform.IsPlaying)
                 {
-                    lifecycle.Startup();
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"[EntitySystemManager] Failed to startup {system.GetType().FullName}: {e}");
-
-                    lifecycleSystems.Remove(lifecycle);
-
-                    if (lifecycle is IEntitySystemFixedUpdate f)
-                    {
-                        fixedUpdateSystems.Remove(f);
-                    }
-
-                    if (lifecycle is IEntitySystemUpdate u)
-                    {
-                        updateSystems.Remove(u);
-                    }
+                    StartupSystem(lifecycle);
                 }
             }
 
@@ -201,6 +185,74 @@ internal sealed class EntitySystemManager : ISubsystem
             catch (Exception e)
             {
                 Log.Error($"[EntitySystemManager] Subsystem modified event exception: {e}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts up an entity system
+    /// </summary>
+    /// <param name="system">The entity system</param>
+    public void StartupSystem(IEntitySystemLifecycle system)
+    {
+        if (system != null)
+        {
+            try
+            {
+                system.Startup();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[EntitySystemManager] Failed to startup {system.GetType().FullName}: {e}");
+
+                lifecycleSystems.Remove(system);
+
+                if (system is IEntitySystemFixedUpdate f)
+                {
+                    fixedUpdateSystems.Remove(f);
+                }
+
+                if (system is IEntitySystemUpdate u)
+                {
+                    updateSystems.Remove(u);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts all systems
+    /// </summary>
+    public void StartupAllSystems()
+    {
+        lock(lockObject)
+        {
+            var lifecycles = lifecycleSystems.ToArray();
+
+            foreach (var system in lifecycles)
+            {
+                StartupSystem(system);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shuts down all systems
+    /// </summary>
+    public void ShutdownAllSystems()
+    {
+        lock (lockObject)
+        {
+            foreach (var system in lifecycleSystems)
+            {
+                try
+                {
+                    system.Shutdown();
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"[EntitySystemManager] Failed to shutdown {system.GetType().FullName}: {e}");
+                }
             }
         }
     }

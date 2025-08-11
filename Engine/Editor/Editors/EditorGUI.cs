@@ -1188,8 +1188,10 @@ public static class EditorGUI
     /// Creates a tab bar
     /// </summary>
     /// <param name="titles">The tab titles</param>
+    /// <param name="key">A unique key for this UI element</param>
     /// <param name="handler">A handler with the tab index to render</param>
-    public static void TabBar(string[] titles, string key, Action<int> handler)
+    /// <param name="clickHandler">A handler with the tab index to render called when the tab item is clicked</param>
+    public static void TabBar(string[] titles, string key, Action<int> handler, Action<int> clickHandler)
     {
         if(ImGui.BeginTabBar(MakeIdentifier("", key)))
         {
@@ -1199,18 +1201,30 @@ public static class EditorGUI
 
                 //Apparently using IDs here doesn't work out, so we don't.
                 //The tab bar itself seems to work independently as long as we use IDs for it.
-                if(ImGui.BeginTabItem(title))
+                if (ImGui.BeginTabItem(title))
                 {
                     try
                     {
                         handler?.Invoke(i);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Log.Debug($"[EditorGUI] TabBar item {title} exception: {e}");
                     }
 
                     ImGui.EndTabItem();
+                }
+
+                if (ImGui.IsItemClicked())
+                {
+                    try
+                    {
+                        clickHandler?.Invoke(i);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[EditorGUI] TabBar item {title} click exception: {e}");
+                    }
                 }
             }
 

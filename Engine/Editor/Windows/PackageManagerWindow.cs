@@ -252,52 +252,53 @@ internal class PackageManagerWindow : EditorWindow
 
             EditorGUI.Label($"{currentPackage.name} ({currentPackage.license} license)");
 
-            EditorGUI.TabBar(["Description", "Dependencies"], "PackageManager.Description.TabBar", (index) =>
-            {
-                switch (index)
+            EditorGUI.TabBar(["Description", "Dependencies"], "PackageManager.Description.TabBar",
+                (index) =>
                 {
-                    case 0:
+                    switch (index)
+                    {
+                        case 0:
 
-                        EditorGUI.Label(currentPackage.description);
+                            EditorGUI.Label(currentPackage.description);
 
-                        break;
+                            break;
 
-                    case 1:
+                        case 1:
 
-                        EditorGUI.Table("PackageManager.Description.DependenciesTable", currentPackage.dependencies.Count, 2, true, null,
-                            (column) =>
-                            {
-                                return column switch
+                            EditorGUI.Table("PackageManager.Description.DependenciesTable", currentPackage.dependencies.Count, 2, true, null,
+                                (column) =>
                                 {
-                                    0 => ("Name", 0),
-                                    1 => ("Version", 0),
-                                    _ => (null, 0),
-                                };
-                            },
-                            (row, column) =>
-                            {
-                                var dependency = currentPackage.dependencies[row];
-
-                                switch(column)
+                                    return column switch
+                                    {
+                                        0 => ("Name", 0),
+                                        1 => ("Version", 0),
+                                        _ => (null, 0),
+                                    };
+                                },
+                                (row, column) =>
                                 {
-                                    case 0:
+                                    var dependency = currentPackage.dependencies[row];
 
-                                        EditorGUI.Label(dependency.name);
+                                    switch(column)
+                                    {
+                                        case 0:
 
-                                        break;
+                                            EditorGUI.Label(dependency.name);
 
-                                    case 1:
+                                            break;
 
-                                        EditorGUI.Label(dependency.version);
+                                        case 1:
 
-                                        break;
-                                }
-                            },
-                            null);
+                                            EditorGUI.Label(dependency.version);
 
-                        break;
-                }
-            });
+                                            break;
+                                    }
+                                },
+                                null);
+
+                            break;
+                    }
+                }, null);
         });
 
         EditorGUI.Popup("PackageManager.AddGitPopup", () =>

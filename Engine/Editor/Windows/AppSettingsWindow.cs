@@ -188,134 +188,136 @@ internal class AppSettingsWindow : EditorWindow
         projectAppSettings.allowFullscreenSwitch = EditorGUI.Toggle("Allow fullscreen switch", "AppSettings.Rendering.AllowFullscreenSwitch",
             projectAppSettings.allowFullscreenSwitch);
 
-        EditorGUI.TabBar(PlayerBackendManager.BackendNames, "AppSettings.Rendering.Backends", (index) =>
-        {
-            var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
-
-            if (backend.platform == AppPlatform.Windows ||
-                backend.platform == AppPlatform.Linux ||
-                backend.platform == AppPlatform.MacOSX)
+        EditorGUI.TabBar(PlayerBackendManager.BackendNames, "AppSettings.Rendering.Backends",
+            (index) =>
             {
-                projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window mode *", $"AppSettings.Rendering.Backend{index}.WindowMode",
-                    projectAppSettings.defaultWindowMode);
+                var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
 
-                projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window width *", $"AppSettings.Rendering.Backend{index}.WindowWidth",
-                    projectAppSettings.defaultWindowWidth);
-
-                projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window height *", $"AppSettings.Rendering.Backend{index}.WindowHeight",
-                    projectAppSettings.defaultWindowHeight);
-            }
-            else if (backend.platform == AppPlatform.Android ||
-                backend.platform == AppPlatform.iOS)
-            {
-                projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait orientation *", $"AppSettings.Rendering.Backend{index}.Portrait",
-                    projectAppSettings.portraitOrientation);
-
-                projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape orientation *", $"AppSettings.Rendering.Backend{index}.Landscape",
-                    projectAppSettings.landscapeOrientation);
-
-                if (backend.platform == AppPlatform.Android)
+                if (backend.platform == AppPlatform.Windows ||
+                    backend.platform == AppPlatform.Linux ||
+                    backend.platform == AppPlatform.MacOSX)
                 {
-                    projectAppSettings.androidMinSDK = EditorGUI.IntField("Minimum Android SDK", $"AppSettings.Rendering.Backend{index}.AndroidSDK",
-                        projectAppSettings.androidMinSDK);
+                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window mode *", $"AppSettings.Rendering.Backend{index}.WindowMode",
+                        projectAppSettings.defaultWindowMode);
 
-                    if (projectAppSettings.androidMinSDK < 26)
+                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window width *", $"AppSettings.Rendering.Backend{index}.WindowWidth",
+                        projectAppSettings.defaultWindowWidth);
+
+                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window height *", $"AppSettings.Rendering.Backend{index}.WindowHeight",
+                        projectAppSettings.defaultWindowHeight);
+                }
+                else if (backend.platform == AppPlatform.Android ||
+                    backend.platform == AppPlatform.iOS)
+                {
+                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait orientation *", $"AppSettings.Rendering.Backend{index}.Portrait",
+                        projectAppSettings.portraitOrientation);
+
+                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape orientation *", $"AppSettings.Rendering.Backend{index}.Landscape",
+                        projectAppSettings.landscapeOrientation);
+
+                    if (backend.platform == AppPlatform.Android)
                     {
-                        projectAppSettings.androidMinSDK = 26;
+                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Minimum Android SDK", $"AppSettings.Rendering.Backend{index}.AndroidSDK",
+                            projectAppSettings.androidMinSDK);
+
+                        if (projectAppSettings.androidMinSDK < 26)
+                        {
+                            projectAppSettings.androidMinSDK = 26;
+                        }
+                    }
+                    else if (backend.platform == AppPlatform.iOS)
+                    {
+                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS deployment target", $"AppSettings.Rendering.Backend{index}.iOSDeploymentTarget",
+                            projectAppSettings.iOSDeploymentTarget);
+
+                        if (projectAppSettings.iOSDeploymentTarget < 13)
+                        {
+                            projectAppSettings.iOSDeploymentTarget = 13;
+                        }
                     }
                 }
-                else if (backend.platform == AppPlatform.iOS)
-                {
-                    projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS deployment target", $"AppSettings.Rendering.Backend{index}.iOSDeploymentTarget",
-                        projectAppSettings.iOSDeploymentTarget);
 
-                    if (projectAppSettings.iOSDeploymentTarget < 13)
+                EditorGUI.Label("Renderers");
+
+                if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
+                {
+                    renderers = [];
+
+                    projectAppSettings.renderers.Add(backend.platform, renderers);
+                }
+
+                for (var i = 0; i < renderers.Count; i++)
+                {
+                    var result = EditorGUI.EnumDropdown("Renderer", $"AppSettings.Rendering.Renderer{index}{i}", renderers[i], backend.renderers);
+
+                    if (result != renderers[i] && renderers.All(x => x != result))
                     {
-                        projectAppSettings.iOSDeploymentTarget = 13;
+                        renderers[i] = result;
                     }
-                }
-            }
 
-            EditorGUI.Label("Renderers");
+                    EditorGUI.SameLine();
 
-            if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
-            {
-                renderers = [];
-
-                projectAppSettings.renderers.Add(backend.platform, renderers);
-            }
-
-            for (var i = 0; i < renderers.Count; i++)
-            {
-                var result = EditorGUI.EnumDropdown("Renderer", $"AppSettings.Rendering.Renderer{index}{i}", renderers[i], backend.renderers);
-
-                if (result != renderers[i] && renderers.All(x => x != result))
-                {
-                    renderers[i] = result;
+                    EditorGUI.Button("-", $"AppSettings.Rendering.Renderer{index}{i}.Remove", () =>
+                    {
+                        renderers.RemoveAt(i);
+                    });
                 }
 
-                EditorGUI.SameLine();
-
-                EditorGUI.Button("-", $"AppSettings.Rendering.Renderer{index}{i}.Remove", () =>
+                EditorGUI.Button("+", $"AppSettings.Rendering.Renderer{index}.Add", () =>
                 {
-                    renderers.RemoveAt(i);
+                    renderers.Add(backend.renderers.FirstOrDefault());
                 });
-            }
-
-            EditorGUI.Button("+", $"AppSettings.Rendering.Renderer{index}.Add", () =>
-            {
-                renderers.Add(backend.renderers.FirstOrDefault());
-            });
-        });
+            }, null);
     }
 
     public override void OnGUI()
     {
         EditorGUI.Label("* - Shared setting between platforms");
 
-        EditorGUI.TabBar(sections, "AppSettings.Sections", (tabIndex) =>
-        {
-            var key = sections[tabIndex];
-
-            switch(key)
+        EditorGUI.TabBar(sections, "AppSettings.Sections",
+            (tabIndex) =>
             {
-                case string str when str == GeneralKey:
+                var key = sections[tabIndex];
 
-                    General();
+                switch(key)
+                {
+                    case string str when str == GeneralKey:
 
-                    break;
+                        General();
 
-                case string str when str == TimingKey:
+                        break;
 
-                    Timing();
+                    case string str when str == TimingKey:
 
-                    break;
+                        Timing();
 
-                case string str when str == PhysicsKey:
+                        break;
 
-                    Physics();
+                    case string str when str == PhysicsKey:
 
-                    break;
+                        Physics();
 
-                case string str when str == LayersKey:
+                        break;
 
-                    Layers();
+                    case string str when str == LayersKey:
 
-                    break;
+                        Layers();
 
-                case string str when str == LightingKey:
+                        break;
 
-                    Lighting();
+                    case string str when str == LightingKey:
 
-                    break;
+                        Lighting();
 
-                case string str when str == RenderingKey:
+                        break;
 
-                    Rendering();
+                    case string str when str == RenderingKey:
 
-                    break;
-            }
-        });
+                        Rendering();
+
+                        break;
+                }
+            }, null);
 
         EditorGUI.Button("Apply Changes", "AppSettings.ApplyChanges", () =>
         {

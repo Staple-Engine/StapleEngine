@@ -99,59 +99,60 @@ internal class TextureAssetEditor : AssetEditor
                 {
                     var platformTypes = Enum.GetValues<AppPlatform>();
 
-                    EditorGUI.TabBar(platformTypes.Select(x => x.ToString()).ToArray(), "TextureMetadataOverrides", (tabIndex) =>
-                    {
-                        var platform = platformTypes[tabIndex];
-                        var overrides = metadata.overrides;
-
-                        if (overrides.TryGetValue(platform, out var item) == false)
+                    EditorGUI.TabBar(platformTypes.Select(x => x.ToString()).ToArray(), "TextureMetadataOverrides",
+                        (tabIndex) =>
                         {
-                            item = new();
+                            var platform = platformTypes[tabIndex];
+                            var overrides = metadata.overrides;
 
-                            overrides.Add(platform, item);
-                        }
-
-                        item.shouldOverride = EditorGUI.Toggle("Override", $"TextureMetadataOverride{tabIndex}Override", item.shouldOverride);
-
-                        EditorGUI.Disabled(item.shouldOverride == false, () =>
-                        {
-                            var format = item.shouldOverride ? item.format : metadata.format;
-
-                            var quality = item.shouldOverride ? item.quality : metadata.quality;
-
-                            var maxSize = item.shouldOverride ? item.maxSize : metadata.maxSize;
-
-                            var premultiplyAlpha = item.shouldOverride ? item.premultiplyAlpha : metadata.premultiplyAlpha;
-
-                            format = EditorGUI.EnumDropdown("Format", $"TextureMetadataOverride{tabIndex}Format", format);
-
-                            quality = EditorGUI.EnumDropdown("Quality", $"TextureMetadataOverride{tabIndex}Quality", quality);
-
-                            var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, maxSize);
-
-                            if (textureMaxSizes.Length == 0)
+                            if (overrides.TryGetValue(platform, out var item) == false)
                             {
-                                textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
+                                item = new();
+
+                                overrides.Add(platform, item);
                             }
 
-                            var newIndex = EditorGUI.Dropdown("Max Size", $"TextureMetadataOverride{tabIndex}MaxSize", textureMaxSizes, index);
+                            item.shouldOverride = EditorGUI.Toggle("Override", $"TextureMetadataOverride{tabIndex}Override", item.shouldOverride);
 
-                            if (index != newIndex)
+                            EditorGUI.Disabled(item.shouldOverride == false, () =>
                             {
-                                maxSize = TextureMetadata.TextureMaxSizes[newIndex];
-                            }
+                                var format = item.shouldOverride ? item.format : metadata.format;
 
-                            premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", $"TextureMetadataOverride{tabIndex}PremultiplyAlpha", premultiplyAlpha);
+                                var quality = item.shouldOverride ? item.quality : metadata.quality;
 
-                            if (item.shouldOverride)
-                            {
-                                item.format = format;
-                                item.quality = quality;
-                                item.maxSize = maxSize;
-                                item.premultiplyAlpha = premultiplyAlpha;
-                            }
-                        });
-                    });
+                                var maxSize = item.shouldOverride ? item.maxSize : metadata.maxSize;
+
+                                var premultiplyAlpha = item.shouldOverride ? item.premultiplyAlpha : metadata.premultiplyAlpha;
+
+                                format = EditorGUI.EnumDropdown("Format", $"TextureMetadataOverride{tabIndex}Format", format);
+
+                                quality = EditorGUI.EnumDropdown("Quality", $"TextureMetadataOverride{tabIndex}Quality", quality);
+
+                                var index = Array.IndexOf(TextureMetadata.TextureMaxSizes, maxSize);
+
+                                if (textureMaxSizes.Length == 0)
+                                {
+                                    textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
+                                }
+
+                                var newIndex = EditorGUI.Dropdown("Max Size", $"TextureMetadataOverride{tabIndex}MaxSize", textureMaxSizes, index);
+
+                                if (index != newIndex)
+                                {
+                                    maxSize = TextureMetadata.TextureMaxSizes[newIndex];
+                                }
+
+                                premultiplyAlpha = EditorGUI.Toggle("Premultiply Alpha", $"TextureMetadataOverride{tabIndex}PremultiplyAlpha", premultiplyAlpha);
+
+                                if (item.shouldOverride)
+                                {
+                                    item.format = format;
+                                    item.quality = quality;
+                                    item.maxSize = maxSize;
+                                    item.premultiplyAlpha = premultiplyAlpha;
+                                }
+                            });
+                        }, null);
                 }
 
                 return true;
@@ -323,6 +324,7 @@ internal class TextureAssetEditor : AssetEditor
                     switch(tabIndex)
                     {
                         case 0:
+
                             DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.metadata.sprites, true);
 
                             break;
@@ -333,7 +335,7 @@ internal class TextureAssetEditor : AssetEditor
 
                             break;
                     }
-                });
+                }, null);
             }
             else if (previewTexture != null)
             {
