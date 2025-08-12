@@ -328,6 +328,19 @@ public sealed class Physics3D : ISubsystem
     }
 
     /// <summary>
+    /// Destroys all bodies 
+    /// </summary>
+    internal void DestroyAllBodies()
+    {
+        if(implIsValid == false)
+        {
+            return;
+        }
+
+        Impl.DestroyAllBodies();
+    }
+
+    /// <summary>
     /// Adds a body to the simulation
     /// </summary>
     /// <param name="body">The body to add</param>

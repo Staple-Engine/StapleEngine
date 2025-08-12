@@ -81,6 +81,8 @@ internal partial class StapleEditor
 
         if(scene != null)
         {
+            Physics3D.Instance.DestroyAllBodies();
+
             Scene.SetActiveScene(scene);
 
             return true;

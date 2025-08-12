@@ -188,6 +188,11 @@ public interface IPhysics3D
     void DestroyBody(IBody3D body);
 
     /// <summary>
+    /// Destroys all existing bodies
+    /// </summary>
+    void DestroyAllBodies();
+
+    /// <summary>
     /// Adds a body to the simulation
     /// </summary>
     /// <param name="body">The body to add</param>

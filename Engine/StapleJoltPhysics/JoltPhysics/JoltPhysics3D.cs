@@ -1268,4 +1268,23 @@ public class JoltPhysics3D : IPhysics3D
             pair.body.AddAngularImpulse(impulse);
         }
     }
+
+    public void DestroyAllBodies()
+    {
+        lock (threadLock)
+        {
+            while(bodies.Count > 0)
+            {
+                DestroyBody(bodies[0]);
+            }
+
+            while (characters.Count > 0)
+            {
+                DestroyBody(characters[0]);
+            }
+
+            bodies.Clear();
+            characters.Clear();
+        }
+    }
 }
