@@ -126,6 +126,7 @@
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />
 		<Compile Include="Entities\EntityCallback.cs" />
+		<Compile Include="Entities\EntityHierarchyVisibility.cs" />
 		<Compile Include="Entities\EntityID.cs" />
 		<Compile Include="Entities\EntityPrimitiveType.cs" />
 		<Compile Include="Entities\EntityQuery.cs" />

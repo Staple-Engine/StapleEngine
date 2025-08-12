@@ -202,6 +202,8 @@ internal partial class StapleEditor
                 if(entity.EnabledInHierarchy == false)
                 {
                     disabledEntities.Add(entity);
+
+                    continue;
                 }
 
                 foreach (var system in RenderSystem.Instance.renderSystems)
@@ -1178,31 +1180,6 @@ internal partial class StapleEditor
                 }
             }
 
-            /*
-            ImGui.Begin("Debug", ImGuiWindowFlags.NoDocking);
-
-            if (World.Current != null)
-            {
-                var mouseRay = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
-
-                var hit = Physics.RayCast3D(mouseRay, out var body, out _, LayerMask.Everything, maxDistance: 10);
-
-                ImGui.Text($"Mouse Ray:");
-
-                ImGui.Text($"Position: {mouseRay.position.X}, {mouseRay.position.Y}, {mouseRay.position.Z}");
-
-                ImGui.Text($"Direction: {mouseRay.direction.X}, {mouseRay.direction.Y}, {mouseRay.direction.Z}");
-
-                ImGui.Checkbox("Hit", ref hit);
-
-                ImGui.Text($"RenderTarget size: {gameRenderTarget?.width ?? 0} {gameRenderTarget?.height ?? 0}");
-
-                ImGui.Text($"Culled Renderers: {RenderSystem.CulledRenderers}");
-            }
-
-            ImGui.End();
-            */
-
             EditorGUI.OnFrameEnd();
 
             ProgressPopup(io);
@@ -1210,13 +1187,26 @@ internal partial class StapleEditor
 
             ImGuiProxy.instance.EndFrame();
 
-            if (World.Current != null && Input.GetMouseButton(MouseButton.Left) && mouseIsHoveringImGui == false && ImGuizmo.IsUsingAny() == false)
+            if (World.Current != null &&
+                Input.GetMouseButton(MouseButton.Left) &&
+                mouseIsHoveringImGui == false &&
+                ImGuizmo.IsUsingAny() == false &&
+                viewportType == ViewportType.Scene)
             {
                 var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
-                if (Physics3D.Instance.RayCast(ray, out var body, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 1000))
+                if (Physics3D.Instance.RayCast(ray, out var body, out _, new LayerMask(LayerMask.GetMask(Physics3D.PhysicsPickLayer)),
+                    PhysicsTriggerQuery.Ignore, 1000))
                 {
-                    SetSelectedEntity(body.Entity);
+                    foreach(var pair in pickEntityBodies)
+                    {
+                        if(pair.Value.body == body)
+                        {
+                            SetSelectedEntity(pair.Key);
+
+                            break;
+                        }
+                    }
                 }
                 else
                 {

@@ -38,7 +38,7 @@ public struct LayerMask
     /// <returns>Whether it contains the layer</returns>
     public readonly bool HasLayer(uint index)
     {
-        return (value & (1 << (int)index)) == (1 << (int)index);
+        return (value & (1u << (int)index)) == (1u << (int)index);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public struct LayerMask
     /// <param name="index">The layer index</param>
     public void SetLayer(uint index)
     {
-        value |= (uint)((1 << (int)index));
+        value |= 1u << (int)index;
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public struct LayerMask
     /// <param name="index">The layer index</param>
     public void RemoveLayer(uint index)
     {
-        value &= (uint)(~(1 << (int)index));
+        value &= ~(1u << (int)index);
     }
 
     /// <summary>
@@ -99,8 +99,25 @@ public struct LayerMask
 
             if(index >= 0)
             {
-                mask |= (uint)(1 << index);
+                mask |= 1u << index;
             }
+        }
+
+        return mask;
+    }
+
+    /// <summary>
+    /// Gets a mask from layer indices.
+    /// </summary>
+    /// <param name="layers">The index of each layer</param>
+    /// <returns>The mask, or 0</returns>
+    public static uint GetMask(params uint[] layers)
+    {
+        uint mask = 0;
+
+        foreach (var layer in layers)
+        {
+            mask |= 1u << (int)layer;
         }
 
         return mask;

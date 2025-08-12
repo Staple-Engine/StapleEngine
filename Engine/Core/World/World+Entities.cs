@@ -320,4 +320,34 @@ public partial class World
             return true;
         }
     }
+
+    /// <summary>
+    /// Gets an entity's hierarchy visibility mode
+    /// </summary>
+    /// <param name="entity">The entity to check</param>
+    /// <returns>The flags, or <see cref="EntityHierarchyVisibility.None"/></returns>
+    public EntityHierarchyVisibility GetEntityHierarchyVisibility(Entity entity)
+    {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return EntityHierarchyVisibility.None;
+        }
+
+        return entityInfo.hierarchyVisibility;
+    }
+
+    /// <summary>
+    /// Sets an entity's hierarchy visibility mode
+    /// </summary>
+    /// <param name="entity">The entity</param>
+    /// <param name="mode">The mode</param>
+    public void SetEntityHierarchyVisibility(Entity entity, EntityHierarchyVisibility mode)
+    {
+        if (TryGetEntity(entity, out var entityInfo) == false)
+        {
+            return;
+        }
+
+        entityInfo.hierarchyVisibility = mode;
+    }
 }

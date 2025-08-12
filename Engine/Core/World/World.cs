@@ -71,6 +71,11 @@ public partial class World
         /// </summary>
         public int prefabLocalID;
 
+        /// <summary>
+        /// Whether the entity is hidden
+        /// </summary>
+        public EntityHierarchyVisibility hierarchyVisibility;
+
         public Entity ToEntity()
         {
             return new()

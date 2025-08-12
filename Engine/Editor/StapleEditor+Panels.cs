@@ -508,7 +508,11 @@ internal partial class StapleEditor
 
             void Recursive(Transform transform)
             {
-                if(skip || transform == null || transform.entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName))
+                if(skip ||
+                    transform == null ||
+                    transform.entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
+                    transform.entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
+                    transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
                 {
                     return;
                 }

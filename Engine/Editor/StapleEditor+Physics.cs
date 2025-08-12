@@ -16,7 +16,11 @@ internal partial class StapleEditor
         {
             foreach (var pair in pickEntityBodies)
             {
+                var entity = pair.Value.body.Entity;
+
                 Physics3D.Instance.DestroyBody(pair.Value.body);
+
+                entity.Destroy();
             }
         }
 
@@ -66,15 +70,28 @@ internal partial class StapleEditor
     /// <param name="bounds">The entity bounds</param>
     public void ReplaceEntityBody(Entity entity, AABB bounds)
     {
+        Entity wrapper = default;
+
         if(pickEntityBodies.TryGetValue(entity, out var pair))
         {
+            wrapper = pair.body.Entity;
+
             Physics3D.Instance.DestroyBody(pair.body);
 
             pickEntityBodies.Remove(entity);
         }
 
-        if (Physics3D.Instance.CreateBox(entity, bounds.size, bounds.center, Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
-            0, 0, 0, true, true, true, false, 1, out var body))
+        if(wrapper.IsValid == false)
+        {
+            wrapper = Entity.Create(typeof(Transform));
+
+            wrapper.Name = $"{entity.Name} Physics Wrapper";
+
+            wrapper.HierarchyVisibility = EntityHierarchyVisibility.HideAndDontSave;
+        }
+
+        if (Physics3D.Instance.CreateBox(wrapper, bounds.size, bounds.center, Quaternion.Identity, BodyMotionType.Dynamic,
+            Physics3D.PhysicsPickLayer, false, 0, 0, 0, true, true, true, false, 1, out var body))
         {
             pickEntityBodies.Add(entity, new EntityBody()
             {
@@ -115,7 +132,11 @@ internal partial class StapleEditor
             return;
         }
 
+        var e = pair.body.Entity;
+
         Physics3D.Instance.DestroyBody(pair.body);
+
+        e.Destroy();
 
         pickEntityBodies.Remove(entity);
     }

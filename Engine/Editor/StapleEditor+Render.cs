@@ -2,8 +2,6 @@
 using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -193,14 +191,27 @@ internal partial class StapleEditor
                         {
                             RenderSystem.CulledRenderers++;
                         }
-
-                        ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
                     }
                 }
 
                 ExecuteBlock(pair.Key, () =>
                 {
                     pair.Key.Preprocess(pair.Value.ToArray(), camera, cameraTransform);
+
+                    foreach (var item in pair.Value)
+                    {
+                        if (item.Item3 is Renderable renderable)
+                        {
+                            if (renderable.enabled)
+                            {
+                                ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
+                            }
+                            else
+                            {
+                                ClearEntityBody(item.Item1);
+                            }
+                        }
+                    }
 
                     pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, SceneView);
 

@@ -15,6 +15,7 @@ namespace Staple.JoltPhysics;
 public class JoltPhysics3D : IPhysics3D
 {
     public const float MinExtents = 0.2f;
+    public const int PhysicsLayerCount = 32;
 
     //Dependencies
     private BroadPhaseLayerInterface broadPhaseLayerInterface;
@@ -70,16 +71,16 @@ public class JoltPhysics3D : IPhysics3D
             Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
         }
 
-        var table = new BroadPhaseLayerInterfaceTable((uint)LayerMask.AllLayers.Count, (uint)LayerMask.AllLayers.Count);
+        var table = new BroadPhaseLayerInterfaceTable(PhysicsLayerCount, PhysicsLayerCount);
 
         broadPhaseLayerInterface = table;
 
-        for(var i = 0; i < LayerMask.AllLayers.Count; i++)
+        for(var i = 0; i < PhysicsLayerCount; i++)
         {
             table.MapObjectToBroadPhaseLayer(new ObjectLayer((ushort)i), new BroadPhaseLayer((byte)i));
         }
 
-        var layerPair = new ObjectLayerPairFilterTable((uint)LayerMask.AllLayers.Count);
+        var layerPair = new ObjectLayerPairFilterTable(PhysicsLayerCount);
 
         for(var i = 0; i < LayerMask.AllLayers.Count; i++)
         {
@@ -94,12 +95,16 @@ public class JoltPhysics3D : IPhysics3D
                     layerPair.DisableCollision(new ObjectLayer((ushort)i), new ObjectLayer((ushort)j));
                 }
             }
+
+            layerPair.DisableCollision(new ObjectLayer((ushort)i), new ObjectLayer(Physics3D.PhysicsPickLayer));
         }
+
+        layerPair.EnableCollision(new ObjectLayer(Physics3D.PhysicsPickLayer), new ObjectLayer(Physics3D.PhysicsPickLayer));
 
         objectLayerPairFilter = layerPair;
 
-        objectVsBroadPhaseLayerFilter = new ObjectVsBroadPhaseLayerFilterTable(broadPhaseLayerInterface, (uint)LayerMask.AllLayers.Count,
-            objectLayerPairFilter, (uint)LayerMask.AllLayers.Count);
+        objectVsBroadPhaseLayerFilter = new ObjectVsBroadPhaseLayerFilterTable(broadPhaseLayerInterface, PhysicsLayerCount,
+            objectLayerPairFilter, PhysicsLayerCount);
 
         jobSystem = new JobSystemThreadPool();
 

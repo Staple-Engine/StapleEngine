@@ -37,12 +37,12 @@ public class Renderable : IComponent
     /// <summary>
     /// The world-space bounds
     /// </summary>
-    public AABB bounds { get; internal set; }
+    public AABB bounds;
 
     /// <summary>
     /// The local bounds
     /// </summary>
-    public AABB localBounds { get; internal set; }
+    public AABB localBounds;
 
     /// <summary>
     /// Whether this is visible

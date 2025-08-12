@@ -22,6 +22,8 @@ public sealed class Physics3D : ISubsystem
         }
     }
 
+    public const int PhysicsPickLayer = 31;
+
     /// <summary>
     /// The implementation type to use for this subsystem
     /// </summary>

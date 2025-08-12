@@ -49,6 +49,16 @@ public partial struct Entity
     }
 
     /// <summary>
+    /// The entity's hierarchy visibility
+    /// </summary>
+    public readonly EntityHierarchyVisibility HierarchyVisibility
+    {
+        get => World.Current?.GetEntityHierarchyVisibility(this) ?? EntityHierarchyVisibility.None;
+
+        set => World.Current?.SetEntityHierarchyVisibility(this, value);
+    }
+
+    /// <summary>
     /// Checks if this entity is valid
     /// </summary>
     public readonly bool IsValid => World.Current?.IsValidEntity(this) ?? false;

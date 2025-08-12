@@ -12,6 +12,7 @@ public enum SceneObjectKind
     Entity
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<SceneComponentParameterType>))]
 public enum SceneComponentParameterType
 {
     Bool,
@@ -112,12 +113,16 @@ public class SceneObject
 
     [Key(9)]
     public int prefabLocalID;
+
+    [Key(10)]
+    public EntityHierarchyVisibility hierarchyVisibility;
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(SceneObject))]
 [JsonSerializable(typeof(List<SceneObject>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<SceneObjectKind>))]
+[JsonSerializable(typeof(JsonStringEnumConverter<EntityHierarchyVisibility>))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(uint))]

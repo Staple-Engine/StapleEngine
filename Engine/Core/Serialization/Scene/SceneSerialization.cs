@@ -27,6 +27,8 @@ internal static class SceneSerialization
             entity.SetPrefab(sceneObject.prefabGuid, sceneObject.prefabLocalID);
         }
 
+        entity.HierarchyVisibility = sceneObject.hierarchyVisibility;
+
         var transform = entity.AddComponent<Transform>();
 
         entity.Enabled = sceneObject.enabled;
@@ -232,6 +234,7 @@ internal static class SceneSerialization
             kind = SceneObjectKind.Entity,
             components = components,
             layer = entityLayer,
+            hierarchyVisibility = entity.HierarchyVisibility,
         };
     }
 
@@ -243,7 +246,7 @@ internal static class SceneSerialization
     /// <returns>The entity, or null</returns>
     public static SceneObject SerializeEntity(Entity entity, StapleSerializationMode mode)
     {
-        if(entity.IsValid == false)
+        if(entity.IsValid == false || entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
         {
             return null;
         }
@@ -288,6 +291,11 @@ internal static class SceneSerialization
 
         Scene.IterateEntities((Entity entity) =>
         {
+            if(entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+            {
+                return;
+            }
+
             var outEntity = SerializeEntity(entity, StapleSerializationMode.Scene);
 
             if(outEntity == null)
@@ -325,6 +333,11 @@ internal static class SceneSerialization
 
         void GatherIDs(Transform transform)
         {
+            if(transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+            {
+                return;
+            }
+
             localIDs.Add(transform.entity.Identifier.ID, localIDs.Count);
 
             foreach(var child in transform.Children)
@@ -337,6 +350,11 @@ internal static class SceneSerialization
 
         void GatherSceneObjects(Transform transform, bool first)
         {
+            if(transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+            {
+                return;
+            }
+
             if(first == false)
             {
                 var entityObject = SerializeEntity(transform.entity, StapleSerializationMode.Scene);
