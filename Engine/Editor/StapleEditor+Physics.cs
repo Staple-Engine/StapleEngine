@@ -140,4 +140,23 @@ internal partial class StapleEditor
 
         pickEntityBodies.Remove(entity);
     }
+
+    /// <summary>
+    /// Recreates the regular rigid bodies and characters in the scene
+    /// </summary>
+    public void RecreateRigidBodies()
+    {
+        var rigidBodies = Scene.Query<RigidBody3D>();
+        var characters = Scene.Query<Character3D>();
+
+        foreach (var pair in rigidBodies)
+        {
+            Physics3D.Instance.RecreateBody(pair.Item1);
+        }
+
+        foreach (var pair in characters)
+        {
+            Physics3D.Instance.RecreateBody(pair.Item1);
+        }
+    }
 }

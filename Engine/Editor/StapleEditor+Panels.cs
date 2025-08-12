@@ -838,6 +838,10 @@ internal partial class StapleEditor
 
                     viewportType = ViewportType.Game;
 
+                    ResetScenePhysics(true);
+
+                    RecreateRigidBodies();
+
                     Platform.IsPlaying = true;
 
                     forceCursorVisible = false;
