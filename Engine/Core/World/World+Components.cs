@@ -553,14 +553,18 @@ public partial class World
     /// <param name="component">The component that was added</param>
     internal void EmitAddComponentEvent(Entity entity, ref IComponent component)
     {
-        if (component == null)
+        var hash = component?.GetType().FullName.GetHashCode() ?? 0;
+
+        if (component == null ||
+            TryGetEntity(entity, out var entityInfo) == false ||
+            entityInfo.emittedAddComponents.Contains(hash))
         {
             return;
         }
 
         lock (globalLockObject)
         {
-            if (componentAddedCallbacks.TryGetValue(component.GetType().FullName.GetHashCode(), out var callbacks))
+            if (componentAddedCallbacks.TryGetValue(hash, out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
 
@@ -583,6 +587,8 @@ public partial class World
                     {
                         Log.Debug($"[World] AddComponent: Failed to handle a component added callback: {ex}");
                     }
+
+                    entityInfo.emittedAddComponents.Add(hash);
                 }
 
                 while (removedCallbacks.Count > 0)
@@ -602,14 +608,18 @@ public partial class World
     /// <param name="component">The component being removed</param>
     internal void EmitRemoveComponentEvent(Entity entity, ref IComponent component)
     {
-        if(component == null)
+        var hash = component?.GetType().FullName.GetHashCode() ?? 0;
+
+        if (component == null ||
+            TryGetEntity(entity, out var entityInfo) == false ||
+            entityInfo.emittedAddComponents.Contains(hash) == false)
         {
             return;
         }
 
         lock (globalLockObject)
         {
-            if (componentRemovedCallbacks.TryGetValue(component.GetType().FullName.GetHashCode(), out var callbacks))
+            if (componentRemovedCallbacks.TryGetValue(hash, out var callbacks))
             {
                 var removedCallbacks = new Stack<int>();
 
@@ -632,6 +642,8 @@ public partial class World
                     {
                         Log.Debug($"[World] RemoveComponent: Failed to handle a component removed callback: {e}");
                     }
+
+                    entityInfo.emittedAddComponents.Remove(hash);
                 }
 
                 while (removedCallbacks.Count > 0)

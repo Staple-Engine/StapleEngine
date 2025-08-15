@@ -802,59 +802,71 @@ internal partial class StapleEditor
 
         EditorGUI.SetCurrentGUICursorPosition(EditorGUI.CurrentGUICursorPosition() + new Vector2(centerSpace, 0));
 
-        EditorGUI.Button(playMode == PlayMode.Playing ? "Pause" : "Play", "GameView.Play", () =>
+        EditorGUI.Disabled(World.Current == null, () =>
         {
-            switch(playMode)
+            EditorGUI.Button(playMode == PlayMode.Playing ? "Pause" : "Play", "GameView.Play", () =>
             {
-                case PlayMode.Playing:
+                switch (playMode)
+                {
+                    case PlayMode.Playing:
 
-                    Platform.IsPlaying = false;
+                        Platform.IsPlaying = false;
 
-                    playMode = PlayMode.Paused;
+                        playMode = PlayMode.Paused;
 
-                    break;
+                        break;
 
-                case PlayMode.Paused:
+                    case PlayMode.Paused:
 
-                    Platform.IsPlaying = true;
+                        Platform.IsPlaying = true;
 
-                    playMode = PlayMode.Playing;
+                        playMode = PlayMode.Playing;
 
-                    if (forceCursorVisible)
-                    {
+                        if (forceCursorVisible)
+                        {
+                            forceCursorVisible = false;
+
+                            Cursor.LockState = CursorLockMode.Locked;
+                            Cursor.Visible = false;
+                        }
+
+                        break;
+
+                    case PlayMode.Stopped:
+
+                        RecordScene();
+
+                        playMode = PlayMode.Playing;
+
+                        viewportType = ViewportType.Game;
+
+                        ResetScenePhysics(true);
+
+                        RecreateRigidBodies();
+
+                        Platform.IsPlaying = true;
+
+                        //Ensure the components are properly initialized
+                        World.Current.Iterate((entity) =>
+                        {
+                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            {
+                                World.Current.EmitAddComponentEvent(entity, ref component);
+                            });
+                        });
+
                         forceCursorVisible = false;
 
-                        Cursor.LockState = CursorLockMode.Locked;
-                        Cursor.Visible = false;
-                    }
+                        EntitySystemManager.Instance.StartupAllSystems();
 
-                    break;
-
-                case PlayMode.Stopped:
-
-                    RecordScene();
-
-                    playMode = PlayMode.Playing;
-
-                    viewportType = ViewportType.Game;
-
-                    ResetScenePhysics(true);
-
-                    RecreateRigidBodies();
-
-                    Platform.IsPlaying = true;
-
-                    forceCursorVisible = false;
-
-                    EntitySystemManager.Instance.StartupAllSystems();
-
-                    break;
-            }
+                        break;
+                }
+            });
         });
 
         EditorGUI.SameLine();
 
-        EditorGUI.Disabled(playMode == PlayMode.Stopped, () =>
+        EditorGUI.Disabled(World.Current == null || playMode == PlayMode.Stopped, () =>
         {
             EditorGUI.Button("Stop", "GameView.Stop", () =>
             {

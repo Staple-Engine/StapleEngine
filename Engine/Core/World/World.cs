@@ -76,6 +76,11 @@ public partial class World
         /// </summary>
         public EntityHierarchyVisibility hierarchyVisibility;
 
+        /// <summary>
+        /// List of emitted component add events
+        /// </summary>
+        public readonly HashSet<int> emittedAddComponents = [];
+
         public Entity ToEntity()
         {
             return new()
@@ -303,6 +308,44 @@ public partial class World
             destroyedEntities.Clear();
 
             if(needsEmitWorldChange)
+            {
+                needsEmitWorldChange = false;
+
+                EmitWorldChangedEvent();
+            }
+        }
+    }
+
+    internal void Dispose()
+    {
+        lock(lockObject)
+        {
+            needsEmitWorldChange = true;
+
+            foreach (var entity in entities)
+            {
+                var transform = GetComponent<Transform>(entity.ToEntity());
+
+                if(transform != null)
+                {
+                    transform.entity = default;
+                }
+
+                foreach(var pair in entity.components)
+                {
+                    RemoveComponent(entity.ToEntity(), pair.Value.GetType());
+                }
+
+                entity.components.Clear();
+            }
+
+            entities.Clear();
+            destroyedEntities.Clear();
+            removedComponents.Clear();
+
+            cachedEntityList = [];
+
+            if (needsEmitWorldChange)
             {
                 needsEmitWorldChange = false;
 

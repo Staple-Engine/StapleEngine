@@ -594,14 +594,16 @@ internal class ResourceManager
     /// <returns>The scene, or null</returns>
     public Scene LoadRawSceneFromPath(string path)
     {
-        if ((path?.Length ?? 0) == 0)
-        {
-            return null;
-        }
+        World.Current?.Dispose();
 
         World.Current = new();
 
         Scene.current = null;
+
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
 
         var data = LoadFileString(path);
 
@@ -756,6 +758,12 @@ internal class ResourceManager
     /// <returns>The scene, or null</returns>
     public Scene LoadSceneFromGuid(string guid)
     {
+        World.Current?.Dispose();
+
+        World.Current = new();
+
+        Scene.current = null;
+
         var path = AssetDatabase.GetAssetPath(guid);
 
         if(path == null)

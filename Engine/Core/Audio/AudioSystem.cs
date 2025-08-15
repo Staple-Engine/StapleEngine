@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 
@@ -126,7 +127,7 @@ public class AudioSystem : ISubsystem
 
         World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
         {
-            if(Platform.IsPlaying == false || entity.TryGetComponent<Transform>(out var transform) == false)
+            if(entity.TryGetComponent<Transform>(out var transform) == false)
             {
                 return;
             }
@@ -144,11 +145,6 @@ public class AudioSystem : ISubsystem
 
         World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
         {
-            if (Platform.IsPlaying == false)
-            {
-                return;
-            }
-
             var source = component as AudioSource;
 
             source.audioSource = ObjectCreation.CreateObject<IAudioSource>(AudioSourceImpl);
@@ -183,6 +179,13 @@ public class AudioSystem : ISubsystem
             source.audioSource?.Destroy();
 
             source.audioSource = null;
+
+            var existing = audioSources.FirstOrDefault(x => x.entity == entity);
+
+            if (existing != null)
+            {
+                audioSources.Remove(existing);
+            }
         });
 
         backgroundLoadThread = new(() =>
@@ -231,10 +234,7 @@ public class AudioSystem : ISubsystem
             return;
         }
 
-        if(audioListeners == null)
-        {
-            audioListeners = new();
-        }
+        audioListeners ??= new();
 
         Transform listenerTransform = null;
         
