@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 
 namespace Staple.Editor;
@@ -318,5 +319,41 @@ internal partial class StapleEditor
             registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
             registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
         }
+    }
+
+    public void ExecuteGameViewHandler(Action handler)
+    {
+        if(gameRenderTarget == null)
+        {
+            return;
+        }
+
+        var inputOffset = gameWindowPosition;
+
+        Screen.Width = gameRenderTarget.width;
+        Screen.Height = gameRenderTarget.height;
+
+        var currentMousePosition = Input.MousePosition;
+
+        var newMousePosition = Input.MousePosition - inputOffset;
+
+        if (newMousePosition.X < 0)
+        {
+            newMousePosition.X = 0;
+        }
+
+        if (newMousePosition.Y < 0)
+        {
+            newMousePosition.Y = 0;
+        }
+
+        Input.MousePosition = newMousePosition;
+
+        handler();
+
+        Input.MousePosition = currentMousePosition;
+
+        Screen.Width = window.width;
+        Screen.Height = window.height;
     }
 }

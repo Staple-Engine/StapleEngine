@@ -75,7 +75,7 @@ public static class Input
     /// <summary>
     /// Current mouse position
     /// </summary>
-    public static Vector2 MousePosition { get; private set; }
+    public static Vector2 MousePosition { get; internal set; }
 
     /// <summary>
     /// Last movement of the mouse

@@ -461,7 +461,7 @@ public class JoltPhysics3D : IPhysics3D
                 Up = upDirection,
             };
 
-            var character = new Character(settings, position, rotation, 0, physicsSystem);
+            var character = new Character(settings, position, rotation.SafeNormalize(), 0, physicsSystem);
 
             if(character.Handle != IntPtr.Zero)
             {
@@ -495,7 +495,7 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            var creationSettings = new BodyCreationSettings(settings, position, rotation, motionType, new ObjectLayer(layer));
+            var creationSettings = new BodyCreationSettings(settings, position, rotation.SafeNormalize(), motionType, new ObjectLayer(layer));
 
             var dofs = new List<AllowedDOFs>
             {
@@ -779,7 +779,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 fixed(float *ptr = heightMap.heights)
                 {
-                    compound.AddShape(heightMap.position, heightMap.rotation,
+                    compound.AddShape(heightMap.position, heightMap.rotation.SafeNormalize(),
                         new HeightFieldShapeSettings(ptr, heightMap.offset, heightMap.scale, (int)Math.Sqrt(heightMap.heights.Length)));
                 }
             }
@@ -806,7 +806,7 @@ public class JoltPhysics3D : IPhysics3D
                 extents.Z = MinExtents;
             }
 
-            compound.AddShape(boxCollider.position, boxCollider.rotation, new BoxShapeSettings(extents / 2));
+            compound.AddShape(boxCollider.position, boxCollider.rotation.SafeNormalize(), new BoxShapeSettings(extents / 2));
         }
 
         if(world.TryGetComponent<SphereCollider3D>(entity, out var sphereCollider))
@@ -820,7 +820,7 @@ public class JoltPhysics3D : IPhysics3D
                 throw new ArgumentException($"SphereCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
             }
 
-            compound.AddShape(sphereCollider.position, sphereCollider.rotation, new SphereShapeSettings(radius));
+            compound.AddShape(sphereCollider.position, sphereCollider.rotation.SafeNormalize(), new SphereShapeSettings(radius));
         }
 
         if(world.TryGetComponent<CapsuleCollider3D>(entity, out var capsuleCollider))
@@ -840,7 +840,7 @@ public class JoltPhysics3D : IPhysics3D
                 throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
             }
 
-            compound.AddShape(capsuleCollider.position, capsuleCollider.rotation, new CapsuleShapeSettings(height / 2, radius));
+            compound.AddShape(capsuleCollider.position, capsuleCollider.rotation.SafeNormalize(), new CapsuleShapeSettings(height / 2, radius));
         }
 
         if(world.TryGetComponent<CylinderCollider3D>(entity, out var cylinderCollider))
@@ -860,7 +860,7 @@ public class JoltPhysics3D : IPhysics3D
                 throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
             }
 
-            compound.AddShape(cylinderCollider.position, cylinderCollider.rotation, new CylinderShapeSettings(height / 2, radius));
+            compound.AddShape(cylinderCollider.position, cylinderCollider.rotation.SafeNormalize(), new CylinderShapeSettings(height / 2, radius));
         }
 
         if(world.TryGetComponent<MeshCollider3D>(entity, out var meshCollider))
@@ -908,7 +908,7 @@ public class JoltPhysics3D : IPhysics3D
 
             settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
 
-            compound.AddShape(meshCollider.position, meshCollider.rotation, settings);
+            compound.AddShape(meshCollider.position, meshCollider.rotation.SafeNormalize(), settings);
         }
 
         if(any == false)
@@ -1162,6 +1162,8 @@ public class JoltPhysics3D : IPhysics3D
 
     public void SetBodyRotation(IBody3D body, Quaternion newRotation)
     {
+        newRotation = newRotation.SafeNormalize();
+
         if (body is JoltBodyPair pair)
         {
             lock(threadLock)

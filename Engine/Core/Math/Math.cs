@@ -644,4 +644,23 @@ public static class Math
             Abs(a.Z - b.Z) < delta &&
             Abs(a.W - b.W) < delta;
     }
+
+    /// <summary>
+    /// Normalizes this quaternion and ensures the result is valid.
+    /// A broken quaternion will typically normalize to an invalid value (<see cref="float.NaN"/> or <see cref="float.PositiveInfinity"/> for example).
+    /// So we ensure we get a valid result by returning Identity if it's considered invalid.
+    /// </summary>
+    /// <param name="q">The quaternion</param>
+    /// <returns>The normalized quaternion</returns>
+    public static Quaternion SafeNormalize(this Quaternion q)
+    {
+        var result = Quaternion.Normalize(q);
+
+        if(float.IsNaN(result.X) || float.IsInfinity(result.X))
+        {
+            return Quaternion.Identity;
+        }
+
+        return result;
+    }
 }

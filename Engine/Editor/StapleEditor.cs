@@ -251,6 +251,8 @@ internal partial class StapleEditor
 
     private RenderTarget gameRenderTarget;
 
+    private Vector2 gameWindowPosition;
+
     private const int TargetFramerate = 30;
 
     private Color32 clearColor = new("#7393B3");
@@ -880,31 +882,16 @@ internal partial class StapleEditor
                 }
             }
 
-            if (gameRenderTarget != null && Scene.current != null)
-            {
-                for(var i = 0; i < Scene.SortedCameras.Length; i++)
-                {
-                    RenderTarget.SetActive((ushort)(i + 1), gameRenderTarget);
-                }
-
-                RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
-
-                Screen.Width = gameRenderTarget.width;
-                Screen.Height = gameRenderTarget.height;
-
-                RenderSystem.Instance.Update();
-
-                Screen.Width = window.width;
-                Screen.Height = window.height;
-            }
-
             if(playMode == PlayMode.Playing)
             {
                 SubsystemManager.instance.Update(SubsystemType.Update);
 
                 Physics3D.Instance.Update();
 
-                EntitySystemManager.Instance.Update();
+                ExecuteGameViewHandler(() =>
+                {
+                    EntitySystemManager.Instance.Update();
+                });
             }
 
             if (forceCursorVisible)
@@ -1221,7 +1208,10 @@ internal partial class StapleEditor
             {
                 SubsystemManager.instance.Update(SubsystemType.FixedUpdate);
 
-                EntitySystemManager.Instance.UpdateFixed();
+                ExecuteGameViewHandler(() =>
+                {
+                    EntitySystemManager.Instance.UpdateFixed();
+                });
             }
         };
 

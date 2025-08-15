@@ -915,6 +915,23 @@ internal partial class StapleEditor
                     gameRenderTarget = RenderTarget.Create(width, height);
                 }
 
+                gameWindowPosition = ImGui.GetWindowPos();
+
+                if (gameRenderTarget != null && Scene.current != null)
+                {
+                    for (var i = 0; i < Scene.SortedCameras.Length; i++)
+                    {
+                        RenderTarget.SetActive((ushort)(i + 1), gameRenderTarget);
+                    }
+
+                    RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
+
+                    ExecuteGameViewHandler(() =>
+                    {
+                        RenderSystem.Instance.Update();
+                    });
+                }
+
                 var texture = gameRenderTarget.GetTexture();
 
                 if (texture != null)
