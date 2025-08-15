@@ -891,6 +891,7 @@ public partial class ProjectManager
                     p.SetProperty("EnableTrimAnalyzer", "true");
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
+                    p.SetProperty("AndroidEnableMarshalMethods", "false");
 
                     break;
 
