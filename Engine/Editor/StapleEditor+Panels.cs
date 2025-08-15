@@ -236,103 +236,106 @@ internal partial class StapleEditor
         {
             EditorGUI.Menu("File", "File.Menu", () =>
             {
-                EditorGUI.MenuItem("New Project", "NewProject.Menu", () =>
+                EditorGUI.Disabled(playMode != PlayMode.Stopped, () =>
                 {
-                    ImGuiNewProject();
-                });
-
-                EditorGUI.MenuItem("Open Project", "OpenProject.Menu", () =>
-                {
-                    ImGuiOpenProject();
-                });
-
-                EditorGUI.MenuItem("Editor Settings", "EditorSettings.Menu", () =>
-                {
-                    var window = EditorWindow.GetWindow<EditorSettingsWindow>();
-
-                    window.editorSettings = editorSettings;
-                });
-
-                EditorGUI.MenuItem("Save", "Save.Menu", () =>
-                {
-                    if (Scene.current != null && lastOpenScene != null)
+                    EditorGUI.MenuItem("New Project", "NewProject.Menu", () =>
                     {
-                        if(lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
-                        {
-                            var targetEntity = new Entity();
+                        ImGuiNewProject();
+                    });
 
-                            World.Current.Iterate((entity) =>
+                    EditorGUI.MenuItem("Open Project", "OpenProject.Menu", () =>
+                    {
+                        ImGuiOpenProject();
+                    });
+
+                    EditorGUI.MenuItem("Editor Settings", "EditorSettings.Menu", () =>
+                    {
+                        var window = EditorWindow.GetWindow<EditorSettingsWindow>();
+
+                        window.editorSettings = editorSettings;
+                    });
+
+                    EditorGUI.MenuItem("Save", "Save.Menu", () =>
+                    {
+                        if (Scene.current != null && lastOpenScene != null)
+                        {
+                            if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
                             {
+                                var targetEntity = new Entity();
+
+                                World.Current.Iterate((entity) =>
+                                {
+                                    if (targetEntity.IsValid)
+                                    {
+                                        return;
+                                    }
+
+                                    if (entity.TryGetComponent<Transform>(out var t) && t.parent == null)
+                                    {
+                                        targetEntity = entity;
+                                    }
+                                });
+
                                 if (targetEntity.IsValid)
                                 {
-                                    return;
-                                }
+                                    var prefab = SceneSerialization.SerializeIntoPrefab(targetEntity);
 
-                                if (entity.TryGetComponent<Transform>(out var t) && t.parent == null)
-                                {
-                                    targetEntity = entity;
-                                }
-                            });
+                                    if (prefab != null)
+                                    {
+                                        //TODO: Support prefab local ID and GUIDs properly
+                                        prefab.mainObject.prefabLocalID = 0;
+                                        prefab.mainObject.prefabGuid = null;
 
-                            if(targetEntity.IsValid)
+                                        foreach (var child in prefab.children)
+                                        {
+                                            child.prefabLocalID = 0;
+                                            child.prefabGuid = null;
+                                        }
+
+                                        var previous = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
+
+                                        if (previous != null)
+                                        {
+                                            prefab.guid = previous.Guid.Guid;
+                                        }
+
+                                        var text = JsonConvert.SerializeObject(prefab, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                        try
+                                        {
+                                            File.WriteAllText(lastOpenScene, text);
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+                                    }
+                                }
+                            }
+                            else
                             {
-                                var prefab = SceneSerialization.SerializeIntoPrefab(targetEntity);
+                                var serializableScene = Scene.current.Serialize();
 
-                                if(prefab != null)
+                                var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                try
                                 {
-                                    //TODO: Support prefab local ID and GUIDs properly
-                                    prefab.mainObject.prefabLocalID = 0;
-                                    prefab.mainObject.prefabGuid = null;
-
-                                    foreach(var child in prefab.children)
-                                    {
-                                        child.prefabLocalID = 0;
-                                        child.prefabGuid = null;
-                                    }
-
-                                    var previous = ResourceManager.instance.LoadRawPrefabFromPath(lastOpenScene);
-
-                                    if(previous != null)
-                                    {
-                                        prefab.guid = previous.Guid.Guid;
-                                    }
-
-                                    var text = JsonConvert.SerializeObject(prefab, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
-
-                                    try
-                                    {
-                                        File.WriteAllText(lastOpenScene, text);
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
+                                    File.WriteAllText(lastOpenScene, text);
+                                }
+                                catch (Exception)
+                                {
                                 }
                             }
                         }
-                        else
-                        {
-                            var serializableScene = Scene.current.Serialize();
+                    });
 
-                            var text = JsonConvert.SerializeObject(serializableScene.objects, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+                    EditorGUI.Separator();
 
-                            try
-                            {
-                                File.WriteAllText(lastOpenScene, text);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        }
-                    }
-                });
+                    EditorGUI.MenuItem("Build", "Build.Menu", () =>
+                    {
+                        var window = EditorWindow.GetWindow<BuildWindow>();
 
-                EditorGUI.Separator();
-
-                EditorGUI.MenuItem("Build", "Build.Menu", () =>
-                {
-                    var window = EditorWindow.GetWindow<BuildWindow>();
-
-                    window.basePath = BasePath;
+                        window.basePath = BasePath;
+                    });
                 });
 
                 EditorGUI.Separator();
@@ -353,24 +356,27 @@ internal partial class StapleEditor
 
             EditorGUI.Menu("Project", "Project.Menu", () =>
             {
-                EditorGUI.MenuItem("Project Settings", "ProjectSettings.Menu", () =>
+                EditorGUI.Disabled(playMode != PlayMode.Stopped, () =>
                 {
-                    var window = EditorWindow.GetWindow<AppSettingsWindow>();
+                    EditorGUI.MenuItem("Project Settings", "ProjectSettings.Menu", () =>
+                    {
+                        var window = EditorWindow.GetWindow<AppSettingsWindow>();
 
-                    window.projectAppSettings = projectAppSettings;
-                    window.basePath = BasePath;
-                });
+                        window.projectAppSettings = projectAppSettings;
+                        window.basePath = BasePath;
+                    });
 
-                EditorGUI.MenuItem("Package Manager", "PackageManager.Menu", () =>
-                {
-                    var window = EditorWindow.GetWindow<PackageManagerWindow>();
+                    EditorGUI.MenuItem("Package Manager", "PackageManager.Menu", () =>
+                    {
+                        var window = EditorWindow.GetWindow<PackageManagerWindow>();
 
-                    window.basePath = BasePath;
-                });
+                        window.basePath = BasePath;
+                    });
 
-                EditorGUI.MenuItem("Rebuild", "RebuildProject.Menu", () =>
-                {
-                    RefreshStaging(currentPlatform, null, true, false);
+                    EditorGUI.MenuItem("Rebuild", "RebuildProject.Menu", () =>
+                    {
+                        RefreshStaging(currentPlatform, null, true, false);
+                    });
                 });
 
                 EditorGUI.MenuItem("Open Solution", "OpenSolution.Menu", () =>
@@ -389,29 +395,32 @@ internal partial class StapleEditor
 
             EditorGUI.Menu("Assets", "Assets.Menu", () =>
             {
-                EditorGUI.Menu("Create", "AssetsCreate.Menu", () =>
+                EditorGUI.Disabled(playMode != PlayMode.Stopped, () =>
                 {
-                    CreateAssetMenu();
-                });
-
-                EditorGUI.Separator();
-
-                EditorGUI.MenuItem("Reimport all", "Assets.Reimport.Menu", () =>
-                {
-                    try
+                    EditorGUI.Menu("Create", "AssetsCreate.Menu", () =>
                     {
-                        Directory.Delete(Path.Combine(BasePath, "Cache", "Staging"), true);
-                        Directory.Delete(Path.Combine(BasePath, "Cache", "Thumbnails"), true);
-                    }
-                    catch (Exception)
-                    {
-                    }
+                        CreateAssetMenu();
+                    });
 
-                    RefreshStaging(currentPlatform, null, false);
+                    EditorGUI.Separator();
+
+                    EditorGUI.MenuItem("Reimport all", "Assets.Reimport.Menu", () =>
+                    {
+                        try
+                        {
+                            Directory.Delete(Path.Combine(BasePath, "Cache", "Staging"), true);
+                            Directory.Delete(Path.Combine(BasePath, "Cache", "Thumbnails"), true);
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        RefreshStaging(currentPlatform, null, false);
+                    });
                 });
             });
 
-            if(needsGameRecompile)
+            if(needsGameRecompile && playMode == PlayMode.Stopped)
             {
                 EditorGUI.Menu("Recompile Game", "Game.Rebuild", () =>
                 {
