@@ -178,6 +178,10 @@ internal class MeshAssetEditor : AssetEditor
 
             if(meshCount > 0)
             {
+                EditorGUI.Label("Bounds:");
+                EditorGUI.Label($"Center: {meshAsset.Bounds.center}");
+                EditorGUI.Label($"Size: {meshAsset.Bounds.size}");
+
                 EditorGUI.Label("Used Components:");
 
                 var mesh = meshAsset.meshes[0];

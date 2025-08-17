@@ -418,6 +418,8 @@ public sealed partial class RenderSystem
 
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
+        var c = (CurrentCamera.Item1, CurrentCamera.Item2);
+
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -495,6 +497,8 @@ public sealed partial class RenderSystem
 
             pair.Key.Submit(viewID);
         }
+
+        CurrentCamera = (c.Item1, c.Item2);
     }
 
     /// <summary>

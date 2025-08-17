@@ -501,9 +501,9 @@ public class SharpGLTFImporter : IMeshImporter
 
                 foreach (var pair in textures)
                 {
-                    var texture = material.FindChannel(pair.Key);
+                    var texture = material.FindChannel(pair.Value);
 
-                    if (texture.HasValue)
+                    if (texture.HasValue && texture.Value.Texture != null)
                     {
                         AddTexture(pair.Key, true, texture.Value);
                     }
