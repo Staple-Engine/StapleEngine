@@ -42,7 +42,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         renderers.Remove(viewID);
     }
 
-    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -92,7 +92,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
         if(renderers.TryGetValue(viewID, out var container) == false)
         {

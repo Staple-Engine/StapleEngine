@@ -65,7 +65,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// <summary>
     /// Gets the default material for sprites
     /// </summary>
-    public static Lazy<Material> DefaultMaterial = new(() =>
+    public static readonly Lazy<Material> DefaultMaterial = new(() =>
     {
         var material = ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
 
@@ -279,7 +279,7 @@ public class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -364,7 +364,7 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
         if(sprites.TryGetValue(viewID, out var container) == false)
         {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -125,6 +126,8 @@ public sealed partial class RenderSystem
     /// <param name="frame">The current frame</param>
     internal void OnFrame(uint frame)
     {
+        CurrentFrame = frame;
+
         List<Action> callbacks = null;
 
         lock (lockObject)
@@ -324,11 +327,11 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    var final = new List<(IRenderSystem, (Entity, Transform, IComponent)[])>();
+                    var final = new List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>();
 
                     foreach(var pair in collected)
                     {
-                        final.Add((pair.Key, pair.Value.ToArray()));
+                        final.Add((pair.Key, pair.Value));
                     }
 
                     renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
@@ -350,7 +353,7 @@ public sealed partial class RenderSystem
     /// <param name="cull">Whether to cull invisible elements</param>
     /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, (Entity, Transform, IComponent)[])> queue, bool cull, ushort viewID)
+        List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull, ushort viewID)
     {
         usedViewIDs.Add(viewID);
 
@@ -366,9 +369,9 @@ public sealed partial class RenderSystem
 
             system.Prepare();
 
-            system.Preprocess(content, camera, cameraTransform);
+            system.Preprocess(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
 
-            var contentLength = content.Length;
+            var contentLength = content.Count;
 
             for(var j = 0; j < contentLength; j++)
             {
@@ -395,7 +398,7 @@ public sealed partial class RenderSystem
                 }
             }
 
-            system.Process(content, camera, cameraTransform, viewID);
+            system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform, viewID);
 
             system.Submit(viewID);
         }
@@ -493,7 +496,7 @@ public sealed partial class RenderSystem
 
         foreach(var pair in systemQueues)
         {
-            pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, viewID);
+            pair.Key.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform, viewID);
 
             pair.Key.Submit(viewID);
         }
@@ -645,9 +648,9 @@ public sealed partial class RenderSystem
                     var system = systemInfo.Item1;
                     var contents = systemInfo.Item2;
 
-                    system.Preprocess(contents, camera, cameraTransform);
+                    system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
 
-                    var contentLength = contents.Length;
+                    var contentLength = contents.Count;
 
                     for (var j = 0; j < contentLength; j++)
                     {

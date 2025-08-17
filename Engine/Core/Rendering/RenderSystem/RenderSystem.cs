@@ -62,6 +62,11 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public static ushort CurrentViewID { get; private set; }
 
     /// <summary>
+    /// The current frame being rendered
+    /// </summary>
+    public static uint CurrentFrame { get; private set; }
+
+    /// <summary>
     /// The current camera
     /// </summary>
     public static (Camera, Transform) CurrentCamera { get; internal set; }
@@ -109,7 +114,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(IRenderSystem, (Entity, Transform, IComponent)[])>)> renderQueue = [];
+    private readonly List<((Camera, Transform), List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>)> renderQueue = [];
 
     /// <summary>
     /// The entity query for every entity with a transform
@@ -181,5 +186,20 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         }
 
         return default;
+    }
+
+    /// <summary>
+    /// Clears the queued render data for a specific view ID
+    /// </summary>
+    /// <param name="viewID">The view ID to clear</param>
+    public void ClearRenderData(ushort viewID)
+    {
+        lock (lockObject)
+        {
+            foreach (var s in renderSystems)
+            {
+                s.ClearRenderData(viewID);
+            }
+        }
     }
 }

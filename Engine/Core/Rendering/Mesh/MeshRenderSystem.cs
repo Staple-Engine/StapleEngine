@@ -133,7 +133,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Preprocess((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -182,7 +182,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process((Entity, Transform, IComponent)[] entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
     {
         if (instanceCache.TryGetValue(viewID, out var instance) == false)
         {
