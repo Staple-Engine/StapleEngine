@@ -1180,9 +1180,7 @@ internal class ProjectBrowser
 
                 if (currentContentNode == null)
                 {
-                    currentContentNode = projectBrowserNodes[index];
-
-                    item = currentContentNode;
+                    item = projectBrowserNodes[index];
                 }
                 else
                 {
