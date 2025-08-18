@@ -199,18 +199,6 @@ internal class ThumbnailCache
                         var meshRenderers = tempEntity.GetComponentsInChildren<MeshRenderer>();
                         var skinnedMeshRenderers = tempEntity.GetComponentsInChildren<SkinnedMeshRenderer>();
 
-                        foreach(var r in meshRenderers)
-                        {
-                            r.overrideLighting = true;
-                            r.lighting = MaterialLighting.Unlit;
-                        }
-
-                        foreach (var r in skinnedMeshRenderers)
-                        {
-                            r.overrideLighting = true;
-                            r.lighting = MaterialLighting.Unlit;
-                        }
-
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 
                         var camera = new Camera()
@@ -224,16 +212,38 @@ internal class ThumbnailCache
                             cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                         };
 
+                        var offset = mesh.Bounds.center + mesh.Bounds.size * 0.75f;
+                        var position = new Vector3(-offset.X, offset.Y, offset.Z * 1.5f);
+                        var forward = Vector3.Normalize(position);
+
                         var cameraTransform = new Transform
                         {
-                            LocalPosition = Vector3.One * Math.Max(mesh.Bounds.extents.X, mesh.Bounds.extents.Y, mesh.Bounds.extents.Z) + mesh.Bounds.center,
-                            LocalRotation = Math.FromEulerAngles(new Vector3(-30, 45, 0)),
+                            LocalPosition = position,
+                            LocalRotation = Math.LookAt(forward, Vector3.UnitY),
                         };
+
+                        var overrideLights = LightSystem.OverrideLights;
+                        var overrideAmbientColor = LightSystem.OverrideAmbientColor;
+
+                        var lightTransform = new Transform();
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
+                            LightSystem.OverrideLights = [(default, lightTransform, new Light()
+                            {
+                                type = LightType.Directional,
+                                color = Color.White,
+                            })];
+
+                            LightSystem.OverrideAmbientColor = Color.Black;
+
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
                                 tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+
+                            LightSystem.OverrideLights = overrideLights;
+                            LightSystem.OverrideAmbientColor = overrideAmbientColor;
+
+                            RenderSystem.Instance.ClearRenderData(StapleEditor.MeshRenderView);
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
@@ -454,19 +464,39 @@ internal class ThumbnailCache
                             cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                         };
 
+                        var position = Vector3.One * 0.5F;
+
+                        var forward = Vector3.Normalize(position);
+
                         var cameraTransform = new Transform
                         {
-                            LocalPosition = Vector3.One * 0.5f,
-                            LocalRotation = Math.FromEulerAngles(new Vector3(-30, 45, 0)),
+                            LocalPosition = position,
+                            LocalRotation = Math.LookAt(forward, Vector3.UnitY),
                         };
 
                         meshRenderer.overrideLighting = true;
-                        meshRenderer.lighting = MaterialLighting.Unlit;
+                        meshRenderer.lighting = MaterialLighting.Lit;
+
+                        var overrideLights = LightSystem.OverrideLights;
+                        var overrideAmbientColor = LightSystem.OverrideAmbientColor;
+
+                        var lightTransform = new Transform();
 
                         renderTarget.Render(StapleEditor.MeshRenderView, () =>
                         {
+                            LightSystem.OverrideLights = [(default, lightTransform, new Light()
+                            {
+                                type = LightType.Directional,
+                                color = Color.White,
+                            })];
+
+                            LightSystem.OverrideAmbientColor = Color.Black;
+
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
                                 tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+
+                            LightSystem.OverrideLights = overrideLights;
+                            LightSystem.OverrideAmbientColor = overrideAmbientColor;
                         });
 
                         renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>

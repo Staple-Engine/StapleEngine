@@ -29,6 +29,16 @@ public sealed class LightSystem : IRenderSystem
     /// </summary>
     public static bool Enabled = true;
 
+    /// <summary>
+    /// Override the lights used by the light system
+    /// </summary>
+    public static (Entity, Transform, Light)[] OverrideLights = null;
+
+    /// <summary>
+    /// Override the ambient color
+    /// </summary>
+    public static Color? OverrideAmbientColor = null;
+
     private static readonly string LightAmbientKey = "u_lightAmbient";
     private static readonly string LightCountKey = "u_lightCount";
     private static readonly string LightDiffuseKey = "u_lightDiffuse";
@@ -51,6 +61,10 @@ public sealed class LightSystem : IRenderSystem
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => null;
+
+    public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Current.ambientLight;
+
+    public (Entity, Transform, Light)[] Lights => OverrideLights ?? lightQuery.Contents;
 
     public LightSystem()
     {
@@ -192,13 +206,12 @@ public sealed class LightSystem : IRenderSystem
     {
         if (Enabled == false ||
             lighting == MaterialLighting.Unlit ||
-            (material?.IsValid ?? false) == false ||
-            lightQuery.Length == 0)
+            (material?.IsValid ?? false) == false)
         {
             return;
         }
 
-        var targets = lightQuery.Contents;
+        var targets = Lights;
 
         if (targets.Length > MaxLights)
         {
@@ -219,7 +232,7 @@ public sealed class LightSystem : IRenderSystem
 
         var normalMatrix = transTransform.ToMatrix3x3();
 
-        var lightAmbient = AppSettings.Current.ambientLight;
+        var lightAmbient = AmbientColor;
         var lightCount = new Vector4(targets.Length);
 
         for (var i = 0; i < targets.Length; i++)
@@ -305,14 +318,13 @@ public sealed class LightSystem : IRenderSystem
         if (Enabled == false ||
             lighting == MaterialLighting.Unlit ||
             (material?.IsValid ?? false) == false ||
-            lightQuery.Length == 0 ||
             transforms.Length == 0 ||
             normalMatrices.Length != transforms.Length)
         {
             return;
         }
 
-        var targets = lightQuery.Contents;
+        var targets = Lights;
 
         var positions = new Vector3[transforms.Length];
 
@@ -346,7 +358,7 @@ public sealed class LightSystem : IRenderSystem
                 .ToArray();
         }
 
-        var lightAmbient = AppSettings.Current.ambientLight;
+        var lightAmbient = AmbientColor;
         var lightCount = new Vector4(targets.Length);
 
         for (var i = 0; i < targets.Length; i++)
