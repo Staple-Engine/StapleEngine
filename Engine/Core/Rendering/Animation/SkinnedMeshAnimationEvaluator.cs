@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -43,17 +43,17 @@ internal class SkinnedMeshAnimationEvaluator
     /// <summary>
     /// Cache of last indices for positions (channel index -> frame index)
     /// </summary>
-    private readonly Dictionary<int, int> lastPositionIndex = [];
+    private int[] lastPositionIndex = [];
 
     /// <summary>
     /// Cache of last indices for rotations (channel index -> frame index)
     /// </summary>
-    private readonly Dictionary<int, int> lastRotationIndex = [];
+    private int[] lastRotationIndex = [];
 
     /// <summary>
     /// Cache of last indices for scales (channel index -> frame index)
     /// </summary>
-    private readonly Dictionary<int, int> lastScaleIndex = [];
+    private int[] lastScaleIndex = [];
 
     /// <summary>
     /// Last update time
@@ -115,6 +115,21 @@ internal class SkinnedMeshAnimationEvaluator
 
         animator.playTime = time;
 
+        if(lastPositionIndex.Length != animation.channels.Count)
+        {
+            Array.Resize(ref lastPositionIndex, animation.channels.Count);
+        }
+
+        if (lastScaleIndex.Length != animation.channels.Count)
+        {
+            Array.Resize(ref lastScaleIndex, animation.channels.Count);
+        }
+
+        if (lastRotationIndex.Length != animation.channels.Count)
+        {
+            Array.Resize(ref lastRotationIndex, animation.channels.Count);
+        }
+
         for (var i = 0; i < animation.channels.Count; i++)
         {
             var channel = animation.channels[i];
@@ -124,15 +139,15 @@ internal class SkinnedMeshAnimationEvaluator
                 continue;
             }
 
-            Vector3 GetVector3(List<MeshAsset.AnimationKey<Vector3>> keys, ref int last)
+            Vector3 GetVector3(MeshAsset.AnimationKey<Vector3>[] keys, ref int last)
             {
                 var outValue = Vector3.Zero;
 
-                if (keys.Count > 0)
+                if (keys.Length > 0)
                 {
                     var frame = time >= lastTime ? last : 0;
 
-                    while (frame < keys.Count - 1)
+                    while (frame < keys.Length - 1)
                     {
                         if (time < keys[frame + 1].time)
                         {
@@ -142,12 +157,12 @@ internal class SkinnedMeshAnimationEvaluator
                         frame++;
                     }
 
-                    if (frame >= keys.Count)
+                    if (frame >= keys.Length)
                     {
                         frame = 0;
                     }
 
-                    var nextFrame = (frame + 1) % keys.Count;
+                    var nextFrame = (frame + 1) % keys.Length;
 
                     var current = keys[frame];
                     var next = keys[nextFrame];
@@ -174,15 +189,15 @@ internal class SkinnedMeshAnimationEvaluator
                 return outValue;
             }
 
-            Quaternion GetQuaternion(List<MeshAsset.AnimationKey<Quaternion>> keys, ref int last)
+            Quaternion GetQuaternion(MeshAsset.AnimationKey<Quaternion>[] keys, ref int last)
             {
                 var outValue = Quaternion.Zero;
 
-                if (keys.Count > 0)
+                if (keys.Length > 0)
                 {
                     var frame = time >= lastTime ? last : 0;
 
-                    while (frame < keys.Count - 1)
+                    while (frame < keys.Length - 1)
                     {
                         if (time < keys[frame + 1].time)
                         {
@@ -192,12 +207,12 @@ internal class SkinnedMeshAnimationEvaluator
                         frame++;
                     }
 
-                    if (frame >= keys.Count)
+                    if (frame >= keys.Length)
                     {
                         frame = 0;
                     }
 
-                    var nextFrame = (frame + 1) % keys.Count;
+                    var nextFrame = (frame + 1) % keys.Length;
 
                     var current = keys[frame];
                     var next = keys[nextFrame];
@@ -224,28 +239,17 @@ internal class SkinnedMeshAnimationEvaluator
                 return outValue;
             }
 
-            if (lastPositionIndex.TryGetValue(i, out var positionIndex) == false)
-            {
-                lastPositionIndex.Add(i, 0);
-            }
-
-            if (lastScaleIndex.TryGetValue(i, out var scaleIndex) == false)
-            {
-                lastScaleIndex.Add(i, 0);
-            }
-
-            if (lastRotationIndex.TryGetValue(i, out var rotationIndex) == false)
-            {
-                lastRotationIndex.Add(i, 0);
-            }
+            var positionIndex = lastPositionIndex[i];
+            var scaleIndex = lastScaleIndex[i];
+            var rotationIndex = lastRotationIndex[i];
 
             var position = GetVector3(channel.positions, ref positionIndex);
             var scale = GetVector3(channel.scales, ref scaleIndex);
             var rotation = GetQuaternion(channel.rotations, ref rotationIndex);
 
-            lastPositionIndex.AddOrSetKey(i, positionIndex);
-            lastScaleIndex.AddOrSetKey(i, scaleIndex);
-            lastRotationIndex.AddOrSetKey(i, rotationIndex);
+            lastPositionIndex[i] = positionIndex;
+            lastScaleIndex[i] = scaleIndex;
+            lastRotationIndex[i] = rotationIndex;
 
             SkinnedMeshRenderSystem.ApplyNodeTransformQuick(channel.nodeIndex, position, rotation, scale, animator.transformCache);
         }

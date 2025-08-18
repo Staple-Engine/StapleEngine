@@ -536,7 +536,7 @@ public sealed class MeshAsset : IGuidAsset
     /// Container for an animation key
     /// </summary>
     /// <typeparam name="T">The value type</typeparam>
-    public class AnimationKey<T>
+    public struct AnimationKey<T>
     {
         /// <summary>
         /// The time at which this key is active
@@ -562,17 +562,17 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// The positions in this key
         /// </summary>
-        public List<AnimationKey<Vector3>> positions = [];
+        public AnimationKey<Vector3>[] positions = [];
 
         /// <summary>
         /// The scales in this key
         /// </summary>
-        public List<AnimationKey<Vector3>> scales = [];
+        public AnimationKey<Vector3>[] scales = [];
 
         /// <summary>
         /// The rotations in this key
         /// </summary>
-        public List<AnimationKey<Quaternion>> rotations = [];
+        public AnimationKey<Quaternion>[] rotations = [];
     }
 
     /// <summary>

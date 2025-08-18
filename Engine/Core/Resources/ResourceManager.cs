@@ -2102,19 +2102,19 @@ internal class ResourceManager
                         {
                             time = x.time,
                             value = x.value.ToVector3(),
-                        }).ToList(),
+                        }).ToArray(),
 
                         rotations = c.rotationKeys.Select(x => new MeshAsset.AnimationKey<Quaternion>()
                         {
                             time = x.time,
                             value = new Quaternion(x.value.x, x.value.y, x.value.z, x.value.w),
-                        }).ToList(),
+                        }).ToArray(),
 
                         scales = c.scaleKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
                         {
                             time = x.time,
                             value = x.value.ToVector3(),
-                        }).ToList(),
+                        }).ToArray(),
                     };
 
                     animation.channels.Add(channel);
