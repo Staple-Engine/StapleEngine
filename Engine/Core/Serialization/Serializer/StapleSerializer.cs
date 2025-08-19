@@ -134,7 +134,7 @@ internal static class StapleSerializer
             return boolArray.Select(x => (byte)(x ? 1 : 0)).ToArray();
         }
 
-        var size = TypeCache.SizeOf(array.GetType().GetElementType().FullName);
+        var size = TypeCache.SizeOf(array.GetType().GetElementType().ToString());
 
         if(size <= 0)
         {
@@ -170,7 +170,7 @@ internal static class StapleSerializer
             return;
         }
 
-        var size = TypeCache.SizeOf(target.GetType().GetElementType().FullName);
+        var size = TypeCache.SizeOf(target.GetType().GetElementType().ToString());
 
         if (size <= 0)
         {
@@ -205,7 +205,7 @@ internal static class StapleSerializer
             return boolArray.ToArray();
         }
 
-        var size = TypeCache.SizeOf(elementType.FullName);
+        var size = TypeCache.SizeOf(elementType.ToString());
 
         if (size <= 0)
         {
@@ -388,7 +388,7 @@ internal static class StapleSerializer
 
                     if(o != null)
                     {
-                        context.setField(field, value.GetType().FullName, o);
+                        context.setField(field, value.GetType().ToString(), o);
 
                         return;
                     }
@@ -419,11 +419,11 @@ internal static class StapleSerializer
                         }
                     }
 
-                    context.setField(field, field.FieldType.FullName, assetList.ToArray());
+                    context.setField(field, field.FieldType.ToString(), assetList.ToArray());
                 }
                 else if(elementType == typeof(string))
                 {
-                    context.setField(field, field.FieldType.FullName, array);
+                    context.setField(field, field.FieldType.ToString(), array);
                 }
                 else if(elementType.IsPrimitive)
                 {
@@ -433,12 +433,12 @@ internal static class StapleSerializer
 
                         if (buffer != null)
                         {
-                            context.setField(field, field.FieldType.FullName, Convert.ToHexString(buffer));
+                            context.setField(field, field.FieldType.ToString(), Convert.ToHexString(buffer));
                         }
                     }
                     else
                     {
-                        context.setField(field, field.FieldType.FullName, value);
+                        context.setField(field, field.FieldType.ToString(), value);
                     }
                 }
                 else if(elementType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -457,15 +457,15 @@ internal static class StapleSerializer
                             }
                             catch (Exception e)
                             {
-                                Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName} element: {e}");
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()} element: {e}");
                             }
                         }
 
-                        context.setField(field, field.FieldType.FullName, newList);
+                        context.setField(field, field.FieldType.ToString(), newList);
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName} list: {e}");
+                        Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()} list: {e}");
                     }
                 }
                 else if(elementType.IsEnum)
@@ -479,7 +479,7 @@ internal static class StapleSerializer
                             newList.Add((long)item);
                         }
 
-                        context.setField(field, field.FieldType.FullName, newList);
+                        context.setField(field, field.FieldType.ToString(), newList);
                     }
                     else
                     {
@@ -490,7 +490,7 @@ internal static class StapleSerializer
                             newList.Add(item.ToString());
                         }
 
-                        context.setField(field, field.FieldType.FullName, newList);
+                        context.setField(field, field.FieldType.ToString(), newList);
                     }
                 }
                 else
@@ -512,7 +512,7 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            context.setField(field, field.FieldType.FullName, newList);
+                            context.setField(field, field.FieldType.ToString(), newList);
 
                             return;
                         }
@@ -550,11 +550,11 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            context.setField(field, field.FieldType.FullName, newList);
+                            context.setField(field, field.FieldType.ToString(), newList);
                         }
                         else if (listType == typeof(string))
                         {
-                            context.setField(field, field.FieldType.FullName, value);
+                            context.setField(field, field.FieldType.ToString(), value);
                         }
                         else if (listType.IsPrimitive)
                         {
@@ -566,12 +566,12 @@ internal static class StapleSerializer
 
                                 if (buffer != null)
                                 {
-                                    context.setField(field, field.FieldType.FullName, Convert.ToHexString(buffer));
+                                    context.setField(field, field.FieldType.ToString(), Convert.ToHexString(buffer));
                                 }
                             }
                             else
                             {
-                                context.setField(field, field.FieldType.FullName, value);
+                                context.setField(field, field.FieldType.ToString(), value);
                             }
                         }
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -602,15 +602,15 @@ internal static class StapleSerializer
                                     }
                                     catch (Exception e)
                                     {
-                                        Log.Debug($"[{LogTag}] Failed to deserialize a {listType.FullName} list element: {e}");
+                                        Log.Debug($"[{LogTag}] Failed to deserialize a {listType.ToString()} list element: {e}");
                                     }
                                 }
 
-                                context.setField(field, field.FieldType.FullName, newList);
+                                context.setField(field, field.FieldType.ToString(), newList);
                             }
                             catch (Exception e)
                             {
-                                Log.Debug($"[{LogTag}] Failed to deserialize a {listType.FullName} list: {e}");
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {listType.ToString()} list: {e}");
                             }
                         }
                         else if(listType.IsEnum)
@@ -626,7 +626,7 @@ internal static class StapleSerializer
                                     newList.Add((long)item);
                                 }
 
-                                context.setField(field, field.FieldType.FullName, newList);
+                                context.setField(field, field.FieldType.ToString(), newList);
                             }
                             else
                             {
@@ -639,7 +639,7 @@ internal static class StapleSerializer
                                     newList.Add(item.ToString());
                                 }
 
-                                context.setField(field, field.FieldType.FullName, newList);
+                                context.setField(field, field.FieldType.ToString(), newList);
                             }
                         }
 
@@ -660,23 +660,23 @@ internal static class StapleSerializer
                     {
                         if (mode == StapleSerializationMode.Scene)
                         {
-                            context.setField(field, field.FieldType.FullName, innerContainer.ToRawContainer());
+                            context.setField(field, field.FieldType.ToString(), innerContainer.ToRawContainer());
                         }
                         else
                         {
-                            context.setField(field, field.FieldType.FullName, innerContainer);
+                            context.setField(field, field.FieldType.ToString(), innerContainer);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Debug($"[{LogTag}] Failed to deserialize a {field.FieldType.FullName} container: {e}");
+                    Log.Debug($"[{LogTag}] Failed to deserialize a {field.FieldType.ToString()} container: {e}");
                 }
 
                 return;
             }
 
-            context.setField(field, value.GetType().FullName, value);
+            context.setField(field, value.GetType().ToString(), value);
         }
     }
 
@@ -696,7 +696,7 @@ internal static class StapleSerializer
 
         var outValue = new StapleSerializerContainer()
         {
-            typeName = instance.GetType().FullName,
+            typeName = instance.GetType().ToString(),
         };
 
         var context = new StapleSerializerContext(() => instance,
@@ -792,7 +792,7 @@ internal static class StapleSerializer
         {
             var container = new StapleSerializerContainer()
             {
-                typeName = fieldType.FullName,
+                typeName = fieldType.ToString(),
             };
 
             var fields = new Dictionary<string, StapleSerializerField>();
@@ -808,7 +808,7 @@ internal static class StapleSerializer
 
                 fields.Add(p.Name, new()
                 {
-                    typeName = localField.FieldType.FullName,
+                    typeName = localField.FieldType.ToString(),
                     value = p.Value,
                 });
             }
@@ -832,7 +832,7 @@ internal static class StapleSerializer
                 fieldInfo.value == null ||
                 ((field.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
                 fieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && Platform.IsEditor == false) ||
-                (fieldType.FullName != fieldInfo.typeName && valueType.GetInterface(fieldType.FullName) == null))
+                (fieldType.ToString() != fieldInfo.typeName && valueType.GetInterface(fieldType.FullName) == null))
             {
                 return null;
             }
@@ -958,13 +958,13 @@ internal static class StapleSerializer
                             fieldType.GetElementType().IsPrimitive &&
                             fieldType.GetElementType() != typeof(bool))
                         {
-                            var size = TypeCache.SizeOf(elementType.FullName);
+                            var size = TypeCache.SizeOf(elementType.ToString());
 
-                            newValue = TypeCache.CreateArray(elementType.FullName, array.Length / size);
+                            newValue = TypeCache.CreateArray(elementType.ToString(), array.Length / size);
                         }
                         else
                         {
-                            newValue = TypeCache.CreateArray(elementType.FullName, array.Length);
+                            newValue = TypeCache.CreateArray(elementType.ToString(), array.Length);
                         }
 
                         if (newValue != null)
@@ -999,7 +999,7 @@ internal static class StapleSerializer
                             else if (elementType.GetCustomAttribute<SerializableAttribute>() != null &&
                                 array is object[] arrayData)
                             {
-                                newValue = TypeCache.CreateArray(elementType.FullName, arrayData.Length);
+                                newValue = TypeCache.CreateArray(elementType.ToString(), arrayData.Length);
 
                                 if (newValue != null)
                                 {
@@ -1052,13 +1052,13 @@ internal static class StapleSerializer
                             if (fieldType.GetElementType().IsPrimitive &&
                                 fieldType.GetElementType() != typeof(bool))
                             {
-                                var size = TypeCache.SizeOf(elementType.FullName);
+                                var size = TypeCache.SizeOf(elementType.ToString());
 
-                                newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
                             }
                             else
                             {
-                                newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
                             }
 
                             if (newValue != null)
@@ -1079,7 +1079,7 @@ internal static class StapleSerializer
                 {
                     try
                     {
-                        newValue = TypeCache.CreateArray(fieldType.GetElementType().FullName, containers.Count);
+                        newValue = TypeCache.CreateArray(fieldType.GetElementType().ToString(), containers.Count);
 
                         if (newValue != null)
                         {
@@ -1096,7 +1096,7 @@ internal static class StapleSerializer
                                 }
                                 catch (Exception e)
                                 {
-                                    Log.Debug($"[{LogTag}] Failed to decode an item for {fieldType.GetElementType().FullName}: {e}");
+                                    Log.Debug($"[{LogTag}] Failed to decode an item for {fieldType.GetElementType().ToString()}: {e}");
                                 }
                             }
                         }
@@ -1169,7 +1169,7 @@ internal static class StapleSerializer
                                     {
                                         if(item is Dictionary<object, object> contents)
                                         {
-                                            innerTypeName = elementType.FullName;
+                                            innerTypeName = elementType.ToString();
 
                                             parameters = [];
 
@@ -1186,7 +1186,7 @@ internal static class StapleSerializer
 
                                                     parameters.Add(key, new Dictionary<object, object>()
                                                     {
-                                                        { nameof(StapleSerializerContainer.typeName), elementField.FieldType.FullName },
+                                                        { nameof(StapleSerializerContainer.typeName), elementField.FieldType.ToString() },
                                                         { nameof(StapleSerializerField.value), pair.Value },
                                                     });
                                                 }
@@ -1276,7 +1276,7 @@ internal static class StapleSerializer
                                 }
                                 catch (Exception e)
                                 {
-                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.FullName}: {e}");
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()}: {e}");
 
                                     continue;
                                 }
@@ -1293,7 +1293,7 @@ internal static class StapleSerializer
                                 {
                                     fail = true;
 
-                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.GenericTypeArguments[0].FullName}: {e}");
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.GenericTypeArguments[0].ToString()}: {e}");
 
                                     break;
                                 }
@@ -1320,13 +1320,13 @@ internal static class StapleSerializer
                                 if (elementType.IsPrimitive &&
                                     elementType != typeof(bool))
                                 {
-                                    var size = TypeCache.SizeOf(elementType.FullName);
+                                    var size = TypeCache.SizeOf(elementType.ToString());
 
-                                    newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length / size);
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
                                 }
                                 else
                                 {
-                                    newValue = TypeCache.CreateArray(elementType.FullName, bytes.Length);
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
                                 }
 
                                 if (newValue != null)
@@ -1337,7 +1337,7 @@ internal static class StapleSerializer
                         }
                         catch (Exception e)
                         {
-                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.FullName}: {e}");
+                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.ToString()}: {e}");
 
                             return null;
                         }
@@ -1387,7 +1387,7 @@ internal static class StapleSerializer
         }
         catch (Exception e)
         {
-            Log.Debug($"[{LogTag}] Failed to deserialize field {field.Name} for {type.FullName}: {e}");
+            Log.Debug($"[{LogTag}] Failed to deserialize field {field.Name} for {type.ToString()}: {e}");
 
             return null;
         }
@@ -1447,7 +1447,7 @@ internal static class StapleSerializer
         }
         catch (Exception e)
         {
-            Log.Debug($"[{LogTag}] Failed to deserialize instance for {type.FullName}: {e}");
+            Log.Debug($"[{LogTag}] Failed to deserialize instance for {type.ToString()}: {e}");
 
             return null;
         }
@@ -1528,7 +1528,7 @@ internal static class StapleSerializer
 
             var outValue = new SerializableStapleAsset()
             {
-                typeName = instance.GetType().FullName,
+                typeName = instance.GetType().ToString(),
                 parameters = container.fields,
             };
 
@@ -1536,7 +1536,7 @@ internal static class StapleSerializer
         }
         catch (Exception e)
         {
-            Log.Debug($"[{LogTag}] Failed to serialize {instance.GetType().FullName}: {e}");
+            Log.Debug($"[{LogTag}] Failed to serialize {instance.GetType().ToString()}: {e}");
 
             return default;
         }

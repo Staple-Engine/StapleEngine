@@ -722,6 +722,8 @@ public partial class ProjectManager
                         public void RegisterAll()
                         {
                             StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+                            Staple.Internal.TypeCache.Freeze();
                         }
                     }
                     """);

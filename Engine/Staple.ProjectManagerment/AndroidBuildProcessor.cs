@@ -117,6 +117,8 @@ public class PlayerActivity : StapleActivity
     {
         StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
+        Staple.Internal.TypeCache.Freeze();
+
         base.OnCreate(savedInstanceState);
     }
 }

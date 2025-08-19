@@ -147,7 +147,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                     if(instance is IComponent component &&
                         (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
                     {
-                        return $"{e.Identifier.ID}:{component.GetType().FullName}";
+                        return $"{e.Identifier.ID}:{component.GetType().ToString()}";
                     }
                 }
 
@@ -515,7 +515,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                     if (instance is IComponent component &&
                         (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
                     {
-                        return $"{e.Identifier.ID}:{t.FullName}";
+                        return $"{e.Identifier.ID}:{t.ToString()}";
                     }
                 }
 

@@ -166,7 +166,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.EqualTo(null));
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(SimpleAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(SimpleAsset).ToString()));
 
         Assert.That(result.parameters, Has.Count.EqualTo(5));
 
@@ -181,11 +181,11 @@ internal class AssetSerializationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.parameters[nameof(SimpleAsset.intValue)].typeName, Is.EqualTo(typeof(int).FullName));
-            Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].typeName, Is.EqualTo(typeof(string).FullName));
-            Assert.That(result.parameters[nameof(SimpleAsset.numbers)].typeName, Is.EqualTo(typeof(List<int>).FullName));
-            Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].typeName, Is.EqualTo(typeof(SimplePathAsset).FullName));
-            Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].typeName, Is.EqualTo(typeof(NewEnum).FullName));
+            Assert.That(result.parameters[nameof(SimpleAsset.intValue)].typeName, Is.EqualTo(typeof(int).ToString()));
+            Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].typeName, Is.EqualTo(typeof(string).ToString()));
+            Assert.That(result.parameters[nameof(SimpleAsset.numbers)].typeName, Is.EqualTo(typeof(List<int>).ToString()));
+            Assert.That(result.parameters[nameof(SimpleAsset.pathAsset)].typeName, Is.EqualTo(typeof(SimplePathAsset).ToString()));
+            Assert.That(result.parameters[nameof(SimpleAsset.enumValue)].typeName, Is.EqualTo(typeof(NewEnum).ToString()));
 
             Assert.That(result.parameters[nameof(SimpleAsset.intValue)].value, Is.EqualTo(asset.intValue));
             Assert.That(result.parameters[nameof(SimpleAsset.stringValue)].value, Is.EqualTo(asset.stringValue));
@@ -257,7 +257,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.EqualTo(null));
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(SerializableAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(SerializableAsset).ToString()));
 
         Assert.That(result.parameters, Has.Count.EqualTo(1));
 
@@ -268,12 +268,12 @@ internal class AssetSerializationTests
 
             if (result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
             {
-                Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).ToString()));
                 Assert.That(parameter.value, Is.TypeOf<SerializableStapleAssetContainer>());
 
                 if (parameter.value is SerializableStapleAssetContainer container)
                 {
-                    Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                    Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).ToString()));
                     Assert.That(container.fields, Has.Count.EqualTo(0));
                 }
             }
@@ -290,12 +290,12 @@ internal class AssetSerializationTests
 
             if (result.parameters.TryGetValue(nameof(SerializableAsset.container), out var parameter))
             {
-                Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                Assert.That(parameter.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).ToString()));
                 Assert.That(parameter.value, Is.TypeOf<SerializableStapleAssetContainer>());
 
                 if (parameter.value is SerializableStapleAssetContainer container)
                 {
-                    Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).FullName));
+                    Assert.That(container.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass).ToString()));
                     Assert.That(container.fields, Has.Count.EqualTo(1));
 
                     Assert.That(container.fields.ContainsKey(nameof(SerializableAsset.InnerClass.container)), Is.True);
@@ -304,7 +304,7 @@ internal class AssetSerializationTests
 
                     if (container.fields[nameof(SerializableAsset.InnerClass.container)].value is SerializableStapleAssetContainer innerContainer)
                     {
-                        Assert.That(innerContainer.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass.InnerInnerClass).FullName));
+                        Assert.That(innerContainer.typeName, Is.EqualTo(typeof(SerializableAsset.InnerClass.InnerInnerClass).ToString()));
 
                         Assert.That(innerContainer.fields.Count, Is.EqualTo(1));
 
@@ -312,7 +312,7 @@ internal class AssetSerializationTests
 
                         if (innerContainer.fields.TryGetValue(nameof(SerializableAsset.InnerClass.InnerInnerClass), out var innerParameter))
                         {
-                            Assert.That(innerParameter.typeName, Is.EqualTo(typeof(int).FullName));
+                            Assert.That(innerParameter.typeName, Is.EqualTo(typeof(int).ToString()));
 
                             Assert.That(innerParameter.value, Is.TypeOf<int>());
 
@@ -345,7 +345,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).ToString()));
 
         Assert.That(result.parameters.Count, Is.EqualTo(5));
 
@@ -383,7 +383,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(PrimitiveAsset).ToString()));
 
         Assert.That(result.parameters.Count, Is.EqualTo(5));
 
@@ -417,7 +417,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).ToString()));
 
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 
@@ -451,7 +451,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(HexAsset).ToString()));
 
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 
@@ -485,7 +485,7 @@ internal class AssetSerializationTests
 
         Assert.That(result, Is.Not.Null);
 
-        Assert.That(result.typeName, Is.EqualTo(typeof(SerializeFieldAsset).FullName));
+        Assert.That(result.typeName, Is.EqualTo(typeof(SerializeFieldAsset).ToString()));
 
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 

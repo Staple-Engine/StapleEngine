@@ -75,7 +75,7 @@ internal static class SceneSerialization
 
                     container.fields.Add(pair.Key, new()
                     {
-                        typeName = field.FieldType.FullName,
+                        typeName = field.FieldType.ToString(),
                         value = pair.Value,
                     });
                 }
@@ -93,7 +93,7 @@ internal static class SceneSerialization
 
                     container.fields.Add(pair.Key, new()
                     {
-                        typeName = field.FieldType.FullName,
+                        typeName = field.FieldType.ToString(),
                         value = pair.Value,
                     });
                 }

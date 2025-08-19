@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -16,6 +17,20 @@ public static class TypeCache
         public Action<Entity> remove;
         public Func<Entity, IComponent> get;
     }
+
+    internal static bool useFrozenCollections = false;
+
+    internal static FrozenDictionary<string, Type> frozenTypes;
+
+    internal static FrozenDictionary<string, Func<int, Array>> frozenArrayConstructors;
+
+    internal static FrozenDictionary<string, Func<int>> frozenSizeOfs;
+
+    internal static FrozenDictionary<string, ComponentCallbacks> frozenComponentCallbacks;
+
+    internal static FrozenDictionary<string, HashSet<string>> frozenInheritance;
+
+    internal static Type[] frozenTypesArray;
 
     internal static readonly Dictionary<string, Type> types = [];
 
@@ -40,6 +55,31 @@ public static class TypeCache
         componentCallbacks.Clear();
         subclassCaches.Clear();
         inheritance.Clear();
+
+        frozenArrayConstructors = null;
+        frozenComponentCallbacks = null;
+        frozenInheritance = null;
+        frozenSizeOfs = null;
+        frozenTypes = null;
+        frozenTypesArray = null;
+
+        useFrozenCollections = false;
+    }
+
+    /// <summary>
+    /// Freezes the type cache
+    /// </summary>
+    public static void Freeze()
+    {
+        useFrozenCollections = true;
+
+        frozenArrayConstructors = arrayConstructors.ToFrozenDictionary();
+        frozenComponentCallbacks = componentCallbacks.ToFrozenDictionary();
+        frozenInheritance = inheritance.ToFrozenDictionary();
+        frozenSizeOfs = sizeOfs.ToFrozenDictionary();
+        frozenTypes = types.ToFrozenDictionary();
+
+        frozenTypesArray = types.Values.ToArray();
     }
 
     /// <summary>
@@ -63,47 +103,68 @@ public static class TypeCache
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type type)
     {
-        if(subclassCaches.TryGetValue(type.FullName, out var cache))
+        if(subclassCaches.TryGetValue(type.ToString(), out var cache))
         {
             return cache;
         }
 
         var outValue = new List<Type>();
 
-        foreach(var pair in types)
+        if(useFrozenCollections)
         {
-            if(pair.Value.IsInterface == false &&
-                type.IsAssignableFrom(pair.Value))
+            foreach (var pair in frozenTypes)
             {
-                outValue.Add(pair.Value);
+                if (pair.Value.IsInterface == false &&
+                    type.IsAssignableFrom(pair.Value))
+                {
+                    outValue.Add(pair.Value);
+                }
+            }
+        }
+        else
+        {
+            foreach (var pair in types)
+            {
+                if (pair.Value.IsInterface == false &&
+                    type.IsAssignableFrom(pair.Value))
+                {
+                    outValue.Add(pair.Value);
+                }
             }
         }
 
         var v = outValue.ToArray();
 
-        subclassCaches.Add(type.FullName, v);
+        subclassCaches.Add(type.ToString(), v);
 
         return v;
     }
 
     /// <summary>
-    /// Gets a type from a type FullName
+    /// Gets a type from a type ToString()
     /// </summary>
     /// <param name="name">The name of the type</param>
     /// <returns>The type, or null</returns>
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public static Type GetType(string name)
     {
-        if(types.TryGetValue(name, out var type))
+        Type type;
+
+        if (useFrozenCollections)
+        {
+            return frozenTypes.TryGetValue(name, out type) ? type : null;
+        }
+
+        if (types.TryGetValue(name, out type))
         {
             return type;
         }
 
         type = Type.GetType(name);
 
-        if(type != null)
+        if(type != null && types.ContainsKey(type.ToString()) == false)
         {
-            types.Add(name, type);
+            types.Add(type.ToString(), type);
         }
 
         return type;
@@ -115,7 +176,7 @@ public static class TypeCache
     /// <returns>All registered types</returns>
     public static Type[] AllTypes()
     {
-        return types.Values.ToArray();
+        return useFrozenCollections ? frozenTypesArray : types.Values.ToArray();
     }
 
     /// <summary>
@@ -126,7 +187,8 @@ public static class TypeCache
     /// <returns>The component or default</returns>
     public static IComponent AddComponent(Entity entity, string typeName)
     {
-        if(componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        if(useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
+            componentCallbacks.TryGetValue(typeName, out callback) == false)
         {
             return default;
         }
@@ -150,7 +212,8 @@ public static class TypeCache
     /// <param name="typeName">The component type name</param>
     public static void RemoveComponent(Entity entity, string typeName)
     {
-        if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        if (useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
+            componentCallbacks.TryGetValue(typeName, out callback) == false)
         {
             return;
         }
@@ -173,7 +236,8 @@ public static class TypeCache
     /// <returns>The component or default</returns>
     public static IComponent GetComponent(Entity entity, string typeName)
     {
-        if (componentCallbacks.TryGetValue(typeName, out var callback) == false)
+        if (useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
+            componentCallbacks.TryGetValue(typeName, out callback) == false)
         {
             return default;
         }
@@ -198,7 +262,8 @@ public static class TypeCache
     /// <returns>An array instance, or default</returns>
     public static Array CreateArray(string typeName, int length)
     {
-        if(arrayConstructors.TryGetValue(typeName, out var fn) == false)
+        if(useFrozenCollections ? frozenArrayConstructors.TryGetValue(typeName, out var fn) == false :
+            arrayConstructors.TryGetValue(typeName, out fn) == false)
         {
             return default;
         }
@@ -222,7 +287,8 @@ public static class TypeCache
     /// <returns>The size, or 0</returns>
     public static int SizeOf(string typeName)
     {
-        if(sizeOfs.TryGetValue(typeName, out var fn) == false)
+        if (useFrozenCollections ? frozenSizeOfs.TryGetValue(typeName, out var fn) == false :
+            sizeOfs.TryGetValue(typeName, out fn) == false)
         {
             return 0;
         }
@@ -250,23 +316,23 @@ public static class TypeCache
         Func<int, Array> createArray,
         ComponentCallbacks callbacks)
     {
-        if(types.ContainsKey(type.FullName))
+        if(useFrozenCollections || types.ContainsKey(type.ToString()))
         {
             return;
         }
 
-        types.Add(type.FullName, type);
-        sizeOfs.Add(type.FullName, sizeOf);
+        types.Add(type.ToString(), type);
+        sizeOfs.Add(type.ToString(), sizeOf);
 
         HashSet<string> inheritanceInfo = [];
 
         void GatherInheritance(Type t)
         {
-            inheritanceInfo.Add(t.FullName);
+            inheritanceInfo.Add(t.ToString());
 
             foreach(var i in t.GetInterfaces())
             {
-                inheritanceInfo.Add(i.FullName);
+                inheritanceInfo.Add(i.ToString());
             }
 
             if(t.BaseType != null)
@@ -277,16 +343,16 @@ public static class TypeCache
 
         GatherInheritance(type);
 
-        inheritance.Add(type.FullName, inheritanceInfo);
+        inheritance.Add(type.ToString(), inheritanceInfo);
 
         if(createArray != null)
         {
-            arrayConstructors.Add(type.FullName, createArray);
+            arrayConstructors.Add(type.ToString(), createArray);
         }
 
         if (callbacks != null && type.IsAssignableTo(typeof(IComponent)))
         {
-            componentCallbacks.Add(type.FullName, callbacks);
+            componentCallbacks.Add(type.ToString(), callbacks);
         }
     }
 }

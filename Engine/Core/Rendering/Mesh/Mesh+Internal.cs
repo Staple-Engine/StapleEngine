@@ -715,7 +715,7 @@ public sealed partial class Mesh
 
         void Copy<T>(T source, ref int index) where T: unmanaged
         {
-            var sourceSize = TypeCache.SizeOf(source.GetType().FullName);
+            var sourceSize = TypeCache.SizeOf(source.GetType().ToString());
 
             if(index + sourceSize > buffer.Length)
             {
