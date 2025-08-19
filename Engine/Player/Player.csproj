@@ -44,7 +44,7 @@
   <PropertyGroup>
     <PostBuildEvent>
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Player/bin/$(Configuration)/net9.0/Player*" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Core/bin/$(Configuration)/net9.0/StapleCore.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Core/bin/$(Configuration)/net9.0/Staple.Core.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
 	</PostBuildEvent>

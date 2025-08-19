@@ -75,7 +75,7 @@ internal partial class StapleEditor
 
                 var lastChange = ProjectManager.Instance.GetLastFileChange(assetsDirectory);
 
-                var editorPath = Path.Combine(AppContext.BaseDirectory, "StapleEditor.dll");
+                var editorPath = Path.Combine(AppContext.BaseDirectory, "Staple.Editor.dll");
 
                 if (File.Exists(editorPath))
                 {
@@ -87,7 +87,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                var corePath = Path.Combine(AppContext.BaseDirectory, "StapleCore.dll");
+                var corePath = Path.Combine(AppContext.BaseDirectory, "Staple.Core.dll");
 
                 if (File.Exists(corePath))
                 {
