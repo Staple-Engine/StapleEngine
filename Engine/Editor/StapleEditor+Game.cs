@@ -1,4 +1,5 @@
-﻿using Staple.Internal;
+﻿using Staple.Editor.Templates;
+using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;

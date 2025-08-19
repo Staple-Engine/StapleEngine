@@ -1,4 +1,4 @@
-﻿namespace Staple.Editor;
+﻿namespace Staple.Editor.Templates;
 
 /// <summary>
 /// Allows creating specific entity templates

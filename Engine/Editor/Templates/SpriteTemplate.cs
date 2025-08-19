@@ -1,8 +1,8 @@
 ﻿using Staple.Internal;
 
-namespace Staple.Editor;
+namespace Staple.Editor.Templates;
 
-internal class SpriteTemplate : IEntityTemplate
+public class SpriteTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "Sprite";
 

@@ -1,6 +1,6 @@
-﻿namespace Staple.Editor;
+﻿namespace Staple.Editor.Templates;
 
-internal class DirectionalLightTemplate : IEntityTemplate
+public class DirectionalLightTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "Directional Light";
 

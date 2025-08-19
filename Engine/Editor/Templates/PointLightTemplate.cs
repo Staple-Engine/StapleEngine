@@ -1,6 +1,6 @@
-﻿namespace Staple.Editor;
+﻿namespace Staple.Editor.Templates;
 
-internal class PointLightTemplate : IEntityTemplate
+public class PointLightTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "Point Light";
 

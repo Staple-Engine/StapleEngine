@@ -1,6 +1,6 @@
-﻿namespace Staple.Editor;
+﻿namespace Staple.Editor.Templates;
 
-internal class CubeTemplate : IEntityTemplate
+public class CubeTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "Cube";
 

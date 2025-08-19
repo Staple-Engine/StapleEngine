@@ -2,6 +2,7 @@ using Bgfx;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
+using Staple.Editor.Templates;
 using Staple.Internal;
 using Staple.Jobs;
 using Staple.JoltPhysics;

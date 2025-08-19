@@ -1,6 +1,6 @@
-﻿namespace Staple.Editor;
+﻿namespace Staple.Editor.Templates;
 
-internal class QuadTemplate : IEntityTemplate
+public class QuadTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "Quad";
 

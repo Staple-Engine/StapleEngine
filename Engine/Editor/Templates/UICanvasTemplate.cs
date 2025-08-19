@@ -1,8 +1,8 @@
 ﻿using Staple.UI;
 
-namespace Staple.Editor;
+namespace Staple.Editor.Templates;
 
-internal class UICanvasTemplate : IEntityTemplate
+public class UICanvasTemplate : IEntityTemplate
 {
     public string Name { get; set; } = "UI Canvas";
 
