@@ -966,7 +966,7 @@ public class Editor
                 {
                     var value = (Entity)getter();
 
-                    setter(EditorGUI.EntityField(t.Name, value, IDSuffix));
+                    setter(EditorGUI.EntityField(name, value, IDSuffix));
                 }
 
                 break;
