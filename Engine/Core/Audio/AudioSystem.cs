@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -66,19 +67,9 @@ public class AudioSystem : ISubsystem
     private Thread backgroundLoadThread;
 
     /// <summary>
-    /// Whether we're shutting down
-    /// </summary>
-    private bool shuttingDown = false;
-
-    /// <summary>
-    /// Thread lock for background usage
-    /// </summary>
-    private readonly Lock backgroundLock = new();
-
-    /// <summary>
     /// Pending actions for the background thrread
     /// </summary>
-    private readonly Queue<Action> backgroundActions = new();
+    private readonly ConcurrentQueue<Action> backgroundActions = new();
 
     /// <summary>
     /// The instance of the audio system
@@ -95,7 +86,20 @@ public class AudioSystem : ISubsystem
     /// </summary>
     private ExpandableContainer<AudioSourceInfo> removedAudioSources = new();
 
+    /// <summary>
+    /// List of audio listeners
+    /// </summary>
     private SceneQuery<Transform, AudioListener> audioListeners;
+
+    /// <summary>
+    /// Thread event for background work
+    /// </summary>
+    private readonly AutoResetEvent backgroundWorkEvent = new(false);
+
+    /// <summary>
+    /// The background thread cancellation source
+    /// </summary>
+    private readonly CancellationTokenSource backgroundThreadCancellationSource = new();
 
     public void Startup()
     {
@@ -190,24 +194,11 @@ public class AudioSystem : ISubsystem
 
         backgroundLoadThread = new(() =>
         {
-            for(; ; )
+            while(backgroundThreadCancellationSource.IsCancellationRequested == false)
             {
-                Action next = null;
+                backgroundWorkEvent.WaitOne();
 
-                lock(backgroundLock)
-                {
-                    if(shuttingDown)
-                    {
-                        return;
-                    }
-
-                    if(backgroundActions.Count > 0)
-                    {
-                        next = backgroundActions.Dequeue();
-                    }
-                }
-
-                if(next != null)
+                while(backgroundActions.TryDequeue(out var next))
                 {
                     try
                     {
@@ -218,12 +209,12 @@ public class AudioSystem : ISubsystem
                         Log.Debug($"[AudioSystem] Background thread exception: {e}");
                     }
                 }
-
-                Thread.Sleep(25);
             }
-        });
+        })
+        {
+            Priority = ThreadPriority.BelowNormal
+        };
 
-        backgroundLoadThread.Priority = ThreadPriority.BelowNormal;
         backgroundLoadThread.Start();
     }
 
@@ -355,18 +346,9 @@ public class AudioSystem : ISubsystem
 
     public void Shutdown()
     {
-        lock(backgroundLock)
-        {
-            shuttingDown = true;
-        }
-
-        for(; ; )
-        {
-            if(backgroundLoadThread == null || backgroundLoadThread.IsAlive == false)
-            {
-                break;
-            }
-        }
+        backgroundThreadCancellationSource.Cancel();
+        backgroundWorkEvent.Set();
+        backgroundLoadThread.Join();
 
         device?.Shutdown();
     }
@@ -459,10 +441,7 @@ public class AudioSystem : ISubsystem
 
             if(clip.metadata.loadInBackground)
             {
-                lock (backgroundLock)
-                {
-                    backgroundActions.Enqueue(Finish);
-                }
+                backgroundActions.Enqueue(Finish);
             }
             else
             {

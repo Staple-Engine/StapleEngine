@@ -185,9 +185,6 @@ internal class TextureAssetEditor : AssetEditor
 
                 foreach (var file in files)
                 {
-                    //Guid uniqueness fix
-                    Thread.Sleep(25);
-
                     var newMetadata = metadata.Clone();
 
                     try
@@ -200,7 +197,7 @@ internal class TextureAssetEditor : AssetEditor
                     }
                     catch (Exception)
                     {
-                        newMetadata.guid = Guid.NewGuid().ToString();
+                        newMetadata.guid = GuidGenerator.Generate().ToString();
                     }
 
                     var texture = ThumbnailCache.GetThumbnail(file.Replace("\\", "/").Replace(".meta", ""));
