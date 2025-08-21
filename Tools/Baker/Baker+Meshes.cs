@@ -16,6 +16,121 @@ static partial class Program
 {
     private static readonly Lock meshMaterialLock = new();
 
+    private static string ResolveMeshTexturePath(string path, string meshFileName)
+    {
+        Console.WriteLine($"\t\tResolving texture {path}");
+
+        if (Path.IsPathRooted(path) == false)
+        {
+            var localPath = Path.GetDirectoryName(meshFileName);
+
+            path = Path.GetFullPath(path, Path.GetDirectoryName(meshFileName));
+
+            var index = path.IndexOf(localPath);
+
+            if (index >= 0)
+            {
+                path = path.Substring(index + localPath.Length + 1);
+            }
+
+            path = path.Replace(Path.PathSeparator, '/');
+        }
+
+        var pieces = path.Replace("\\", "/").Split("/").ToList();
+
+        var texturePath = path;
+
+        var initialPath = Path.Combine(Path.GetDirectoryName(meshFileName), path);
+
+        var ok = false;
+
+        if (File.Exists(initialPath))
+        {
+            if (processedTextures.TryGetValue($"{initialPath}.meta", out var guid))
+            {
+                texturePath = guid;
+
+                ok = true;
+            }
+        }
+
+        if (ok == false)
+        {
+            while (pieces.Count > 0)
+            {
+                try
+                {
+                    var baseP = Path.Combine(Path.GetDirectoryName(meshFileName), string.Join("/", pieces.Take(pieces.Count - 1)));
+
+                    var directories = Directory.GetDirectories(baseP);
+
+                    bool Find(string path)
+                    {
+                        var p = Path.Combine(path, pieces.Last()).Replace("\\", "/");
+
+                        if (File.Exists(p))
+                        {
+                            texturePath = string.Join("/", pieces);
+
+                            if (processedTextures.TryGetValue($"{p}.meta", out var guid))
+                            {
+                                texturePath = guid;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\t\tUnable to find local texture guid for {p}");
+
+                                texturePath = "";
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+
+                    var found = false;
+
+                    foreach (var directory in directories)
+                    {
+                        found = Find(Path.Combine(baseP, directory));
+
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        break;
+                    }
+
+                    found = Find(baseP);
+
+                    if (found)
+                    {
+                        break;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                pieces.RemoveAt(0);
+            }
+
+            if (pieces.Count == 0)
+            {
+                Console.WriteLine($"\t\tUnable to find local texture path for {path}");
+
+                texturePath = "";
+            }
+        }
+
+        return texturePath;
+    }
+
     private static unsafe void ProcessMeshes(AppPlatform platform, string inputPath, string outputPath)
     {
         var meshFiles = new List<string>();
@@ -142,8 +257,9 @@ static partial class Program
                     meshFileName = meshFileName.Replace(".meta", ""),
                     metadata = metadata,
                     processedTextures = processedTextures,
-                    ShaderHasParameter = ShaderHasParameter,
+                    shaderHasParameter = ShaderHasParameter,
                     standardShader = standardShader,
+                    resolveTexturePath = ResolveMeshTexturePath,
                 };
 
                 SerializableMeshAsset meshData = null;

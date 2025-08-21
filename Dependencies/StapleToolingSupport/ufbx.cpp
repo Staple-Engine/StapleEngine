@@ -786,10 +786,14 @@ public:
 		}
 
 #define MATERIALCOLOR(to, map)\
-		if (material->fbx.maps[map].has_value)\
+		if (material->fbx.maps[map].has_value && material->fbx.maps[map].value_components > 0)\
 		{\
 			to ## Color = material->fbx.maps[map].value_vec4;\
 		}\
+		else\
+		{\
+			to ## Color = Vector4(1, 1, 1, 1);\
+		}
 
 #define MATERIALTEXTURE(to, map)\
 		if (material->fbx.maps[map].has_value && material->fbx.maps[map].texture != nullptr)\
@@ -806,10 +810,40 @@ public:
 			to ## WrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
 		}
 
+#define MATERIALPBRCOLOR(to, map)\
+		if (material->pbr.maps[map].has_value && material->pbr.maps[map].value_components > 0)\
+		{\
+			to ## Color = material->pbr.maps[map].value_vec4; \
+		}\
+		else\
+		{\
+			to ## Color = Vector4(1, 1, 1, 1);\
+		}
+
+#define MATERIALPBRTEXTURE(to, map)\
+		if (material->pbr.maps[map].has_value && material->pbr.maps[map].texture != nullptr)\
+		{\
+			ufbx_texture *texture = material->pbr.maps[map].texture; \
+			const ufbx_string &fileName = texture->filename; \
+			\
+			if(fileName.length > 0)\
+			{\
+				to ## Texture = String(fileName.data, fileName.length); \
+			}\
+			\
+			to ## WrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
+			to ## WrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+		}
+
 #define DOMATERIAL(to, map)\
 		MATERIALCOLOR(to, map);\
 		\
 		MATERIALTEXTURE(to, map);
+
+#define DOPBRMATERIAL(to, map)\
+		MATERIALPBRCOLOR(to, map);\
+		\
+		MATERIALPBRTEXTURE(to, map);
 
 		DOMATERIAL(diffuse, UFBX_MATERIAL_FBX_DIFFUSE_COLOR);
 		DOMATERIAL(specular, UFBX_MATERIAL_FBX_SPECULAR_COLOR);
@@ -821,10 +855,22 @@ public:
 		DOMATERIAL(bump, UFBX_MATERIAL_FBX_BUMP);
 		DOMATERIAL(displacement, UFBX_MATERIAL_FBX_DISPLACEMENT);
 		DOMATERIAL(vectorDisplacement, UFBX_MATERIAL_FBX_VECTOR_DISPLACEMENT);
+		
+		DOPBRMATERIAL(diffuse, UFBX_MATERIAL_PBR_BASE_COLOR);
+		DOPBRMATERIAL(specular, UFBX_MATERIAL_PBR_SPECULAR_COLOR);
+		DOPBRMATERIAL(reflection, UFBX_MATERIAL_PBR_METALNESS);
+		DOPBRMATERIAL(transparency, UFBX_MATERIAL_PBR_OPACITY);
+		DOPBRMATERIAL(emission, UFBX_MATERIAL_PBR_EMISSION_COLOR);
+		DOPBRMATERIAL(ambient, UFBX_MATERIAL_PBR_AMBIENT_OCCLUSION);
+		DOPBRMATERIAL(normalMap, UFBX_MATERIAL_PBR_NORMAL_MAP);
+		DOPBRMATERIAL(displacement, UFBX_MATERIAL_PBR_DISPLACEMENT_MAP);
 
 #undef DOMATERIAL
+#undef DOPBRMATERIAL
 #undef MATERIALTEXTURE
+#undef MATERIALPBRTEXTURE
 #undef MATERIALCOLOR
+#undef MATERIALPBRCOLOR
 	}
 };
 
