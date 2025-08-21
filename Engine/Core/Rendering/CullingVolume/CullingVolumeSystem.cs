@@ -46,23 +46,33 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
             volume.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
 
-            if(volume.boundsCoordinates.Length < volume.renderers.Length * 2)
+            var validRenderers = 0;
+
+            foreach(var renderer in volume.renderers.Contents)
             {
-                Array.Resize(ref volume.boundsCoordinates, volume.renderers.Length * 2);
+                if(renderer.Item2.enabled == false || renderer.Item2.forceRenderingOff)
+                {
+                    continue;
+                }
+
+                validRenderers++;
             }
 
-            for (int i = 0, index = 0; i < volume.renderers.Length; i++, index += 2)
+            if(volume.boundsCoordinates.Length < validRenderers * 2)
+            {
+                Array.Resize(ref volume.boundsCoordinates, validRenderers * 2);
+            }
+
+            for (int i = 0, index = 0; i < volume.renderers.Length; i++)
             {
                 var renderer = volume.renderers[i];
 
-                if(renderer.Item2.enabled)
+                if(renderer.Item2.enabled && renderer.Item2.forceRenderingOff == false)
                 {
                     volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
                     volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;
-                }
-                else
-                {
-                    volume.boundsCoordinates[index] = volume.boundsCoordinates[index + 1] = Vector3.Zero;
+
+                    index += 2;
                 }
             }
 
