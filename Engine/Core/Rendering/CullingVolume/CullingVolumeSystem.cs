@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -37,7 +36,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
     public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, _, component) in entities)
+        foreach (var (entity, transform, component) in entities)
         {
             if(component is not CullingVolume volume)
             {
@@ -46,37 +45,53 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
             volume.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
 
-            var validRenderers = 0;
+            AABB bounds = default;
 
-            foreach(var renderer in volume.renderers.Contents)
+            switch (volume.type)
             {
-                if(renderer.Item2.enabled == false || renderer.Item2.forceRenderingOff)
-                {
-                    continue;
-                }
+                case CullingVolume.CullingType.Renderers:
+                    {
+                        var validRenderers = 0;
 
-                validRenderers++;
+                        foreach (var renderer in volume.renderers.Contents)
+                        {
+                            if (renderer.Item2.enabled == false || renderer.Item2.forceRenderingOff)
+                            {
+                                continue;
+                            }
+
+                            validRenderers++;
+                        }
+
+                        if (volume.boundsCoordinates.Length < validRenderers * 2)
+                        {
+                            Array.Resize(ref volume.boundsCoordinates, validRenderers * 2);
+                        }
+
+                        for (int i = 0, index = 0; i < volume.renderers.Length; i++)
+                        {
+                            var renderer = volume.renderers[i];
+
+                            if (renderer.Item2.enabled && renderer.Item2.forceRenderingOff == false)
+                            {
+                                volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
+                                volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;
+
+                                index += 2;
+                            }
+                        }
+
+                        bounds = AABB.CreateFromPoints(volume.boundsCoordinates);
+                    }
+
+                    break;
+
+                case CullingVolume.CullingType.Bounds:
+
+                    bounds = new AABB(transform.Position, volume.bounds * transform.Scale);
+
+                    break;
             }
-
-            if(volume.boundsCoordinates.Length < validRenderers * 2)
-            {
-                Array.Resize(ref volume.boundsCoordinates, validRenderers * 2);
-            }
-
-            for (int i = 0, index = 0; i < volume.renderers.Length; i++)
-            {
-                var renderer = volume.renderers[i];
-
-                if(renderer.Item2.enabled && renderer.Item2.forceRenderingOff == false)
-                {
-                    volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
-                    volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;
-
-                    index += 2;
-                }
-            }
-
-            var bounds = AABB.CreateFromPoints(volume.boundsCoordinates);
 
             var isVisible = activeCamera.IsVisible(bounds);
 
