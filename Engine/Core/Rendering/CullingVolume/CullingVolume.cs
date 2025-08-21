@@ -40,7 +40,17 @@ public sealed class CullingVolume : IComponent
     internal EntityQuery<Transform, Renderable> renderers;
 
     /// <summary>
+    /// The volumes this entity contains
+    /// </summary>
+    internal EntityQuery<Transform, CullingVolume> children;
+
+    /// <summary>
     /// Cached bounds coordinates to reduce allocations.
     /// </summary>
     internal Vector3[] boundsCoordinates = [];
+
+    /// <summary>
+    /// Whether this culling volume needs to be updated
+    /// </summary>
+    internal bool needsUpdate;
 }

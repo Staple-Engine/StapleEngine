@@ -36,7 +36,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
     public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, transform, component) in entities)
+        foreach(var (entity, _, component) in entities)
         {
             if(component is not CullingVolume volume)
             {
@@ -44,12 +44,27 @@ public sealed class CullingVolumeSystem : IRenderSystem
             }
 
             volume.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+            volume.children ??= new(entity, EntityQueryMode.Children, false);
+
+            volume.needsUpdate = true;
+        }
+
+        foreach (var (_, transform, component) in entities)
+        {
+            if(component is not CullingVolume volume ||
+                volume.needsUpdate == false)
+            {
+                continue;
+            }
+
+            volume.needsUpdate = false;
 
             AABB bounds = default;
 
             switch (volume.type)
             {
                 case CullingVolume.CullingType.Renderers:
+
                     {
                         var validRenderers = 0;
 
@@ -95,9 +110,21 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
             var isVisible = activeCamera.IsVisible(bounds);
 
-            foreach (var renderer in volume.renderers.Contents)
+            foreach (var (_, renderer) in volume.renderers.Contents)
             {
-                renderer.Item2.cullingState = isVisible ? CullingState.Visible : CullingState.Invisible;
+                renderer.cullingState = isVisible ? CullingState.Visible : CullingState.Invisible;
+            }
+
+            //We want to avoid over-processing, if we've already processed all
+            //renderers then we don't need to process the child volumes, thus saving performance.
+            //However, for bounds volumes we don't want to do that as we bounds volumes are only meant to be used
+            //for checking a large area to save on performance
+            if (volume.type != CullingVolume.CullingType.Bounds)
+            {
+                foreach (var (_, child) in volume.children.Contents)
+                {
+                    child.needsUpdate = false;
+                }
             }
         }
     }

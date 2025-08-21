@@ -94,6 +94,20 @@ public sealed class EntityQuery<T> : ISceneQuery
         World.AddSceneQuery(this);
     }
 
+    /// <summary>
+    /// Unregisters this scene query from the world
+    /// </summary>
+    public void Unregister()
+    {
+        World.RemoveSceneQuery(this);
+
+        content = default;
+        contentEntity = default;
+
+        contents = [];
+        contentEntities = [];
+    }
+
     public void WorldChanged()
     {
         content = default;
@@ -226,6 +240,20 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         this.getEntities = getEntities;
 
         World.AddSceneQuery(this);
+    }
+
+    /// <summary>
+    /// Unregisters this scene query from the world
+    /// </summary>
+    public void Unregister()
+    {
+        World.RemoveSceneQuery(this);
+
+        content = default;
+        contentEntity = default;
+
+        contents = [];
+        contentEntities = [];
     }
 
     public void WorldChanged()

@@ -198,6 +198,19 @@ public partial class World
         }
     }
 
+    internal static void RemoveSceneQuery(ISceneQuery receiver)
+    {
+        if (receiver == null)
+        {
+            return;
+        }
+
+        lock (globalLockObject)
+        {
+            sceneQueries.RemoveObserver(receiver);
+        }
+    }
+
     internal static void AddChangeReceiver(IWorldChangeReceiver receiver)
     {
         if(receiver == null)
@@ -210,6 +223,19 @@ public partial class World
             worldChangeReceivers.AddObserver(receiver);
 
             receiver.WorldChanged();
+        }
+    }
+
+    internal static void RemoveChangeReceiver(IWorldChangeReceiver receiver)
+    {
+        if (receiver == null)
+        {
+            return;
+        }
+
+        lock (globalLockObject)
+        {
+            worldChangeReceivers.RemoveObserver(receiver);
         }
     }
 
