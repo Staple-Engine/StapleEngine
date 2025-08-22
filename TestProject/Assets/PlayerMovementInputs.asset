@@ -3,7 +3,7 @@
   "typeName": "Staple.InputActions",
   "parameters": {
     "actions": {
-      "typeName": "System.Collections.Generic.List`1[[Staple.InputAction, StapleCore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+      "typeName": "System.Collections.Generic.List`1[Staple.InputAction]",
       "value": [
         {
           "fields": {
@@ -16,7 +16,7 @@
               "value": "DualAxis"
             },
             "devices": {
-              "typeName": "System.Collections.Generic.List`1[[Staple.InputAction+Device, StapleCore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
               "value": [
                 {
                   "fields": {
@@ -142,7 +142,7 @@
               "value": "Press"
             },
             "devices": {
-              "typeName": "System.Collections.Generic.List`1[[Staple.InputAction+Device, StapleCore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
               "value": [
                 {
                   "fields": {
@@ -235,7 +235,7 @@
               "value": "DualAxis"
             },
             "devices": {
-              "typeName": "System.Collections.Generic.List`1[[Staple.InputAction+Device, StapleCore, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
               "value": [
                 {
                   "fields": {
