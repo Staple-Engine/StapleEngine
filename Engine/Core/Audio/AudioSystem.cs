@@ -442,6 +442,8 @@ public class AudioSystem : ISubsystem
             if(clip.metadata.loadInBackground)
             {
                 backgroundActions.Enqueue(Finish);
+
+                backgroundWorkEvent.Set();
             }
             else
             {
