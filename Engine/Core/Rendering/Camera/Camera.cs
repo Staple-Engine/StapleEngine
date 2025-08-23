@@ -82,6 +82,82 @@ public sealed class Camera : IComponent
     private readonly FrustumCuller frustumCuller = new();
 
     /// <summary>
+    /// Gets the camera's frustum corners
+    /// </summary>
+    /// <param name="cameraTransform">The transform of the camera</param>
+    /// <returns>The 8 frustum corners of the camera</returns>
+    public Vector3[] Corners(Transform cameraTransform)
+    {
+        switch(cameraType)
+        {
+            case CameraType.Orthographic:
+
+                {
+                    var orthographicSize = this.orthographicSize < 1 ? 1 : this.orthographicSize;
+
+                    var scale = Screen.Height / (orthographicSize * 2);
+
+                    var width = Width / scale;
+                    var height = Height / scale;
+
+                    var halfWidth = width * 0.5f;
+                    var halfHeight = height * 0.5f;
+                    var halfDepth = (farPlane - nearPlane) * 0.5f;
+
+                    var z = cameraTransform.Forward;
+                    var x = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, z));
+                    var y = Vector3.Normalize(Vector3.Cross(z, x));
+
+                    var center = cameraTransform.Position + z * (nearPlane + halfDepth);
+
+                    return [
+                        center + (y * halfHeight) - (x * halfWidth) - (z * halfDepth),
+                        center + (y * halfHeight) + (x * halfWidth) - (z * halfDepth),
+                        center - (y * halfHeight) - (x * halfWidth) - (z * halfDepth),
+                        center - (y * halfHeight) + (x * halfWidth) - (z * halfDepth),
+
+                        center + (y * halfHeight) - (x * halfWidth) + (z * halfDepth),
+                        center + (y * halfHeight) + (x * halfWidth) + (z * halfDepth),
+                        center - (y * halfHeight) - (x * halfWidth) + (z * halfDepth),
+                        center - (y * halfHeight) + (x * halfWidth) + (z * halfDepth),
+                    ];
+                }
+
+            case CameraType.Perspective:
+
+                {
+                    var nearHeight = 2 * (float)Math.Tan(Math.Deg2Rad * fov * 0.5f) * nearPlane;
+                    var nearWidth = nearHeight * Width / Height;
+
+                    var farHeight = 2 * (float)Math.Tan(Math.Deg2Rad * fov * 0.5f) * farPlane;
+                    var farWidth = farHeight * Width / Height;
+
+                    var z = cameraTransform.Forward;
+                    var x = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, z));
+                    var y = Vector3.Normalize(Vector3.Cross(z, x));
+
+                    var nearCenter = cameraTransform.Position + z * nearPlane;
+                    var farCenter = cameraTransform.Position + z * farPlane;
+
+                    return [
+                        nearCenter + (y * (nearHeight / 2)) - (x * (nearWidth / 2)),
+                        nearCenter + (y * (nearHeight / 2)) + (x * (nearWidth / 2)),
+                        nearCenter - (y * (nearHeight / 2)) - (x * (nearWidth / 2)),
+                        nearCenter - (y * (nearHeight / 2)) + (x * (nearWidth / 2)),
+                        farCenter + (y * (farHeight / 2)) - (x * (farWidth / 2)),
+                        farCenter + (y * (farHeight / 2)) + (x * (farWidth / 2)),
+                        farCenter - (y * (farHeight / 2)) - (x * (farWidth / 2)),
+                        farCenter - (y * (farHeight / 2)) + (x * (farWidth / 2)),
+                    ];
+                }
+
+            default:
+
+                return [];
+        }
+    }
+
+    /// <summary>
     /// Checks whether some bounds are visible for this camera
     /// </summary>
     /// <param name="bounds">The bounds to check</param>

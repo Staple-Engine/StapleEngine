@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -146,6 +147,34 @@ public static class Gizmo
             .Build();
 
         Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
+            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
+    }
+
+    public static void Lines(Span<Vector3> points, Span<ushort> indices, Color color)
+    {
+        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+
+        meshMaterial.MainColor = color;
+
+        lineLayout ??= new VertexLayoutBuilder()
+            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+            .Build();
+
+        Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,
+            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
+    }
+
+    public static void Lines(Span<Vector3> points, Span<uint> indices, Color color)
+    {
+        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+
+        meshMaterial.MainColor = color;
+
+        lineLayout ??= new VertexLayoutBuilder()
+            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+            .Build();
+
+        Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,
             MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
     }
 }
