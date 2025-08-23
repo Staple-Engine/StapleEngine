@@ -351,7 +351,7 @@ public:
 
 			ownMesh.isSkinned = mesh->skin_deformers.count > 0;
 
-			ufbx_material* material = node->materials[j];
+			ufbx_material* material = j < node->materials.count ? node->materials[j] : nullptr;
 
 			ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
 
@@ -604,7 +604,7 @@ public:
 
 				ownMesh.vertexCount = vertexCount;
 				ownMesh.indexCount = (int32_t)indices.size();
-				ownMesh.materialIndex = material->typed_id;
+				ownMesh.materialIndex = material != nullptr ? material->typed_id : -1;
 
 				ownMesh.indices = new uint32_t[indices.size()];
 
