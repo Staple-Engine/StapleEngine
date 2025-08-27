@@ -14,24 +14,20 @@ Early state, usable for small demos
 
 # Features
 
-* Unity-style Editor app that runs on windows, linux, and mac, that can edit game data and make builds for windows, linux, mac, and android
-* Unity-style custom editor scripting and editor window scripting
-* C# game scripting
-* Custom asset system
-* Graphics API using BGFX as the base
-* Entities inspired by both modern ECS and Unity
-* Input (Keyboard, Mouse, Touch, Gamepad) and Input Actions
-* Meshes, including some imported formats like FBX, GLTF/GLB, OBJ, skeletal animation/skinning, instancing, and simplification
-* Physics (3D: Jolt Physics)
-* Audio (MP3, WAV, OGG) through OpenAL
-* Baking pipeline (Baker) that processes game assets into engine-ready formats
-* Resource Packer that packs multiple files into a single file
-* Text Rendering using FreeType supporting optional gradients and outlines
-* Package manager to manage builtin features, local and git packages
-* Unity-style Assembly Definition system for defining specific projects per parts of the project
-* Unity-style Plugin system for defining native dependencies for specific platforms
-* Shaders and Compute Shaders with variants and toggleable variants based on set properties
-* Culling Volumes for more performant culling of parts of the world or characters
+| Name | Description|
+|------|------------|
+| Platforms | <ul><li>Windows</li><li>Linux</li><li>MacOS (partial)</li><li>Android</li></ul>
+| Editor | <ul><li>Editor app that handles project management, asset editing, and building games</li><li>Extend the editor through game code</li></ul> |
+| Entity System | <ul><li>Component + System</li><li>Also supports MonoBehaviour-style</li></ul> |
+| Assets | <ul><li>Custom asset system easily defined in code</li><li>Asset pipeline baker tool that imports resources into engine-ready formats</li></ul>|
+| Graphics | <ul><li>Forward rendering using BGFX</li><li>Custom shader format with support for variants</li><li>Shaders and Compute Shaders</li><li>Material system with support for toggling variants based on parameters being set</li><li>Culling Volumes for culling parts of the world efficiently</li></ul> |
+| Input | <ul><li>Keyboard, Mouse, Touch, Gamepad support</li><li>Input Actions</li></ul> |
+| Physics | <ul><li>Jolt Physics</li></ul> |
+| Audio | <ul><li>Supports loading OGG, MP3, and WAV audio formats</li><li>OpenAL-based playback</li><li>Supports optional recompression for WAV assets</li></ul> |
+| Meshes | <ul><li>Supports loading GLTF/GLB, FBX, and OBJ</li><li>Skeletal animation/skinning</li><li>Instancing</li><li>Mesh Simplification</li></ul> |
+| Text Rendering | <ul><li>Using FreeType with optional gradients and outlines</li></ul> |
+| Packages | <ul><li>Builtin, git, and local disk packages</li><li>Package manager within the editor</li></ul> |
+| Assemblies and Plugins | <ul><li>Supports assembly definition assets and plugins</li></ul> |
 
 # Installation
 
