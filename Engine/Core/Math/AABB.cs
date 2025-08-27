@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -65,6 +66,18 @@ public readonly struct AABB
     {
         return point.X >= min.X && point.Y >= min.Y && point.Z >= min.Z &&
             point.X <= max.X && point.Y <= max.Y && point.Z <= max.Z;
+    }
+
+    /// <summary>
+    /// Tests if an AABB intersects another
+    /// </summary>
+    /// <param name="other">The other box to test</param>
+    /// <returns>Whether the boxes intersect</returns>
+    public readonly bool Intersects(AABB other)
+    {
+        return min.X <= other.max.X && max.X >= other.min.X &&
+            min.Y <= other.max.Y && max.Y >= other.min.Y &&
+            min.Z <= other.max.Z && max.Z >= other.min.Z;
     }
 
     /// <summary>
@@ -140,5 +153,32 @@ public readonly struct AABB
         }
 
         return new AABB((min + max) / 2, max - min);
+    }
+
+    public static bool operator==(AABB lhs, AABB rhs)
+    {
+        return lhs.min == rhs.min &&
+            lhs.max == rhs.max;
+    }
+
+    public static bool operator !=(AABB lhs, AABB rhs)
+    {
+        return lhs.min != rhs.min ||
+            lhs.max != rhs.max;
+    }
+
+    public override bool Equals([NotNullWhen(true)] object obj)
+    {
+        if(obj is not AABB rhs)
+        {
+            return false;
+        }
+
+        return this == rhs;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(min, max);
     }
 }
