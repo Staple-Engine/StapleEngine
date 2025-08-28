@@ -863,8 +863,6 @@ public partial class ProjectManager
                     if (flags.HasFlag(ProjectGenerationFlags.NativeAOT))
                     {
                         p.SetProperty("PublishAOT", "true");
-                        p.SetProperty("IsAOTCompatible", "true");
-                        p.SetProperty("IsTrimmable", "true");
                         p.SetProperty("EnableTrimAnalyzer", "true");
                         p.SetProperty("EnableSingleFileAnalyzer", "true");
                         p.SetProperty("EnableAotAnalyzer", "true");
@@ -873,7 +871,6 @@ public partial class ProjectManager
                     {
                         p.SetProperty("PublishTrimmed", "true");
                         p.SetProperty("PublishSingleFile", flags.HasFlag(ProjectGenerationFlags.PublishSingleFile).ToString());
-                        p.SetProperty("IsTrimmable", "true");
                         p.SetProperty("EnableTrimAnalyzer", "true");
                         p.SetProperty("EnableSingleFileAnalyzer", "true");
                         p.SetProperty("EnableAotAnalyzer", "true");
@@ -1161,12 +1158,14 @@ public partial class ProjectManager
             { "TargetFramework", targetFramework },
             { "StripSymbols", debug ? "false" : "true" },
             { "AppDesignerFolder", "Properties" },
-            { "OptimizationPreference", "Speed" },
-            { "Nullable", "enable" },
             { "TieredCompilation", "false" },
             { "PublishReadyToRun", "false" },
-            { "PublishTrimmed", "true" },
+            { "OptimizationPreference", "Speed" },
             { "IlcOptimizationPreference", "Speed" },
+            { "MetadataUpdateSupport", "false" },
+            { "DebuggerSupport", debug ? "true" : "false" },
+            { "EventSourceSupport", debug ? "true" : "false" },
+            { "StackTraceSupport", debug ? "true" : "false" },
         };
 
         var asmDefProjectProperties = new Dictionary<string, string>()
@@ -1177,7 +1176,13 @@ public partial class ProjectManager
             { "AppDesignerFolder", "Properties" },
             { "TieredCompilation", "false" },
             { "PublishReadyToRun", "false" },
+            { "OptimizationPreference", "Speed" },
             { "IlcOptimizationPreference", "Speed" },
+            { "MetadataUpdateSupport", "false" },
+            { "DebuggerSupport", debug ? "true" : "false" },
+            { "EventSourceSupport", debug ? "true" : "false" },
+            { "StackTraceSupport", debug ? "true" : "false" },
+            { "IsAOTCompatible", "true" },
         };
 
         var platformUsesSeparateProjects = platform switch
