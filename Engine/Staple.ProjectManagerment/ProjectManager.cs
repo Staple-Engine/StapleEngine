@@ -869,7 +869,6 @@ public partial class ProjectManager
                     }
                     else
                     {
-                        p.SetProperty("PublishTrimmed", "true");
                         p.SetProperty("PublishSingleFile", flags.HasFlag(ProjectGenerationFlags.PublishSingleFile).ToString());
                         p.SetProperty("EnableTrimAnalyzer", "true");
                         p.SetProperty("EnableSingleFileAnalyzer", "true");
@@ -886,7 +885,6 @@ public partial class ProjectManager
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
                     p.SetProperty("RuntimeIdentifiers", "android-arm64");
                     p.SetProperty("UseInterpreter", "false");
-                    p.SetProperty("IsTrimmable", "true");
                     p.SetProperty("EnableTrimAnalyzer", "true");
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
@@ -902,7 +900,6 @@ public partial class ProjectManager
                     p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
                     p.SetProperty("RuntimeIdentifiers", "ios-arm64");
                     p.SetProperty("UseInterpreter", "false");
-                    p.SetProperty("IsTrimmable", "true");
                     p.SetProperty("EnableTrimAnalyzer", "true");
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
