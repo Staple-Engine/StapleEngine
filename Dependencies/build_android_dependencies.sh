@@ -49,5 +49,5 @@ cd build/native
 
 make -j $(nproc)
 
-llvm-strip --strip-unneeded libbgfx.so
-llvm-strip --strip-unneeded libStapleSupport.so
+llvm-strip --strip-unneeded Release/libbgfx.so
+llvm-strip --strip-unneeded Release/libStapleSupport.so
