@@ -21,11 +21,15 @@ cd ../Release
 
 make -j $(nproc)
 
+strip --strip-unneeded libfreetype.so
+
 cd ../../openal-soft/Debug
 
 make -j $(nproc)
 
 cd ../Release
+
+strip --strip-unneeded libopenal.so
 
 make -j $(nproc)
 
@@ -44,4 +48,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cma
 cd build/native
 
 make -j $(nproc)
+
+strip --strip-unneeded libbgfx.so
+strip --strip-unneeded libStapleSupport.so
 
