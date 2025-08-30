@@ -21,7 +21,7 @@ cd ../Release
 
 make -j $(nproc)
 
-strip --strip-unneeded libfreetype.so
+llvm-strip --strip-unneeded libfreetype.so
 
 cd ../../openal-soft/Debug
 
@@ -29,7 +29,7 @@ make -j $(nproc)
 
 cd ../Release
 
-strip --strip-unneeded libopenal.so
+llvm-strip --strip-unneeded libopenal.so
 
 make -j $(nproc)
 
@@ -49,6 +49,6 @@ cd build/native
 
 make -j $(nproc)
 
-strip --strip-unneeded libbgfx.so
-strip --strip-unneeded libStapleSupport.so
+llvm-strip --strip-unneeded libbgfx.so
+llvm-strip --strip-unneeded libStapleSupport.so
 
