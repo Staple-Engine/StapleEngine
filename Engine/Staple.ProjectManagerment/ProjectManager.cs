@@ -474,6 +474,9 @@ public partial class ProjectManager
         {
         }
 
+        var mainProjectName = flags.HasFlag(ProjectGenerationFlags.IsSandbox) ? "Sandbox" :
+            flags.HasFlag(ProjectGenerationFlags.IsPlayer) ? "Player" : "Game";
+
         if (projectAppSettings.allowUnsafeCode)
         {
             projectProperties.AddOrSetKey("AllowUnsafeBlocks", "true");
@@ -793,7 +796,7 @@ public partial class ProjectManager
                     new("ReferenceOutputAssembly", "false"),
                 ]);
 
-            var registration = Path.Combine(projectDirectory, "Player", "GameRegistration.cs");
+            var registration = Path.Combine(projectDirectory, mainProjectName, "GameRegistration.cs");
 
             p.AddItem("Compile", registration);
 
@@ -1092,7 +1095,7 @@ public partial class ProjectManager
                 case AppPlatform.Android:
 
                     {
-                        var activityPath = Path.Combine(projectDirectory, "Player", "PlayerActivity.cs");
+                        var activityPath = Path.Combine(projectDirectory, mainProjectName, "PlayerActivity.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(activityPath));
                     }
@@ -1153,9 +1156,6 @@ public partial class ProjectManager
                     break;
             }
         }
-
-        var mainProjectName = flags.HasFlag(ProjectGenerationFlags.IsSandbox) ? "Sandbox" :
-            flags.HasFlag(ProjectGenerationFlags.IsPlayer) ? "Player" : "Game";
 
         StorageUtils.CreateDirectory(Path.Combine(projectDirectory, mainProjectName));
 
