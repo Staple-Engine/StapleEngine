@@ -29,9 +29,9 @@ make -j $(nproc)
 
 cd ../Release
 
-llvm-strip --strip-unneeded libopenal.so
-
 make -j $(nproc)
+
+llvm-strip --strip-unneeded libopenal.so
 
 cd ../../../../
 
@@ -51,4 +51,3 @@ make -j $(nproc)
 
 llvm-strip --strip-unneeded libbgfx.so
 llvm-strip --strip-unneeded libStapleSupport.so
-
