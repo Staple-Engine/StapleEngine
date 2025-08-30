@@ -17,6 +17,8 @@ public partial class ProjectManager
 {
     internal static readonly string MessagePackVersion = "3.1.4";
 
+    internal static readonly string SourceGeneratorAssemblyVersion = "4.12.0";
+
     internal static readonly string StapleCoreFileName = "Staple.Core.dll";
 
     internal static readonly string StapleEditorFileName = "Staple.Editor.dll";
@@ -353,14 +355,14 @@ public partial class ProjectManager
 
         itemGroup.AddItem("PackageReference", "Microsoft.CodeAnalysis.Analyzers",
             [
-                new("Version", "4.14.0"),
+                new("Version", SourceGeneratorAssemblyVersion),
                 new("PrivateAssets", "all"),
                 new("IncludeAssets", "runtime; build; native; contentfiles; analyzers; buildtransitive")
             ]);
 
         itemGroup.AddItem("PackageReference", "Microsoft.CodeAnalysis.CSharp",
             [
-                new("Version", "4.14.0"),
+                new("Version", SourceGeneratorAssemblyVersion),
                 new("PrivateAssets", "all"),
             ]);
 
