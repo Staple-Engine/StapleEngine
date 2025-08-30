@@ -170,7 +170,7 @@ public partial class ProjectManager
     /// </summary>
     public void OpenGameSolution()
     {
-        var projectDirectory = basePath;
+        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
         var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
         {
@@ -1238,7 +1238,7 @@ public partial class ProjectManager
     /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
     public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox)
     {
-        var projectDirectory = sandbox ? basePath : Path.Combine(basePath, "Cache", "Assembly", "Game");
+        var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", sandbox ? "Sandbox" : "Game");
         var assetsDirectory = Path.Combine(basePath, "Assets");
 
         var projectProperties = new Dictionary<string, string>()
