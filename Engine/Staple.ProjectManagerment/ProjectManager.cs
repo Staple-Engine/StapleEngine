@@ -68,7 +68,7 @@ public partial class ProjectManager
 
     public static readonly ProjectManager Instance = new();
 
-    private string[] GetScriptModifiableFiles(string path)
+    private static string[] GetScriptModifiableFiles(string path)
     {
         return Directory.GetFiles(path, "*.cs")
             .Concat(Directory.GetFiles(path, "*.asmdef"))
@@ -337,7 +337,54 @@ public partial class ProjectManager
         return p;
     }
 
-    public DateTime GetLastFileChange(string assetsDirectory)
+    private static Project MakeCodeGeneratorProject(ProjectCollection collection)
+    {
+        var p = new Project(collection);
+
+        p.Xml.Sdk = "Microsoft.NET.Sdk";
+
+        p.SetProperty("TargetFramework", "netstandard2.0");
+        p.SetProperty("LangVersion", "latest");
+        p.SetProperty("EnforceExtendedAnalyzerRules", "true");
+        p.SetProperty("EmitCompilerGeneratedFiles", "true");
+        p.SetProperty("CompilerGeneratedFilesOutputPath", "Generated");
+
+        var itemGroup = p.Xml.AddItemGroup();
+
+        itemGroup.AddItem("PackageReference", "Microsoft.CodeAnalysis.Analyzers",
+            [
+                new("Version", "4.14.0"),
+                new("PrivateAssets", "all"),
+                new("IncludeAssets", "runtime; build; native; contentfiles; analyzers; buildtransitive")
+            ]);
+
+        itemGroup.AddItem("PackageReference", "Microsoft.CodeAnalysis.CSharp",
+            [
+                new("Version", "4.14.0"),
+                new("PrivateAssets", "all"),
+            ]);
+
+        string[] elements =
+        [
+            "Compile",
+            "Content",
+            "None"
+        ];
+
+        var removed = p.Xml.AddItemGroup();
+
+        foreach (var element in elements)
+        {
+            var temp = removed.AddItem(element, " ");
+
+            temp.Include = null;
+            temp.Remove = "**";
+        }
+
+        return p;
+    }
+
+    public static DateTime GetLastFileChange(string assetsDirectory)
     {
         var highest = DateTime.MinValue;
 
@@ -403,7 +450,22 @@ public partial class ProjectManager
 
             foreach (var file in csprojFiles)
             {
-                File.Delete(file);
+                try
+                {
+                    var directoryName = Path.GetDirectoryName(file);
+
+                    if (directoryName == projectDirectory.Replace('/', Path.DirectorySeparatorChar))
+                    {
+                        File.Delete(file);
+                    }
+                    else
+                    {
+                        Directory.Delete(Path.GetDirectoryName(file), true);
+                    }
+                }
+                catch(Exception)
+                {
+                }
             }
         }
         catch (Exception)
@@ -461,7 +523,8 @@ public partial class ProjectManager
 
                     var parentAsmDef = FindAsmDef(Path.GetDirectoryName(file), basePath);
 
-                    var filePath = Path.GetRelativePath(projectDirectory, file);
+                    //Force a fake directory to get the right level of relative path
+                    var filePath = Path.GetRelativePath(Path.Combine(projectDirectory, "TEMP"), file);
 
                     if(flags.HasFlag(ProjectGenerationFlags.RecordFileModifyStates))
                     {
@@ -502,34 +565,54 @@ public partial class ProjectManager
                                 continue;
                             }
 
-                            if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
+                            switch(def.type)
                             {
-                                asmProj = MakeProject(collection, projectDefines, asmDefProperties);
+                                case AssemblyDefinition.AssemblyType.Normal:
 
-                                if(def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
-                                {
-                                    asmProj.SetProperty("AllowUnsafeBlocks", "true");
-                                }
-
-                                if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
-                                {
-                                    asmProj.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
-                                }
-                                else
-                                {
-                                    asmProj.AddItem("Reference", "StapleCore",
-                                        [
-                                            new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))
-                                        ]);
-
-                                    if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                                    if (flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                                     {
-                                        asmProj.AddItem("Reference", "StapleEditor",
-                                            [
-                                                new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))
-                                            ]);
+                                        asmProj = MakeProject(collection, projectDefines, asmDefProperties);
+
+                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        {
+                                            asmProj.SetProperty("AllowUnsafeBlocks", "true");
+                                        }
+
+                                        if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
+                                        {
+                                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
+                                        }
+                                        else
+                                        {
+                                            asmProj.AddItem("Reference", "StapleCore",
+                                                [
+                                                    new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))
+                                                ]);
+
+                                            if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
+                                            {
+                                                asmProj.AddItem("Reference", "StapleEditor",
+                                                    [
+                                                        new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))
+                                                    ]);
+                                            }
+                                        }
                                     }
-                                }
+
+                                    break;
+
+                                case AssemblyDefinition.AssemblyType.CodeGenerator:
+
+                                    {
+                                        asmProj = MakeCodeGeneratorProject(collection);
+
+                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        {
+                                            asmProj.SetProperty("AllowUnsafeBlocks", "true");
+                                        }
+                                    }
+
+                                    break;
                             }
 
                             var counter = 0;
@@ -708,7 +791,7 @@ public partial class ProjectManager
                     new("ReferenceOutputAssembly", "false"),
                 ]);
 
-            var registration = Path.Combine(projectDirectory, "GameRegistration.cs");
+            var registration = Path.Combine(projectDirectory, "Player", "GameRegistration.cs");
 
             p.AddItem("Compile", registration);
 
@@ -755,9 +838,27 @@ public partial class ProjectManager
             {
                 asmDefNames.Add(name);
 
-                if (pair.Value.asmDef?.autoReferenced ?? true)
+                if ((pair.Value.asmDef?.autoReferenced ?? true))
                 {
-                    p.AddItem("ProjectReference", $"{name}.csproj");
+                    switch((pair.Value.asmDef?.type ?? AssemblyDefinition.AssemblyType.Normal))
+                    {
+                        case AssemblyDefinition.AssemblyType.Normal:
+
+                            p.AddItem("ProjectReference", Path.Combine("..", name, $"{name}.csproj"));
+
+                            break;
+
+                        case AssemblyDefinition.AssemblyType.CodeGenerator:
+
+                            p.AddItem("ProjectReference", Path.Combine("..", name, $"{name}.csproj"),
+                                [
+                                    new("OutputItemType", "Analyzer"),
+                                    new("ReferenceOutputAssembly", "false"),
+                                ]);
+
+                            break;
+                    }
+
                 }
             }
 
@@ -775,7 +876,26 @@ public partial class ProjectManager
 
                             var targetAssemblyName = $"{Path.GetFileNameWithoutExtension(targetAssembly.Key)}{counter}";
 
-                            pair.Value.project.AddItem("ProjectReference", $"{targetAssemblyName}.csproj");
+                            switch(targetAssembly.Value.asmDef.type)
+                            {
+                                case AssemblyDefinition.AssemblyType.Normal:
+
+                                    pair.Value.project.AddItem("ProjectReference",
+                                        Path.Combine("..", targetAssemblyName, $"{targetAssemblyName}.csproj"));
+
+                                    break;
+
+                                case AssemblyDefinition.AssemblyType.CodeGenerator:
+
+                                    pair.Value.project.AddItem("ProjectReference",
+                                        Path.Combine("..", targetAssemblyName, $"{targetAssemblyName}.csproj"),
+                                        [
+                                            new("OutputItemType", "Analyzer"),
+                                            new("ReferenceOutputAssembly", "false"),
+                                        ]);
+
+                                    break;
+                            }
                         }
                     }
                 }
@@ -823,11 +943,39 @@ public partial class ProjectManager
                         {
                             if (pair.Value.project != null)
                             {
-                                pair.Value.project.AddItem("ProjectReference", $"{targetName}.csproj");
+                                if(projectPair.Value.asmDef != null)
+                                {
+                                    switch (projectPair.Value.asmDef.type)
+                                    {
+                                        case AssemblyDefinition.AssemblyType.Normal:
+
+                                            pair.Value.project.AddItem("ProjectReference",
+                                                Path.Combine("..", targetName, $"{targetName}.csproj"));
+
+                                            break;
+
+                                        case AssemblyDefinition.AssemblyType.CodeGenerator:
+
+                                            pair.Value.project.AddItem("ProjectReference",
+                                                Path.Combine("..", targetName, $"{targetName}.csproj"),
+                                                [
+                                                    new("OutputItemType", "Analyzer"),
+                                                    new("ReferenceOutputAssembly", "false"),
+                                                ]);
+
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    pair.Value.project.AddItem("ProjectReference",
+                                        Path.Combine("..", targetName, $"{targetName}.csproj"));
+                                }
                             }
                             else
                             {
-                                p.AddItem("ProjectReference", $"{targetName}.csproj");
+                                p.AddItem("ProjectReference",
+                                    Path.Combine("..", targetName, $"{targetName}.csproj"));
                             }
 
                             break;
@@ -836,7 +984,9 @@ public partial class ProjectManager
                 }
             }
 
-            pair.Value.project?.Save(Path.Combine(projectDirectory, $"{name}.csproj"));
+            StorageUtils.CreateDirectory(Path.Combine(projectDirectory, name));
+
+            pair.Value.project?.Save(Path.Combine(projectDirectory, name, $"{name}.csproj"));
         }
 
         if(flags.HasFlag(ProjectGenerationFlags.IsPlayer))
@@ -940,7 +1090,7 @@ public partial class ProjectManager
                 case AppPlatform.Android:
 
                     {
-                        var activityPath = Path.Combine(projectDirectory, "PlayerActivity.cs");
+                        var activityPath = Path.Combine(projectDirectory, "Player", "PlayerActivity.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(activityPath));
                     }
@@ -1005,7 +1155,9 @@ public partial class ProjectManager
         var mainProjectName = flags.HasFlag(ProjectGenerationFlags.IsSandbox) ? "Sandbox" :
             flags.HasFlag(ProjectGenerationFlags.IsPlayer) ? "Player" : "Game";
 
-        p.Save(Path.Combine(projectDirectory, $"{mainProjectName}.csproj"));
+        StorageUtils.CreateDirectory(Path.Combine(projectDirectory, mainProjectName));
+
+        p.Save(Path.Combine(projectDirectory, mainProjectName, $"{mainProjectName}.csproj"));
 
         var fileName = $"{mainProjectName}.sln";
 
@@ -1049,7 +1201,7 @@ public partial class ProjectManager
 
         foreach (var file in projectFiles)
         {
-            startInfo = new ProcessStartInfo("dotnet", $"sln add \"{file}.csproj\"")
+            startInfo = new ProcessStartInfo("dotnet", $"sln add \"{file}/{file}.csproj\"")
             {
                 WorkingDirectory = projectDirectory
             };
@@ -1131,14 +1283,15 @@ public partial class ProjectManager
         var assetsDirectory = Path.Combine(basePath, "Assets");
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
 
-        StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), projectDirectory);
+        StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), Path.Combine(projectDirectory, "Player"));
 
         if(backend.dataDirIsOutput == false)
         {
-            CopyModuleRedists(Path.Combine(projectDirectory, backend.redistOutput), projectAppSettings,
+            CopyModuleRedists(Path.Combine(projectDirectory, "Player", backend.redistOutput), projectAppSettings,
                 platform, backend.basePath, redistConfigurationName);
 
-            StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName), Path.Combine(projectDirectory, backend.redistOutput));
+            StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName),
+                Path.Combine(projectDirectory, "Player", backend.redistOutput));
         }
 
         var targetFramework = platformFramework[platform];

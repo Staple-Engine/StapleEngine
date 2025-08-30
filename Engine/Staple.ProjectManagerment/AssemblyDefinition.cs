@@ -13,6 +13,13 @@ namespace Staple.ProjectManagement;
 [Serializable]
 public class AssemblyDefinition : IGuidAsset
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<AssemblyType>))]
+    public enum AssemblyType
+    {
+        Normal,
+        CodeGenerator,
+    }
+
     private readonly GuidHasher hasher = new();
 
     [HideInInspector]
@@ -26,6 +33,7 @@ public class AssemblyDefinition : IGuidAsset
     public List<string> referencedAssemblies = [];
     public bool overrideReferences = false;
     public List<string> referencedPlugins = [];
+    public AssemblyType type = AssemblyType.Normal;
 
     public GuidHasher Guid => hasher;
 
@@ -71,6 +79,7 @@ public class AssemblyDefinition : IGuidAsset
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(AppPlatform))]
 [JsonSerializable(typeof(List<AppPlatform>))]
+[JsonSerializable(typeof(AssemblyDefinition.AssemblyType))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(AssemblyDefinition))]
 internal partial class AssemblyDefinitionMetadataSerializationContext : JsonSerializerContext

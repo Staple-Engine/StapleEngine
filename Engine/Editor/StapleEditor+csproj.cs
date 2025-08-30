@@ -73,7 +73,7 @@ internal partial class StapleEditor
 
                 var assetsDirectory = Path.Combine(BasePath, "Assets");
 
-                var lastChange = ProjectManager.Instance.GetLastFileChange(assetsDirectory);
+                var lastChange = ProjectManager.GetLastFileChange(assetsDirectory);
 
                 var editorPath = Path.Combine(AppContext.BaseDirectory, "Staple.Editor.dll");
 

@@ -29,7 +29,7 @@ internal partial class StapleEditor
         {
             if(File.Exists(assemblyPath))
             {
-                var csprojs = Directory.GetFiles(projectDirectory, "*.csproj")
+                var csprojs = Directory.GetFiles(projectDirectory, "*.csproj", SearchOption.AllDirectories)
                     .Select(x => Path.GetFileNameWithoutExtension(x))
                     .Where(x => x != "Game")
                     .ToList();

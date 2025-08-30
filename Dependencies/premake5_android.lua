@@ -13,6 +13,8 @@ solution "Dependencies"
 	configurations { "Release", "Debug" }
 	architecture "x64"
 	
+	linkoptions { "-Wl,-z,max-page-size=16384" }
+	
 	filter "configurations:Release"
 		defines "NDEBUG"
 		optimize "Full"

@@ -38,7 +38,7 @@ public partial class ProjectManager
         var projectPath = Path.Combine(projectDirectory, "Player.sln");
         var configurationName = debug ? "Debug" : "Release";
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
-        var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : projectDirectory, backend.dataDir);
+        var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : Path.Combine(projectDirectory, "Player"), backend.dataDir);
 
         try
         {
@@ -64,8 +64,8 @@ public partial class ProjectManager
         {
         }
 
-        var buildInfo = new BuildInfo(basePath, projectDirectory, outPath, assetsCacheDirectory, targetResourcesPath,
-            Path.Combine(backend.basePath, "Resources"), backend.platform, projectAppSettings.Clone());
+        var buildInfo = new BuildInfo(basePath, Path.Combine(projectDirectory, "Player"), outPath, assetsCacheDirectory,
+            targetResourcesPath, Path.Combine(backend.basePath, "Resources"), backend.platform, projectAppSettings.Clone());
 
         var preprocessors = TypeCache.AllTypesSubclassingOrImplementing<IBuildPreprocessor>();
         var postprocessors = TypeCache.AllTypesSubclassingOrImplementing<IBuildPostprocessor>();
@@ -311,7 +311,7 @@ public partial class ProjectManager
             }
             else
             {
-                args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:TargetFramework={backend.framework}";
+                args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
             }
 
             processInfo = new ProcessStartInfo("dotnet", args)
