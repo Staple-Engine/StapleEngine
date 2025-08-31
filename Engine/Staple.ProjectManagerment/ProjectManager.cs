@@ -1318,6 +1318,9 @@ public partial class ProjectManager
             { "DebuggerSupport", debug ? "true" : "false" },
             { "EventSourceSupport", debug ? "true" : "false" },
             { "StackTraceSupport", debug ? "true" : "false" },
+            { "EnableUnsafeBinaryFormatterSerialization", "false" },
+            { "EnableUnsafeUTF7Encoding", "false" },
+            { "InvariantGlobalization", "true" },
         };
 
         var asmDefProjectProperties = new Dictionary<string, string>()
@@ -1334,6 +1337,9 @@ public partial class ProjectManager
             { "DebuggerSupport", debug ? "true" : "false" },
             { "EventSourceSupport", debug ? "true" : "false" },
             { "StackTraceSupport", debug ? "true" : "false" },
+            { "EnableUnsafeBinaryFormatterSerialization", "false" },
+            { "EnableUnsafeUTF7Encoding", "false" },
+            { "InvariantGlobalization", "true" },
             { "IsAOTCompatible", "true" },
         };
 
