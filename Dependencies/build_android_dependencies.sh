@@ -19,7 +19,7 @@ cd build/native/joltc
 
 make -j $(nproc)
 
-llvm-strip --strip-unneeded libjoltc.so
+llvm-strip --strip-unneeded lib/libjoltc.so
 
 cd ../freetype/Debug
 
