@@ -607,8 +607,7 @@ public partial class ProjectManager
                                     }
                                     else if (def.allowUnsafeCode)
                                     {
-                                        shouldAddUnsafeFlag |= projectAppSettings.allowUnsafeCode == false &&
-                                            flags.HasFlag(ProjectGenerationFlags.NativeAOT);
+                                        shouldAddUnsafeFlag |= projectAppSettings.allowUnsafeCode == false;
                                     }
 
                                     break;
