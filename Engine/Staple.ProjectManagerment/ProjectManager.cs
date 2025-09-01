@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Evaluation;
+﻿using Microsoft.Build.Construction;
+using Microsoft.Build.Evaluation;
 using Newtonsoft.Json;
 using Staple.Internal;
 using Staple.PackageManagement;
@@ -286,7 +287,8 @@ public partial class ProjectManager
         return null;
     }
 
-    private static Project MakeProject(ProjectCollection collection, string defines, Dictionary<string, string> projectProperties)
+    private static (Project, ProjectPropertyGroupElement, ProjectPropertyGroupElement) MakeProject(ProjectCollection collection,
+        string defines, Dictionary<string, string> projectProperties)
     {
         var p = new Project(collection);
 
@@ -336,7 +338,7 @@ public partial class ProjectManager
             temp.Remove = "**";
         }
 
-        return p;
+        return (p, debugProperty, releaseProperty);
     }
 
     private static Project MakeCodeGeneratorProject(ProjectCollection collection)
@@ -497,7 +499,7 @@ public partial class ProjectManager
 
         var backendStapleCorePath = Path.Combine(backend.basePath, "Runtime", configurationName, StapleCoreFileName);
 
-        var p = MakeProject(collection, projectDefines, projectProperties);
+        var (p, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, projectProperties);
 
         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer) == false)
         {
@@ -578,7 +580,9 @@ public partial class ProjectManager
 
                                     if (flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                                     {
-                                        asmProj = MakeProject(collection, projectDefines, asmDefProperties);
+                                        var (p, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, asmDefProperties);
+
+                                        asmProj = p;
 
                                         if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
                                         {
@@ -677,7 +681,7 @@ public partial class ProjectManager
                 {
                     if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                     {
-                        var project = MakeProject(collection, projectDefines, asmDefProperties);
+                        var (project, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, asmDefProperties);
 
                         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
                         {
@@ -1055,6 +1059,12 @@ public partial class ProjectManager
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
                     p.SetProperty("AndroidEnableMarshalMethods", "false");
+                    p.SetProperty("AndroidEnableProguard", "true");
+                    p.SetProperty("AndroidLinkTool", "r8");
+                    p.SetProperty("AndroidEnableResourceShrinking", "true");
+                    p.SetProperty("PublishTrimmed", "true");
+
+                    releaseProperty.SetProperty("AndroidLinkMode", "Full");
 
                     break;
 
