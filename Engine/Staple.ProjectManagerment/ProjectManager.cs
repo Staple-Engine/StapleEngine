@@ -509,6 +509,8 @@ public partial class ProjectManager
             }
         }
 
+        var shouldAddUnsafeFlag = false;
+
         var projects = new Dictionary<string, ProjectInfo>();
         var excludedAsmDefs = new HashSet<string>();
 
@@ -602,6 +604,11 @@ public partial class ProjectManager
                                                     ]);
                                             }
                                         }
+                                    }
+                                    else if (def.allowUnsafeCode)
+                                    {
+                                        shouldAddUnsafeFlag |= projectAppSettings.allowUnsafeCode == false &&
+                                            flags.HasFlag(ProjectGenerationFlags.NativeAOT);
                                     }
 
                                     break;
@@ -739,6 +746,11 @@ public partial class ProjectManager
         Recursive(assetsDirectory, assetsDirectory, p);
 
         HandlePackages();
+
+        if(shouldAddUnsafeFlag)
+        {
+            p.SetProperty("AllowUnsafeBlocks", "true");
+        }
 
         var assemblies = new List<string>();
 
@@ -1134,11 +1146,11 @@ public partial class ProjectManager
                         {
                         }
 
-                        var appDelegatePath = Path.Combine(projectDirectory, "AppDelegate.cs");
+                        var appDelegatePath = Path.Combine(projectDirectory, mainProjectName, "AppDelegate.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(appDelegatePath));
 
-                        var mainPath = Path.Combine(projectDirectory, "Main.cs");
+                        var mainPath = Path.Combine(projectDirectory, mainProjectName, "Main.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(mainPath));
                     }
@@ -1148,7 +1160,7 @@ public partial class ProjectManager
                 default:
 
                     {
-                        var programPath = Path.Combine(projectDirectory, "Program.cs");
+                        var programPath = Path.Combine(projectDirectory, mainProjectName, "Program.cs");
 
                         p.AddItem("Compile", Path.GetFullPath(programPath));
                     }

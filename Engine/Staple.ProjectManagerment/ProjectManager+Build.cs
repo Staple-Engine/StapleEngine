@@ -97,7 +97,21 @@ public partial class ProjectManager
         {
             try
             {
-                File.Copy(Path.Combine(basePath, "Settings", "Icon.png"), Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), true);
+                var data = File.ReadAllBytes(Path.Combine(basePath, "Settings", "Icon.png"));
+
+                var rawData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+
+                if(rawData != null)
+                {
+                    if(rawData.width > 256 || rawData.height > 256)
+                    {
+                        var aspect = rawData.width / (float)rawData.height;
+
+                        rawData.Resize((int)(256 * aspect), 256);
+                    }
+
+                    File.WriteAllBytes(Path.Combine(assetsCacheDirectory, "StapleAppIcon.png"), rawData.EncodePNG());
+                }
             }
             catch (Exception)
             {

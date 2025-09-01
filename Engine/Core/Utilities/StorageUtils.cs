@@ -60,6 +60,8 @@ internal class StorageUtils
     /// <returns>Whether it did so successfully</returns>
     public static bool CopyFile(string source, string destination)
     {
+        CreateDirectory(Path.GetDirectoryName(destination));
+
         try
         {
             File.Copy(source, destination, true);
