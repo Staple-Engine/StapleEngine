@@ -53,6 +53,11 @@ public class PlayerBackend
     public bool publish;
 
     /// <summary>
+    /// Whether to publish when building for NativeAOT
+    /// </summary>
+    public bool publishOnNativeAOT;
+
+    /// <summary>
     /// Whether the data dir is inside the output folder
     /// </summary>
     public bool dataDirIsOutput;
@@ -64,12 +69,12 @@ public class PlayerBackend
 
     public bool IsValid()
     {
-        return (name?.Length ?? 0) > 0 &&
+        return string.IsNullOrEmpty(name) == false &&
             Enum.GetValues<AppPlatform>().Contains(platform) &&
-            (redistOutput?.Length ?? 0) > 0 &&
-            (dataDir?.Length ?? 0) > 0 &&
-            (platformRuntime?.Length ?? 0) > 0 &&
-            (framework?.Length ?? 0) > 0 &&
+            string.IsNullOrEmpty(redistOutput) == false &&
+            string.IsNullOrEmpty(dataDir) == false &&
+            string.IsNullOrEmpty(platformRuntime) == false &&
+            string.IsNullOrEmpty(framework) == false &&
             (renderers?.Count ?? 0) > 0;
     }
 }

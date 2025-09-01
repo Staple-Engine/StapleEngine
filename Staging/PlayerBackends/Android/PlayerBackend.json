@@ -3,9 +3,10 @@
 	"platform": "Android",
 	"redistOutput": "lib/arm64-v8a",
 	"dataDir": "Assets",
-	"platformRuntime": "android-arm64",
+	"platformRuntime": "linux-bionic-arm64",
 	"framework": "net9.0-android",
 	"publish": false,
+	"publishOnNativeAOT": true,
 	"dataDirIsOutput": false,
 	"renderers": [
 		"OpenGLES",

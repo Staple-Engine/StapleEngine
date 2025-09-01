@@ -146,7 +146,10 @@ internal class BuildWindow : EditorWindow
 
         StapleEditor.instance.buildPlayerDebug = EditorGUI.Toggle("Debug build", "BuildWindowDebug", StapleEditor.instance.buildPlayerDebug);
 
-        var has = Platform.CurrentPlatform == (backend?.platform ?? StapleEditor.instance.currentPlatform);
+        var platform = backend?.platform ?? StapleEditor.instance.currentPlatform;
+
+        var has = platform == Platform.CurrentPlatform ||
+            platform == AppPlatform.Android;
 
         EditorGUI.Disabled(has == false, () =>
         {

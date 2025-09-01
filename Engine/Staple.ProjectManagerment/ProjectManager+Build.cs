@@ -305,9 +305,9 @@ public partial class ProjectManager
 
             args = "";
 
-            if (backend.publish)
+            if (backend.publish || backend.publishOnNativeAOT)
             {
-                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
+                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\" -p:DisableUnsupportedError=true -p:PublishAotUsingRuntimePack=true";
             }
             else
             {

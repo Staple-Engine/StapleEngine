@@ -495,7 +495,14 @@ public partial class ProjectManager
 
         var configurationName = flags.HasFlag(ProjectGenerationFlags.Debug) ? "Debug" : "Release";
 
-        var backendStapleCorePath = Path.Combine(backend.basePath, "Runtime", configurationName, StapleCoreFileName);
+        var baseRuntimePath = Path.Combine(backend.basePath, "Runtime");
+
+        var runtimePath = flags.HasFlag(ProjectGenerationFlags.NativeAOT) &&
+            Directory.Exists(Path.Combine(baseRuntimePath, "NativeAOT")) ?
+            Path.Combine(baseRuntimePath, "NativeAOT") :
+            baseRuntimePath;
+
+        var backendStapleCorePath = Path.Combine(runtimePath, configurationName, StapleCoreFileName);
 
         var p = MakeProject(collection, projectDefines, projectProperties);
 
@@ -1003,8 +1010,7 @@ public partial class ProjectManager
                 p.Xml.AddItemGroup().AddItem("Content", $"Icon.ico");
             }
 
-            if(flags.HasFlag(ProjectGenerationFlags.NativeAOT) ||
-                flags.HasFlag(ProjectGenerationFlags.PublishSingleFile))
+            if(flags.HasFlag(ProjectGenerationFlags.PublishSingleFile))
             {
                 p.SetProperty("SelfContained", "true");
             }
@@ -1034,59 +1040,79 @@ public partial class ProjectManager
 
                 case AppPlatform.Android:
 
-                    p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
-                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
-                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
-                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                    p.SetProperty("RuntimeIdentifiers", "android-arm64");
-                    p.SetProperty("UseInterpreter", "false");
-                    p.SetProperty("EnableTrimAnalyzer", "true");
-                    p.SetProperty("EnableSingleFileAnalyzer", "true");
-                    p.SetProperty("EnableAotAnalyzer", "true");
-                    p.SetProperty("AndroidEnableMarshalMethods", "false");
+                    if(flags.HasFlag(ProjectGenerationFlags.NativeAOT))
+                    {
+                        p.SetProperty("PublishAOT", "true");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                    }
+                    else
+                    {
+                        p.SetProperty("SupportedOSPlatformVersion", projectAppSettings.androidMinSDK.ToString());
+                        p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                        p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                        p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                        p.SetProperty("RuntimeIdentifiers", "android-arm64");
+                        p.SetProperty("UseInterpreter", "false");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                        p.SetProperty("AndroidEnableMarshalMethods", "false");
+                    }
 
                     break;
 
                 case AppPlatform.iOS:
 
-                    p.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
-                    p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
-                    p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
-                    p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
-                    p.SetProperty("RuntimeIdentifiers", "ios-arm64");
-                    p.SetProperty("UseInterpreter", "false");
-                    p.SetProperty("EnableTrimAnalyzer", "true");
-                    p.SetProperty("EnableSingleFileAnalyzer", "true");
-                    p.SetProperty("EnableAotAnalyzer", "true");
+                    if (flags.HasFlag(ProjectGenerationFlags.NativeAOT))
+                    {
+                        p.SetProperty("PublishAOT", "true");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                    }
+                    else
+                    {
+                        p.SetProperty("SupportedOSPlatformVersion", $"{projectAppSettings.iOSDeploymentTarget}.0");
+                        p.SetProperty("ApplicationId", projectAppSettings.appBundleID);
+                        p.SetProperty("ApplicationVersion", projectAppSettings.appVersion.ToString());
+                        p.SetProperty("ApplicationDisplayVersion", projectAppSettings.appDisplayVersion);
+                        p.SetProperty("RuntimeIdentifiers", "ios-arm64");
+                        p.SetProperty("UseInterpreter", "false");
+                        p.SetProperty("EnableTrimAnalyzer", "true");
+                        p.SetProperty("EnableSingleFileAnalyzer", "true");
+                        p.SetProperty("EnableAotAnalyzer", "true");
+                    }
 
                     break;
             }
 
             p.AddItem("Reference", "StapleCore",
                 [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, StapleCoreFileName))
+                    new("HintPath", Path.Combine(runtimePath, configurationName, StapleCoreFileName))
                 ]);
 
             p.AddItem("Reference", "MessagePack",
                 [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
+                    new("HintPath", Path.Combine(runtimePath, configurationName, "MessagePack.dll"))
                 ]);
 
             p.AddItem("Reference", "NAudio",
                 [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
+                    new("HintPath", Path.Combine(runtimePath, configurationName, "NAudio.dll"))
                 ]);
 
             p.AddItem("Reference", "NVorbis",
                 [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
+                    new("HintPath", Path.Combine(runtimePath, configurationName, "NVorbis.dll"))
                 ]);
 
             if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
             {
                 p.AddItem("Reference", "SDL2-CS",
                     [
-                        new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
+                        new("HintPath", Path.Combine(runtimePath, configurationName, "SDL2-CS.dll"))
                     ]);
             }
 
@@ -1298,10 +1324,17 @@ public partial class ProjectManager
 
         var targetFramework = platformFramework[platform];
 
+        if(backend.publishOnNativeAOT && nativeAOT)
+        {
+            targetFramework = "net9.0";
+        }
+
+        var expectedType = backend.publishOnNativeAOT && nativeAOT ? "Library" : "Exe";
+
         var exeType = platform switch
         {
             AppPlatform.Windows or AppPlatform.Linux or AppPlatform.MacOSX => debug ? "Exe" : "WinExe",
-            _ => "Exe",
+            _ => expectedType,
         };
 
         var projectProperties = new Dictionary<string, string>()
@@ -1337,10 +1370,11 @@ public partial class ProjectManager
             { "DebuggerSupport", debug ? "true" : "false" },
             { "EventSourceSupport", debug ? "true" : "false" },
             { "StackTraceSupport", debug ? "true" : "false" },
+            { "IsAOTCompatible", nativeAOT ? "true" : "false" },
             { "EnableUnsafeBinaryFormatterSerialization", "false" },
             { "EnableUnsafeUTF7Encoding", "false" },
             { "InvariantGlobalization", "true" },
-            { "IsAOTCompatible", "true" },
+            { "IsAOTCompatible", nativeAOT ? "true" : "false" },
         };
 
         var platformUsesSeparateProjects = platform switch
