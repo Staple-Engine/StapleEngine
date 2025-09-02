@@ -33,6 +33,11 @@ internal class ProjectBrowserNode
     public string typeName;
 
     /// <summary>
+    /// The human-friendly version of the type name
+    /// </summary>
+    public string friendlyTypeName;
+
+    /// <summary>
     /// The parent node of this node
     /// </summary>
     public ProjectBrowserNode parent;

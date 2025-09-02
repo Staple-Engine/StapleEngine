@@ -1152,6 +1152,8 @@ internal partial class StapleEditor
         {
             if (cachedEditors.Count > 0)
             {
+                EditorGUI.Label($"{selectedProjectNode.name} ({selectedProjectNode.friendlyTypeName})");
+
                 var editor = cachedEditors.First().Value;
 
                 editor.OnInspectorGUI();
@@ -1555,12 +1557,11 @@ internal partial class StapleEditor
                     {
                         var editor = Editor.CreateEditor(selectedProjectNodeData);
 
-                        if (editor is AssetEditor e)
+                        if (editor is Editor e)
                         {
                             e.original = original;
                             e.path = item.path;
                             e.cachePath = cachePath;
-                            e.recreateOriginal = () => ResourceManager.instance.LoadTextAsset(guid);
 
                             cachedEditors.Add("", editor);
                         }

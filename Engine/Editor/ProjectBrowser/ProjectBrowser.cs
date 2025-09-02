@@ -241,6 +241,7 @@ internal class ProjectBrowser
                             parent = parent,
                             subnodes = [],
                             typeName = typeof(PluginAsset).FullName,
+                            friendlyTypeName = typeof(PluginAsset).Name.ExpandCamelCaseName(),
                         };
 
                         nodes.Add(pluginNode);
@@ -261,6 +262,7 @@ internal class ProjectBrowser
                         parent = parent,
                         subnodes = subnodes,
                         typeName = typeof(FolderAsset).FullName,
+                        friendlyTypeName = typeof(FolderAsset).Name.ExpandCamelCaseName(),
                     };
 
                     Recursive(directory, subnodes, node);
@@ -392,6 +394,8 @@ internal class ProjectBrowser
 
                             break;
                     }
+
+                    node.friendlyTypeName = node.typeName.Split('.').LastOrDefault()?.ExpandCamelCaseName() ?? node.typeName;
                 }
             }
 

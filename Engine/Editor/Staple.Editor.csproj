@@ -40,6 +40,7 @@
     <Compile Include="Editors\Assets\InputActionsEditor.cs" />
     <Compile Include="Editors\Assets\NoiseGeneratorSettingsEditor.cs" />
     <Compile Include="Editors\Assets\PluginAssetEditor.cs" />
+    <Compile Include="Editors\Assets\TextAssetEditor.cs" />
     <Compile Include="Editors\Assets\VisualShaderAssetEditor.cs" />
     <Compile Include="Editors\Default\CameraGizmoEditor.cs" />
     <Compile Include="Editors\Default\CullingVolumeGizmoEditor.cs" />
