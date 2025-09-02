@@ -883,6 +883,11 @@ internal partial class StapleEditor
                 }
             }
 
+            if(io.WantTextInput)
+            {
+                projectBrowser.ClearSelection();
+            }
+
             if(playMode == PlayMode.Playing)
             {
                 SubsystemManager.instance.Update(SubsystemType.Update);
@@ -1572,6 +1577,8 @@ internal partial class StapleEditor
         selectedEntity = entity;
         selectedProjectNode = null;
         selectedProjectNodeData = null;
+
+        projectBrowser.ClearSelection();
 
         foreach(var editor in cachedEditors)
         {

@@ -1042,6 +1042,17 @@ internal class ProjectBrowser
     }
 
     /// <summary>
+    /// Clears the current item selection
+    /// </summary>
+    public void ClearSelection()
+    {
+        foreach(var item in currentContentBrowserNodes)
+        {
+            item.selected = false;
+        }
+    }
+
+    /// <summary>
     /// Draws the project browser in the editor GUI
     /// </summary>
     /// <param name="io">The ImGUI IO Pointer</param>
