@@ -34,6 +34,11 @@ internal class AssetPickerWindow : EditorWindow
 
     private void Refresh()
     {
+        if(assetPickerType == null)
+        {
+            return;
+        }
+
         var validItems = new List<ProjectBrowserNode>
         {
             null
