@@ -32,9 +32,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Staple.Core.csproj" />
-	<ProjectReference Include="..\StapleJoltPhysics\Staple.JoltPhysics.csproj" />
-	<ProjectReference Include="..\StapleOpenALAudio\Staple.OpenALAudio.csproj" />
+	<ProjectReference Include="..\Staple.JoltPhysics\Staple.JoltPhysics.csproj" />
+	<ProjectReference Include="..\Staple.OpenALAudio\Staple.OpenALAudio.csproj" />
+	<ProjectReference Include="..\Staple.Player.Linux\Staple.Player.Linux.csproj" />
+	<ProjectReference Include="..\Staple.Player.MacOSX\Staple.Player.MacOSX.csproj" />
+	<ProjectReference Include="..\Staple.Player.Windows\Staple.Player.Windows.csproj" />
 	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
@@ -44,7 +46,7 @@
   <PropertyGroup>
     <PostBuildEvent>
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Player/bin/$(Configuration)/net9.0/Player*" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Core/bin/$(Configuration)/net9.0/Staple.Core.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Staple.Core/bin/$(Configuration)/net9.0/Staple.Core.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
 		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
 	</PostBuildEvent>

@@ -1,0 +1,73 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<TargetFrameworks>net9.0</TargetFrameworks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
+		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_WINDOWS)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_LINUX)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_OSX)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_OSX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_ANDROID)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_ANDROID</DefineConstants>
+		<TargetFrameworks>$(TargetFrameworks);net9.0-android</TargetFrameworks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
+		<TargetFrameworks>$(TargetFrameworks);net9.0-ios</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<Reference Include="Staple.Core">
+			<HintPath>..\Staple.Core\bin\Debug\net9.0\Staple.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<Reference Include="Staple.Core">
+			<HintPath>..\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Include="ByteArrayPacketReader.cs" />
+	  <Compile Include="ByteArrayPacketWriter.cs" />
+	  <Compile Include="GameClientState.cs" />
+	  <Compile Include="GameNetworkManagerBase.cs" />
+	  <Compile Include="IGameClient.cs" />
+	  <Compile Include="IGameServer.cs" />
+	  <Compile Include="Implementations\SocketGameClient.cs" />
+	  <Compile Include="Implementations\SocketGameServer.cs" />
+	  <Compile Include="INetworkMessage.cs" />
+	  <Compile Include="INetworkReader.cs" />
+	  <Compile Include="INetworkWriter.cs" />
+	  <Compile Include="Init.cs" />
+	  <Compile Include="LocalClient.cs" />
+	  <Compile Include="NetworkBatcher.cs" />
+	  <Compile Include="NetworkBuffer.cs" />
+	  <Compile Include="NetworkCompression.cs" />
+	</ItemGroup>
+</Project>

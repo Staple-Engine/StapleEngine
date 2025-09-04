@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Staple.Networking;
+namespace Staple.Player.Linux;
 
 public class Init : ModuleInitializer
 {
@@ -12,6 +12,10 @@ public class Init : ModuleInitializer
 
     public override void InitializeModule()
     {
+        if(Platform.IsLinux)
+        {
+            Platform.platformProvider = new LinuxPlatformProvider();
+        }
     }
 
     public override void CleanupModule()

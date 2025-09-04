@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Staple.Networking;
+namespace Staple.Player.MacOS;
 
 public class Init : ModuleInitializer
 {
@@ -12,6 +12,10 @@ public class Init : ModuleInitializer
 
     public override void InitializeModule()
     {
+        if(Platform.IsMacOS)
+        {
+            Platform.platformProvider = new MacOSPlatformProvider();
+        }
     }
 
     public override void CleanupModule()

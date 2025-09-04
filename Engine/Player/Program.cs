@@ -1,19 +1,22 @@
 using System;
 using Staple.Internal;
 
-namespace Staple
+namespace Staple;
+
+static class Program
 {
-    static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            Console.WriteLine($"Staple: Registering type cache");
+        Console.WriteLine($"Staple: Registering type cache");
 
-            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
-            Console.WriteLine($"Staple: Registered {TypeCache.AllTypes().Length} types");
+        TypeCache.Freeze();
 
-            StaplePlayer.Run(args);
-        }
+        Console.WriteLine($"Staple: Registered {TypeCache.AllTypes().Length} types");
+
+        ModuleInitializer.LoadAll();
+
+        StaplePlayer.Run(args);
     }
 }

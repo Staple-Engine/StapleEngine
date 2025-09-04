@@ -11,11 +11,11 @@
 	  <Reference Include="SharpGLTF.Core">
 		  <HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
 	  </Reference>
-	  <Reference Include="StapleCore">
-		  <HintPath>..\..\Engine\Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+	  <Reference Include="Staple.Core">
+		  <HintPath>..\..\Engine\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
 	  </Reference>
-	  <Reference Include="StapleTooling">
-		  <HintPath>..\..\Engine\Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+	  <Reference Include="Staple.Tooling">
+		  <HintPath>..\..\Engine\Staple.Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
 	  </Reference>
   </ItemGroup>
 

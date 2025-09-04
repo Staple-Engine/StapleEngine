@@ -1,0 +1,468 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<TargetFrameworks>net9.0</TargetFrameworks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
+		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_WINDOWS)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_LINUX)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_OSX)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_OSX</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_ANDROID)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_ANDROID</DefineConstants>
+		<TargetFrameworks>$(TargetFrameworks);net9.0-android</TargetFrameworks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
+		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
+		<TargetFrameworks>$(TargetFrameworks);net9.0-ios</TargetFrameworks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>pdbonly</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>false</Optimize>
+		<DefineConstants>$(DefineConstants);_DEBUG;STBSHARP_INTERNAL</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>true</Optimize>
+		<DefineConstants>$(DefineConstants);NDEBUG;STBSHARP_INTERNAL</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<StripSymbols>true</StripSymbols>
+		<PublishAot>true</PublishAot>
+		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+
+		<Reference Include="SDL2-CS">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\SDL2-CS.dll</HintPath>
+		</Reference>
+
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="MessagePack">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
+		</Reference>
+		<Reference Include="NVorbis">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NVorbis.dll</HintPath>
+		</Reference>
+		<Reference Include="NAudio">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NAudio.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<EmbeddedResource Remove="MessagePack\**" />
+		<None Remove="MessagePack\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="AppSettings\AppProfilingMode.cs" />
+		<Compile Include="Assets\IAssetDatabaseObserver.cs" />
+		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
+		<Compile Include="Assets\TextAsset.cs" />
+		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
+		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
+		<Compile Include="Attributes\ButtonAttribute.cs" />
+		<Compile Include="Attributes\ComponentIconAttribute.cs" />
+		<Compile Include="Attributes\MinAttribute.cs" />
+		<Compile Include="Attributes\MultilineAttribute.cs" />
+		<Compile Include="Attributes\PropertyAttribute.cs" />
+		<Compile Include="Attributes\RangeAttribute.cs" />
+		<Compile Include="Attributes\SerializeAsHexAttribute.cs" />
+		<Compile Include="Attributes\SerializeFieldAttribute.cs" />
+		<Compile Include="Attributes\SerializeInEditorAttribute.cs" />
+		<Compile Include="Attributes\TooltipAttribute.cs" />
+		<Compile Include="Audio\AudioClip.cs" />
+		<Compile Include="Audio\AudioListener.cs" />
+		<Compile Include="Audio\AudioSource.cs" />
+		<Compile Include="Audio\IAudioStream.cs" />
+		<Compile Include="Audio\AudioSystem.cs" />
+		<Compile Include="Audio\IAudioClip.cs" />
+		<Compile Include="Audio\IAudioDevice.cs" />
+		<Compile Include="Audio\IAudioListener.cs" />
+		<Compile Include="Audio\IAudioSource.cs" />
+		<Compile Include="Audio\Readers\MP3AudioStream.cs" />
+		<Compile Include="Audio\Readers\OggAudioStream.cs" />
+		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
+		<Compile Include="Entities\CallbackComponent.cs" />
+		<Compile Include="Entities\Entity+Components.cs" />
+		<Compile Include="Entities\Entity+Instantiate.cs" />
+		<Compile Include="Entities\Entity+Iteration.cs" />
+		<Compile Include="Entities\EntityCallback.cs" />
+		<Compile Include="Entities\EntityHierarchyVisibility.cs" />
+		<Compile Include="Entities\EntityID.cs" />
+		<Compile Include="Entities\EntityPrimitiveType.cs" />
+		<Compile Include="Entities\EntityQuery.cs" />
+		<Compile Include="Entities\IComponentDisposable.cs" />
+		<Compile Include="Entities\Prefab.cs" />
+		<Compile Include="External\BGFX\BGFXUtils.cs" />
+		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
+		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />
+		<Compile Include="External\FreeType\FreeType.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\CRuntime.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Bitmap.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Buf.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.CharString.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Common.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.FontInfo.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.Heap.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.Generated.RectPack.cs" />
+		<Compile Include="External\StbTruetypeSharp\src\StbTrueType.OldRasterizer.cs" />
+		<Compile Include="Hooks\IStapleHook.cs" />
+		<Compile Include="Hooks\StapleHookEvent.cs" />
+		<Compile Include="Input\Cursor.cs" />
+		<Compile Include="Input\CursorImage.cs" />
+		<Compile Include="Input\CursorLockMode.cs" />
+		<Compile Include="Input\EntityInput.cs" />
+		<Compile Include="Input\EntityInputSystem.cs" />
+		<Compile Include="Input\GamepadAxis.cs" />
+		<Compile Include="Input\GamepadButton.cs" />
+		<Compile Include="Input\GamepadConnectionState.cs" />
+		<Compile Include="Input\IInputObserver.cs" />
+		<Compile Include="Input\IInputReceiver.cs" />
+		<Compile Include="Input\InputAction.cs" />
+		<Compile Include="Input\InputActionContext.cs" />
+		<Compile Include="Input\InputActions.cs" />
+		<Compile Include="Input\InputActionType.cs" />
+		<Compile Include="Input\InputDevice.cs" />
+		<Compile Include="Jobs\ActionJob.cs" />
+		<Compile Include="Math\BoundingSphere.cs" />
+		<Compile Include="Math\NoiseGenerator.cs" />
+		<Compile Include="Math\Vector3Int.cs" />
+		<Compile Include="Math\Vector4Int.cs" />
+		<Compile Include="Modules\ModuleInitializer.cs" />
+		<Compile Include="Modules\ModuleType.cs" />
+		<Compile Include="Performance\PerformanceProfiler.cs" />
+		<Compile Include="Performance\PerformanceProfilerSystem.cs" />
+		<Compile Include="Performance\PerformanceProfilerType.cs" />
+		<Compile Include="Physics\3D\Components\Character3D.cs" />
+		<Compile Include="Physics\3D\Components\HeightMapCollider3D.cs" />
+		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
+		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
+		<Compile Include="Hooks\StapleHooks.cs" />
+		<Compile Include="Rendering\Animation\ISkinModifier.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationController.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAttachment.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAttachmentSystem.cs" />
+		<Compile Include="Rendering\Animation\SkinnedAnimationStateMachine.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshInstance.cs" />
+		<Compile Include="Rendering\Camera\CameraViewMode.cs" />
+		<Compile Include="Rendering\CullingMode.cs" />
+		<Compile Include="Rendering\CullingState.cs" />
+		<Compile Include="Rendering\CullingVolume\CullingVolume.cs" />
+		<Compile Include="Rendering\CullingVolume\CullingVolumeSystem.cs" />
+		<Compile Include="Rendering\Graphics.cs" />
+		<Compile Include="Rendering\Instancing\InstanceBuffer.cs" />
+		<Compile Include="Rendering\Lighting\Light.cs" />
+		<Compile Include="Rendering\Lighting\LightSystem.cs" />
+		<Compile Include="Rendering\Lighting\LightType.cs" />
+		<Compile Include="Rendering\MaterialLighting.cs" />
+		<Compile Include="Rendering\Access.cs" />
+		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
+		<Compile Include="Rendering\Shader\ComputeShader.cs" />
+		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
+		<Compile Include="Rendering\Sprites\Sprite.cs" />
+		<Compile Include="Rendering\Sprites\SpriteRenderMode.cs" />
+		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
+		<Compile Include="Rendering\Texture\TextureFormat.cs" />
+		<Compile Include="Rendering\Text\FontAsset.cs" />
+		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
+		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
+		<Compile Include="Rendering\Text\ITextFontSource.cs" />
+		<Compile Include="Rendering\Vertex\VertexAttribute.cs" />
+		<Compile Include="Rendering\Vertex\VertexAttributeType.cs" />
+		<Compile Include="Rendering\Windowing\Impls\SDL2RenderWindow.cs" />
+		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
+		<Compile Include="Scene\ISceneQuery.cs" />
+		<Compile Include="Scene\SceneQuery.cs" />
+		<Compile Include="Serialization\Asset\GuidHasher.cs" />
+		<Compile Include="Serialization\Asset\SerializableAssetDatabase.cs" />
+		<Compile Include="Serialization\Serializer\IStapleTypeSerializer.cs" />
+		<Compile Include="Serialization\Serializer\JsonExtensions.cs" />
+		<Compile Include="Serialization\Serializer\Serializers\StapleBaseTypeSerializer.cs" />
+		<Compile Include="Serialization\Serializer\Serializers\StapleTypesSerializer.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializationMode.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializer.cs" />
+		<Compile Include="Serialization\Font\FontMetadata.cs" />
+		<Compile Include="Serialization\Font\SerializableFontAsset.cs" />
+		<Compile Include="Jobs\IJob.cs" />
+		<Compile Include="Jobs\JobHandle.cs" />
+		<Compile Include="Jobs\JobSheduler.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerContainer.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerContext.cs" />
+		<Compile Include="Serialization\Serializer\StapleSerializerField.cs" />
+		<Compile Include="Serialization\Text\SerializableTextAsset.cs" />
+		<Compile Include="Serialization\Text\TextAssetMetadata.cs" />
+		<Compile Include="System\IPlatformProvider.cs" />
+		<Compile Include="UI\IUIDraggable.cs" />
+		<Compile Include="UI\IUIDroppable.cs" />
+		<Compile Include="UI\UICheckBox.cs" />
+		<Compile Include="UI\UIDropdown.cs" />
+		<Compile Include="UI\UIFPSCounter.cs" />
+		<Compile Include="UI\UIFrame.cs" />
+		<Compile Include="UI\UIGroup.cs" />
+		<Compile Include="UI\UILayout.cs" />
+		<Compile Include="UI\UIButton.cs" />
+		<Compile Include="UI\UICanvas.cs" />
+		<Compile Include="UI\UICanvasSystem.cs" />
+		<Compile Include="UI\UIList.cs" />
+		<Compile Include="UI\UIManager.cs" />
+		<Compile Include="UI\UIMenu.cs" />
+		<Compile Include="UI\UIMenuBar.cs" />
+		<Compile Include="UI\UIMessageBox.cs" />
+		<Compile Include="UI\UIPanel+API.cs" />
+		<Compile Include="UI\UIPanel+Internal.cs" />
+		<Compile Include="UI\UIPanel.cs" />
+		<Compile Include="UI\UIScrollableFrame.cs" />
+		<Compile Include="UI\UIScrollBar.cs" />
+		<Compile Include="UI\UISkin.cs" />
+		<Compile Include="UI\UISprite.cs" />
+		<Compile Include="UI\UIText.cs" />
+		<Compile Include="UI\UITextAlignment.cs" />
+		<Compile Include="UI\UITextBox.cs" />
+		<Compile Include="UI\UITooltip.cs" />
+		<Compile Include="UI\UIWindow.cs" />
+		<Compile Include="Utilities\CallbackGatherer.cs" />
+		<Compile Include="Utilities\CubicMeshBuilder.cs" />
+		<Compile Include="Rendering\Mesh\MeshAsset.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimationEvaluator.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimator.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshAnimatorSystem.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshRenderer.cs" />
+		<Compile Include="Rendering\Animation\SkinnedMeshRenderSystem.cs" />
+		<Compile Include="Rendering\Screen.cs" />
+		<Compile Include="Resources\Resources.cs" />
+		<Compile Include="Assets\AssetDatabase.cs" />
+		<Compile Include="Serialization\Asset\AssetSerialization.cs" />
+		<Compile Include="Serialization\Asset\IGuidAsset.cs" />
+		<Compile Include="Serialization\Asset\IStapleAsset.cs" />
+		<Compile Include="Attributes\AbstractComponentAttribute.cs" />
+		<Compile Include="Attributes\AssetCategoryAttribute.cs" />
+		<Compile Include="Attributes\ComponentCategoryAttribute.cs" />
+		<Compile Include="Attributes\HideInInspectorAttribute.cs" />
+		<Compile Include="Attributes\SortingLayerAttribute.cs" />
+		<Compile Include="External\BGFX\bgfx.cs" />
+		<Compile Include="External\BGFX\bgfx_dllname.cs" />
+		<Compile Include="Rendering\Camera\Camera.cs" />
+		<Compile Include="Rendering\Camera\CameraClearMode.cs" />
+		<Compile Include="Rendering\Camera\CameraType.cs" />
+		<Compile Include="Entities\Entity.cs" />
+		<Compile Include="Entities\EntitySystemManager.cs" />
+		<Compile Include="Entities\IComponent.cs" />
+		<Compile Include="Entities\IEntitySystem.cs" />
+		<Compile Include="Rendering\Mesh\MeshRenderer.cs" />
+		<Compile Include="Rendering\Renderable.cs" />
+		<Compile Include="Export\Export.cs" />
+		<Compile Include="External\StbImageResizeSharp\src\CRuntime.cs" />
+		<Compile Include="External\StbImageResizeSharp\src\MemoryStats.cs" />
+		<Compile Include="External\StbImageResizeSharp\src\StbImageResize.cs" />
+		<Compile Include="External\StbImageResizeSharp\src\StbImageResize.Generated.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\ColorComponents.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\CRuntime.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\ImageWriter.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
+		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
+		<Compile Include="Player\iOS\StapleViewController.cs" />
+		<Compile Include="Rendering\Sprites\SpriteAnimation.cs" />
+		<Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
+		<Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
+		<Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
+		<Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
+		<Compile Include="External\StbImageSharp\src\Hebron.Runtime\CRuntime.cs" />
+		<Compile Include="External\StbImageSharp\src\Hebron.Runtime\MemoryStats.cs" />
+		<Compile Include="External\StbImageSharp\src\Hebron.Runtime\Utility.cs" />
+		<Compile Include="External\StbImageSharp\src\ImageInfo.cs" />
+		<Compile Include="External\StbImageSharp\src\ImageResult.cs" />
+		<Compile Include="External\StbImageSharp\src\ImageResultFloat.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Bmp.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Common.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Gif.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Hdr.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Jpg.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Png.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Psd.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Tga.cs" />
+		<Compile Include="External\StbImageSharp\src\StbImage.Generated.Zlib.cs" />
+		<Compile Include="External\StbRectPackSharp\src\CRuntime.cs" />
+		<Compile Include="External\StbRectPackSharp\src\Packer.cs" />
+		<Compile Include="External\StbRectPackSharp\src\StbRectPack.cs" />
+		<Compile Include="External\StbRectPackSharp\src\StbRectPack.Generated.cs" />
+		<Compile Include="Math\Rect.cs" />
+		<Compile Include="Math\RectFloat.cs" />
+		<Compile Include="Math\Vector2Int.cs" />
+		<Compile Include="MessagePackGenerated\MessagePackGenerated.cs" />
+		<Compile Include="MessagePackGenerated\MessagePackInit.cs" />
+		<Compile Include="Physics\3D\BodyMotionType.cs" />
+		<Compile Include="Physics\3D\Components\BoxCollider3D.cs" />
+		<Compile Include="Physics\3D\Components\CapsuleCollider3D.cs" />
+		<Compile Include="Physics\3D\Components\Collider3D.cs" />
+		<Compile Include="Physics\3D\Components\CylinderCollider3D.cs" />
+		<Compile Include="Physics\3D\Components\MeshCollider3D.cs" />
+		<Compile Include="Physics\3D\Components\SphereCollider3D.cs" />
+		<Compile Include="Physics\3D\IBody3D.cs" />
+		<Compile Include="Physics\3D\IPhysics3D.cs" />
+		<Compile Include="Physics\3D\Physics3D.cs" />
+		<Compile Include="Physics\3D\PhysicsTriggerQuery.cs" />
+		<Compile Include="Physics\ColliderMask.cs" />
+		<Compile Include="Physics\Physics.cs" />
+		<Compile Include="Rendering\BlendMode.cs" />
+		<Compile Include="Rendering\Texture\BGFXTextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\ITextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\PixelTextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\RawTextureData.cs" />
+		<Compile Include="Rendering\Text\DefaultFont.cs" />
+		<Compile Include="Rendering\Text\TextRenderer.cs" />
+		<Compile Include="Rendering\Text\Glyph.cs" />
+		<Compile Include="Rendering\Text\TextFont.cs" />
+		<Compile Include="Rendering\Text\TextParameters.cs" />
+		<Compile Include="Rendering\Windowing\Impls\iOSRenderWindow.cs" />
+		<Compile Include="Rendering\Windowing\Impls\MetalView.cs" />
+		<Compile Include="Rendering\Windowing\IRenderWindow.cs" />
+		<Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
+		<Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
+		<Compile Include="Rendering\Mesh\Mesh.cs" />
+		<Compile Include="Rendering\Mesh\MeshIndexFormat.cs" />
+		<Compile Include="Rendering\Mesh\MeshTopology.cs" />
+		<Compile Include="Rendering\Texture\StandardTextureColorComponents.cs" />
+		<Compile Include="Rendering\Vertex\RenderBufferType.cs" />
+		<Compile Include="Rendering\Windowing\VideoFlags.cs" />
+		<Compile Include="Rendering\Windowing\WindowMode.cs" />
+		<Compile Include="Resources\ResourcePak.cs" />
+		<Compile Include="Serialization\Asset\AssetHolder.cs" />
+		<Compile Include="Serialization\Asset\FolderAsset.cs" />
+		<Compile Include="Serialization\Asset\SerializableStapleAsset.cs" />
+		<Compile Include="Serialization\Audio\AudioClipMetadata.cs" />
+		<Compile Include="Serialization\Audio\SerializableAudioClip.cs" />
+		<Compile Include="Serialization\Json\JsonStringEnumConverter.cs" />
+		<Compile Include="Serialization\MeshAsset\SerializableMeshAsset.cs" />
+		<Compile Include="Serialization\Prefab\SerializablePrefab.cs" />
+		<Compile Include="Serialization\Scene\SceneSerialization.cs" />
+		<Compile Include="Serialization\Scene\SerializableScene.cs" />
+		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
+		<Compile Include="Utilities\DictionaryExtensions.cs" />
+		<Compile Include="Utilities\ExpandableContainer.cs" />
+		<Compile Include="Utilities\GuidGenerator.cs" />
+		<Compile Include="Utilities\IntLookupCache.cs" />
+		<Compile Include="Utilities\ObjectCreation.cs" />
+		<Compile Include="Utilities\Observables\IObservableBox.cs" />
+		<Compile Include="Utilities\Observables\ObservableBox.cs" />
+		<Compile Include="Utilities\Observables\ObservableBoxStrong.cs" />
+		<Compile Include="Utilities\Observables\ObservableManager.cs" />
+		<Compile Include="Utilities\StorageUtils.cs" />
+		<Compile Include="Utilities\ThreadHelper.cs" />
+		<Compile Include="Utilities\TypeCache.cs" />
+		<Compile Include="World\IWorldChangeReceiver.cs" />
+		<Compile Include="World\World+Components.cs" />
+		<Compile Include="World\World+Entities.cs" />
+		<Compile Include="World\World+Iteration.cs" />
+		<Compile Include="World\World.cs" />
+		<Compile Include="Input\Input.cs" />
+		<Compile Include="Input\KeyCode.cs" />
+		<Compile Include="Input\MouseButton.cs" />
+		<Compile Include="Math\Color.cs" />
+		<Compile Include="Math\Color32.cs" />
+		<Compile Include="Math\Math.cs" />
+		<Compile Include="Math\Matrix3x3.cs" />
+		<Compile Include="Math\Ray.cs" />
+		<Compile Include="Player\AppEvent.cs" />
+		<Compile Include="Player\AppPlayer.cs" />
+		<Compile Include="AppSettings\AppSettings.cs" />
+		<Compile Include="Player\PlayerSettings.cs" />
+		<Compile Include="Player\StaplePlayer.cs" />
+		<Compile Include="Player\Time.cs" />
+		<Compile Include="System\AppPlatform.cs" />
+		<Compile Include="System\ISubsystem.cs" />
+		<Compile Include="System\Platform.cs" />
+		<Compile Include="System\SubsystemManager.cs" />
+		<Compile Include="System\StapleSupport.cs" />
+		<Compile Include="Math\AABB.cs" />
+		<Compile Include="Rendering\FrustumCuller.cs" />
+		<Compile Include="Rendering\RenderSystem\IRenderSystem.cs" />
+		<Compile Include="Rendering\Vertex\IndexBuffer.cs" />
+		<Compile Include="Rendering\LayerMask.cs" />
+		<Compile Include="Rendering\Material.cs" />
+		<Compile Include="Rendering\RenderBufferFlags.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderSystem.cs" />
+		<Compile Include="Rendering\RenderTarget\RenderTarget.cs" />
+		<Compile Include="Rendering\Windowing\RenderWindow.cs" />
+		<Compile Include="Rendering\RendererType.cs" />
+		<Compile Include="Rendering\Shader\Shader.cs" />
+		<Compile Include="Rendering\Sprites\SpriteRenderSystem.cs" />
+		<Compile Include="Rendering\Texture\Texture.cs" />
+		<Compile Include="Rendering\Texture\TextureFlags.cs" />
+		<Compile Include="Rendering\Text\Text.cs" />
+		<Compile Include="Rendering\Text\TextRenderSystem.cs" />
+		<Compile Include="Rendering\Vertex\VertexBuffer.cs" />
+		<Compile Include="Rendering\Vertex\VertexLayout.cs" />
+		<Compile Include="Rendering\Vertex\VertexLayoutBuilder.cs" />
+		<Compile Include="Resources\ResourceManager.cs" />
+		<Compile Include="Serialization\Material\MaterialMetadata.cs" />
+		<Compile Include="Serialization\Material\SerializableMaterial.cs" />
+		<Compile Include="Serialization\Shader\SerializableShader.cs" />
+		<Compile Include="Serialization\Shader\ShaderMetadata.cs" />
+		<Compile Include="Serialization\Texture\SerializableTexture.cs" />
+		<Compile Include="Serialization\Texture\TextureMetadata.cs" />
+		<Compile Include="Scene\Scene.cs" />
+		<Compile Include="Serialization\Scene\SceneList.cs" />
+		<Compile Include="Entities\Transform.cs" />
+		<Compile Include="Utilities\Log\ConsoleLog.cs" />
+		<Compile Include="Utilities\Log\FSLog.cs" />
+		<Compile Include="Utilities\Log\ILog.cs" />
+		<Compile Include="Utilities\Log\Log.cs" />
+		<Compile Include="Utilities\Randomizer.cs" />
+		<Compile Include="Utilities\Storage.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="ErrorProne.NET.Structs" Version="0.6.1-beta.1">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+</Project>

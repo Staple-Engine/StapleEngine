@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Staple.Networking;
+namespace Staple.Player.Android;
 
 public class Init : ModuleInitializer
 {
@@ -12,6 +12,7 @@ public class Init : ModuleInitializer
 
     public override void InitializeModule()
     {
+        Platform.platformProvider = AndroidPlatformProvider.Instance;
     }
 
     public override void CleanupModule()
