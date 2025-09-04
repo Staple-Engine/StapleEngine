@@ -1342,6 +1342,11 @@ public partial class ProjectManager
             { "EnableUnsafeBinaryFormatterSerialization", "false" },
             { "EnableUnsafeUTF7Encoding", "false" },
             { "InvariantGlobalization", "true" },
+            { "IlcFoldIdenticalMethodBodies", debug ? "false" : "true" },
+            { "IlcTrimMetadata", "true" },
+            { "IlcGenerateCompleteTypeMetadata", "false" },
+            { "IlcPgoOptimize", "true" },
+            { "UseSystemResourceKeys", "true" },
         };
 
         var asmDefProjectProperties = new Dictionary<string, string>()

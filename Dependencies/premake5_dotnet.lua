@@ -70,6 +70,8 @@ project "MessagePack"
 	kind "SharedLib"
 	language "C#"
 	clr "Unsafe"
+	
+	defines { "ENABLE_IL2CPP" }
 
 	files {
 		"MessagePack/**.cs"
