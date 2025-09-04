@@ -116,6 +116,10 @@ static partial class Program
 
     public static void Main(string[] args)
     {
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+        ModuleInitializer.LoadAll();
+
         Log.SetLog(new ConsoleLog());
 
         if (args.Length == 0)

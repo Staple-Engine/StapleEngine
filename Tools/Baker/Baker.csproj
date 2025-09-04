@@ -34,6 +34,15 @@
 		<Reference Include="Staple.Core">
 			<HintPath>..\..\Engine\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
 		</Reference>
+		<Reference Include="Staple.Player.Windows">
+			<HintPath>..\..\Engine\Staple.Player.Windows\bin\Release\net9.0\Staple.Player.Windows.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Player.Linux">
+			<HintPath>..\..\Engine\Staple.Player.Linux\bin\Release\net9.0\Staple.Player.Linux.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Player.MacOSX">
+			<HintPath>..\..\Engine\Staple.Player.MacOSX\bin\Release\net9.0\Staple.Player.MacOSX.dll</HintPath>
+		</Reference>
 		<Reference Include="Staple.Tooling">
 			<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
 		</Reference>
@@ -46,6 +55,7 @@
 		<Reference Include="OggVorbisEncoder">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\OggVorbisEncoder.dll</HintPath>
 		</Reference>
+		<ProjectReference Include="..\..\Engine\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Audio\AudioUtils.cs" />

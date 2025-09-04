@@ -18,7 +18,8 @@ internal class MessagePackInit
 
             var option = MessagePackSerializerOptions.Standard
                 .WithResolver(StaticCompositeResolver.Instance)
-                .WithSecurity(MessagePackSecurity.UntrustedData);
+                .WithSecurity(MessagePackSecurity.UntrustedData)
+                .WithCompression(MessagePackCompression.Lz4Block);
 
             MessagePackSerializer.DefaultOptions = option;
 
