@@ -44,30 +44,50 @@ public abstract class EditorWindow
     }
 
     /// <summary>
+    /// Attempts to get an existing window if it's open
+    /// </summary>
+    /// <typeparam name="T">The window type</typeparam>
+    /// <param name="window">The result if true</param>
+    /// <returns>Whether the window was found</returns>
+    public static bool TryGetWindow<T>(out T window) where T : EditorWindow
+    {
+        foreach (var w in StapleEditor.instance.editorWindows)
+        {
+            if (w != null && w.GetType() == typeof(T))
+            {
+                window = (T)w;
+
+                return true;
+            }
+        }
+
+        window = default;
+
+        return false;
+    }
+
+    /// <summary>
     /// Attempts to create a window. If an existing window of the same type exists, it'll show that one instead.
     /// </summary>
     /// <typeparam name="T">The editor window type</typeparam>
     /// <returns>The window, or null</returns>
-    public static T GetWindow<T>() where T : EditorWindow
+    public static T GetWindow<T>() where T : EditorWindow, new()
     {
-        foreach(var window in StapleEditor.instance.editorWindows)
+        if(TryGetWindow<T>(out var w))
         {
-            if(window != null && window.GetType() == typeof(T))
-            {
-                return (T)window;
-            }
+            return w;
         }
 
         try
         {
-            var result = (T)Activator.CreateInstance(typeof(T));
+            var result = new T();
 
             if (result == null)
             {
                 return null;
             }
 
-            result.title = result.title ?? typeof(T).Name;
+            result.title ??= typeof(T).Name;
 
             StapleEditor.instance.editorWindows.Add(result);
 

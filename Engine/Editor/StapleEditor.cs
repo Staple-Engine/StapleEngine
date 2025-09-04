@@ -1589,7 +1589,10 @@ internal partial class StapleEditor
         cachedGizmoEditors.Clear();
         EditorGUI.pendingObjectPickers.Clear();
 
-        EditorWindow.GetWindow<AssetPickerWindow>().Close();
+        if(EditorWindow.TryGetWindow<AssetPickerWindow>(out var w))
+        {
+            w.Close();
+        }
 
         if(selectedEntity == default)
         {
