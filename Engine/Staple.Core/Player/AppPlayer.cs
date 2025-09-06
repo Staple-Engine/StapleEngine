@@ -32,20 +32,20 @@ internal class AppPlayer
         {
             Log.Instance.onLog += (type, message) =>
             {
-                Console.WriteLine($"[{type}] {message}");
+                Platform.platformProvider.ConsoleLog($"[{type}] {message}");
             };
         }
 
         if(printTypeCacheTypes)
         {
-            Console.WriteLine($"TypeCache Types:");
+            Platform.platformProvider.ConsoleLog($"TypeCache Types:");
 
             foreach (var type in TypeCache.AllTypes())
             {
-                Console.WriteLine($"{type.FullName}");
+                Platform.platformProvider.ConsoleLog($"{type.FullName}");
             }
 
-            Console.WriteLine($"Done");
+            Platform.platformProvider.ConsoleLog($"Done");
         }
     }
 

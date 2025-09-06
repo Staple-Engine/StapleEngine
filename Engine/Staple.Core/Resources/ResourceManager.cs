@@ -63,7 +63,7 @@ internal class ResourceManager
         {
             if(resourcePaks.ContainsKey(path))
             {
-                Log.Debug($"Attempted to load resource pak twice for path {path}");
+                Platform.platformProvider.ConsoleLog($"Attempted to load resource pak twice for path {path}");
 
                 return false;
             }
@@ -76,10 +76,12 @@ internal class ResourceManager
             {
                 stream.Dispose();
 
-                Console.WriteLine($"[Error] Failed to load resource pak at {path}: Likely invalid file");
+                Platform.platformProvider.ConsoleLog($"[Error] Failed to load resource pak at {path}: Likely invalid file");
 
                 return false;
             }
+
+            Platform.platformProvider.ConsoleLog($"[Debug] Loaded resource pak at {path}: {resourcePak.FileCount} files");
 
             resourcePaks.Add(path, resourcePak);
 
@@ -87,7 +89,7 @@ internal class ResourceManager
         }
         catch(Exception e)
         {
-            Console.WriteLine($"[Error] Failed to load resource pak at {path}: {e}");
+            Platform.platformProvider.ConsoleLog($"[Error] Failed to load resource pak at {path}: {e}");
 
             return false;
         }

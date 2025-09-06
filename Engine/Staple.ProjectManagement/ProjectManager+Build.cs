@@ -40,27 +40,22 @@ public partial class ProjectManager
         var redistConfigurationName = debugRedists ? "Debug" : "Release";
         var targetResourcesPath = Path.Combine(backend.dataDirIsOutput ? outPath : Path.Combine(projectDirectory, "Player"), backend.dataDir);
 
+        StorageUtils.CreateDirectory(projectDirectory);
+
+        StorageUtils.CreateDirectory(assetsCacheDirectory);
+
+        StorageUtils.CreateDirectory(targetResourcesPath);
+
         try
         {
-            Directory.CreateDirectory(projectDirectory);
+            var files = Directory.GetFiles(targetResourcesPath);
+
+            foreach (var file in files)
+            {
+                File.Delete(file);
+            }
         }
         catch(Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(assetsCacheDirectory);
-        }
-        catch (Exception)
-        {
-        }
-
-        try
-        {
-            Directory.CreateDirectory(targetResourcesPath);
-        }
-        catch (Exception)
         {
         }
 
@@ -127,6 +122,12 @@ public partial class ProjectManager
             {
             }
 
+            var platformPakExtension = backend.platform switch
+            {
+                AppPlatform.Android => "gif",
+                _ => "pak",
+            };
+
             var baseResourcesPath = Path.Combine(stapleBasePath, "DefaultResources");
 
             try
@@ -144,7 +145,7 @@ public partial class ProjectManager
 
                 try
                 {
-                    File.Copy(defaultResourcesPath, Path.Combine(targetResourcesPath, "DefaultResources.pak"), true);
+                    File.Copy(defaultResourcesPath, Path.Combine(targetResourcesPath, $"DefaultResources.{platformPakExtension}"), true);
                 }
                 catch (Exception e)
                 {
@@ -234,7 +235,7 @@ public partial class ProjectManager
 
             bool PreparePak(string name)
             {
-                var args = $"-p -r -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, $"{name}.pak")}\"";
+                var args = $"-p -r -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, $"{name}.{platformPakExtension}")}\"";
 
                 var processInfo = new ProcessStartInfo(Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Packer"), args)
                 {

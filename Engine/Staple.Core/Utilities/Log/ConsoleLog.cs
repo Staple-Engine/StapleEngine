@@ -9,22 +9,22 @@ internal class ConsoleLog : ILog
 {
     public void Debug(string message)
     {
-        Console.WriteLine($"[Debug] {message}");
+        Platform.platformProvider.ConsoleLog($"[Debug] {message}");
     }
 
     public void Error(string message)
     {
-        Console.WriteLine($"[Error] {message}");
+        Platform.platformProvider.ConsoleLog($"[Error] {message}");
     }
 
     public void Info(string message)
     {
-        Console.WriteLine($"[Info] {message}");
+        Platform.platformProvider.ConsoleLog($"[Info] {message}");
     }
 
     public void Warning(string message)
     {
-        Console.WriteLine($"[Warning] {message}");
+        Platform.platformProvider.ConsoleLog($"[Warning] {message}");
     }
 
     public void Cleanup()

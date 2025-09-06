@@ -654,7 +654,9 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         MessagePackInit.Initialize();
 
-        var packages = Assets.List("").Where(x => x.EndsWith(".pak")).ToArray();
+        var packages = Assets.List("").Where(x => x.EndsWith(".gif")).ToArray();
+
+        LogInfo($"Loading {packages.Length} packages");
 
         foreach(var file in packages)
         {

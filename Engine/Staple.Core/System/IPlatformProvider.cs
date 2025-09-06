@@ -9,4 +9,6 @@ internal interface IPlatformProvider
     IRenderWindow CreateWindow();
 
     Stream OpenFile(string path);
+
+    void ConsoleLog(object message);
 }

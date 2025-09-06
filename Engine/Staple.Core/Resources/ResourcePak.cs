@@ -163,6 +163,8 @@ public sealed class ResourcePak : IDisposable
 
     public IEnumerable<FileInfo> Files => files;
 
+    public int FileCount => files.Count;
+
     public void Clear()
     {
         entries.Clear();
@@ -305,7 +307,7 @@ public sealed class ResourcePak : IDisposable
             if(header.header.SequenceEqual(ValidHeader) == false ||
                 header.version != ValidVersion)
             {
-                Console.WriteLine($"[ResourcePak] Invalid Header");
+                Platform.platformProvider.ConsoleLog($"[ResourcePak] Invalid Header");
 
                 return false;
             }
@@ -338,7 +340,7 @@ public sealed class ResourcePak : IDisposable
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ResourcePak] Error deserializing: {e}");
+            Platform.platformProvider.ConsoleLog($"[ResourcePak] Error deserializing: {e}");
 
             return false;
         }

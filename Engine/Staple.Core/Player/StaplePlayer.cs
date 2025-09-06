@@ -27,7 +27,7 @@ public static class StaplePlayer
             {
                 if (ResourceManager.instance.LoadPak(file) == false)
                 {
-                    Console.WriteLine($"Failed to load player resources");
+                    Platform.platformProvider.ConsoleLog($"Failed to load player resources");
 
                     Environment.Exit(1);
                 }
@@ -35,7 +35,7 @@ public static class StaplePlayer
         }
         catch(Exception)
         {
-            Console.WriteLine($"Failed to load player resources");
+            Platform.platformProvider.ConsoleLog($"Failed to load player resources");
 
             Environment.Exit(1);
         }
@@ -65,7 +65,7 @@ public static class StaplePlayer
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Failed to load appsettings: {e}");
+            Platform.platformProvider.ConsoleLog($"Failed to load appsettings: {e}");
 
             Environment.Exit(1);
 

@@ -23,5 +23,7 @@ internal class LinuxPlatformProvider : IPlatformProvider
 
     public IRenderWindow CreateWindow() => new SDL2RenderWindow();
 
+    public void ConsoleLog(object message) => Console.WriteLine($"{message}");
+
     public Stream OpenFile(string path) => File.OpenRead(path);
 }

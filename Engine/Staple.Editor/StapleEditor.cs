@@ -450,7 +450,7 @@ internal partial class StapleEditor
 
         Log.Instance.onLog += (type, message) =>
         {
-            System.Console.WriteLine($"[{type}] {message}");
+            Platform.platformProvider.ConsoleLog($"[{type}] {message}");
         };
 
         LoadEditorSettings();

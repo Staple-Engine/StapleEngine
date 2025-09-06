@@ -26,7 +26,7 @@ internal class FSLog : ILog
             stream = null;
             writer = null;
 
-            Console.WriteLine($"[Log] Unable to create log file at {path}, defaulting to console: {e}");
+            Platform.platformProvider.ConsoleLog($"[Log] Unable to create log file at {path}, defaulting to console: {e}");
 
             return;
         }
@@ -40,7 +40,7 @@ internal class FSLog : ILog
 
         if(writer == null)
         {
-            Console.WriteLine(m);
+            Platform.platformProvider.ConsoleLog(m);
         }
     }
 
@@ -52,7 +52,7 @@ internal class FSLog : ILog
 
         if (writer == null)
         {
-            Console.WriteLine(m);
+            Platform.platformProvider.ConsoleLog(m);
         }
     }
 
@@ -64,7 +64,7 @@ internal class FSLog : ILog
 
         if (writer == null)
         {
-            Console.WriteLine(m);
+            Platform.platformProvider.ConsoleLog(m);
         }
     }
 
@@ -76,7 +76,7 @@ internal class FSLog : ILog
 
         if (writer == null)
         {
-            Console.WriteLine(m);
+            Platform.platformProvider.ConsoleLog(m);
         }
     }
 
