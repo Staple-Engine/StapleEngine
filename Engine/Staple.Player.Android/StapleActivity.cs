@@ -179,21 +179,41 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
     {
         public bool OnTouch(View v, MotionEvent e)
         {
-            for (var i = 0; i < e.PointerCount; i++)
+            var action = e.ActionMasked;
+            var pointer = e.ActionIndex;
+            var ID = e.GetPointerId(pointer);
+            var x = e.GetX(pointer);
+            var y = e.GetY(pointer);
+
+            switch (action)
             {
-                var ID = e.GetPointerId(i);
-                var coords = new MotionEvent.PointerCoords();
+                case MotionEventActions.Down:
+                case MotionEventActions.PointerDown:
 
-                e.GetPointerCoords(i, coords);
+                    AppEventQueue.instance.Add(AppEvent.Touch(ID, new Vector2(x, y), AppEventInputState.Press));
 
-                var inputState = (e.Action & MotionEventActions.Mask) switch
-                {
-                    MotionEventActions.Down => AppEventInputState.Press,
-                    MotionEventActions.Up => AppEventInputState.Release,
-                    _ => AppEventInputState.Repeat
-                };
+                    break;
 
-                AppEventQueue.instance.Add(AppEvent.Touch(ID, new Vector2(coords.X, coords.Y), inputState));
+                case MotionEventActions.Up:
+                case MotionEventActions.PointerUp:
+                case MotionEventActions.Cancel:
+
+                    AppEventQueue.instance.Add(AppEvent.Touch(ID, new Vector2(x, y), AppEventInputState.Release));
+
+                    break;
+
+                case MotionEventActions.Move:
+
+                    for(var i = 0; i < e.PointerCount; i++)
+                    {
+                        ID = e.GetPointerId(i);
+                        x = e.GetX(i);
+                        y = e.GetY(i);
+
+                        AppEventQueue.instance.Add(AppEvent.Touch(ID, new Vector2(x, y), AppEventInputState.Repeat));
+                    }
+
+                    break;
             }
 
             return true;

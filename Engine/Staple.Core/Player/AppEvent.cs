@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 
 namespace Staple.Internal;
 
@@ -293,7 +294,7 @@ internal class AppEventQueue
     public static readonly AppEventQueue instance = new();
 
     private readonly Queue<AppEvent> events = new();
-    private readonly object stackLock = new();
+    private readonly Lock stackLock = new();
 
     public AppEvent Next()
     {

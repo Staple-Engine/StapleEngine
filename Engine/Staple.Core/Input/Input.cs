@@ -609,9 +609,9 @@ public static class Input
 
             var buttonState = pressed ? InputState.FirstPress : InputState.FirstRelease;
 
-            if (states.ContainsKey(key))
+            if (states.TryGetValue(key, out InputState value))
             {
-                buttonState = states[key];
+                buttonState = value;
 
                 if (pressed)
                 {
@@ -713,14 +713,7 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (touchPositions.ContainsKey(appEvent.touch.touchID))
-            {
-                touchPositions[appEvent.touch.touchID] = appEvent.touch.position;
-            }
-            else
-            {
-                touchPositions.Add(appEvent.touch.touchID, appEvent.touch.position);
-            }
+            touchPositions[appEvent.touch.touchID] = appEvent.touch.position;
 
             if (appEvent.touch.state == AppEventInputState.Repeat)
             {

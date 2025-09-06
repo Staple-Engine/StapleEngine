@@ -686,10 +686,15 @@ internal class RenderWindow
 
     internal void CheckEvents()
     {
-        var appEvent = AppEventQueue.instance.Next();
-
-        if (appEvent != null)
+        for(; ; )
         {
+            var appEvent = AppEventQueue.instance.Next();
+
+            if (appEvent == null)
+            {
+                break;
+            }
+
             switch (appEvent.type)
             {
                 case AppEventType.ResetFlags:
