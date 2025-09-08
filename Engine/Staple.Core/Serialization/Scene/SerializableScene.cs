@@ -164,7 +164,7 @@ public class SerializableScene
     public string guid = Guid.NewGuid().ToString();
 
     [Key(1)]
-    public List<SceneObject> objects = new();
+    public List<SceneObject> objects = [];
 
     [Key(2)]
     public string typeName = typeof(Scene).FullName;

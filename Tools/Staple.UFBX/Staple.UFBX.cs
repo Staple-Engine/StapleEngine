@@ -53,7 +53,7 @@ public class UFXImporter : IMeshImporter
 
                 foreach (var material in materials)
                 {
-                    var baseName = material.name.length > 0 ? material.name.Value : (++counter).ToString();
+                    var baseName = material.name.length > 0 ? material.name.ToString() : (++counter).ToString();
 
                     baseName = string.Join('_', baseName.Split(Path.GetInvalidFileNameChars()));
 
@@ -188,6 +188,8 @@ public class UFXImporter : IMeshImporter
                     AddColor("specularColor", material.specularColor != Vector4.Zero, material.specularColor);
                     AddColor("transparentColor", material.transparencyColor != Vector4.Zero, material.transparencyColor);
 
+                    var hadCount = 0;
+
                     void AddTexture(string name, bool has, UFBXString fileName, TextureWrap wrapU, TextureWrap wrapV)
                     {
                         if (ShaderHasParameter(name) == false)
@@ -202,7 +204,9 @@ public class UFXImporter : IMeshImporter
 
                         if (has)
                         {
-                            texturePath = resolveTexturePath(fileName.Value, meshFileName);
+                            texturePath = resolveTexturePath(fileName.ToString(), meshFileName);
+
+                            hadCount++;
                         }
 
                         if (texturePath.Length > 0)
@@ -280,7 +284,14 @@ public class UFXImporter : IMeshImporter
                     {
                     }
 
-                    Console.WriteLine($"\t\tGenerated material {target}");
+                    var hadString = "";
+
+                    if (hadCount == 0)
+                    {
+                        hadString = " (note: This material had no textures)";
+                    }
+
+                    Console.WriteLine($"\t\tGenerated material {target}{hadString}");
                 }
             }
             #endregion
@@ -316,7 +327,7 @@ public class UFXImporter : IMeshImporter
 
             foreach (var node in scene->Nodes)
             {
-                var nodeName = node.name.Value;
+                var nodeName = node.name.ToString();
 
                 if (nodeCounters.TryGetValue(nodeName, out var counter) == false)
                 {
@@ -558,7 +569,7 @@ public class UFXImporter : IMeshImporter
                 var a = new MeshAssetAnimation()
                 {
                     duration = animation.duration,
-                    name = animation.name.Value,
+                    name = animation.name.ToString(),
                 };
 
                 for (var k = 0; k < animation.nodeCount; k++)
@@ -594,7 +605,7 @@ public class UFXImporter : IMeshImporter
 
                     var c = new MeshAssetAnimationChannel()
                     {
-                        nodeIndex = nodes.FindIndex(x => x.name == scene->nodes[frame.nodeIndex].name.Value),
+                        nodeIndex = nodes.FindIndex(x => x.name == scene->nodes[frame.nodeIndex].name.ToString()),
                         positionKeys = positionKeys,
                         rotationKeys = rotationKeys,
                         scaleKeys = scaleKeys,

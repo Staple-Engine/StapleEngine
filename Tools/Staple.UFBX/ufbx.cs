@@ -104,16 +104,18 @@ public unsafe struct UFBXString
     public fixed sbyte data[10240];
     public int length;
 
-    public readonly string Value
+    public override string ToString()
     {
-        get
+        if(length <= 0)
         {
-            unsafe
+            return "";
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = data)
             {
-                fixed (void* ptr = data)
-                {
-                    return Encoding.UTF8.GetString((byte*)ptr, length);
-                }
+                return Encoding.UTF8.GetString((byte*)ptr, length);
             }
         }
     }
