@@ -1103,6 +1103,7 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 	opts.target_axes.front = UFBX_COORDINATE_AXIS_POSITIVE_Z;
 
 	opts.target_unit_meters = 1.0f;
+	opts.space_conversion = UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY;
 
 	ufbx_error error;
 
