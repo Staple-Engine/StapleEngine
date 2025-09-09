@@ -16,6 +16,9 @@ public class JoltPhysics3D : IPhysics3D
 {
     public const float MinExtents = 0.2f;
     public const int PhysicsLayerCount = 32;
+    public const int MaxBodyCount = 102400;
+    public const int MaxBodyPairs = 655360;
+    public const int NumBodyMutexes = 0;
 
     //Dependencies
     private BroadPhaseLayerInterface broadPhaseLayerInterface;
@@ -61,12 +64,19 @@ public class JoltPhysics3D : IPhysics3D
 
                 System.Diagnostics.Debug.WriteLine(outMessage);
 
-                Log.Info(outMessage);
+                Log.Error(outMessage);
 
                 throw new Exception(outMessage);
             });
+
+            JoltPhysicsSharp.Foundation.SetTraceHandler((message) =>
+            {
+                System.Diagnostics.Debug.WriteLine(message);
+
+                Log.Info(message);
+            });
         }
-        catch(Exception)
+        catch (Exception)
         {
             Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
         }
@@ -108,12 +118,21 @@ public class JoltPhysics3D : IPhysics3D
 
         jobSystem = new JobSystemThreadPool();
 
-        physicsSystem = new(new PhysicsSystemSettings()
+        var physicsSettings = new PhysicsSystemSettings()
         {
             BroadPhaseLayerInterface = broadPhaseLayerInterface,
             ObjectLayerPairFilter = objectLayerPairFilter,
             ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter,
-        });
+        };
+
+        if(Platform.IsEditor)
+        {
+            physicsSettings.MaxBodies = MaxBodyCount;
+            physicsSettings.MaxBodyPairs = MaxBodyPairs;
+            physicsSettings.NumBodyMutexes = NumBodyMutexes;
+        }
+
+        physicsSystem = new(physicsSettings);
 
         physicsSystem.OnBodyActivated += OnBodyActivated;
         physicsSystem.OnBodyDeactivated += OnBodyDeactivated;

@@ -578,10 +578,10 @@ public class MaterialMetadata
     public string shader;
 
     [Key(2)]
-    public Dictionary<string, MaterialParameter> parameters = new();
+    public Dictionary<string, MaterialParameter> parameters = [];
 
     [Key(3)]
-    public List<string> enabledShaderVariants = new();
+    public List<string> enabledShaderVariants = [];
 
     [Key(4)]
     public CullingMode cullingMode = CullingMode.Back;

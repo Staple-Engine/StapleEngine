@@ -427,12 +427,12 @@ internal partial class StapleEditor
 
         privInstance = new WeakReference<StapleEditor>(this);
 
+        Platform.IsPlaying = false;
+        Platform.IsEditor = true;
+
         ReloadTypeCache();
 
         ModuleInitializer.LoadAll();
-
-        Platform.IsPlaying = false;
-        Platform.IsEditor = true;
 
         editorAppSettings.runInBackground = true;
         editorAppSettings.appName = "Staple Editor";
