@@ -403,6 +403,52 @@ public partial class PackageManager
 
                 var directory = PathForPackage(name, value);
 
+                var builtinLastWrite = DateTime.MinValue;
+                var targetLastWrite = DateTime.MinValue;
+
+                void GetLastWriteTime(string path, ref DateTime time)
+                {
+                    try
+                    {
+                        if(File.Exists(path))
+                        {
+                            var writeTime = File.GetLastWriteTime(path);
+
+                            if(writeTime > time)
+                            {
+                                time = writeTime;
+                            }
+                        }
+                        else if (Directory.Exists(path))
+                        {
+                            var writeTime = Directory.GetLastWriteTime(path);
+
+                            if (writeTime > time)
+                            {
+                                time = writeTime;
+                            }
+
+                            foreach (var directory in Directory.GetDirectories(path))
+                            {
+                                GetLastWriteTime(directory, ref time);
+                            }
+
+                            foreach(var file in Directory.GetFiles(path))
+                            {
+                                GetLastWriteTime(file, ref time);
+                            }
+                        }
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
+
+                GetLastWriteTime(p.Item1, ref builtinLastWrite);
+                GetLastWriteTime(directory, ref targetLastWrite);
+
+                shouldOverwrite |= builtinLastWrite > targetLastWrite;
+
                 if(shouldOverwrite)
                 {
                     var oldDirectory = PathForPackage(name, oldVersion);

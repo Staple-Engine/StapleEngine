@@ -638,7 +638,7 @@ internal partial class StapleEditor
                                                 {
                                                     Scene scene = null;
 
-                                                    if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                                                    if (sceneMode == SceneMode.Prefab)
                                                     {
                                                         World.Current = new();
                                                         scene = new();

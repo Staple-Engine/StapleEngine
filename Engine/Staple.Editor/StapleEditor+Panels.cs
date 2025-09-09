@@ -259,7 +259,7 @@ internal partial class StapleEditor
                     {
                         if (Scene.current != null && lastOpenScene != null)
                         {
-                            if (lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}"))
+                            if (sceneMode == SceneMode.Prefab)
                             {
                                 var targetEntity = new Entity();
 
@@ -640,13 +640,13 @@ internal partial class StapleEditor
                             return;
                         }
 
-                        if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                        if ((sceneMode != SceneMode.Prefab || transform.parent != null) &&
                             ImGui.MenuItem("Duplicate"))
                         {
                             Entity.Instantiate(transform.entity, transform.parent);
                         }
 
-                        if ((lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false || transform.parent != null) &&
+                        if ((sceneMode != SceneMode.Prefab || transform.parent != null) &&
                             ImGui.MenuItem("Delete"))
                         {
                             transform.entity.Destroy();
@@ -724,27 +724,20 @@ internal partial class StapleEditor
                 HandleReorder(false);
             }
 
-            Scene.IterateEntities((entity) =>
+            foreach(var (entity, transform) in renderQueue.transforms.Contents)
             {
-                var transform = entity.GetComponent<Transform>();
-
-                if(transform == null)
-                {
-                    return;
-                }
-
                 if (transform.parent == null)
                 {
                     Recursive(transform);
                 }
-            });
+            }
         }
 
         if (Scene.current != null &&
             ImGui.IsWindowHovered() &&
             ImGui.IsAnyItemHovered() == false &&
             Input.GetMouseButtonUp(MouseButton.Right) &&
-            lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") == false)
+            sceneMode != SceneMode.Prefab)
         {
             ImGui.OpenPopup("EntityPanelContext");
         }
@@ -1693,6 +1686,8 @@ internal partial class StapleEditor
                             if (scene != null)
                             {
                                 lastOpenScene = item.path;
+
+                                sceneMode = lastOpenScene.EndsWith($".{AssetSerialization.PrefabExtension}") ? SceneMode.Prefab : SceneMode.Scene;
 
                                 UpdateLastSession();
 

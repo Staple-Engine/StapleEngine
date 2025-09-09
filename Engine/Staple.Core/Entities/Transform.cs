@@ -12,6 +12,7 @@ namespace Staple;
 public class Transform : IComponent
 {
     internal bool changed = false;
+    internal bool changedThisFrame = false;
 
     /// <summary>
     /// Whether the transform has changed.
@@ -27,6 +28,11 @@ public class Transform : IComponent
 
             changed = value;
 
+            if(changed)
+            {
+                changedThisFrame = true;
+            }
+
             if(wasChanged == false && changed)
             {
                 for(var i = 0; i < Children.Length; i++)
@@ -36,6 +42,11 @@ public class Transform : IComponent
             }
         }
     }
+
+    /// <summary>
+    /// Whether the transform was changed this frame
+    /// </summary>
+    public bool ChangedThisFrame => changedThisFrame;
 
     /// <summary>
     /// Child transforms
@@ -95,13 +106,13 @@ public class Transform : IComponent
     /// <summary>
     /// Gets the transform's Global Transformation Matrix
     /// </summary>
-    public Matrix4x4 Matrix
+    public ref readonly Matrix4x4 Matrix
     {
         get
         {
             UpdateState();
 
-            return finalMatrix;
+            return ref finalMatrix;
         }
     }
 
@@ -351,11 +362,22 @@ public class Transform : IComponent
 
             matrix = Math.TRS(position, scale, rotation);
 
-            finalMatrix = parent != null ? matrix * parent.Matrix : matrix;
+            if(parent != null)
+            {
+                ref readonly Matrix4x4 parentMatrix = ref parent.Matrix;
 
-            finalPosition = parent != null ? Vector3.Transform(position, parent.Matrix) : position;
-            finalRotation = parent != null ? parent.Rotation * rotation : rotation;
-            finalScale = parent != null ? parent.Scale * scale : scale;
+                finalMatrix = matrix * parentMatrix;
+                finalPosition = Vector3.Transform(position, parentMatrix);
+                finalRotation = parent.Rotation * rotation;
+                finalScale = parent.Scale * scale;
+            }
+            else
+            {
+                finalMatrix = matrix;
+                finalPosition = position;
+                finalRotation = rotation;
+                finalScale = scale;
+            }
         }
     }
 

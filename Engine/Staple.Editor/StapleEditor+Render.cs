@@ -23,17 +23,7 @@ internal partial class StapleEditor
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.width, window.height);
 
-        static void ExecuteBlock(object source, Action execute)
-        {
-            try
-            {
-                execute();
-            }
-            catch(Exception e)
-            {
-                Log.Debug($"[{source.GetType().FullName}]: {e}");
-            }
-        }
+        var hasGizmos = cachedGizmoEditors.Count > 0;
 
         unsafe
         {
@@ -194,7 +184,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                ExecuteBlock(pair.Key, () =>
+                try
                 {
                     pair.Key.Preprocess(pair.Value.ToArray(), camera, cameraTransform);
 
@@ -204,7 +194,10 @@ internal partial class StapleEditor
                         {
                             if (renderable.enabled)
                             {
-                                ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
+                                if(item.Item2.ChangedThisFrame)
+                                {
+                                    ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
+                                }
                             }
                             else
                             {
@@ -216,10 +209,14 @@ internal partial class StapleEditor
                     pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, SceneView);
 
                     pair.Key.Submit(SceneView);
-                });
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"[{pair.Key.GetType()}] {e}");
+                }
             }
 
-            if (cachedGizmoEditors.Count > 0)
+            if (hasGizmos)
             {
                 var counter = 0;
 
@@ -241,7 +238,9 @@ internal partial class StapleEditor
 
             foreach(var (entity, transform) in renderQueue.transforms.Contents)
             {
-                if(transform == null || Vector3.Distance(transform.Position, cameraTransform.Position) < MinComponentIconDistance)
+                transform.changedThisFrame = false;
+
+                if(Vector3.Distance(transform.Position, cameraTransform.Position) < MinComponentIconDistance)
                 {
                     continue;
                 }

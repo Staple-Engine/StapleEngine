@@ -99,6 +99,10 @@ internal partial class StapleEditor
                 bounds = bounds,
             });
         }
+        else
+        {
+            wrapper.Destroy();
+        }
     }
 
     /// <summary>
@@ -115,7 +119,7 @@ internal partial class StapleEditor
         }
 
         if (pickEntityBodies.TryGetValue(entity, out var pair) == false ||
-            (pair.bounds.center != bounds.center || pair.bounds.extents != bounds.extents))
+            pair.bounds != bounds)
         {
             ReplaceEntityBody(entity, bounds);
         }

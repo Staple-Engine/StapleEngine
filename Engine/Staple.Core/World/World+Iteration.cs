@@ -603,10 +603,7 @@ public partial class World
 
                 callback(ref component);
 
-                if(component.GetType().IsValueType)
-                {
-                    entityInfo.components[pair.Key] = component;
-                }
+                entityInfo.components[pair.Key] = component;
             }
         }
     }

@@ -19,6 +19,7 @@ public class JoltPhysics3D : IPhysics3D
     public const int MaxBodyCount = 102400;
     public const int MaxBodyPairs = 655360;
     public const int NumBodyMutexes = 0;
+    public const int OptimizeBroadPhaseBodyThreshold = 100;
 
     //Dependencies
     private BroadPhaseLayerInterface broadPhaseLayerInterface;
@@ -35,6 +36,7 @@ public class JoltPhysics3D : IPhysics3D
 
     private bool destroyed = false;
     private bool locked = false;
+    private int lastAddedBodyCount = 0;
 
     public bool Destroyed => destroyed;
 
@@ -1029,6 +1031,18 @@ public class JoltPhysics3D : IPhysics3D
                 characterPair.character.AddToPhysicsSystem();
             }
         }
+
+        lock(threadLock)
+        {
+            var currentBodyCount = bodies.Count + characters.Count;
+
+            if (currentBodyCount >= lastAddedBodyCount + OptimizeBroadPhaseBodyThreshold)
+            {
+                physicsSystem.OptimizeBroadPhase();
+
+                lastAddedBodyCount = currentBodyCount;
+            }
+        }
     }
 
     public void RemoveBody(IBody3D body)
@@ -1054,6 +1068,18 @@ public class JoltPhysics3D : IPhysics3D
                 characterPair.enabled = false;
 
                 characterPair.character.RemoveFromPhysicsSystem();
+            }
+        }
+
+        lock (threadLock)
+        {
+            var currentBodyCount = bodies.Count + characters.Count;
+
+            if (currentBodyCount <= lastAddedBodyCount - OptimizeBroadPhaseBodyThreshold)
+            {
+                physicsSystem.OptimizeBroadPhase();
+
+                lastAddedBodyCount = currentBodyCount;
             }
         }
     }

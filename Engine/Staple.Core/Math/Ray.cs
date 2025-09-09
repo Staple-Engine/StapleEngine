@@ -127,7 +127,9 @@ public struct Ray(Vector3 position, Vector3 direction)
         t1 = 0;
 
         var rayDelta = transform.Position - ray.position;
-        var matrix = transform.Matrix;
+
+        ref readonly Matrix4x4 matrix = ref transform.Matrix;
+
         int p = 0;
         float tmin = -999999, tmax = 999999;
 

@@ -601,6 +601,11 @@ public sealed partial class RenderSystem
         {
             RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
         }
+
+        foreach(var (_, transform) in entityQuery.Contents)
+        {
+            transform.changedThisFrame = false;
+        }
     }
 
     /// <summary>
@@ -615,6 +620,11 @@ public sealed partial class RenderSystem
         foreach (var pair in renderQueue)
         {
             RenderAccumulator(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
+        }
+
+        foreach (var (_, transform) in entityQuery.Contents)
+        {
+            transform.changedThisFrame = false;
         }
 
         if (needsDrawCalls)

@@ -44,7 +44,13 @@ internal partial class StapleEditor
     enum ViewportType
     {
         Scene,
-        Game
+        Game,
+    }
+
+    public enum SceneMode
+    {
+        Scene,
+        Prefab,
     }
 
     public enum EditorMode
@@ -355,6 +361,8 @@ internal partial class StapleEditor
     public EditorMode editorMode = EditorMode.Normal;
 
     public EditorSettings editorSettings = new();
+
+    public SceneMode sceneMode = SceneMode.Scene;
 
     private bool initialized = false;
     #endregion

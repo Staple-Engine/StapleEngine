@@ -80,15 +80,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
+            if (transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            {
+                var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
 
-            var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
+                var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
 
-            renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
-                localSize * transform.LocalScale);
+                renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
+                    localSize * transform.LocalScale);
 
-            renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
-                globalSize * transform.Scale);
+                renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
+                    globalSize * transform.Scale);
+            }
         }
     }
 
