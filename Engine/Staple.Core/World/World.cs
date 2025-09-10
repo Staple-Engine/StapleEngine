@@ -161,6 +161,17 @@ public partial class World
 
     public static World Current { get; internal set; } = new();
 
+    public int EntityCount
+    {
+        get
+        {
+            lock(globalLockObject)
+            {
+                return entities.Count;
+            }
+        }
+    }
+
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
 

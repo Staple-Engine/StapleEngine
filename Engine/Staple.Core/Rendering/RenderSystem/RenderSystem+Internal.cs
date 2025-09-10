@@ -193,6 +193,7 @@ public sealed partial class RenderSystem
             return;
         }
 
+        DrawnRenderers = 0;
         CulledRenderers = 0;
 
         (previousUsedViewIDs, usedViewIDs) = (usedViewIDs, previousUsedViewIDs);
@@ -391,7 +392,11 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    if (renderable.isVisible == false)
+                    if (renderable.isVisible)
+                    {
+                        DrawnRenderers++;
+                    }
+                    else
                     {
                         CulledRenderers++;
                     }
@@ -475,7 +480,11 @@ public sealed partial class RenderSystem
                         {
                             renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
-                            if (renderable.isVisible == false)
+                            if (renderable.isVisible)
+                            {
+                                DrawnRenderers++;
+                            }
+                            else
                             {
                                 CulledRenderers++;
                             }
@@ -681,6 +690,8 @@ public sealed partial class RenderSystem
 
                                 if (renderable.isVisible)
                                 {
+                                    DrawnRenderers++;
+
                                     AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
                                 }
                                 else

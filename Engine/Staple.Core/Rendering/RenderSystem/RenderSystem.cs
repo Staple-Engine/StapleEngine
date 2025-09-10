@@ -52,9 +52,14 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public static bool UseDrawcallInterpolator = false;
 
     /// <summary>
-    /// The amount of renderers that were culled
+    /// The amount of renders that were culled
     /// </summary>
     public static int CulledRenderers { get; internal set; }
+
+    /// <summary>
+    /// The amount of rendered batches
+    /// </summary>
+    public static int DrawnRenderers { get; internal set; }
 
     /// <summary>
     /// The current view ID that is being rendered
