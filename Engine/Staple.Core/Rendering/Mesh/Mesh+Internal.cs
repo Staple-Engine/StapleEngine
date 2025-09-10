@@ -426,16 +426,16 @@ public sealed partial class Mesh
             {
                 if(i != 0)
                 {
-                    indices.Add(k1 + 1);
-                    indices.Add(k2);
                     indices.Add(k1);
+                    indices.Add(k2);
+                    indices.Add(k1 + 1);
                 }
 
                 if (i != (stackCount - 1))
                 {
-                    indices.Add(k2 + 1);
-                    indices.Add(k2);
                     indices.Add(k1 + 1);
+                    indices.Add(k2);
+                    indices.Add(k2 + 1);
                 }
             }
         }

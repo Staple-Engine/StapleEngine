@@ -211,13 +211,13 @@ public class CubicMeshBuilder
     /// <remarks>Works for quad as well</remarks>
     public void CubeFaces()
     {
-        indices.Add(vertices.Count - 2);
+        indices.Add(vertices.Count - 4);
         indices.Add(vertices.Count - 3);
-        indices.Add(vertices.Count - 4);
-
-        indices.Add(vertices.Count - 1);
         indices.Add(vertices.Count - 2);
+
         indices.Add(vertices.Count - 4);
+        indices.Add(vertices.Count - 2);
+        indices.Add(vertices.Count - 1);
     }
 
     /// <summary>
@@ -225,21 +225,21 @@ public class CubicMeshBuilder
     /// </summary>
     public void CrossFaces()
     {
-        indices.Add(vertices.Count - 8);
+        indices.Add(vertices.Count - 6);
         indices.Add(vertices.Count - 7);
-        indices.Add(vertices.Count - 6);
-
         indices.Add(vertices.Count - 8);
-        indices.Add(vertices.Count - 6);
+
         indices.Add(vertices.Count - 5);
+        indices.Add(vertices.Count - 6);
+        indices.Add(vertices.Count - 8);
 
-        indices.Add(vertices.Count - 4);
+        indices.Add(vertices.Count - 2);
         indices.Add(vertices.Count - 3);
-        indices.Add(vertices.Count - 2);
-
         indices.Add(vertices.Count - 4);
-        indices.Add(vertices.Count - 2);
+
         indices.Add(vertices.Count - 1);
+        indices.Add(vertices.Count - 2);
+        indices.Add(vertices.Count - 4);
     }
 
     /// <summary>
